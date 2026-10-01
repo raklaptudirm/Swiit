@@ -122,7 +122,7 @@ scripts, reusing the twins.
 1. **The standard library's members on Swish values**, from its symbol
    graph and generated glue, replacing the hand-written member tables.
    *Built so far:* `swish-bridge` (Sources/SwishBridge) reads the graph
-   and writes Sources/SwishCore/Bridge/StandardLibrary.swift;
+   and writes Sources/SwishCore/Bridge/Generated/StandardLibrary.swift;
    `run bridge` reruns it. It bridges `String`,
    `Substring`, `Character`, `Int`, `Double`, `Bool`, `Array`,
    `ArraySlice`, `Set`, `Dictionary`, `Optional`, `Range` and
@@ -156,7 +156,7 @@ scripts, reusing the twins.
    - **Other modules' types are held boxed,** by their full name:
      swift-system's `FilePath`, `FilePath.Component` and
      `FilePath.ComponentView` (81 members, in
-     Sources/SwishCore/Bridge/SystemPackage.swift). It's swift-system's
+     Sources/SwishCore/Bridge/Generated/SystemPackage.swift). It's swift-system's
      until the standard library's
      ([SE-0529](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0529-filepath-in-stdlib.md))
      ships, when swift-system's becomes a typealias for it and keeps these
