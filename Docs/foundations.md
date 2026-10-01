@@ -44,8 +44,6 @@ What that costs, found by trying it:
   prelude and a private Swift `Encodable` struct beside `ls`, whose record
   is then patched (`type` made an enum, `path` a FilePath). `ProcessEntry`,
   `Help` and `Member` too.
-- **Enums are built by hand.** `FileType`, `JobState` and `TextStyle` are
-  made in Swift, bound by hand, and listed again for the prelude's parser.
 - **Swish's own value kinds sit beside Swift's.** `filesize`, `date`,
   `output` and `record` are cases of both `Value` and `TypeAnnotation`,
   where the goal is one type system, Swift's.
@@ -53,8 +51,8 @@ What that costs, found by trying it:
   `compactMap`, and its `sorted` has `--reverse`, so `xs.map` in Swish isn't
   Swift's.
 - **The checker knows some names.** `select` has a hand-written type rule,
-  `to text` is special-cased to a String, and JSON is a fake struct whose
-  field access is rewritten into calls to `$json`.
+  and JSON is a fake struct whose field access is rewritten into calls to
+  `$json`.
 - **Display knows some names.** Default columns come from a table in
   Display.swift (`"FileEntry": ["name", "type", "size", "modified"]`), and
   colors from `FileType`, `JobState` and `FilePath` by name. A struct of
@@ -72,8 +70,8 @@ What that costs, found by trying it:
   `Output`, `FileType`, `TextStyle`, `String.styled`, and the shell's
   additions to `Sequence` (`select`, `get`, `uniqued`, `sorted(by: \.key)`).
   Declared once, in Swift, with doc comments that `help` shows. That
-  retires the prelude's text, bodies found by name, the duplicate structs,
-  the hand-built enums and Extensions.swift. It's what a plugin does, so
+  retires the prelude's text, bodies found by name, the duplicate structs
+  and Extensions.swift. It's what a plugin does, so
   builtins and plugins become one mechanism, and the plugin ABI is the
   shell's own.
 - **`map` and `sorted` are Swift's.** `map` keeps nils (`compactMap` drops
@@ -142,8 +140,8 @@ they change the shell is what they do, not how they're found.
    until step 4 makes them Swift types.
 4. **The standard library module.** The generator learns free functions,
    protocol extensions and SwishKit's parameter attributes (`@Flag`,
-   `@Input`); the prelude's text, the native bodies, the duplicate structs,
-   the hand-built enums and Extensions.swift go. `FileSize`, `Date` and
+   `@Input`); the prelude's text, the native bodies, the duplicate structs
+   and Extensions.swift go. `FileSize`, `Date` and
    `Output` stop being cases of `Value` and `TypeAnnotation` and are Swift
    types like the rest.
 5. **Display protocols**, replacing the table of columns and the colors
