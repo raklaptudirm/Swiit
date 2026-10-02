@@ -144,6 +144,16 @@ they change the shell is what they do, not how they're found.
    and Extensions.swift go. `FileSize`, `Date` and
    `Output` stop being cases of `Value` and `TypeAnnotation` and are Swift
    types like the rest.
+   *In progress.* Every type gets its protocols' members, and other
+   modules' additions to a type are read too (`_StringProcessing`'s
+   `contains`). `SwishStandardLibrary` is a Swift target the generator reads
+   for free functions, structs and enums: `pwd`, `readLine`, `history`, `ls`
+   and `ps`, with `FileEntry`, `ProcessEntry` and `FileType`, are done. A
+   struct becomes a record, declared in Swish from its fields; a parameter
+   of type `ShellContext` is lent by the shell; a `Partial` result carries
+   per-item errors; `@Flag` and `@Rest` mark short flags and the rest of the
+   arguments. Left: `TextStyle` and `String.styled`, `JobState`, the
+   `Sequence` additions with their attributes, and the three value kinds.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name.
 
