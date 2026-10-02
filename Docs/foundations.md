@@ -155,10 +155,15 @@ they change the shell is what they do, not how they're found.
    arguments. A module's extensions of Swift's types are read as the
    standard library's are (`String.styled` with `TextStyle`, `Sequence.uniqued`),
    and an enum that lists its cases can be an argument. `JobState` is declared
-   there too. Left: the other `Sequence` additions (`select`, `get`,
-   `sorted(by:)`, which need key paths) and the streaming prelude methods,
-   `from`, `to`, `table`, `list`, `members`, `help` and `with`, and the three
-   value kinds.
+   there too. The prelude's `reversed`, `count` and `uniqued` are gone: Swift's
+   own members, bridged, do the same. Left: `select`, `get` and `sorted(by:)`,
+   which read a field of each item through a key path. A Swift `KeyPath`
+   only exists for a real Swift type, and a struct reaches Swish as a
+   record, so they wait for structs held as the Swift values they are,
+   which is also what step 5's display protocols need. Also left: the
+   streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
+   `table`, `list`, `members`, `help` and `with`, and the three value
+   kinds.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name.
 
