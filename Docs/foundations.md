@@ -152,8 +152,13 @@ they change the shell is what they do, not how they're found.
    struct becomes a record, declared in Swish from its fields; a parameter
    of type `ShellContext` is lent by the shell; a `Partial` result carries
    per-item errors; `@Flag` and `@Rest` mark short flags and the rest of the
-   arguments. Left: `TextStyle` and `String.styled`, `JobState`, the
-   `Sequence` additions with their attributes, and the three value kinds.
+   arguments. A module's extensions of Swift's types are read as the
+   standard library's are (`String.styled` with `TextStyle`, `Sequence.uniqued`),
+   and an enum that lists its cases can be an argument. `JobState` is declared
+   there too. Left: the other `Sequence` additions (`select`, `get`,
+   `sorted(by:)`, which need key paths) and the streaming prelude methods,
+   `from`, `to`, `table`, `list`, `members`, `help` and `with`, and the three
+   value kinds.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name.
 
