@@ -156,14 +156,14 @@ they change the shell is what they do, not how they're found.
    standard library's are (`String.styled` with `TextStyle`, `Sequence.uniqued`),
    and an enum that lists its cases can be an argument. `JobState` is declared
    there too. The prelude's `reversed`, `count` and `uniqued` are gone: Swift's
-   own members, bridged, do the same. Left: `select`, `get` and `sorted(by:)`,
-   which read a field of each item through a key path. A Swift `KeyPath`
-   only exists for a real Swift type, and a struct reaches Swish as a
-   record, so they wait for structs held as the Swift values they are,
-   which is also what step 5's display protocols need. Also left: the
-   streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
-   `table`, `list`, `members`, `help` and `with`, and the three value
-   kinds.
+   own members, bridged, do the same. So are `get` and `sorted(by:)`, which
+   are Swift extensions taking a real `KeyPath<Element, V>`: the bridge gives
+   every generic parameter the stand-in `Value`, so the glue builds a key
+   path over `Value` that reads a field by name (a subscript key path), as
+   the shell reads it, for the length of the call. Left: `select`, whose
+   result is a tuple of the fields named, the streaming `filter`, `map`,
+   `compactMap` and `prefix`, `from`, `to`, `table`, `list`, `members`,
+   `help` and `with`, and the three value kinds.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name.
 
