@@ -53,10 +53,9 @@ What that costs, found by trying it:
 - **The checker knows some names.** `select` has a hand-written type rule,
   and JSON is a fake struct whose field access is rewritten into calls to
   `$json`.
-- **Display knows some names.** Default columns come from a table in
-  Display.swift (`"FileEntry": ["name", "type", "size", "modified"]`), and
-  colors from `FileType`, `JobState` and `FilePath` by name. A struct of
-  your own can't say how it's shown.
+- **A struct of your own can't say how it's shown.** The standard library
+  module's types do (`Tabular`, `DisplayStyled`), but a struct declared in
+  Swish has no way to adopt them yet.
 - **Resolution is done twice.** The checker records how a stage resolves,
   but the interpreter keeps a fallback that guesses (`itemsMayHaveMethod`).
 
@@ -165,7 +164,13 @@ they change the shell is what they do, not how they're found.
    `compactMap` and `prefix`, `from`, `to`, `table`, `list`, `members`,
    `help` and `with`, and the three value kinds.
 5. **Display protocols**, replacing the table of columns and the colors
-   chosen by type name.
+   chosen by type name. *Done, for Swift types.* `Tabular` says which
+   columns a table starts with, each one styled by a field (a file's name by
+   its type, a job's state by itself), and `DisplayStyled` says how an enum's
+   cases are shown. The generator reads which of the module's types adopt
+   them and registers them by name; `Job` and `Help` say so beside where
+   they're made. Left: Swish structs adopting them, which needs syntax for
+   a static member.
 
 Each step is its own change, tested on its own; each removes code rather
 than adding a path beside the old one.
