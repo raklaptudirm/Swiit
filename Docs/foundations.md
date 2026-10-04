@@ -184,7 +184,10 @@ they change the shell is what they do, not how they're found.
    its type, a job's state by itself), and `DisplayStyled` says how an enum's
    cases are shown. The generator reads which of the module's types adopt
    them and registers them by name; `Job` and `Help` say so beside where
-   they're made. Left: Swish structs adopting them, which needs syntax for
+   they're made. What else a printer needs of a value (that it's a number, so
+   a column lines up on the right; that it's empty; its style in a debug form;
+   the fields it shows as) is one `DisplayShape` the type gives, so no printer
+   checks for a file size, a path or a command's output. Left: Swish structs adopting them, which needs syntax for
    a static member.
 
 Each step is its own change, tested on its own; each removes code rather
