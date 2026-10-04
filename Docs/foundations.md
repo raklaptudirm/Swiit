@@ -195,8 +195,11 @@ they change the shell is what they do, not how they're found.
    they're made. What else a printer needs of a value (that it's a number, so
    a column lines up on the right; that it's empty; its style in a debug form;
    the fields it shows as) is one `DisplayShape` the type gives, so no printer
-   checks for a file size, a path or a command's output. Left: Swish structs adopting them; a struct has
-   static members now, which is the syntax that needs.
+   checks for a file size, a path or a command's output. A struct declared in Swish adopts `Tabular` with
+   a static `columns` of `DisplayColumn`s (a Swift type, written as a string
+   literal); the shell reads them from the type when it lays a table out.
+   Left: a column's style, which needs `DisplayStyle` as a Swish type, and
+   an enum adopting `DisplayStyled`, which needs members on enums.
 
 Each step is its own change, tested on its own; each removes code rather
 than adding a path beside the old one.
