@@ -29,7 +29,7 @@ func double(@input _ n: Int) -> Int { n * 2 }
 seq 5 | double                                // lines → Int, converted per item as today
 [Point(x: 1)] | describe                      // Point.describe, chosen before running
 
-let config = from("json", $(cat config.json).lines)   // JSON
+let config = try from(.json, $(cat config.json).lines)   // JSON
 config.server?.port?.int ?? 8080
 ```
 
