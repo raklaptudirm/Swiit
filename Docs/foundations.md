@@ -44,9 +44,9 @@ What that costs, found by trying it:
   prelude and a private Swift `Encodable` struct beside `ls`, whose record
   is then patched (`type` made an enum, `path` a FilePath). `ProcessEntry`,
   `Help` and `Member` too.
-- **Swish's own value kinds sit beside Swift's.** `filesize`, `date`,
-  `output` and `record` are cases of both `Value` and `TypeAnnotation`,
-  where the goal is one type system, Swift's.
+- **Swish's own `record` sits beside Swift's types.** It's a case of both
+  `Value` and `TypeAnnotation`: a tuple, or a struct's fields by name. A file
+  size, a date and a command's output are Swift types now.
 - **The prelude shadows Swift.** Its `map` drops nils, which is Swift's
   `compactMap`, and its `sorted` has `--reverse`, so `xs.map` in Swish isn't
   Swift's.
@@ -170,10 +170,14 @@ they change the shell is what they do, not how they're found.
    as `TimeInterval`), the module adds what Swish had (`date - date`, `date +
    60`, ISO 8601 text), a Swift type says how it shows in Swish
    (`SwishDisplayed`: local time, to the minute in a table), and JSON gives
-   ISO 8601. Left: `select`, whose result is a tuple of the fields named,
-   the streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
-   `table`, `list`, `members`, `help` and `with`, and `Output`, which is
-   string-like by design and carries a status record.
+   ISO 8601. `Output`, what `$(…)` gives, is a Swift struct in SwishKit that
+   is a collection of lines (`count`, `first`, `map`, `sorted()` come from
+   that) with `text` and a `status` the shell shows as a record; a type that
+   says it `StandsForText` is its text where a String is wanted and compares
+   with strings, which is the rule that was once written for Output by name.
+   Left: `select`, whose result is a tuple of the fields named, the
+   streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
+   `table`, `list`, `members`, `help` and `with`.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name. *Done, for Swift types.* `Tabular` says which
    columns a table starts with, each one styled by a field (a file's name by
