@@ -195,8 +195,8 @@ they change the shell is what they do, not how they're found.
    they're made. What else a printer needs of a value (that it's a number, so
    a column lines up on the right; that it's empty; its style in a debug form;
    the fields it shows as) is one `DisplayShape` the type gives, so no printer
-   checks for a file size, a path or a command's output. Left: Swish structs adopting them, which needs syntax for
-   a static member.
+   checks for a file size, a path or a command's output. Left: Swish structs adopting them; a struct has
+   static members now, which is the syntax that needs.
 
 Each step is its own change, tested on its own; each removes code rather
 than adding a path beside the old one.
