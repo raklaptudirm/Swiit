@@ -159,10 +159,16 @@ they change the shell is what they do, not how they're found.
    are Swift extensions taking a real `KeyPath<Element, V>`: the bridge gives
    every generic parameter the stand-in `Value`, so the glue builds a key
    path over `Value` that reads a field by name (a subscript key path), as
-   the shell reads it, for the length of the call. Left: `select`, whose
-   result is a tuple of the fields named, the streaming `filter`, `map`,
-   `compactMap` and `prefix`, `from`, `to`, `table`, `list`, `members`,
-   `help` and `with`, and the three value kinds.
+   the shell reads it, for the length of the call. `FileSize` is a Swift value
+   too, held as it is, like a `FilePath`: it declares its arithmetic as Swift
+   operators (`static func +`), which the bridge reads for any type outside
+   the standard library, and the checker and interpreter apply to operands
+   of it; it parses from text and encodes as its bytes, as its Swift type
+   does. This changed SwishKit's `Value`, which is fine before 1.0: the plugin
+   ABI number isn't bumped until then. Left: `select`, whose result is a tuple of the
+   fields named, the streaming `filter`, `map`, `compactMap` and `prefix`,
+   `from`, `to`, `table`, `list`, `members`, `help` and `with`, and two
+   value kinds, `Date` and `Output`.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name. *Done, for Swift types.* `Tabular` says which
    columns a table starts with, each one styled by a field (a file's name by
