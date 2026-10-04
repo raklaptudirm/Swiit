@@ -175,9 +175,17 @@ they change the shell is what they do, not how they're found.
    that) with `text` and a `status` the shell shows as a record; a type that
    says it `StandsForText` is its text where a String is wanted and compares
    with strings, which is the rule that was once written for Output by name.
-   Left: `select`, whose result is a tuple of the fields named, the
-   streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
-   `table`, `list`, `members`, `help` and `with`.
+   The streaming `filter`, `map`, `compactMap` and `prefix` are a Swift
+   `Flow` in the standard library, which a stage reads only as the next stage
+   asks (`yes | map { … } | prefix 3` ends); it isn't a `Sequence`, as
+   reading an item can throw, as a closure can. A job's output is a `Flow`
+   too, line by line as it arrives (`job.lines()`). `with(env:)`, `from`,
+   `to`, `table` and `list` are Swift functions there as well, with `JSON`
+   (a `WrapsValue` type: the value it holds, read by field), the display
+   formatter and the pretty printer beside them; what types show in a table
+   is a `DisplayRegistry` the shell lends in the `ShellContext`.
+   Left: `select`, whose result is a tuple of the fields named, and `members`
+   and `help`, which describe the shell's own structs, enums and scopes.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name. *Done, for Swift types.* `Tabular` says which
    columns a table starts with, each one styled by a field (a file's name by
