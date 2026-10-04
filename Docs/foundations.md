@@ -165,10 +165,15 @@ they change the shell is what they do, not how they're found.
    the standard library, and the checker and interpreter apply to operands
    of it; it parses from text and encodes as its bytes, as its Swift type
    does. This changed SwishKit's `Value`, which is fine before 1.0: the plugin
-   ABI number isn't bumped until then. Left: `select`, whose result is a tuple of the
-   fields named, the streaming `filter`, `map`, `compactMap` and `prefix`,
-   `from`, `to`, `table`, `list`, `members`, `help` and `with`, and two
-   value kinds, `Date` and `Output`.
+   ABI number isn't bumped until then. `Date` is Foundation's, held as it
+   is: the bridge reads Foundation's graph for it (and top-level typealiases,
+   as `TimeInterval`), the module adds what Swish had (`date - date`, `date +
+   60`, ISO 8601 text), a Swift type says how it shows in Swish
+   (`SwishDisplayed`: local time, to the minute in a table), and JSON gives
+   ISO 8601. Left: `select`, whose result is a tuple of the fields named,
+   the streaming `filter`, `map`, `compactMap` and `prefix`, `from`, `to`,
+   `table`, `list`, `members`, `help` and `with`, and `Output`, which is
+   string-like by design and carries a status record.
 5. **Display protocols**, replacing the table of columns and the colors
    chosen by type name. *Done, for Swift types.* `Tabular` says which
    columns a table starts with, each one styled by a field (a file's name by
