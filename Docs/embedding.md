@@ -395,6 +395,12 @@ shell working.
 5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.
+   *A bug found after:* the reader that key paths use to read fields
+   (`FieldAccess.reader`, set for the length of a call like `sorted(by: \.n)`)
+   was one global, so two interpreters on two threads read through each other's;
+   it flaked about 4 in 100 runs when two tests used key paths at once. It is
+   per thread now, and `interpretersOnDifferentThreadsDontShareKeyPathReads`
+   pins it.
    *Done.* `Interpreter(host:limits:)` is public and gives Swift's syntax, the
    standard library and `print`, with no commands, files or environment.
    `SwishHost`, `OutputSink`, `StreamTraits`, `StopReason`, `Limits` and
