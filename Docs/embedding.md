@@ -243,11 +243,11 @@ call-stack frames in `Diagnostic`; selectable parts of the standard library;
 | From `Swiit` | Goes to |
 |---|---|
 | `Syntax`, `Checking`, `Interpreter`, `Bridge`, generated glue | stays; loses its `Shell` and POSIX references |
-| `Shell/Shell.swift` (class) | split: language state to `Interpreter` (core), process state stays in `Shell` |
+| `Session/Shell.swift` (class) | split: language state to `Interpreter` (core), process state stays in `Shell` |
 | `Shell/` scripts, tasks, interactive, config | `SwishShell` |
 | `Execution/`, `Platform/`, `Editor/`, `Plugins/` | `SwishShell` |
 | `Builtins/` | shell builtins (`cd`, `exit`, `run`…) to `SwishShell`; the prelude and sequence methods stay |
-| `Display/Display.swift` | the sink-based `show` stays; the fd-based formatter constructors go to `SwishShell` |
+| `Presentation/Display/Display.swift` | the sink-based `show` stays; the fd-based formatter constructors go to `SwishShell` |
 | `SwishStandardLibrary` OS functions | `SwishShellLibrary` |
 
 Open placement: `help`, `members` and `which` describe the language's own
@@ -260,9 +260,9 @@ Each step is its own change, ends with all 267 tests passing, and leaves the
 shell working.
 
 1. **The `SwishHost` seam, no moves.** *Done.* `SwishHost`
-   (`Interpreter/SwishHost.swift`) and the internal `ShellLayer`
-   (`Interpreter/ShellLayer.swift`) are defined, and the shell fills both with
-   the process (`Shell/SwishHost+Process.swift`), reached as `shell.host` and
+   (`Host/SwishHost.swift`) and the internal `ShellLayer`
+   (`Host/ShellLayer.swift`) are defined, and the shell fills both with
+   the process (`Session/SwishHost+Process.swift`), reached as `shell.host` and
    `shell.shellLayer`. Everything in the language layers that writes output,
    checks for interrupts, reads or sets the environment, captures output, runs
    a pipeline, starts or lists jobs, or asks whether a program exists goes
@@ -281,7 +281,7 @@ shell working.
    there is no clock, file or line-input capability, because nothing in the
    language layers asks for one.
 2. **Language state out of `Shell`.** *Done.* `Interpreter`
-   (`Interpreter/Interpreter.swift`) holds `scopes`, `sequenceMethods`,
+   (`Language/Interpreter/Interpreter.swift`) holds `scopes`, `sequenceMethods`,
    `staticTypes`, the enum tables, `returnTypes`, `callDepth`, the file being
    run, the last status, the host and the shell layer; the evaluator, the
    bridge's runtime, display and the prelude's builtins are `extension
@@ -332,7 +332,7 @@ shell working.
    opaque `ExprExtension`, `UnitExtension` and `StatementExtension` nodes; the
    shell's nodes (`DollarExpr`, `SubstitutionExpr`, `AsyncExpr`, `PipelineUnit`,
    `SetEnvironmentStatement`, `ImportPluginStatement`) live in
-   `Execution/ShellNodes.swift`, and the core's passes only call their `check`,
+   `Grammar/ShellNodes.swift`, and the core's passes only call their `check`,
    `evaluate` and `run`. Strings split into the core's `StringPart` and the
    shell's `WordPart`. `Parser.Dialect` became `SyntaxPlugin`, an optional
    plug-in on the parser (none is the Swift dialect), with `ShellSyntax` as the

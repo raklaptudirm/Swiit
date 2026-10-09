@@ -24,7 +24,7 @@ language layers are an `Interpreter` class and the shell owns one. For them:
    signals, processes, terminal, directory, dynamic loading or threads; all of
    it goes through `SwishHost`. There is no allowance for this rule, and today
    nothing breaks it. (Step 5 of the embedding plan gave the interpreter a
-   thread of its own for deep recursion: `Embedding/LargeStack.swift` is the
+   thread of its own for deep recursion: `Host/Embedding/LargeStack.swift` is the
    one place the test permits `Thread` and `DispatchSemaphore`.)
 2. **No dependency on the shell's concepts** (commands and pipelines, `env`,
    jobs, exit statuses, the file being run, history, plugins, command
@@ -71,22 +71,22 @@ of the embedding plan, once step 3b has given the parser a way to plug them in
 
 | File | Lines | What it is | Exit |
 |---|---|---|---|
-| `Syntax/CommandNodes.swift` | 101 | Pipeline, command, redirect and stage nodes | Desugaring: nothing produces them |
-| `Syntax/Parser+Commands.swift` | 255 | Parses command words, redirects, `VAR=x cmd` | The shell's parser layer |
-| `Checking/TypeChecker+Pipelines.swift` | 389 | Types pipeline stages | Replaced by Swift's own resolution of the desugared calls |
-| `Interpreter/Shell+CommandLine.swift` | 271 | Binds `--flag` words to a function's parameters | Becomes the shell's `Words` library |
-| `Interpreter/ShellLayer.swift` | 43 | The internal ledger of what the core still asks the shell for | Empties as the groups below exit |
+| `Grammar/Syntax/CommandNodes.swift` | 101 | Pipeline, command, redirect and stage nodes | Desugaring: nothing produces them |
+| `Grammar/Syntax/Parser+Commands.swift` | 255 | Parses command words, redirects, `VAR=x cmd` | The shell's parser layer |
+| `Grammar/Checking/TypeChecker+Pipelines.swift` | 389 | Types pipeline stages | Replaced by Swift's own resolution of the desugared calls |
+| `Grammar/CommandLine/Shell+CommandLine.swift` | 271 | Binds `--flag` words to a function's parameters | Becomes the shell's `Words` library |
+| `Host/ShellLayer.swift` | 43 | The internal ledger of what the core still asks the shell for | Empties as the groups below exit |
 | `Bridge/Bridge+Stages.swift` | 138 | Bridged members as pipeline stages | With the pipeline checker |
-| `Builtins/Shell+ShellBuiltins.swift` | 298 | `cd`, `exit`, `umask`, `which`, `run`… | The shell, as they are |
-| `Builtins/Shell+Help.swift` | 267 | `help`: describes functions, builtins and programs | The shell for now; it names programs and shell builtins. Whether the reflection half is core is open (embedding.md) |
+| `Session/Builtins/Shell+ShellBuiltins.swift` | 298 | `cd`, `exit`, `umask`, `which`, `run`… | The shell, as they are |
+| `Session/Builtins/Shell+Help.swift` | 267 | `help`: describes functions, builtins and programs | The shell for now; it names programs and shell builtins. Whether the reflection half is core is open (embedding.md) |
 
 ## The ledger: transgressors and their exits
 
 *Step 3b update:* the `grammar` and `plugin` groups no longer appear in the
 checked files (71 uses across 29 entries now): the core's tree, checker and
 interpreter hold only opaque extension nodes, and the shell's grammar sits in
-`Syntax/ShellSyntax.swift` (a leaf) and `Execution/ShellNodes.swift`. The
-`Interpreter+Environment` split is done. `Syntax/SyntaxPlugin.swift` carries two
+`Grammar/Syntax/ShellSyntax.swift` (a leaf) and `Grammar/ShellNodes.swift`. The
+`Interpreter+Environment` split is done. `Language/Syntax/SyntaxPlugin.swift` carries two
 `chain` uses (it names `Unit` in its signatures). The table below is the
 earlier count.
 
@@ -128,14 +128,14 @@ are not forgotten:
 Four checked files hold both halves and are split at step 4 of the embedding
 plan, when their shell half moves:
 
-- `Interpreter/Interpreter+Environment.swift`: string interpolation (`expand`)
+- `Language/Interpreter/Interpreter+Environment.swift`: string interpolation (`expand`)
   is core; `environmentRecord`, `exitCode`, `withEnvironment`, redirect
   resolution and word expansion are the shell's.
-- `Interpreter/Interpreter+Expressions.swift` and `+Statements.swift`: the
+- `Language/Interpreter/Interpreter+Expressions.swift` and `+Statements.swift`: the
   evaluator is core; the shell cases in them (env, layer, pipelines, chains,
   statuses) go as their groups exit, which is why they carry the most
   allowances.
-- `Builtins/Interpreter+Builtins.swift`: installing the prelude's functions,
+- `Host/Interpreter+Builtins.swift`: installing the prelude's functions,
   the JSON access helpers and `declaredCase` are core; the `env` and `jobs`
   bindings are not.
 

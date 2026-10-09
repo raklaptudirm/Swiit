@@ -14,7 +14,7 @@ constructs get implicit behavior.
 ## Where it stands
 
 - **One interpreter thread.** The shell runs on a thread with a large stack
-  (`Sources/Swish/main.swift`, `onLargeStack` in `Platform/IO.swift`), because
+  (`Sources/Swish/main.swift`, `onLargeStack` in `Runtime/Platform/IO.swift`), because
   `evaluate` recurses. There is no other thread that runs Swish code.
 - **Global mutable state on the `Shell`:** `scopes`, `stdoutFD` (which
   `capturing` swaps so a command's output lands in a pipe), `callDepth`,
