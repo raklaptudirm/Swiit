@@ -26,7 +26,9 @@ extension Interpreter {
             return .dictionary(dictionary)
         case .forceUnwrap(let inner):
             let value = try evaluate(inner)
-            guard value != .nothing else { throw RuntimeError("unwrapped nil with '!'") }
+            guard value != .nothing else {
+                throw RuntimeError("\(SwiftPrinter().source(inner)) is nil, but '!' needs a value")
+            }
             return value
         case .optionalMember(let base, let name):
             let value = try evaluate(base)
