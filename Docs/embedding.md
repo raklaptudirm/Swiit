@@ -365,8 +365,9 @@ shell working.
    boundary test.
    *Presentation is the shell's.* The interpreter has no display code: it runs
    a program with an optional observer (`run(_:observing:)`), told the value of
-   each expression statement while it runs (nested blocks included, not inside
-   a call), and a host that shows values passes one. The shell's
+   each of the program's own expression statements (as in Swift's REPL, not
+   those nested in a block: `print` is how a block speaks), and a host that
+   shows values passes one. The shell's
    `Session/Presentation` holds the table and key/value formatting, the column
    registry and the echo; `Interpreter.displayRegistryProvider` lets library
    functions that format ask the host for it. `echoesValues` is gone.
