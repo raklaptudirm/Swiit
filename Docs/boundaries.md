@@ -17,7 +17,8 @@ keeps the line from moving the wrong way while the exits are built.
 
 The files headed for the core are the ones in `Syntax`, `Checking`,
 `Interpreter`, `Bridge`, `Display` and `Builtins` (50 files, 8,500 lines;
-another 8 files, 1,760 lines, leave whole and are listed below). For them:
+another 8 files, 1,760 lines, leave whole and are listed below). Since step 2 the
+language layers are an `Interpreter` class and the shell owns one. For them:
 
 1. **No direct reach into the operating system.** No descriptors, environment,
    signals, processes, terminal, directory, dynamic loading or threads; all of
@@ -72,40 +73,61 @@ of the embedding plan (or are deleted by the desugaring first).
 
 ## The ledger: transgressors and their exits
 
-98 uses across 39 file-and-group entries, nine groups. Each exit names the plan
-step that carries it; "dynamic members" is a new step in the embedding plan
-(step 6), and "flatten" a new step in the desugaring (step 8).
+101 uses across 43 file-and-group entries, eleven groups (it was 98 and nine
+before step 2: two groups are new, the `shell` type and the `layer` slot, and
+`file` has exited). Each exit names the plan step that carries it; "dynamic
+members" is a step of the embedding plan (6), and "flatten" a step of the
+desugaring (8).
 
 | Group | What it is | Where | Exit |
 |---|---|---|---|
-| **grammar** (16) | `PipelineNode` in `Expr.command` and `.capture`, `Unit.pipeline`, redirects, and the passes that visit them | `Syntax` (4 files), `TypeChecker+Declarations`, `+Statements`, `Shell+Environment`, `Shell+Statements` | Desugaring steps 3 to 7 remove every producer; embedding step 3's Swift-only parse mode rejects the nodes; then they are deleted, or move with the shell's parser. Until then each use is a case that asks the `ShellLayer`. |
-| **chain** (20) | `Statement.chain(Chain)` wraps every expression statement as `&&`/`||`-joined units with an exit status, because a statement was a command first | `Syntax` (3 files), `TypeChecker` (3 files), `Shell+Statements` | Desugaring step 8, "flatten": command chains become library calls, `Unit`'s cases hoist into `Statement`, `Chain` is deleted. A Swift-only core has statements that are expressions, `if`, `for`, `while` and `switch`. |
-| **env** (24) | `env` is special everywhere: a scope binding kind, `Statement.setEnvironment`, `$NAME`, a checker symbol with its own member types, and `ShellLayer.environment` | `Shell+Expressions` (10), `Shell+Environment`, `Shell+Statements`, `TypeChecker` (3 files), `Shell+Builtins` | Embedding step 6, host objects with dynamic members: a `SwishObject` can assign members and say their types, and `env` is registered as one. The special binding, statement and symbol go; `$NAME` is the desugarer's `Environment["NAME"]`. The same feature serves JSON as a real type (foundations.md) and an embedder's own objects. |
-| **jobs** (25) | `Job` named in the checker and `await`'s operand, `Job.members` and `Job.columns` read by name, a `jobs` scope binding, and `commandAccess` | `Shell+Expressions` (11), `TypeChecker` (3 files), `Display`, `Scope`, `Shell+Builtins`, `Shell+Statements` | Async plan steps 5 and 6 with dynamic members: `Job` becomes an ordinary registered type that declares its members and its `Tabular` columns itself, `jobs` a registered global, `await` typed by a handle protocol. The `commandAccess` uses leave with grammar. |
-| **status** (4) | Every statement returns an exit status, `lastStatus` stores it, `exitCode` maps it to a signal | `Shell+Statements`, `Shell+Environment` | After flatten, statements return nothing; the shell records the status of command statements per task (async.md, task context); `exitCode` moves with the shell half of `Shell+Environment`. |
-| **file** (1) | The `.filePath` expression reads the shell's `scriptPath` | `Shell+Expressions` | Embedding step 2: the file name is state of the `Interpreter`, set by `eval(source, file:)` and by running a script. |
-| **history** (1) | The `ShellContext` lent to library functions carries `history` | `Bridge+Conversions` | Embedding step 4: `ShellContext` splits. The core lends output and display facts; `history(in:)` moves to the shell's library and asks the shell for its history. |
-| **plugin** (6) | `import Name from path` loads a dylib: a statement, the parser, the checker, the interpreter | `Syntax` (2), `TypeChecker+Statements`, `Shell+Statements` | Embedding steps 5 and 7: `import Name` is resolved by the host (`loadModule`); the dylib loader is the shell's implementation of it, and the `from path` form is shell syntax. |
-| **commands** (1) | `commandFunctions(named:)`, the lookup of functions callable as command words | `Shell+Scopes` | Leaves with grammar at step 4. |
+| **grammar** (16) | `PipelineNode` in `Expr.command` and `.capture`, `Unit.pipeline`, redirects, and the passes that visit them | `Syntax` (4 files), `TypeChecker+Declarations`, `+Statements`, `Interpreter+Environment`, `+Statements` | Desugaring steps 3 to 7 remove every producer; embedding step 3's Swift-only parse mode rejects the nodes; then they are deleted, or move with the shell's parser. Until then each use is a case that asks the layer. |
+| **chain** (20) | `Statement.chain(Chain)` wraps every expression statement as `&&`/`||`-joined units with an exit status, because a statement was a command first | `Syntax` (3 files), `TypeChecker` (3 files), `Interpreter+Statements` | Desugaring step 8, "flatten": command chains become library calls, `Unit`'s cases hoist into `Statement`, `Chain` is deleted. A Swift-only core has statements that are expressions, `if`, `for`, `while` and `switch`. |
+| **env** (20) | `env` is special everywhere: a scope binding kind, `Statement.setEnvironment`, `$NAME`, and a checker symbol with its own member types | `Interpreter+Expressions` (7), `Interpreter+Environment` (4), `Interpreter+Statements`, `TypeChecker` (3 files), `Interpreter+Builtins` | Embedding step 6, host objects with dynamic members: a `SwishObject` can assign members and say their types, and `env` is registered as one. The special binding, statement and symbol go; `$NAME` is the desugarer's `Environment["NAME"]`. The same feature serves JSON as a real type (foundations.md) and an embedder's own objects. |
+| **jobs** (13) | `Job` named in the checker and `await`'s operand type, `Job.members` read by name, a `jobs` scope binding | `TypeChecker` (3 files), `Interpreter+Expressions`, `Scope`, `Interpreter+Builtins` | Async plan steps 5 and 6 with dynamic members: `Job` becomes an ordinary registered type that declares its members and its `Tabular` columns itself, `jobs` a registered global, `await` typed by a handle protocol. (`Display` stopped naming `Job` at step 2: the shell lends its tables' columns through the layer.) |
+| **layer** (16) | Uses of the `shellLayer` slot and its accessors: the core asking the shell for the environment, commands, jobs, `await`, sequence methods, columns. The slot's own declaration in `Interpreter` is 4 of them | `Interpreter+Expressions` (9), `Interpreter` (4), `Interpreter+Environment`, `+Statements`, `Display` | The slot goes last, when its entries have: each use is one of the other groups' exits. |
+| **shell** (2) | The checker holds the `Shell`, so the pipeline checker (a shell file extending the checker) can ask it what a name is | `TypeChecker` | With the pipeline checker, which the desugaring replaces by Swift's own resolution. |
+| **status** (6) | Every statement returns an exit status, `lastStatus` stores it, `exitCode` maps it to a signal | `Interpreter+Statements` (3), `Interpreter` (2, the fields), `Interpreter+Environment` | After flatten, statements return nothing; the shell records the status of command statements per task (async.md, task context); `exitCode` moves with the shell half of `Interpreter+Environment`. |
+| **history** (1) | The `ShellContext` lent to library functions carries `history` | `Bridge+Conversions` | Embedding step 4: `ShellContext` splits. The core lends output and display facts; `history(in:)` moves to the shell's library, which asks the shell. |
+| **plugin** (6) | `import Name from path` loads a dylib: a statement, the parser, the checker, the interpreter | `Syntax` (2), `TypeChecker+Statements`, `Interpreter+Statements` | Embedding steps 5 and 7: `import Name` is resolved by the host (`loadModule`); the dylib loader is the shell's implementation of it, and the `from path` form is shell syntax. |
+| **commands** (1) | `commandFunctions(named:)`, the lookup of functions callable as command words | `Interpreter+Scopes` | Leaves with grammar at step 4. |
+| ~~**file**~~ | The `.filePath` expression read the shell's `scriptPath` | | **Exited at embedding step 2:** the file being run is the interpreter's own state (`Interpreter.file`), set by whoever runs a file. |
+
+### Known leaks the patterns don't see
+
+The check finds names, so it can't see these. They are recorded here so they
+are not forgotten:
+
+- **The shell's library functions are installed by the core.**
+  `installStandardFunctions` registers everything in `Bridge.standardFunctions`,
+  which includes `ls`, `ps`, `pwd`, `readLine` and `history`. Exit: embedding
+  step 4 splits `SwishStandardLibrary` into the pure part and the shell's, and
+  the shell registers its own.
+- **The prelude declares the shell's `help`.** `Prelude.swift` declares
+  `help` and the `Help` struct, and the shell supplies the body. Exit: the
+  prelude splits at step 4, with `help` in the shell's half.
+- **`Interpreter.init` takes no builtins.** An embedder has to call
+  `installBuiltinFunctions`; step 5's public initializer does it.
 
 ### Files that stay but must split
 
 Four checked files hold both halves and are split at step 4 of the embedding
 plan, when their shell half moves:
 
-- `Interpreter/Shell+Environment.swift`: string interpolation (`expand`) is
-  core; `environmentRecord`, `exitCode`, `withEnvironment`, redirect resolution
-  and word expansion are the shell's.
-- `Interpreter/Shell+Expressions.swift` and `Shell+Statements.swift`: the
-  evaluator is core; the shell cases in them (env, jobs, pipelines, chains,
+- `Interpreter/Interpreter+Environment.swift`: string interpolation (`expand`)
+  is core; `environmentRecord`, `exitCode`, `withEnvironment`, redirect
+  resolution and word expansion are the shell's.
+- `Interpreter/Interpreter+Expressions.swift` and `+Statements.swift`: the
+  evaluator is core; the shell cases in them (env, layer, pipelines, chains,
   statuses) go as their groups exit, which is why they carry the most
   allowances.
-- `Builtins/Shell+Builtins.swift`: installing the prelude's functions, the JSON
-  access helpers and `declaredCase` are core; the `jobs` binding is not.
+- `Builtins/Interpreter+Builtins.swift`: installing the prelude's functions,
+  the JSON access helpers and `declaredCase` are core; the `env` and `jobs`
+  bindings are not.
 
 ## The order the exits come in
 
-1. **Embedding step 2** (language state into `Interpreter`): `file`.
+1. **Embedding step 2** (language state into `Interpreter`): `file`. *Done.*
 2. **Embedding step 4** (split the targets): `history`, `commands`, the mixed
    files, and the files that leave whole.
 3. **Embedding step 6** (dynamic members), then **async steps 5 and 6**: `env`,

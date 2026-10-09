@@ -206,13 +206,31 @@ shell working.
    `terminalWidth` and `Shell+Capturing` moved beside the shell's code; and
    there is no clock, file or line-input capability, because nothing in the
    language layers asks for one.
-2. **Language state out of `Shell`.** An `Interpreter` class holds `scopes`,
-   `sequenceMethods`, `staticTypes`, the enum tables, `returnTypes`,
-   `callDepth` and the host; `Shell` owns one. The `extension Shell` blocks in
-   `Interpreter/` become extensions of it, `TypeChecker` takes it, and the
-   existing `enum Interpreter` namespace is renamed. The generated glue's
-   `shell` parameter becomes the interpreter, which means regenerating the
-   bridge (with the bootstrap workaround).
+2. **Language state out of `Shell`.** *Done.* `Interpreter`
+   (`Interpreter/Interpreter.swift`) holds `scopes`, `sequenceMethods`,
+   `staticTypes`, the enum tables, `returnTypes`, `callDepth`, the file being
+   run, the last status, the host and the shell layer; the evaluator, the
+   bridge's runtime, display and the prelude's builtins are `extension
+   Interpreter` (the `Shell+…` files renamed `Interpreter+…`). `Shell` owns one
+   (`shell.interpreter`) and keeps process state: descriptors, the terminal,
+   jobs, the line editor, plugins, history. Shell-side code says
+   `interpreter.` explicitly: the rewrite was driven by the compiler's own
+   error locations, so no forwarding methods hide the boundary, and `Shell`
+   keeps only a `lastStatus` that forwards. `TypeChecker` takes the
+   interpreter (and, for the pipeline checker, the shell: the ledger's `shell`
+   group). The old `enum Interpreter` namespace became `Expr.isStringExpression`,
+   and `ValueStream` moved out of the shell's streams file. Native function
+   bodies receive the `Interpreter`; the generated glue needed no change,
+   since it never names the type. Things that had to move or be routed:
+   `await`, `callSequenceMethod`, plugin import and history now go through the
+   `ShellLayer`, which also lends the shell's table columns (`Display` no longer
+   names `Job`); `hostFunction` (a plugin's function as one of ours) moved into
+   the core; `help`'s body is supplied by the shell when it installs the
+   builtins, as the prelude still declares it. Behavior is unchanged: 274 tests
+   and the interactive scripts pass. The ledger was updated by the test that
+   enforces it: `file` exited, two groups are new. (While checking the
+   interactive scripts I found a race that predates this step: see
+   "Found on the way", below.)
 3. **Swift-only parse mode,** with shell nodes evaluated through the host.
    The sandbox host refuses them.
 4. **Split the targets.** `SwishShell` and `SwishShellLibrary` created, files
@@ -272,3 +290,12 @@ output goes to the sink; the core builds on Linux with no shell target.
 - **Naming the embedding product.** A package that consumers depend on may
   want a friendlier library name than `SwishCore`. (The seam protocol is
   settled: `SwishHost`.)
+
+## Found on the way
+
+`takeInterruptSignal` read the interrupt flag and then cleared it in a
+`defer`, so a signal that arrived between the read and the clear was wiped
+without being seen, and a script spinning in a loop (which asks constantly)
+sometimes survived its SIGTERM. About 0.7% of runs (2 of 300) in a harness that
+starts a spinning script and signals it; it was the occasional failure of
+`signals.exp`. It now clears only what it saw: 0 of 900 afterwards.
