@@ -58,8 +58,13 @@ Decided later (2026-10-10):
   beyond the pretty printers and the members it adds to Swift's types (`Flow`
   stays until Swift has a lazy sequence that can throw). JSON becomes a dynamic
   object the shell registers.
-- **Two packages in one repository,** Swiit and Swish, the shell depending on
-  Swiit. `package` access becomes `public`, which forces the real API.
+- **Two packages in one repository,** Swiit (`Packages/Swiit`) and Swish (the
+  root), the shell depending on Swiit. `package` access can't cross a package,
+  so what the shell uses is `@_spi(Shell) public`: the shell imports it as
+  `@_spi(Shell) import Swiit`, and what an embedder sees is only the plain
+  `public` surface (`Interpreter(host:limits:)`, `eval`, `register`, `set`,
+  `Diagnostic`, `Limits`, `SwishHost`). Plain `public` for more is a promotion
+  from the SPI, one declaration at a time, as the API is decided.
 - **`DynamicObject` stays a core protocol** for now. It is revisited when Swish
   has subscripts and classes (then `@dynamicMemberLookup`).
 - **The prompt shows each top-level expression** of an entry, only at the

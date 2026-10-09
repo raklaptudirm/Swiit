@@ -13,6 +13,11 @@ keeps the line from moving the wrong way while the exits are built.
 | **Vocabulary** | What a script can name: `env`, `jobs`, `history`, `ls`, an embedder's functions and types | Registration; a sandbox is the absence of a name |
 | **Grammar** | What syntax the parser accepts and how it runs: commands, pipelines, `$(…)`, redirects | A layer the shell adds, which the desugaring turns into calls on the vocabulary |
 
+*Packages:* the interpreter is its own package (`Packages/Swiit`), so the
+compiler enforces the boundary where the board used to: nothing in the
+interpreter can name the shell, and the shell reaches only what is public or
+`@_spi(Shell)`. The ledger below counts what remains inside the interpreter.
+
 ## The rules
 
 The files headed for the core are the ones in `Syntax`, `Checking`,
