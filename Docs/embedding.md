@@ -52,6 +52,19 @@ constructs into library calls, so the core doesn't need to understand them.
 
 ## Decided
 
+Decided later (2026-10-10):
+
+- **JSON is the shell's.** The interpreter keeps no standard library of its own
+  beyond the pretty printers and the members it adds to Swift's types (`Flow`
+  stays until Swift has a lazy sequence that can throw). JSON becomes a dynamic
+  object the shell registers.
+- **Two packages in one repository,** Swiit and Swish, the shell depending on
+  Swiit. `package` access becomes `public`, which forces the real API.
+- **`DynamicObject` stays a core protocol** for now. It is revisited when Swish
+  has subscripts and classes (then `@dynamicMemberLookup`).
+- **The prompt shows each top-level expression** of an entry, only at the
+  prompt. `swish -c` is code: bare expressions print nothing.
+
 - **`Swiit` becomes the embeddable core,** and the shell moves to a new
   `SwishShell` target that depends on it. The `swish` executable depends on
   `SwishShell`.
