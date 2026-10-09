@@ -120,8 +120,8 @@ are not forgotten:
 - ~~**The prelude declares the shell's `help`.**~~ Exited: the shell's
   declarations (`help`, `Help`, `select`, `JSON`) are the shell's own prelude,
   `Library.declarations` and `Library.bodies`, read after the core's. What stays
-  in the core's prelude is `Status`, `Error`, `Member` and `members`; `Status`
-  stays because `Error` carries one (the `status` group in the ledger).
+  in the core's prelude is `Status` and `Error`; `Status` stays because
+  `Error` carries one (the `status` group in the ledger).
 - **`Interpreter.init` takes no builtins.** An embedder has to call
   `installBuiltinFunctions`; step 5's public initializer does it.
 
