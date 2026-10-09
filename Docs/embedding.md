@@ -278,6 +278,20 @@ shell working.
    moved, `SwishStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no
    reference to the shell.
+   *Step 4a is done:* two targets, `SwishCore` (the language: syntax, checker,
+   interpreter, bridge, display, builtins) and `SwishShell` (commands,
+   pipelines, jobs, the line editor, the process; the executable depends on
+   it). The core builds alone, so the compiler now enforces the line the
+   boundary test used to count. Its declarations are `package`, not `public`
+   (step 5 decides what is public). Seams the split needed: `Interpreter.owner`
+   (the shell's nodes reach their `Shell` through it, so `CommandAccess` lost
+   `run`, `start`, `capture` and `hasProgram`); `CheckedObject` (the checker
+   types `Job` and modules without naming them) and `Interpreter.objectMembers`
+   (the members of host types); `AlreadyReported` and `HelpStyle.heading` moved
+   into the core. The tests moved to `SwishShellTests`; `SwishCoreTests` keeps the
+   boundary test. *Step 4b remains:* `SwishStandardLibrary` and the generator's
+   module table split into the pure library and `SwishShellLibrary`, so the core
+   stops installing `ls`, `ps` and `history`; and tests of the core alone.
 5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.

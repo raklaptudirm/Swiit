@@ -196,8 +196,8 @@ A second scratch spike (swift-syntax 602, not in the repository).
   is the end of the source.
 - **Lowering target.** The core's tree (`Expr`, `Statement`, `Unit` and the
   rest) is `internal` to SwishCore, so a separate front-end module can't build
-  it until step 4 makes it `package`. The lowering is therefore **blocked on
-  step 4**, as the embedding plan's order says, and is not started.
+  it until step 4 makes it `package`. Step 4a has: the tree is `package` in
+  `SwishCore`, so the lowering can live in its own module. It is not started.
 
 ## Not tried yet
 

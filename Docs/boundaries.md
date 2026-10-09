@@ -54,6 +54,14 @@ The check is textual, comments excluded, and was tried against a deliberate
 It is a ratchet, not a proof: it can't see a dependency spelled in a way the
 patterns don't know, so a new kind of shell concept means a new pattern.
 
+*Step 4a update:* the files below have left. `SwishShell` holds them, and the
+core builds without it, so what the table lists as `Shell`, `PipelineNode`,
+`Job` in the checker and `Module` is now a compile error rather than a count.
+The ledger below still counts the concepts the core defines itself (`Chain`,
+`env`, jobs as a scope binding, `ShellLayer` and its slot), whose exits are the
+steps named. `ShellLayer.swift` stayed in the core as the seam, with the
+pipeline closures removed.
+
 ## Files that leave whole
 
 These are shell grammar or shell reflection inside core directories. They are
