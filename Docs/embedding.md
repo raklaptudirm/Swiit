@@ -165,6 +165,79 @@ let n: Int = try level.as(Int.self)
   limited: a script that builds a huge list can only be bounded by steps and
   time, and that is said plainly in the documentation.
 
+## Prior art: Lua and Racket
+
+Read after step 5, from the Lua 5.4 manual and Racket's guide chapters on
+creating languages and module languages. Not read: Lua's auxiliary library
+(`luaL_*`, with its argument-check messages), the `__index`/`__newindex`
+semantics, and Racket's reader extensions and syntax-object details; those are
+from memory or not used. eslisp and Common Lisp's reader macros are known only
+from a README and mailing-list summaries.
+
+**Lua.**
+
+- *Isolation:* a `lua_State` holds all state and the library has no globals,
+  as instances here do.
+- *The stack API* exists to bridge garbage collection and static typing in C.
+  `Value` and `SwishConvertible` closures are the Swift equivalent. What is
+  missing is the lowest level, an untyped variadic closure over `[Value]`.
+- *Memory limits* come from `lua_newstate(f, ud)` routing every allocation
+  through the host. A Swift host has no such hook, so memory stays unlimited
+  (said in the API section).
+- *Interruption:* `lua_sethook` fires on count, line, call and return, only
+  inside Lua code. A C function that never returns can't be stopped. A registered
+  closure here is the same: the interpreter checks between steps, not inside a
+  native call. Lua ships no limit policy, only the hook and the allocator;
+  `Limits` is a convenience over `interrupt`.
+- *Errors:* `lua_pcall` takes a message handler that runs at the error, before
+  unwinding, so the host can capture a traceback. `Diagnostic` has no frames
+  yet; recording the call stack where an error is thrown is the equivalent.
+- *Sandboxing is choosing libraries.* `luaL_openlibs` opens everything;
+  embedders open libraries singly with `luaL_requiref`, and the manual warns
+  against `debug`, `package.loadlib`, binary chunks, `os.execute` and
+  `io.popen`. `Library` values are the same idea, but the core's standard
+  library is all or nothing.
+- *Per-chunk environments:* a loaded chunk's first upvalue is its `_ENV`, so
+  one state runs scripts against different globals. An interpreter here has one
+  global scope.
+- *Modules:* `require` asks an ordered list of searchers, the first being
+  `package.preload`, a table of host-supplied modules; results are cached in
+  `package.loaded`. That answers the open question about `loadModule`: a
+  preload table (`register(module:)`) plus a resolver callback for the rest.
+- *Coroutines:* a yield across a native call is an error unless the call has a
+  continuation (`lua_callk`, `lua_pcallk`, `lua_yieldk`). A registered closure
+  that calls back into the interpreter meets the same wall under the cooperative
+  task design (async.md).
+- *Host objects:* userdata with a metatable is the precedent for step 6.
+
+**Racket.**
+
+- A macro can only extend a language, at the expander layer. Restricting one
+  is done by the module language, the initial import that supplies every
+  binding, shaped with `except-out` and `rename-out`. "A sandbox is the absence
+  of a name" is that mechanism.
+- The grammar's edges are named hooks: `#%app` for calls, `#%datum` for
+  literals, `#%top` for unbound names, `#%module-begin` for the body. A
+  language replaces them to change what plain code means. The shell's grammar
+  is exactly these (frontend.md).
+- The reader is chosen once, by `#lang`, before anything is read; Common Lisp
+  reader macros mutate a global readtable instead, with the phasing problem that
+  brings. `SyntaxPlugin` is fixed when the interpreter is made, and nothing
+  mid-session changes the grammar.
+- Readers return syntax objects that carry source locations, as the plug-in
+  contract already requires.
+
+**eslisp** (README only): macros are ordinary host-language functions that run
+at compile time and return AST nodes, over a core that is a direct
+S-expression encoding of the estree AST. The opaque extension nodes are the same
+shape. A registrable extension, where an embedder supplies a function producing
+core-tree nodes, is the natural next step if user-defined syntax is wanted; a
+printer for the core tree (desugaring.md, step 2) gives the debugging benefit.
+
+**Follow-ups this suggests,** none started: an untyped variadic `register`;
+call-stack frames in `Diagnostic`; selectable parts of the standard library;
+`register(module:)` with a resolver; `eval(_:in:)` with per-script environments.
+
 ## What moves
 
 | From `SwishCore` | Goes to |

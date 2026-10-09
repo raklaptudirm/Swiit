@@ -53,6 +53,17 @@ Token-level hooks in the hand parser would have been simpler to write and would
 be thrown away: SwiftParser has no such hooks (below), so the interface is
 shaped for what survives the swap.
 
+### The grammar's hooks, named
+
+Racket names the edges of its grammar (`#%app`, `#%datum`, `#%top`,
+`#%module-begin`) so a language can replace them. The shell's plug-in does
+the same, though today as structural tests in `ShellSyntax`: an unbound name
+at the head of a line is `#%top` (command lookup), words after it are
+`#%app`'s arguments, and `$name` and `$(…)` are its own forms. The plug-in's
+contract should name these and take them as hooks, so a second front end
+implements the same list. The plug-in is chosen when the interpreter is made,
+like `#lang`, and nothing changes the grammar mid-session.
+
 ## SwiftSyntax as the front end
 
 ### What the documentation and source say

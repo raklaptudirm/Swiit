@@ -325,6 +325,12 @@ without waits runs the same suite, at the same speed.
 
 ## Risks
 
+- **Yielding across a native call.** Lua forbids a yield across a C call
+  unless the call supplies a continuation (`lua_callk`, `lua_yieldk`). A
+  registered closure that calls back into the interpreter is the same case
+  here: under the cooperative design (A) it blocks its task's thread or must
+  be written as async. Say so in the registration API, and give such closures
+  an async form rather than a continuation.
 - **The effect system is the new weight.** Effects in function types, overload
   choice by a closure's effect, `reasync` at call sites, and inference through
   shell constructs touch the checker in many places. Step 3 is its own change
