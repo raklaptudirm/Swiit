@@ -289,9 +289,17 @@ shell working.
    types `Job` and modules without naming them) and `Interpreter.objectMembers`
    (the members of host types); `AlreadyReported` and `HelpStyle.heading` moved
    into the core. The tests moved to `SwishShellTests`; `SwishCoreTests` keeps the
-   boundary test. *Step 4b remains:* `SwishStandardLibrary` and the generator's
-   module table split into the pure library and `SwishShellLibrary`, so the core
-   stops installing `ls`, `ps` and `history`; and tests of the core alone.
+   boundary test.
+   *Step 4b is done:* `SwishShellLibrary` holds `ls`, `ps`, `pwd`, `with(env:)`,
+   `readLine`, `history` and their types (`FileEntry`, `FileType`,
+   `ProcessEntry`, `JobState`); `SwishStandardLibrary` keeps the pure part. The
+   generator writes the shell library into `Sources/SwishShell/Bridge/Generated`
+   (its tables are `shellTypes`, `shellFunctions`, …), and the core takes
+   libraries as values: `Library.standard` is its own, the shell passes
+   `Library.shell` to `installBuiltinFunctions(libraries:)`. `SwishCoreTests`
+   now runs the core alone, and checks it has no `ls`. The Linux manifest for
+   the new module (`Bridges/linux/SwishShellLibrary.json`) comes from CI's
+   artifact, as the others do.
 5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.

@@ -115,11 +115,8 @@ desugaring (8).
 The check finds names, so it can't see these. They are recorded here so they
 are not forgotten:
 
-- **The shell's library functions are installed by the core.**
-  `installStandardFunctions` registers everything in `Bridge.standardFunctions`,
-  which includes `ls`, `ps`, `pwd`, `readLine` and `history`. Exit: embedding
-  step 4 splits `SwishStandardLibrary` into the pure part and the shell's, and
-  the shell registers its own.
+- ~~**The shell's library functions are installed by the core.**~~ Exited at
+  step 4b: they are `SwishShellLibrary`, and the shell installs them.
 - **The prelude declares the shell's `help`.** `Prelude.swift` declares
   `help` and the `Help` struct, and the shell supplies the body. Exit: the
   prelude splits at step 4, with `help` in the shell's half.
