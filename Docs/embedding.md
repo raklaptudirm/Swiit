@@ -398,6 +398,17 @@ shell working.
    computed (`env`, `jobs`, JSON) and the checker types them. This retires the
    `env` special cases ([boundaries.md](boundaries.md)) and is the feature the
    JSON open question in `foundations.md` waits on.
+   *`env` is done.* The core has a `DynamicObject` protocol (`read`, `write`,
+   and the one type every member has when read and when assigned);
+   `Interpreter.bind(_:to:)` registers one and tells the checker its type by
+   name. Reading `env.HOME` and indexing `env["HOME"]` ask the object, and
+   `env.PAGER = "less"` is an ordinary assignment that writes through even a
+   `let`, as a class would. The shell registers its `EnvironmentObject`; the
+   core lost `Binding.Special.environment`, `Symbol.environment`,
+   `isEnvironment`, the layer's `environment`, and the shell its
+   `env` statement and `SetEnvironmentStatement` (the ledger's `env` group is
+   empty). Still to do: `jobs` (an ordinary registered global with a declared
+   type), JSON as a dynamic object, and making `bind` and the protocol public.
 7. **Host types:** per-instance registry layered over the standard one, so a
    host can register a type, not only functions; `@SwishExport` usable in
    process.
