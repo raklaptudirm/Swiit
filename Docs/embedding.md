@@ -462,9 +462,13 @@ shell working.
    (`json.name`, `json[0]`, `json.port?.int`) into a call of the host's `field`
    and `view` functions, with the views' types, what a sequence's items are, and
    whether it fits anywhere. The shell registers `JSON` and the two functions;
-   the core has no mention of JSON left. Still to do: `jobs` (an ordinary
-   registered global with a declared type), and making `bind`, `DynamicType` and
-   the protocol public.
+   the core has no mention of JSON left. *`jobs` and `await` are done:* `jobs`
+   is a computed global (`bind(computed:type:)`, read afresh each time and
+   unassignable, never read by the checker), and `await` is `Awaiting`, which a
+   host registers with the operand type, the result type and how to wait; the
+   shell registers both, with `Job`. Still to do: making `bind`, `DynamicType`,
+   `PlainDynamic`, `Awaiting` and the protocol public, and the handle protocol
+   `Awaiting` stands in for.
 7. **Host types:** per-instance registry layered over the standard one, so a
    host can register a type, not only functions; `@SwishExport` usable in
    process.
