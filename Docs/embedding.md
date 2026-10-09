@@ -9,7 +9,8 @@ shell as seasoning) and is the first thing to build, ahead of
 [desugaring.md](desugaring.md) and [async.md](async.md), which both build on
 the seam it creates.
 
-Nothing here is built. It records what is decided, the shape, and an order.
+Step 1 of the plan is built (the `SwishHost` seam); the rest is not. This
+records what is decided, the shape, and an order.
 
 ## Where it stands
 
@@ -75,29 +76,69 @@ constructs into library calls, so the core doesn't need to understand them.
 
 ### `SwishHost`: the seam and the sandbox
 
-The language layers talk only to a `SwishHost`. It is named like SwishKit's
-public types (`SwishObject`, `SwishError`), and not `Host`, because Foundation
-already has a `Host` (`NSHost`) that an embedder importing both would trip
-over. The types that conform keep short names (`ShellHost`, `SandboxHost`).
-What it covers, provisionally:
+The interpreter reaches the world through one value, a `SwishHost`. It is named
+like SwishKit's public types (`SwishObject`, `SwishError`), and not `Host`,
+because Foundation already has a `Host` (`NSHost`) that an embedder importing
+both would trip over.
 
-- **Output:** text to the standard output and error sinks.
-- **Cancellation and limits:** one question the interpreter asks at every
-  step: should I stop (interrupt, deadline, budget)?
-- **Capabilities, each optional:** environment, running a command or
-  pipeline, files, line input, the clock.
+It is a small struct of callbacks and optional capabilities, not a protocol
+with a method per feature. That is how other embeddable languages are
+configured: Wren's configuration is a struct of optional callbacks (`writeFn`,
+`errorFn`, `loadModuleFn`, an allocator, heap settings); Rhai has `on_print`,
+`on_debug` and `on_progress` hooks, `set_max_*` limits, `new_raw` for an engine
+with no standard library, and `register_fn` and `set_module_resolver` for the
+rest; Starlark has `Thread.Cancel` and `SetMaxExecutionSteps` and takes its
+globals as `predeclared`. (Lua, the JavaScript engines and Java's JSR-223 do
+the same from what I know of them; I did not check those against their
+documentation.) The pattern: a few callbacks for what crosses every script
+(output, errors, loading a module, "should I stop"), limits as plain data, and
+everything else is a capability the host registers, so a sandbox is the absence
+of a global, not a method implemented as a no-op.
 
-The shell's host does all of it with POSIX. The embedder's default host,
-`SandboxHost`, grants nothing: a command is an error saying so, files and
-environment are absent, output goes to a closure. A host grants what it wants
-by implementing the capability. This replaces direct uses of `stdoutFD`,
-`writeAll`, `getenv`, the signal flag and `waitpid` in everything that moves
-into the core.
+```swift
+struct SwishHost {
+    var output: OutputSink          // write, plus what the stream can show (terminal? width? styled?)
+    var error: OutputSink
+    var interrupt: () -> StopReason?  // asked at each step: a reason to stop, if there is one
+}
+```
+
+That is all of it, because it is only one of three boundaries, and each has
+its own mechanism:
+
+| Boundary | What it is | Mechanism |
+|---|---|---|
+| Plumbing | How this interpreter is run: output, errors, "should I stop", later module loading and limits | `SwishHost`; every embedder supplies it |
+| Vocabulary | What a script can name: `env`, `jobs`, `history`, `ls`, `Command`, an embedder's functions and types | Registration; a sandbox is the absence of a name |
+| Grammar | What syntax the parser accepts and how it runs: commands, pipelines, `$(…)`, redirects | A layer the shell adds, which the desugaring turns into calls on the vocabulary |
+
+Defaults do nothing: output is discarded, nothing asks to stop. `StopReason`
+is opaque to the interpreter, which only carries it in the `Interrupted` error
+so whoever asked can read it back (the shell's is the signal number, so it can
+end by that signal); the core has no idea what a signal is.
+
+**What the core still can't do without the shell** is not on the host. It is an
+internal, temporary `ShellLayer` the interpreter holds optionally, which an
+embedder never sees or implements. Without one, `env` reads as empty and can't
+be set, and commands, `$(…)` and jobs are refused with a plain error. Each
+entry is a leak with a named exit:
+
+| Entry | Belongs to | Exit |
+|---|---|---|
+| `environment` | vocabulary | `env` as a registered object with dynamic members: member assignment on host objects, and a way for an object to say its members' types. The JSON open question in `foundations.md` wants the same feature, so it is built once for both. |
+| `jobs` | vocabulary | A registered global |
+| `commands.run`, `start`, `capture` | grammar | The desugaring: the core never sees those nodes |
+| `commands.hasProgram` | grammar | The shell's own name resolution |
+
+Not on either: the file being run is interpreter state (set by whoever runs
+a file), and history is the shell's `history` function. Still to add to the
+host for embedders: `loadModule` (a script importing another) and limits
+(steps, depth, time, output size) as data beside it.
 
 ### The embedding API
 
 ```swift
-let swish = Interpreter(host: SandboxHost(output: { print($0, terminator: "") }),
+let swish = Interpreter(host: SwishHost(output: .init { print($0, terminator: ""); return true }),
                         limits: .init(steps: 1_000_000, depth: 200, time: .seconds(2)))
 swish.register("clamp") { (x: Int, lo: Int, hi: Int) in min(max(x, lo), hi) }
 swish.set("config", config)                         // any Encodable, or a Value
@@ -142,9 +183,27 @@ terminal-styled. They stay with the shell for now.
 Each step is its own change, ends with all 267 tests passing, and leaves the
 shell working.
 
-1. **The `SwishHost` seam, no moves.** Define `SwishHost`; `Shell` conforms. Everything
-   in the language layers that writes output, reads the environment, checks
-   for interrupts or runs a command goes through it. No behavior changes.
+1. **The `SwishHost` seam, no moves.** *Done.* `SwishHost`
+   (`Interpreter/SwishHost.swift`) and the internal `ShellLayer`
+   (`Interpreter/ShellLayer.swift`) are defined, and the shell fills both with
+   the process (`Shell/SwishHost+Process.swift`), reached as `shell.host` and
+   `shell.shellLayer`. Everything in the language layers that writes output,
+   checks for interrupts, reads or sets the environment, captures output, runs
+   a pipeline, starts or lists jobs, or asks whether a program exists goes
+   through one of them, and a grep of `Syntax`, `Checking`, `Interpreter` and
+   `Bridge` finds no direct output descriptor, environment or signal call.
+   Behavior is unchanged: the original 267 tests and the interactive scripts
+   pass, and `HostTests` swaps in a recording host and layer, and a shell with
+   no layer, to prove it. It went through two shapes first: a thirteen-method
+   protocol, then a struct that also held the environment and commands; both
+   were pared down after comparing how other embeddable languages are
+   configured, and on the principle that plumbing, vocabulary and grammar are
+   separate boundaries (above). Other differences from what this document first
+   planned: the types are internal until step 5, since `ShellLayer` still names
+   the shell's `PipelineNode`; the fd-based formatter constructors,
+   `terminalWidth` and `Shell+Capturing` moved beside the shell's code; and
+   there is no clock, file or line-input capability, because nothing in the
+   language layers asks for one.
 2. **Language state out of `Shell`.** An `Interpreter` class holds `scopes`,
    `sequenceMethods`, `staticTypes`, the enum tables, `returnTypes`,
    `callDepth` and the host; `Shell` owns one. The `extension Shell` blocks in
@@ -158,7 +217,7 @@ shell working.
    moved, `SwishStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no
    reference to the shell.
-5. **The embedding API:** the public `Interpreter`, `SandboxHost`, `Diagnostic`,
+5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.
 6. **Host types:** per-instance registry layered over the standard one, so a
