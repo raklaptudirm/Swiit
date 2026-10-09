@@ -53,6 +53,8 @@ public final class Interpreter {
     /// Syntax added to Swift's, which its owner supplies (the shell's). Nil is
     /// Swift alone.
     @_spi(Shell) public var syntax: (any SyntaxPlugin)?
+    /// What reads source into the tree: the hand-written parser unless given another.
+    @_spi(Shell) public var frontEnd: any SyntaxFrontEnd = HandWrittenFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     @_spi(Shell) public var file: String?
     /// The status the last statement gave.
@@ -101,7 +103,7 @@ extension Interpreter {
     /// Parses a program, knowing the names already declared.
     @_spi(Shell) public func parse(_ source: String) -> Result<Program, SyntaxError> {
         do {
-            return .success(try Parser.parse(source, bound: globalNames(), plugin: syntax))
+            return .success(try frontEnd.parse(source, bound: globalNames(), plugin: syntax))
         } catch {
             return .failure(error)
         }

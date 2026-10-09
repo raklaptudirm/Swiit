@@ -72,6 +72,8 @@ extension Parser {
             }
             pos += op.rawValue.count
             skipSpaces(newlines: true)
+            // `??` groups to the right, as in Swift: `a ?? b ?? c` is `a ?? (b ?? c)`.
+            if op == .coalesce { return .binary(op, lhs, try parseBinary(level: level)) }
             lhs = .binary(op, lhs, try parseOperand(level: level))
         }
     }

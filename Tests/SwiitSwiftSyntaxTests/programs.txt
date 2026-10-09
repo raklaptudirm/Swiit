@@ -1,0 +1,445 @@
+1...2...3t { case ok, failed(code: Int, String) };let r = Result.failed(code: 3, "x"); if case .failed(let c, _) = r { echo "code \(c)" }; if case .ok = r { echo no } else { echo "not ok" }enum Level: Int, Comparable { case low, mid, high }; Level.low < .high; Level.high <= .mid; [Level.high, .low] | sorteddo { 1 / 0 } catch let e { print(e.localizedDescription) }[1, 2, 3] | map { $0 > 1 ? $0 : nil } | count; [1, 2, 3] | compactMap { $0 > 1 ? $0 : nil } | countlet d = ["b": 2, "a": 1]; d; d.filter { $0.value > 1 }; d.mapValues { $0 * 10 }^true && ^true || ^true let c = true ? TextStyle.green : .red; "y".styled(c) + "!"let d = ["b": 2, "a": 1]; d.map { $0.key }.sorted(); d.keys.sorted(); d.values.sorted()"/bin/echo" quoted; ^echo plainlet b = $(echo main); b == "main"; "on \(b)"; echo $(echo hi) theredo { echo fine } catch { echo never }yes | map { $0 + "!" } | prefix 2Command("true").run().and { Command("true").run() }.or { Command("true").run() }mktemp -dlet d = ["b": 2, "a": 1]; d.count; d.isEmpty; d.sorted { $0.key < $1.key }.map { $0.value }; d.first!.key == d.keys.first!mktempdo { let x = 1; print(x) }[3, 1, 2] | sorted; [3, 1, 2] | sorted { $0 > $1 }; [3, 1, 2] | sorted | reversed^true && ^true || ^falsedo { 1 / 0 }func greet(_ name: String, times: Int = 1, loud: Bool = false) { var word = "hi"; if loud { word = "HI" }; for _ in 1...times { echo "\(word) \(name)" } };greet Rak --times 2 | tr a-z A-Z[10: "x", 2: "y"]; ["b": 1, "a": 2] | to jsonlet greeting = "hi"
+func _helper() -> String { greeting }
+/// Says hello. More detail here.
+func hello(name: String = "you", loud: Bool = false) {
+    var shown = name
+    if loud { shown = name.uppercased() }
+    echo "\(_helper()) \(shown) \(args.count)"
+}
+/// Fails.
+func broken() {
+    try! false
+    echo never
+}func up(_ s: String) -> String { s }; up($(echo hi))func size(_ n: Int) -> String {
+    switch n {
+    case 0: return "none"
+    case 1...5: return "few"
+    case 6..<100, 100: return "many"
+    case let big where big > 1000: return "huge \(big)"
+    default: return "lots"
+    }
+}
+size(0); size(3); size(100); size(5000); size(500)[(n: 2), (n: 1)] | sorted --by n | get nlet v = $SURELY_NOT_SET_ANYWHERECommand("true").run().and { Command("true").run() }.or { Command("false").run() }switch "b" { case "a": echo a
+case "b", "c": echo bc
+default: break }Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])let prefixVariable = 1$(echo x).text + "y"let o: Int? = 4; o.map { $0 + 1 }; let n: Int? = nil; n.map { $0 + 1 } ?? 0func f() { 42; echo side }; f()func greet(_ name: String, times: Int = 1, loud: Bool = false) { var word = "hi"; if loud { word = "HI" }; for _ in 1...times { echo "\(word) \(name)" } };let s = $(greet Rak --loud); echo "[\(s)]"^true && ^true || sh -c 'exit 3'func f(_ x: Int) -> String { "int" }; func f(_ x: String) -> String { "string" };f 5; f abc; f(5); f("a")"abc".reversed(); "abc".sorted()$(echo x).description == $(echo x).text; 1.5.kb.description; ["a": 1].descriptionlet x: Int? = nil; x ?? 3; let s: String? = "ab"; s?.count; s!.countSet([1, 2]).union([9]).sorted(); (1...5).contains(3)func f(a: Int) -> String { "a" }; func f(b: Int) -> String { "b" };f --b 1; f(a: 2)Command("true").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }func greet(_ name: String, times: Int = 1, loud: Bool = false) { var word = "hi"; if loud { word = "HI" }; for _ in 1...times { echo "\(word) \(name)" } };^greet Rak; foreign greet Rak(description: "mine", n: 1).description"abc".contains("bc"); "abc".contains("b"); "hello" | contains "ell"func f(_ x: Double) -> String { "double" }; func f(_ x: Int) -> String { "int" }; f(5); f(5.5)/// Doubles the `x`, **fast**.
+func d(_ x: Int) -> Int { x * 2 }
+help d | prefix 1$(echo x) + "y"mkdir /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ymLXM5LQCa/sub[1, 2, 3, 4].dropFirst(); [1, 2, 3].split(separator: 2); Array([1, 2, 3].suffix(2))^true && ^false || ^trueenum K { case a, b, c }; switch K.a { case .a: echo a; fallthrough
+case .b: echo b
+case .c: echo c }$(printf '3\n1\n2') | sorted[[1, 2], [3]] | map(\.count); ["ab"] | map(\.isEmpty); [1, 2].lastlet x: Int? = nil; x!let o = Command("echo", "hi").output(); print(o.text); print(o.status.succeeded)[[1, 2], [3]].flatMap { $0 }; [1, 2].elementsEqual([1, 2])let n = 3; let m = $nlet r = $(echo Hello); rfor i in 1...3 { switch i { case 2: break
+default: echo \(i) } }let xs = ["-n", "a b"]; printf "%s|" $xs; echolet h = $HOMECommand("true").run().and { Command("false").run() }.or { Command("true").run() }let o = Command("sh", "-c", "echo partial; exit 2").output(); print(o.text); print(o.status.code)alias ll=lsenum Level: Int { case low = 1, mid, high = 10 }; Level.mid.rawValue; Level(rawValue: 10); Level(rawValue: 5) == nil"tab\there"; let xs: [Any] = [1, "x", nil]; xs; ["k": "v"].debugDescriptionlet j = async sleep 0.1; j.state == .running; await j; j.state; j.state == JobState.doneenum Code: String { case ok, bad = "BAD" }; Code.ok.rawValue; Code.bad.rawValueexport A=1let xs = ["-n", "a b"]; printf "%s|" \(xs); echoenum E { case a, b(code: Int, String) }; E.b(code: 2, "no"); "\(E.b(code: 2, "no"))"^true && ^false || ^falsewaitenum L: Int { case a = 1, b = 1 }let r = $(echo Hello); echo $r "\(r)"; ["a", "b"] | prefix 2read xenum L { case a = 1 }let xs = ["-n", "a b"]; printf "%s|" "$xs"; echotrap x INTenum K { case a }; K.a.rawValueCommand("true").run().and { Command("false").run() }.or { Command("false").run() }let j = async true; await jset -evar n = 0; while true { n += 1 }func isBig(_ n: Int) -> Bool { n > 10 };isBig 50 && echo big; isBig 5 || echo smalllet xs = ["-n", "a b"]; printf "%s|" x$xs; echostruct Point { var x: Int; func describe() -> String { "p\(x)" }; func scaled(by k: Int) -> Point { Point(x: x * k) }; mutating func bump() { x += 1 } }; [Point(x: 1), Point(x: 2)] | describelet s = $(head -c 300000 /dev/zero | tr '\0' x); s == sunset A^true && ^false || sh -c 'exit 3'struct Point { var x: Int; func describe() -> String { "p\(x)" }; func scaled(by k: Int) -> Point { Point(x: x * k) }; mutating func bump() { x += 1 } }; Point(x: 3) | scaled --by 2 | describe; Point(x: 3) | scaled(by: 3) | describelet none: [String] = []; printf "%s|" a $none b; echowhich export umask"let greeting = \"hi\"\nfunc hello(_ n: String) { echo \"\\(greeting) \\(n) \\(args)\" }\n" | to text > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.PpTWoM3ZVY/lib.swishstruct Point { var x: Int; func describe() -> String { "p\(x)" }; func scaled(by k: Int) -> Point { Point(x: x * k) }; mutating func bump() { x += 1 } }; Point(x: 1) | bumpsource /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.PpTWoM3ZVY/lib.swish a blet greeting = "hi"
+func hello(_ n: String) { echo "\(greeting) \(n) \(args)" }
+
+func read() { echo mine }; readmkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/.secret/s.swifthello Rak; args; #filePathfunc two(_ a: String, _ b: String) { echo "\(a)+\(b)" }; let ab = ["p", "q"]; two $abasync sleep 5; jobs | cancel; let j = jobs.first; await j!; j!.statesource /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.PpTWoM3ZVY/missing.swishfunc f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()func f(_ x: Int, @flag("5") five: Bool = false) -> String { "\(x) \(five)" }; f -5 -3let p: FilePath = "/usr/local/bin/swish.tar.gz"; p.lastComponent!; p.extension; p.stem; p.removingLastComponent(); p.appending("x"); p.isAbsolutefunc g(_ x: Int, _ y: Int) {}; func g(_ s: String) {}; g 1 2 3Command("true").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }echo '{"z": 1, "a": {"b": [1, 2.5, null, true]}, "u": "é\n"}' | from json | to jsonfunc greet() { echo hi }; func double(@input _ n: Int) -> Int { n * 2 }; func boom() -> Int { 1 / 0 };greet > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/g; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/glet n = 3; n * 2 + 1func g(a: Int) {}; func g(b: Int) {}; g(c: 1)let c: FilePath.Component = "a.b"; c.extension; c.stemprintf '%s\n' 'echo one' 'false' 'echo two' 'try! sh -c "exit 5"' 'echo three' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.C9GOF1GoXpfunc g(_ x: Int, y: Int = 0) -> Int { 1 }; func g(_ x: Int, z: Int = 0) -> Int { 2 }; g(1)let n = 47 / 2; 7 % 2; 7.0 / 2; -necho '[{"n": 1}, {"n": 2}]' | from json | get nfunc greet() { echo hi }; func double(@input _ n: Int) -> Int { n * 2 }; func boom() -> Int { 1 / 0 };seq 3 > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/n; double < /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/nvar n = 0; while n < 3 { n = n + 1 }; necho one
+false
+echo two
+try! sh -c "exit 5"
+echo three
+let p: FilePath = "/usr/local/bin/swish.tar.gz"; p.components.count; p.components | map { $0.stem }; for c in p.components { echo $c }"a" + "b"; [1, 2] + [3]var n = 0; while test $n -lt 2 { n = n + 1 }; n1 < 2; 1 == 1.0; [1, 2][1]echo '{"a": }' | from jsonfunc greet() { echo hi }; func double(@input _ n: Int) -> Int { n * 2 }; func boom() -> Int { 1 / 0 };seq 2 | double > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/d; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/dsh -c 'echo out; echo err >&2' e>o > /dev/null^true && sh -c 'exit 3' || ^truelet p: FilePath = "/usr/local/bin/swish.tar.gz"; echo $p; "\(p.lastComponent!)"let xs = [(n: 2, s: "b"), (n: 1, s: "a")]; xs.sorted(by: \.n).map(\.s); xs.map(\.n)pwd > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/p; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/plet p: FilePath = "/usr/local/bin/swish.tar.gz"; p == FilePath("/usr/local/bin/swish.tar.gz"); p.starts(with: "/usr")let x = try? $(false); x == nilstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+var p = Point(x: 3, y: 4); p.move(by: 1); p; p.reset(); pls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/*.txt > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/l; head -1 /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/lsh -c 'echo out' o>e e> /dev/null(try? $(false)) ?? "fallback"String("x"); let c: Character = "z"; String(c)let p: FilePath = "/usr/local/bin/swish.tar.gz"; [p]; [p] | to jsontry? $(grep -q nope /dev/null) != nil || echo missingstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+struct Line { var start: Point; var end: Point }
+var l = Line(start: Point(x: 0), end: Point(x: 5)); l.end.move(by: 2); l.endCommand("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }mkdir '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.J3O7KtfeZ9/a dir'; touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.J3O7KtfeZ9/afile /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.J3O7KtfeZ9/.hiddenfunc greet() { echo hi }; func double(@input _ n: Int) -> Int { n * 2 }; func boom() -> Int { 1 / 0 };boom e> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/errpwd().isAbsolute; ls().first!.path.isAbsolutestruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+let q = Point(x: 1); q.move(by: 1)cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.9mgAmcLD2y/errif let h = try? $(echo hi) { echo "got \(h)" } else { echo none }/// Greets.
+func zzgreet() {}struct C { var n: Int; func bump() { n += 1 } }; var c = C(n: 1); c.bump()let d = pwd().removingLastComponent(); ls(d).first!.path.starts(with: d); ls("/").count > 0git status -sif let h = try? $(false) { print(h) } else if let g = try? $(echo second) { print(g) }Command("echo", "*.swift", "$HOME", "~").run(); print(Command("echo", "a b").words.count)echo 'a b'; lsmkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/.secret/s.swift^true && sh -c 'exit 3' || ^falseif true { echo hi }if let h = try? $(false) { }; hlet x = $(sh -c 'echo partial; exit 3'); x.status.code; x.text; echo afterfunc f(@flag("n") times: Int = 1, @flag("v") verbose: Bool = false, @flag("q") quiet: Bool = false) -> String { "\(times) \(verbose) \(quiet)" };f -n 3; f -n3 -vq; f -qv --times=2try? [1][5] == nil; try? 1 / 0 == nilecho one > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/f; echo two >> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/f; cat < /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/ffunc f(@flag("n") times: Int = 1, @flag("v") verbose: Bool = false, @flag("q") quiet: Bool = false) -> String { "\(times) \(verbose) \(quiet)" };f -xfunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+seq 4 | double(try? [1][5]) == nil; (try? 1 / 0) == nilfunc f(@flag("n") times: Int = 1, @flag("v") verbose: Bool = false, @flag("q") quiet: Bool = false) -> String { "\(times) \(verbose) \(quiet)" };f -vxfunc f() -> Int { [1][9] }; (try? f()) ?? 0func double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+seq 6 | evens | doubleecho three > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/f; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Ul7B4RYY0c/fecho ~env.SWISH_TEST_645381 == nil; env.SWISH_TEST_645381 = "one two"; echo $SWISH_TEST_645381; env["SWISH_TEST_645381"]; env.SWISH_TEST_645381 = nil; env.SWISH_TEST_645381 == nilfunc show(_ path: FilePath, to other: FilePath = "/tmp") { echo "\(path.lastComponent!) \(other)" }Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }show a/b.txt; show a/b.txt --to /xecho $(false) xecho $HOMEfunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+[1, 2, 3] | doublels *.swiftecho hi > /dev/nulllet r = 1...5; r; r.count; r.contains(3); r.map { $0 * 2 }; r.filter { $0 % 2 == 0 }let x = $(echo fine); xps | filter { $0.pid == 16560 } | countenv.HOME == "/Users/raklaptudirm"show --helpecho a | catulimit -n0..<3; (0..<3).lowerBound; Array(0..<3); (1...3) | map { $0 * 10 }ulimit -S -n 1048576^echo hienv.count == nilulimit -afunc counter() -> (Int) -> Int { var c = 0; return { c = c + $0; return c } }; let next = counter(); next(1); next(5)exitfor i in 0..<2 { print(i) }; let r = 5...6; for i in r { print(i) }ulimit -xvar fs: [() -> Int] = []; for i in 1...3 { fs = fs + [{ i * 10 }] }; fs[0](); fs[2]()make && exit(1.0...2.0).contains(1.5); ("a"..."f").contains("c")mkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/.secret/s.swiftulimit -n lots^true && sh -c 'exit 3' || sh -c 'exit 3'let r = (name: "x", size: 2.mb);r.name; r.size * 2; r.1let n = 3; if n > 2 { echo big } else { echo small }let r = (name: "x", size: 2.mb);recho x > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/no/such/file; echo afterif false { echo 1 } else if true { echo 2 } else { echo 3 }let r = 3...1let r = (name: "x", size: 2.mb);r.nopeecho x > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.GHLW7OvheB/*.txtlet j = async sleep 5; j.cancel(); let r = await j; r.status.signal; j.stateif grep -q nope /dev/null { echo found } else { echo none }"a\nb".lines.count; [1, 2].last; "abc".countlet xs: [Int]? = [1, 2]; xs?[1]; let none: [Int]? = nil; none?[0] == nilmkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/.secret/s.swiftprintf '%s\n' 'echo one' '' 'let x: Int = "a"' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.H1SWlzZbozif true && 1 < 2 { echo both }func f() { 42 }; f()yes | filter { $0 == "y" } | map { $0 + "!" } | prefix 2echo one
+
+let x: Int = "a"
+if true {
+  echo a
+  echo b
+}
+else { echo c }echo /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/*.txtps | filter { $0.pid == 16560 } | get namefunc greet(_ name: String) {}; which greet cd prefix catCommand("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }let dir = "/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/with space"; echo "$dir"/*.txt[1, 2] | map { 10 / ($0 - 1) }; echo not reachedlet s = Set([3, 1, 2, 3]); s.count; s.contains(2); s.sorted(); s.union([9]).sorted()[1, 2, 3, 1] | prefix(while: { $0 < 3 })which surely-not-a-commandlet j = try from(.json, ['{"server": {"port": 8080}, "tags": ["a", "b"], "on": true}']); j.server?.port?.int ?? 1; j.missing?.port?.int ?? 1; j["tags"]?[1]?.string; j.tags?.array?.count; j.on?.boolecho '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/*.txt'let s = Set([1, 2]); s.isSubset(of: 1...5); s.intersection(Set([2, 3])); Set("hello").countstruct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.zero; Counter.step; Counter.make(3); Counter.nextfunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+yes 7 | double | head -2let s: Set<String> = Set(["a"]); s.contains("a"); Set([1]) == Set([1])let j = try from(.json, ['{"server": {"port": 8080}, "tags": ["a", "b"], "on": true}']); j.server?.port?.string == nil; j.nothing?.isNullls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/*.md | get namestruct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.zero.bumped(); let f = Counter.make; f(1)Set([2, 1]) | sortedlet s = "a  b"test [ = [ && echo okprintf '[%s]' $s \(s)struct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.made += 5; Counter.made = Counter.made * 2; Counter.madefunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+for _ in 1...1 { seq 100000 | counted | head -1 }; calls < 100000let j = async sleep 0.2; j.state; j.id; let r = await j; j.state; r.status.codeecho /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.HiqmPG9xcI/*.nopestruct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.step = 3[3, 1, 2] | max; [3, 1, 2] | min(); [1, 2] | contains(2); [1, 2, 3] | reduce(0) { $0 + $1 }^false && ^true || ^true1; 2; "a"struct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.made = "x"["a", "b"] | joined(separator: "-"); ["a", "b"] | joined --separator +; [4, 5] | firstCommand("false").run().and { Command("true").run() }.or { Command("true").run() }for i in 1...3 { i }struct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.nopeprintf '%s\n' 'echo one' 'let a = $(false)' 'echo two' 'let b = try! $(sh -c "exit 4")' 'echo three' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.wb4d82SZRQstruct Counter: Equatable {
+    var n: Int
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int { step + made }
+    static func make(_ n: Int) -> Counter { made += 1; return Counter(n: n * step) }
+    func bumped() -> Counter { Counter(n: n + Counter.step) }
+}
+Counter.next = 1[1, 2] | contains 2; ["a"] | contains aif true { 1 } else { 2 }echo one
+let a = $(false)
+echo two
+let b = try! $(sh -c "exit 4")
+echo three
+^false && ^true || ^falsevar p: FilePath = "/a/b.txt"; p.extension = "md"; p; p.extension = nil; pdo { 1 }; 2[1, 2, 3] | dropFirst | countlet parts = "c,a,b".split(separator: ","); parts.sorted(); parts.contains("a")func f() -> Int { 1 }; f()["abc", "de"] | uppercased; ["abc"] | hasPrefix("a")struct W { var path: FilePath }; var w = W(path: "/x/y.c"); w.path.extension = "h"; w.pathCommand("false").run().and { Command("true").run() }.or { Command("false").run() }let s = Command("echo", "hi").run(); print(s.succeeded)"a b c" | split(separator: " ") | count; "abc" | count; let p: FilePath = "/a/b.txt"; p | lastComponentlet j = async sleep 0.1; j.command; j.pids.count; j.output == nil; await j; j.output!.status.codelet parts = "a,b,c".split(separator: ","); parts; parts.count; parts[0] == "a"; String(parts[1])^false && ^true || sh -c 'exit 3'"a b c" | split --separator " " | count; "a-b" | split --separator - | countlet s = Command("sh", "-c", "exit 3").run(); print(s.code); print(s.succeeded)let b = $(echo hi | tr a-z A-Z); b"swish".first; "swish".first?.isLetter; "a b".contains(" ")$(printf "b\na").sorted()[1, 2, 3].filter { $0 > 1 }.map { $0 * 10 }echo "[$(printf 'x\n\n')]"["a", "b"].joined(separator: "-")helplet s = Command("sh", "-c", "kill -TERM $$").run(); print(s.signal); print(s.code == nil)func sorted() -> String { "mine" }; [2, 1] | sorted; sortedimport Tools from "/Users/raklaptudirm/Developer/Swish/Examples/Tools"Command("false").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }printf '2\n1\n' | foreign sorthelp | filter { $0.name == "ls" } | prefix 1 | get sourcegreet("Rak", times: 2); greet Rak -n 2 --loudseq 3 | double; ["a", "abc", "ab"] | longesthelp | filter { $0.name == "cd" } | prefix 1 | get sourcesortedvolume high; volume(.high); volume(); Level.lowwords(["b a b"]) | get wordlet c = counter("x"); c.add(); c.add(5); c.total; cTools.volume(.low); Toolsdo { try fail("nope") } catch { print(error.localizedDescription) }greet(5)help | filter { $0.name == "sorted" } | prefix 1 | get sourcegreet --help; counter --helpls | surely-nothingdo { import Tools from "/tmp" } catch { print(error.localizedDescription) }^false && ^false || ^true[(n: 2, s: "b"), (n: 1, s: "a")] | select n | sorted --by n | get nfunc greet(_ name: String, times: Int = 1, loud: Bool = false) {}; do { import Tools from "/Users/raklaptudirm/Developer/Swish/Examples/Tools" } catch { print(error.localizedDescription) }help | filter { $0.name.hasPrefix("$") } | countdo { import Nope from "/nonexistent" } catch { print(error.localizedDescription) }func makeCounter() -> () -> Int { var n = 0; return { n += 1; return n } }; let c = makeCounter(); c(); c()Command("false").run().and { Command("false").run() }.or { Command("true").run() }func f() { defer { echo one }; defer { echo two }; echo body }; f()struct P: Equatable { var x: Int }; P(x: 1) == P(x: 1)/// Says hi.
+func hi(_ name: String) {}
+help | filter { $0.source == "yours" } | get usagefunc f() -> Int { var n = 0; let inc = { n += 1 }; inc(); inc(); return n }; f()let xs: [Int] = []func make() -> (Int) -> Int { func fact(_ n: Int) -> Int { if n <= 1 { return 1 }; return n * fact(n - 1) }; return fact }; make()(5)^false && ^false || ^false/// Says hi.
+func hi(_ name: String) {}
+help | filter { $0.name == "hi" } | get summaryfunc f(_ n: Int, name: String) {};f 1func f() -> Int { defer { echo cleanup }; return 1 }; f()func f(_ n: Int, name: String) {};f abc --name xlet x: Any = 5; x as? Int; x as? String; x is Int; (x as! Int) + 1Command("false").run().and { Command("false").run() }.or { Command("false").run() }func f(_ n: Int, name: String) {};f 1 --name x --bogusfunc f() throws { defer { echo cleanup }; try $(false) }; do { try f() } catch { echo caught }help | filter { $0.name == "help" } | count^false && ^false || sh -c 'exit 3'func f(_ n: Int, name: String) {};f 1 2 --name xfunc f(_ a: Int) {}; func f(_ a: String) {}; help | filter { $0.name == "f" } | get usagefunc f(_ n: Int, name: String) {};f 1 --namefor i in 1...2 { defer { echo "end \(i)" }; echo "start \(i)" }func f(_ n: Int, name: String) {};f 1 --name x -vlet a: Any = "s"; a as! Intfalse && echo no || echo yesfunc tilde(_ path: String, _ home: String?) -> String {
+    guard let home = home else { return path }
+    guard path.hasPrefix(home) else { return path }
+    return "~" + String(path.dropFirst(home.count))
+}
+tilde("/u/me/src", "/u/me"); tilde("/u/me/src", nil); tilde("/opt", "/u/me")
+enum R { case ok(Int), failed }
+func doubled(_ r: R) -> Int {
+    guard case .ok(let n) = r else { return -1 }
+    return n * 2
+}
+doubled(.ok(21)); doubled(.failed)
+for x in [1, 2, 3, 4] {
+    guard x % 2 == 0 else { continue }
+    echo $x
+}
+guard test -d / else { exit 1 }
+let maybe: Int? = 5
+guard let m = maybe else { exit 1 }
+m + 1let a: Any = "s"; a as? Int ?? 0func square(_ x: Int) -> Int { x * x }; square(7)func f(v: Bool) { echo "\(v)" }; f --v; f --v false; f --v true; fCommand("false").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }true && echo a; echo bfunc fib(_ n: Int) -> Int { if n < 2 { return n }; return fib(n - 1) + fib(n - 2) }; fib(15)1 > 2 || echo fallbackfor i in 1...3 { print(i) }func f(v: Bool = true) { echo "\(v)" }; f --no-v; f --v=false; ffor i in 0..<2 { print(i) }; for x in ["a", "b"] { print(x) }a()
+func a() -> Int { b() + 1 }
+func b() -> Int { 41 }
+hello Rak
+func hello(_ name: String) { echo "hi \(name)" }
+Point(x: 2).x
+struct Point { let x: Int }
+Kind.b
+enum Kind { case a, b }do { try sh -c 'exit 4' } catch { if let failure = error as? CommandFailure { echo "failed with \(failure.status.code)" } }for c in "héy" { print(c) }^false && sh -c 'exit 3' || ^truefunc outer() -> Int {
+    return inner() * 2
+    func inner() -> Int { 21 }
+}
+outer()for line in $(printf 'a b\nc').lines { echo "<\(line)>" }let name = "Swish"echo "hi \(name)!" \(1 + 2)pxecho "$name" $nameecho func xCommand("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }let j = async sleep 0.1; j | members | get name; await jvar i = 1; i = i + 1; ifor line in "" { echo never }let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]; xs | sorted --by n | get slet x = 1; if true { let x = 2; print(x) }; xfor _ in 1...2 { echo x }^false && sh -c 'exit 3' || ^falsetry false; echo unreachablevar x = 1; if true { x = 5 }; xlet xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]; xs | sorted(by: \.n) | reversed | prefix(2) | get sfunc greet(_ name: String, times: Int = 1) -> String { "\(name)x\(times)" }; greet("a"); greet("b", times: 2)enum K: Comparable { case b, a }; [K.a, K.b] | sortedfunc build() throws { try $(true) }; func fail() throws { try $(false) }; (try? build()) != nil; (try? fail()) != nil; try? build()try true && echo okfunc half(_ x: Double) -> Double { x / 2 }; half(3)Command("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }func build() throws { try $(true) }; func fail() throws { try $(false) }; if try? build() { echo yes }; if try? fail() { echo no } else { echo failed }func sum(_ xs: Int...) -> Int { var t = 0; for x in xs { t = t + x }; return t }; sum(); sum(1, 2, 3)let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]; xs | sorted { $0.n > $1.n } | get nenum K { case b, a }; [K.a, K.b] | sortedtry? make"costs $5 and $HOME"[1, 2, 3, 4] | filter { $0 % 2 == 0 } | map { $0 * 10 }enum L: Int { case one = 1 }; enum R { case failed(code: Int) }; L.one | to json; R.failed(code: 2) | to json | tr -d ' \n'^false && sh -c 'exit 3' || sh -c 'exit 3'let a = async sleep 0.1; let b = async sleep 0.2; jobs; jobs.count; await; jobs; await; jobs.count[1, 2, 3] | count; [1, 2, 3] | count { $0 > 1 }; [1, 2] | reversedecho "home: $HOME" | cut -c1-6[(a: 1, b: "x y"), (a: 22, b: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")] | catfunc f(n: Int?) { echo "\(n ?? 0)" }; f --n 3; fvar xs = [1, 2, 3]; xs[1] = 20; xs[0] += 5; xs[["a": 1]] | to json | tr -d ' \n'true; false; nilfunc f(_ p: FilePath?) { echo "\(p == nil)" }; f; f /avar r = ["a": 1]; r["b"] = 2; r["a"] = 3; var t = (a: 1, b: 2); t.a *= 3; r; tfalsefunc f() {}; [f] | cattruevar n = 10; n -= 3; n /= 7; nCommand("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }struct Point { var x: Int; func describe() -> String { "p\(x)" } }; [Point(x: 1), Point(x: 2)] | describelet p = async $(sh -c 'sleep 0.1; echo fetched'); echo meanwhile; (await p).textstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+var p = Point(x: 1); p.x = "a"func describe() {}mkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.Zbh0LvKZvT/.secret/s.swiftstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+var p = Point(x: 1); p.lengthSquared = 1var xs = [3, 1]; xs.append(2); xs.append(contentsOf: [5]); xs.insert(0, at: 0); xs.sort(); xslet xs = [1]; xs[0] = 2func g(_ x: Any) -> String { "any" }; func g(_ x: Int) -> String { "int" }; let a: Any = 5; g(a); g(5)var xs = [3, 1, 2]; xs.removeAll { $0 > 2 }; let last = xs.removeLast(); xs; lastsh -c 'exit 3' && ^true || ^truevar xs = [1]; xs[5] = 2func f(_ x: Int) -> String { "int" }; func f(_ x: Double) -> String { "double" }; f(5); f(5.5)var d = ["a": 1]; d.updateValue(2, forKey: "b"); d.removeValue(forKey: "a"); dfunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+seq 4 | double | totalvar d = ["a": 1]; d.merge(["b": 2]) { a, b in b }; dlet a = async sleep 0.2; let b = async sleep 0.2 | catvar s = Set([1]); s.insert(2); s.remove(1); var t = "ab"; t.append("c"); s; tfunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+[] | totalasync sleep 0.1jobs | select id commandjobs | filter { $0.pids.count == 2 } | get idjobs | to jsonjobs | tablestruct S { var xs: [Int] }; var s = S(xs: []); s.xs.append(4); var m = [[1], [2]]; m[0].append(9); s; mstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+func far(_ p: Point) -> Int { p.x }; far(Point(x: 7))aFileTypeawait a; await bvar xs = [1, 2, 3]; xs.removeLast(); xs.popLast()Command("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("true").run() }struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+func far(_ p: Point) -> Int { p.x }; far(["x": 1])struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+func origin() -> Point { Point(x: 0) }; origin()1 + 1; 1 / 0struct V { let major = 1; var minor: Int }; V(minor: 2)func f(xs: [Int]) { echo "\(xs)" }; f --xs 1 --xs 2; fstruct S { var a: Int }; Slet t = (name: "x", 2); t.name; t.1; tsh -c 'exit 3' && ^true || ^falsefunc f(_ n: Int, _ rest: [String]) { echo "\(n) \(rest)" }; f 1 a b[(n: 5, s: "a"), (n: 1, s: "b")] | sorted --by n | get svar d = ["a": 1]; d["b"] = 2; d["a"]; d["a"]! + 1; d.keys.sorted()func f(s: Set<Int>) { echo "\(s.count)" }; f --s 1 --s 1 --s 2func f(_ s: Set<String>) { echo "\(s.count)" }; f a a becho https://example.com/?q=1 a?bCommand("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("false").run() }func add(_ a: Int, _ b: Int) -> Int { a + b }; add 2 -5let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]; xs.sorted(by: \.s).map { $0.n }func sum(_ xs: Double...) -> Double { var t = 0.0; for x in xs { t = t + x }; return t }; sum 1 2.5[3, 1, 2].sorted(); [3, 1, 2].sorted { $0 > $1 }; [3, 1, 2].prefix(2)1 + 2.5; let d: Double = 1; d[1, 2, 3].count(where: { $0 > 1 }); [1, 2, 3].countsh -c 'exit 3' && ^true || sh -c 'exit 3'func risky(_ fail: Bool) throws -> Int { if fail { try $(false) }; return 1 }
+try risky(false); do { try risky(true) } catch { echo caught }; (try? risky(true)) ?? 0for i in 1...9_000_000_000_000 { if i == 2 { break } }; echo donefunc f() -> Int { defer { return 2 }; return 1 }func f() throws { defer { try $(false) } }let d = "/tmp"; echo $d > $d/xlet r = 1...9_000_000_000_000; r.countlet xs = [(a: 1, b: "x"), (a: 22, b: "y")];xs | to text | tr a-z A-Zfor i in 3...1 {}umaskumask 027; umaskumask 0022
+let xs = [(a: 1, b: "x"), (a: 22, b: "y")];xs | listumask 999help ls | grep -c Usagemkdir /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj/sub
+head -c 1500 /dev/zero | dd of=/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj/big.bin status=none
+printf hi | dd of=/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj/small.txt status=none
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj/.hiddenCommand("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }help ls | filter { $0.text.hasPrefix("Usage") } | countstruct P { var x: Int; func twice() -> Int { x * 2 } }; [P(x: 1)] | members | get name"a" | members | filter { $0.name == "uppercased" } | get kindls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | get typefalse; statusls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | filter { $0.type == .file } | select name sizeawait 5help FilePathls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | filter { $0.type != FileType.file } | get namefunc f() {}; async fasync 1 + 2help Arraysh -c 'exit 3' && ^false || ^truels -a /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | count; ls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | countfunc f(help: Bool = false) -> Bool { help }; f --helpfunc f() {}; f -- --helpls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj | prefix 1 | members | filter { $0.name == "size" } | get kindenum Result { case ok, failed(code: Int, String) };func describe(_ r: Result) -> String {
+    switch r {
+    case .ok: return "fine"
+    case .failed(let code, let why) where code > 1: return "bad \(code): \(why)"
+    case .failed: return "other"
+    }
+}
+describe(.ok); describe(.failed(code: 2, "boom")); describe(.failed(code: 1, "meh"))struct P { var x: Int; func twice() -> Int { x * 2 } }; enum K { case a, b(n: Int) }for i in 0..<10 { if i == 1 { continue }; if i == 3 { break }; print(i) }help Phelp Klet x = try $(false)ls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.ZXVPsvvHtj/small.txt | get pathCommand("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("true").run() }struct Temp {
+    let celsius: Double
+    var fahrenheit: Double { celsius * 9 / 5 + 32 }
+    init(fahrenheit f: Double) { celsius = (f - 32) * 5 / 9 }
+    init(celsius: Double) { self.celsius = celsius }
+}
+Temp(fahrenheit: 212); Temp(celsius: 20).fahrenheitfor i in 1...2 { for j in 1...3 { if j == 2 { break }; echo \(i)\(j) } }let x = try $(false); echo unreachableenum K { case a, b }; func pick(kind: K = .a) -> K { kind };pick --kind b; pick --kind .b; picklet x = try $(sh -c 'exit 3')let rows: [Any] = [(n: 5, s: "a"), (n: 100, t: "b")]; rowsenum K { case a, b }; func pick(kind: K = .a) -> K { kind };pick --kind c * 9 / 5 + 32 }
+    init(fahrenheit f: Double) { celsius = (f - 32) * 5 / 9 }
+    init(celsius: Double) { self.celsius = celsius }
+}
+Temp(celsius: 1, extra: 2)enum K { case a, b };func f(_ k: K) -> K { k }; f(.b); func g() -> K { .a }; g(); func h(kind: K = .b) -> K { kind }; h[(n: 5), (n: 100)] | filter { $0.n > 10 }struct S { var a: Int; init() {} }; S()enum K { case a, b }; func pick(kind: K = .a) -> K { kind };pick --helpenum K { case a, b };let x = .astruct Temp {
+    let celsius: Double
+    var fahrenheit: Double { celsius * 9 / 5 + 32 }
+    init(fahrenheit f: Double) { celsius = (f - 32) * 5 / 9 }
+    init(celsius: Double) { self.celsius = celsius }
+}
+var t = Temp(celsius: 1); t.celsius = 2func double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+printf 'x\n' | doublefunc f(@flag("n") times: Int = 1, color: Bool = true) {}sh -c 'exit 3' && ^false || ^falsetry echo $(false) x; echo unreachablelet c = 1; c = 2; echo unreachablefunc double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+double | cat | doublefunc f() -> Output { $(false) }; let o = try f(); o.status.codelet c = 1; c = 2let zzvalue = 1func f(@input _ x: Int) -> Int { x }; seq 2 | f > /dev/null | ffgSWISH_TEST_498334="a b" sh -c 'echo "$SWISH_TEST_498334"'; env.SWISH_TEST_498334 == nil1 / 0func double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+seq 3 | double | tr 0-9 a-jbglet j = async $(sh -c 'echo first; echo second; exec sleep 30'); j.lines() | prefix 1; j.cancel()[1][5]Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("false").run() }enum Result { case ok, failed(code: Int, String) };Result.failed(code: 2, "boom")"a b" | tr a-z A-Z(undefined)enum Result { case ok, failed(code: Int, String) };Result.failedfunc gen() -> [Int] { [1, 2, 3] }; gen | tail -1enum Result { case ok, failed(code: Int, String) };Result.failed(2, "boom")let j = async $(sh -c 'echo first; echo second; exec sleep 30'); j.lines() | prefix 1; for line in j.lines() { echo "got \(line)"; break }; j.cancel()func show() { sh -c 'echo "$SWISH_TEST_498334"' }; SWISH_TEST_498334=fn showecho $SWISH_SURELY_UNSETCommand("true").run()enum Result { case ok, failed(code: Int, String) };Result.failed(code: "x", "boom")let a = env.GREETING; let b = env["MISSING"]; a; b; env.NEW = "x"; env.GREETING = nil; env.NEWenum Result { case ok, failed(code: Int, String) };Result.allCasessh -c 'exit 3' && ^false || sh -c 'exit 3'Date(timeIntervalSince1970: 0) < Date(); Date(timeIntervalSince1970: 0).timeIntervalSince1970if 1 { echo x }Command("sh", "-c", "exit 4").run()let d = Date(timeIntervalSince1970: 100); (d + 60) - d; (d - 60) < ddo { 1 / 0 } catch { print(error.localizedDescription) }with(env: ["SWISH_TEST_498334": "block"]) { sh -c 'echo "$SWISH_TEST_498334"' }; env.SWISH_TEST_498334 == nildo { 1 / 0 } catch { error.status }let k = async $(sh -c 'echo a; sleep 0.2; printf b'); for line in k.lines() { echo "line \(line)" }Date("2026-09-27T14:03:00Z")! | to jsondo { 1 / 0 } catch { error.message }awaitdo { 1 / 0 } catch { print(error as? CommandFailure == nil) }Date("someday") == nilCommand("nope-not-a-program").run()struct S { static let k = 1; func f() -> Int { k } }; S().f()do { try $(sh -c 'echo no >&2; exit 2') } catch { if let f = error as? CommandFailure { print(f.status.code); print(f.localizedDescription) } }struct S { static let k = 1; func f() -> Int { S.k } }; S().f()let f = async sh -c 'exit 3'; let r = await f; r.status.codeCommand("true").run().and { Command("echo", "yes").run() }help prefixCommand("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }let n = 5; n > 3 ? "big" : "small"; let s = n > 9 ? "big" : "small"; shelp cdCommand("false").run().and { Command("echo", "no").run() }true ? false ? "a" : "b" : "c"; [1, 2].map { $0 == 1 ? "one" : "more" }help shCommand("false").run().or { Command("echo", "fallback").run() }help helpecho "\(1 < 2 ? "yes" : "no")"func double(@input _ n: Int) -> Int { n * 2 }
+func total(@input _ xs: [Int]) -> Int { var t = 0; for x in xs { t = t + x }; return t }
+func evens(@input _ n: Int) -> Int? { if n % 2 == 0 { return n }; return nil }
+var calls = 0
+func counted(@input _ n: Int) -> Int { calls = calls + 1; return n }
+double 21; total 1 2 3help surely-not-a-commandlet f = async sh -c 'exit 3'; do { try await f } catch { if let f = error as? CommandFailure { echo "caught \(f.status.code)" } }let n = 5
+let parity = if n % 2 == 0 { "even" } else if n > 4 { "odd, big" } else { "odd" }
+parity
+let missing: Int? = nil
+let got = if let v = missing { v } else { -1 }
+got
+func sign(_ x: Int) -> String {
+    if x < 0 { "negative" } else if x == 0 { "zero" } else { "positive" }
+}
+sign(-2); sign(3)Command("true").run().or { Command("echo", "never").run() }func f(_ a: String, count: Int = 0, dryRun: Bool = false, color: Bool = true, include: [String]) -> String { "\(a) \(count) \(dryRun) \(color) \(include)" };f x --count 3 --dry-run --no-color --include a --include=bfunc f() -> Int { 1 }; func f() -> Int { 2 }; f()let m = 1 > 2 ? 1 : nil; m ?? 0; let d: Double = true ? 1 : 2.5; dfunc f(_ a: String, count: Int = 0, dryRun: Bool = false, color: Bool = true, include: [String]) -> String { "\(a) \(count) \(dryRun) \(color) \(include)" };f --count=2 -- --xswitch "x" { case "y": echo y }let o: Int? = 3; o?.description; let t = try? $(true); t != nilecho before; let x: Int = "a"sh -c 'exit 3' && sh -c 'exit 3' || ^truelet n = 41n + 1async sleep 0.1; async sh -c 'exit 2'; sleep 0.4func names() -> [String] { ["a", "b"] }; names; names(); names | catFileType | select namelet f = async sh -c 'exit 3'; try await ftry? $(false) ?? "fallback"func none() -> [Int] { [] }; nonelet y = try $(echo plain); ylet h = env.HOME; h ?? "none"env.X = "1"enum Kind { case file, directory };let k = Kind.directory; k; k == .directory; k != .file; Kind.allCasesX=1 env/// Greets someone.
+/// - Parameter name: who to greet
+func greet(_ name: String, @flag("n") times: Int = 1, color: Bool = true, tags: [String]) {}
+greet --helptry sh -c 'exit 1'let double = { $0 * 2 }; double(21)enum Kind { case file, directory };Kind.socketCommand("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }try! sh -c 'exit 1'func f(n: Int, c: Character, p: FilePath) { echo "\(n + 1) \(c) \(p.lastComponent!)" }; f --n 2 --c x --p /a/blet add = { a, b in a + b }; add(1, 2)make && echo ok || echo nolet j = async true; await j && echo ok; let k = async false; await k || echo failedenum Kind { case file, directory };Kind.file == "file"func apply(_ f: (Int) -> Int, _ x: Int) -> Int { f(x) }; apply({ $0 + 100 }, 1)if grep -q x f { echo hi }func f(r: ClosedRange<Int>) { echo "\(r)" }f --r 1...3f(r: 1...3)let r = $(printf 'a b\nc\n');r.count; r[0]; r.last; r.text; r.text.countwhile sh -c 'exit 1' { echo no }printf '%s\n' '/// Greets someone.' 'func main(_ name: String, loud: Bool = false) { if loud { echo "HI \(name)" } else { echo "hi \(name)" } }' 'echo "args \(args.count)"' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.caxYHL1DMV"swish".uppercased(); "swish".hasPrefix("sw"); "swish".count; (2.5).rounded(); (12).isMultiple(of: 4)nil ?? 1 + 2; 1 ?? 2 == 1; nil ?? nil ?? 3let r = $(printf 'a b\nc\n');for line in r { echo "<\(line)>" }do { let r = try $(sh -c 'echo partial; exit 3') } catch { if let f = error as? CommandFailure { print(f.status.code); print(f.text) } }[3, 1, 2].contains(2); [3, 1, 2].firstIndex(of: 1); [3, 1, 2].max(); [1, 2, 3].reduce(0) { $0 + $1 }; [1, 2].map { $0 * 2 }func f(name: String? = nil) -> String { name ?? "anon" }; f; f --name xsh -c 'exit 3' && sh -c 'exit 3' || ^false/// Greets someone.
+func main(_ name: String, loud: Bool = false) { if loud { echo "HI \(name)" } else { echo "hi \(name)" } }
+echo "args \(args.count)"
+Int.maxlet r = $(printf 'a b\nc\n');r.status.code; r.status.succeeded; r.status.signal == nil$(true).isEmpty; $(true).countmkdir /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/sub
+head -c 1500 /dev/zero | dd of=/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/big.bin status=none
+printf hi | dd of=/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/small.txt status=none
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/.hiddendo { let r = try $(sh -c 'kill -TERM $$') } catch { if let f = error as? CommandFailure { print(f.status.signal); print(f.status.code == nil) } }func f(_ x: Int, label: String = "d") -> Int { x };f()Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }func f(_ x: Int, label: String = "d") -> Int { x };f("s")echo (func f(_ x: Int, label: String = "d") -> Int { x };f(1, other: "x")func f(_ x: Int, label: String = "d") -> Int { x };f(1, 2)ls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/nope /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.rUAk0v28vD/small.txt | get namefunc f() -> Int { "no" }; f()mkdir -p /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/src/deep '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/with space' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/.secret
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/a.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/b.txt /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/c.md /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/.hidden /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/src/x.swift /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/src/deep/y.swift '/var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/with space/z.txt' /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/.secret/s.swiftls /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.cHWmaeEJZu/state | filter { $0.name == "swish" } | get permissionsdo { let r = $(false) } catch { echo never }; echo donefunc f() -> Int { echo hi }; f()sh -c 'exit 3' && sh -c 'exit 3' || sh -c 'exit 3'let sign = { (x: Int) in
+    if x > 0 { return "pos" }
+    return "neg"
+}
+sign(-1).countlet xs = [(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")];xs | sorted --by n | get sprintf '%s\n' '#!/usr/bin/env swish' 'defer { rm /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/marker; echo deferred }' 'touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/marker' 'echo "at \(#filePath)"' 'func main() { echo main }' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/cleanup.swish1.5.gb + 500.mb; 1.kib.bytes; 10.mb / 4; 1.mb > 999.kb; 4.mb / 2.mb; -1.kblet xs = [(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")];xs | sorted -b s | reversed | prefix 2 | get nstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+Point(x: 3, y: 4); Point(x: 1)func f(_ s: FileSize) -> FileSize { s }; f 1.5mb; f 2048sh -c 'echo out; echo err >&2' > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/both e>o; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/both
+defer { rm /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/marker; echo deferred }
+touch /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/marker
+echo "at \(#filePath)"
+func main() { echo main }
+let xs = [(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")];xs | reversed | get n; xs | countfunc prompt() -> String { "plain> " }struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+let p = Point(x: 3, y: 4); p.x; p.lengthSquared; p.describe()func prompt(status: Int) -> String { "[\(status)]> " }; falsefunc prompt(_ n: Int) -> Int { n }let xs = [(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")];xs | sortedstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+[Point(x: 5), Point(x: 1)] | filter { $0.x > 1 }struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+Point(x: 1) | to json | tr -d ' \n'printf 'b\n10\n9\na\n' | sorted; printf '10\n9\n9\n10\n' | uniquedfunc double(_ x: Int) -> Int { x * 2 }; [1, 2].map(double).map { $0 + 1 }test -e /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.YiECBuxco9/marker && echo left || echo gonesh -c 'echo out; echo err >&2' e>o > /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/only | tr a-z A-Z; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/onlyfunc conv(_ x: Int) -> String { "int" }; func conv(_ x: String) -> String { "string" }; let f: (String) -> String = conv; f("a")Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }[3, 1.5, 2] | sortedstruct P: Equatable { var x: Int; var y = 0 }; P(x: 1) == P(x: 1, y: 0); P(x: 1) != P(x: 2)func apply(_ f: (Int) -> Int, _ x: Int) -> Int { f(x) }; apply({ $0 * 3 }, 2)struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+Point(x: 1) == Point(x: 1, y: 0)seq 1000000 | prefix 2; yes | prefix 1#filePathstruct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int { x * x + y * y }
+    func describe() -> String { "(\(x), \(y))" }
+    mutating func move(by d: Int) {
+        x += d
+        self.y += d
+    }
+    mutating func reset() { move(by: -x); y = 0 }
+}
+var a = Point(x: 1); var b = a; b.x = 9; a.xstruct Entry: Tabular {
+    var name: String
+    var size: Int
+    var path: String
+    static let columns: [DisplayColumn] = ["size", "name"]
+}
+let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
+esstruct Entry: Tabular {
+    var name: String
+    var size: Int
+    var path: String
+    static let columns: [DisplayColumn] = ["size", "name"]
+}
+let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
+es | tablesh -c 'echo out; echo err >&2' o+e> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/amp; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/ampstruct Entry: Tabular {
+    var name: String
+    var size: Int
+    var path: String
+    static let columns: [DisplayColumn] = ["size", "name"]
+}
+let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
+es | filter { $0.size > 1 } | select name path[3, 1, 3, 2].uniqued().sorted()struct P: Tabular { var x: Int }struct P: Tabular { var x: Int; static let columns = 1 }enum E: Tabular { case a }sh -c 'echo err >&2' e> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/e; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/esh -c 'echo err >&2' e> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/e2; sh -c 'echo more >&2' e>> /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/e2; cat /var/folders/61/rv_z22gd4yb8h_m81yr5pkd80000gn/T/tmp.RXLujWRLnI/e2let k = async $(sh -c 'echo a; echo b'); await k; k.lines() | map { $0 + "!" }jobs.countlet = 1le true {} } catch { 0 }ruct P { var x: Int; static let origin = P(x: 0) }
+P(x: 1)
+P.origin
+func double(_ n: Int) -> Int { n * 2 }
+xs.map { double($0) }try check(1)10)config.volume * 2counterlet x: Int = "a"greet(name: "Rak")try check(-1)counter + countertwice([1, 2]).countls()func down(_ n: Int) -> Int { down(n + 1) }; down(0)clamp("a", 0, 10)let a = 1
+leps()Int = "x"let shared = 11 + 2pwd()sharedsettings.volumelet xs = [3, 1, 2]; xs.sorted()only(1)history()settings["volume"]only(shared)members([1])readLine()[["a": 1]].select("a")from()settings.missing[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }let answer = 42to()let j: JSON = 1settings.brightness = 3; settings.volume = settings.volume! + 1table()answer * 2await 1list()await 21help()settings["volume"] = nilsettings.volume = "loud"while true {}let v: String = settings.volumegit statuslet h = $(echo hi).HOME$(date)func sum(_ n: Int) -> Int { n == 0 ? 0 : n + sum(n - 1) }; sum(5000)print("hello", 1 + 1); print([1, 2])env["HOME"]1 + 1for i in 1...100000 { print("xxxxxxxxxx") }

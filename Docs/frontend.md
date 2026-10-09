@@ -210,6 +210,36 @@ A second scratch spike (swift-syntax 602, not in the repository).
   it until step 4 makes it `package`. Step 4a has: the tree is `package` in
   `Swiit`, so the lowering can live in its own module. It is not started.
 
+## Built
+
+Slices 1 to 3 of 3c (the `SwiitSwiftSyntax` module in `Packages/Swiit`):
+
+- **The contract:** `SyntaxFrontEnd` (`parse(source, bound, plugin)`), with the
+  hand-written parser as `HandWrittenFrontEnd`; `Interpreter.frontEnd` picks
+  one. The module is an optional product, since swift-syntax adds size.
+- **Lowering Swift:** `SwiftSyntaxFrontEnd` lowers SwiftParser's tree to the
+  core's: expressions (literals, strings with interpolation, file sizes like
+  `2.mb`, operators folded by `SwiftOperators`, closures, key paths, casts,
+  `try`/`await`, optionals), statements (`if`/`guard`/`while`/`for`/`switch`/
+  `do`/`catch`/`defer`), functions (parameters, `@flag`, `@input`, `///`
+  documentation, `throws`), structs (stored and computed properties, methods,
+  initializers, statics read through the type's name in static members) and
+  enums. A construct it doesn't lower is an error naming it.
+- **The oracle:** the hand parser's tree for the same source. 32 programs
+  covering each construct, and the 226 Swift-only programs harvested from the
+  suites' 739 distinct sources, read as the same tree: 223 agree, none differ, and
+  three are not lowered (a type, a placeholder, and `f -5 -3`, which is
+  arithmetic to the hand parser and, as in Swift, two statements to SwiftParser).
+  The count of those only goes down.
+- **Problems:** input cut short is `incomplete` (a missing token at the end of
+  the source), as the prompt asks for another line; other problems are errors
+  with a line. Both front ends agree on which is which for 22 inputs.
+- **Found by the oracle:** the hand parser grouped `a ?? b ?? c` to the left;
+  Swift groups it to the right. It is fixed.
+
+Not built: shell lines (the span-level plug-in, step 4 of "How the front end
+would work"), highlighting from the tree, and wiring it into the shell.
+
 ## Not tried yet
 
 - Highlighting with `SwiftIDEUtils` and incremental re-parsing.

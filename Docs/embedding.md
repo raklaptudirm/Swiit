@@ -359,7 +359,9 @@ shell working.
    when a second implementation shows the right shape. `package` access waits
    for step 4. The environment file is split into core (`expand`) and shell
    (`Shell+Words.swift`).
-3c. **A SwiftSyntax front end.** A second implementation of the contract, as an
+3c. **A SwiftSyntax front end.** *Slices for Swift alone are built:*
+   the contract, the lowering of the Swift the interpreter reads, and the oracle
+   comparison (frontend.md, "Built"); shell lines are not.  A second implementation of the contract, as an
    optional module: SwiftParser, recognition of shell lines by the tree's
    recovery structure and by lexical lookup, a lowering to the core's tree, and
    a hand-parser oracle to retire the old parser against. It follows step 4, but
