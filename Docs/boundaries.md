@@ -23,9 +23,9 @@ language layers are an `Interpreter` class and the shell owns one. For them:
 1. **No direct reach into the operating system.** No descriptors, environment,
    signals, processes, terminal, directory, dynamic loading or threads; all of
    it goes through `SwishHost`. There is no allowance for this rule, and today
-   nothing breaks it. (Step 5 of the embedding plan gives the interpreter a
-   thread of its own for deep recursion; the rule is then amended for that
-   one place.)
+   nothing breaks it. (Step 5 of the embedding plan gave the interpreter a
+   thread of its own for deep recursion: `Embedding/LargeStack.swift` is the
+   one place the test permits `Thread` and `DispatchSemaphore`.)
 2. **No dependency on the shell's concepts** (commands and pipelines, `env`,
    jobs, exit statuses, the file being run, history, plugins, command
    resolution) **beyond the ledger.** Each line of the ledger is a

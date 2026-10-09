@@ -303,6 +303,23 @@ shell working.
 5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.
+   *Done.* `Interpreter(host:limits:)` is public and gives Swift's syntax, the
+   standard library and `print`, with no commands, files or environment.
+   `SwishHost`, `OutputSink`, `StreamTraits`, `StopReason`, `Limits` and
+   `Diagnostic` (kind: syntax, type, runtime, limit, cancelled; a message; the
+   line for a type error) are public. `eval` returns the last expression's
+   value on a large-stack thread (`onLargeStack`, moved from the shell);
+   `set` takes a `Value` or an `Encodable`; `register` takes a Swift closure
+   of any arity whose parameters and result are `SwishConvertible` (parameter
+   packs), with optional argument labels, plus a `Void` form; `cancel()` asks a
+   run to stop from any thread. Limits are steps (statements and calls), call
+   depth, time and output bytes, counted from each `eval`; a limit is a
+   `Diagnostic` of kind `.limit` that a script's `catch` can't see. A bare value
+   statement shows nothing in an embedded interpreter (`echoesValues`); `print`
+   is how a script speaks. Everything else on `Interpreter` stays `package`;
+   what else to make public is decided with the first embedder. Not done:
+   `loadModule` (a script importing another) and per-instance host types, which
+   is step 7.
 6. **Host objects with dynamic members:** a `SwishObject` can assign its
    members and say their types, so a host registers an object whose members are
    computed (`env`, `jobs`, JSON) and the checker types them. This retires the
