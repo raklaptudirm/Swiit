@@ -117,9 +117,11 @@ are not forgotten:
 
 - ~~**The shell's library functions are installed by the core.**~~ Exited at
   step 4b: they are `SwishShellLibrary`, and the shell installs them.
-- **The prelude declares the shell's `help`.** `Prelude.swift` declares
-  `help` and the `Help` struct, and the shell supplies the body. Exit: the
-  prelude splits at step 4, with `help` in the shell's half.
+- ~~**The prelude declares the shell's `help`.**~~ Exited: the shell's
+  declarations (`help`, `Help`, `select`, `JSON`) are the shell's own prelude,
+  `Library.declarations` and `Library.bodies`, read after the core's. What stays
+  in the core's prelude is `Status`, `Error`, `Member` and `members`; `Status`
+  stays because `Error` carries one (the `status` group in the ledger).
 - **`Interpreter.init` takes no builtins.** An embedder has to call
   `installBuiltinFunctions`; step 5's public initializer does it.
 

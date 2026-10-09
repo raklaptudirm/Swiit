@@ -385,6 +385,13 @@ shell working.
    `Session/Presentation` holds the table and key/value formatting, the column
    registry and the echo; `Interpreter.displayRegistryProvider` lets library
    functions that format ask the host for it. `echoesValues` is gone.
+   *The builtins and the prelude were split.* `Library` also carries Swish
+   declarations and the bodies for them (`declarations`, `bodies`), so a host adds
+   to the prelude the way it adds bridged functions: the shell declares `help`,
+   `Help`, `select` and the `JSON` stand-in, the core only `Status`, `Error`,
+   `Member` and `members`. `declaredCase`, the `Function.builtin` and
+   `Parameter` builders and the JSON access functions moved to the files they
+   belong with, and `Dictionary.strings` to the shell.
    *After 4b the libraries moved under their targets* (`Sources/Swiit/Library`,
    `Sources/SwishShell/Library`, still modules of their own for the generator),
    and `from`, `to`, `table`, `list`, `InputFormat`, `OutputFormat` and `JSON`
