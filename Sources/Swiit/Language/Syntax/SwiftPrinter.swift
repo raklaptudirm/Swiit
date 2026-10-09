@@ -278,7 +278,13 @@ import SwishKit
             if entries.isEmpty { return "[:]" }
             return "[" + entries.map { "\(expression($0.key)): \(expression($0.value))" }.joined(separator: ", ") + "]"
         case .closure(let closure): return closureText(closure)
-        case .call(let callee, let arguments): return "\(operand(callee))(\(self.arguments(arguments)))"
+        case .call(let callee, let arguments):
+            // A closure last is written after the parentheses, as Swift does.
+            if let last = arguments.last, last.label == nil, case .closure(let closure) = last.value {
+                let rest = Array(arguments.dropLast())
+                return "\(operand(callee))" + (rest.isEmpty ? "" : "(\(self.arguments(rest)))") + " " + closureText(closure)
+            }
+            return "\(operand(callee))(\(self.arguments(arguments)))"
         case .member(let base, let name): return "\(operand(base)).\(name)"
         case .caseLiteral(let name, let arguments):
             return ".\(name)" + (arguments.map { "(\(self.arguments($0)))" } ?? "")

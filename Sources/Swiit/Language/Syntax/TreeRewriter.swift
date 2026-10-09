@@ -9,18 +9,28 @@ import SwishKit
 /// `expression` and the rest. This is how the shell's constructs become Swift
 /// (Docs/Design/desugaring.md).
 @_spi(Shell) public struct TreeRewriter {
+    /// Where a chain of units stands, which decides what its units mean: a
+    /// statement shows what it gives, a condition only asks if it holds.
+    @_spi(Shell) public enum Position: Equatable, Sendable {
+        case statement, condition
+    }
+
     @_spi(Shell) public var expr: (Expr) -> Expr
     @_spi(Shell) public var unit: (Unit) -> Unit
     @_spi(Shell) public var statement: (Statement) -> Statement
+    /// A chain, with its units rewritten, and where it stands.
+    @_spi(Shell) public var chainHook: (Chain, Position) -> Chain
 
     @_spi(Shell) public init(
         expr: @escaping (Expr) -> Expr = { $0 },
         unit: @escaping (Unit) -> Unit = { $0 },
-        statement: @escaping (Statement) -> Statement = { $0 }
+        statement: @escaping (Statement) -> Statement = { $0 },
+        chain: @escaping (Chain, Position) -> Chain = { chain, _ in chain }
     ) {
         self.expr = expr
         self.unit = unit
         self.statement = statement
+        self.chainHook = chain
     }
 
     // MARK: Programs and statements
@@ -73,7 +83,7 @@ import SwishKit
         case .guardStatement(let condition, let otherwise):
             rewritten = .guardStatement(self.condition(condition), otherwise: program(otherwise))
         case .chain(let chain):
-            rewritten = .chain(self.chain(chain))
+            rewritten = .chain(self.chain(chain, as: .statement))
         }
         return statement(rewritten)
     }
@@ -100,8 +110,9 @@ import SwishKit
 
     // MARK: Chains and units
 
-    @_spi(Shell) public func chain(_ chain: Chain) -> Chain {
-        Chain(first: unitNode(chain.first), links: chain.links.map { Link(op: $0.op, unit: unitNode($0.unit)) })
+    @_spi(Shell) public func chain(_ node: Chain, as position: Position) -> Chain {
+        let rewritten = Chain(first: unitNode(node.first), links: node.links.map { Link(op: $0.op, unit: unitNode($0.unit)) })
+        return chainHook(rewritten, position)
     }
 
     @_spi(Shell) public func unitNode(_ node: Unit) -> Unit {
@@ -126,7 +137,7 @@ import SwishKit
         case .forLoop(let loop):
             rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body)))
         case .whileLoop(let loop):
-            rewritten = .whileLoop(WhileLoop(condition: chain(loop.condition), body: program(loop.body)))
+            rewritten = .whileLoop(WhileLoop(condition: chain(loop.condition, as: .condition), body: program(loop.body)))
         }
         return unit(rewritten)
     }
@@ -137,7 +148,7 @@ import SwishKit
 
     private func condition(_ condition: IfStatement.Condition) -> IfStatement.Condition {
         switch condition {
-        case .chain(let value): .chain(chain(value))
+        case .chain(let value): .chain(chain(value, as: .condition))
         case .binding(let name, let mutable, let value): .binding(name: name, mutable: mutable, value: expression(value))
         case .pattern(let value, let subject): .pattern(pattern(value), expression(subject))
         }
