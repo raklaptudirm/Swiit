@@ -10,7 +10,9 @@ shell as seasoning) and is the first thing to build, ahead of
 the seam it creates.
 
 Step 1 of the plan is built (the `SwishHost` seam); the rest is not. This
-records what is decided, the shape, and an order.
+records what is decided, the shape, and an order. The line between the core and
+the shell, what may cross it today and how each crossing exits are in
+[boundaries.md](boundaries.md), and a test enforces them.
 
 ## Where it stands
 
@@ -220,12 +222,17 @@ shell working.
 5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.
-6. **Host types:** per-instance registry layered over the standard one, so a
+6. **Host objects with dynamic members:** a `SwishObject` can assign its
+   members and say their types, so a host registers an object whose members are
+   computed (`env`, `jobs`, JSON) and the checker types them. This retires the
+   `env` special cases ([boundaries.md](boundaries.md)) and is the feature the
+   JSON open question in `foundations.md` waits on.
+7. **Host types:** per-instance registry layered over the standard one, so a
    host can register a type, not only functions; `@SwishExport` usable in
    process.
-7. **Documentation, an example package, and a CI check** that the core target
-   builds without the shell and that no core file mentions `termios`,
-   `waitpid`, `posix_spawn` or `isatty`.
+8. **Documentation, an example package, and a CI check** that the core target
+   builds without the shell. (The check that no core file reaches the operating
+   system exists from step 1: `BoundaryTests`.)
 
 Tests that must hold by the end: `eval` returns values and structured
 errors; the sandbox refuses commands, files and environment with clear
