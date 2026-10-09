@@ -363,6 +363,16 @@ shell working.
    (the members of host types); `AlreadyReported` and `HelpStyle.heading` moved
    into the core. The tests moved to `SwishShellTests`; `SwiitTests` keeps the
    boundary test.
+   *After 4b the libraries moved under their targets* (`Sources/Swiit/Library`,
+   `Sources/SwishShell/Library`, still modules of their own for the generator),
+   and `from`, `to`, `table`, `list`, `InputFormat`, `OutputFormat` and `JSON`
+   went to the shell library. Still in the interpreter's library: the pretty
+   printers (the core's `show` and `print` use them); `Flow` (Swift has no
+   lazy sequence whose `next()` can throw, which a pipeline's closures need;
+   checked on Swift 6.4); and everything that adds members to a Swift or
+   Foundation type (`uniqued`, `get`, `sorted(by:)`, `String.styled`, date
+   arithmetic), because the generator writes those into the interpreter's own
+   tables and can't yet write them into the shell's.
    *Step 4b is done:* `SwishShellLibrary` holds `ls`, `ps`, `pwd`, `with(env:)`,
    `readLine`, `history` and their types (`FileEntry`, `FileType`,
    `ProcessEntry`, `JobState`); `SwishStandardLibrary` keeps the pure part. The
