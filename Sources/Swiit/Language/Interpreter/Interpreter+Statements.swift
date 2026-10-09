@@ -227,6 +227,13 @@ extension Interpreter {
     /// The exit status an expression's value gives.
     @_spi(Shell) public func status(of value: Value, from expr: Expr, context: UnitContext) throws -> Int32 {
         if case .bool(let truth) = value { return truth ? 0 : 1 }
+        // A command's `Status`: how it ended is its status.
+        if case .record(let record) = value, record.typeName == "Status", case .bool(let succeeded)? = record["succeeded"] {
+            if succeeded { return 0 }
+            if case .int(let code)? = record["code"] { return Int32(code) }
+            if case .int(let signal)? = record["signal"] { return 128 + Int32(signal) }
+            return 1
+        }
         // `await build && echo ok`: an Output's status is its command's.
         if let output = value.commandOutput, !output.succeeded {
             return output.code.map(Int32.init) ?? 128 + Int32(output.signal ?? 0)
