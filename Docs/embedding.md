@@ -456,8 +456,15 @@ shell working.
    core lost `Binding.Special.environment`, `Symbol.environment`,
    `isEnvironment`, the layer's `environment`, and the shell its
    `env` statement and `SetEnvironmentStatement` (the ledger's `env` group is
-   empty). Still to do: `jobs` (an ordinary registered global with a declared
-   type), JSON as a dynamic object, and making `bind` and the protocol public.
+   empty). *JSON is done too,* as a second kind of dynamic type, for values that
+   aren't objects: `PlainDynamic` registers a type whose values stay whatever
+   they parsed as (lists, records, scalars), and the checker writes each access
+   (`json.name`, `json[0]`, `json.port?.int`) into a call of the host's `field`
+   and `view` functions, with the views' types, what a sequence's items are, and
+   whether it fits anywhere. The shell registers `JSON` and the two functions;
+   the core has no mention of JSON left. Still to do: `jobs` (an ordinary
+   registered global with a declared type), and making `bind`, `DynamicType` and
+   the protocol public.
 7. **Host types:** per-instance registry layered over the standard one, so a
    host can register a type, not only functions; `@SwishExport` usable in
    process.
