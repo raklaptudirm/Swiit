@@ -39,7 +39,7 @@ swift-system's `FilePath`, which are values with no I/O.
 
 ## How it is kept
 
-`BoundaryTests` reads the source and `Tests/SwishCoreTests/boundaries.txt`:
+`BoundaryTests` reads the source and `Tests/SwiitTests/boundaries.txt`:
 
 - A match of the operating-system pattern in any checked file fails the test.
 - For each shell concept group, a file's count must equal the ledger's. More

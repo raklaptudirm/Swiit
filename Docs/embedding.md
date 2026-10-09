@@ -17,7 +17,7 @@ the shell, what may cross it today and how each crossing exits are in
 
 ## Where it stands
 
-About two thirds of `SwishCore` (9,100 of 13,800 lines) is the language:
+About two thirds of `Swiit` (9,100 of 13,800 lines) is the language:
 `Syntax`, `Checking`, `Interpreter` and `Bridge`. It almost never touches the
 operating system. What stops it being a library:
 
@@ -52,7 +52,7 @@ constructs into library calls, so the core doesn't need to understand them.
 
 ## Decided
 
-- **`SwishCore` becomes the embeddable core,** and the shell moves to a new
+- **`Swiit` becomes the embeddable core,** and the shell moves to a new
   `SwishShell` target that depends on it. The `swish` executable depends on
   `SwishShell`.
 - **The core is Swift only.** Shell syntax belongs to the shell. Until the
@@ -71,7 +71,7 @@ constructs into library calls, so the core doesn't need to understand them.
 | Target | Contents |
 |---|---|
 | `SwishKit` (exists) | `Value`, boxing, `SwishObject`, `@SwishExport`: what a host and a plugin share with the interpreter |
-| `SwishCore` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwishKit and Foundation, `SwishHost`, the embedding API |
+| `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwishKit and Foundation, `SwishHost`, the embedding API |
 | `SwishStandardLibrary` | The pure part: `Flow`, `JSON`, formatter, pretty printer, `Sequence` extensions, `from`/`to`/`table`/`list`, text styling |
 | `SwishShellLibrary` (new) | The OS functions: `ls`, `ps`, `pwd`, `readLine`, `history`, `with(env:)`, jobs, paths, input |
 | `SwishShell` (new) | `Shell`, execution, platform, the line editor, shell builtins, config, plugin loading, tasks |
@@ -240,7 +240,7 @@ call-stack frames in `Diagnostic`; selectable parts of the standard library;
 
 ## What moves
 
-| From `SwishCore` | Goes to |
+| From `Swiit` | Goes to |
 |---|---|
 | `Syntax`, `Checking`, `Interpreter`, `Bridge`, generated glue | stays; loses its `Shell` and POSIX references |
 | `Shell/Shell.swift` (class) | split: language state to `Interpreter` (core), process state stays in `Shell` |
@@ -351,7 +351,7 @@ shell working.
    moved, `SwishStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no
    reference to the shell.
-   *Step 4a is done:* two targets, `SwishCore` (the language: syntax, checker,
+   *Step 4a is done:* two targets, `Swiit` (the language: syntax, checker,
    interpreter, bridge, display, builtins) and `SwishShell` (commands,
    pipelines, jobs, the line editor, the process; the executable depends on
    it). The core builds alone, so the compiler now enforces the line the
@@ -361,7 +361,7 @@ shell working.
    `run`, `start`, `capture` and `hasProgram`); `CheckedObject` (the checker
    types `Job` and modules without naming them) and `Interpreter.objectMembers`
    (the members of host types); `AlreadyReported` and `HelpStyle.heading` moved
-   into the core. The tests moved to `SwishShellTests`; `SwishCoreTests` keeps the
+   into the core. The tests moved to `SwishShellTests`; `SwiitTests` keeps the
    boundary test.
    *Step 4b is done:* `SwishShellLibrary` holds `ls`, `ps`, `pwd`, `with(env:)`,
    `readLine`, `history` and their types (`FileEntry`, `FileType`,
@@ -369,7 +369,7 @@ shell working.
    generator writes the shell library into `Sources/SwishShell/Bridge/Generated`
    (its tables are `shellTypes`, `shellFunctions`, …), and the core takes
    libraries as values: `Library.standard` is its own, the shell passes
-   `Library.shell` to `installBuiltinFunctions(libraries:)`. `SwishCoreTests`
+   `Library.shell` to `installBuiltinFunctions(libraries:)`. `SwiitTests`
    now runs the core alone, and checks it has no `ls`. The Linux manifest for
    the new module (`Bridges/linux/SwishShellLibrary.json`) comes from CI's
    artifact, as the others do.
@@ -452,7 +452,7 @@ output goes to the sink; the core builds on Linux with no shell target.
 - **Targets beyond macOS and Linux:** iOS is the same code; WASM needs a
   look at Foundation and at threads.
 - **Naming the embedding product.** A package that consumers depend on may
-  want a friendlier library name than `SwishCore`. (The seam protocol is
+  want a friendlier library name than `Swiit`. (The seam protocol is
   settled: `SwishHost`.)
 
 ## Found on the way

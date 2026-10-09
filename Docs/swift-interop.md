@@ -121,8 +121,8 @@ scripts, reusing the twins.
 
 1. **The standard library's members on Swish values**, from its symbol
    graph and generated glue, replacing the hand-written member tables.
-   *Built so far:* `swish-bridge` (Sources/SwishBridge) reads the graph
-   and writes Sources/SwishCore/Bridge/Generated/StandardLibrary.swift;
+   *Built so far:* `swiit-bridge` (Sources/SwiitBridge) reads the graph
+   and writes Sources/Swiit/Bridge/Generated/StandardLibrary.swift;
    `run bridge` reruns it. It bridges `String`,
    `Substring`, `Character`, `Int`, `Double`, `Bool`, `Array`,
    `ArraySlice`, `Set`, `Dictionary`, `Optional`, `Range` and
@@ -156,7 +156,7 @@ scripts, reusing the twins.
    - **Other modules' types are held boxed,** by their full name:
      swift-system's `FilePath`, `FilePath.Component` and
      `FilePath.ComponentView` (81 members, in
-     Sources/SwishCore/Bridge/Generated/SystemPackage.swift). It's swift-system's
+     Sources/Swiit/Bridge/Generated/SystemPackage.swift). It's swift-system's
      until the standard library's
      ([SE-0529](https://github.com/swiftlang/swift-evolution/blob/main/proposals/0529-filepath-in-stdlib.md))
      ships, when swift-system's becomes a typealias for it and keeps these
@@ -168,7 +168,7 @@ scripts, reusing the twins.
      convert: `FilePath(s)`. On a command line, a word is what a literal
      would be, so `show a/b.txt` works for `func show(_ path: FilePath)`.
    - **Swish adds a few members of its own** to bridged types, as an
-     `extension` would, listed in Sources/SwishCore/Bridge/Extensions.swift
+     `extension` would, listed in Sources/Swiit/Bridge/Extensions.swift
      and checked and called like Swift's: `"text".styled(.red, .bold)`.
    - **A bridged sequence flows as its elements** in a pipeline, as a
      list does: `p.components | map(\.stem)`.

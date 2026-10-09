@@ -206,9 +206,9 @@ A second scratch spike (swift-syntax 602, not in the repository).
   so the prompt's "ask for another line" is: any missing token whose position
   is the end of the source.
 - **Lowering target.** The core's tree (`Expr`, `Statement`, `Unit` and the
-  rest) is `internal` to SwishCore, so a separate front-end module can't build
+  rest) is `internal` to Swiit, so a separate front-end module can't build
   it until step 4 makes it `package`. Step 4a has: the tree is `package` in
-  `SwishCore`, so the lowering can live in its own module. It is not started.
+  `Swiit`, so the lowering can live in its own module. It is not started.
 
 ## Not tried yet
 
