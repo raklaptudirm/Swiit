@@ -363,6 +363,13 @@ shell working.
    (the members of host types); `AlreadyReported` and `HelpStyle.heading` moved
    into the core. The tests moved to `SwishShellTests`; `SwiitTests` keeps the
    boundary test.
+   *Presentation is the shell's.* The interpreter has no display code: it runs
+   a program with an optional observer (`run(_:observing:)`), told the value of
+   each expression statement while it runs (nested blocks included, not inside
+   a call), and a host that shows values passes one. The shell's
+   `Session/Presentation` holds the table and key/value formatting, the column
+   registry and the echo; `Interpreter.displayRegistryProvider` lets library
+   functions that format ask the host for it. `echoesValues` is gone.
    *After 4b the libraries moved under their targets* (`Sources/Swiit/Library`,
    `Sources/SwishShell/Library`, still modules of their own for the generator),
    and `from`, `to`, `table`, `list`, `InputFormat`, `OutputFormat` and `JSON`
