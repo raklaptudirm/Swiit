@@ -1,0 +1,184 @@
+# The front end
+
+The front end turns text into the core's syntax tree. Today it is a
+hand-written parser. The intention is to replace it with SwiftSyntax, so that
+Swish accepts Swift's syntax by construction and follows the language as it
+grows. This note fixes what stays the same across that swap (the contract, and
+how the shell plugs in), records what was learned about SwiftSyntax, and gives
+the steps. It builds on [embedding.md](embedding.md) and
+[boundaries.md](boundaries.md): the core is Swift only, and the shell's grammar
+is a layer over it.
+
+## The contract
+
+A front end takes source text and the names already in scope, and gives back one
+of three things: a program in the core's tree; syntax errors, each with a range;
+or "incomplete", so a prompt can ask for another line. It also gives highlight
+spans for the line editor. Provisionally:
+
+```swift
+protocol SyntaxFrontEnd {
+    func parse(_ source: String, names: [String: NameKind], shell: ShellSyntax?) -> ParseResult
+    func highlight(_ source: String, names: [String: NameKind]) -> [Span]
+}
+```
+
+The hand parser is the only implementation today. Its `Parser.Dialect` (step 3)
+becomes "is a `ShellSyntax` plugged in?": no plug-in is the Swift dialect.
+
+## The shell's plug-in
+
+The shell's grammar nests inside Swift's and Swift's inside it: closure words
+(`where { $0.size > 1.mb }`), `\(expr)` in words, `$(…)` holding a whole
+program; and commands as statements in function bodies, as conditions
+(`if make { … }`), and in `for x in $(cmd)`. So the shell can't be a separate
+parser; it has to plug into the front end, and call back for the Swift inside
+it.
+
+The plug-in works on **statements and spans of text**, not on tokens:
+
+- Given the text ahead, the names in scope and the context (in a condition, in a
+  guard, under `try`): is it a command, and where does it end?
+- Given a command's span: parse it into a shell node, calling back to the front
+  end for any embedded Swift span.
+- The expression-level forms: `$(…)`, `$NAME`, `async …`, and `import … from path`.
+
+The core's tree gets **one opaque extension node** (for expressions and for
+units), replacing `PipelineNode`, `CommandNode`, redirects and the rest in its
+`switch`es. The checker gets a hook to visit the Swift nested in such a node.
+The desugaring ([desugaring.md](desugaring.md)) rewrites the nodes into Swift
+calls after checking, as planned.
+
+Token-level hooks in the hand parser would have been simpler to write and would
+be thrown away: SwiftParser has no such hooks (below), so the interface is
+shaped for what survives the swap.
+
+## SwiftSyntax as the front end
+
+### What the documentation and source say
+
+- **No grammar extension point.** SwiftParser's public API is `Parser`, `Lexer`,
+  `SyntaxParseable`, `IncrementalParseTransition` and `ExperimentalFeatures`; no
+  delegate, hook or rule type. No forum thread asks for one.
+- **Structure, not messages, is the supported surface for non-Swift text.** The
+  parser "produces no errors regardless of how ill-formed the input source text
+  is". Syntax it can't place becomes `unexpected` nodes and absent syntax
+  becomes `missing` tokens; diagnostics are a separate pass over the tree. It can
+  start at any production (a file, a type, a single expression).
+- **Macros are not a grammar mechanism.** They expand `#name(…)` and `@name`
+  annotations that are already valid Swift. There is an in-process expansion API
+  (`expandFreestandingMacro`, `BasicMacroExpansionContext`), so macros could
+  carry the desugaring, but not the recognition.
+- **`SwiftLexicalLookup`** (new in 602, the version already pinned for the
+  macros) answers "what does this name refer to here" with Swift's scoping.
+  **`SwiftOperators`** folds operator sequences by a configurable table.
+
+### What was tried
+
+A scratch spike against swift-syntax 602, not in the repository.
+
+| Input | SwiftParser's tree |
+|---|---|
+| `ls -la`, `git status`, `echo $HOME`, `ls ~/bin` | Consecutive expression statements on one line; the first item's `;` is a **missing token** (public `presence == .missing`), unlike a real `;` or a newline |
+| `ls --all \| where { … }`, `cat *.swift \| wc -l`, `make && echo ok \|\| …`, `echo hi > out.txt` | Operators parse as Swift operators; the words are cut into odd fragments (`-l` ends up separate) |
+| `echo don't stop`, then two Swift lines | Damage stays on that line; the next lines parse normally |
+| `grep /foo/ file.txt` | `/foo/` is lexed as a regex literal |
+| `let x = $(date)`, `try make` | Parse cleanly (`$` is an identifier; `try` of a reference) |
+| `if grep -q x f { echo yes }` | One `if`; `-q x f` is a single `unexpectedNodes` node whose parent is the body block |
+| `FOO=bar make`, `async sleep 1` | Split into pieces |
+| `_ = 1 + 2`, protocols, generics, actors | Parse cleanly |
+| `let xs = [1, 2,` | A tree, with "expected ']' to end array" |
+
+- **Lexical lookup** follows Swift's sequential rules inside blocks (`local` is
+  unknown before its `let`, declared after). **Top-level names come back empty**;
+  wrapping the program in a code block fixes it.
+- **`SwiftOperators`** folded a pipeline with the stock `|`. A custom pipe
+  precedence reported the groups "incomparable" in three attempts, so don't rely
+  on it; the left operand of a command pipeline isn't a valid expression anyway.
+- **Speed:** 3.65 ms for 1,000 lines, 3 µs for a short line.
+- **Size:** the spike's release binary is 17.8 MB, of which 12.8 MB is symbol
+  tables; **fully stripped it is 6.2 MB**, against 3.45 MB for `swish`
+  (`strip -x`: 9.2 MB against 3.45). The code is 3.8 MB: SwiftSyntax 2.63 MB
+  (69%, its generated node types: 48,331 functions), SwiftParser 0.75 MB (20%),
+  SwiftParserDiagnostics 0.20 MB. A clean release build of the stack took
+  2 min 26 s here (debug: about 36 s).
+
+### How the front end would work
+
+1. SwiftParser parses the source.
+2. **Recognition** is by structure and scope. A statement whose items are
+   separated by a missing `;` is a command line, and so is a bare reference to a
+   name that isn't in scope there (lexical lookup, with the program wrapped in a
+   code block; names from outside the tree, like builtins and earlier prompt
+   entries, come from Swish's own tables). The shell takes the command's **text by
+   range** from the original source, never from tokens, and parses it itself.
+3. **Islands** the parser doesn't carve (a command in a condition, `$(…)` with
+   non-Swift contents, `FOO=bar cmd`, `async cmd`) are rewritten by a small
+   pre-pass into valid Swift placeholders, with a source map for positions. For
+   an `if` the unexpected node already gives the rest of the command by range.
+4. **Lowering** turns the Swift tree into the core's tree. A construct it doesn't
+   lower is an explicit "not supported yet: protocol declarations", so the
+   supported subset is the set of lowered node kinds, documented and tested. The
+   checker and the interpreter don't change.
+5. **The editor** gets highlight spans from the tree, incomplete input from
+   missing tokens at the end of the source, and re-parsing from
+   `IncrementalParseTransition`. (None of these is built or tried.)
+
+### Costs and risks
+
+- **Size and build time** are real for an embeddable language. Because the front
+  end is behind the contract, SwiftSyntax can be an optional module and the hand
+  parser stay as the light option.
+- **Recovery is best-effort, not a contract.** It could change between
+  swift-syntax releases. A **conformance corpus** of shell lines (the spike's
+  samples to begin with), run through the front end and pinned to the version,
+  catches drift; upgrades are deliberate.
+- **Version coupling:** swift-syntax tracks compiler releases and its node API
+  changes between majors, so the lowering needs maintenance.
+- **Lexical lookup** is young: top-level names need the wrapper, parts are
+  `@_spi(Experimental)`, and qualified lookup is still being built.
+- **Semantics don't move.** SwiftSyntax settles syntax; what counts as supported
+  is still the checker's and the interpreter's.
+
+### Retiring the hand parser
+
+Keep it as the oracle. Run both front ends over the Swift-only subset of every
+test program and compare the trees; the hand parser goes once the lowering
+matches it on that corpus. The same corpus, run through `swiftc`, is the
+differential test against real Swift ([direction.md](direction.md)); it already
+has one catch, `_ = expr`, which Swish reads as a command named `_`.
+
+## Plan
+
+Steps 3b and 3c of [the embedding plan](embedding.md), each its own change.
+
+**3b. The contract and the plug-in, on the hand parser.**
+- Define `SyntaxFrontEnd` and `ShellSyntax` (span-level, with callbacks for
+  embedded Swift) and make the hand parser the first implementation; `Parser`'s
+  internals become `package` so the shell target can extend them.
+- Replace `PipelineNode`, `CommandNode`, redirects and stage resolution in the
+  core's tree with the opaque extension node; add the checker's visit hook.
+- Move the shell's grammar behind the plug-in in place (`Parser+Commands`,
+  `CommandNodes`, and the shell branches that step 3 gated), so that step 4 can
+  move the files into `SwishShell`.
+- Tests: every existing parser test passes unchanged; the Swift dialect is "no
+  plug-in".
+
+**3c. A SwiftSyntax front end.**
+- A second implementation of the contract: parse, recognise, lower, with the
+  island pre-pass and source map; an optional module.
+- Tests: the oracle comparison against the hand parser; the conformance corpus;
+  `swiftc` differential tests of the Swift-only subset.
+- First prove the untested pieces (below).
+
+## Not tried yet
+
+- How `$(echo hi)` and other `$` forms look in the tree.
+- Parsing a single expression with `SyntaxParseable` for the embedded Swift in
+  command words.
+- Highlighting with `SwiftIDEUtils`, incomplete-input detection, incremental
+  re-parsing.
+- Whether names declared in earlier prompt entries can be fed to lexical lookup
+  other than by Swish's own tables.
+- How large the lowering is; I expect it to be smaller than the 2,500 lines of
+  hand-written parser it would replace, but I haven't written one.

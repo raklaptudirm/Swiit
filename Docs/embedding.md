@@ -10,7 +10,8 @@ shell as seasoning) and is the first thing to build, ahead of
 the seam it creates.
 
 Step 1 of the plan is built (the `SwishHost` seam); the rest is not. This
-records what is decided, the shape, and an order. The line between the core and
+records what is decided, the shape, and an order. How text becomes the core's tree, and what
+SwiftSyntax could do there, is in [frontend.md](frontend.md). The line between the core and
 the shell, what may cross it today and how each crossing exits are in
 [boundaries.md](boundaries.md), and a test enforces them.
 
@@ -246,6 +247,20 @@ shell working.
    `Interpreter` with no `Shell` at all: parse, check and run, output to a host
    that collects it. `env` is left as it is: in the Swift dialect it still
    exists and reads as empty, until step 6 turns it into a registered object.
+3b. **The front-end contract and the shell's plug-in.** The parser becomes an
+   implementation of a `SyntaxFrontEnd` contract, and the shell's grammar
+   (commands, pipelines, redirects, `$(…)`, `$NAME`, `async`, `import … from`)
+   plugs in at the level of statements and spans of text, calling back for the
+   Swift inside it; the core's tree gets one opaque extension node in place of
+   `PipelineNode`, `CommandNode` and the rest. This is what lets step 4 move the
+   shell's grammar files out, and it is shaped for the SwiftSyntax front end
+   below, which has no parser hooks. See [frontend.md](frontend.md).
+3c. **A SwiftSyntax front end.** A second implementation of the contract, as an
+   optional module: SwiftParser, recognition of shell lines by the tree's
+   recovery structure and by lexical lookup, a lowering to the core's tree, and
+   a hand-parser oracle to retire the old parser against. It follows step 4, but
+   3b is its prerequisite. See [frontend.md](frontend.md) for what was tried and
+   what it costs.
 4. **Split the targets.** `SwishShell` and `SwishShellLibrary` created, files
    moved, `SwishStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no

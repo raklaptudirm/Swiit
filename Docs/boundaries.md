@@ -58,7 +58,8 @@ patterns don't know, so a new kind of shell concept means a new pattern.
 
 These are shell grammar or shell reflection inside core directories. They are
 exempt from the check, pinned in the ledger, and move to `SwishShell` at step 4
-of the embedding plan (or are deleted by the desugaring first).
+of the embedding plan, once step 3b has given the parser a way to plug them in
+([frontend.md](frontend.md)), or are deleted by the desugaring first.
 
 | File | Lines | What it is | Exit |
 |---|---|---|---|
@@ -128,7 +129,8 @@ plan, when their shell half moves:
 ## The order the exits come in
 
 1. **Embedding step 2** (language state into `Interpreter`): `file`. *Done.*
-2. **Embedding step 4** (split the targets): `history`, `commands`, the mixed
+2. **Embedding steps 3b and 4** (the parser's plug-in, then the split): the
+   shell's grammar behind the plug-in, then `history`, `commands`, the mixed
    files, and the files that leave whole.
 3. **Embedding step 6** (dynamic members), then **async steps 5 and 6**: `env`,
    then the type half of `jobs`.
