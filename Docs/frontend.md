@@ -172,14 +172,37 @@ Steps 3b and 3c of [the embedding plan](embedding.md), each its own change.
   `swiftc` differential tests of the Swift-only subset.
 - First prove the untested pieces (below).
 
+## Tried for 3c
+
+A second scratch spike (swift-syntax 602, not in the repository).
+
+- **`$(…)`.** With Swift inside (`$(date)`, `$(ls).count`) it parses as a call
+  to a function named `$`, with no diagnostics. With shell inside
+  (`$(date +%s)`, `$(ls | wc -l)`) it is the same call with the unparsable
+  tail in an `unexpectedNodes` child. So the front end finds the `$` call and
+  takes the text between its parentheses **by range**, as planned. `echo $HOME`
+  and `echo "a \($(date)) b"` split like any other command line: a missing `;`
+  after `echo`.
+- **A single expression** (`ExprSyntax.parse(from:)`) always consumes the whole
+  input: trailing text becomes `unexpectedNodes` and diagnostics, and
+  `Parser.currentToken` is internal, so there is no way to ask where it
+  stopped. Embedded Swift in command words (`\(expr)`, closure words) must
+  therefore be **cut out by the shell first** (balanced delimiters, string
+  aware) and the span handed over; the parser can't find the end of an
+  expression inside a word.
+- **Incomplete input** shows up as a diagnostic "expected X to end ..." (array,
+  function, `if`, string literal) on a missing token at the end of the source,
+  so the prompt's "ask for another line" is: any missing token whose position
+  is the end of the source.
+- **Lowering target.** The core's tree (`Expr`, `Statement`, `Unit` and the
+  rest) is `internal` to SwishCore, so a separate front-end module can't build
+  it until step 4 makes it `package`. The lowering is therefore **blocked on
+  step 4**, as the embedding plan's order says, and is not started.
+
 ## Not tried yet
 
-- How `$(echo hi)` and other `$` forms look in the tree.
-- Parsing a single expression with `SyntaxParseable` for the embedded Swift in
-  command words.
-- Highlighting with `SwiftIDEUtils`, incomplete-input detection, incremental
-  re-parsing.
+- Highlighting with `SwiftIDEUtils` and incremental re-parsing.
 - Whether names declared in earlier prompt entries can be fed to lexical lookup
   other than by Swish's own tables.
-- How large the lowering is; I expect it to be smaller than the 2,500 lines of
+- How large the lowering is; I expect it to be smaller than the 3,400 lines of
   hand-written parser it would replace, but I haven't written one.
