@@ -231,8 +231,21 @@ shell working.
    enforces it: `file` exited, two groups are new. (While checking the
    interactive scripts I found a race that predates this step: see
    "Found on the way", below.)
-3. **Swift-only parse mode,** with shell nodes evaluated through the host.
-   The sandbox host refuses them.
+3. **Swift-only parse mode.** *Done.* The parser has a dialect, `swift` or
+   `shell` (`Parser.Dialect`); an `Interpreter` is `swift` by default and the
+   `Shell` sets `shell` on its own. In the Swift dialect there are no
+   commands: a line that isn't a Swift expression or statement is the ordinary
+   error ("no variable named 'ls'"), `try make` is `try` on an expression, and
+   the shell's other syntax is refused with a message that says so: `|` ("pipes
+   commands, which are shell syntax"), `$(…)`, `$NAME`, `async` and `import … from
+   path`. `$0` closure parameters, `&&` and `||` as operators, and everything else
+   in Swift parse as before. Evaluating a shell node that does get through (the
+   shell dialect, no layer) was already refused by the layer. `SwiftDialectTests`
+   runs the same program in both dialects, checks that each shell construct
+   parses in the shell's and is refused in Swift's, and runs the language on an
+   `Interpreter` with no `Shell` at all: parse, check and run, output to a host
+   that collects it. `env` is left as it is: in the Swift dialect it still
+   exists and reads as empty, until step 6 turns it into a registered object.
 4. **Split the targets.** `SwishShell` and `SwishShellLibrary` created, files
    moved, `SwishStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no
@@ -293,9 +306,5 @@ output goes to the sink; the core builds on Linux with no shell target.
 
 ## Found on the way
 
-`takeInterruptSignal` read the interrupt flag and then cleared it in a
-`defer`, so a signal that arrived between the read and the clear was wiped
-without being seen, and a script spinning in a loop (which asks constantly)
-sometimes survived its SIGTERM. About 0.7% of runs (2 of 300) in a harness that
-starts a spinning script and signals it; it was the occasional failure of
-`signals.exp`. It now clears only what it saw: 0 of 900 afterwards.
+- **A race in the interrupt flag** (step 2). `takeInterruptSignal` read the interrupt flag and then cleared it in a `defer`, so a signal that arrived between the read and the clear was wiped without being seen, and a script spinning in a loop (which asks constantly) sometimes survived its SIGTERM. About 0.7% of runs (2 of 300) in a harness that starts a spinning script and signals it; it was the occasional failure of `signals.exp`. It now clears only what it saw: 0 of 900 afterwards.
+- **A gap in Swift fidelity** (step 3). `_ = expr`, the discarding assignment, is read as a command named `_` and fails with "`_`: command not found". It should parse as Swift does. It is the kind of gap the differential test against `swiftc` (direction.md) would find by itself; it is not fixed here.
