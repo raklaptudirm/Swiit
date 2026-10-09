@@ -388,9 +388,12 @@ shell working.
    *The builtins and the prelude were split.* `Library` also carries Swish
    declarations and the bodies for them (`declarations`, `bodies`), so a host adds
    to the prelude the way it adds bridged functions: the shell declares `help`,
-   `Help`, `select` and the `JSON` stand-in, the core only `Status` and
-   `Error` (`members` and `Member` went to the shell too, being reflection for the
-   prompt; `Error` carries a `Status`, which keeps that one). `declaredCase`, the `Function.builtin` and
+   `Help`, `select` and the `JSON` stand-in, the core only just
+   `Error`, which is all a `catch` binds, as in Swift (`localizedDescription`);
+   `members` and `Member` went to the shell, being reflection for the prompt,
+   and so did `Status` and the new `CommandFailure`, which a failed `try $(…)`
+   throws. A shim that keeps `error.status` and `error.message` working can
+   come later as sugar. `declaredCase`, the `Function.builtin` and
    `Parameter` builders and the JSON access functions moved to the files they
    belong with, and `Dictionary.strings` to the shell.
    *After 4b the libraries moved under their targets* (`Sources/Swiit/Library`,
