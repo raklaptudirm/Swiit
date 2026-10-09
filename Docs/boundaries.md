@@ -74,6 +74,14 @@ of the embedding plan, once step 3b has given the parser a way to plug them in
 
 ## The ledger: transgressors and their exits
 
+*Step 3b update:* the `grammar` and `plugin` groups no longer appear in the
+checked files (71 uses across 29 entries now): the core's tree, checker and
+interpreter hold only opaque extension nodes, and the shell's grammar sits in
+`Syntax/ShellSyntax.swift` (a leaf) and `Execution/ShellNodes.swift`. The
+`Interpreter+Environment` split is done. `Syntax/SyntaxPlugin.swift` carries two
+`chain` uses (it names `Unit` in its signatures). The table below is the
+earlier count.
+
 101 uses across 43 file-and-group entries, eleven groups (it was 98 and nine
 before step 2: two groups are new, the `shell` type and the `layer` slot, and
 `file` has exited). Each exit names the plan step that carries it; "dynamic

@@ -255,6 +255,19 @@ shell working.
    `PipelineNode`, `CommandNode` and the rest. This is what lets step 4 move the
    shell's grammar files out, and it is shaped for the SwiftSyntax front end
    below, which has no parser hooks. See [frontend.md](frontend.md).
+   *Done, except the `SyntaxFrontEnd` protocol itself.* The core's tree holds
+   opaque `ExprExtension`, `UnitExtension` and `StatementExtension` nodes; the
+   shell's nodes (`DollarExpr`, `SubstitutionExpr`, `AsyncExpr`, `PipelineUnit`,
+   `SetEnvironmentStatement`, `ImportPluginStatement`) live in
+   `Execution/ShellNodes.swift`, and the core's passes only call their `check`,
+   `evaluate` and `run`. Strings split into the core's `StringPart` and the
+   shell's `WordPart`. `Parser.Dialect` became `SyntaxPlugin`, an optional
+   plug-in on the parser (none is the Swift dialect), with `ShellSyntax` as the
+   shell's. The plug-in is bound to `Parser` (`inout Parser`), not to a cursor
+   over text; abstracting that, and the `SyntaxFrontEnd` contract, wait for 3c,
+   when a second implementation shows the right shape. `package` access waits
+   for step 4. The environment file is split into core (`expand`) and shell
+   (`Shell+Words.swift`).
 3c. **A SwiftSyntax front end.** A second implementation of the contract, as an
    optional module: SwiftParser, recognition of shell lines by the tree's
    recovery structure and by lexical lookup, a lowering to the core's tree, and

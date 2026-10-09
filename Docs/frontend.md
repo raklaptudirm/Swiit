@@ -153,6 +153,7 @@ has one catch, `_ = expr`, which Swish reads as a command named `_`.
 Steps 3b and 3c of [the embedding plan](embedding.md), each its own change.
 
 **3b. The contract and the plug-in, on the hand parser.**
+*(Status: the plug-in and the opaque nodes are built; the `SyntaxFrontEnd` protocol and `package` access are deferred to 3c and step 4. The plug-in takes the parser itself, not a text cursor.)*
 - Define `SyntaxFrontEnd` and `ShellSyntax` (span-level, with callbacks for
   embedded Swift) and make the hand parser the first implementation; `Parser`'s
   internals become `package` so the shell target can extend them.
