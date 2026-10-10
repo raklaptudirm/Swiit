@@ -204,7 +204,7 @@ extension Interpreter {
     /// Runs a switch: the first case whose pattern (and `where`) matches,
     /// then on through `fallthrough`. No match is an error: Swift checks a
     /// switch covers everything when compiling; Swish can only check here.
-    @_spi(Shell) public func runSwitch(_ node: SwitchStatement) throws -> Int32 {
+    @_spi(Shell) public func runSwitch(_ node: SwitchStatement) throws {
         let subject = try evaluate(node.subject)
         var start: (index: Int, bindings: [String: Binding])?
         search: for (index, switchCase) in node.cases.enumerated() {
@@ -234,19 +234,17 @@ extension Interpreter {
 
         var index = start.index
         var bindings = start.bindings
-        var status: Int32 = 0
         while index < node.cases.count {
             do {
-                status = try runBlock(node.cases[index].body, declaring: bindings)
-                return status
+                try runBlock(node.cases[index].body, declaring: bindings)
+                return
             } catch ControlFlow.fallthroughCase {
                 index += 1
                 bindings = [:]
             } catch ControlFlow.breakLoop {
-                return status // `break` leaves the switch.
+                return // `break` leaves the switch.
             }
         }
-        return status
     }
 }
 

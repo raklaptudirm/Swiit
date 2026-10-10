@@ -83,29 +83,11 @@ import SwishKit
             return ["\(p)break"]
         case .continueStatement:
             return ["\(p)continue"]
-        case .chain(let chain):
-            return [p + chainText(chain, indent: indent)]
-        }
-    }
-
-    private func chainText(_ chain: Chain, indent: Int) -> String {
-        var text = unit(chain.first, indent: indent)
-        for link in chain.links {
-            text += (link.op == .and ? " && " : " || ") + unit(link.unit, indent: indent)
-        }
-        return text
-    }
-
-    private func unit(_ unit: Unit, indent: Int) -> String {
-        switch unit {
-        case .extended:
-            return "/* a construct from a layer over the core */"
         case .expression(let expr):
-            return expression(expr)
+            return [p + expression(expr)]
         case .ifStatement(let node):
-            return ifText(node, indent: indent)
+            return [p + ifText(node, indent: indent)]
         case .switchStatement(let node):
-            let p = pad(indent)
             var text = "switch \(expression(node.subject)) {\n"
             for switchCase in node.cases {
                 if switchCase.patterns.isEmpty {
@@ -118,11 +100,11 @@ import SwishKit
                 let inner = lines(switchCase.body, indent: indent + 1)
                 text += (inner.isEmpty ? [pad(indent + 1) + "break"] : inner).joined(separator: "\n") + "\n"
             }
-            return text + "\(p)}"
+            return [p + text + "\(p)}"]
         case .forLoop(let loop):
-            return "for \(loop.variable) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"
+            return [p + "for \(loop.variable) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
         case .whileLoop(let loop):
-            return "while \(chainText(loop.condition, indent: indent)) \(block(loop.body, indent: indent))"
+            return [p + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"]
         }
     }
 
@@ -130,8 +112,7 @@ import SwishKit
         var text = "if \(conditionText(node.condition)) \(block(node.then, indent: indent))"
         if let otherwise = node.otherwise {
             // `else if`: an else holding only an `if`.
-            if otherwise.statements.count == 1, case .chain(let chain) = otherwise.statements[0], chain.links.isEmpty,
-               case .ifStatement(let nested) = chain.first {
+            if otherwise.statements.count == 1, case .ifStatement(let nested) = otherwise.statements[0] {
                 text += " else " + ifText(nested, indent: indent)
             } else {
                 text += " else \(block(otherwise, indent: indent))"
@@ -142,7 +123,7 @@ import SwishKit
 
     private func conditionText(_ condition: IfStatement.Condition) -> String {
         switch condition {
-        case .chain(let chain): chainText(chain, indent: 0)
+        case .expression(let expr): expression(expr)
         case .binding(let name, let mutable, let value): "\(mutable ? "var" : "let") \(name) = \(expression(value))"
         case .pattern(let p, let value): "case \(pattern(p)) = \(expression(value))"
         }

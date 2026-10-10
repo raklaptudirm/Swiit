@@ -47,7 +47,13 @@ import SwishKit
     case guardStatement(IfStatement.Condition, otherwise: Program)
     case breakStatement
     case continueStatement
-    case chain(Chain)
+    /// An expression on its own: a call, an assignment's value, or at the
+    /// prompt, a value to show.
+    case expression(Expr)
+    case ifStatement(IfStatement)
+    case switchStatement(SwitchStatement)
+    case forLoop(ForLoop)
+    case whileLoop(WhileLoop)
 }
 
 extension Statement {
@@ -60,44 +66,10 @@ extension Statement {
     }
 }
 
-/// Units joined by `&&`/`||`, evaluated left to right on exit status.
-@_spi(Shell) public struct Chain: Equatable, Sendable {
-    @_spi(Shell) public var first: Unit
-    @_spi(Shell) public var links: [Link] = []
-
-    @_spi(Shell) public init(first: Unit, links: [Link] = []) {
-        self.first = first
-        self.links = links
-    }
-}
-
-@_spi(Shell) public struct Link: Equatable, Sendable {
-    @_spi(Shell) public var op: ChainOperator
-    @_spi(Shell) public var unit: Unit
-
-    @_spi(Shell) public init(op: ChainOperator, unit: Unit) {
-        self.op = op
-        self.unit = unit
-    }
-}
-
-@_spi(Shell) public enum ChainOperator: Equatable, Sendable {
-    case and, or
-}
-
-@_spi(Shell) public indirect enum Unit: Equatable, Sendable {
-    /// A command or pipeline of them, from a layer over the core.
-    case extended(UnitExtensionBox)
-    case expression(Expr)
-    case ifStatement(IfStatement)
-    case switchStatement(SwitchStatement)
-    case forLoop(ForLoop)
-    case whileLoop(WhileLoop)
-}
-
 @_spi(Shell) public struct IfStatement: Equatable, Sendable {
     @_spi(Shell) public enum Condition: Equatable, Sendable {
-        case chain(Chain)
+        /// A Bool.
+        case expression(Expr)
         /// `if let name = value`: runs the body with `name` bound when the
         /// value isn't nil.
         case binding(name: String, mutable: Bool, value: Expr)
@@ -112,8 +84,8 @@ extension Statement {
     /// A branch of an `if` expression: the one expression it is, or an
     /// `else if`'s own `if` expression.
     @_spi(Shell) public static func branchExpression(_ branch: Program) -> Expr? {
-        guard branch.statements.count == 1, case .chain(let chain) = branch.statements[0], chain.links.isEmpty else { return nil }
-        switch chain.first {
+        guard branch.statements.count == 1 else { return nil }
+        switch branch.statements[0] {
         case .expression(let expr): return expr
         case .ifStatement(let node): return node.asExpression.map(Expr.ifExpression)
         default: return nil
@@ -122,7 +94,7 @@ extension Statement {
 
     /// A branch that is `expr`.
     @_spi(Shell) public static func branch(_ expr: Expr) -> Program {
-        Program(statements: [.chain(Chain(first: .expression(expr)))])
+        Program(statements: [.expression(expr)])
     }
 
     /// This `if` as an expression, when it can be one: with an `else`, and
@@ -236,10 +208,11 @@ extension Statement {
 }
 
 @_spi(Shell) public struct WhileLoop: Equatable, Sendable {
-    @_spi(Shell) public var condition: Chain
+    /// A Bool.
+    @_spi(Shell) public var condition: Expr
     @_spi(Shell) public var body: Program
 
-    @_spi(Shell) public init(condition: Chain, body: Program) {
+    @_spi(Shell) public init(condition: Expr, body: Program) {
         self.condition = condition
         self.body = body
     }

@@ -28,7 +28,7 @@ extension Parser {
         skipSpaces(newlines: true)
         let otherwise = try parseExpression()
         return .ifExpression(IfStatement(
-            condition: .chain(Chain(first: .expression(condition))),
+            condition: .expression(condition),
             then: IfStatement.branch(then), otherwise: IfStatement.branch(otherwise)
         ))
     }

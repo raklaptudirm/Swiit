@@ -9,19 +9,9 @@
 # No file here may reach the operating system directly (stdoutFD, getenv,
 # waitpid, …); that goes through SwishHost, and has no allowance.
 
-allow	Language/Syntax/Parser+Expressions.swift	chain	1
-allow	Language/Syntax/Parser+Units.swift	chain	5
-allow	Language/Syntax/Statements.swift	chain	11
-allow	Language/Syntax/SwiftPrinter.swift	chain	2
-allow	Language/Syntax/SyntaxPlugin.swift	chain	2
-allow	Language/Syntax/TreeRewriter.swift	chain	14
-allow	Language/Checking/TypeChecker+Closures.swift	chain	1
-allow	Language/Checking/TypeChecker+Declarations.swift	chain	1
-allow	Language/Checking/TypeChecker+Statements.swift	chain	2
 allow	Language/Interpreter/Interpreter+Expressions.swift	layer	1
 allow	Language/Interpreter/Interpreter+Scopes.swift	commands	1
-allow	Language/Interpreter/Interpreter+Statements.swift	chain	2
-allow	Language/Interpreter/Interpreter+Statements.swift	status	3
+allow	Language/Interpreter/Interpreter+Statements.swift	status	2
 allow	Language/Interpreter/Interpreter.swift	layer	4
 allow	Language/Interpreter/Interpreter.swift	status	2
 allow	Bridge/Bridge+Conversions.swift	history	1

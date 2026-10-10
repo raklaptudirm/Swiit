@@ -92,51 +92,30 @@ extension TypeChecker {
             try checkBlock(&body, newScope: true)
             errorContexts.removeLast()
             statement = .deferBlock(body)
-        case .chain(var chain):
-            try checkChain(&chain, condition: false)
-            statement = .chain(chain)
-        }
-    }
-
-    @_spi(Shell) public func checkChain(_ chain: inout Chain, condition: Bool) throws {
-        try checkUnit(&chain.first, condition: condition || !chain.links.isEmpty)
-        for index in chain.links.indices { try checkUnit(&chain.links[index].unit, condition: true) }
-    }
-
-    /// `condition`: the unit's status decides something, as in `if` or
-    /// `&&`: an expression there must be a Bool, an Output, or optional.
-    @_spi(Shell) public func checkUnit(_ unit: inout Unit, condition: Bool) throws {
-        switch unit {
-        case .extended(var box):
-            try box.node.check(in: self)
-            unit = .extended(box)
         case .expression(var expr):
-            let type = try typeOf(&expr)
-            if condition {
-                // `if try? build()`: whether it succeeded.
-                let attempted = if case .attempt(_, .optional) = expr { true } else { false }
-                switch type {
-                case .bool, .output, .unknown: break
-                case .optional where attempted: break
-                default: throw TypeError("a condition must be a Bool, not \(type)")
-                }
-            }
-            unit = .expression(expr)
+            _ = try typeOf(&expr)
+            statement = .expression(expr)
         case .ifStatement(var node):
             try checkIf(&node)
-            unit = .ifStatement(node)
+            statement = .ifStatement(node)
         case .switchStatement(var node):
             try checkSwitch(&node)
-            unit = .switchStatement(node)
+            statement = .switchStatement(node)
         case .forLoop(var loop):
             let element = try elementType(of: try typeOf(&loop.sequence))
             try checkBlock(&loop.body, declaring: [loop.variable: .variable(element, mutable: false)], newScope: true)
-            unit = .forLoop(loop)
+            statement = .forLoop(loop)
         case .whileLoop(var loop):
-            try checkChain(&loop.condition, condition: true)
+            try checkCondition(&loop.condition)
             try checkBlock(&loop.body, newScope: true)
-            unit = .whileLoop(loop)
+            statement = .whileLoop(loop)
         }
+    }
+
+    /// A condition, which is a Bool.
+    @_spi(Shell) public func checkCondition(_ condition: inout Expr) throws {
+        let type = try typeOf(&condition, expecting: .bool)
+        guard type == .bool || type == .unknown else { throw TypeError("a condition must be a Bool, not \(type)") }
     }
 
     @_spi(Shell) public func checkIf(_ node: inout IfStatement) throws {
@@ -175,9 +154,9 @@ extension TypeChecker {
     @_spi(Shell) public func checkCondition(_ node: inout IfStatement) throws -> [String: Symbol] {
         var bound: [String: Symbol] = [:]
         switch node.condition {
-        case .chain(var chain):
-            try checkChain(&chain, condition: true)
-            node.condition = .chain(chain)
+        case .expression(var condition):
+            try checkCondition(&condition)
+            node.condition = .expression(condition)
         case .binding(let name, let mutable, var value):
             let type = try typeOf(&value)
             if case .optional(let wrapped) = type {

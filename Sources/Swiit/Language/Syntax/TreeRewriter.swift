@@ -2,35 +2,22 @@ import Foundation
 import SwishKit
 
 /// Rewrites a tree bottom-up: every child is rewritten before its parent is
-/// offered to `expr`, `unit` or `statement`, which return what stands in its
+/// offered to `expr` or `statement`, which return what stands in its
 /// place (the same node, if there is nothing to do). A layer over the core
 /// that adds its own nodes (the shell's, held opaquely in `.extended`) sees
 /// them here and rewrites what is inside them itself, with `program`,
 /// `expression` and the rest. This is how the shell's constructs become Swift
 /// (Docs/Design/desugaring.md).
 @_spi(Shell) public struct TreeRewriter {
-    /// Where a chain of units stands, which decides what its units mean: a
-    /// statement shows what it gives, a condition only asks if it holds.
-    @_spi(Shell) public enum Position: Equatable, Sendable {
-        case statement, condition
-    }
-
     @_spi(Shell) public var expr: (Expr) -> Expr
-    @_spi(Shell) public var unit: (Unit) -> Unit
     @_spi(Shell) public var statement: (Statement) -> Statement
-    /// A chain, with its units rewritten, and where it stands.
-    @_spi(Shell) public var chainHook: (Chain, Position) -> Chain
 
     @_spi(Shell) public init(
         expr: @escaping (Expr) -> Expr = { $0 },
-        unit: @escaping (Unit) -> Unit = { $0 },
-        statement: @escaping (Statement) -> Statement = { $0 },
-        chain: @escaping (Chain, Position) -> Chain = { chain, _ in chain }
+        statement: @escaping (Statement) -> Statement = { $0 }
     ) {
         self.expr = expr
-        self.unit = unit
         self.statement = statement
-        self.chainHook = chain
     }
 
     // MARK: Programs and statements
@@ -82,8 +69,24 @@ import SwishKit
             rewritten = .returnStatement(value.map(expression))
         case .guardStatement(let condition, let otherwise):
             rewritten = .guardStatement(self.condition(condition), otherwise: program(otherwise))
-        case .chain(let chain):
-            rewritten = .chain(self.chain(chain, as: .statement))
+        case .expression(let value):
+            rewritten = .expression(expression(value))
+        case .ifStatement(let node):
+            rewritten = .ifStatement(ifStatement(node))
+        case .switchStatement(let node):
+            rewritten = .switchStatement(SwitchStatement(
+                subject: expression(node.subject),
+                cases: node.cases.map { switchCase in
+                    SwitchCase(
+                        patterns: switchCase.patterns.map(pattern), guardExpr: switchCase.guardExpr.map(expression),
+                        body: program(switchCase.body)
+                    )
+                }
+            ))
+        case .forLoop(let loop):
+            rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body)))
+        case .whileLoop(let loop):
+            rewritten = .whileLoop(WhileLoop(condition: expression(loop.condition), body: program(loop.body)))
         }
         return statement(rewritten)
     }
@@ -108,39 +111,7 @@ import SwishKit
         return copy
     }
 
-    // MARK: Chains and units
-
-    @_spi(Shell) public func chain(_ node: Chain, as position: Position) -> Chain {
-        let rewritten = Chain(first: unitNode(node.first), links: node.links.map { Link(op: $0.op, unit: unitNode($0.unit)) })
-        return chainHook(rewritten, position)
-    }
-
-    @_spi(Shell) public func unitNode(_ node: Unit) -> Unit {
-        let rewritten: Unit
-        switch node {
-        case .extended:
-            rewritten = node
-        case .expression(let value):
-            rewritten = .expression(expression(value))
-        case .ifStatement(let statement):
-            rewritten = .ifStatement(ifStatement(statement))
-        case .switchStatement(let statement):
-            rewritten = .switchStatement(SwitchStatement(
-                subject: expression(statement.subject),
-                cases: statement.cases.map { switchCase in
-                    SwitchCase(
-                        patterns: switchCase.patterns.map(pattern), guardExpr: switchCase.guardExpr.map(expression),
-                        body: program(switchCase.body)
-                    )
-                }
-            ))
-        case .forLoop(let loop):
-            rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body)))
-        case .whileLoop(let loop):
-            rewritten = .whileLoop(WhileLoop(condition: chain(loop.condition, as: .condition), body: program(loop.body)))
-        }
-        return unit(rewritten)
-    }
+    // MARK: Conditions and patterns
 
     @_spi(Shell) public func ifStatement(_ node: IfStatement) -> IfStatement {
         IfStatement(condition: condition(node.condition), then: program(node.then), otherwise: block(node.otherwise))
@@ -148,7 +119,7 @@ import SwishKit
 
     private func condition(_ condition: IfStatement.Condition) -> IfStatement.Condition {
         switch condition {
-        case .chain(let value): .chain(chain(value, as: .condition))
+        case .expression(let value): .expression(expression(value))
         case .binding(let name, let mutable, let value): .binding(name: name, mutable: mutable, value: expression(value))
         case .pattern(let value, let subject): .pattern(pattern(value), expression(subject))
         }

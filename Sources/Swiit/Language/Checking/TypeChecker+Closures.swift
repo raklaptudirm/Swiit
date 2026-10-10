@@ -47,8 +47,10 @@ extension TypeChecker {
         var result: TypeAnnotation
         if var expr = implicitReturn(closure.body) {
             let type = try typeOf(&expr, expecting: declared)
-            closure.body.statements[0] = .chain(Chain(first: .expression(expr)))
-            if let declared, !fits(type, declared) {
+            closure.body.statements[0] = .expression(expr)
+            // A closure of one expression where nothing is wanted back just
+            // runs it, as in Swift: `queue.async { log(x) }`.
+            if let declared, declared != .void, !fits(type, declared) {
                 throw TypeError("the closure must return \(declared), not \(type)")
             }
             result = closure.returnType ?? declared ?? type

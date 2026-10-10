@@ -226,12 +226,12 @@ extension Interpreter {
         do {
             var checked = try TypeChecker(interpreter: self).check(program)
             var last: Expr?
-            if case .chain(let chain)? = checked.statements.last, chain.links.isEmpty, case .expression(let expr) = chain.first {
+            if case .expression(let expr)? = checked.statements.last {
                 last = expr
                 checked.statements.removeLast()
                 if checked.lines.count > checked.statements.count { checked.lines.removeLast() }
             }
-            _ = try run(checked)
+            try run(checked)
             return try last.map { try evaluate($0) } ?? .nothing
         } catch let error as TypeError {
             throw Diagnostic(kind: .type, message: error.message, line: error.line)

@@ -11,14 +11,14 @@ extension Lowering {
     /// Words that start a Swift statement, which are never a command.
     private static let keywords: Set<String> = Parser.statementKeywords.union(["if", "for", "while", "switch", "let", "var"])
 
-    /// A statement of the plug-in's starting at the byte offset: `import`, or a
-    /// chain that begins with a command, and where its source ends.
+    /// A statement of the plug-in's starting at the byte offset: `import`, or
+    /// commands joined by `|`, `&&` and `||`, and where its source ends.
     /// `item` is SwiftParser's reading of it, when it starts one.
     mutating func layerStatement(at start: Int, item: CodeBlockItemSyntax.Item? = nil) throws -> (statement: Statement, end: Int)? {
         guard let plugin else { return nil }
         var parser = cursor(at: start)
-        // `$0`, `$name` and `$(…)` are expressions, found where Swift reads one.
-        if parser.peek() == "$" { return nil }
+        // `$0` is a closure's parameter, found where Swift reads one.
+        if parser.peek() == "$", let next = parser.peek(1), Parser.isDigit(next) { return nil }
         let word = parser.identifier()
         if let word, word != "try", Lowering.keywords.contains(word), word != "import" { return nil }
         if let statement = try read(&parser, from: start, plugin.statement) {
@@ -35,28 +35,10 @@ extension Lowering {
                 if (try? assigning.parseAssignment(word)) != nil { return nil }
             }
         }
-        // Only a chain that starts with a command is the plug-in's: one that
-        // starts with Swift is Swift's, whatever it ends in.
-        var probe = cursor(at: start)
-        guard try plugin.unit(&probe) != nil else {
-            // …unless a command comes after a `&&` or `||` (`ok && echo yes`).
-            guard let (chain, end) = mixedChain(at: start, inCondition: false, isGuard: false) else { return nil }
-            return (.chain(chain), end)
-        }
-        parser = cursor(at: start)
-        let chain = try read(&parser, from: start) { try $0.parseChain() }
+        // Commands, with Swift between them or not: the plug-in decides.
+        guard let chain = try read(&parser, from: start, { try plugin.chain(&$0, condition: false) }) else { return nil }
         consume(from: start, to: parser)
-        return (.chain(chain), byteOffset(of: parser))
-    }
-
-    /// A chain that starts with Swift and has a command after a `&&` or `||`.
-    private mutating func mixedChain(at start: Int, inCondition: Bool, isGuard: Bool) -> (Chain, Int)? {
-        var parser = cursor(at: start)
-        parser.guardCondition = isGuard
-        guard let chain = try? (inCondition ? parser.parseCondition() : parser.parseChain()), !chain.links.isEmpty else { return nil }
-        guard chain.links.contains(where: { if case .extended = $0.unit { true } else { false } }) else { return nil }
-        consume(from: start, to: parser)
-        return (chain, byteOffset(of: parser))
+        return (.expression(chain), byteOffset(of: parser))
     }
 
     /// Runs the plug-in on the parser. While highlighting, what it read before
@@ -84,24 +66,17 @@ extension Lowering {
     }
 
     /// A condition that is a command (`if grep -q x f { … }`), if it is one.
-    mutating func layerCondition(at start: Int, isGuard: Bool = false) throws -> (chain: Chain, end: Int)? {
+    mutating func layerCondition(at start: Int, isGuard: Bool = false) throws -> (condition: Expr, end: Int)? {
         guard let plugin else { return nil }
-        var probe = cursor(at: start)
-        // A condition's body ends it: `if n > 2 { … }` is Swift up to the brace.
-        probe.conditionDepth = 1
-        probe.guardCondition = isGuard
-        if probe.peek() == "$" { return nil }
-        if let word = probe.identifier(), Lowering.keywords.contains(word), word != "try" { return nil }
-        guard try plugin.unit(&probe) != nil else {
-            guard let (chain, end) = mixedChain(at: start, inCondition: true, isGuard: isGuard) else { return nil }
-            return (chain, end)
-        }
         var parser = cursor(at: start)
+        // A condition's body ends it: `if n > 2 { … }` is Swift up to the brace.
+        parser.conditionDepth = 1
         parser.guardCondition = isGuard
-        let chain = try read(&parser, from: start) { try $0.parseCondition() }
-        parser.guardCondition = false
+        if parser.peek() == "$", let next = parser.peek(1), Parser.isDigit(next) { return nil }
+        if let word = parser.identifier(), Lowering.keywords.contains(word) { return nil }
+        guard let condition = try read(&parser, from: start, { try plugin.chain(&$0, condition: true) }) else { return nil }
         consume(from: start, to: parser)
-        return (chain, byteOffset(of: parser))
+        return (condition, byteOffset(of: parser))
     }
 
     /// Whether the node is one of the layer's expressions (`$name`, `$(…)`,
@@ -128,19 +103,19 @@ extension Lowering {
 
     /// `xs | sorted`: the commands the plug-in reads after a `|` that follows a
     /// value, with the value lowered here; the unit and where it ends.
-    mutating func layerPipeline(input: Expr, start: Int, pipe: Int) throws -> (unit: Unit, end: Int)? {
+    mutating func layerPipeline(input: Expr, start: Int, pipe: Int) throws -> (pipeline: Expr, end: Int)? {
         guard let plugin else { return nil }
         var parser = cursor(at: pipe)
         let from = characterOf[start]
-        guard let unit = try read(&parser, from: pipe, { try plugin.unit(continuing: input, from: from, &$0) }) else { return nil }
+        guard let pipeline = try read(&parser, from: pipe, { try plugin.continuing(input, from: from, &$0) }) else { return nil }
         // The value before the `|` is Swift's, and lowered (and colored) as Swift.
         consume(from: pipe, to: parser)
-        return (unit, byteOffset(of: parser))
+        return (pipeline, byteOffset(of: parser))
     }
 
     /// `xs | sorted | uniqued` as a statement: the value before the first `|`
     /// is Swift's, and the commands after it the layer's.
-    mutating func valuePipeline(_ node: InfixOperatorExprSyntax) throws -> Unit? {
+    mutating func valuePipeline(_ node: InfixOperatorExprSyntax) throws -> Expr? {
         guard plugin != nil else { return nil }
         func isPipe(_ node: InfixOperatorExprSyntax) -> Bool {
             node.operator.as(BinaryOperatorExprSyntax.self)?.operator.text == "|"
@@ -152,6 +127,6 @@ extension Lowering {
         let input = try expression(first.leftOperand)
         let start = node.positionAfterSkippingLeadingTrivia.utf8Offset
         let pipe = first.operator.positionAfterSkippingLeadingTrivia.utf8Offset
-        return try layerPipeline(input: input, start: start, pipe: pipe)?.unit
+        return try layerPipeline(input: input, start: start, pipe: pipe)?.pipeline
     }
 }

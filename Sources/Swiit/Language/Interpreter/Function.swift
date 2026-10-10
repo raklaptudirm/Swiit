@@ -73,8 +73,7 @@ import SwishKit
     /// without `->` returns nothing.
     @_spi(Shell) public var implicitReturn: Expr? {
         guard name == nil || returnType != nil, case .swish(let body) = body, body.statements.count == 1,
-              case .chain(let chain) = body.statements[0], chain.links.isEmpty,
-              case .expression(let expr) = chain.first else { return nil }
+              case .expression(let expr) = body.statements[0] else { return nil }
         return expr
     }
 }

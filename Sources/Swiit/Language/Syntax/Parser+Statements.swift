@@ -94,6 +94,11 @@ extension Parser {
             break
         }
 
+        if let statement = try parseCompoundStatement() { return statement }
+        if let word = identifier(), Parser.statementKeywords.contains(word) {
+            throw SyntaxError("'\(word)' must start a statement")
+        }
+
         // A statement of the plug-in's, like the shell's `env.NAME = value`.
         if let plugin = self.plugin, let statement = try plugin.statement(&self) { return statement }
 
@@ -102,7 +107,17 @@ extension Parser {
             return .assign(assignment)
         }
 
-        return .chain(try parseChain())
+        // Commands, alone or joined with `|`, `&&` and `||`: the plug-in's.
+        if let plugin = self.plugin, let chain = try plugin.chain(&self, condition: false) { return .expression(chain) }
+
+        let start = pos
+        let expr = try parseExpression()
+        skipSpaces()
+        guard peek() == "|", peek(1) != "|" else { return .expression(expr) }
+        guard let plugin = self.plugin, let pipeline = try plugin.continuing(expr, from: start, &self) else {
+            throw SyntaxError("'|' pipes commands, which are shell syntax, and isn't an operator in Swift-only code")
+        }
+        return .expression(pipeline)
     }
 
     private func canStartAssignment(_ kind: NameKind?) -> Bool {

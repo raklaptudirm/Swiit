@@ -17,22 +17,17 @@ extension SyntaxExtension where Self: Equatable {
     }
 }
 
-/// An expression an extension adds: `$(…)`, `$name`, `async …`.
+/// An expression an extension adds: `$(…)`, `$name`, `async …`, a command or
+/// commands joined by `|`, `&&` and `||`.
 @_spi(Shell) public protocol ExprExtension: SyntaxExtension {
     /// Checks it, with whatever the checker found written in, and gives its type.
     mutating func check(in checker: TypeChecker, expecting expected: TypeAnnotation?) throws -> TypeAnnotation
-}
-
-/// A unit an extension adds: a command or a pipeline of them. A unit has an
-/// exit status, which `&&`, `||` and conditions go by.
-@_spi(Shell) public protocol UnitExtension: SyntaxExtension {
-    mutating func check(in checker: TypeChecker) throws
-    /// Whether it ends the program (`exit`), for a function that must return
-    /// on every path.
+    /// Whether it ends the program (`exit`), for a guard's `else`, which must
+    /// leave.
     var leavesProgram: Bool { get }
 }
 
-extension UnitExtension {
+extension ExprExtension {
     @_spi(Shell) public var leavesProgram: Bool { false }
 }
 
@@ -55,18 +50,6 @@ extension RuntimeError {
     }
 
     @_spi(Shell) public static func == (lhs: ExprExtensionBox, rhs: ExprExtensionBox) -> Bool {
-        lhs.node.isEqual(to: rhs.node)
-    }
-}
-
-@_spi(Shell) public struct UnitExtensionBox: Equatable, Sendable {
-    @_spi(Shell) public var node: any UnitExtension
-
-    @_spi(Shell) public init(_ node: any UnitExtension) {
-        self.node = node
-    }
-
-    @_spi(Shell) public static func == (lhs: UnitExtensionBox, rhs: UnitExtensionBox) -> Bool {
         lhs.node.isEqual(to: rhs.node)
     }
 }

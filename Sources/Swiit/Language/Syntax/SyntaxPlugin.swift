@@ -12,14 +12,16 @@ import SwishKit
 /// for why this is the shape it is, and what changes when another front end
 /// is added.
 @_spi(Shell) public protocol SyntaxPlugin: Sendable {
-    /// At the start of a unit (a statement, or an operand of `&&` and `||`):
-    /// a unit of the plug-in's, or nil to parse Swift.
-    func unit(_ parser: inout Parser) throws(SyntaxError) -> Unit?
+    /// Where an expression statement or a condition starts: the plug-in's own
+    /// (the shell's commands, joined by `|`, `&&` and `||`, with Swift
+    /// between them as in `x > 1 && echo big`), or nil to read Swift. A
+    /// condition's is a Bool.
+    func chain(_ parser: inout Parser, condition: Bool) throws(SyntaxError) -> Expr?
 
-    /// After a Swift expression that began a unit, with the parser at what
-    /// follows it (`|`): the unit the plug-in continues it into, which started
-    /// at `start`, or nil if nothing continues it.
-    func unit(continuing expression: Expr, from start: Int, _ parser: inout Parser) throws(SyntaxError) -> Unit?
+    /// After a Swift expression statement, with the parser at what follows
+    /// it (`|`): what the plug-in continues it into (`xs | sorted`), which
+    /// started at `start`, or nil if nothing continues it.
+    func continuing(_ expression: Expr, from start: Int, _ parser: inout Parser) throws(SyntaxError) -> Expr?
 
     /// Where an expression starts that Swift's grammar doesn't have (`$(…)`,
     /// `$name`, `async …`): the plug-in's expression, or nil if it has none

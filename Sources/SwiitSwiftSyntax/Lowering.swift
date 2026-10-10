@@ -146,6 +146,10 @@ struct Lowering {
     mutating func block(_ items: CodeBlockItemListSyntax, scoped: Bool = true) throws -> Program {
         if scoped { locals.append([]) }
         defer { if scoped { locals.removeLast() } }
+        // Functions can be called before their declarations, as in Swift.
+        for item in items {
+            if case .decl(let decl) = item.item, let function = decl.as(FunctionDeclSyntax.self) { functions.insert(function.name.text) }
+        }
         var statements: [Statement] = []
         var lines: [Int] = []
         var skipUntil = 0

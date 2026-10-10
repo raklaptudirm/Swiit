@@ -2,69 +2,20 @@ import Foundation
 import SwishKit
 
 extension Parser {
-    @_spi(Shell) public mutating func parseChain() throws(SyntaxError) -> Chain {
-        var chain = Chain(first: try parseUnit())
-        while true {
-            skipSpaces()
-            let op: ChainOperator
-            if consume("&&") {
-                op = .and
-            } else if consume("||") {
-                op = .or
-            } else {
-                return chain
-            }
-            skipSpaces(newlines: true)
-            chain.links.append(Link(op: op, unit: try parseUnit()))
-        }
-    }
-
-    @_spi(Shell) public mutating func parseUnit() throws(SyntaxError) -> Unit {
-        skipSpaces()
-        guard peek() != nil else { throw .incomplete("expected a command") }
+    /// What starts a statement and isn't an expression: `if`, `for`,
+    /// `while` and `switch`; nil for anything else. Words that only make
+    /// sense inside one of those are errors here.
+    @_spi(Shell) public mutating func parseCompoundStatement() throws(SyntaxError) -> Statement? {
         switch identifier() {
-        case "if":
-            return .ifStatement(try parseIf())
-        case "for":
-            return .forLoop(try parseFor())
-        case "while":
-            return .whileLoop(try parseWhile())
-        case "switch":
-            return .switchStatement(try parseSwitch())
-        case "case", "default":
-            throw SyntaxError("'\(identifier()!)' outside a switch")
-        case "else":
-            throw SyntaxError("'else' without a matching 'if'")
-        case "in":
-            throw SyntaxError("unexpected 'in'")
-        case let word? where Parser.statementKeywords.contains(word):
-            throw SyntaxError("'\(word)' must start a statement")
-        default:
-            break
+        case "if": return .ifStatement(try parseIf())
+        case "for": return .forLoop(try parseFor())
+        case "while": return .whileLoop(try parseWhile())
+        case "switch": return .switchStatement(try parseSwitch())
+        case "case", "default": throw SyntaxError("'\(identifier()!)' outside a switch")
+        case "else": throw SyntaxError("'else' without a matching 'if'")
+        case "in": throw SyntaxError("unexpected 'in'")
+        default: return nil
         }
-        // A unit of the plug-in's, like the shell's commands.
-        if let plugin = self.plugin, let unit = try plugin.unit(&self) { return unit }
-        let start = pos
-        // `a < 1 || b > 2` is one expression, with Swift's precedence, so
-        // `{ $0.a < 1 || $0.b > 2 }` returns it. Only when an operand
-        // isn't an expression, as in `x > 1 && echo big`, do `&&`/`||`
-        // chain units by exit status instead.
-        let beforeExpression = self
-        var expr: Expr
-        do {
-            expr = try parseExpression(logical: true)
-        } catch {
-            // In Swift, an operand that isn't an expression is just an error.
-            guard plugin != nil else { throw error }
-            self = beforeExpression
-            expr = try parseExpression(logical: false)
-        }
-        skipSpaces()
-        guard peek() == "|", peek(1) != "|" else { return .expression(expr) }
-        guard let plugin = self.plugin, let unit = try plugin.unit(continuing: expr, from: start, &self) else {
-            throw SyntaxError("'|' pipes commands, which are shell syntax, and isn't an operator in Swift-only code")
-        }
-        return unit
     }
 
     @_spi(Shell) public mutating func parseIf() throws(SyntaxError) -> IfStatement {
@@ -83,7 +34,7 @@ extension Parser {
         keyword("else")
         skipSpaces()
         if identifier() == "if" {
-            let elseIf = Statement.chain(Chain(first: .ifStatement(try parseIf())))
+            let elseIf = Statement.ifStatement(try parseIf())
             return IfStatement(condition: condition, then: then, otherwise: Program(statements: [elseIf]))
         }
         return IfStatement(condition: condition, then: then, otherwise: try parseBlock())
@@ -135,15 +86,20 @@ extension Parser {
             condition = .binding(name: name, mutable: word == "var", value: try parseExpression())
             bound[name] = .variable
         } else {
-            condition = .chain(try parseCondition())
+            condition = .expression(try parseCondition())
         }
         return (condition, bound)
     }
 
-    @_spi(Shell) public mutating func parseCondition() throws(SyntaxError) -> Chain {
+    /// An `if`, `guard` or `while` condition: a Bool, or the plug-in's (the
+    /// shell's `if grep -q x f`).
+    @_spi(Shell) public mutating func parseCondition() throws(SyntaxError) -> Expr {
         conditionDepth += 1
         defer { conditionDepth -= 1 }
-        return try parseChain()
+        skipSpaces()
+        guard peek() != nil else { throw .incomplete("expected a condition") }
+        if let plugin = self.plugin, let condition = try plugin.chain(&self, condition: true) { return condition }
+        return try parseExpression()
     }
 
     @_spi(Shell) public mutating func parseFor() throws(SyntaxError) -> ForLoop {

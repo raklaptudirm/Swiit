@@ -53,7 +53,7 @@ extension TypeChecker {
         // A body that's one expression is the result, when there's one.
         if result != .void, var expr = implicitReturn(decl.body) {
             try expect(&expr, result, "\(decl.name)'s result")
-            decl.body.statements[0] = .chain(Chain(first: .expression(expr)))
+            decl.body.statements[0] = .expression(expr)
             return
         }
         try checkBlock(&decl.body)
@@ -63,8 +63,8 @@ extension TypeChecker {
     }
 
     @_spi(Shell) public func implicitReturn(_ body: Program) -> Expr? {
-        guard body.statements.count == 1, case .chain(let chain) = body.statements[0], chain.links.isEmpty else { return nil }
-        switch chain.first {
+        guard body.statements.count == 1 else { return nil }
+        switch body.statements[0] {
         case .expression(let expr): return expr
         // A body that's one `if` with one expression per branch is that
         // `if` as an expression, as in Swift.
@@ -95,19 +95,14 @@ extension TypeChecker {
             return orExits
         case .doCatch(let body, _, let handler):
             return leaves(body) && handler.map(leaves) ?? true
-        case .chain(let chain) where chain.links.isEmpty:
-            switch chain.first {
-            case .ifStatement(let node):
-                guard let otherwise = node.otherwise else { return false }
-                return leaves(node.then) && leaves(otherwise)
-            case .switchStatement(let node):
-                // A switch always matches (or fails), so every case returning is enough.
-                return !node.cases.isEmpty && node.cases.allSatisfy { leaves($0.body) }
-            case .extended(let box) where orExits:
-                return box.node.leavesProgram
-            default:
-                return false
-            }
+        case .ifStatement(let node):
+            guard let otherwise = node.otherwise else { return false }
+            return leaves(node.then) && leaves(otherwise)
+        case .switchStatement(let node):
+            // A switch always matches (or fails), so every case returning is enough.
+            return !node.cases.isEmpty && node.cases.allSatisfy { leaves($0.body) }
+        case .expression(.extended(let box)) where orExits:
+            return box.node.leavesProgram
         default:
             return false
         }

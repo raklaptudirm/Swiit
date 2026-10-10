@@ -297,10 +297,10 @@ extension Lowering {
     }
 
     private mutating func ternary(_ node: TernaryExprSyntax) throws -> Expr {
-        let condition = Chain(first: .expression(try expression(node.condition)))
+        let condition = try expression(node.condition)
         let then = IfStatement.branch(try expression(node.thenExpression))
         let otherwise = IfStatement.branch(try expression(node.elseExpression))
-        return .ifExpression(IfStatement(condition: .chain(condition), then: then, otherwise: otherwise))
+        return .ifExpression(IfStatement(condition: .expression(condition), then: then, otherwise: otherwise))
     }
 
     /// `x = 1`, `p.x += 1`, `xs[0] = v`: the place and what is done to it.

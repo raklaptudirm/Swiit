@@ -15,18 +15,18 @@ extension Lowering {
 
     private mutating func expressionStatement(_ expr: ExprSyntax) throws -> Statement {
         if let node = expr.as(IfExprSyntax.self) {
-            return .chain(Chain(first: .ifStatement(try ifStatement(node))))
+            return .ifStatement(try ifStatement(node))
         }
         if let node = expr.as(SwitchExprSyntax.self) {
-            return .chain(Chain(first: .switchStatement(try switchStatement(node))))
+            return .switchStatement(try switchStatement(node))
         }
-        if let node = expr.as(InfixOperatorExprSyntax.self), let unit = try valuePipeline(node) {
-            return .chain(Chain(first: unit))
+        if let node = expr.as(InfixOperatorExprSyntax.self), let pipeline = try valuePipeline(node) {
+            return .expression(pipeline)
         }
         if let node = expr.as(InfixOperatorExprSyntax.self), let assignment = try assignment(node) {
             return .assign(assignment)
         }
-        return .chain(Chain(first: .expression(try expression(expr))))
+        return .expression(try expression(expr))
     }
 
     private mutating func statementNode(_ stmt: StmtSyntax) throws -> Statement {
@@ -62,12 +62,12 @@ extension Lowering {
         }
         if let node = stmt.as(WhileStmtSyntax.self) {
             let condition = try condition(node.conditions, node)
-            guard case .chain(let chain) = condition else { throw unsupported("a binding in a 'while'", node) }
+            guard case .expression(let test) = condition else { throw unsupported("a binding in a 'while'", node) }
             leaving.loop += 1
             defer { leaving.loop -= 1 }
-            return .chain(Chain(first: .whileLoop(WhileLoop(condition: chain, body: try block(node.body.statements)))))
+            return .whileLoop(WhileLoop(condition: test, body: try block(node.body.statements)))
         }
-        if let node = stmt.as(ForStmtSyntax.self) { return .chain(Chain(first: .forLoop(try forLoop(node)))) }
+        if let node = stmt.as(ForStmtSyntax.self) { return .forLoop(try forLoop(node)) }
         if let node = stmt.as(DoStmtSyntax.self) { return try doCatch(node) }
         throw unsupported("'\(stmt.kind)'", stmt)
     }
@@ -80,9 +80,9 @@ extension Lowering {
         case .expression(let expr):
             // A command as a condition (`if grep -q x f { … }`), read by the layer.
             if let island = try layerCondition(at: element.positionAfterSkippingLeadingTrivia.utf8Offset, isGuard: isGuard) {
-                return .chain(island.chain)
+                return .expression(island.condition)
             }
-            return .chain(Chain(first: .expression(try expression(expr))))
+            return .expression(try expression(expr))
         case .optionalBinding(let binding):
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self), let value = binding.initializer?.value else {
                 throw unsupported("this binding", binding)
@@ -109,7 +109,7 @@ extension Lowering {
         case nil: otherwise = nil
         case .codeBlock(let code)?: otherwise = try block(code.statements)
         case .ifExpr(let nested)?:
-            otherwise = Program(statements: [.chain(Chain(first: .ifStatement(try ifStatement(nested))))])
+            otherwise = Program(statements: [.ifStatement(try ifStatement(nested))])
         }
         return IfStatement(condition: condition, then: then, otherwise: otherwise)
     }

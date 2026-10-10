@@ -59,6 +59,9 @@ public final class Interpreter {
     @_spi(Shell) public var file: String?
     /// The status the last statement gave.
     @_spi(Shell) public var lastStatus: Int32 = 0
+    /// Told each simple statement as it finishes, for a host that keeps an
+    /// exit status, as the shell does.
+    @_spi(Shell) public var statementFinished: StatementObserver?
     /// The status the last signal-killed command gave, to tell 130 from ^C
     /// apart from a command that exited with 130.
     @_spi(Shell) public var lastSignalStatus: Int32?
