@@ -51,8 +51,8 @@ struct Lowering {
     /// Whether to go on past a statement that can't be read, as highlighting
     /// a line half typed does, rather than stop at it.
     var recovering = false
-    /// The end of the furthest statement the lowering has begun (in bytes).
-    var reached = 0
+    /// The end of the innermost statement that couldn't be lowered (in bytes).
+    var failedEnd: Int?
 
     init(source: String, tree: SourceFileSyntax, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) {
         self.converter = SourceLocationConverter(fileName: "", tree: tree)
@@ -92,9 +92,10 @@ struct Lowering {
         do {
             lowered = try block(tree.statements, scoped: false)
         } catch {
-            // A problem the lowering hadn't got past explains it; one further
-            // on is in code not yet read, where the plug-in's syntax may be.
-            if let (problem, offset) = firstProblem(in: tree), offset <= reached { throw problem }
+            // A problem in or before the statement that couldn't be lowered
+            // explains it; one further on is in code not yet read, where the
+            // plug-in's syntax may be.
+            if let (problem, offset) = firstProblem(in: tree), offset <= failedEnd ?? Int.max { throw problem }
             throw error
         }
         if let (problem, _) = firstProblem(in: tree) { throw problem }
@@ -165,6 +166,9 @@ struct Lowering {
             } catch where recovering {
                 skipUntil = max(skipUntil, consumed.last?.upperBound ?? start)
                 continue
+            } catch {
+                failedEnd = failedEnd ?? item.endPosition.utf8Offset
+                throw error
             }
             if let island = read {
                 statements.append(island.statement)
@@ -173,12 +177,14 @@ struct Lowering {
                 islandEnd = island.end
                 continue
             }
-            reached = max(reached, item.endPosition.utf8Offset)
             let lowered: [Statement]
             do {
                 lowered = try statement(item.item)
             } catch where recovering {
                 continue
+            } catch {
+                failedEnd = failedEnd ?? item.endPosition.utf8Offset
+                throw error
             }
             // Whatever the layer read inside the item is the item's end too.
             if let last = consumed.last, last.lowerBound >= start { skipUntil = max(skipUntil, last.upperBound) }
@@ -210,8 +216,14 @@ struct Lowering {
         skipUntil = end
         var readAny = false
         while true {
-            var at = skipUntil
-            while at < limit, [0x20, 0x09, 0x0A, 0x0D, 0x3B].contains(bytes[at]) { at += 1 }
+            // Past blanks, comments and `;`, as the hand parser skips them.
+            var gap = cursor(at: skipUntil)
+            while true {
+                gap.skipSpaces(newlines: true)
+                guard gap.peek() == ";" else { break }
+                gap.pos += 1
+            }
+            let at = byteOffset(of: gap)
             guard at < limit else { return readAny }
             let read: (statement: Statement, end: Int)?
             do {
