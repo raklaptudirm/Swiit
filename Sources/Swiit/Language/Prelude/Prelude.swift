@@ -31,7 +31,7 @@ extension Interpreter {
             switch statement {
             case .structDecl(let decl):
                 // Declared as any struct is, then moved out to the builtins.
-                do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
+                do { try declare(decl, natives: natives.mapValues(\.body)) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
             case .enumDecl(let decl):
                 do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }

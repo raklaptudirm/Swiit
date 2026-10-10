@@ -13,8 +13,8 @@ extension Interpreter {
         case .variable(let name):
             guard let binding = lookup(name) else { throw RuntimeError("no variable named '\(name)'") }
             return binding.value
-        case .extended(let box):
-            return try box.node.evaluate(in: self)
+        case .extended:
+            throw RuntimeError.unrewritten
         case .list(let elements):
             return .list(try elements.map(evaluate))
         case .record(let entries):

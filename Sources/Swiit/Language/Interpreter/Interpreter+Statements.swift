@@ -130,8 +130,8 @@ extension Interpreter {
             )
             scopes[scopes.count - 1].declare(function, named: decl.name)
             return 0
-        case .extended(let box):
-            return try box.node.run(in: self)
+        case .extended:
+            throw RuntimeError.unrewritten
         case .doCatch(let body, let errorName, let handler):
             do {
                 return try runBlock(body)
@@ -179,8 +179,8 @@ extension Interpreter {
 
     @_spi(Shell) public func run(_ unit: Unit, context: UnitContext) throws -> Int32 {
         switch unit {
-        case .extended(let box):
-            return try box.node.run(in: self, context: context)
+        case .extended:
+            throw RuntimeError.unrewritten
 
         case .expression(let expr):
             return try status(of: try evaluate(expr), from: expr, context: context)
@@ -214,6 +214,8 @@ extension Interpreter {
     /// observer (unless it is a bare `true` or `false`, which stand in for the
     /// Unix commands), and its status.
     @_spi(Shell) public func runObserved(_ expr: Expr, _ observer: ValueObserver) throws -> Int32 {
+        // Per-item errors make it a failure, as for any statement.
+        let errorsBefore = itemErrorCount
         let value = try evaluate(expr)
         let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
         // `xs.removeLast()` alone: Swift's @discardableResult.
@@ -221,7 +223,8 @@ extension Interpreter {
             Bridge.types[type]?.members[member].discardableResult == true
         } else { false }
         if !isBoolLiteral { try observer(value, expr, discarded) }
-        return try status(of: value, from: expr, context: .statement)
+        let status = try status(of: value, from: expr, context: .statement)
+        return itemErrorCount > errorsBefore && status == 0 ? 1 : status
     }
 
     /// The exit status an expression's value gives.

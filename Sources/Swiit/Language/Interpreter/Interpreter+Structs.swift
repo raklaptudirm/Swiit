@@ -82,7 +82,9 @@ import SwishKit
 extension Interpreter {
     // MARK: Declaring
 
-    @_spi(Shell) public func declare(_ decl: StructDecl) throws {
+    /// `natives`: Swift bodies for the methods the prelude declares without
+    /// one, by `Type.method`.
+    @_spi(Shell) public func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
         var computed: [String: Function] = [:]
         for property in decl.properties {
             guard let getter = property.getter else { continue }
@@ -95,7 +97,8 @@ extension Interpreter {
         for method in decl.methods {
             methods[method.name, default: []].append(Function(
                 name: method.name, parameters: method.parameters, returnType: method.returnType,
-                body: .swish(method.body), captured: captureScopes(method.names), documentation: method.documentation,
+                body: natives["\(decl.name).\(method.name)"] ?? .swish(method.body), captured: captureScopes(method.names),
+                documentation: method.documentation,
                 isMutating: method.isMutating, isThrowing: method.isThrowing
             ))
         }

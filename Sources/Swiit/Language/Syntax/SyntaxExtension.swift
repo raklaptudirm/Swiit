@@ -2,8 +2,9 @@ import SwishKit
 
 /// Syntax the core's grammar doesn't define: what a layer over the core adds,
 /// like the shell's commands, pipelines and substitutions. The tree holds it
-/// without knowing what it is, and each pass asks it to do its part: the
-/// checker to check it, the interpreter to run it. The core never names the
+/// without knowing what it is, and the checker asks it to check itself; then
+/// the layer rewrites it into the core's own tree (as the shell's `Desugarer`
+/// does), so the interpreter only ever runs Swift. The core never names the
 /// node types, so it can be built without them (Docs/Design/frontend.md).
 @_spi(Shell) public protocol SyntaxExtension: Sendable {
     /// Trees compare, so extensions do.
@@ -20,14 +21,12 @@ extension SyntaxExtension where Self: Equatable {
 @_spi(Shell) public protocol ExprExtension: SyntaxExtension {
     /// Checks it, with whatever the checker found written in, and gives its type.
     mutating func check(in checker: TypeChecker, expecting expected: TypeAnnotation?) throws -> TypeAnnotation
-    func evaluate(in interpreter: Interpreter) throws -> Value
 }
 
 /// A unit an extension adds: a command or a pipeline of them. A unit has an
 /// exit status, which `&&`, `||` and conditions go by.
 @_spi(Shell) public protocol UnitExtension: SyntaxExtension {
     mutating func check(in checker: TypeChecker) throws
-    func run(in interpreter: Interpreter, context: UnitContext) throws -> Int32
     /// Whether it ends the program (`exit`), for a function that must return
     /// on every path.
     var leavesProgram: Bool { get }
@@ -40,7 +39,11 @@ extension UnitExtension {
 /// A statement an extension adds: `env.NAME = value`, `import Name from path`.
 @_spi(Shell) public protocol StatementExtension: SyntaxExtension {
     mutating func check(in checker: TypeChecker) throws
-    func run(in interpreter: Interpreter) throws -> Int32
+}
+
+extension RuntimeError {
+    /// A layer's construct that reached the interpreter, which only runs Swift.
+    static let unrewritten = RuntimeError("a construct from a layer over the core must be rewritten into Swift before it runs")
 }
 
 /// What the tree holds for each: the node, compared through `isEqual`.

@@ -14,6 +14,11 @@ extension Interpreter {
         try checkInterrupt()
         switch function.body {
         case .native(let body):
+            // A method in Swift gets its receiver as `self`, and runs where it
+            // is called from, as any builtin does.
+            guard let receiver else { return try body(self, arguments) }
+            var arguments = arguments
+            arguments["self"] = receiver.value
             return try body(self, arguments)
         case .stream(let transform):
             // Called directly: the input is a list, and so is the result.
