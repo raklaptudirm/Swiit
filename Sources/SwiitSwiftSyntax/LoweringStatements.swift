@@ -31,17 +31,31 @@ extension Lowering {
 
     private mutating func statementNode(_ stmt: StmtSyntax) throws -> Statement {
         if let node = stmt.as(ExpressionStmtSyntax.self) { return try expressionStatement(node.expression) }
-        if let node = stmt.as(ReturnStmtSyntax.self) { return .returnStatement(try node.expression.map { try expression($0) }) }
+        if let node = stmt.as(ReturnStmtSyntax.self) {
+            guard leaving.function > 0 else { throw SyntaxError("'return' outside a function (line \(line(of: node)))") }
+            return .returnStatement(try node.expression.map { try expression($0) })
+        }
         if let node = stmt.as(BreakStmtSyntax.self) {
             guard node.label == nil else { throw unsupported("a labeled break", node) }
+            guard leaving.loop > 0 || leaving.switchCase > 0 else { throw SyntaxError("'break' outside a loop or switch (line \(line(of: node)))") }
             return .breakStatement
         }
         if let node = stmt.as(ContinueStmtSyntax.self) {
             guard node.label == nil else { throw unsupported("a labeled continue", node) }
+            guard leaving.loop > 0 else { throw SyntaxError("'continue' outside a loop (line \(line(of: node)))") }
             return .continueStatement
         }
-        if stmt.is(FallThroughStmtSyntax.self) { return .fallthroughStatement }
-        if let node = stmt.as(DeferStmtSyntax.self) { return .deferBlock(try block(node.body.statements)) }
+        if stmt.is(FallThroughStmtSyntax.self) {
+            guard leaving.switchCase > 0 else { throw SyntaxError("'fallthrough' outside a switch (line \(line(of: stmt)))") }
+            return .fallthroughStatement
+        }
+        if let node = stmt.as(DeferStmtSyntax.self) {
+            // Nothing leaves a `defer`: it can't return, break or continue.
+            let outer = leaving
+            leaving = Leaving()
+            defer { leaving = outer }
+            return .deferBlock(try block(node.body.statements))
+        }
         if let node = stmt.as(GuardStmtSyntax.self) {
             let condition = try condition(node.conditions, node, isGuard: true)
             return .guardStatement(condition, otherwise: try block(node.body.statements))
@@ -49,6 +63,8 @@ extension Lowering {
         if let node = stmt.as(WhileStmtSyntax.self) {
             let condition = try condition(node.conditions, node)
             guard case .chain(let chain) = condition else { throw unsupported("a binding in a 'while'", node) }
+            leaving.loop += 1
+            defer { leaving.loop -= 1 }
             return .chain(Chain(first: .whileLoop(WhileLoop(condition: chain, body: try block(node.body.statements)))))
         }
         if let node = stmt.as(ForStmtSyntax.self) { return .chain(Chain(first: .forLoop(try forLoop(node)))) }
@@ -106,7 +122,8 @@ extension Lowering {
         else { throw unsupported("this pattern in a 'for'", node.pattern) }
         let sequence = try expression(node.sequence)
         locals.append([variable])
-        defer { locals.removeLast() }
+        leaving.loop += 1
+        defer { locals.removeLast(); leaving.loop -= 1 }
         return ForLoop(variable: variable, sequence: sequence, body: try block(node.body.statements, scoped: false))
     }
 
@@ -132,6 +149,8 @@ extension Lowering {
     mutating func switchStatement(_ node: SwitchExprSyntax) throws -> SwitchStatement {
         let subject = try expression(node.subject)
         var cases: [SwitchCase] = []
+        leaving.switchCase += 1
+        defer { leaving.switchCase -= 1 }
         for element in node.cases {
             guard case .switchCase(let switchCase) = element else { throw unsupported("a compiler directive in a 'switch'", element) }
             locals.append([])

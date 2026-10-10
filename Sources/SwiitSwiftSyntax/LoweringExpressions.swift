@@ -54,7 +54,15 @@ extension Lowering {
             defer { tryDepth -= 1 }
             return .attempt(try expression(node.expression), kind)
         }
-        if let node = expr.as(AwaitExprSyntax.self) { return .await(try expression(node.expression), throwing: tryDepth > 0) }
+        if let node = expr.as(AwaitExprSyntax.self) {
+            // A bare `await` waits for the jobs in the background, so the
+            // expression SwiftParser finds missing is not a problem.
+            if node.expression.is(MissingExprSyntax.self) {
+                accepted.insert(node.expression.id)
+                return .await(nil, throwing: tryDepth > 0)
+            }
+            return .await(try expression(node.expression), throwing: tryDepth > 0)
+        }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
         if let node = expr.as(IfExprSyntax.self) {
             guard let lowered = try ifStatement(node).asExpression else { throw unsupported("an 'if' expression without an 'else'", node) }
@@ -88,6 +96,15 @@ extension Lowering {
     // MARK: Literals
 
     private mutating func string(_ node: StringLiteralExprSyntax) throws -> Expr {
+        // `'a b'`: a raw string, which SwiftParser reads with its quotes missing.
+        if let open = node.unexpectedBetweenOpeningPoundsAndOpeningQuote?.first?.as(TokenSyntax.self), open.tokenKind == .singleQuote {
+            guard let close = node.unexpectedBetweenSegmentsAndClosingQuote?.first?.as(TokenSyntax.self), close.tokenKind == .singleQuote else {
+                throw SyntaxError.incomplete("unterminated string (line \(line(of: node)))")
+            }
+            accepted.insert(node.id)
+            let text = bytes[open.endPositionBeforeTrailingTrivia.utf8Offset..<close.positionAfterSkippingLeadingTrivia.utf8Offset]
+            return .literal(.string(String(decoding: text, as: UTF8.self)))
+        }
         guard node.openingPounds == nil, node.openingQuote.tokenKind == .stringQuote else {
             throw unsupported("a multi-line or raw string", node)
         }
@@ -179,10 +196,6 @@ extension Lowering {
         if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.base == nil {
             return .caseLiteral(member.declName.baseName.text, arguments)
         }
-        if let member = node.calledExpression.as(MemberAccessExprSyntax.self), let chained = member.base?.as(OptionalChainingExprSyntax.self) {
-            _ = chained
-            throw unsupported("an optional call", node)
-        }
         return .call(try expression(node.calledExpression), arguments)
     }
 
@@ -235,9 +248,10 @@ extension Lowering {
             parameters = (0..<arity).map { Parameter(name: "$\($0)") }
         }
         locals.append(Set(parameters.map(\.name)))
-        let outerTry = tryDepth
+        let outer = (tryDepth, leaving)
         tryDepth = 0
-        defer { locals.removeLast(); tryDepth = outerTry }
+        leaving = Leaving(function: leaving.function + 1)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer }
         let body = try block(node.statements, scoped: false)
         return ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
     }

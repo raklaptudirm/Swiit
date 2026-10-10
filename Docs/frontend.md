@@ -246,14 +246,29 @@ Slices 1 to 3 of 3c (the `SwiitSwiftSyntax` module in `Packages/Swiit`):
   problems inside them are ignored, as its tree there is a guess at text that
   isn't Swift. When SwiftParser reads one item over several statements
   (`ls > out; head out`, taken for a regular expression), the rest are read
-  from where the plug-in stopped. Assignments, `$0` and keyword statements stay
-  Swift's, as in the hand parser's dispatch.
-- **The shell-side oracle:** of the 709 harvested programs the hand parser
-  reads with the shell's syntax, 663 give the same tree, none differ, and 46 are
-  not read yet (mostly a command word SwiftParser stops at, such as an
-  unmatched quote). A ratchet holds that count.
+  from where the plug-in stopped. Assignments (as SwiftParser reads them),
+  `$0` and keyword statements stay Swift's, as in the hand parser's dispatch.
+  A missing token is the layer's when the node it is missing from starts in
+  what the plug-in read, within its statement (`'a b'` at a command's end);
+  operators that don't fold (`f -- --x`) are a problem only outside it.
+- **The shell-side oracle:** all 709 harvested programs the hand parser reads
+  with the shell's syntax give the same tree; the test holds that none differ
+  and none go unread.
+- **Highlighting (slice 5):** `SyntaxFrontEnd.highlight` gives the spans a
+  line is colored by. The SwiftSyntax front end colors each token by its kind
+  and where it stands, and takes the spans the plug-in recorded where it read.
+  On half-typed input it goes on past a statement it can't read. All 709
+  programs color as the hand parser colors them, character for character; on
+  the 58,000 prefixes of them, 89% do, the rest being guesses about unfinished
+  words (a lone `$` in a closure, `c` on the way to `case`).
+- **Wired in:** the shell reads and colors with the SwiftSyntax front end, and
+  links swift-syntax. Its suite and the terminal scripts pass on it. Swiit's
+  `Interpreter` still defaults to the hand parser, which stays as the oracle.
+  One message changed: an unknown name is the checker's error, not a syntax
+  error, as in Swift.
 
-Not built: highlighting from the tree and wiring the front end into the shell.
+Not built: retiring the hand parser (it is still the oracle, and the plug-in
+runs on its cursor), incremental re-parsing.
 
 ## Not tried yet
 

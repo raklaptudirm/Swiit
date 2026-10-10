@@ -81,9 +81,10 @@ extension Lowering {
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
         guard let body = node.body else { throw unsupported("a function without a body", node) }
         locals.append(Set(parameters.map(\.name)))
-        let outerTry = tryDepth
+        let outer = (tryDepth, leaving)
         tryDepth = 0
-        defer { locals.removeLast(); tryDepth = outerTry }
+        leaving = Leaving(function: leaving.function + 1)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: node.name.text, parameters: parameters, returnType: returnType, body: program,
@@ -99,9 +100,10 @@ extension Lowering {
         let parameters = try parameters(node.signature.parameterClause)
         guard let body = node.body else { throw unsupported("an initializer without a body", node) }
         locals.append(Set(parameters.map(\.name)))
-        let outerTry = tryDepth
+        let outer = (tryDepth, leaving)
         tryDepth = 0
-        defer { locals.removeLast(); tryDepth = outerTry }
+        leaving = Leaving(function: leaving.function + 1)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: "init", parameters: parameters, body: program, documentation: documentation(of: node),
@@ -259,6 +261,13 @@ extension Lowering {
             guard declaredTypes.contains(name) || bound[name] == .type else { throw SyntaxError("unknown type '\(name)'") }
             return .named(name)
         }
+        // A nested type: `FilePath.Component`.
+        if let member = node.as(MemberTypeSyntax.self), member.genericArgumentClause == nil, let base = dottedName(member.baseType) {
+            let name = base + "." + member.name.text
+            if let spelled = TypeAnnotation.spelled(name) { return spelled }
+            guard declaredTypes.contains(name) || bound[name] == .type else { throw SyntaxError("unknown type '\(name)'") }
+            return .named(name)
+        }
         if let array = node.as(ArrayTypeSyntax.self) { return .list(try type(array.element)) }
         if let dictionary = node.as(DictionaryTypeSyntax.self) { return .dictionary(try type(dictionary.key), try type(dictionary.value)) }
         if let optional = node.as(OptionalTypeSyntax.self) { return .optional(try type(optional.wrappedType)) }
@@ -273,6 +282,14 @@ extension Lowering {
         }
         if let attributed = node.as(AttributedTypeSyntax.self) { return try type(attributed.baseType) }
         throw unsupported("this type", node)
+    }
+
+    private func dottedName(_ node: TypeSyntax) -> String? {
+        if let identifier = node.as(IdentifierTypeSyntax.self), identifier.genericArgumentClause == nil { return identifier.name.text }
+        if let member = node.as(MemberTypeSyntax.self), member.genericArgumentClause == nil, let base = dottedName(member.baseType) {
+            return base + "." + member.name.text
+        }
+        return nil
     }
 
     // MARK: Names used

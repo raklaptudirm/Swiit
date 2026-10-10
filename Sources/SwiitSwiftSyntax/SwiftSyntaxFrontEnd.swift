@@ -11,11 +11,22 @@ import SwiftSyntax
 
     @_spi(Shell) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
         let parsed = Parser.parse(source: source)
-        var errors: [Error] = []
-        let folded = OperatorTable.standardOperators.foldAll(parsed) { errors.append($0) }
-        if let error = errors.first { throw SyntaxError("\(error)") }
+        var problems: [(message: String, offset: Int)] = []
+        var other: Error?
+        let folded = OperatorTable.standardOperators.foldAll(parsed) { error in
+            switch error as? OperatorError {
+            case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
+                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+            case .incomparableOperators(_, _, let node, _)?:
+                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+            default:
+                other = other ?? error
+            }
+        }
+        if let other { throw SyntaxError("\(other)") }
         guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
         var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
+        lowering.operatorProblems = problems
         do {
             return try lowering.program()
         } catch let error as SyntaxError {
@@ -23,5 +34,16 @@ import SwiftSyntax
         } catch {
             throw SyntaxError("\(error)")
         }
+    }
+
+    @_spi(Shell) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
+        let parsed = Parser.parse(source: source)
+        // Operators that don't fold (`a < b < c`) leave their sequence as it is.
+        let folded = OperatorTable.standardOperators.foldAll(parsed) { _ in }
+        guard let tree = folded.as(SourceFileSyntax.self) else { return [] }
+        var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
+        lowering.recovering = true
+        _ = try? lowering.program()
+        return lowering.highlightSpans()
     }
 }

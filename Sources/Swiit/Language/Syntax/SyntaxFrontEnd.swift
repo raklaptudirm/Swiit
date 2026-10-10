@@ -8,6 +8,9 @@ import Foundation
     /// reading whatever syntax `plugin` adds (the shell's). A front end that
     /// can't read a plug-in's syntax says so as a `SyntaxError`.
     func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program
+    /// How to color the source, in characters, which may be half typed: what
+    /// it reads before a problem is colored as it reads it.
+    func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span]
 }
 
 /// The hand-written parser, the front end the interpreter has unless it is
@@ -17,5 +20,9 @@ import Foundation
 
     @_spi(Shell) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
         return try Parser.parse(source, bound: bound, plugin: plugin)
+    }
+
+    @_spi(Shell) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
+        Parser.highlight(source, bound: bound, plugin: plugin)
     }
 }
