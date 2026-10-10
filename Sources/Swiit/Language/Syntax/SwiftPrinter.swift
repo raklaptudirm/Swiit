@@ -278,7 +278,18 @@ import SwishKit
         case .optionalMember(let base, let name): return "\(operand(base))?.\(name)"
         case .optionalIndex(let base, let index): return "\(operand(base))?[\(expression(index))]"
         case .chosen(let inner, _): return expression(inner)
-        case .bridged: return "/* a bridged call the checker made */"
+        // A Swift member the checker chose: the call it is.
+        case .bridged(let type, let index, let receiver, let args):
+            guard let members = Bridge.types[type]?.members, members.indices.contains(index) else {
+                return "/* a bridged call the checker made */"
+            }
+            let member = members[index]
+            let base = receiver.map(operand) ?? type
+            switch member.kind {
+            case .property: return "\(base).\(member.name)"
+            case .initializer: return "\(type)(\(arguments(args)))"
+            case .method, .setter: return "\(base).\(member.name)(\(arguments(args)))"
+            }
         case .cast(let inner, let type, let kind):
             let word = switch kind { case .conditional: "as?"; case .forced: "as!"; case .check: "is"; case .upcast: "as" }
             return "\(operand(inner)) \(word) \(type)"
