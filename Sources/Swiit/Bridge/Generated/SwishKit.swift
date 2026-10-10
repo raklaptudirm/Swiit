@@ -610,7 +610,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Output = try SwiftValue.unbox(Output.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: String) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0.swishValue]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) })
+                let result: [Value] = try receiver.compactMap({ (a0: String) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) { $0 } })
                 return .list(result)
                     }
                 )

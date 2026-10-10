@@ -288,7 +288,7 @@ import SwishKit
             switch member.kind {
             case .property: return "\(base).\(member.name)"
             case .initializer: return "\(type)(\(arguments(args)))"
-            case .method, .setter: return "\(base).\(member.name)(\(arguments(args)))"
+            case .method, .setter: return expression(.call(.member(.variable(base), member.name), args))
             }
         case .cast(let inner, let type, let kind):
             let word = switch kind { case .conditional: "as?"; case .forced: "as!"; case .check: "is"; case .upcast: "as" }

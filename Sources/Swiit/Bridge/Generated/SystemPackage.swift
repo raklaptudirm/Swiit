@@ -1097,7 +1097,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
+                let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) { $0 } })
                 return .list(result)
                     }
                 )

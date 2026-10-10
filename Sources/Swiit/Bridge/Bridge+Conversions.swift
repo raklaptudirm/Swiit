@@ -213,6 +213,11 @@ extension Interpreter {
 }
 
 /// A Swish function as a Swift closure.
+/// A Swish value as a Swift optional: nil for nothing, else converted.
+@_spi(Shell) public func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
+    value == .nothing ? nil : try convert(value)
+}
+
 @_spi(Shell) public func bridgeClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
     { arguments in try shell.call(function, with: arguments) }
 }

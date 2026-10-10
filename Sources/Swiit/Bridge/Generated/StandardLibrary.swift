@@ -785,7 +785,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: String = try String(swishValue: args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -1897,7 +1897,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -4675,7 +4675,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -5894,7 +5894,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -6709,7 +6709,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -7718,7 +7718,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: (key: Value, value: Value)) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result: [Value] = try receiver.compactMap({ (a0: (key: Value, value: Value)) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -7896,7 +7896,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.compactMapValues({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result = try receiver.compactMapValues({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return bridgeDictionary(result)
                     }
                 )
@@ -8133,7 +8133,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
-                let result = try receiver.flatMap({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result = try receiver.flatMap({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -9083,7 +9083,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swishValue: $0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0.swishValue]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -9809,7 +9809,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swishValue: $0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0.swishValue]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) })
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.swishValue])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -9864,7 +9864,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Flow<Value>({ () throws -> Value? in (try bridgeClosure(shell, args["read"]!)([]) == .nothing ? nil : try bridgeClosure(shell, args["read"]!)([])) })
+                        let result = Flow<Value>({ () throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["read"]!)([])) { $0 } })
                 return SwiftValue.make(result, as: "Flow")
                     }
                 )
@@ -9919,7 +9919,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Flow<Value> = try SwiftValue.unbox(Flow<Value>.self, args["self"]!)
-                let result = receiver.compactMap({ (a0: Value) throws -> Value? in (try bridgeClosure(shell, args["transform"]!)([a0]) == .nothing ? nil : try bridgeClosure(shell, args["transform"]!)([a0])) })
+                let result = receiver.compactMap({ (a0: Value) throws -> Value? in try bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0])) { $0 } })
                 return SwiftValue.make(result, as: "Flow")
                     }
                 )

@@ -63,7 +63,11 @@ func fromSwish(_ value: String, _ type: SType) -> String {
         let items = if case .array = type { "try bridgeList(\(value))" } else { "try bridgeSequence(\(value))" }
         if case .named(let name, []) = element, leaves[name] == nil { return items }
         return "\(items).map { \(fromSwish("$0", element)) }"
-    case .optional(let wrapped): return "(\(value) == .nothing ? nil : \(fromSwish(value, wrapped)))"
+    case .optional(let wrapped):
+        // A value that is a call (a closure's result) is made once, not once to
+        // test and again to convert.
+        guard !value.contains("(") else { return "try bridgeOptional(\(value)) { \(fromSwish("$0", wrapped)) }" }
+        return "(\(value) == .nothing ? nil : \(fromSwish(value, wrapped)))"
     case .dictionary(let key, let value2):
         guard isLeaf(key) || isLeaf(value2) else { return "try bridgeDictionary(\(value))" }
         return "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromSwish("$0.key", key)), \(fromSwish("$0.value", value2))) })"
