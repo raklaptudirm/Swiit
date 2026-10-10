@@ -8,6 +8,7 @@ extension Lowering {
     mutating func declaration(_ decl: DeclSyntax) throws -> [Statement] {
         if let node = decl.as(VariableDeclSyntax.self) { return try variables(node) }
         if let node = decl.as(FunctionDeclSyntax.self) {
+            functions.insert(node.name.text)
             bind(node.name.text)
             return [.function(try function(node))]
         }
@@ -80,7 +81,9 @@ extension Lowering {
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
         guard let body = node.body else { throw unsupported("a function without a body", node) }
         locals.append(Set(parameters.map(\.name)))
-        defer { locals.removeLast() }
+        let outerTry = tryDepth
+        tryDepth = 0
+        defer { locals.removeLast(); tryDepth = outerTry }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: node.name.text, parameters: parameters, returnType: returnType, body: program,
@@ -96,7 +99,9 @@ extension Lowering {
         let parameters = try parameters(node.signature.parameterClause)
         guard let body = node.body else { throw unsupported("an initializer without a body", node) }
         locals.append(Set(parameters.map(\.name)))
-        defer { locals.removeLast() }
+        let outerTry = tryDepth
+        tryDepth = 0
+        defer { locals.removeLast(); tryDepth = outerTry }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: "init", parameters: parameters, body: program, documentation: documentation(of: node),

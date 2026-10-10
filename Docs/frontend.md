@@ -237,8 +237,23 @@ Slices 1 to 3 of 3c (the `SwiitSwiftSyntax` module in `Packages/Swiit`):
 - **Found by the oracle:** the hand parser grouped `a ?? b ?? c` to the left;
   Swift groups it to the right. It is fixed.
 
-Not built: shell lines (the span-level plug-in, step 4 of "How the front end
-would work"), highlighting from the tree, and wiring it into the shell.
+- **Shell lines (slice 4):** the shell's plug-in runs unchanged, through a hand
+  `Parser` positioned at a byte offset in the source, with the names the
+  lowering knows (locals, members, statics, functions, `self`, `try` depth).
+  It reads statements that start with a command, `import`, a chain with a
+  command after `&&`/`||`, conditions that are commands, `$(…)`, `$name`,
+  `async`, and `xs | sorted`. The spans it read are recorded, and SwiftParser's
+  problems inside them are ignored, as its tree there is a guess at text that
+  isn't Swift. When SwiftParser reads one item over several statements
+  (`ls > out; head out`, taken for a regular expression), the rest are read
+  from where the plug-in stopped. Assignments, `$0` and keyword statements stay
+  Swift's, as in the hand parser's dispatch.
+- **The shell-side oracle:** of the 709 harvested programs the hand parser
+  reads with the shell's syntax, 663 give the same tree, none differ, and 46 are
+  not read yet (mostly a command word SwiftParser stops at, such as an
+  unmatched quote). A ratchet holds that count.
+
+Not built: highlighting from the tree and wiring the front end into the shell.
 
 ## Not tried yet
 

@@ -10,13 +10,12 @@ import SwiftSyntax
     @_spi(Shell) public init() {}
 
     @_spi(Shell) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
-        if plugin != nil { throw SyntaxError("this front end doesn't read a layer's syntax yet") }
         let parsed = Parser.parse(source: source)
         var errors: [Error] = []
         let folded = OperatorTable.standardOperators.foldAll(parsed) { errors.append($0) }
         if let error = errors.first { throw SyntaxError("\(error)") }
         guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
-        var lowering = Lowering(source: source, tree: tree, bound: bound)
+        var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
         do {
             return try lowering.program()
         } catch let error as SyntaxError {

@@ -6,6 +6,11 @@ extension Lowering {
     // MARK: Expressions
 
     mutating func expression(_ expr: ExprSyntax) throws -> Expr {
+        // `$(…)`, `$name` and `async …` are the layer's, not Swift's.
+        if plugin != nil, isLayerExpression(expr),
+           let lowered = try layerExpression(at: expr.positionAfterSkippingLeadingTrivia.utf8Offset) {
+            return lowered
+        }
         if let node = expr.as(IntegerLiteralExprSyntax.self) {
             let text = node.literal.text.replacingOccurrences(of: "_", with: "")
             guard let number = Int(text) ?? parseRadix(text) else { throw unsupported("this integer", node) }
@@ -45,9 +50,11 @@ extension Lowering {
             case .exclamationMark?: .forced
             default: .plain
             }
+            tryDepth += 1
+            defer { tryDepth -= 1 }
             return .attempt(try expression(node.expression), kind)
         }
-        if let node = expr.as(AwaitExprSyntax.self) { return .await(try expression(node.expression), throwing: false) }
+        if let node = expr.as(AwaitExprSyntax.self) { return .await(try expression(node.expression), throwing: tryDepth > 0) }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
         if let node = expr.as(IfExprSyntax.self) {
             guard let lowered = try ifStatement(node).asExpression else { throw unsupported("an 'if' expression without an 'else'", node) }
@@ -228,7 +235,9 @@ extension Lowering {
             parameters = (0..<arity).map { Parameter(name: "$\($0)") }
         }
         locals.append(Set(parameters.map(\.name)))
-        defer { locals.removeLast() }
+        let outerTry = tryDepth
+        tryDepth = 0
+        defer { locals.removeLast(); tryDepth = outerTry }
         let body = try block(node.statements, scoped: false)
         return ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
     }

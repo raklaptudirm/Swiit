@@ -20,6 +20,9 @@ extension Lowering {
         if let node = expr.as(SwitchExprSyntax.self) {
             return .chain(Chain(first: .switchStatement(try switchStatement(node))))
         }
+        if let node = expr.as(InfixOperatorExprSyntax.self), let unit = try valuePipeline(node) {
+            return .chain(Chain(first: unit))
+        }
         if let node = expr.as(InfixOperatorExprSyntax.self), let assignment = try assignment(node) {
             return .assign(assignment)
         }
@@ -40,7 +43,7 @@ extension Lowering {
         if stmt.is(FallThroughStmtSyntax.self) { return .fallthroughStatement }
         if let node = stmt.as(DeferStmtSyntax.self) { return .deferBlock(try block(node.body.statements)) }
         if let node = stmt.as(GuardStmtSyntax.self) {
-            let condition = try condition(node.conditions, node)
+            let condition = try condition(node.conditions, node, isGuard: true)
             return .guardStatement(condition, otherwise: try block(node.body.statements))
         }
         if let node = stmt.as(WhileStmtSyntax.self) {
@@ -55,10 +58,14 @@ extension Lowering {
 
     // MARK: Conditions and loops
 
-    mutating func condition(_ conditions: ConditionElementListSyntax, _ node: some SyntaxProtocol) throws -> IfStatement.Condition {
+    mutating func condition(_ conditions: ConditionElementListSyntax, _ node: some SyntaxProtocol, isGuard: Bool = false) throws -> IfStatement.Condition {
         guard conditions.count == 1, let element = conditions.first else { throw unsupported("more than one condition", node) }
         switch element.condition {
         case .expression(let expr):
+            // A command as a condition (`if grep -q x f { … }`), read by the layer.
+            if let island = try layerCondition(at: element.positionAfterSkippingLeadingTrivia.utf8Offset, isGuard: isGuard) {
+                return .chain(island.chain)
+            }
             return .chain(Chain(first: .expression(try expression(expr))))
         case .optionalBinding(let binding):
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self), let value = binding.initializer?.value else {
