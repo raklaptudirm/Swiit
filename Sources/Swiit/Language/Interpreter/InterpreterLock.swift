@@ -145,6 +145,7 @@ extension Interpreter {
         host.startThread {
             interpreter.lock.acquire()
             interpreter.task = taskContext
+            Waiting.host = interpreter
             var result = Result { try body() }
             // Its own tasks end with it.
             interpreter.closeTasks(above: -1)

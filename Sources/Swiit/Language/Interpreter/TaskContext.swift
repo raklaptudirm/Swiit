@@ -103,11 +103,27 @@ extension Interpreter {
     @_spi(Shell) public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
         lock.acquire()
         let previous = task
+        let previousHost = Waiting.host
         task = mainTask
+        Waiting.host = self
         defer {
             task = previous
+            Waiting.host = previousHost
             lock.release()
         }
         return try body()
+    }
+}
+
+/// A function that waits (a plugin's, a library's) lets other tasks run: a
+/// plain wait is a `suspend`, and a read of the input waits first for the
+/// task's turn at it, which the host says (`inputTurn`).
+extension Interpreter: WaitingHost {
+    public func wait(_ body: () -> Void) {
+        suspend { body() }
+    }
+
+    public func waitForInput(_ body: () -> Void) {
+        if let inputTurn { inputTurn(body) } else { suspend { body() } }
     }
 }

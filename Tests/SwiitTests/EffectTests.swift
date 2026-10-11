@@ -94,3 +94,20 @@ private func typeError(_ source: String) -> String? {
         }
     }
 }
+
+// A function that waits, a plugin's, lets the lock go through SwishKit's
+// `Waiting` (Docs/Design/async.md, step 6).
+@Test func waitingLetsTheLockGo() {
+    let swish = interpreter()
+    #expect(Waiting.host == nil || Waiting.host !== swish)
+    swish.withMainTask {
+        #expect(Waiting.host === swish)
+        #expect(swish.lock.isHeldByCurrentThread)
+        let held = Waiting.whileWaiting { swish.lock.isHeldByCurrentThread }
+        #expect(!held)
+        #expect(swish.lock.isHeldByCurrentThread)
+        // A read with no host saying whose turn it is just reads.
+        #expect(Waiting.forInput { "line" } == "line")
+    }
+    #expect(Waiting.host !== swish)
+}

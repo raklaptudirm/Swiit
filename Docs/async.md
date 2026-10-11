@@ -392,6 +392,15 @@ the task context's output and the `suspend` function sit.)
    its job, as `async $(…)`'s is, unless it prints; a background task reading
    the terminal waits until it's brought forward with `await`, as a program
    is stopped; plugins get a "wait without the lock" helper in SwishKit.
+   *Done:* SwishKit's `Waiting` is the helper: `whileWaiting` runs a wait
+   with the lock let go, and `forInput` a read of the input when it's the
+   task's turn. The host behind it is per thread, set by the core while a
+   thread runs Swish code (`withMainTask`, a task's thread); with none, the
+   body just runs. The core answers a read through `inputTurn`, which the
+   shell sets: a task not in the foreground waits until it is, or until it's
+   cancelled, and then reads; a task is in the foreground while the
+   foreground awaits it, when its programs get the terminal too. `readLine`
+   reads through `forInput`.
 7. **Swift's `async`, bridged.** The generator reads `async`; a Swift `async`
    call from Swish is a wait in `suspend`, and a Swish closure Swift calls as
    `async` runs on an interpreter thread; `Flow` readable as an

@@ -35,6 +35,10 @@ public final class Interpreter {
     @_spi(Shell) public let lock = InterpreterLock()
     /// Tasks started and not yet ended.
     @_spi(Shell) public var runningTasks = 0
+    /// How a read of the host's input waits for the current task's turn at it
+    /// (the shell: a task in the background waits until it's awaited); then it
+    /// runs the read, or doesn't, if the task is cancelled first.
+    @_spi(Shell) public var inputTurn: ((_ read: () -> Void) -> Void)?
     /// Each enum's associated value types, by case, for checking them.
     @_spi(Shell) public var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
