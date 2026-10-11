@@ -76,7 +76,7 @@ extension TypeChecker {
                 throw TypeError("\(name): '\(parameter.name)' must be \(wanted), not \(actual)")
             }
             unify(parameter.type, actual, &bindings)
-            if case .functionType(_, _, true) = actual { argumentsThrow = true }
+            if case .functionType(_, _, true, _) = actual { argumentsThrow = true }
             switch (natural, wanted) {
             case (.unknown?, _): uncertain = true
             case (_, .any), (_, .unknown), (_, .function), (_, .record): cost += 3

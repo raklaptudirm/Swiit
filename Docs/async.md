@@ -297,7 +297,12 @@ the task context's output and the `suspend` function sit.)
    function (`suspend { … }`) instead of calling `waitpid`, `read` or a
    semaphore directly: foreground commands, `$(…)`, `await`, a `Flow` read,
    the line editor, `sleep`. Still one task, so it just calls the closure.
-   This is the seam the async evaluator's `await`s later replace.
+   This is the seam the async evaluator's `await`s later replace. *Done:*
+   `Interpreter.suspend { … }`, through which the shell waits for a
+   foreground job (and so `await` and `sleep`), a `$(…)`'s output, a job's
+   lines, a program's output read into an in-process stage, and a line of
+   input at the prompt or from a script. The library's `readLine()` can't reach
+   the interpreter from its module, and waits directly for now.
 3. **Effects in the checker, with no runtime change.** (The inferred part is
    the rewrite pass of [desugaring.md](desugaring.md), "Effects": shell
    constructs become `await`s and their functions `async`, and the checker
@@ -306,7 +311,20 @@ the task context's output and the `suspend` function sit.)
    `$(…)` as an inferred wait; `reasync` for closure parameters; the
    redefinition rule. The interpreter still blocks at every wait, so only the
    checker's answers are new, and they are tested as errors and inferred
-   types.
+   types. *Done:* function types and declarations carry an `Effect` (`sync`,
+   `implicitAsync`, `async`), and both front ends read `async`. A call to an
+   `async` function needs `await`; `await` needs an async context (the top
+   level, an `async` function, or a closure, which becomes async); an `async`
+   function isn't passed where a sync one is wanted; an `await` with nothing
+   async in it is an error (Swift only warns). What waits only on the shell (a
+   layer's node that `waits`, `await` on a job, a call to an implicitly async
+   function) is implicitly async, settled over the program's call graph so a
+   function called before its declaration counts; it is called with no
+   `await`, by name or through a value, whose type carries the mark. A
+   function becoming `async` at the prompt is refused while functions declared
+   earlier call it without `await`, naming them. `reasync` for closure
+   parameters waits for step 4, where the bridge says which Swift functions
+   have an async form.
 4. **The generator reads `async`.** `BridgedMember` gains `isAsync`, native
    bodies an async form, glue `try await`; the standard library's async
    overloads are written and bridged; a waiting closure with no async overload

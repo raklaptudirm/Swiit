@@ -110,7 +110,7 @@ extension Interpreter {
             let function = Function(
                 name: decl.name, parameters: decl.parameters, returnType: decl.returnType,
                 body: .swish(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
-                isThrowing: decl.isThrowing
+                isThrowing: decl.isThrowing, effect: decl.effect
             )
             scopes[scopes.count - 1].declare(function, named: decl.name)
         case .extended:

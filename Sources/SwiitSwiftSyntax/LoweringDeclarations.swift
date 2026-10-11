@@ -75,7 +75,6 @@ extension Lowering {
     mutating func function(_ node: FunctionDeclSyntax, isMember: Bool = false) throws -> FunctionDecl {
         guard node.genericParameterClause == nil, node.genericWhereClause == nil else { throw unsupported("generics", node) }
         let effects = node.signature.effectSpecifiers
-        guard effects?.asyncSpecifier == nil else { throw unsupported("'async'", node) }
         let parameters = try parameters(node.signature.parameterClause)
         let returnType = try node.signature.returnClause.map { try type($0.type) }
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
@@ -90,6 +89,7 @@ extension Lowering {
             name: node.name.text, parameters: parameters, returnType: returnType, body: program,
             documentation: documentation(of: node),
             isMutating: mutating, isThrowing: effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws),
+            isAsync: effects?.asyncSpecifier != nil,
             isRethrowing: effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows),
             names: NamesUsed(names: names(in: body))
         )
@@ -278,7 +278,9 @@ extension Lowering {
         }
         if let function = node.as(FunctionTypeSyntax.self) {
             let throwing = function.effectSpecifiers?.throwsClause != nil
-            return .functionType(try function.parameters.map { try type($0.type) }, try type(function.returnClause.type), throws: throwing)
+            let effect: Effect = function.effectSpecifiers?.asyncSpecifier != nil ? .async : .sync
+            return .functionType(try function.parameters.map { try type($0.type) }, try type(function.returnClause.type),
+                                 throws: throwing, async: effect)
         }
         if let attributed = node.as(AttributedTypeSyntax.self) { return try type(attributed.baseType) }
         throw unsupported("this type", node)

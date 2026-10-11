@@ -39,7 +39,7 @@ extension TypeChecker {
         if function.plugin != nil && returns == .any { returns = .unknown }
         return Signature(name: function.name ?? "closure", parameters: function.parameters, returns: returns,
                          isMutating: function.isMutating, isThrowing: function.isThrowing,
-                         isRethrowing: function.isRethrowing, generics: function.generics)
+                         isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)
     }
 
     @_spi(Shell) public func structInfo(named name: String) -> StructInfo? {

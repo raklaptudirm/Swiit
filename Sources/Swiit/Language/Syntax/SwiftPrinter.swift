@@ -155,6 +155,7 @@ import SwishKit
             }.joined(separator: ", ") + ">"
         }
         text += "(\(parameters(decl.parameters)))"
+        if decl.isAsync { text += " async" }
         if decl.isRethrowing { text += " rethrows" } else if decl.isThrowing { text += " throws" }
         if let returnType = decl.returnType { text += " -> \(returnType)" }
         return text + " " + block(decl.body, indent: indent)

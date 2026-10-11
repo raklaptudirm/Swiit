@@ -25,6 +25,7 @@ extension Parser {
         guard peek() == "(" else { throw expected("'(' after '\(name)'") }
         let parameters = try parseParameters(named: true)
         skipSpaces()
+        let isAsync = parseAsyncEffect()
         let throwing = parseThrows()
         var rethrowing = false
         if prelude && identifier() == "rethrows" {
@@ -53,7 +54,7 @@ extension Parser {
         if prelude && peek() != "{" {
             return FunctionDecl(
                 name: name, parameters: parameters, returnType: returnType, body: Program(statements: []),
-                documentation: documentation, isThrowing: throwing, isRethrowing: rethrowing, generics: generics
+                documentation: documentation, isThrowing: throwing, isAsync: isAsync, isRethrowing: rethrowing, generics: generics
             )
         }
         guard consume("{") else { throw expected("'{'") }
@@ -62,7 +63,7 @@ extension Parser {
         let (body, _) = try parseFunctionBody(parameters: parameters, anonymous: false)
         return FunctionDecl(
             name: name, parameters: parameters, returnType: returnType, body: body, documentation: documentation,
-            isThrowing: throwing, names: lastBodyNames
+            isThrowing: throwing, isAsync: isAsync, names: lastBodyNames
         )
     }
 
@@ -107,6 +108,14 @@ extension Parser {
             methods.append(method)
         }
         return .extensionDecl(name: name, methods: methods)
+    }
+
+    /// `async` after a signature's parameters, before any `throws`.
+    @_spi(Shell) public mutating func parseAsyncEffect() -> Bool {
+        guard identifier() == "async" else { return false }
+        keyword("async")
+        skipSpaces()
+        return true
     }
 
     /// `throws` after a signature's parameters.
@@ -384,6 +393,7 @@ extension Parser {
             }
             let afterParentheses = (pos, spans.count)
             skipSpaces()
+            let isAsync = parseAsyncEffect()
             var throwing = false
             if identifier() == "throws" {
                 keyword("throws")
@@ -394,9 +404,9 @@ extension Parser {
                 guard elements.allSatisfy({ $0.label == nil }) else {
                     throw SyntaxError("a function type's parameters have no labels")
                 }
-                return .functionType(elements.map(\.type), try parseType(), throws: throwing)
+                return .functionType(elements.map(\.type), try parseType(), throws: throwing, async: isAsync ? .async : .sync)
             }
-            if throwing { throw expected("'->' after 'throws'") }
+            if throwing || isAsync { throw expected("'->' after '\(throwing ? "throws" : "async")'") }
             rewind(to: afterParentheses)
             if elements.isEmpty { return .void }
             if elements.count == 1 && elements[0].label == nil { return elements[0].type }

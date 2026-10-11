@@ -11,6 +11,11 @@ import SwishKit
     @_spi(Shell) public var isMutating = false
     /// `throws`: calling it needs `try`.
     @_spi(Shell) public var isThrowing = false
+    /// Declared `async`.
+    @_spi(Shell) public var isAsync = false
+    /// What it waits on, as the checker found: `async` if declared, else
+    /// whether its body waits through the shell's constructs.
+    @_spi(Shell) public var effect: Effect = .sync
     /// `rethrows`: it throws only if a closure passed to it does.
     @_spi(Shell) public var isRethrowing = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
@@ -18,7 +23,7 @@ import SwishKit
     @_spi(Shell) public var generics: [String: [String]] = [:]
     @_spi(Shell) public var names = NamesUsed()
 
-    @_spi(Shell) public init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
+    @_spi(Shell) public init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
         self.name = name
         self.parameters = parameters
         self.returnType = returnType
@@ -26,6 +31,8 @@ import SwishKit
         self.documentation = documentation
         self.isMutating = isMutating
         self.isThrowing = isThrowing
+        self.isAsync = isAsync
+        self.effect = isAsync ? .async : .sync
         self.isRethrowing = isRethrowing
         self.generics = generics
         self.names = names

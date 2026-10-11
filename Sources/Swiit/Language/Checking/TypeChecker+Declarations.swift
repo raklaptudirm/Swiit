@@ -17,7 +17,8 @@ extension TypeChecker {
         }
         overloads.removeAll { sameParameters($0.parameters, decl.parameters) }
         overloads.append(Signature(
-            name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing
+            name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
+            effect: decl.effect
         ))
         for index in overloads.indices { overloads[index].index = index }
         scopes[scopes.count - 1][decl.name] = .functions(overloads)
@@ -41,6 +42,8 @@ extension TypeChecker {
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
         if initializing { names["$initializing"] = .variable(.void, mutable: false) }
         let result = decl.returnType ?? .void
+        try checkBecomingAsync(decl)
+        let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))
         errorContexts.append(ErrorContext(handled: decl.isThrowing, boundary: .function(decl.name)))
         scopes.append(names)
@@ -50,15 +53,24 @@ extension TypeChecker {
             scopes.removeLast()
         }
 
-        // A body that's one expression is the result, when there's one.
-        if result != .void, var expr = implicitReturn(decl.body) {
-            try expect(&expr, result, "\(decl.name)'s result")
-            decl.body.statements[0] = .expression(expr)
-            return
+        // `await` only in an `async` function; one that waits only through the
+        // shell's constructs is implicitly async.
+        let (_, effects) = try withEffects(allowsAwait: decl.isAsync) { () throws in
+            // A body that's one expression is the result, when there's one.
+            if result != .void, var expr = implicitReturn(decl.body) {
+                try expect(&expr, result, "\(decl.name)'s result")
+                decl.body.statements[0] = .expression(expr)
+                return
+            }
+            try checkBlock(&decl.body)
+            if result != .void && result != .unknown && !definitelyReturns(decl.body) {
+                throw TypeError("\(decl.name) must return \(result) on every path")
+            }
         }
-        try checkBlock(&decl.body)
-        if result != .void && result != .unknown && !definitelyReturns(decl.body) {
-            throw TypeError("\(decl.name) must return \(result) on every path")
+        decl.effect = decl.isAsync ? .async : effects.effect.waits ? .implicitAsync : .sync
+        if topLevel {
+            topLevelCalls[decl.name] = effects.callees
+            topLevelUnawaited[decl.name] = effects.unawaited
         }
     }
 

@@ -6,7 +6,7 @@ extension TypeChecker {
 
     @_spi(Shell) public func functionType(_ signature: Signature) -> TypeAnnotation {
         .functionType(signature.parameters.map { $0.variadic ? .list($0.type) : $0.type }, signature.returns,
-                      throws: signature.isThrowing)
+                      throws: signature.isThrowing, async: signature.effect)
     }
 
     /// A closure's type. Parameters without a type take the ones the context
@@ -16,7 +16,7 @@ extension TypeChecker {
     @_spi(Shell) public func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
         var expectedParameters: [TypeAnnotation]?
         var expectedResult: TypeAnnotation?
-        if case .functionType(let parameters, let result, _)? = expected, parameters.count == closure.parameters.count {
+        if case .functionType(let parameters, let result, _, _)? = expected, parameters.count == closure.parameters.count {
             expectedParameters = parameters
             expectedResult = result
         }
@@ -44,20 +44,22 @@ extension TypeChecker {
             throwingSites = sitesBefore
         }
 
-        var result: TypeAnnotation
-        if var expr = implicitReturn(closure.body) {
-            let type = try typeOf(&expr, expecting: declared)
-            closure.body.statements[0] = .expression(expr)
-            // A closure of one expression where nothing is wanted back just
-            // runs it, as in Swift: `queue.async { log(x) }`.
-            if let declared, declared != .void, !fits(type, declared) {
-                throw TypeError("the closure must return \(declared), not \(type)")
+        // A closure may `await`, which makes it async, as in Swift; one that
+        // waits only through the shell's constructs is implicitly async.
+        let (result, effects) = try withEffects(allowsAwait: true) { () throws -> TypeAnnotation in
+            if var expr = implicitReturn(closure.body) {
+                let type = try typeOf(&expr, expecting: declared)
+                closure.body.statements[0] = .expression(expr)
+                // A closure of one expression where nothing is wanted back just
+                // runs it, as in Swift: `queue.async { log(x) }`.
+                if let declared, declared != .void, !fits(type, declared) {
+                    throw TypeError("the closure must return \(declared), not \(type)")
+                }
+                return closure.returnType ?? declared ?? type
             }
-            result = closure.returnType ?? declared ?? type
-        } else {
             try checkBlock(&closure.body)
-            result = declared ?? commonType(context.seen) ?? (context.seen.isEmpty ? .void : .unknown)
+            return declared ?? commonType(context.seen) ?? (context.seen.isEmpty ? .void : .unknown)
         }
-        return .functionType(parameterTypes, result, throws: throwingSites > sitesBefore)
+        return .functionType(parameterTypes, result, throws: throwingSites > sitesBefore, async: effects.effect)
     }
 }

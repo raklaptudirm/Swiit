@@ -24,13 +24,14 @@ extension TypeChecker {
             }
         case (.parameter, _), (_, .parameter): return true
         case (.keyPath(let ar, let av), .keyPath(let br, let bv)): return fits(br, ar) && fits(av, bv)
-        case (.keyPath(let root, let value), .functionType(let parameters, let result, _)):
+        case (.keyPath(let root, let value), .functionType(let parameters, let result, _, _)):
             return parameters.count == 1 && fits(parameters[0], root) && fits(value, result)
         case (.functionType, .function), (.function, .functionType), (.keyPath, .function): return true
-        case (.functionType(let ap, let ar, let athrows), .functionType(let bp, let br, let bthrows)):
-            // A function that throws can't be passed where one that doesn't is wanted.
+        case (.functionType(let ap, let ar, let athrows, let aeffect), .functionType(let bp, let br, let bthrows, let beffect)):
+            // A function that throws can't be passed where one that doesn't is
+            // wanted, nor an `async` one where a sync one is.
             return ap.count == bp.count && zip(bp, ap).allSatisfy { fits($0, $1) }
-                && (br == .void || fits(ar, br)) && (!athrows || bthrows)
+                && (br == .void || fits(ar, br)) && (!athrows || bthrows) && (aeffect != .async || beffect == .async)
         // A struct's value is a record, as builtins that take any record see it.
         case (.named(let name), .record): return structInfo(named: name) != nil
         case (.tuple, .record): return true
@@ -106,8 +107,8 @@ extension TypeChecker {
         case .someSequence(let element): return .someSequence(substitute(element, bindings))
         case .tuple(let elements): return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
         case .keyPath(let root, let value): return .keyPath(substitute(root, bindings), substitute(value, bindings))
-        case .functionType(let parameters, let result, let throwing):
-            return .functionType(parameters.map { substitute($0, bindings) }, substitute(result, bindings), throws: throwing)
+        case .functionType(let parameters, let result, let throwing, let effect):
+            return .functionType(parameters.map { substitute($0, bindings) }, substitute(result, bindings), throws: throwing, async: effect)
         default: return type
         }
     }
@@ -136,10 +137,10 @@ extension TypeChecker {
         case (.keyPath(let pr, let pv), .keyPath(let ar, let av)):
             unify(pr, ar, &bindings)
             unify(pv, av, &bindings)
-        case (.keyPath(let pr, let pv), .functionType(let parameters, let result, _)) where parameters.count == 1:
+        case (.keyPath(let pr, let pv), .functionType(let parameters, let result, _, _)) where parameters.count == 1:
             unify(pr, parameters[0], &bindings)
             unify(pv, result, &bindings)
-        case (.functionType(let pp, let pr, _), .functionType(let ap, let ar, _)) where pp.count == ap.count:
+        case (.functionType(let pp, let pr, _, _), .functionType(let ap, let ar, _, _)) where pp.count == ap.count:
             for (p, a) in zip(pp, ap) { unify(p, a, &bindings) }
             unify(pr, ar, &bindings)
         default:

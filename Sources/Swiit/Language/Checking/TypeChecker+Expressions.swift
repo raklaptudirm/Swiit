@@ -64,6 +64,8 @@ extension TypeChecker {
         case .extended(var box):
             let type = try box.node.check(in: self, expecting: expected)
             expr = .extended(box)
+            // `$(…)` and commands wait, as the shell's own waits.
+            if box.node.waits { try effectSite(.implicitAsync, "this") }
             return type
         case .attempt(var inner, let kind):
             let sitesBefore = throwingSites
@@ -89,11 +91,29 @@ extension TypeChecker {
                 }
                 return .optional(type)
             }
-        case .await(var job, let throwing):
+        case .await(var operand, let throwing):
+            if var awaited = operand {
+                let sitesBefore = asyncSites
+                awaitDepth += 1
+                let type = try typeOf(&awaited, expecting: nil)
+                awaitDepth -= 1
+                operand = awaited
+                // `await f()`: what an `async` call gives, in an async context.
+                let isHandle = interpreter.awaiting.map { type == .unknown || fits(type, $0.operand) } ?? false
+                if !isHandle {
+                    // Swift only warns of an `await` with nothing async in it; Swish has no warnings.
+                    guard asyncSites > sitesBefore else { throw TypeError("there is nothing to await here: no async call, and no job") }
+                    try checkAwaitAllowed()
+                    expr = .await(awaited, throwing: throwing)
+                    return type
+                }
+            }
+            // `await job`, or `await` alone: the host's handles (the shell's
+            // jobs), which wait as the shell's constructs do.
             guard let awaiting = interpreter.awaiting else { throw TypeError("there is nothing to await here") }
             if throwing { try throwingSite("awaiting a job") }
-            if job != nil { try expect(&job!, awaiting.operand, "what 'await' waits for") }
-            expr = .await(job, throwing: throwing)
+            try effectSite(.implicitAsync, "awaiting a job")
+            expr = .await(operand, throwing: throwing)
             return awaiting.result
         case .list(var items):
             let type = try listType(&items, expected: expected)
@@ -259,10 +279,10 @@ extension TypeChecker {
             guard lookup(rootName) != nil else { throw TypeError("no type named '\(rootName)'") }
             root = .named(rootName)
         } else {
-            if case .functionType(let parameters, _, _)? = expected, parameters.count == 1 { root = parameters[0] }
+            if case .functionType(let parameters, _, _, _)? = expected, parameters.count == 1 { root = parameters[0] }
             if case .keyPath(let wanted, _)? = expected { root = wanted }
         }
-        if case .functionType(let parameters, _, _)? = expected, parameters.count != 1 {
+        if case .functionType(let parameters, _, _, _)? = expected, parameters.count != 1 {
             // A key path reads one value; it can't be a function of more.
             var error = TypeError("\\.\(path.joined(separator: ".")) can't be a function of \(parameters.count) values")
             error.isArity = true

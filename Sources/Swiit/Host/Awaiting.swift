@@ -9,10 +9,15 @@ import SwishKit
     /// Waits for the handle, or with no operand for the latest one; `throwing`
     /// for `try await`.
     @_spi(Shell) public var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
+    /// Whether a value is one of its handles; `await` of anything else is an
+    /// `async` call's, and gives the value.
+    @_spi(Shell) public var isHandle: (Value) -> Bool
 
-    @_spi(Shell) public init(operand: TypeAnnotation, result: TypeAnnotation, perform: @escaping (Value?, Bool) throws -> Value) {
+    @_spi(Shell) public init(operand: TypeAnnotation, result: TypeAnnotation, isHandle: @escaping (Value) -> Bool = { _ in true },
+                             perform: @escaping (Value?, Bool) throws -> Value) {
         self.operand = operand
         self.result = result
+        self.isHandle = isHandle
         self.perform = perform
     }
 }

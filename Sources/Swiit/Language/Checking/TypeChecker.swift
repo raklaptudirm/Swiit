@@ -37,13 +37,16 @@ import SwishKit
         @_spi(Shell) public var isThrowing = false
         /// `rethrows`: a call throws if a closure passed to it does.
         @_spi(Shell) public var isRethrowing = false
+        /// What it waits on: a call to an `async` one needs `await`.
+        @_spi(Shell) public var effect: Effect = .sync
         /// Its position among the overloads the interpreter will have.
         @_spi(Shell) public var index = 0
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
         @_spi(Shell) public var generics: [String: [String]] = [:]
     
-        @_spi(Shell) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, index: Int = 0, generics: [String: [String]] = [:]) {
+        @_spi(Shell) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
+            self.effect = effect
             self.name = name
             self.parameters = parameters
             self.returns = returns
@@ -162,6 +165,19 @@ import SwishKit
     /// Places that can throw, so far: how a `try` or a closure knows it
     /// covers one.
     @_spi(Shell) public var throwingSites = 0
+    /// Above zero while checking what an `await` covers.
+    @_spi(Shell) public var awaitDepth = 0
+    /// Calls to `async` functions so far: how an `await` knows it covers one.
+    @_spi(Shell) public var asyncSites = 0
+    /// The effects of the top level, and of each function and closure being
+    /// checked, innermost last (TypeChecker+Effects.swift).
+    @_spi(Shell) public var effectContexts = [EffectContext(allowsAwait: true)]
+    /// For each top-level function: the functions it calls by name, and those
+    /// it calls without `await`.
+    @_spi(Shell) public var topLevelCalls: [String: Set<String>] = [:]
+    @_spi(Shell) public var topLevelUnawaited: [String: Set<String>] = [:]
+    /// The functions the program being checked declares at its top level.
+    @_spi(Shell) public var redeclaredHere: Set<String> = []
     /// After an `import`, names it may bring can't be checked.
     @_spi(Shell) public var afterImport = false
     @_spi(Shell) public var line: Int?
@@ -173,8 +189,10 @@ import SwishKit
     /// Checks a program, returning it with what was decided written in.
     @_spi(Shell) public func check(_ program: Program) throws(TypeError) -> Program {
         var checked = program
+        for statement in program.statements { if case .function(let decl) = statement { redeclaredHere.insert(decl.name) } }
         do {
             try checkBlock(&checked)
+            settleEffects(&checked)
         } catch var error as TypeError {
             error.line = error.line ?? line
             throw error

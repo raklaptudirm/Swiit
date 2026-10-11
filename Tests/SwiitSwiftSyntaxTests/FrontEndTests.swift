@@ -23,6 +23,7 @@ private let programs: [(name: String, source: String)] = [
     ("break and continue", "for i in 0..<5 { if i == 1 { continue }; if i == 3 { break } }"),
     ("functions", "func add(_ a: Int, _ b: Int) -> Int { a + b }\nfunc greet(name: String, times: Int = 1) -> String { name }\nlet s = add(1, 2); let g = greet(name: \"x\")"),
     ("throwing functions", "func risky(_ n: Int) throws -> Int { n }\nlet a = try? risky(1)\nlet b = try! risky(2)"),
+    ("async functions", "func fetch(_ g: () async -> Int) async throws -> Int { await g() }\nfunc one() async -> Int { 1 }\nlet n = try await fetch(one)"),
     ("recursion", "func fact(_ n: Int) -> Int { if n <= 1 { return 1 }; return n * fact(n - 1) }\nlet r = fact(5)"),
     ("closures", "let xs = [1, 2, 3]; let d = xs.map { $0 * 2 }; let e = xs.filter { $0 > 1 }.map { $0 + 1 }"),
     ("closure parameters", "let f = { (x: Int, y: Int) -> Int in x + y }; let g = f(1, 2)"),

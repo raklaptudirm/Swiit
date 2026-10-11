@@ -193,8 +193,11 @@ extension Interpreter {
                 throw FatalError(error: error)
             }
         case .await(let target, let throwing):
+            let value = try target.map { try evaluate($0) }
+            // `await f()`: what the call gave. (The interpreter waits at every wait anyway.)
+            if let value, awaiting?.isHandle(value) != true { return value }
             guard let awaiting else { throw RuntimeError("there is nothing to await here") }
-            return try awaiting.perform(try target.map { try evaluate($0) }, throwing)
+            return try awaiting.perform(value, throwing)
         case .binary(.coalesce, let lhs, let rhs):
             let value = try evaluate(lhs)
             if value == .nothing { return try evaluate(rhs) }

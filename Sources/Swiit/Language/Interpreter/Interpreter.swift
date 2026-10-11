@@ -45,6 +45,9 @@ public final class Interpreter {
     @_spi(Shell) public var frontEnd: any SyntaxFrontEnd = HandWrittenFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     @_spi(Shell) public var file: String?
+    /// For each function, the functions declared at the prompt that call it
+    /// without `await`, for the redefinition rule (TypeChecker+Effects.swift).
+    @_spi(Shell) public var unawaitedCallers: [String: Set<String>] = [:]
     /// Told each simple statement as it finishes, for a host that keeps an
     /// exit status, as the shell does.
     @_spi(Shell) public var statementFinished: StatementObserver?
@@ -60,7 +63,7 @@ public final class Interpreter {
     /// What a run has written, against `limits.output`.
     @_spi(Shell) public let outputCounter: OutputCounter
 
-    @_spi(Shell) public init(host: SwishHost, outputCounter: OutputCounter = OutputCounter()) {
+    @_spi(Shell) public init(host: SwishHost, outputCounter: OutputCounter) {
         self.host = host
         self.outputCounter = outputCounter
     }

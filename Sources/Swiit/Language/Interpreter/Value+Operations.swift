@@ -61,7 +61,7 @@ extension Value {
         case (.list(.string), .object) where commandOutput != nil:
             return .list(commandOutput!.lines.map(Value.string))
         // A key path is a function of one value, as in Swift, and no other kind.
-        case (.functionType(let parameters, _, _), .function(is KeyPathValue)):
+        case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
             return parameters.count == 1 ? self : nil
         case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double), (.string, .string),
              (.function, .function), (.functionType, .function), (.keyPath, .function), (.parameter, _),

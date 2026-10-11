@@ -27,15 +27,18 @@ import SwishKit
     @_spi(Shell) public let isThrowing: Bool
     /// `rethrows`: a call throws if a closure passed to it does.
     @_spi(Shell) public let isRethrowing: Bool
+    /// What it waits on (`async`, or only the shell's waits), as checked.
+    @_spi(Shell) public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
     @_spi(Shell) public let generics: [String: [String]]
 
     @_spi(Shell) public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, plugin: String? = nil, isMutating: Bool = false,
-        isThrowing: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:]
+        isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:]
     ) {
         self.isRethrowing = isRethrowing
+        self.effect = effect
         self.generics = generics
         self.plugin = plugin
         self.isMutating = isMutating

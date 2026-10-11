@@ -25,10 +25,14 @@ extension SyntaxExtension where Self: Equatable {
     /// Whether it ends the program (`exit`), for a guard's `else`, which must
     /// leave.
     var leavesProgram: Bool { get }
+    /// Whether it waits (`$(…)`, a command), which makes the function or
+    /// closure it is in implicitly async.
+    var waits: Bool { get }
 }
 
 extension ExprExtension {
     @_spi(Shell) public var leavesProgram: Bool { false }
+    @_spi(Shell) public var waits: Bool { false }
 }
 
 /// A statement an extension adds: `env.NAME = value`, `import Name from path`.

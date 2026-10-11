@@ -13,6 +13,7 @@ extension TypeChecker {
                 let chosen = try resolve(candidates, &arguments, name: name)
                 if let chosen, !info.initializers.isEmpty { callee = .chosen(callee, overload: chosen.index) }
                 if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
+                if let chosen { try effectSite(chosen.effect, "\(name).init") }
                 return .named(name)
             case .enumType(let info):
                 guard arguments.count == 1, arguments[0].label == "rawValue" else {
@@ -43,6 +44,7 @@ extension TypeChecker {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
             if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
             if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
             return chosen.returns
         }
         // `x?.f()`: the method's result, or nil.
@@ -72,17 +74,23 @@ extension TypeChecker {
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
         let type = try typeOf(&callee)
+        if case .variable(let name) = callee { return try apply(type, &arguments, name: name) }
         return try apply(type, &arguments, name: "the function")
     }
 
     /// A call to a named function: the overload is chosen here.
     @_spi(Shell) public func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+        calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
-            // Which one isn't known until it runs (an argument isn't typed yet).
+            // Which one isn't known until it runs (an argument isn't typed yet):
+            // it waits if any of them does, though whether it needs `await`
+            // can't be told here.
+            if overloads.contains(where: \.effect.waits) { try effectSite(.implicitAsync, "'\(name)'") }
             return commonReturn(overloads)
         }
         if overloads.count > 1 { callee = .chosen(callee, overload: chosen.index) }
         if chosen.isThrowing { try throwingSite("'\(name)'") }
+        try effectSite(chosen.effect, "'\(name)'")
         return chosen.returns
     }
 
@@ -100,6 +108,7 @@ extension TypeChecker {
             if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
             if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
             if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
             return chosen.returns
         }
         // Swift's own methods first; then what the prelude adds for shells,
@@ -132,11 +141,12 @@ extension TypeChecker {
     /// Calling a value of type `type`.
     @_spi(Shell) public func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         switch type {
-        case .functionType(let parameters, let result, let throwing):
+        case .functionType(let parameters, let result, let throwing, let effect):
             let signature = Signature(name: name, parameters: parameters.map { Parameter(label: nil, name: "_", type: $0) },
-                                      returns: result, isThrowing: throwing)
+                                      returns: result, isThrowing: throwing, effect: effect)
             _ = try resolve([signature], &arguments, name: name)
             if throwing { try throwingSite(name) }
+            try effectSite(effect, name)
             return result
         case .function, .unknown:
             for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }

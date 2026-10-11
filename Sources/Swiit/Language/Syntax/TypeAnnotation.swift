@@ -22,8 +22,8 @@ import SwishKit
     case keyPath(TypeAnnotation, TypeAnnotation)
     /// Any function: a closure whose signature isn't known yet.
     case function
-    /// `(Int, String) -> Bool`, or `(Int) throws -> Bool`.
-    case functionType([TypeAnnotation], TypeAnnotation, throws: Bool = false)
+    /// `(Int, String) -> Bool`, `(Int) throws -> Bool`, or `() async -> Int`.
+    case functionType([TypeAnnotation], TypeAnnotation, throws: Bool = false, async: Effect = .sync)
     /// `T?`: a T, or nil.
     case optional(TypeAnnotation)
     /// A generic Swift type Swish holds as it is: `Set<Int>`, `ClosedRange<Int>`.
@@ -72,8 +72,10 @@ import SwishKit
                 (element.label.map { [AttributedString($0, .variable), punctuation(": ")] } ?? []) + element.type.styled
             }) + [punctuation(")")]
         case .function: return [name("function")]
-        case .functionType(let parameters, let result, let throwing):
+        case .functionType(let parameters, let result, let throwing, let effect):
+            // An effect only the shell's waits give isn't written: it is called as if it were sync.
             return [punctuation("(")] + list(parameters.map(\.styled)) + [punctuation(")")]
+                + (effect == .async ? [punctuation(" "), .init("async", .keyword)] : [])
                 + (throwing ? [punctuation(" "), .init("throws", .keyword)] : []) + [punctuation(" -> ")] + result.styled
         case .named(let text), .parameter(let text): return [name(text)]
         case .generic(let text, let arguments): return [name(text), punctuation("<")] + list(arguments.map(\.styled)) + [punctuation(">")]
@@ -131,3 +133,25 @@ extension TypeAnnotation {
     }
 }
 
+
+/// What a function waits on, as `throws` says whether it throws
+/// (Docs/Design/async.md, "Types and effects").
+@_spi(Shell) public enum Effect: Equatable, Sendable {
+    /// It never waits.
+    case sync
+    /// It waits, but only through what a layer over the core adds (the shell's
+    /// `$(…)` and commands), or by calling what does: it is called with no
+    /// `await`, by name or through a value.
+    case implicitAsync
+    /// Declared `async`: a call to it is marked with `await`, in an async context.
+    case async
+
+    /// Whether it waits at all.
+    @_spi(Shell) public var waits: Bool { self != .sync }
+
+    /// The effect of doing both.
+    @_spi(Shell) public func joined(_ other: Effect) -> Effect {
+        if self == .async || other == .async { return .async }
+        return self.waits || other.waits ? .implicitAsync : .sync
+    }
+}
