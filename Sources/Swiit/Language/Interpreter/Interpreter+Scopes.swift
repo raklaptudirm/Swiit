@@ -7,7 +7,7 @@ extension Interpreter {
     }
 
     /// The innermost scope binding `name`.
-    @_spi(Shell) public func scopeHolding(_ name: String) -> Scope? {
+    func scopeHolding(_ name: String) -> Scope? {
         for scope in scopes.reversed() {
             if let holding = scope.holding(name) { return holding }
         }
@@ -18,7 +18,7 @@ extension Interpreter {
     /// the global ones, and only the local variables its body names, each
     /// shared with where it's declared. Keeping whole scopes would keep the
     /// one the closure itself is stored in: a cycle, never freed.
-    @_spi(Shell) public func captureScopes(_ names: NamesUsed) -> [Scope] {
+    func captureScopes(_ names: NamesUsed) -> [Scope] {
         guard scopes.count > 2 else { return scopes }
         let local = scopes[2...]
         let capture = Scope()

@@ -31,7 +31,7 @@ extension Interpreter {
 
     /// The branch of an `if` its condition picks, with what the condition
     /// binds; nil for no `else`.
-    @_spi(Shell) public func chooseBranch(_ node: IfStatement) throws -> (Program?, [String: Binding]) {
+    func chooseBranch(_ node: IfStatement) throws -> (Program?, [String: Binding]) {
         if let bindings = try holds(node.condition) { return (node.then, bindings) }
         return (node.otherwise, [:])
     }
@@ -51,7 +51,7 @@ extension Interpreter {
     }
 
     /// A condition's value.
-    @_spi(Shell) public func isTrue(_ condition: Expr) throws -> Bool {
+    func isTrue(_ condition: Expr) throws -> Bool {
         let value = try evaluate(condition)
         guard case .bool(let truth) = value else { throw RuntimeError("condition must be a Bool, not \(value.typeName)") }
         return truth
@@ -61,7 +61,7 @@ extension Interpreter {
     /// be used before their declarations, as in Swift. A function is
     /// declared again where it's written, which captures what's been
     /// declared by then, as it always has.
-    @_spi(Shell) public func hoistDeclarations(_ program: Program) throws {
+    func hoistDeclarations(_ program: Program) throws {
         for statement in program.statements {
             if case .function = statement { try run(statement) }
             else if statement.declaresType { try run(statement) }
@@ -185,7 +185,7 @@ extension Interpreter {
     /// An expression statement at the top level: evaluated, and shown to the
     /// observer (unless it is a bare `true` or `false`, which stand in for the
     /// Unix commands).
-    @_spi(Shell) public func runObserved(_ expr: Expr, _ observer: ValueObserver) throws {
+    func runObserved(_ expr: Expr, _ observer: ValueObserver) throws {
         let errorsBefore = itemErrorCount
         let value = try evaluate(expr)
         let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
@@ -198,7 +198,7 @@ extension Interpreter {
     }
 
     /// Runs one iteration; false means `break`.
-    @_spi(Shell) public func runLoopBody(_ body: Program, declaring bindings: [String: Binding]) throws -> Bool {
+    func runLoopBody(_ body: Program, declaring bindings: [String: Binding]) throws -> Bool {
         try checkInterrupt()
         do {
             try runBlock(body, declaring: bindings)
@@ -211,7 +211,7 @@ extension Interpreter {
     /// Iterates lists, ranges lazily (so `for i in 1...1_000_000_000` never
     /// builds a list), strings by character, as in Swift, the Swift
     /// sequences Swish holds, and command output by line.
-    @_spi(Shell) public func forEachElement(of sequence: Expr, _ body: (Value) throws -> Bool) throws {
+    func forEachElement(of sequence: Expr, _ body: (Value) throws -> Bool) throws {
         if case .binary(let op, let lower, let upper) = sequence, op == .closedRange || op == .halfOpenRange {
             for i in try intRange(op, try evaluate(lower), try evaluate(upper)) {
                 guard try body(.int(i)) else { return }

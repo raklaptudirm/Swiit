@@ -28,7 +28,7 @@ extension Interpreter {
 extension Interpreter {
     /// A Swift property of a value, looked up when it runs, as a key path
     /// does; nil if its type has none of that name.
-    @_spi(Shell) public func bridgedProperty(_ name: String, of value: Value) throws -> Value? {
+    func bridgedProperty(_ name: String, of value: Value) throws -> Value? {
         let typeName: String? = switch value {
         case .string: "String"
         case .int: "Int"

@@ -4,7 +4,7 @@ import SwishKit
 extension TypeChecker {
     // MARK: Assignment
 
-    @_spi(Shell) public func checkAssignment(_ assignment: inout Assignment) throws {
+    func checkAssignment(_ assignment: inout Assignment) throws {
         guard let symbol = lookup(assignment.root) else { throw TypeError("no variable named '\(assignment.root)'") }
         var type: TypeAnnotation
         // `Point.count += 1`: a static var is assigned through its type.

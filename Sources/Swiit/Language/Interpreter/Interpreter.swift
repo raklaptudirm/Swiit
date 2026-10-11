@@ -34,7 +34,7 @@ public final class Interpreter {
     /// What Swish code runs under, one task at a time (InterpreterLock.swift).
     @_spi(Shell) public let lock = InterpreterLock()
     /// Tasks started and not yet ended.
-    @_spi(Shell) public var runningTasks = 0
+    var runningTasks = 0
     /// How a read of the host's input waits for the current task's turn at it
     /// (the shell: a task in the background waits until it's awaited); then it
     /// runs the read, or doesn't, if the task is cancelled first.
@@ -46,9 +46,9 @@ public final class Interpreter {
     /// `async let`), as it passes its own to `startTask`.
     @_spi(Shell) public var newTaskHost: (() -> AnyObject?)?
     /// Each enum's associated value types, by case, for checking them.
-    @_spi(Shell) public var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
+    var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
-    @_spi(Shell) public var enumConformances: [ObjectIdentifier: [String]] = [:]
+    var enumConformances: [ObjectIdentifier: [String]] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.
     @_spi(Shell) public var sequenceMethods: [String: OverloadSet] = [:]
     /// The declared types of globals, from entries already checked, so a
@@ -63,7 +63,7 @@ public final class Interpreter {
     @_spi(Shell) public var file: String?
     /// For each function, the functions declared at the prompt that call it
     /// without `await`, for the redefinition rule (TypeChecker+Effects.swift).
-    @_spi(Shell) public var unawaitedCallers: [String: Set<String>] = [:]
+    var unawaitedCallers: [String: Set<String>] = [:]
     /// Told each simple statement as it finishes, for a host that keeps an
     /// exit status, as the shell does.
     @_spi(Shell) public var statementFinished: StatementObserver?
@@ -74,7 +74,7 @@ public final class Interpreter {
     /// What bounds a run (steps, depth, time, output), counted from the start
     /// of each `eval`.
     @_spi(Shell) public var limits = Limits()
-    @_spi(Shell) public var steps = 0
+    var steps = 0
     @_spi(Shell) public var deadline: ContinuousClock.Instant?
     /// What a run has written, against `limits.output`.
     @_spi(Shell) public let outputCounter: OutputCounter

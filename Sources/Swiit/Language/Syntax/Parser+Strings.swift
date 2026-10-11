@@ -72,7 +72,7 @@ extension Parser {
     }
 
     /// `\u{1F600}`, positioned after the `u`.
-    @_spi(Shell) public mutating func parseUnicodeEscape() throws(SyntaxError) -> Character {
+    mutating func parseUnicodeEscape() throws(SyntaxError) -> Character {
         guard consume("{") else { throw SyntaxError("expected '{' after '\\u'") }
         var hex = ""
         while let c = peek(), c.isHexDigit {

@@ -15,7 +15,7 @@ import SwishStandardLibrary
 
 /// What `Task.checkCancellation()`, `Task.sleep` and a cancelled task's
 /// `value` throw: Swift's `CancellationError`.
-@_spi(Shell) public func cancellationError() -> RuntimeError {
+func cancellationError() -> RuntimeError {
     RuntimeError("the task was cancelled", thrown: .record(Record(
         ["localizedDescription": .string("the task was cancelled")], typeName: "CancellationError")))
 }

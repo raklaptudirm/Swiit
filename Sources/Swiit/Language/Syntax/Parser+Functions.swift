@@ -6,7 +6,7 @@ extension Parser {
 
     /// `method`: a struct's, which is reached through `self` rather than
     /// bound as a function.
-    @_spi(Shell) public mutating func parseFunction(method: Bool = false) throws(SyntaxError) -> FunctionDecl {
+    mutating func parseFunction(method: Bool = false) throws(SyntaxError) -> FunctionDecl {
         let documentation = documentation(before: pos)
         keyword("func")
         skipSpaces()
@@ -68,7 +68,7 @@ extension Parser {
     }
 
     /// `<T, V: Comparable>`: type parameters and their constraints.
-    @_spi(Shell) public mutating func parseGenericParameters() throws(SyntaxError) -> [String: [String]] {
+    mutating func parseGenericParameters() throws(SyntaxError) -> [String: [String]] {
         pos += 1
         var generics: [String: [String]] = [:]
         repeat {
@@ -87,7 +87,7 @@ extension Parser {
 
     /// `extension Sequence { … }`: methods every sequence has, with its
     /// items' type as `Element`.
-    @_spi(Shell) public mutating func parseExtension() throws(SyntaxError) -> Statement {
+    mutating func parseExtension() throws(SyntaxError) -> Statement {
         keyword("extension")
         skipSpaces()
         let name = try parseName(after: "'extension'")
@@ -111,7 +111,7 @@ extension Parser {
     }
 
     /// `async` after a signature's parameters, before any `throws`.
-    @_spi(Shell) public mutating func parseAsyncEffect() -> Bool {
+    mutating func parseAsyncEffect() -> Bool {
         guard identifier() == "async" else { return false }
         keyword("async")
         skipSpaces()
@@ -119,7 +119,7 @@ extension Parser {
     }
 
     /// `throws` after a signature's parameters.
-    @_spi(Shell) public mutating func parseThrows() -> Bool {
+    mutating func parseThrows() -> Bool {
         guard identifier() == "throws" else { return false }
         keyword("throws")
         skipSpaces()
@@ -177,7 +177,7 @@ extension Parser {
         return ClosureLiteral(parameters: parameters, returnType: named?.returnType, body: body, names: lastBodyNames)
     }
 
-    @_spi(Shell) public mutating func parseClosureHead() throws(SyntaxError) -> ([Parameter], TypeAnnotation?) {
+    mutating func parseClosureHead() throws(SyntaxError) -> ([Parameter], TypeAnnotation?) {
         skipSpaces(newlines: true)
         var parameters: [Parameter] = []
         if peek() == "(" {
@@ -205,7 +205,7 @@ extension Parser {
     /// Statements up to the closing brace, whose opening brace is already
     /// consumed, in a new function scope. Returns the `$n` arity for
     /// anonymous closures.
-    @_spi(Shell) public mutating func parseFunctionBody(
+    mutating func parseFunctionBody(
         parameters: [Parameter], anonymous: Bool
     ) throws(SyntaxError) -> (Program, Int) {
         let saved = (loopDepth, bracketDepth, conditionDepth, tryDepth, switchDepth)
@@ -245,7 +245,7 @@ extension Parser {
 
     /// `(label name: Type = default, …)` for functions (`named`), or
     /// `(name: Type, …)` for closures, where types are optional.
-    @_spi(Shell) public mutating func parseParameters(named: Bool) throws(SyntaxError) -> [Parameter] {
+    mutating func parseParameters(named: Bool) throws(SyntaxError) -> [Parameter] {
         pos += 1
         bracketDepth += 1
         defer { bracketDepth -= 1 }
@@ -264,7 +264,7 @@ extension Parser {
         return parameters
     }
 
-    @_spi(Shell) public mutating func parseParameter(named: Bool) throws(SyntaxError) -> Parameter {
+    mutating func parseParameter(named: Bool) throws(SyntaxError) -> Parameter {
         var isInput = false
         var shortFlag: Character?
         while named && peek() == "@" {
@@ -325,7 +325,7 @@ extension Parser {
         return parameter
     }
 
-    @_spi(Shell) public func validate(_ parameters: [Parameter]) throws(SyntaxError) {
+    func validate(_ parameters: [Parameter]) throws(SyntaxError) {
         var seen: Set<String> = []
         var shortFlags: Set<Character> = []
         if parameters.filter(\.isInput).count > 1 {
@@ -358,7 +358,7 @@ extension Parser {
         return consume("?") ? .optional(type) : type
     }
 
-    @_spi(Shell) public mutating func parseNonOptionalType() throws(SyntaxError) -> TypeAnnotation {
+    mutating func parseNonOptionalType() throws(SyntaxError) -> TypeAnnotation {
         skipSpaces()
         if consume("[") {
             let element = try parseType()

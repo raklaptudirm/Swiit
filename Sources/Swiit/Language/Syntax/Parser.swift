@@ -80,9 +80,9 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
         [.add, .subtract],
         [.multiply, .divide, .remainder],
     ]
-    @_spi(Shell) public static let comparisonLevel = 2
+    static let comparisonLevel = 2
     /// Levels whose operators can't be chained, like `a < b < c`.
-    @_spi(Shell) public static let nonAssociativeLevels: Set = [2, 4]
+    static let nonAssociativeLevels: Set = [2, 4]
 
     @_spi(Shell) public let chars: [Character]
     @_spi(Shell) public var pos = 0
@@ -94,11 +94,11 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// have no bodies (their bodies are in Swift).
     @_spi(Shell) public var prelude = false
     /// Type parameters in scope, innermost last: `T`, or `Element`.
-    @_spi(Shell) public var typeParameters: [Set<String>] = []
+    var typeParameters: [Set<String>] = []
     /// The names each body being parsed mentions, innermost last.
-    @_spi(Shell) public var namesUsed: [Set<String>] = []
+    var namesUsed: [Set<String>] = []
     /// What the body just parsed mentioned.
-    @_spi(Shell) public var lastBodyNames = NamesUsed()
+    var lastBodyNames = NamesUsed()
 
     /// A name the body being parsed refers to.
     @_spi(Shell) public mutating func use(_ name: String) {
@@ -143,7 +143,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     }
 
     /// The prelude: builtins' types and signatures (see Prelude.swift).
-    @_spi(Shell) public static func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+    static func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
         var parser = Parser(source, bound: bound)
         parser.prelude = true
         return try parser.parseProgram(until: nil)

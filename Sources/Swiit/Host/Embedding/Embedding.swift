@@ -78,7 +78,7 @@ public struct Limits: Sendable {
     @_spi(Shell) public var isSet: Bool { lock.withLock { set } }
 
     /// Asks for the stop, and wakes what is waiting.
-    @_spi(Shell) public func request() {
+    func request() {
         let wake = lock.withLock { () -> [() -> Void] in
             set = true
             return Array(wakers.values)
@@ -90,7 +90,7 @@ public struct Limits: Sendable {
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
-    @_spi(Shell) public func onRequest(_ wake: @escaping () -> Void) -> Int {
+    func onRequest(_ wake: @escaping () -> Void) -> Int {
         let (token, already) = lock.withLock { () -> (Int, Bool) in
             nextWaker += 1
             wakers[nextWaker] = wake
@@ -123,7 +123,7 @@ extension Interpreter {
     /// `print("a", 1)`: its arguments, as interpolation shows them, separated
     /// by spaces, then a newline, to the host's output. The one way a script
     /// speaks, since a bare value gives nothing here.
-    @_spi(Shell) public func installPrint() {
+    func installPrint() {
         nonisolated(unsafe) let interpreter = self
         let print = hostFunction(ExportedFunction(
             name: "print", summary: "Writes its arguments to the output, separated by spaces, then a newline.",

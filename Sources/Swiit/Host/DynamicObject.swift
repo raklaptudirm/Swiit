@@ -50,7 +50,7 @@ import SwishKit
     /// What a sequence's items are, when it is read as one.
     @_spi(Shell) public var element: TypeAnnotation
     /// It fits wherever a type is wanted, being whatever it parsed as.
-    @_spi(Shell) public var standsForAnything: Bool
+    var standsForAnything: Bool
 
     @_spi(Shell) public init(field: String, view: String, views: [String: TypeAnnotation], element: TypeAnnotation, standsForAnything: Bool = true) {
         self.field = field
@@ -72,27 +72,27 @@ extension Interpreter {
 
 extension TypeChecker {
     /// The members' types if `type` is a dynamic object's.
-    @_spi(Shell) public func dynamicType(of type: TypeAnnotation) -> DynamicType? {
+    func dynamicType(of type: TypeAnnotation) -> DynamicType? {
         guard case .named(let name) = type, let dynamic = interpreter.dynamicTypes[name], dynamic.plain == nil else { return nil }
         return dynamic
     }
 
     /// How a plain dynamic type (parsed JSON) is read, if `type` is one.
-    @_spi(Shell) public func plainType(of type: TypeAnnotation?) -> (type: DynamicType, plain: PlainDynamic)? {
+    func plainType(of type: TypeAnnotation?) -> (type: DynamicType, plain: PlainDynamic)? {
         guard case .named(let name)? = type, let dynamic = interpreter.dynamicTypes[name], let plain = dynamic.plain else { return nil }
         return (dynamic, plain)
     }
 
     /// `value.name` on a plain dynamic type as it runs: a call that gives nil
     /// for a missing member, or the value as one of the views' types.
-    @_spi(Shell) public func plainAccess(_ type: TypeAnnotation?, _ base: Expr, _ name: String) -> Expr? {
+    func plainAccess(_ type: TypeAnnotation?, _ base: Expr, _ name: String) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
         let function = plain.views[name] != nil ? plain.view : plain.field
         return .call(.variable(function), [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))])
     }
 
     /// `value[key]` on a plain dynamic type as it runs.
-    @_spi(Shell) public func plainIndex(_ type: TypeAnnotation?, _ base: Expr, _ index: Expr) -> Expr? {
+    func plainIndex(_ type: TypeAnnotation?, _ base: Expr, _ index: Expr) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
         return .call(.variable(plain.field), [Argument(label: nil, value: base), Argument(label: nil, value: index)])
     }
@@ -100,7 +100,7 @@ extension TypeChecker {
 
 extension Value {
     /// Whether it is a dynamic object, which is assigned through, not replaced.
-    @_spi(Shell) public var isDynamicObject: Bool {
+    var isDynamicObject: Bool {
         if case .object(let object) = self { return object is DynamicObject }
         return false
     }

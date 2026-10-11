@@ -135,7 +135,7 @@ extension TypeChecker {
     /// Whether an argument has a type of its own, apart from context: not a
     /// closure, a `.case`, `nil` or a collection literal, which take theirs
     /// from the parameter.
-    @_spi(Shell) public static func hasNaturalType(_ expr: Expr) -> Bool {
+    static func hasNaturalType(_ expr: Expr) -> Bool {
         switch expr {
         case .closure, .caseLiteral, .list, .record, .tuple, .literal(.nothing), .keyPath: false
         // `c ? .green : .red` takes its type from where it goes, as its branches do.

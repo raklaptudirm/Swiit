@@ -3,7 +3,7 @@ import SwishKit
 
 extension Parser {
     /// `switch subject { case …: … default: … }`
-    @_spi(Shell) public mutating func parseSwitch() throws(SyntaxError) -> SwitchStatement {
+    mutating func parseSwitch() throws(SyntaxError) -> SwitchStatement {
         keyword("switch")
         skipSpaces()
         conditionDepth += 1
@@ -58,7 +58,7 @@ extension Parser {
     }
 
     /// The statements after `case …:`, up to the next case or the `}`.
-    @_spi(Shell) public mutating func parseCaseBody(declaring names: [String: NameKind]) throws(SyntaxError) -> Program {
+    mutating func parseCaseBody(declaring names: [String: NameKind]) throws(SyntaxError) -> Program {
         scopes.append(names)
         defer { scopes.removeLast() }
         var statements: [Statement] = []
@@ -80,7 +80,7 @@ extension Parser {
     /// A pattern: `_`, `let x`, `.name(…)`, `Type.name(…)`, or an
     /// expression to compare with. Under `let`/`var` (`binding`), names in
     /// it bind rather than refer: `let .failed(code)`.
-    @_spi(Shell) public mutating func parsePattern(binding: Bool = false, mutable: Bool = false) throws(SyntaxError) -> Pattern {
+    mutating func parsePattern(binding: Bool = false, mutable: Bool = false) throws(SyntaxError) -> Pattern {
         skipSpaces()
         // `is Oops`: a value of the type.
         if identifier() == "is" {
@@ -132,7 +132,7 @@ extension Parser {
         return .expression(try parseExpression(logical: false))
     }
 
-    @_spi(Shell) public mutating func parsePatternArguments(binding: Bool, mutable: Bool) throws(SyntaxError) -> [PatternArgument] {
+    mutating func parsePatternArguments(binding: Bool, mutable: Bool) throws(SyntaxError) -> [PatternArgument] {
         pos += 1
         bracketDepth += 1
         defer { bracketDepth -= 1 }

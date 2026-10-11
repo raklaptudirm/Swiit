@@ -10,7 +10,7 @@ extension TypeChecker {
     }
 
     /// `async let`'s operation: what it gives, and whether it throws.
-    @_spi(Shell) public func childTaskType(_ closure: inout ClosureLiteral) throws -> (TypeAnnotation, Bool) {
+    func childTaskType(_ closure: inout ClosureLiteral) throws -> (TypeAnnotation, Bool) {
         // Its initializer is implicitly `try await`, as in Swift: what it
         // waits for and throws, reading the variable does.
         guard case .functionType(_, let result, let throwing, _) = try closureType(&closure, expecting: nil, implicitTryAwait: true) else {

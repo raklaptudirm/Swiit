@@ -50,7 +50,7 @@ extension TypeChecker {
 extension TypeChecker {
     /// Whether a type stands for text where a String is wanted: a Swift type
     /// that says so (`StandsForText`), as an Output does.
-    @_spi(Shell) public func standsForText(_ type: TypeAnnotation) -> Bool {
+    func standsForText(_ type: TypeAnnotation) -> Bool {
         guard let (name, _) = type.swiftType else { return false }
         return Bridge.types[name]?.conformances["StandsForText"] != nil
     }

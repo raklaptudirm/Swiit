@@ -58,7 +58,7 @@ import SwishKit
 
     /// Lets go of the lock entirely while `wait` runs, and takes it back as
     /// deep as it was held.
-    @_spi(Shell) public func releasing<T>(_ wait: () throws -> T) rethrows -> T {
+    func releasing<T>(_ wait: () throws -> T) rethrows -> T {
         condition.lock()
         let held = depth
         holder = nil

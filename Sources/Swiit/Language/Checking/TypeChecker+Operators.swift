@@ -4,7 +4,7 @@ import SwishKit
 extension TypeChecker {
     // MARK: Operators
 
-    @_spi(Shell) public func binaryExprType(_ op: BinaryOperator, _ lhs: inout Expr, _ rhs: inout Expr, expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func binaryExprType(_ op: BinaryOperator, _ lhs: inout Expr, _ rhs: inout Expr, expected: TypeAnnotation?) throws -> TypeAnnotation {
         switch op {
         case .and, .or:
             try expect(&lhs, .bool, "'\(op.rawValue)''s left side")
@@ -46,7 +46,7 @@ extension TypeChecker {
 
     /// Both sides' types, letting a literal or `.case` on one side take its
     /// type from the other, as Swift does: `1 + 2.5`, `k == .file`.
-    @_spi(Shell) public func operandTypes(_ lhs: inout Expr, _ rhs: inout Expr) throws -> (TypeAnnotation, TypeAnnotation) {
+    func operandTypes(_ lhs: inout Expr, _ rhs: inout Expr) throws -> (TypeAnnotation, TypeAnnotation) {
         if case .caseLiteral = lhs, !TypeChecker.isContextual(rhs) {
             let right = try typeOf(&rhs)
             return (try typeOf(&lhs, expecting: right), right)
@@ -62,7 +62,7 @@ extension TypeChecker {
         return (left, right)
     }
 
-    @_spi(Shell) public static func isContextual(_ expr: Expr) -> Bool {
+    static func isContextual(_ expr: Expr) -> Bool {
         switch expr {
         case .caseLiteral: true
         case .ifExpression(let node): branches(of: node).contains(where: isContextual)
@@ -75,7 +75,7 @@ extension TypeChecker {
         [node.then, node.otherwise].compactMap { $0.flatMap(IfStatement.branchExpression) }
     }
 
-    @_spi(Shell) public static func isIntegerLiteral(_ expr: Expr) -> Bool {
+    static func isIntegerLiteral(_ expr: Expr) -> Bool {
         switch expr {
         case .literal(.int): true
         case .unary(.negate, let inner): isIntegerLiteral(inner)
@@ -83,7 +83,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func binaryType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) throws -> TypeAnnotation {
+    func binaryType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) throws -> TypeAnnotation {
         if left == .unknown || right == .unknown {
             switch op {
             case .less, .lessEqual, .greater, .greaterEqual: return .bool

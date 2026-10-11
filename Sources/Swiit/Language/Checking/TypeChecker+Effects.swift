@@ -14,7 +14,7 @@ extension TypeChecker {
         /// `async` once an `async` call is awaited here.
         @_spi(Shell) public var effect: Effect = .sync
         /// The functions called here by name without `await`.
-        @_spi(Shell) public var unawaited: Set<String> = []
+        var unawaited: Set<String> = []
 
         @_spi(Shell) public init(allowsAwait: Bool) {
             self.allowsAwait = allowsAwait
@@ -22,7 +22,7 @@ extension TypeChecker {
     }
 
     /// A call of `effect` here: an `async` one needs an `await` covering it.
-    @_spi(Shell) public func effectSite(_ effect: Effect, _ what: String) throws {
+    func effectSite(_ effect: Effect, _ what: String) throws {
         guard effect == .async else { return }
         guard awaitDepth > 0 else { throw TypeError("\(what) is async, but isn't marked with 'await'") }
         asyncSites += 1
@@ -30,12 +30,12 @@ extension TypeChecker {
     }
 
     /// A call to the function `name`, for the redefinition rule.
-    @_spi(Shell) public func calledByName(_ name: String) {
+    func calledByName(_ name: String) {
         if awaitDepth == 0 { effectContexts[effectContexts.count - 1].unawaited.insert(name) }
     }
 
     /// `await` written here: allowed only in an async context.
-    @_spi(Shell) public func checkAwaitAllowed() throws {
+    func checkAwaitAllowed() throws {
         guard effectContexts.last?.allowsAwait == true else {
             throw TypeError("'await' in a function that isn't async: declare it 'async'")
         }
@@ -57,7 +57,7 @@ extension TypeChecker {
     /// A function declared at the top level as `async` that was sync: refused
     /// while functions declared earlier call it without `await`, which they
     /// would have to (the redefinition rule).
-    @_spi(Shell) public func checkBecomingAsync(_ decl: FunctionDecl) throws {
+    func checkBecomingAsync(_ decl: FunctionDecl) throws {
         guard decl.isAsync, effectContexts.count == 1 else { return }
         if let binding = interpreter.scopes.last?.bindings[decl.name], case .function(let set as OverloadSet) = binding.value,
            set.candidates.allSatisfy({ $0.effect == .async }) { return }
@@ -69,7 +69,7 @@ extension TypeChecker {
 
     /// Who calls what without `await`, kept for the redefinition rule; what
     /// this program declares replaces what was declared before.
-    @_spi(Shell) public func recordUnawaitedCalls() {
+    func recordUnawaitedCalls() {
         for name in topLevelUnawaited.keys {
             for callee in interpreter.unawaitedCallers.keys { interpreter.unawaitedCallers[callee]?.remove(name) }
         }

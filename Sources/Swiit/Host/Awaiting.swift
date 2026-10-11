@@ -8,7 +8,7 @@ import SwishKit
     @_spi(Shell) public var result: TypeAnnotation
     /// Waits for the handle, or with no operand for the latest one; `throwing`
     /// for `try await`.
-    @_spi(Shell) public var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
+    var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
     /// Whether a value is one of its handles; `await` of anything else is an
     /// `async` call's, and gives the value.
     @_spi(Shell) public var isHandle: (Value) -> Bool

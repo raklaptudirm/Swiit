@@ -12,19 +12,19 @@ import SwishKit
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
     @_spi(Shell) public var scopes: [Scope]
     /// How many Swish function calls are in progress.
-    @_spi(Shell) public var callDepth = 0
+    var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
     /// returned `.case` knows its enum.
-    @_spi(Shell) public var returnTypes: [TypeAnnotation?] = []
+    var returnTypes: [TypeAnnotation?] = []
     /// Per-item errors reported so far, like a file `ls` couldn't read.
-    @_spi(Shell) public var itemErrorCount = 0
+    var itemErrorCount = 0
     /// Asks the task to stop, from any thread.
     @_spi(Shell) public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).
     @_spi(Shell) public var host: AnyObject?
     /// Whether the host's interrupts (the shell's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
-    @_spi(Shell) public var receivesInterrupts = true
+    var receivesInterrupts = true
     /// The tasks it started and hasn't seen end, with how deep in its calls
     /// it was: each belongs to the scope that started it, which cancels and
     /// waits for it as it closes.
@@ -44,19 +44,19 @@ extension Interpreter {
     }
 
     /// How many Swish function calls the current task has in progress.
-    @_spi(Shell) public var callDepth: Int {
+    var callDepth: Int {
         _read { yield task.callDepth }
         _modify { yield &task.callDepth }
     }
 
     /// The return types of the functions the current task is running.
-    @_spi(Shell) public var returnTypes: [TypeAnnotation?] {
+    var returnTypes: [TypeAnnotation?] {
         _read { yield task.returnTypes }
         _modify { yield &task.returnTypes }
     }
 
     /// Per-item errors the current task has reported so far.
-    @_spi(Shell) public var itemErrorCount: Int {
+    var itemErrorCount: Int {
         _read { yield task.itemErrorCount }
         _modify { yield &task.itemErrorCount }
     }

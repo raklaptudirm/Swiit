@@ -3,7 +3,7 @@ import SwishKit
 
 extension Expr {
     /// A string literal, interpolated or not.
-    @_spi(Shell) public var isStringExpression: Bool {
+    var isStringExpression: Bool {
         switch self {
         case .literal(.string), .string: true
         default: false
@@ -29,7 +29,7 @@ extension Value {
         }
     }
 
-    @_spi(Shell) public var asDouble: Double? {
+    var asDouble: Double? {
         switch self {
         case .int(let n): Double(n)
         case .double(let d): d
@@ -104,7 +104,7 @@ extension Value {
 
 extension SwishKit.Value {
     /// A list's items, or an Output's lines: what sequence methods work on.
-    @_spi(Shell) public var sequenceItems: [Value]? {
+    var sequenceItems: [Value]? {
         switch self {
         case .list(let items): items
         default: commandOutput?.lines.map(Value.string)

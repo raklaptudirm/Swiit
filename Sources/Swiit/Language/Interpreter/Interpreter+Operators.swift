@@ -2,7 +2,7 @@ import Foundation
 import SwishKit
 
 extension Interpreter {
-    @_spi(Shell) public func intRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Range<Int> {
+    func intRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Range<Int> {
         guard case .int(let low) = lower, case .int(let high) = upper else {
             throw RuntimeError("a range needs Int bounds, not \(lower.typeName) and \(upper.typeName)")
         }
@@ -82,7 +82,7 @@ extension Interpreter {
         throw RuntimeError("'\(op.rawValue)' can't be applied to \(lhs.typeName) and \(rhs.typeName)")
     }
 
-    @_spi(Shell) public func integerArithmetic(_ op: BinaryOperator, _ a: Int, _ b: Int) throws -> Value {
+    func integerArithmetic(_ op: BinaryOperator, _ a: Int, _ b: Int) throws -> Value {
         let result: (partialValue: Int, overflow: Bool)
         switch op {
         case .add: result = a.addingReportingOverflow(b)
@@ -99,7 +99,7 @@ extension Interpreter {
         return .int(result.partialValue)
     }
 
-    @_spi(Shell) public func floatingArithmetic(_ op: BinaryOperator, _ a: Double, _ b: Double) throws -> Value? {
+    func floatingArithmetic(_ op: BinaryOperator, _ a: Double, _ b: Double) throws -> Value? {
         switch op {
         case .add: .double(a + b)
         case .subtract: .double(a - b)

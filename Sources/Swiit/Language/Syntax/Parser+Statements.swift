@@ -40,7 +40,7 @@ extension Parser {
         return low + 1
     }
 
-    @_spi(Shell) public mutating func parseStatement() throws(SyntaxError) -> Statement {
+    mutating func parseStatement() throws(SyntaxError) -> Statement {
         switch identifier() {
         case "let", "var":
             return try parseDeclaration()
@@ -201,7 +201,7 @@ extension Parser {
 
     /// `do { … }`, then any number of `catch pattern where condition { … }`,
     /// the last maybe a bare `catch { … }`, which binds `error`.
-    @_spi(Shell) public mutating func parseDoCatch() throws(SyntaxError) -> Statement {
+    mutating func parseDoCatch() throws(SyntaxError) -> Statement {
         keyword("do")
         skipSpaces()
         let body = try parseBlock()
@@ -241,7 +241,7 @@ extension Parser {
 
     /// Whether a statement can start at `index`: only blanks since the
     /// start, a newline, `;` or a brace.
-    @_spi(Shell) public func startsStatement(_ index: Int) -> Bool {
+    func startsStatement(_ index: Int) -> Bool {
         var before = index - 1
         while before >= 0, chars[before] == " " || chars[before] == "\t" { before -= 1 }
         return before < 0 || "\n;{}".contains(chars[before])
@@ -260,7 +260,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func parseBlock(declaring names: [String: NameKind] = [:]) throws(SyntaxError) -> Program {
+    mutating func parseBlock(declaring names: [String: NameKind] = [:]) throws(SyntaxError) -> Program {
         guard peek() == "{" else { throw expected("'{'") }
         pos += 1
         let savedCondition = conditionDepth

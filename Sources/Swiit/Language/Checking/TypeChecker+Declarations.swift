@@ -6,7 +6,7 @@ extension TypeChecker {
 
     /// Adds `decl` to its name's overloads, in the order the interpreter
     /// keeps them: one with the same parameters replaces the old.
-    @_spi(Shell) public func declareFunction(_ decl: FunctionDecl) {
+    func declareFunction(_ decl: FunctionDecl) {
         var overloads: [Signature] = []
         if case .functions(let existing)? = scopes[scopes.count - 1][decl.name] {
             overloads = existing
@@ -24,11 +24,11 @@ extension TypeChecker {
         scopes[scopes.count - 1][decl.name] = .functions(overloads)
     }
 
-    @_spi(Shell) public func sameParameters(_ a: [Parameter], _ b: [Parameter]) -> Bool {
+    func sameParameters(_ a: [Parameter], _ b: [Parameter]) -> Bool {
         a.count == b.count && zip(a, b).allSatisfy { $0.label == $1.label && $0.type == $1.type && $0.variadic == $1.variadic }
     }
 
-    @_spi(Shell) public func checkFunction(
+    func checkFunction(
         _ decl: inout FunctionDecl, self selfType: TypeAnnotation? = nil, mutating: Bool = false, initializing: Bool = false
     ) throws {
         var names: [String: Symbol] = [:]
@@ -69,7 +69,7 @@ extension TypeChecker {
         if topLevel { topLevelUnawaited[decl.name] = effects.unawaited }
     }
 
-    @_spi(Shell) public func implicitReturn(_ body: Program) -> Expr? {
+    func implicitReturn(_ body: Program) -> Expr? {
         guard body.statements.count == 1 else { return nil }
         switch body.statements[0] {
         case .expression(let expr): return expr
@@ -82,13 +82,13 @@ extension TypeChecker {
 
     /// Whether running `program` always ends in a `return`: as simple as
     /// Swift's own check, from the last statement.
-    @_spi(Shell) public func definitelyReturns(_ program: Program) -> Bool {
+    func definitelyReturns(_ program: Program) -> Bool {
         definitelyLeaves(program, orExits: false)
     }
 
     /// Whether running `program` always leaves it: by `return`, or, with
     /// `orExits` (for a guard's `else`), by `break`, `continue` or `exit`.
-    @_spi(Shell) public func definitelyLeaves(_ program: Program, orExits: Bool) -> Bool {
+    func definitelyLeaves(_ program: Program, orExits: Bool) -> Bool {
         // Declarations after the last statement run nothing, as in Swift.
         guard let last = program.statements.last(where: {
             if case .function = $0 { return false }
@@ -160,7 +160,7 @@ extension TypeChecker {
                           staticProperties: decl.staticProperties, staticMethods: staticMethods)
     }
 
-    @_spi(Shell) public func checkStruct(_ decl: inout StructDecl) throws {
+    func checkStruct(_ decl: inout StructDecl) throws {
         let selfType = TypeAnnotation.named(decl.name)
         // Equatable, Hashable and Encodable come from the fields, which must
         // have them too; Comparable would need a `<` of its own.
@@ -231,14 +231,14 @@ extension TypeChecker {
 
     /// Protocols a type conforms to by saying so, whatever its members are:
     /// it describes itself, or can be thrown.
-    @_spi(Shell) public static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error"]
+    static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error"]
 
-    @_spi(Shell) public func enumInfo(_ decl: EnumDecl) -> EnumInfo {
+    func enumInfo(_ decl: EnumDecl) -> EnumInfo {
         EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,
                  conformances: decl.conformances)
     }
 
-    @_spi(Shell) public func checkEnum(_ decl: inout EnumDecl) throws {
+    func checkEnum(_ decl: inout EnumDecl) throws {
         for proto in decl.conformances where !TypeChecker.askNothingOfMembers.contains(proto) {
             if proto == "Tabular" { throw TypeError("\(decl.name) can't be Tabular: only a struct can, as a table is made of records") }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swish has yet.

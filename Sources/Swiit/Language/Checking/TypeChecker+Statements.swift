@@ -23,7 +23,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func checkStatement(_ statement: inout Statement) throws {
+    func checkStatement(_ statement: inout Statement) throws {
         switch statement {
         case .declare(let name, let mutable, var value):
             var type = try typeOf(&value)
@@ -141,7 +141,7 @@ extension TypeChecker {
 
     /// `for try await x in s`: s must be an AsyncSequence, read where `await`
     /// may be written, and its reading throws (all of Swish's do).
-    @_spi(Shell) public func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
+    func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
         try checkAwaitAllowed()
         effectContexts[effectContexts.count - 1].effect = .async
         if sequence != .unknown {
@@ -156,12 +156,12 @@ extension TypeChecker {
     }
 
     /// A condition, which is a Bool.
-    @_spi(Shell) public func checkCondition(_ condition: inout Expr) throws {
+    func checkCondition(_ condition: inout Expr) throws {
         let type = try typeOf(&condition, expecting: .bool)
         guard type == .bool || type == .unknown else { throw TypeError("a condition must be a Bool, not \(type)") }
     }
 
-    @_spi(Shell) public func checkIf(_ node: inout IfStatement) throws {
+    func checkIf(_ node: inout IfStatement) throws {
         let bound = try checkCondition(&node)
         try checkBlock(&node.then, declaring: bound, newScope: true)
         if var otherwise = node.otherwise {
@@ -172,7 +172,7 @@ extension TypeChecker {
 
     /// An `if` expression's type: what both branches are, as for a list's
     /// elements, so `c ? 1 : nil` is an Int?.
-    @_spi(Shell) public func ifExpressionType(_ node: inout IfStatement, expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func ifExpressionType(_ node: inout IfStatement, expected: TypeAnnotation?) throws -> TypeAnnotation {
         let bound = try checkCondition(&node)
         guard var thenExpr = IfStatement.branchExpression(node.then),
               var elseExpr = IfStatement.branchExpression(node.otherwise ?? Program(statements: [])) else {
@@ -194,7 +194,7 @@ extension TypeChecker {
     }
 
     /// Checks an `if`'s condition, giving what it binds for the `then` branch.
-    @_spi(Shell) public func checkCondition(_ node: inout IfStatement) throws -> [String: Symbol] {
+    func checkCondition(_ node: inout IfStatement) throws -> [String: Symbol] {
         var bound: [String: Symbol] = [:]
         switch node.condition {
         case .expression(var condition):
@@ -217,7 +217,7 @@ extension TypeChecker {
         return bound
     }
 
-    @_spi(Shell) public func checkSwitch(_ node: inout SwitchStatement) throws {
+    func checkSwitch(_ node: inout SwitchStatement) throws {
         let subject = try typeOf(&node.subject)
         for index in node.cases.indices {
             var bound: [String: Symbol] = [:]
@@ -233,7 +233,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func checkPattern(_ pattern: inout Pattern, against type: TypeAnnotation, binding bound: inout [String: Symbol]) throws {
+    func checkPattern(_ pattern: inout Pattern, against type: TypeAnnotation, binding bound: inout [String: Symbol]) throws {
         switch pattern {
         case .wildcard:
             break

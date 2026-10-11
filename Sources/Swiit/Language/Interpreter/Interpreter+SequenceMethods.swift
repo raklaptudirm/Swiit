@@ -5,7 +5,7 @@ extension Interpreter {
     /// called on `items` as a stage of a pipeline is, the items going in
     /// through its input: each one through an item's input, all of them
     /// through a list's, or as they come through a builtin that streams.
-    @_spi(Shell) public func callSequenceMethod(_ methods: OverloadSet, on items: [Value], _ arguments: [Argument]) throws -> Value {
+    func callSequenceMethod(_ methods: OverloadSet, on items: [Value], _ arguments: [Argument]) throws -> Value {
         let values = try [Argument(label: nil, value: .literal(.list(items)))] + arguments.map { argument -> Argument in
             // `.case` arguments wait for their parameter's type.
             if case .caseLiteral = argument.value { return argument }

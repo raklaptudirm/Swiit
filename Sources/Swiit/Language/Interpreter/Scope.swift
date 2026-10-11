@@ -16,10 +16,10 @@ import SwishKit
     }
     @_spi(Shell) public let mutable: Bool
     /// Its value is worked out on each read; looking at its type reads nothing.
-    @_spi(Shell) public var isComputed: Bool { cell.isComputed }
+    var isComputed: Bool { cell.isComputed }
     /// Declared with `func`, which makes it callable in command mode.
     @_spi(Shell) public var isFunction = false
-    @_spi(Shell) public var special: Special?
+    var special: Special?
 
     @_spi(Shell) public init(value: Value, mutable: Bool, isFunction: Bool = false, special: Special? = nil) {
         cell = Cell(value)
@@ -52,7 +52,7 @@ import SwishKit
         }
 
         /// Worked out on each read, not stored.
-        @_spi(Shell) public var isComputed: Bool { compute != nil }
+        var isComputed: Bool { compute != nil }
 
         @_spi(Shell) public init(compute: @escaping () -> Value) {
             stored = .nothing

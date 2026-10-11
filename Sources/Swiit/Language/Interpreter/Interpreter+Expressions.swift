@@ -4,7 +4,7 @@ import SwishKit
 extension Interpreter {
     // MARK: Expressions
 
-    @_spi(Shell) public func evaluate(_ expr: Expr) throws -> Value {
+    func evaluate(_ expr: Expr) throws -> Value {
         switch expr {
         case .literal(let value):
             return value
@@ -228,7 +228,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Shell) public static func isCaseLiteral(_ expr: Expr) -> Bool {
+    static func isCaseLiteral(_ expr: Expr) -> Bool {
         if case .caseLiteral = expr { true } else { false }
     }
 

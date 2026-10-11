@@ -199,5 +199,5 @@ extension TypeDescription {
 
 private extension String {
     /// The first line: a documentation summary's first sentence's line.
-    @_spi(Shell) public var firstLine: String { String(prefix { $0 != "\n" }) }
+    var firstLine: String { String(prefix { $0 != "\n" }) }
 }

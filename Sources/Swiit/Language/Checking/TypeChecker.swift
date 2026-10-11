@@ -9,7 +9,7 @@ import SwishKit
     @_spi(Shell) public var line: Int?
     /// A call's arguments don't line up with a signature's parameters, as
     /// opposed to lining up with a value of the wrong type.
-    @_spi(Shell) public var isArity = false
+    var isArity = false
 
     @_spi(Shell) public init(_ message: String) {
         self.message = message
@@ -71,7 +71,7 @@ import SwishKit
         @_spi(Shell) public var staticMethods: [String: [Signature]] = [:]
 
         @_spi(Shell) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
-        @_spi(Shell) public func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
+        func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
     
         @_spi(Shell) public init(name: String, stored: [PropertyDecl], computed: [String: TypeAnnotation], methods: [String: [Signature]], initializers: [Signature], memberwise: Signature, conformances: [String] = [], staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
             self.name = name
@@ -93,7 +93,7 @@ import SwishKit
         @_spi(Shell) public var rawType: TypeAnnotation?
         @_spi(Shell) public var conformances: [String] = []
 
-        @_spi(Shell) public func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
+        func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
     
         @_spi(Shell) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = []) {
             self.name = name
@@ -133,13 +133,13 @@ import SwishKit
     @_spi(Shell) public struct ErrorContext {
         @_spi(Shell) public var handled: Bool
         /// What an error would have to leave, for messages.
-        @_spi(Shell) public var boundary: Boundary = .topLevel
+        var boundary: Boundary = .topLevel
 
         @_spi(Shell) public enum Boundary {
             case topLevel, function(String), deferBlock
 
             /// Why an error can't get out, and what would let it.
-            @_spi(Shell) public var unhandled: String {
+            var unhandled: String {
                 switch self {
                 case .topLevel: "nothing catches it: use do/catch, try? or try!"
                 case .function(let name): "\(name) isn't 'throws': mark it 'throws', or use do/catch, try? or try!"
@@ -157,28 +157,28 @@ import SwishKit
     @_spi(Shell) public unowned let interpreter: Interpreter
     /// The type whose member was last looked up, so a JSON field can be
     /// written into a lookup that runs.
-    @_spi(Shell) public var lastMemberBase: TypeAnnotation?
+    var lastMemberBase: TypeAnnotation?
 
     /// What the program declares, innermost last, on top of the shell's names.
     @_spi(Shell) public var scopes: [[String: Symbol]] = [[:]]
     @_spi(Shell) public var returns: [ReturnContext] = []
-    @_spi(Shell) public var errorContexts = [ErrorContext(handled: true)]
+    var errorContexts = [ErrorContext(handled: true)]
     /// Above zero while checking what a `try` covers.
     @_spi(Shell) public var tryDepth = 0
     /// Places that can throw, so far: how a `try` or a closure knows it
     /// covers one.
     @_spi(Shell) public var throwingSites = 0
     /// Above zero while checking what an `await` covers.
-    @_spi(Shell) public var awaitDepth = 0
+    var awaitDepth = 0
     /// Calls to `async` functions so far: how an `await` knows it covers one.
-    @_spi(Shell) public var asyncSites = 0
+    var asyncSites = 0
     /// The effects of the top level, and of each function and closure being
     /// checked, innermost last (TypeChecker+Effects.swift).
-    @_spi(Shell) public var effectContexts = [EffectContext(allowsAwait: true)]
+    var effectContexts = [EffectContext(allowsAwait: true)]
     /// For each top-level function: the functions it calls without `await`.
-    @_spi(Shell) public var topLevelUnawaited: [String: Set<String>] = [:]
+    var topLevelUnawaited: [String: Set<String>] = [:]
     /// The functions the program being checked declares at its top level.
-    @_spi(Shell) public var redeclaredHere: Set<String> = []
+    var redeclaredHere: Set<String> = []
     /// After an `import`, names it may bring can't be checked.
     @_spi(Shell) public var afterImport = false
     @_spi(Shell) public var line: Int?

@@ -58,8 +58,8 @@ let package = Package(
                 .product(name: "SwiftOperators", package: "swift-syntax"),
             ]
         ),
-        // boundaries.txt is data the boundary test reads from the source tree.
-        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt"]),
+        // boundaries.txt and spi-surface.txt are data the boundary tests read from the source tree.
+        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "spi-surface.txt"]),
         // The two front ends over the same programs.
         .testTarget(name: "SwiitSwiftSyntaxTests", dependencies: ["Swiit", "SwiitSwiftSyntax"], exclude: ["programs.txt"]),
     ]

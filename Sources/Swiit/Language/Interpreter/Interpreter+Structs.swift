@@ -19,7 +19,7 @@ import SwishKit
     /// `static let` and `static var`: declared, with their types once checked;
     /// the stored ones' values are in `statics`.
     @_spi(Shell) public let staticProperties: [PropertyDecl]
-    @_spi(Shell) public let staticComputed: [String: Function]
+    let staticComputed: [String: Function]
     @_spi(Shell) public let staticMethods: [String: OverloadSet]
     @_spi(Shell) public var statics: [String: StaticValue] = [:]
 
@@ -54,7 +54,7 @@ import SwishKit
         stored.first { $0.name == name }
     }
 
-    @_spi(Shell) public func staticProperty(_ name: String) -> PropertyDecl? {
+    func staticProperty(_ name: String) -> PropertyDecl? {
         staticProperties.first { $0.name == name }
     }
 
@@ -70,7 +70,7 @@ import SwishKit
     @_spi(Shell) public var value: Value
     @_spi(Shell) public let mutable: Bool
     /// In an `init`, which may also set `let` properties.
-    @_spi(Shell) public let initializing: Bool
+    let initializing: Bool
 
     @_spi(Shell) public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
         self.value = value
@@ -231,7 +231,7 @@ extension Interpreter {
 
     /// A computed property's value, or a method as a function value; nil if
     /// the type has neither by that name.
-    @_spi(Shell) public func structMember(_ name: String, of record: Record, _ type: StructType) throws -> Value? {
+    func structMember(_ name: String, of record: Record, _ type: StructType) throws -> Value? {
         if let getter = type.computed[name] {
             return try invoke(getter, with: [:], receiver: Receiver(.record(record), mutable: false))
         }
@@ -258,7 +258,7 @@ extension Interpreter {
     }
 
     /// `Point.make(1)`.
-    @_spi(Shell) public func callStatic(_ methods: OverloadSet, _ arguments: [Argument]) throws -> Value {
+    func callStatic(_ methods: OverloadSet, _ arguments: [Argument]) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -269,7 +269,7 @@ extension Interpreter {
 
     /// `p.move(by: 1)`. A mutating method changes `p` itself, so `p` must
     /// be a `var` (or a part of one).
-    @_spi(Shell) public func callMethod(_ methods: OverloadSet, of base: Value, at baseExpr: Expr, _ arguments: [Argument]) throws -> Value {
+    func callMethod(_ methods: OverloadSet, of base: Value, at baseExpr: Expr, _ arguments: [Argument]) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -290,7 +290,7 @@ extension Interpreter {
 
     /// Puts what a mutating method made of `receiver` back where it came
     /// from: a variable, or a part of one.
-    @_spi(Shell) public func mutate(_ receiver: Expr, by method: String, _ change: (Value) throws -> Value) throws {
+    func mutate(_ receiver: Expr, by method: String, _ change: (Value) throws -> Value) throws {
         guard let (root, path) = lvalue(receiver) else {
             throw RuntimeError("cannot use mutating method '\(method)' on a value that isn't in a variable")
         }

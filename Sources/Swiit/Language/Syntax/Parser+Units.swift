@@ -5,7 +5,7 @@ extension Parser {
     /// What starts a statement and isn't an expression: `if`, `for`,
     /// `while` and `switch`; nil for anything else. Words that only make
     /// sense inside one of those are errors here.
-    @_spi(Shell) public mutating func parseCompoundStatement() throws(SyntaxError) -> Statement? {
+    mutating func parseCompoundStatement() throws(SyntaxError) -> Statement? {
         switch identifier() {
         case "if": return .ifStatement(try parseIf())
         case "for": return .forLoop(try parseFor())
@@ -18,7 +18,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func parseIf() throws(SyntaxError) -> IfStatement {
+    mutating func parseIf() throws(SyntaxError) -> IfStatement {
         keyword("if")
         skipSpaces()
         let (condition, bound) = try parseIfCondition()
@@ -41,7 +41,7 @@ extension Parser {
     }
 
     /// `guard condition else { … }`, whose bindings last to the block's end.
-    @_spi(Shell) public mutating func parseGuard() throws(SyntaxError) -> Statement {
+    mutating func parseGuard() throws(SyntaxError) -> Statement {
         keyword("guard")
         skipSpaces()
         guardCondition = true
@@ -59,7 +59,7 @@ extension Parser {
 
     /// An `if` or `guard` condition: a Bool (or command), `let x = y`, or
     /// `case pattern = y`; with the names it binds.
-    @_spi(Shell) public mutating func parseIfCondition() throws(SyntaxError) -> (IfStatement.Condition, [String: NameKind]) {
+    mutating func parseIfCondition() throws(SyntaxError) -> (IfStatement.Condition, [String: NameKind]) {
         let condition: IfStatement.Condition
         var bound: [String: NameKind] = [:]
         if identifier() == "case" {
@@ -93,7 +93,7 @@ extension Parser {
 
     /// An `if`, `guard` or `while` condition: a Bool, or the plug-in's (the
     /// shell's `if grep -q x f`).
-    @_spi(Shell) public mutating func parseCondition() throws(SyntaxError) -> Expr {
+    mutating func parseCondition() throws(SyntaxError) -> Expr {
         conditionDepth += 1
         defer { conditionDepth -= 1 }
         skipSpaces()
@@ -102,7 +102,7 @@ extension Parser {
         return try parseExpression()
     }
 
-    @_spi(Shell) public mutating func parseFor() throws(SyntaxError) -> ForLoop {
+    mutating func parseFor() throws(SyntaxError) -> ForLoop {
         keyword("for")
         skipSpaces()
         // `for try await line in lines`: an AsyncSequence's items.
@@ -133,7 +133,7 @@ extension Parser {
         return ForLoop(variable: variable, sequence: sequence, body: body, isAwait: isAwait, isTry: isTry)
     }
 
-    @_spi(Shell) public mutating func parseWhile() throws(SyntaxError) -> WhileLoop {
+    mutating func parseWhile() throws(SyntaxError) -> WhileLoop {
         keyword("while")
         let condition = try parseCondition()
         skipSpaces()

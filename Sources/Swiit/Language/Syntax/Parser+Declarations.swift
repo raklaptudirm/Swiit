@@ -3,7 +3,7 @@ import SwishKit
 
 extension Parser {
     /// `enum Name[: RawType] { case a, b = raw; case c(label: Type, Type) }`
-    @_spi(Shell) public mutating func parseEnum() throws(SyntaxError) -> EnumDecl {
+    mutating func parseEnum() throws(SyntaxError) -> EnumDecl {
         keyword("enum")
         skipSpaces()
         let nameStart = pos
@@ -85,7 +85,7 @@ extension Parser {
 
     /// `struct Name { … }`: properties, methods and initializers. In their
     /// bodies, members are in scope and go through `self`, as in Swift.
-    @_spi(Shell) public mutating func parseStruct() throws(SyntaxError) -> StructDecl {
+    mutating func parseStruct() throws(SyntaxError) -> StructDecl {
         keyword("struct")
         skipSpaces()
         let nameStart = pos
@@ -154,7 +154,7 @@ extension Parser {
     }
 
     /// `var x: Int`, `let y = 2`, or a computed `var z: Int { … }`.
-    @_spi(Shell) public mutating func parseProperty() throws(SyntaxError) -> PropertyDecl {
+    mutating func parseProperty() throws(SyntaxError) -> PropertyDecl {
         let word = identifier()!
         keyword(word)
         skipSpaces()
@@ -182,7 +182,7 @@ extension Parser {
     }
 
     /// `init(x: Int) { self.x = x }`.
-    @_spi(Shell) public mutating func parseInitializer() throws(SyntaxError) -> FunctionDecl {
+    mutating func parseInitializer() throws(SyntaxError) -> FunctionDecl {
         let documentation = documentation(before: pos)
         keyword("init")
         skipSpaces()
@@ -206,7 +206,7 @@ extension Parser {
     /// the block: each with the keyword that declares it. With
     /// `statementsOnly`, only where a statement starts, so `echo func x`
     /// declares nothing.
-    @_spi(Shell) public func declaredNames(_ keywords: Set<String>, statementsOnly: Bool, statics wantStatic: Bool = false) -> [(keyword: String, name: String)] {
+    func declaredNames(_ keywords: Set<String>, statementsOnly: Bool, statics wantStatic: Bool = false) -> [(keyword: String, name: String)] {
         var names: [(keyword: String, name: String)] = []
         var depth = 0
         var index = pos
@@ -254,7 +254,7 @@ extension Parser {
     }
 
     /// `Equatable, Hashable` after a type's `:`.
-    @_spi(Shell) public mutating func parseConformances() throws(SyntaxError) -> [String] {
+    mutating func parseConformances() throws(SyntaxError) -> [String] {
         var names: [String] = []
         repeat {
             skipSpaces()
@@ -272,7 +272,7 @@ extension Parser {
     }
 
     /// Whether `async let` comes next, rather than the shell's `async`.
-    @_spi(Shell) public func asyncLetAhead() -> Bool {
+    func asyncLetAhead() -> Bool {
         var index = pos + "async".count
         while index < chars.count, chars[index] == " " || chars[index] == "\t" { index += 1 }
         return index > pos + "async".count && identifier(at: index) == "let"
@@ -280,7 +280,7 @@ extension Parser {
 
     /// `async let x = f()`: `f()` starts as a task the scope owns, and reading
     /// `x` awaits it.
-    @_spi(Shell) public mutating func parseAsyncLet() throws(SyntaxError) -> Statement {
+    mutating func parseAsyncLet() throws(SyntaxError) -> Statement {
         keyword("async")
         skipSpaces()
         keyword("let")

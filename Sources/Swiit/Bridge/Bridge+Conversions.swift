@@ -40,7 +40,7 @@ import SystemPackage
 }
 
 /// A path as Swish holds it: a FilePath.
-@_spi(Shell) public func pathValue(_ path: String) -> Value {
+func pathValue(_ path: String) -> Value {
     SwiftValue.make(FilePath(path), as: "FilePath")
 }
 
@@ -139,12 +139,12 @@ extension Interpreter {
 }
 
 /// A range with bounds of a Swift type, from Swish's range of values.
-@_spi(Shell) public func bridgeRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> Range<Bound> {
+func bridgeRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> Range<Bound> {
     let range = try SwiftValue.unbox(Range<Value>.self, value)
     return Range(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
 }
 
-@_spi(Shell) public func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> ClosedRange<Bound> {
+func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> ClosedRange<Bound> {
     let range = try SwiftValue.unbox(ClosedRange<Value>.self, value)
     return ClosedRange(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
 }
@@ -160,7 +160,7 @@ extension Interpreter {
 }
 
 /// `lower...upper` or `lower..<upper`, of any values that compare.
-@_spi(Shell) public func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Value {
+func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Value {
     guard lower <= upper else { throw RuntimeError("range \(lower)\(op.rawValue)\(upper) has its bounds reversed") }
     if op == .closedRange { return SwiftValue.make(ClosedRange(uncheckedBounds: (lower: lower, upper: upper)), as: "ClosedRange") }
     return SwiftValue.make(Range(uncheckedBounds: (lower: lower, upper: upper)), as: "Range")

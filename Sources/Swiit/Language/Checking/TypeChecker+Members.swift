@@ -35,7 +35,7 @@ extension TypeChecker {
     }
 
     /// The type of a sequence's items, for its methods; nil if it isn't one.
-    @_spi(Shell) public func sequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
+    func sequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
         if case .named(let name) = type, let element = Bridge.types[name]?.associatedTypes["Element"] { return element }
         if case .generic = type { return bridgedElement(type) }
         return switch type {
@@ -71,7 +71,7 @@ extension TypeChecker {
     /// Whether a bridged type, with its generic parameters bound, conforms
     /// to `proto`: a ClosedRange<Int> is a Sequence, a ClosedRange<Double>
     /// isn't.
-    @_spi(Shell) public func bridgedConforms(_ bridgedType: BridgedType, _ bindings: [String: TypeAnnotation], to proto: String) -> Bool {
+    func bridgedConforms(_ bridgedType: BridgedType, _ bindings: [String: TypeAnnotation], to proto: String) -> Bool {
         guard let needs = bridgedType.conformances[proto] else { return proto == "CustomStringConvertible" }
         return needs.allSatisfy { parameter, protocols in
             protocols.allSatisfy { conforms(bindings[parameter] ?? .unknown, to: $0) }
@@ -91,13 +91,13 @@ extension TypeChecker {
 
     /// What a Swift parameter taking any sequence gets from a value of
     /// `type`: a String's Characters, a dictionary's (key, value) pairs.
-    @_spi(Shell) public func anySequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
+    func anySequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
         type == .unknown ? .unknown : bridgedElement(type) ?? (try? elementType(of: type)) ?? nil
     }
 
     /// A bridged property, `"abc".count` or `Int.max`, as a lookup the
     /// interpreter runs; nil if the type has no such property.
-    @_spi(Shell) public func bridgedProperty(
+    func bridgedProperty(
         _ typeName: String, receiver: Expr?, bindings: [String: TypeAnnotation], _ name: String
     ) throws -> (TypeAnnotation, Expr)? {
         guard let bridgedType = Bridge.types[typeName],
@@ -112,7 +112,7 @@ extension TypeChecker {
 
     /// A bridged method or initializer called with `arguments`: the overload
     /// is chosen here, and the call written as the member it is.
-    @_spi(Shell) public func bridgedCall(
+    func bridgedCall(
         _ typeName: String, kind: BridgedMember.Kind, isStatic: Bool, receiver: Expr?, bindings: [String: TypeAnnotation],
         name: String, _ arguments: inout [Argument]
     ) throws -> (TypeAnnotation, Expr) {
@@ -144,7 +144,7 @@ extension TypeChecker {
     /// A bridged member used here: it throws, as it says or by its typed
     /// `throws(Failure)` unless Failure is bound to `Never`; and it waits, if
     /// it's `async`.
-    @_spi(Shell) public func bridgedEffects(_ member: BridgedMember, bindings: [String: TypeAnnotation], throwing: Bool, _ what: String) throws {
+    func bridgedEffects(_ member: BridgedMember, bindings: [String: TypeAnnotation], throwing: Bool, _ what: String) throws {
         let typed = member.typedThrows.map { bindings[$0] != .named("Never") } ?? false
         if throwing || typed { try throwingSite(what) }
         try effectSite(member.effect, what)
@@ -153,7 +153,7 @@ extension TypeChecker {
     /// The initializer of `typeName` taking one unlabeled `from`, if any.
     /// The bridged type a string literal can be where `expected` is wanted:
     /// one that's ExpressibleByStringLiteral, or an optional of one.
-    @_spi(Shell) public func textLiteralType(_ expected: TypeAnnotation) -> (String, (String) -> Value?)? {
+    func textLiteralType(_ expected: TypeAnnotation) -> (String, (String) -> Value?)? {
         switch expected {
         case .named(let name): Bridge.types[name]?.literal.map { (name, $0) }
         case .optional(let wrapped): textLiteralType(wrapped)
@@ -162,7 +162,7 @@ extension TypeChecker {
     }
 
     /// Whether `expr` is a name that isn't a value: a type, `env`, a module.
-    @_spi(Shell) public static func namesSomething(_ expr: Expr, in checker: TypeChecker) -> Bool {
+    static func namesSomething(_ expr: Expr, in checker: TypeChecker) -> Bool {
         guard case .variable(let name) = expr else { return false }
         switch checker.lookup(name) {
         case .enumType?, .module?, .swiftType?, .structType?: return true
@@ -273,12 +273,12 @@ extension TypeChecker {
         return type
     }
 
-    @_spi(Shell) public func tupleElement(_ name: String, of elements: [TypeAnnotation.TupleElement]) -> TypeAnnotation? {
+    func tupleElement(_ name: String, of elements: [TypeAnnotation.TupleElement]) -> TypeAnnotation? {
         if let position = Int(name), elements.indices.contains(position) { return elements[position].type }
         return elements.first { $0.label == name }?.type
     }
 
-    @_spi(Shell) public func caseType(_ name: String, _ arguments: inout [Argument]?, expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func caseType(_ name: String, _ arguments: inout [Argument]?, expected: TypeAnnotation?) throws -> TypeAnnotation {
         var target = expected
         if case .optional(let wrapped)? = target { target = wrapped }
         guard let target, target != .unknown, target != .any else {
@@ -311,12 +311,12 @@ extension TypeChecker {
         return .named(enumName)
     }
 
-    @_spi(Shell) public func indexType(_ baseExpr: inout Expr, _ index: inout Expr) throws -> TypeAnnotation {
+    func indexType(_ baseExpr: inout Expr, _ index: inout Expr) throws -> TypeAnnotation {
         return try indexType(of: try typeOf(&baseExpr), &index)
     }
 
     /// Indexing a value of type `base` with `index`.
-    @_spi(Shell) public func indexType(of base: TypeAnnotation, _ index: inout Expr) throws -> TypeAnnotation {
+    func indexType(of base: TypeAnnotation, _ index: inout Expr) throws -> TypeAnnotation {
         lastMemberBase = base
         if let dynamic = dynamicType(of: base) {
             try expect(&index, .string, "\(base)'s member name")

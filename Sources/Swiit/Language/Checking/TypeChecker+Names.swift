@@ -47,7 +47,7 @@ extension TypeChecker {
         return nil
     }
 
-    @_spi(Shell) public func enumInfo(named name: String) -> EnumInfo? {
+    func enumInfo(named name: String) -> EnumInfo? {
         if case .enumType(let info)? = lookup(name) { return info }
         return nil
     }
@@ -82,7 +82,7 @@ extension TypeChecker {
         )
     }
 
-    @_spi(Shell) public func enumInfo(_ type: EnumType) -> EnumInfo {
+    func enumInfo(_ type: EnumType) -> EnumInfo {
         let payloads = interpreter.enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
         let cases = type.cases.map { enumCase in
             (enumCase.name, zip(enumCase.labels, payloads[enumCase.name] ?? enumCase.labels.map { _ in .unknown })

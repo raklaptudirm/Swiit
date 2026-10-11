@@ -303,7 +303,7 @@ extension TypeChecker {
     /// `\.size`: its root comes from the type written, or from context
     /// (`sorted(by:)` on [FileEntry] wants a KeyPath<FileEntry, V>). Where a
     /// function is wanted, it's one, as in Swift.
-    @_spi(Shell) public func keyPathType(root rootName: String?, _ path: [String], expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func keyPathType(root rootName: String?, _ path: [String], expected: TypeAnnotation?) throws -> TypeAnnotation {
         var root: TypeAnnotation?
         if let rootName {
             guard lookup(rootName) != nil else { throw TypeError("no type named '\(rootName)'") }
@@ -329,7 +329,7 @@ extension TypeChecker {
     }
 
     /// What `x` in `x?.name` is when it isn't nil.
-    @_spi(Shell) public func optionalBase(_ base: inout Expr) throws -> TypeAnnotation {
+    func optionalBase(_ base: inout Expr) throws -> TypeAnnotation {
         let type = try typeOf(&base)
         if case .optional(let wrapped) = type { return wrapped }
         if type == .unknown { return .unknown }
@@ -338,7 +338,7 @@ extension TypeChecker {
 
     /// A function used as a value: an overloaded one is picked by the
     /// function type wanted, as in `xs.map(double)`.
-    @_spi(Shell) public func functionValue(_ name: String, _ overloads: [Signature], expected: TypeAnnotation?, expr: inout Expr) -> TypeAnnotation {
+    func functionValue(_ name: String, _ overloads: [Signature], expected: TypeAnnotation?, expr: inout Expr) -> TypeAnnotation {
         if overloads.count == 1 { return functionType(overloads[0]) }
         guard let expected, case .functionType = expected else { return .function }
         let matching = overloads.filter { fits(functionType($0), expected) }
@@ -379,7 +379,7 @@ extension TypeChecker {
     }
 
     /// The one type all of `types` fit, if there is one.
-    @_spi(Shell) public func commonType(_ types: [TypeAnnotation]) -> TypeAnnotation? {
+    func commonType(_ types: [TypeAnnotation]) -> TypeAnnotation? {
         guard var common = types.first else { return nil }
         for type in types.dropFirst() {
             if fits(type, common) { continue }
@@ -390,7 +390,7 @@ extension TypeChecker {
         return common
     }
 
-    @_spi(Shell) public func listType(_ items: inout [Expr], expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func listType(_ items: inout [Expr], expected: TypeAnnotation?) throws -> TypeAnnotation {
         if case .list(let element)? = expected {
             for index in items.indices { try expect(&items[index], element, "a list element") }
             return .list(element)
@@ -417,7 +417,7 @@ extension TypeChecker {
 
     /// The elements' own types; a `.case` or `nil` takes its type from the
     /// others, as in `[Level.high, .low]`.
-    @_spi(Shell) public func elementTypes(_ items: inout [Expr]) throws -> [TypeAnnotation] {
+    func elementTypes(_ items: inout [Expr]) throws -> [TypeAnnotation] {
         var types = [TypeAnnotation?](repeating: nil, count: items.count)
         for index in items.indices where TypeChecker.hasNaturalType(items[index]) || !TypeChecker.isContextual(items[index]) {
             if case .literal(.nothing) = items[index] { continue }
@@ -432,7 +432,7 @@ extension TypeChecker {
         return types.map { $0! }
     }
 
-    @_spi(Shell) public func dictionaryType(_ entries: inout [RecordEntry], expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func dictionaryType(_ entries: inout [RecordEntry], expected: TypeAnnotation?) throws -> TypeAnnotation {
         if case .dictionary(let key, let value)? = expected {
             for index in entries.indices {
                 try expect(&entries[index].key, key, "a key")

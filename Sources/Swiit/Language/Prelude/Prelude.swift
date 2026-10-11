@@ -26,7 +26,7 @@ extension Interpreter {
 
     /// Reads the prelude, binding its types, functions and sequence
     /// methods in the outermost scope with their Swift bodies.
-    @_spi(Shell) public func installPrelude() {
+    func installPrelude() {
         // The Swift types the declarations may name.
         let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
         let program: Program

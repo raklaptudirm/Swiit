@@ -64,7 +64,7 @@ extension Interpreter {
 
     /// `Kind.file`, `.failed(code: 2)` or `Kind.failed(code: 2)` for `type`:
     /// checks the case exists and its associated values' labels and types.
-    @_spi(Shell) public func makeCase(_ type: EnumType, _ name: String, _ arguments: [Argument]?) throws -> Value {
+    func makeCase(_ type: EnumType, _ name: String, _ arguments: [Argument]?) throws -> Value {
         guard let definition = type.case(named: name) else {
             throw RuntimeError("\(type.name) has no case '\(name)'")
         }
@@ -99,7 +99,7 @@ extension Interpreter {
 
     /// An expression whose type is known from context: a `.case` literal
     /// becomes a case of the expected enum.
-    @_spi(Shell) public func evaluate(_ expr: Expr, expecting type: TypeAnnotation?) throws -> Value {
+    func evaluate(_ expr: Expr, expecting type: TypeAnnotation?) throws -> Value {
         if case .caseLiteral(let name, let arguments) = expr, let enumType = enumType(for: type) {
             return try makeCase(enumType, name, arguments)
         }
@@ -210,7 +210,7 @@ extension Interpreter {
 
     /// Whether a value is an Error: of a struct or enum declared `: Error`, or
     /// what the interpreter throws (`Error`, `CancellationError`).
-    @_spi(Shell) public func isError(_ value: Value) -> Bool {
+    func isError(_ value: Value) -> Bool {
         switch value {
         case .record(let record):
             guard let name = record.typeName else { return false }
@@ -225,7 +225,7 @@ extension Interpreter {
     /// The first of `cases` whose pattern (and `where`) matches `subject`, and
     /// what it binds; one without patterns matches anything, binding
     /// `anyName` if given (a bare `catch` binds `error`).
-    @_spi(Shell) public func firstMatch(_ cases: [SwitchCase], _ subject: Value, anyName: String? = nil) throws -> (index: Int, bindings: [String: Binding])? {
+    func firstMatch(_ cases: [SwitchCase], _ subject: Value, anyName: String? = nil) throws -> (index: Int, bindings: [String: Binding])? {
         for (index, switchCase) in cases.enumerated() {
             if switchCase.patterns.isEmpty {
                 return (index, anyName.map { [$0: Binding(value: subject, mutable: false)] } ?? [:])
@@ -251,7 +251,7 @@ extension Interpreter {
     /// Runs a switch: the first case whose pattern (and `where`) matches,
     /// then on through `fallthrough`. No match is an error: Swift checks a
     /// switch covers everything when compiling; Swish can only check here.
-    @_spi(Shell) public func runSwitch(_ node: SwitchStatement) throws {
+    func runSwitch(_ node: SwitchStatement) throws {
         let subject = try evaluate(node.subject)
         guard let start = try firstMatch(node.cases, subject) else {
             throw RuntimeError("switch over \(subject.description.isEmpty ? subject.typeName : subject.description) matched no case; add one, or a default")

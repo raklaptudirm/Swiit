@@ -37,7 +37,7 @@ extension Interpreter {
     /// core's own, then the installed libraries'. A sequence method's also
     /// says how it reads the sequence: each item (`filter`), or all of them
     /// (`sorted`).
-    @_spi(Shell) public func builtinBodies() -> [String: (body: FunctionBody, input: Parameter?)] {
+    func builtinBodies() -> [String: (body: FunctionBody, input: Parameter?)] {
         var bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
         for library in libraries { bodies.merge(library.bodies) { _, new in new } }
         return bodies

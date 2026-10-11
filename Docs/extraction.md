@@ -39,7 +39,15 @@ last stage, and mechanical by then.
 1. **Count the SPI and stop it growing.** A test like the boundary ledger
    lists the `@_spi(Shell)` declarations the shell uses
    (`spi-surface.txt`); a new one fails the test until it's added on purpose.
-   The list only shrinks from then on.
+   The list only shrinks from then on. *Done:* `theCoresSPIOnlyShrinks`
+   checks Packages/Swiit/Tests/SwiitTests/spi-surface.txt against every
+   `@_spi(Shell) public` declaration in Sources/Swiit. Before it was written,
+   the 188 members nothing outside the module named became internal: 878
+   declarations went to 690. Of those, by the names other code uses
+   (approximate): 566 the shell's, 83 only the core's own other modules'
+   (the SwiftSyntax front end, the bridge generator), 11 only tests', and 30
+   that name nothing outside (types public signatures need, and protocol
+   requirements' defaults).
 2. **Design the host API.** What the shell uses, sorted into what any host
    needs (made `public` and documented in embedding.md: tasks and the lock,
    `SwishHost`, `statementFinished`, `inputTurn`, `owner`, registering object

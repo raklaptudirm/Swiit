@@ -137,7 +137,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     @_spi(Shell) public var effect: Effect = .sync
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
-    @_spi(Shell) public var typedThrows: String?
+    var typedThrows: String?
 
     @_spi(Shell) public init(kind: Kind, name: String, isStatic: Bool, parameters: [Parameter], returns: TypeAnnotation, generics: [String: [String]], isThrowing: Bool, isRethrowing: Bool, isMutating: Bool, discardableResult: Bool, summary: String, body: FunctionBody, parameterDocs: [String: String] = [:], effect: Effect = .sync, typedThrows: String? = nil) {
         self.effect = effect

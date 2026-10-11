@@ -35,7 +35,7 @@ extension Parser {
 
     /// Whether a ternary's `?` comes next: with space on both sides, as
     /// Swift wants, so `x?.y`, `try?` and `Int?` aren't one.
-    @_spi(Shell) public func ternaryAhead() -> Bool {
+    func ternaryAhead() -> Bool {
         var index = pos
         while index < chars.count, chars[index] == " " || chars[index] == "\t" || (bracketDepth > 0 && chars[index] == "\n") { index += 1 }
         guard index > 0, " \t\n".contains(chars[index - 1]), index + 1 < chars.count, chars[index] == "?" else { return false }
@@ -57,7 +57,7 @@ extension Parser {
         return .some(kind)
     }
 
-    @_spi(Shell) public mutating func parseBinary(level: Int) throws(SyntaxError) -> Expr {
+    mutating func parseBinary(level: Int) throws(SyntaxError) -> Expr {
         guard level < Parser.precedence.count else { return try parseUnary() }
         var lhs = try parseOperand(level: level)
         var chained = false
@@ -80,7 +80,7 @@ extension Parser {
 
     /// An operand of `level`'s operators. `??`'s may be cast, as Swift's
     /// precedence has it: `x ?? y as? Int` is `x ?? (y as? Int)`.
-    @_spi(Shell) public mutating func parseOperand(level: Int) throws(SyntaxError) -> Expr {
+    mutating func parseOperand(level: Int) throws(SyntaxError) -> Expr {
         var expr = try parseBinary(level: level + 1)
         guard Parser.precedence[level] == [.coalesce] else { return expr }
         while true {
@@ -105,7 +105,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func parseUnary() throws(SyntaxError) -> Expr {
+    mutating func parseUnary() throws(SyntaxError) -> Expr {
         skipSpaces()
         if consume("!") { return .unary(.not, try parseUnary()) }
         if consume("-") { return .unary(.negate, try parseUnary()) }
@@ -350,7 +350,7 @@ extension Parser {
     }
 
     /// `[1, 2]`, or a record like `["name": "x", "size": 1.kb]` or `[:]`.
-    @_spi(Shell) public mutating func parseList() throws(SyntaxError) -> Expr {
+    mutating func parseList() throws(SyntaxError) -> Expr {
         pos += 1
         bracketDepth += 1
         defer { bracketDepth -= 1 }

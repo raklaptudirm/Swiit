@@ -87,7 +87,7 @@ extension Statement {
 
     /// A branch of an `if` expression: the one expression it is, or an
     /// `else if`'s own `if` expression.
-    @_spi(Shell) public static func branchExpression(_ branch: Program) -> Expr? {
+    static func branchExpression(_ branch: Program) -> Expr? {
         guard branch.statements.count == 1 else { return nil }
         switch branch.statements[0] {
         case .expression(let expr): return expr
@@ -195,7 +195,7 @@ extension Statement {
 
 extension Pattern {
     /// Whether it matches every value: `_`, `let e`.
-    @_spi(Shell) public var catchesAll: Bool {
+    var catchesAll: Bool {
         switch self {
         case .wildcard, .binding: true
         default: false

@@ -5,7 +5,7 @@ extension Parser {
     // MARK: Scanning
 
     /// Digits with optional `_` separators, which are dropped.
-    @_spi(Shell) public mutating func readDigits() -> String {
+    mutating func readDigits() -> String {
         var digits = ""
         while let c = peek(), Parser.isDigit(c) || c == "_" {
             if c != "_" { digits.append(c) }
@@ -80,7 +80,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func skipSeparators() {
+    mutating func skipSeparators() {
         while true {
             skipSpaces()
             guard peek() == ";" || peek() == "\n" else { return }

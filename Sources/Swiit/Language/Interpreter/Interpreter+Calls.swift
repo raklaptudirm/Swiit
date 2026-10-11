@@ -103,7 +103,7 @@ extension Interpreter {
     /// A closure last and unlabeled can go to a labeled parameter, as a
     /// trailing closure does in Swift (`xs.sorted { $0.x < $1.x }` for
     /// `by:`), unless a later unlabeled parameter is waiting for it.
-    @_spi(Shell) public func isTrailingClosure(
+    func isTrailingClosure(
         _ arguments: [Argument], at index: Int, for parameter: Parameter, before later: ArraySlice<Parameter>
     ) -> Bool {
         guard index == arguments.count - 1, arguments[index].label == nil, parameter.label != nil,

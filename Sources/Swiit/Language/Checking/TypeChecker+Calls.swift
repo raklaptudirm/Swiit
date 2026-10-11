@@ -4,7 +4,7 @@ import SwishKit
 extension TypeChecker {
     // MARK: Calls
 
-    @_spi(Shell) public func callType(_ callee: inout Expr, _ arguments: inout [Argument], expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func callType(_ callee: inout Expr, _ arguments: inout [Argument], expected: TypeAnnotation?) throws -> TypeAnnotation {
         // `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`.
         if case .variable(let name) = callee, let symbol = lookup(name) {
             switch symbol {
@@ -97,7 +97,7 @@ extension TypeChecker {
 
     /// `base.name(arguments)` for a receiver of type `base`; `baseExpr` is
     /// where it came from, if it can be changed by a mutating method.
-    @_spi(Shell) public func methodCallType(
+    func methodCallType(
         _ base: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
         if case .named(let structName) = base, let info = structInfo(named: structName), let methods = info.methods[name] {
@@ -157,7 +157,7 @@ extension TypeChecker {
 
     /// A mutating method changes its receiver, which must be a `var` (or
     /// part of one).
-    @_spi(Shell) public func checkMutable(_ base: Expr, method: String) throws {
+    func checkMutable(_ base: Expr, method: String) throws {
         var root = base
         while true {
             switch root {
