@@ -1,6 +1,6 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
 import Foundation
-import SwishKit
+import SwiitKit
 import Testing
 
 // Swift's concurrency, from Swish (Docs/Design/async.md, step 7): `Task`,
@@ -120,8 +120,8 @@ private func typeError(_ source: String) -> String? {
             try bridgeAsync(shell) { () async throws -> Value in
                 let f = bridgeAsyncClosure(shell, args["f"]!)
                 try await Task.sleep(nanoseconds: 100_000_000)
-                let once = try Int(swishValue: try await f([.int(10)]))
-                return .int(try Int(swishValue: try await f([.int(once)])))
+                let once = try Int(swiitValue: try await f([.int(10)]))
+                return .int(try Int(swiitValue: try await f([.int(once)])))
             }
         },
         effect: .async

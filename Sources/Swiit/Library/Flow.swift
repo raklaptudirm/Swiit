@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// Items read one at a time, as a pipeline's stages pass them, so a stage
 /// only does the work the one after it asks for: `yes | map { … } | prefix 3`

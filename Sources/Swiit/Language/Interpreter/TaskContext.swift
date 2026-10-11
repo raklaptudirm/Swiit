@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// A line of execution through Swish code: its own call stack (the scopes
 /// of the calls and blocks it is in, under the global ones every task

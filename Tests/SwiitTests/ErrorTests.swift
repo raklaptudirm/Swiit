@@ -1,5 +1,5 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
-import SwishKit
+import SwiitKit
 import Testing
 
 // Errors of your own, as Swift has them: `throw`, types that are `Error`, and

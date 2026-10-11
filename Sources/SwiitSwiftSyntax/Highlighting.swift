@@ -1,6 +1,6 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftSyntax
-import SwishKit
+import SwiitKit
 
 /// Highlighting from SwiftParser's tree: each token's kind, from what it is
 /// and where it stands, and the spans the plug-in recorded where it read the

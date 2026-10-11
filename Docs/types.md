@@ -165,11 +165,11 @@ are text (`seq 10 | map { Int($0)! } | sorted` says what it means), and
 ### Plugins
 
 Phase 5 now uses packages without annotations ([swift-interop.md](swift-interop.md)).
-For `@SwishExport` plugins, `SwishType` grows to match the type language (function types, tuples,
+For `@SwiitExport` plugins, `SwiitType` grows to match the type language (function types, tuples,
 dictionaries, nominal types by name), and the ABI version goes to 2.
-`@SwishObject` also emits each member's type. An exported struct used as a
+`@SwiitObject` also emits each member's type. An exported struct used as a
 result needs its fields' types: a `@SwishStruct` macro reads them from its
-stored properties, the way `@SwishObject` reads a class. An `Encodable`
+stored properties, the way `@SwiitObject` reads a class. An `Encodable`
 type without it can't be exported, since its shape isn't known until it's
 encoded.
 
@@ -213,10 +213,10 @@ Each phase ends with every test passing and the shell usable.
    optional subscripts (`xs?[0]`), beside `?.` from phase 1.
 5. **Swish types are Swift types.** See [swift-interop.md](swift-interop.md):
    one type system, Swift's, read from symbol graphs (the standard
-   library, Foundation, SwishKit for Swish's own types, and any package);
+   library, Foundation, SwiitKit for Swish's own types, and any package);
    glue generated and compiled for the declarations used; generated Swift
    twins for Swish-declared types that cross into Swift. This replaces
-   typed plugins; `@SwishExport` stays for shaping command lines.
+   typed plugins; `@SwiitExport` stays for shaping command lines.
 6. **Later:** `func f<T: P>`, `protocol` declarations, `extension` on your
    types and the builtin ones.
 
@@ -248,7 +248,7 @@ Each phase ends with every test passing and the shell usable.
   are. Plain `$(…)` still never throws; `try $(…)` and `try make` do, and
   count as throwing. Commands written as commands (`greet Rak`) aren't
   checked for `try`: a command's failure is its status.
-- **Keeping plugins loading:** SwishKit keeps every public initializer it
+- **Keeping plugins loading:** SwiitKit keeps every public initializer it
   has shipped. Adding `isThrowing` to `ExportedFunction` added an
   initializer beside the old one, so plugins built before it still load.
 

@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 extension Sequence where Element: Hashable {
     /// The items without repeats, first ones kept.

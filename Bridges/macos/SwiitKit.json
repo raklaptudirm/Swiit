@@ -25,13 +25,13 @@
     "FileSize\tswift.init\tinit(_:unit:)",
     "FileSize\tswift.init\tinit(bytes:)",
     "FileSize\tswift.init\tinit(from:)",
-    "FileSize\tswift.init\tinit(swishValue:)",
+    "FileSize\tswift.init\tinit(swiitValue:)",
     "FileSize\tswift.method\tencode(to:)",
     "FileSize\tswift.property\tbytes",
     "FileSize\tswift.property\tdescription",
     "FileSize\tswift.type.property\tunits",
     "Output\tswift.func.op\t!=(_:_:)",
-    "Output\tswift.init\tinit(swishValue:)",
+    "Output\tswift.init\tinit(swiitValue:)",
     "Output\tswift.init\tinit(text:code:signal:)",
     "Output\tswift.method\tallSatisfy(_:)",
     "Output\tswift.method\tcompactMap(_:)",
@@ -117,6 +117,6 @@
     "Output\tswift.property\ttext",
     "Output\tswift.property\tunderestimatedCount"
   ],
-  "module" : "SwishKit",
+  "module" : "SwiitKit",
   "platform" : "macos"
 }

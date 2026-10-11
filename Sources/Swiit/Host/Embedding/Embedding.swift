@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 // The embedding API (Docs/Design/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.
@@ -165,26 +165,26 @@ extension Interpreter {
     // MARK: Functions
 
     /// Makes a Swift closure a function scripts can call. Its parameters and
-    /// result convert as SwishKit's `SwishConvertible` says, and a script
+    /// result convert as SwiitKit's `SwiitConvertible` says, and a script
     /// sees an ordinary function: `labels` are its argument labels (`nil`
     /// or missing for none), and a wrong argument is the usual type error.
-    public func register<each Argument: SwishConvertible, Result: SwishConvertible>(
+    public func register<each Argument: SwiitConvertible, Result: SwiitConvertible>(
         _ name: String, labels: [String?] = [], throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Result
     ) {
-        install(name, labels: labels, throwing: throwing, returns: Result.swishType, enums: Result.swishEnums,
+        install(name, labels: labels, throwing: throwing, returns: Result.swiitType, enums: Result.swiitEnums,
                 parameterTypes: Self.types(repeat (each Argument).self)) { arguments in
             var index = 0
             func next() -> Value {
                 defer { index += 1 }
                 return arguments[index]
             }
-            return try body(repeat try (each Argument)(swishValue: next())).swishValue
+            return try body(repeat try (each Argument)(swiitValue: next())).swiitValue
         }
     }
 
     /// As above, for a closure that returns nothing.
-    public func register<each Argument: SwishConvertible>(
+    public func register<each Argument: SwiitConvertible>(
         _ name: String, labels: [String?] = [], throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Void
     ) {
@@ -195,21 +195,21 @@ extension Interpreter {
                 defer { index += 1 }
                 return arguments[index]
             }
-            try body(repeat try (each Argument)(swishValue: next()))
+            try body(repeat try (each Argument)(swiitValue: next()))
             return .nothing
         }
     }
 
-    private static func types<each Argument: SwishConvertible>(_: repeat (each Argument).Type) -> [(SwishType, [EnumType])] {
-        var types: [(SwishType, [EnumType])] = []
-        func add<T: SwishConvertible>(_: T.Type) { types.append((T.swishType, T.swishEnums)) }
+    private static func types<each Argument: SwiitConvertible>(_: repeat (each Argument).Type) -> [(SwiitType, [EnumType])] {
+        var types: [(SwiitType, [EnumType])] = []
+        func add<T: SwiitConvertible>(_: T.Type) { types.append((T.swiitType, T.swiitEnums)) }
         repeat add((each Argument).self)
         return types
     }
 
     private func install(
-        _ name: String, labels: [String?], throwing: Bool, returns: SwishType?, enums: [EnumType],
-        parameterTypes: [(SwishType, [EnumType])], call: @escaping @Sendable ([Value]) throws -> Value
+        _ name: String, labels: [String?], throwing: Bool, returns: SwiitType?, enums: [EnumType],
+        parameterTypes: [(SwiitType, [EnumType])], call: @escaping @Sendable ([Value]) throws -> Value
     ) {
         let parameters = parameterTypes.enumerated().map { index, entry in
             let label = labels.indices.contains(index) ? labels[index] : nil

@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// What `await` waits for, which a host registers: the type of the operand
 /// (a handle the host made), the type it gives, and how to wait. Without one,

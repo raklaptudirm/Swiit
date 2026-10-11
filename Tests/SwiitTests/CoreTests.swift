@@ -1,5 +1,5 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
-import SwishKit
+import SwiitKit
 import Testing
 
 // The core on its own: the target builds and runs without the shell.

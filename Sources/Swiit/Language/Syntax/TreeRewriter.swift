@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// Rewrites a tree bottom-up: every child is rewritten before its parent is
 /// offered to `expr` or `statement`, which return what stands in its

@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 import SwiitStandardLibrary
 import SystemPackage
 
@@ -7,7 +7,7 @@ import SystemPackage
 /// values: each name a subscript that reads the field, one after another.
 @_spi(Swiit) public func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
     guard case .function(let keyPath as KeyPathValue) = value else {
-        throw SwishError("expected a key path, not \(value.typeName)")
+        throw SwiitError("expected a key path, not \(value.typeName)")
     }
     return keyPath.path.reduce(\Value.self) { path, name in path.appending(path: \Value.[field: name]) }
 }
@@ -34,7 +34,7 @@ import SystemPackage
 /// all the enum's.
 @_spi(Host) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
-        throw SwishError("expected a \(T.self), not \(value.typeName)")
+        throw SwiitError("expected a \(T.self), not \(value.typeName)")
     }
     return match
 }
@@ -80,8 +80,8 @@ extension Interpreter {
     /// What a standard library function that asks for it is lent: the host's,
     /// if it lends one (the shell's carries what was entered before), else
     /// the output's traits and how values display.
-    @_spi(Host) public var context: ShellContext {
-        contextProvider?() ?? ShellContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
+    @_spi(Host) public var context: HostContext {
+        contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
     }
 }
 
@@ -90,14 +90,14 @@ extension Interpreter {
     switch value {
     case .list(let items): return items
     default:
-        guard let output = value.commandOutput else { throw SwishError("expected a list, not \(value.typeName)") }
+        guard let output = value.commandOutput else { throw SwiitError("expected a list, not \(value.typeName)") }
         return output.lines.map(Value.string)
     }
 }
 
 /// A dictionary as Swift's, which is what it holds.
 @_spi(Host) public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
-    guard case .dictionary(let dictionary) = value else { throw SwishError("expected a dictionary, not \(value.typeName)") }
+    guard case .dictionary(let dictionary) = value else { throw SwiitError("expected a dictionary, not \(value.typeName)") }
     return dictionary.dictionary
 }
 
@@ -109,7 +109,7 @@ extension Interpreter {
 /// A tuple's elements, by label or position, made into a Swift tuple.
 @_spi(Swiit) public func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T {
     guard case .record(let record) = value, record.typeName == nil, record.count == labels.count else {
-        throw SwishError("expected a tuple of \(labels.count), not \(value.typeName)")
+        throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
     }
     return try make(labels.enumerated().map { index, label in
         label.flatMap { record[$0] } ?? record[record.keys[index]]!
@@ -133,7 +133,7 @@ extension Interpreter {
     case .dictionary(let dictionary):
         return dictionary.map { bridgeTuple(($0.key, $0.value)) { [("key", $0.0), ("value", $0.1)] } }
     default:
-        guard let items = Interpreter.items(of: value) else { throw SwishError("expected a sequence, not \(value.typeName)") }
+        guard let items = Interpreter.items(of: value) else { throw SwiitError("expected a sequence, not \(value.typeName)") }
         return Array(items)
     }
 }

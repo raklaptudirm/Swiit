@@ -4,14 +4,14 @@ import Foundation
 
 /// Swish's own values, and how Swift's are held in them.
 nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> String, to: (String) -> String)] = [
-    "Int": (".int", { "try Int(swishValue: \($0))" }, { "\($0).swishValue" }),
-    "Double": (".double", { "try Double(swishValue: \($0))" }, { "\($0).swishValue" }),
-    "Bool": (".bool", { "try Bool(swishValue: \($0))" }, { "\($0).swishValue" }),
-    "String": (".string", { "try String(swishValue: \($0))" }, { "\($0).swishValue" }),
+    "Int": (".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "Double": (".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "Bool": (".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "String": (".string", { "try String(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     // Swish's own value, passed as it is: what a function that lays values
-    // out takes. Spelled `SwishValue`, which a generic parameter called
+    // out takes. Spelled `SwiitValue`, which a generic parameter called
     // `Value` (Dictionary's) can't be mistaken for.
-    "SwishValue": (".any", { $0 }, { $0 }),
+    "SwiitValue": (".any", { $0 }, { $0 }),
 ]
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which

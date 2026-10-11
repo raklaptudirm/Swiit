@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// How `help` is colored: with the roles `DisplayStyle` names, the colors the
 /// highlighter gives the same things, so a signature reads as it would in code.

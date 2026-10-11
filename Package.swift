@@ -18,9 +18,9 @@ let package = Package(
         .library(name: "SwiitSwiftSyntax", targets: ["SwiitSwiftSyntax"]),
     ],
     dependencies: [
-        // A separate package so a host links SwishKit as a dylib (products of
+        // A separate package so a host links SwiitKit as a dylib (products of
         // the same package would be linked statically into the executable).
-        .package(path: "../SwishKit"),
+        .package(path: "../SwiitKit"),
         // FilePath, until the standard library's (SE-0529) ships; swift-system's
         // then becomes a typealias for it, keeping the members added here.
         .package(url: "https://github.com/apple/swift-system.git", from: "1.4.0"),
@@ -33,7 +33,7 @@ let package = Package(
         .target(
             name: "SwiitStandardLibrary",
             dependencies: [
-                .product(name: "SwishKit", package: "SwishKit"),
+                .product(name: "SwiitKit", package: "SwiitKit"),
                 .product(name: "SystemPackage", package: "swift-system"),
             ],
             path: "Sources/Swiit/Library"
@@ -42,7 +42,7 @@ let package = Package(
             name: "Swiit",
             dependencies: [
                 "SwiitStandardLibrary",
-                .product(name: "SwishKit", package: "SwishKit"),
+                .product(name: "SwiitKit", package: "SwiitKit"),
                 .product(name: "SystemPackage", package: "swift-system"),
             ],
             // Its standard library is a module of its own, so the generator can read it.
@@ -52,7 +52,7 @@ let package = Package(
             name: "SwiitSwiftSyntax",
             dependencies: [
                 "Swiit",
-                .product(name: "SwishKit", package: "SwishKit"),
+                .product(name: "SwiitKit", package: "SwiitKit"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftOperators", package: "swift-syntax"),

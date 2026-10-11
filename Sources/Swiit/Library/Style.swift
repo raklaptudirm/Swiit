@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// What `String.styled` can make text, each with its terminal code as its raw value.
 public enum TextStyle: String, CaseIterable {
@@ -9,7 +9,7 @@ public enum TextStyle: String, CaseIterable {
 extension String {
     /// The text in colors or emphasis, plain where color is off.
     /// - Parameter styles: how to style it, as in `.bold, .red`
-    public func styled(@Rest _ styles: [TextStyle], in shell: ShellContext) -> String {
+    public func styled(@Rest _ styles: [TextStyle], in shell: HostContext) -> String {
         guard !styles.isEmpty, !isEmpty, shell.colorOutput else { return self }
         return "\u{1B}[\(styles.map(\.rawValue).joined(separator: ";"))m" + self + "\u{1B}[0m"
     }

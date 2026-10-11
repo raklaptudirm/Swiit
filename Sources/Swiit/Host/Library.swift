@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// A library of functions and types written in Swift and bridged by
 /// `swiit-bridge`, with the Swish declarations a host adds to the prelude: the

@@ -116,7 +116,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         var parameters: [Parameter] = []
         if reader.consume(")") { return parameters }
         repeat {
-            // SwishKit's `@Flag("a")` and `@Input`, which mark a parameter.
+            // SwiitKit's `@Flag("a")` and `@Input`, which mark a parameter.
             var shortFlag: Character?
             var firstLetter = false
             var isInput = false

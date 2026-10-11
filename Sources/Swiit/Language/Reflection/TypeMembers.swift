@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// What a type has, for `help Type` and `members`: a Swift type's members
 /// from the bridge (with Swish's own extensions, and for a sequence the

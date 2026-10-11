@@ -1,7 +1,7 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
 @_spi(Shell) import SwiitSwiftSyntax
 import Foundation
-import SwishKit
+import SwiitKit
 import Testing
 
 // The two front ends over the same Swift: the hand-written parser is the oracle,

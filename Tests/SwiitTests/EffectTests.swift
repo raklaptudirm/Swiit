@@ -1,5 +1,5 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
-import SwishKit
+import SwiitKit
 import Testing
 
 // `async` and `await` as Swift has them (Docs/Design/async.md, step 3): only
@@ -95,7 +95,7 @@ private func typeError(_ source: String) -> String? {
     }
 }
 
-// A function that waits, a plugin's, lets the lock go through SwishKit's
+// A function that waits, a plugin's, lets the lock go through SwiitKit's
 // `Waiting` (Docs/Design/async.md, step 6).
 @Test func waitingLetsTheLockGo() {
     let swish = interpreter()

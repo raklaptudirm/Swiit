@@ -1,7 +1,7 @@
 # One foundation for everything callable
 
 Status: **in progress**: steps 1 to 3 are done. It follows on from [swift-interop.md](swift-interop.md),
-whose step 2 ("Swish's own types in SwishKit") it takes all the way.
+whose step 2 ("Swish's own types in SwiitKit") it takes all the way.
 
 Swish grew several ways for a name to be callable, each with its own lookup,
 help and command-line rules. This plan folds them into one: **every function,
@@ -22,7 +22,7 @@ Five registries, each with its own rules:
 | Bridged members (`String`, `Array`, `FilePath`, …) | Swift's symbol graphs | generated glue | **no** | — | **no** |
 | Swish's extensions (`String.styled`) | hand-written `BridgedMember`s | Swift | no | — | no |
 
-Plugins are a sixth, with `@SwishExport` and their own loading.
+Plugins are a sixth, with `@SwiitExport` and their own loading.
 
 What that costs, found by trying it:
 
@@ -104,7 +104,7 @@ What that costs, found by trying it:
   names starting with `$` are internal and aren't listed. `help name` shows
   one in full. `help String`, `help FilePath` or `help Array` shows a type's
   members, from Swift's own documentation.
-- **A type says how it's shown**, through protocols in SwishKit: the columns
+- **A type says how it's shown**, through protocols in SwiitKit: the columns
   a table shows by default, and a style. Swish's types adopt them, and so
   can yours.
 
@@ -138,7 +138,7 @@ they change the shell is what they do, not how they're found.
    `members` still lists a file size's and an output's members by hand,
    until step 4 makes them Swift types.
 4. **The standard library module.** The generator learns free functions,
-   protocol extensions and SwishKit's parameter attributes (`@Flag`,
+   protocol extensions and SwiitKit's parameter attributes (`@Flag`,
    `@Input`); the prelude's text, the native bodies, the duplicate structs
    and Extensions.swift go. `FileSize`, `Date` and
    `Output` stop being cases of `Value` and `TypeAnnotation` and are Swift
@@ -149,7 +149,7 @@ they change the shell is what they do, not how they're found.
    for free functions, structs and enums: `pwd`, `readLine`, `history`, `ls`
    and `ps`, with `FileEntry`, `ProcessEntry` and `FileType`, are done. A
    struct becomes a record, declared in Swish from its fields; a parameter
-   of type `ShellContext` is lent by the shell; a `Partial` result carries
+   of type `HostContext` is lent by the shell; a `Partial` result carries
    per-item errors; `@Flag` and `@Rest` mark short flags and the rest of the
    arguments. A module's extensions of Swift's types are read as the
    standard library's are (`String.styled` with `TextStyle`, `Sequence.uniqued`),
@@ -164,13 +164,13 @@ they change the shell is what they do, not how they're found.
    operators (`static func +`), which the bridge reads for any type outside
    the standard library, and the checker and interpreter apply to operands
    of it; it parses from text and encodes as its bytes, as its Swift type
-   does. This changed SwishKit's `Value`, which is fine before 1.0: the plugin
+   does. This changed SwiitKit's `Value`, which is fine before 1.0: the plugin
    ABI number isn't bumped until then. `Date` is Foundation's, held as it
    is: the bridge reads Foundation's graph for it (and top-level typealiases,
    as `TimeInterval`), the module adds what Swish had (`date - date`, `date +
    60`, ISO 8601 text), a Swift type says how it shows in Swish
-   (`SwishDisplayed`: local time, to the minute in a table), and JSON gives
-   ISO 8601. `Output`, what `$(…)` gives, is a Swift struct in SwishKit that
+   (`SwiitDisplayed`: local time, to the minute in a table), and JSON gives
+   ISO 8601. `Output`, what `$(…)` gives, is a Swift struct in SwiitKit that
    is a collection of lines (`count`, `first`, `map`, `sorted()` come from
    that) with `text` and a `status` the shell shows as a record; a type that
    says it `StandsForText` is its text where a String is wanted and compares
@@ -183,7 +183,7 @@ they change the shell is what they do, not how they're found.
    `to`, `table` and `list` are Swift functions there as well, with `JSON`
    (a `WrapsValue` type: the value it holds, read by field), the display
    formatter and the pretty printer beside them; what types show in a table
-   is a `DisplayRegistry` the shell lends in the `ShellContext`.
+   is a `DisplayRegistry` the shell lends in the `HostContext`.
    Left: `select`, whose result is a tuple of the fields named, and `members`
    and `help`, which describe the shell's own structs, enums and scopes.
 5. **Display protocols**, replacing the table of columns and the colors

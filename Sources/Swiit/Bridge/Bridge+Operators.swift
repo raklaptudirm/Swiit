@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// Operators a bridged Swift type declares (`static func + (lhs: FileSize, rhs:
 /// FileSize)`), used for operands of that type, as Swift does. Swish's own

@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 extension Interpreter {
     // MARK: Calls
@@ -252,7 +252,7 @@ extension Interpreter {
 }
 
 extension TypeAnnotation {
-    @_spi(Host) public init(_ type: SwishType) {
+    @_spi(Host) public init(_ type: SwiitType) {
         self = switch type {
         case .any: .any
         case .bool: .bool

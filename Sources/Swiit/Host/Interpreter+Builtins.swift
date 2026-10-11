@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// Builtins written in Swift. They're ordinary functions to the rest of
 /// the shell: the same flags, help, overloads and streaming as Swish ones.

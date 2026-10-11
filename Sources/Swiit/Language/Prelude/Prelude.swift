@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// The builtins' types and signatures, written in Swish and read when the
 /// shell starts. The checker works from these; the bodies are in Swift

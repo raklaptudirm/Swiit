@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// Syntax the core's grammar doesn't define: what a layer over the core adds,
 /// like the shell's commands, pipelines and substitutions. The tree holds it

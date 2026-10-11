@@ -1,6 +1,6 @@
 @_spi(Host) @_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftSyntax
-import SwishKit
+import SwiitKit
 
 extension Lowering {
     // MARK: Expressions

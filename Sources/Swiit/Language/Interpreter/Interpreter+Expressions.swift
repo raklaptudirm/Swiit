@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 extension Interpreter {
     // MARK: Expressions

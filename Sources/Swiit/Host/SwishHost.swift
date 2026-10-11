@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// What an output stream can show, so values are laid out for it: a terminal
 /// gets tables fitted to its width and in color, a file or a pipe gets every

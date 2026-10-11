@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 extension Expr {
     /// A string literal, interpolated or not.
@@ -102,7 +102,7 @@ extension Value {
     }
 }
 
-extension SwishKit.Value {
+extension SwiitKit.Value {
     /// A list's items, or an Output's lines: what sequence methods work on.
     var sequenceItems: [Value]? {
         switch self {
@@ -113,7 +113,7 @@ extension SwishKit.Value {
 
     /// A total order for sorting: numbers numerically (Int and Double
     /// together), then by kind for values of different kinds.
-    @_spi(Host) public func order(comparedTo other: SwishKit.Value) -> ComparisonResult {
+    @_spi(Host) public func order(comparedTo other: SwiitKit.Value) -> ComparisonResult {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }

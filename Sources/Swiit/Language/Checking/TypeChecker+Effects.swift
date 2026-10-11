@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 // Effects, as Swift has them for `async` (Docs/Design/async.md, "Types and
 // effects"): a call to an `async` function is marked with `await`, and

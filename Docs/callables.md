@@ -227,7 +227,7 @@ has no runtime reflection for function signatures, so a macro is what makes
 the derived command-line form possible.
 
 ```swift
-@SwishExport(input: "item")
+@SwiitExport(input: "item")
 func where(_ item: Value, _ predicate: Closure) throws -> Value? { … }
 ```
 

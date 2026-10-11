@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// The one lock Swish code runs under (Docs/Design/async.md, "B"). Tasks
 /// run on threads of their own, and only the thread holding the lock runs

@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 @_spi(Host) public struct Binding {
     @_spi(Host) public enum Special {

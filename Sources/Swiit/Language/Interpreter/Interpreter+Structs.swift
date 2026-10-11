@@ -1,11 +1,11 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// A struct's definition. Its values are records with its name as their
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// `select` and `to json` work on them as on any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-@_spi(Host) public final class StructType: SwishObject, @unchecked Sendable {
+@_spi(Host) public final class StructType: SwiitObject, @unchecked Sendable {
     @_spi(Host) public let name: String
     /// Stored properties, in declaration order: the order of a value's fields.
     @_spi(Host) public let stored: [PropertyDecl]

@@ -24,8 +24,8 @@ What isn't done is the part a separate repository makes expensive to change:
   drives that parser for the shell's lines (`Lowering.cursor(at:)`). The
   parser's internals are part of the contract.
 - **The names cross over.** The core reports errors as `swish:`, depends on
-  `SwishKit` and ships `SwiitStandardLibrary`, and lends hosts a
-  `ShellContext`.
+  `SwiitKit` and ships `SwiitStandardLibrary`, and lends hosts a
+  `HostContext`.
 
 Moving now would freeze all three in their current shape. Moving after
 settling them costs little more than moving now, and the history comes along
@@ -97,17 +97,17 @@ last stage, and mechanical by then.
    - Error reports take their prefix from the host (`SwishHost.name`, `swish`
      in the shell, `swiit` by default).
    - `SwiitStandardLibrary` becomes `SwiitStandardLibrary`.
-   - `ShellContext` becomes `HostContext`.
-   - SwishKit: the value model and the plugin ABI are the interpreter's, so
+   - `HostContext` becomes `HostContext`.
+   - SwiitKit: the value model and the plugin ABI are the interpreter's, so
      it moves with Swiit as `SwiitKit`. A plugin compiled against it works in
-     any host. The shell keeps a `SwishKit` re-export, or plugins move over
+     any host. The shell keeps a `SwiitKit` re-export, or plugins move over
      with a deprecation period.
    - Check that "Swiit" is free as a GitHub organization or repository name
      and on the Swift Package Index before anything is published.
 5. **Stand-alone build and CI, still in this repository.**
    - `swift test --package-path Packages/Swiit` already runs alone.
    - Its CI job also builds and tests with no path outside `Packages/` (no
-     `../SwishKit` once SwishKit lives inside it). It runs the bridge
+     `../SwiitKit` once SwiitKit lives inside it). It runs the bridge
      generator check against `Packages/Swiit/Bridges` only.
    - The shell's bridges and manifests stay with the shell.
 6. **Docs split.**
@@ -119,7 +119,7 @@ last stage, and mechanical by then.
 7. **The move.**
    - Copy the history out with
      `git filter-repo --subdirectory-filter Packages/Swiit` (plus the moved
-     SwishKit and docs paths, with `--path` and `--path-rename`) into the new
+     SwiitKit and docs paths, with `--path` and `--path-rename`) into the new
      repository.
    - Tag `0.1.0` there.
    - Here, replace `.package(path: "Packages/Swiit")` with

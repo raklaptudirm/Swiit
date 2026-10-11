@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// Prints the core's tree as Swift source: the form every construct reduces
 /// to (Docs/Design/desugaring.md). It is for golden tests of what a rewrite

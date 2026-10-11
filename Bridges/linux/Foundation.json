@@ -67,7 +67,7 @@
     "Date\tswift.init\tinit(_:)",
     "Date\tswift.init\tinit(_:strategy:)",
     "Date\tswift.init\tinit(from:)",
-    "Date\tswift.init\tinit(swishValue:)",
+    "Date\tswift.init\tinit(swiitValue:)",
     "Date\tswift.init\tinit(timeInterval:since:)",
     "Date\tswift.init\tinit(timeIntervalSince1970:)",
     "Date\tswift.init\tinit(timeIntervalSinceNow:)",

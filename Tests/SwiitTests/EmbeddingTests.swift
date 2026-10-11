@@ -1,6 +1,6 @@
 import Foundation
 @_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
-import SwishKit
+import SwiitKit
 import Testing
 
 // The embedding API: what a host does with an `Interpreter` and nothing else.

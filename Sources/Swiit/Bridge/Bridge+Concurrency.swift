@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 import SwiitStandardLibrary
 
 // Swift's `Task`, bridged by hand: its operation is Swish code, which runs as
@@ -96,7 +96,7 @@ extension Bridge {
         member(.method, "sleep", isStatic: true, parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
                returns: .void, throwing: true, effect: .async,
                summary: "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.") { shell, arguments in
-            let nanoseconds = try Int(swishValue: arguments["duration"]!)
+            let nanoseconds = try Int(swiitValue: arguments["duration"]!)
             try shell.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },

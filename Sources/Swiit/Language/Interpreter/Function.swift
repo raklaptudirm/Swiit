@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 @_spi(Host) public enum FunctionBody {
     case swish(Program)

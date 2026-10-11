@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 @_spi(Layer) public struct RecordEntry: Equatable, Sendable {
     @_spi(Layer) public var key: Expr

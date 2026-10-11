@@ -10,7 +10,7 @@ Decided:
   `Int`, `String`, `[T]`, `Date`, `URL` are the standard library's and
   Foundation's, with every member Swift gives them; a package's types are
   its own; Swish's own (`FileSize`, `Output`, `FileEntry`, `Job`) are
-  declared in Swift, in SwishKit, and read the same way.
+  declared in Swift, in SwiitKit, and read the same way.
 - **Representation: generated Swift twins.** The interpreter keeps its own
   representation of values; at the boundary with Swift, values convert,
   and a struct or enum declared in Swish gets a generated Swift twin, so it
@@ -18,7 +18,7 @@ Decided:
   `Set<Point>`).
 
 Any Swift package or SDK module is used from Swish with nothing written for
-Swish: no `@SwishExport`, no wrapper package.
+Swish: no `@SwiitExport`, no wrapper package.
 
 ```swift
 "a,b,c".split(separator: ",")              // Swift's own String and Sequence methods
@@ -35,7 +35,7 @@ import Yams from "https://github.com/jpsim/Yams"
 let doc = try Yams.load(yaml: $(cat config.yml).text)
 ```
 
-`@SwishExport` stays: it's the way to shape a command line (`@Flag`,
+`@SwiitExport` stays: it's the way to shape a command line (`@Flag`,
 `@Input`, doc comments as `--help`) for a package written for Swish.
 
 ## One type system
@@ -46,7 +46,7 @@ let doc = try Yams.load(yaml: $(cat config.yml).text)
   their symbol graphs. So `filter`, `map`, `sorted(by:)`, `contains`,
   `split`, `uppercased()` and the rest are Swift's, with Swift's
   signatures and overloads.
-- **Swish's own types are Swift declarations,** in SwishKit: `FileSize`,
+- **Swish's own types are Swift declarations,** in SwiitKit: `FileSize`,
   `Output`, `Status`, `FileEntry`, `ProcessEntry`, `Job`, `Member`,
   `Help`. What only a shell needs (`sorted(by:)` with a key path, `get`,
   `select`, `uniqued()`, `prefix` with a default) are Swift extensions
@@ -186,7 +186,7 @@ scripts, reusing the twins.
    `uniqued`) remain. Left for the next slices: `inout` parameters,
    operators (`reduce(0, +)`), `Slice` and the other lazy and view types
    (`enumerated()`, `lazy`, a Set's `dropFirst`), indices, Foundation.
-2. **Swish's own types in SwishKit**, read the same way; the prelude
+2. **Swish's own types in SwiitKit**, read the same way; the prelude
    shrinks to command lines.
 3. **Packages and SDK modules** imported by URL, path or name.
 4. **Twins** for Swish types that cross into Swift.

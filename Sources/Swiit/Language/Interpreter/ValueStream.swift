@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// A pull-based stream of values between in-process pipeline stages. A
 /// stage only runs when downstream asks for its next item, so

@@ -45,8 +45,8 @@ operating system. What stops it being a library:
   `Parser+Commands`, pipeline units. About 2,000 lines of command machinery
   sit in or beside the language layers.
 
-Two things already help. SwishKit is a host ABI (`Value`, `SwiftValue`,
-`SwishObject`, `Partial`, `ShellContext`, `@SwishExport`), so host values
+Two things already help. SwiitKit is a host ABI (`Value`, `SwiftValue`,
+`SwiitObject`, `Partial`, `HostContext`, `@SwiitExport`), so host values
 and functions have a vocabulary. And the desugaring plan turns shell
 constructs into library calls, so the core doesn't need to understand them.
 
@@ -78,7 +78,7 @@ Decided later (2026-10-10):
   Swift-only parse mode rejects them, and evaluating one asks the host, which
   the sandbox refuses.
 - **Host functions are registered at run time first:** typed closures, no
-  build step. `@SwishExport` covers types next; pointing the generator at a
+  build step. `@SwiitExport` covers types next; pointing the generator at a
   host module follows once its module table is configurable.
 - **The split comes before desugaring and async.** The `SwishHost` seam is where
   async's per-task context and `suspend` function go, and where the
@@ -88,8 +88,8 @@ Decided later (2026-10-10):
 
 | Target | Contents |
 |---|---|
-| `SwishKit` (exists) | `Value`, boxing, `SwishObject`, `@SwishExport`: what a host and a plugin share with the interpreter |
-| `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwishKit and Foundation, `SwishHost`, the embedding API |
+| `SwiitKit` (exists) | `Value`, boxing, `SwiitObject`, `@SwiitExport`: what a host and a plugin share with the interpreter |
+| `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwiitKit and Foundation, `SwishHost`, the embedding API |
 | `SwiitStandardLibrary` | The pure part: `Flow`, `JSON`, formatter, pretty printer, `Sequence` extensions, `from`/`to`/`table`/`list`, text styling |
 | `SwishShellLibrary` (new) | The OS functions: `ls`, `ps`, `pwd`, `readLine`, `history`, `with(env:)`, jobs, paths, input |
 | `SwishShell` (new) | `Shell`, execution, platform, the line editor, shell builtins, config, plugin loading, tasks |
@@ -98,7 +98,7 @@ Decided later (2026-10-10):
 ### `SwishHost`: the seam and the sandbox
 
 The interpreter reaches the world through one value, a `SwishHost`. It is named
-like SwishKit's public types (`SwishObject`, `SwishError`), and not `Host`,
+like SwiitKit's public types (`SwiitObject`, `SwiitError`), and not `Host`,
 because Foundation already has a `Host` (`NSHost`) that an embedder importing
 both would trip over.
 
@@ -171,7 +171,7 @@ let n: Int = try level.as(Int.self)
 - **Errors are values.** `eval` throws a `Diagnostic` with kind (syntax, type,
   runtime), message, file and line. Column is added when the parser tracks it.
 - **Registered functions** are typed by Swift generics: parameters convert
-  through SwishKit's existing rules, and a script sees a normal Swish function
+  through SwiitKit's existing rules, and a script sees a normal Swish function
   with the labels given. A wrong argument is the usual type error.
 - **`eval` is blocking and runs on an internal large-stack thread,** so the
   embedder needs no stack setup. An `Interpreter` is used from one thread at a
@@ -198,7 +198,7 @@ from a README and mailing-list summaries.
 - *Isolation:* a `lua_State` holds all state and the library has no globals,
   as instances here do.
 - *The stack API* exists to bridge garbage collection and static typing in C.
-  `Value` and `SwishConvertible` closures are the Swift equivalent. What is
+  `Value` and `SwiitConvertible` closures are the Swift equivalent. What is
   missing is the lowest level, an untyped variadic closure over `[Value]`.
 - *Memory limits* come from `lua_newstate(f, ud)` routing every allocation
   through the host. A Swift host has no such hook, so memory stays unlimited
@@ -440,7 +440,7 @@ shell working.
    line for a type error) are public. `eval` returns the last expression's
    value on a large-stack thread (`onLargeStack`, moved from the shell);
    `set` takes a `Value` or an `Encodable`; `register` takes a Swift closure
-   of any arity whose parameters and result are `SwishConvertible` (parameter
+   of any arity whose parameters and result are `SwiitConvertible` (parameter
    packs), with optional argument labels, plus a `Void` form; `cancel()` asks a
    run to stop from any thread. Limits are steps (statements and calls), call
    depth, time and output bytes, counted from each `eval`; a limit is a
@@ -450,7 +450,7 @@ shell working.
    what else to make public is decided with the first embedder. Not done:
    `loadModule` (a script importing another) and per-instance host types, which
    is step 7.
-6. **Host objects with dynamic members:** a `SwishObject` can assign its
+6. **Host objects with dynamic members:** a `SwiitObject` can assign its
    members and say their types, so a host registers an object whose members are
    computed (`env`, `jobs`, JSON) and the checker types them. This retires the
    `env` special cases ([boundaries.md](boundaries.md)) and is the feature the
@@ -478,7 +478,7 @@ shell working.
    `PlainDynamic`, `Awaiting` and the protocol public, and the handle protocol
    `Awaiting` stands in for.
 7. **Host types:** per-instance registry layered over the standard one, so a
-   host can register a type, not only functions; `@SwishExport` usable in
+   host can register a type, not only functions; `@SwiitExport` usable in
    process.
 8. **Documentation, an example package, and a CI check** that the core target
    builds without the shell. (The check that no core file reaches the operating
@@ -500,7 +500,7 @@ output goes to the sink; the core builds on Linux with no shell target.
   `shell.context`, `shell.declaredCase`, `shell.reportItemError`. Renaming
   regenerates all bridges, which hits the bootstrap deadlock; the workaround
   is known.
-- **`ShellContext` in SwishKit** is named for the shell and lent to library
+- **`HostContext` in SwiitKit** is named for the shell and lent to library
   functions. It becomes the host's context. It's pre-v1, so renaming it is
   allowed, and the plugin ABI number isn't bumped.
 - **Stack depth.** An internal thread solves it for `eval`, but a registered

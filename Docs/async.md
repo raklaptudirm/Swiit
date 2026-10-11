@@ -389,8 +389,8 @@ the task context's output and the `suspend` function sit.)
 6. **Output and the terminal.** A background Swish task's output is kept on
    its job, as `async $(…)`'s is, unless it prints; a background task reading
    the terminal waits until it's brought forward with `await`, as a program
-   is stopped; plugins get a "wait without the lock" helper in SwishKit.
-   *Done:* SwishKit's `Waiting` is the helper: `whileWaiting` runs a wait
+   is stopped; plugins get a "wait without the lock" helper in SwiitKit.
+   *Done:* SwiitKit's `Waiting` is the helper: `whileWaiting` runs a wait
    with the lock let go, and `forInput` a read of the input when it's the
    task's turn. The host behind it is per thread, set by the core while a
    thread runs Swish code (`withMainTask`, a task's thread); with none, the

@@ -1,4 +1,4 @@
-import SwishKit
+import SwiitKit
 
 /// A host object whose members aren't declared one by one: `env`, whose
 /// members are the process's variables. Reading a member or indexing by a
@@ -9,7 +9,7 @@ import SwishKit
 /// It is a reference: assigning through a `let` binding is allowed, as with a
 /// class in Swift. (A registered object is the Lua userdata with `__index` and
 /// `__newindex`; the same feature serves JSON as a real type.)
-@_spi(Host) public protocol DynamicObject: SwishObject {
+@_spi(Host) public protocol DynamicObject: SwiitObject {
     /// What reading any member, or indexing by a String, gives.
     var readType: TypeAnnotation { get }
     /// What assigning to a member takes; nil removes it, if that makes sense.

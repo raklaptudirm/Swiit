@@ -142,9 +142,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     }
     for parameter in allGenerics where generics[parameter] == nil { generics[parameter] = [] }
 
-    // A parameter of type ShellContext is lent by the shell: not Swish's.
+    // A parameter of type HostContext is lent by the shell: not Swish's.
     func isContext(_ parameter: Parameter) -> Bool {
-        if case .named("ShellContext", []) = parameter.type { return true }
+        if case .named("HostContext", []) = parameter.type { return true }
         return false
     }
     var parameters: [(Parameter, SType)] = []
@@ -187,9 +187,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let parameterCode = parameters.map { parameter, type in
         // In the order `Parameter` declares them.
         // `@Rest` on an array: Swish's variadic parameter, of the element's type.
-        var swishType = type
-        if parameter.isRest, case .array(let element) = type { swishType = element }
-        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(swishType))"]
+        var swiitType = type
+        if parameter.isRest, case .array(let element) = type { swiitType = element }
+        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(swiitType))"]
         if parameter.isRest { fields.append("variadic: true") }
         let literal = parameter.defaultText.flatMap(literalDefault)
         if let literal { fields.append("defaultValue: \(literal)") }

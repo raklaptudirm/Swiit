@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// A type, as written in a declaration and as the checker works it out.
 @_spi(Layer) public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {

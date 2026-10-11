@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 @_spi(Host) public struct RuntimeError: Error, CustomStringConvertible {
     @_spi(Host) public let description: String

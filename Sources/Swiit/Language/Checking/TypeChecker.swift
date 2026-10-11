@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// A mistake in types, found before anything runs: the statement (or, in a
 /// script, the whole script) doesn't run. See Docs/Design/types.md.
@@ -213,7 +213,7 @@ import SwishKit
 
 /// A host object the checker types without knowing its class: `Job`, an
 /// imported module. Its members' types come from `Interpreter.objectMembers`.
-@_spi(Layer) public protocol CheckedObject: SwishObject {
+@_spi(Layer) public protocol CheckedObject: SwiitObject {
     var checkedType: TypeAnnotation { get }
     /// Whether a name bound to it is a module, whose members are looked up
     /// in the value.

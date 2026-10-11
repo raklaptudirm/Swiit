@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 extension Parser {
     /// What starts a statement and isn't an expression: `if`, `for`,

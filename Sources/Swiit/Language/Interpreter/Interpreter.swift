@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
@@ -69,7 +69,7 @@ public final class Interpreter {
     @_spi(Host) public var statementFinished: StatementObserver?
     /// What library functions that ask for it are lent, if the host lends its
     /// own (`context` otherwise makes one from the output and the display).
-    @_spi(Host) public var contextProvider: (() -> ShellContext)?
+    @_spi(Host) public var contextProvider: (() -> HostContext)?
 
     /// What bounds a run (steps, depth, time, output), counted from the start
     /// of each `eval`.

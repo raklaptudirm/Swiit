@@ -1,5 +1,5 @@
 import Foundation
-import SwishKit
+import SwiitKit
 import SystemPackage
 
 /// Swift's own types and members, as Swish sees them: read from the
@@ -10,7 +10,7 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 @_spi(Host) public enum Bridge {
     /// The bridged types, by the name Swish writes them with.
-    @_spi(Host) public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swishKit + foundation + concurrency).map {
+    @_spi(Host) public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency).map {
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []))
     })
 
@@ -54,7 +54,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-@_spi(Host) public final class BridgedTypeName: SwishObject, @unchecked Sendable {
+@_spi(Host) public final class BridgedTypeName: SwiitObject, @unchecked Sendable {
     @_spi(Host) public let name: String
     @_spi(Host) public init(_ name: String) { self.name = name }
     @_spi(Host) public var typeName: String { "type" }
