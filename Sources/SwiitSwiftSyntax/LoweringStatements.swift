@@ -36,6 +36,7 @@ extension Lowering {
 
     private mutating func statementNode(_ stmt: StmtSyntax) throws -> Statement {
         if let node = stmt.as(ExpressionStmtSyntax.self) { return try expressionStatement(node.expression) }
+        if let node = stmt.as(ThrowStmtSyntax.self) { return .throwStatement(try expression(node.expression)) }
         if let node = stmt.as(ReturnStmtSyntax.self) {
             guard leaving.function > 0 else { throw SyntaxError("'return' outside a function (line \(line(of: node)))") }
             return .returnStatement(try node.expression.map { try expression($0) })
@@ -135,19 +136,22 @@ extension Lowering {
 
     private mutating func doCatch(_ node: DoStmtSyntax) throws -> Statement {
         let body = try block(node.body.statements)
-        guard node.catchClauses.count <= 1 else { throw unsupported("more than one 'catch'", node) }
-        guard let clause = node.catchClauses.first else { return .doCatch(body: body, errorName: "error", handler: nil) }
-        var name = "error"
-        if let item = clause.catchItems.first {
-            guard clause.catchItems.count == 1, item.whereClause == nil, let binding = item.pattern?.as(ValueBindingPatternSyntax.self),
-                  let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else {
-                throw unsupported("this 'catch' pattern", clause)
+        var clauses: [SwitchCase] = []
+        for clause in node.catchClauses {
+            guard clause.catchItems.count <= 1 else { throw unsupported("a 'catch' of several patterns", clause) }
+            locals.append([])
+            defer { locals.removeLast() }
+            guard let item = clause.catchItems.first else {
+                bind("error")
+                clauses.append(SwitchCase(patterns: [], body: try block(clause.body.statements, scoped: false)))
+                continue
             }
-            name = identifier.identifier.text
+            guard let syntax = item.pattern else { throw unsupported("this 'catch'", clause) }
+            let caught = try pattern(syntax)
+            let guardExpr = try item.whereClause.map { try expression($0.condition) }
+            clauses.append(SwitchCase(patterns: [caught], guardExpr: guardExpr, body: try block(clause.body.statements, scoped: false)))
         }
-        locals.append([name])
-        defer { locals.removeLast() }
-        return .doCatch(body: body, errorName: name, handler: try block(clause.body.statements, scoped: false))
+        return .doCatch(body: body, clauses: clauses)
     }
 
     // MARK: Switch and patterns
@@ -178,12 +182,22 @@ extension Lowering {
         return SwitchStatement(subject: subject, cases: cases)
     }
 
-    mutating func pattern(_ pattern: PatternSyntax) throws -> Pattern {
+    mutating func pattern(_ pattern: PatternSyntax, mutable: Bool? = nil) throws -> Pattern {
         if pattern.is(WildcardPatternSyntax.self) { return .wildcard }
-        if let binding = pattern.as(ValueBindingPatternSyntax.self) {
-            guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { throw unsupported("this pattern", pattern) }
+        // `is Oops`.
+        if let node = pattern.as(IsTypePatternSyntax.self) { return .isType(try type(node.type)) }
+        // `x` under `let`: what it binds.
+        if let mutable, let identifier = pattern.as(IdentifierPatternSyntax.self) {
             bind(identifier.identifier.text)
-            return .binding(name: identifier.identifier.text, mutable: binding.bindingSpecifier.tokenKind == .keyword(.var))
+            return .binding(name: identifier.identifier.text, mutable: mutable)
+        }
+        if let binding = pattern.as(ValueBindingPatternSyntax.self) {
+            return try self.pattern(binding.pattern, mutable: binding.bindingSpecifier.tokenKind == .keyword(.var))
+        }
+        // `let e as Oops`, `_ as Int`.
+        if let node = pattern.as(ExpressionPatternSyntax.self), let cast = node.expression.as(AsExprSyntax.self),
+           cast.questionOrExclamationMark == nil {
+            return .cast(try castOperand(cast.expression, mutable: mutable), try type(cast.type))
         }
         if let node = pattern.as(ExpressionPatternSyntax.self) { return try expressionPattern(node.expression) }
         throw unsupported("this pattern", pattern)
@@ -202,6 +216,17 @@ extension Lowering {
             return .enumCase(type: member.base.map { $0.trimmedDescription }, name: member.declName.baseName.text, arguments: nil)
         }
         return .expression(try expression(expr))
+    }
+
+    /// What a cast pattern casts: `e` under `let`, `_`, or another pattern.
+    private mutating func castOperand(_ expr: ExprSyntax, mutable: Bool?) throws -> Pattern {
+        if let binding = expr.as(PatternExprSyntax.self) { return try pattern(binding.pattern, mutable: mutable) }
+        if expr.is(DiscardAssignmentExprSyntax.self) { return .wildcard }
+        if let mutable, let reference = expr.as(DeclReferenceExprSyntax.self) {
+            bind(reference.baseName.text)
+            return .binding(name: reference.baseName.text, mutable: mutable)
+        }
+        return try expressionPattern(expr)
     }
 
     private mutating func argumentPattern(_ expr: ExprSyntax) throws -> Pattern {

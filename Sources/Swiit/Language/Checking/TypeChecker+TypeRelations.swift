@@ -14,6 +14,8 @@ extension TypeChecker {
         case (.dictionary(let ak, let av), .dictionary(let bk, let bv)): return fits(ak, bk) && fits(av, bv)
         case (.generic(let a, let aa), .generic(let b, let ba)):
             return a == b && aa.count == ba.count && zip(aa, ba).allSatisfy { fits($0, $1) }
+        // An Error is any of the types that conform to it, as a protocol's type is.
+        case (.named(let a), .named("Error")) where conforms(.named(a), to: "Error"): return true
         // A host type with what it holds is one of that type: a `Job<Int>` is a `Job`.
         case (.generic(let a, _), .named(let b)) where a == b && interpreter.objectMembers[a] != nil: return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
@@ -77,6 +79,8 @@ extension TypeChecker {
         case .keyPath: return proto == "Equatable" || proto == "Hashable"
         // Tuples compare with `==`, but aren't Hashable or Encodable, as in Swift.
         case .tuple(let elements): return proto == "Equatable" && elements.allSatisfy { conforms($0.type, to: proto) }
+        case .named("Error") where proto == "Error":
+            return true
         case .named(let name):
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
             let declared = structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? []

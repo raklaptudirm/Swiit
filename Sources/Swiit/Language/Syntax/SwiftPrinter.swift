@@ -58,13 +58,17 @@ import SwishKit
             return ["\(p)\(target) \(op) \(expression(assignment.value))"]
         case .function(let decl):
             return [p + function(decl, keyword: "func", indent: indent)]
-        case .doCatch(let body, let errorName, let handler):
+        case .doCatch(let body, let clauses):
             var text = "\(p)do \(block(body, indent: indent))"
-            if let handler {
-                text += errorName == "error" ? " catch " : " catch let \(errorName) "
-                text += block(handler, indent: indent)
+            for clause in clauses {
+                text += " catch "
+                if let pattern = clause.patterns.first { text += self.pattern(pattern) + " " }
+                if let guardExpr = clause.guardExpr { text += "where \(expression(guardExpr)) " }
+                text += block(clause.body, indent: indent)
             }
             return [text]
+        case .throwStatement(let value):
+            return ["\(p)throw \(expression(value))"]
         case .enumDecl(let decl):
             return [enumeration(decl, indent: indent)]
         case .structDecl(let decl):
@@ -221,6 +225,8 @@ import SwishKit
                 }.joined(separator: ", ") + ")"
             } ?? "")
         case .expression(let expr): expression(expr)
+        case .cast(let inner, let type): "\(self.pattern(inner)) as \(type)"
+        case .isType(let type): "is \(type)"
         }
     }
 

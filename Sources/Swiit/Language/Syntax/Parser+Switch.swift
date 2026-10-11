@@ -82,6 +82,26 @@ extension Parser {
     /// it bind rather than refer: `let .failed(code)`.
     @_spi(Shell) public mutating func parsePattern(binding: Bool = false, mutable: Bool = false) throws(SyntaxError) -> Pattern {
         skipSpaces()
+        // `is Oops`: a value of the type.
+        if identifier() == "is" {
+            keyword("is")
+            skipSpaces()
+            return .isType(try parseType())
+        }
+        let pattern = try parsePlainPattern(binding: binding, mutable: mutable)
+        // `let e as Oops`, `_ as Int`: matched as a value of the type.
+        let beforeCast = (pos, spans.count)
+        skipSpaces()
+        guard identifier() == "as" else {
+            rewind(to: beforeCast)
+            return pattern
+        }
+        keyword("as")
+        skipSpaces()
+        return .cast(pattern, try parseType())
+    }
+
+    private mutating func parsePlainPattern(binding: Bool, mutable: Bool) throws(SyntaxError) -> Pattern {
         if let word = identifier(), word == "let" || word == "var" {
             keyword(word)
             return try parsePattern(binding: true, mutable: word == "var")

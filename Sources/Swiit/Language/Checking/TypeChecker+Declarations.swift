@@ -100,8 +100,10 @@ extension TypeChecker {
             return true
         case .breakStatement, .continueStatement:
             return orExits
-        case .doCatch(let body, _, let handler):
-            return leaves(body) && handler.map(leaves) ?? true
+        case .doCatch(let body, let clauses):
+            return leaves(body) && clauses.allSatisfy { leaves($0.body) }
+        case .throwStatement:
+            return true
         case .ifStatement(let node):
             guard let otherwise = node.otherwise else { return false }
             return leaves(node.then) && leaves(otherwise)
@@ -166,7 +168,7 @@ extension TypeChecker {
             if proto == "Comparable" { throw TypeError("\(decl.name) can't be Comparable yet: it would need a '<' of its own") }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swish has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
-            guard proto != "CustomStringConvertible" else { continue }
+            guard !TypeChecker.askNothingOfMembers.contains(proto) else { continue }
             // Tabular isn't made from the fields: it asks for a static member.
             if proto == "Tabular" {
                 guard let columns = decl.staticProperties.first(where: { $0.name == "columns" }),
@@ -227,13 +229,17 @@ extension TypeChecker {
         }
     }
 
+    /// Protocols a type conforms to by saying so, whatever its members are:
+    /// it describes itself, or can be thrown.
+    @_spi(Shell) public static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error"]
+
     @_spi(Shell) public func enumInfo(_ decl: EnumDecl) -> EnumInfo {
         EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,
                  conformances: decl.conformances)
     }
 
     @_spi(Shell) public func checkEnum(_ decl: inout EnumDecl) throws {
-        for proto in decl.conformances where proto != "CustomStringConvertible" {
+        for proto in decl.conformances where !TypeChecker.askNothingOfMembers.contains(proto) {
             if proto == "Tabular" { throw TypeError("\(decl.name) can't be Tabular: only a struct can, as a table is made of records") }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swish has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }

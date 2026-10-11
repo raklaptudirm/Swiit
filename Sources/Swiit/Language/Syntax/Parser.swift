@@ -59,9 +59,9 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
         "let", "var", "if", "else", "true", "false", "nil",
         "for", "in", "while", "func", "return", "break", "continue", "try", "do", "catch",
         "async", "await", "enum", "switch", "case", "default", "fallthrough", "import", "struct", "throws",
-        "as", "is", "defer", "guard",
+        "as", "is", "defer", "guard", "throw",
     ]
-    @_spi(Shell) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard"]
+    @_spi(Shell) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard", "throw"]
     /// The keywords a line can begin with: a statement's, a unit's
     /// (`if make { … }`), or an expression's (`await job`). Completion
     /// offers them where a command could go.

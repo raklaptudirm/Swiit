@@ -41,8 +41,12 @@ import SwishKit
             rewritten = .assign(assignment)
         case .function(let decl):
             rewritten = .function(function(decl))
-        case .doCatch(let body, let errorName, let handler):
-            rewritten = .doCatch(body: program(body), errorName: errorName, handler: block(handler))
+        case .doCatch(let body, let clauses):
+            rewritten = .doCatch(body: program(body), clauses: clauses.map { clause in
+                SwitchCase(patterns: clause.patterns.map(pattern), guardExpr: clause.guardExpr.map(expression), body: program(clause.body))
+            })
+        case .throwStatement(let value):
+            rewritten = .throwStatement(expression(value))
         case .enumDecl(var decl):
             decl.cases = decl.cases.map { enumCase in
                 var copy = enumCase
@@ -134,6 +138,8 @@ import SwishKit
                 arguments.map { PatternArgument(label: $0.label, pattern: pattern($0.pattern)) }
             })
         case .expression(let inner): .expression(expression(inner))
+        case .cast(let inner, let type): .cast(pattern(inner), type)
+        case .isType: value
         }
     }
 

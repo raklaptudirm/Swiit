@@ -123,18 +123,21 @@ extension Interpreter {
             return
         // What runs inside these says how they went, and a body that doesn't
         // run leaves them as a statement that did nothing.
-        case .doCatch(let body, let errorName, let handler):
+        case .doCatch(let body, let clauses):
             statementFinished?(statement, nil, false)
             do {
                 try runBlock(body)
             } catch let error as RuntimeError {
-                guard let handler else { throw error }
-                try runBlock(handler, declaring: [errorName: Binding(value: error.value, mutable: false)])
+                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error") else { throw error }
+                try runBlock(clauses[index].body, declaring: bindings)
             } catch let reported as AlreadyReported {
-                guard let handler else { throw reported }
-                try runBlock(handler, declaring: [errorName: Binding(value: reported.error.value, mutable: false)])
+                guard let (index, bindings) = try firstMatch(clauses, reported.error.value, anyName: "error") else { throw reported }
+                try runBlock(clauses[index].body, declaring: bindings)
             }
             return
+        case .throwStatement(let expr):
+            let value = try evaluate(expr)
+            throw RuntimeError(value.description, thrown: value)
         case .ifStatement(let node):
             statementFinished?(statement, nil, false)
             let (branch, bindings) = try chooseBranch(node)

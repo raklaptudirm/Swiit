@@ -18,7 +18,7 @@ extension Interpreter {
 
     /// What a task that was asked to stop throws, from `Task.checkCancellation()`
     /// or `Task.sleep`.
-    struct CancellationError {
+    struct CancellationError: Error {
         let localizedDescription: String
     }
 

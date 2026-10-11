@@ -24,9 +24,13 @@ import SwishKit
     /// `x = v`, `p.x += 1`, `xs[0] = v`.
     case assign(Assignment)
     case function(FunctionDecl)
-    /// `do { … } catch { … }`: a runtime error in the body runs the
-    /// handler with `error` (or the name given) bound to it.
-    case doCatch(body: Program, errorName: String, handler: Program?)
+    /// `do { … } catch Oops.bad { … } catch let e as Oops { … } catch { … }`:
+    /// an error from the body runs the first clause whose pattern (and
+    /// `where`) matches it, as a switch's cases do; a clause without a
+    /// pattern matches any, binding `error`. An error none matches goes on.
+    case doCatch(body: Program, clauses: [SwitchCase])
+    /// `throw Oops(code: 2)`: an Error, which the nearest matching `catch` gets.
+    case throwStatement(Expr)
     case enumDecl(EnumDecl)
     case structDecl(StructDecl)
     /// `extension Sequence { func filter(…) … }`: the prelude's methods of
@@ -183,6 +187,20 @@ extension Statement {
     case enumCase(type: String?, name: String, arguments: [PatternArgument]?)
     /// A value to compare with, or a range to be in: `3`, `"a"`, `1...9`.
     case expression(Expr)
+    /// `let e as Oops`, `_ as Int`: a value of that type, matched as one.
+    case cast(Pattern, TypeAnnotation)
+    /// `is Oops`: a value of that type.
+    case isType(TypeAnnotation)
+}
+
+extension Pattern {
+    /// Whether it matches every value: `_`, `let e`.
+    @_spi(Shell) public var catchesAll: Bool {
+        switch self {
+        case .wildcard, .binding: true
+        default: false
+        }
+    }
 }
 
 @_spi(Shell) public struct PatternArgument: Equatable, Sendable {

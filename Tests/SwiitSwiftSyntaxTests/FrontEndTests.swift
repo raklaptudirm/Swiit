@@ -42,6 +42,8 @@ private let programs: [(name: String, source: String)] = [
     ("casts", "let x: Any = 1; let a = x as? Int; let b = x is String; let c = x as! Int"),
     ("do and catch", "do { let a = 1 / 1 } catch { let m = 1 }\ndo { let a = 1 } catch let e { let m = e }"),
     ("defer", "func f() { defer { let a = 1 }; let b = 2 }"),
+    ("throw and catch clauses", "struct Oops: Error { let code: Int }\nenum Bad: Error { case input, network(code: Int) }\nfunc f() throws { throw Oops(code: 1) }\ndo { try f() } catch let e as Oops where e.code > 0 { let a = e.code } catch is Oops { let b = 1 } catch Bad.network(let code) { let c = code } catch { let d = error }"),
+    ("cast patterns in a switch", "let x: Any = 1\nswitch x {\ncase let n as Int: let a = n\ncase _ as String: let b = 1\ncase is Double: let c = 2\ndefault: let d = 3\n}"),
     ("key paths", "struct P { var x: Int }\nlet ps = [P(x: 2), P(x: 1)]\nlet s = ps.sorted(by: \\.x)"),
     ("conditional expression", "let n = 3; let s = n > 2 ? \"big\" : \"small\"; let t = if n > 1 { 1 } else { 2 }"),
     ("nested blocks", "func f(_ n: Int) -> Int {\n    var total = 0\n    for i in 0..<n {\n        if i % 2 == 0 {\n            total += i\n        } else {\n            continue\n        }\n    }\n    return total\n}\nlet r = f(10)"),

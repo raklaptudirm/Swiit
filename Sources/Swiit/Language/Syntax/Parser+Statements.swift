@@ -58,6 +58,9 @@ extension Parser {
             return .returnStatement(try parseExpression())
         case "do":
             return try parseDoCatch()
+        case "throw":
+            keyword("throw")
+            return .throwStatement(try parseExpression())
         case "break":
             guard loopDepth > 0 || switchDepth > 0 else { throw SyntaxError("'break' outside a loop or switch") }
             keyword("break")
@@ -196,30 +199,44 @@ extension Parser {
         text.enumerated().allSatisfy { peek($0.offset) == $0.element }
     }
 
-    /// `do { … }`, optionally `catch { … }` or `catch let name { … }`.
+    /// `do { … }`, then any number of `catch pattern where condition { … }`,
+    /// the last maybe a bare `catch { … }`, which binds `error`.
     @_spi(Shell) public mutating func parseDoCatch() throws(SyntaxError) -> Statement {
         keyword("do")
         skipSpaces()
         let body = try parseBlock()
-        let afterBody = (pos, spans.count)
-        skipSpaces(newlines: true)
-        guard identifier() == "catch" else {
-            rewind(to: afterBody)
-            return .doCatch(body: body, errorName: "error", handler: nil)
-        }
-        keyword("catch")
-        skipSpaces()
-        var name = "error"
-        if identifier() == "let" {
-            keyword("let")
+        var clauses: [SwitchCase] = []
+        while true {
+            let afterClause = (pos, spans.count)
+            skipSpaces(newlines: true)
+            guard identifier() == "catch" else {
+                rewind(to: afterClause)
+                break
+            }
+            keyword("catch")
             skipSpaces()
-            let nameStart = pos
-            name = try parseName(after: "'let'")
-            mark(.variable, from: nameStart)
+            guard peek() != "{" else {
+                clauses.append(SwitchCase(patterns: [], body: try parseBlock(declaring: ["error": .variable])))
+                continue
+            }
+            // A body's `{` ends the pattern, as it ends a condition.
+            conditionDepth += 1
+            let pattern = try parsePattern()
+            var names: [String: NameKind] = [:]
+            for name in Parser.names(boundBy: pattern) { names[name] = .variable }
+            scopes.append(names)
             skipSpaces()
+            var guardExpr: Expr?
+            if identifier() == "where" {
+                keyword("where")
+                guardExpr = try parseExpression()
+                skipSpaces()
+            }
+            scopes.removeLast()
+            conditionDepth -= 1
+            clauses.append(SwitchCase(patterns: [pattern], guardExpr: guardExpr, body: try parseBlock(declaring: names)))
         }
-        let handler = try parseBlock(declaring: [name: .variable])
-        return .doCatch(body: body, errorName: name, handler: handler)
+        return .doCatch(body: body, clauses: clauses)
     }
 
     /// Whether a statement can start at `index`: only blanks since the
@@ -231,14 +248,15 @@ extension Parser {
     }
 
     /// The protocols a type can conform to, for now all builtin.
-    @_spi(Shell) public static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular"]
+    @_spi(Shell) public static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error"]
 
     /// The names a pattern binds.
     @_spi(Shell) public static func names(boundBy pattern: Pattern) -> [String] {
         switch pattern {
         case .binding(let name, _): [name]
         case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
-        case .wildcard, .expression: []
+        case .cast(let inner, _): names(boundBy: inner)
+        case .wildcard, .expression, .isType: []
         }
     }
 

@@ -258,6 +258,14 @@ extension Interpreter {
             if case .record(let record) = value, let field = record[name] { return field }
             return .string(name == "description" ? value.description : value.debugDescription)
         }
+        // What every Error says of itself, unless its type says otherwise: its
+        // value, as Swift's describes an error it has no message for.
+        if name == "localizedDescription", isError(value) {
+            if case .record(let record) = value, let field = record[name] { return field }
+            if case .record(let record) = value, let type = structType(of: record),
+               let found = try structMember(name, of: record, type) { return found }
+            return .string(value.description)
+        }
         // `pair.1`: a tuple's element by position, labeled or not.
         if case .record(let record) = value, record.typeName == nil, record[name] == nil,
            let position = Int(name), position >= 0, position < record.count {

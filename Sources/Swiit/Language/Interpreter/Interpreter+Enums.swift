@@ -117,6 +117,8 @@ extension Interpreter {
             if case .record(let record) = value, record.typeName == name, structType(named: name) != nil {
                 return value
             }
+            // An Error is any value whose type conforms to it.
+            if name == "Error", isError(value) { return value }
             guard case .enumValue(let enumValue) = value, let expected = enumType(named: name),
                   enumValue.type === expected else { return nil }
             return value
@@ -198,19 +200,35 @@ extension Interpreter {
             }
             if case .object = value, let text = value.text { return Value.string(text).isEqual(to: expected) }
             return value.isEqual(to: expected)
+        case .cast(let inner, let type):
+            guard let converted = conform(value, to: type) else { return false }
+            return try match(inner, converted, into: &bindings)
+        case .isType(let type):
+            return conform(value, to: type) != nil
         }
     }
 
-    /// Runs a switch: the first case whose pattern (and `where`) matches,
-    /// then on through `fallthrough`. No match is an error: Swift checks a
-    /// switch covers everything when compiling; Swish can only check here.
-    @_spi(Shell) public func runSwitch(_ node: SwitchStatement) throws {
-        let subject = try evaluate(node.subject)
-        var start: (index: Int, bindings: [String: Binding])?
-        search: for (index, switchCase) in node.cases.enumerated() {
+    /// Whether a value is an Error: of a struct or enum declared `: Error`, or
+    /// what the interpreter throws (`Error`, `CancellationError`).
+    @_spi(Shell) public func isError(_ value: Value) -> Bool {
+        switch value {
+        case .record(let record):
+            guard let name = record.typeName else { return false }
+            return name == "Error" || structType(named: name)?.conformances.contains("Error") == true
+        case .enumValue(let enumValue):
+            return enumConformances[ObjectIdentifier(enumValue.type)]?.contains("Error") == true
+        default:
+            return false
+        }
+    }
+
+    /// The first of `cases` whose pattern (and `where`) matches `subject`, and
+    /// what it binds; one without patterns matches anything, binding
+    /// `anyName` if given (a bare `catch` binds `error`).
+    @_spi(Shell) public func firstMatch(_ cases: [SwitchCase], _ subject: Value, anyName: String? = nil) throws -> (index: Int, bindings: [String: Binding])? {
+        for (index, switchCase) in cases.enumerated() {
             if switchCase.patterns.isEmpty {
-                start = (index, [:])
-                break
+                return (index, anyName.map { [$0: Binding(value: subject, mutable: false)] } ?? [:])
             }
             for pattern in switchCase.patterns {
                 var bindings: [String: Binding] = [:]
@@ -224,11 +242,18 @@ extension Interpreter {
                     }
                     guard pass else { continue }
                 }
-                start = (index, bindings)
-                break search
+                return (index, bindings)
             }
         }
-        guard let start else {
+        return nil
+    }
+
+    /// Runs a switch: the first case whose pattern (and `where`) matches,
+    /// then on through `fallthrough`. No match is an error: Swift checks a
+    /// switch covers everything when compiling; Swish can only check here.
+    @_spi(Shell) public func runSwitch(_ node: SwitchStatement) throws {
+        let subject = try evaluate(node.subject)
+        guard let start = try firstMatch(node.cases, subject) else {
             throw RuntimeError("switch over \(subject.description.isEmpty ? subject.typeName : subject.description) matched no case; add one, or a default")
         }
 

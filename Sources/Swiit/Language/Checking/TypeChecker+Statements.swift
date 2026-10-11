@@ -48,17 +48,36 @@ extension TypeChecker {
         case .extended(var box):
             try box.node.check(in: self)
             statement = .extended(box)
-        case .doCatch(var body, let errorName, var handler):
-            // A `do` with a `catch` handles what its body throws.
-            errorContexts.append(ErrorContext(handled: handler != nil || errorContexts.last!.handled,
+        case .doCatch(var body, var clauses):
+            // It handles what its body throws if a clause catches anything.
+            let catchesAll = clauses.contains { $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll)) }
+            errorContexts.append(ErrorContext(handled: catchesAll || errorContexts.last!.handled,
                                               boundary: errorContexts.last!.boundary))
             try checkBlock(&body, newScope: true)
             errorContexts.removeLast()
-            if var caught = handler {
-                try checkBlock(&caught, declaring: [errorName: .variable(.named("Error"), mutable: false)], newScope: true)
-                handler = caught
+            for index in clauses.indices {
+                var bound: [String: Symbol] = [:]
+                if clauses[index].patterns.isEmpty {
+                    bound["error"] = .variable(.named("Error"), mutable: false)
+                } else {
+                    try checkPattern(&clauses[index].patterns[0], against: .named("Error"), binding: &bound)
+                }
+                scopes.append(bound)
+                defer { scopes.removeLast() }
+                if clauses[index].guardExpr != nil {
+                    try expect(&clauses[index].guardExpr!, .bool, "a catch's 'where'")
+                }
+                try checkBlock(&clauses[index].body, newScope: true)
             }
-            statement = .doCatch(body: body, errorName: errorName, handler: handler)
+            statement = .doCatch(body: body, clauses: clauses)
+        case .throwStatement(var value):
+            let type = try typeOf(&value)
+            guard conforms(type, to: "Error") else {
+                throw TypeError("only an Error can be thrown, and \(type) isn't one: declare it ': Error'")
+            }
+            throwingSites += 1
+            try checkHandled("throw")
+            statement = .throwStatement(value)
         case .enumDecl(var decl):
             try checkEnum(&decl)
             statement = .enumDecl(decl)
@@ -223,6 +242,12 @@ extension TypeChecker {
         case .enumCase(let typeName, let name, var arguments):
             var subject = type
             if case .optional(let wrapped) = subject { subject = wrapped }
+            // `catch Bad.input`: an Error matched as the enum named, if it is one.
+            if subject == .named("Error") {
+                guard let typeName else { throw TypeError("an error could be of any type: write the enum's name, as in Kind.\(name)") }
+                guard conforms(.named(typeName), to: "Error") else { throw TypeError("\(typeName) isn't an Error, so no error is one of its cases") }
+                subject = .named(typeName)
+            }
             if subject == .unknown {
                 for index in (arguments ?? []).indices {
                     try checkPattern(&arguments![index].pattern, against: .unknown, binding: &bound)
@@ -258,6 +283,11 @@ extension TypeChecker {
                 throw TypeError("a \(valueType) can't match a \(type)")
             }
             pattern = .expression(expr)
+        case .cast(var inner, let target):
+            try checkPattern(&inner, against: target, binding: &bound)
+            pattern = .cast(inner, target)
+        case .isType:
+            break
         }
     }
 }
