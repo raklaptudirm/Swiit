@@ -104,6 +104,27 @@ last stage, and mechanical by then.
      with a deprecation period.
    - Check that "Swiit" is free as a GitHub organization or repository name
      and on the Swift Package Index before anything is published.
+   *Done* (2026-10-11), with these decisions:
+   - The standard library split by owner: what the interpreter bridges or uses
+     is `SwiitStandardLibrary` (`Flow`, the `Date`, `FilePath` and `Sequence`
+     extensions, `TextStyle`); `DisplayFormatter` and `PrettyPrinter`, the
+     terminal's layout of values, moved to the shell's `SwishShellLibrary`.
+   - `SwiitKit` is the kit's package, module, macros (`@SwiitExport`,
+     `@SwiitObject`) and types (`SwiitObject`, `SwiitError`,
+     `SwiitConvertible`, `SwiitDisplayed`, `SwiitEnum`, `SwiitValue`;
+     `HostContext`). It keeps the old type and macro names, deprecated, and
+     `Packages/SwishKit` is a package of the old name that re-exports it, so a
+     plugin written against SwishKit builds unchanged, manifest included (the
+     example plugin does, and a test keeps it so). A protocol requirement
+     implemented by hand is the one thing that must be renamed.
+   - The core's own: `SwiitHost`, which names the program errors are reported
+     under (`swiit:` by default, `swish:` in the shell); `FunctionBody.swiit`;
+     the comments and messages that mean the language say Swiit.
+   - The name: the GitHub account `swiit` is taken (a user since 2013, with no
+     public repositories), so the repository needs another owner, the
+     author's own or an organization of another name; a few unrelated small
+     repositories are called Swiit. The Swift Package Index has no package of
+     the name.
 5. **Stand-alone build and CI, still in this repository.**
    - `swift test --package-path Packages/Swiit` already runs alone.
    - Its CI job also builds and tests with no path outside `Packages/` (no
