@@ -138,9 +138,10 @@ is opaque to the interpreter, which only carries it in the `Interrupted` error
 so whoever asked can read it back (the shell's is the signal number, so it can
 end by that signal); the core has no idea what a signal is.
 
-**What the core still can't do without the shell** is not on the host. It is an
-internal, temporary `ShellLayer` the interpreter holds optionally, which an
-embedder never sees or implements. Without one, `env` reads as empty and can't
+**What the core still can't do without the shell** was not on the host. It was
+an internal, temporary `ShellLayer` the interpreter held optionally, which an
+embedder never saw or implemented; it is gone now, each entry having exited
+(boundaries.md). The history: Without one, `env` reads as empty and can't
 be set, and commands, `$(…)` and jobs are refused with a plain error. Each
 entry is a leak with a named exit:
 

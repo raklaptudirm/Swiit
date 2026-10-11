@@ -87,6 +87,18 @@ of the embedding plan, once step 3b has given the parser a way to plug them in
 
 ## The ledger: transgressors and their exits
 
+**The ledger is empty, and `ShellLayer` is deleted.** The last groups exited
+together: `commands` (`commandFunctions(named:)` is the shell's lookup now),
+`plugin` (`import` desugars to the shell's `importPlugin`, which loads the
+dylib itself), `history` (the core lends library functions the host's
+`ShellContext` if it gives one, `contextProvider`, and the shell's carries
+its history), `status` (`lastStatus` and `lastSignalStatus` are the shell's,
+kept from `statementFinished`; deferred blocks don't report their statements,
+so cleaning up doesn't change a status), and `layer`, whose last entry,
+calling a prelude method as a Swift method (`xs.select(…)`), the core does
+itself (`callSequenceMethod`). The core names nothing of the shell's; the
+table below is the history of how it got there.
+
 *Step 3b update:* the `grammar` and `plugin` groups no longer appear in the
 checked files (71 uses across 29 entries now): the core's tree, checker and
 interpreter hold only opaque extension nodes, and the shell's grammar sits in
@@ -160,6 +172,7 @@ plan, when their shell half moves:
    two uses left are `lastStatus` kept for the host around deferred blocks.
 6. **Embedding steps 5 and 7**: `plugin`.
 
-The core is done when the ledger is empty and `ShellLayer` is deleted. Steps
+The core is done when the ledger is empty and `ShellLayer` is deleted: both
+are so. Steps
 2 and 4 are fixed by the embedding plan's order; the rest are ordered by what
 needs what, and can be taken in whichever order work reaches them.

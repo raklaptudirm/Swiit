@@ -30,11 +30,4 @@ extension Interpreter {
         capture.fallbacks = local.map { WeakScope(scope: $0) } + local.flatMap(\.fallbacks)
         return Array(scopes[..<2]) + [capture]
     }
-
-    /// The functions a command name refers to, if it was declared with `func`.
-    @_spi(Shell) public func commandFunctions(named name: String) -> OverloadSet? {
-        guard let binding = lookup(name), binding.isFunction,
-              case .function(let callable) = binding.value else { return nil }
-        return callable as? OverloadSet
-    }
 }

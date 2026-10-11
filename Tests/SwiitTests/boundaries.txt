@@ -9,13 +9,4 @@
 # No file here may reach the operating system directly (stdoutFD, getenv,
 # waitpid, …); that goes through SwishHost, and has no allowance.
 
-allow	Language/Interpreter/Interpreter+Expressions.swift	layer	1
-allow	Language/Interpreter/Interpreter+Scopes.swift	commands	1
-allow	Language/Interpreter/Interpreter+Statements.swift	status	2
-allow	Language/Interpreter/Interpreter.swift	layer	4
-allow	Language/Interpreter/Interpreter.swift	status	2
-allow	Bridge/Bridge+Conversions.swift	history	1
-allow	Host/ShellLayer.swift	layer	4
-allow	Host/ShellLayer.swift	history	1
-allow	Host/ShellLayer.swift	plugin	6
-allow	Host/Embedding/Embedding.swift	layer	1
+# Empty: the core names nothing of the shell's.

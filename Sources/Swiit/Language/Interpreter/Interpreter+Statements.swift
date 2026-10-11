@@ -69,9 +69,12 @@ extension Interpreter {
     }
 
     /// Deferred blocks, last first. One that fails is reported; the rest
-    /// still run, as nothing can leave a `defer`.
+    /// still run, as nothing can leave a `defer`. What they run isn't told to
+    /// the host: cleaning up doesn't change how the block went.
     @_spi(Shell) public func runDeferred(_ blocks: [Program]) {
-        let status = lastStatus
+        let observer = statementFinished
+        statementFinished = nil
+        defer { statementFinished = observer }
         for body in blocks.reversed() {
             do {
                 try runBlock(body)
@@ -81,7 +84,6 @@ extension Interpreter {
                 report("error: \(error)")
             }
         }
-        lastStatus = status
     }
 
     @_spi(Shell) public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {

@@ -84,7 +84,6 @@ extension Interpreter {
             OutputSink(write: { counter.add($0.utf8.count); return sink.write($0) }, traits: sink.traits)
         }
         self.init(host: SwishHost(output: counted(host.output), error: counted(host.error), interrupt: host.interrupt),
-                  shellLayer: nil,
                   outputCounter: counter)
         self.limits = limits
         installBuiltinFunctions()

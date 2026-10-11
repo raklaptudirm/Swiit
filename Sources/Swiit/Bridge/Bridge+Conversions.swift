@@ -77,9 +77,11 @@ import SystemPackage
 }
 
 extension Interpreter {
-    /// What a standard library function that asks for it is lent.
+    /// What a standard library function that asks for it is lent: the host's,
+    /// if it lends one (the shell's carries what was entered before), else
+    /// the output's traits and how values display.
     @_spi(Shell) public var context: ShellContext {
-        ShellContext(history: historyEntries, colorOutput: host.output.traits().styled, display: displayRegistryProvider())
+        contextProvider?() ?? ShellContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
     }
 }
 

@@ -4,15 +4,12 @@ import SwishKit
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
-/// the shell's constructs through a `shellLayer`, which is internal and
-/// temporary (Docs/Design/boundaries.md). The shell owns one.
+/// runs only Swift (a layer over it, like the shell, rewrites its own syntax
+/// first; Docs/Design/boundaries.md). The shell owns one.
 public final class Interpreter {
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     @_spi(Shell) public var host: SwishHost
 
-    /// What the core still can't do without the shell: the environment,
-    /// commands, jobs. Nil for an embedder, which is refused plainly.
-    @_spi(Shell) public var shellLayer: ShellLayer?
     /// What runs this interpreter, if it is more than an embedder's call: the
     /// shell, whose nodes reach it from here. Weak, as the owner holds the
     /// interpreter.
@@ -57,14 +54,12 @@ public final class Interpreter {
     @_spi(Shell) public var frontEnd: any SyntaxFrontEnd = HandWrittenFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     @_spi(Shell) public var file: String?
-    /// The status the last statement gave.
-    @_spi(Shell) public var lastStatus: Int32 = 0
     /// Told each simple statement as it finishes, for a host that keeps an
     /// exit status, as the shell does.
     @_spi(Shell) public var statementFinished: StatementObserver?
-    /// The status the last signal-killed command gave, to tell 130 from ^C
-    /// apart from a command that exited with 130.
-    @_spi(Shell) public var lastSignalStatus: Int32?
+    /// What library functions that ask for it are lent, if the host lends its
+    /// own (`context` otherwise makes one from the output and the display).
+    @_spi(Shell) public var contextProvider: (() -> ShellContext)?
 
     /// What bounds a run (steps, depth, time, output), counted from the start
     /// of each `eval`.
@@ -76,9 +71,8 @@ public final class Interpreter {
     /// Asks a run to stop, from any thread.
     @_spi(Shell) public let cancellation = Cancellation()
 
-    @_spi(Shell) public init(host: SwishHost, shellLayer: ShellLayer?, outputCounter: OutputCounter = OutputCounter()) {
+    @_spi(Shell) public init(host: SwishHost, outputCounter: OutputCounter = OutputCounter()) {
         self.host = host
-        self.shellLayer = shellLayer
         self.outputCounter = outputCounter
     }
 }

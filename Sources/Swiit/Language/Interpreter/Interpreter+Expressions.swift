@@ -101,7 +101,7 @@ extension Interpreter {
                 }
                 // `xs.sorted(by: "size")`: a sequence's method.
                 if let methods = sequenceMethods[name], let items = base.sequenceItems {
-                    return try commandAccess().callSequenceMethod(narrowed(methods, overload), items, arguments)
+                    return try callSequenceMethod(narrowed(methods, overload), on: items, arguments)
                 }
                 value = try member(name, of: base)
             } else {
