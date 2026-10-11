@@ -1,4 +1,3 @@
-@_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftSyntax
 import SwiitKit
 

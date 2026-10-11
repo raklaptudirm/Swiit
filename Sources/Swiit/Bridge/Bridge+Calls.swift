@@ -5,7 +5,7 @@ import SystemPackage
 extension Interpreter {
     /// Runs a bridged member: binds its arguments as a call binds them, and
     /// its glue does the rest.
-    @_spi(Swiit) public func runBridged(_ typeName: String, _ index: Int, receiver: Expr?, _ arguments: [Argument]) throws -> Value {
+    func runBridged(_ typeName: String, _ index: Int, receiver: Expr?, _ arguments: [Argument]) throws -> Value {
         guard let member = Bridge.types[typeName]?.members[index] else { throw RuntimeError("no bridged member #\(index) of \(typeName)") }
         let function = Function(name: member.name, parameters: member.parameters, returnType: nil, body: member.body)
         var bindings = try bind(arguments, to: function).bindings

@@ -112,14 +112,14 @@ extension TypeAnnotation {
 
     /// The annotation Swiit writes `name<arguments>` with, if it has one of
     /// its own: `Int`, `Array<Int>` as `[Int]`.
-    @_spi(Swiit) public static func spelled(_ name: String, _ arguments: [TypeAnnotation] = []) -> TypeAnnotation? {
+    static func spelled(_ name: String, _ arguments: [TypeAnnotation] = []) -> TypeAnnotation? {
         spelled.lazy.compactMap { $0.name == name ? $0.make(arguments) : nil }.first
     }
 
     /// The Swift type this annotation stands for, by name, with its generic
     /// arguments: `.int` is `Int`, `[String]` is `Array<String>`. The
     /// inverse of `spelled`; nil for one that doesn't name a type.
-    @_spi(Swiit) public var swiftType: (name: String, arguments: [TypeAnnotation])? {
+    var swiftType: (name: String, arguments: [TypeAnnotation])? {
         switch self {
         case .named(let name): return (name, [])
         case .generic(let name, let arguments): return (name, arguments)

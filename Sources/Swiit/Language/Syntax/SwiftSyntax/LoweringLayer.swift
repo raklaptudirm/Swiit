@@ -1,4 +1,3 @@
-@_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftSyntax
 import SwiitKit
 
@@ -107,7 +106,7 @@ extension Lowering {
 
     /// `xs | sorted`: the commands the plug-in reads after a `|` that follows a
     /// value, with the value lowered here; the unit and where it ends.
-    mutating func layerPipeline(input: Expr, start: Int, pipe: Int) throws -> (pipeline: Expr, end: Int)? {
+    mutating func layerPipeline(input: Expr, start: Int, pipe: Int) throws -> (expression: Expr, end: Int)? {
         guard let plugin else { return nil }
         var parser = cursor(at: pipe)
         let from = characterOf[start]
@@ -131,6 +130,6 @@ extension Lowering {
         let input = try expression(first.leftOperand)
         let start = node.positionAfterSkippingLeadingTrivia.utf8Offset
         let pipe = first.operator.positionAfterSkippingLeadingTrivia.utf8Offset
-        return try layerPipeline(input: input, start: start, pipe: pipe)?.pipeline
+        return try layerPipeline(input: input, start: start, pipe: pipe)?.expression
     }
 }

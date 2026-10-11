@@ -12,15 +12,15 @@ public final class StructType: SwiitObject, @unchecked Sendable {
     public let computed: [String: Function]
     public let methods: [String: OverloadSet]
     /// Custom initializers; without any, the memberwise one.
-    @_spi(Swiit) public let initializers: OverloadSet?
+    let initializers: OverloadSet?
     public let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
     public let conformances: [String]
     /// `static let` and `static var`: declared, with their types once checked;
     /// the stored ones' values are in `statics`.
-    @_spi(Swiit) public let staticProperties: [PropertyDecl]
+    let staticProperties: [PropertyDecl]
     let staticComputed: [String: Function]
-    @_spi(Swiit) public let staticMethods: [String: OverloadSet]
+    let staticMethods: [String: OverloadSet]
     public var statics: [String: StaticValue] = [:]
 
     /// A stored static property's value, kept on the type.
@@ -251,7 +251,7 @@ extension Interpreter {
 
     /// `Point.origin`, `Point.count`, or a static method as a function value;
     /// nil if the type has no static member by that name.
-    @_spi(Swiit) public func staticMember(_ name: String, of type: StructType) throws -> Value? {
+    func staticMember(_ name: String, of type: StructType) throws -> Value? {
         if let getter = type.staticComputed[name] { return try invoke(getter, with: [:]) }
         if let slot = type.statics[name] { return slot.value }
         return type.staticMethods[name].map(Value.function)

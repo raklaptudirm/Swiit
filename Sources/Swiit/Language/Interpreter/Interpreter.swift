@@ -57,8 +57,8 @@ public final class Interpreter {
     /// Syntax added to Swift's, which its owner supplies (the shell's). Nil is
     /// Swift alone.
     @_spi(Layer) public var syntax: (any SyntaxPlugin)?
-    /// What reads source into the tree: the hand-written parser unless given another.
-    @_spi(Layer) public var frontEnd: any SyntaxFrontEnd = HandWrittenFrontEnd()
+    /// What reads source into the tree: SwiftParser's, lowered, unless given another.
+    @_spi(Layer) public var frontEnd: any SyntaxFrontEnd = SwiftSyntaxFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     public var file: String?
     /// For each function, the functions declared at the prompt that call it

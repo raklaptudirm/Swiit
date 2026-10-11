@@ -1,27 +1,12 @@
 # The core's SPI: each `@_spi(G) public` declaration in Sources/Swiit, as
 # file<TAB>group kind name, checked by theCoresSPIOnlyShrinks. The groups are
 # by purpose: Layer, what a syntax layer like the shell's builds on (the tree,
-# the parser, the checker, the hooks for running what it parsed); Swiit, what
-# only the core's own other modules use. What any host needs is public API
-# (Docs/Design/embedding.md); the evaluator's insides are internal. A new line
+# the parser, the checker, the hooks for running what it parsed). What any host
+# needs is public API (Docs/Design/embedding.md); the evaluator's insides are
+# internal. A new line
 # is a decision; a line goes when its declaration becomes public API or
 # internal (Docs/Design/extraction.md, stages 1 and 2). Overloads repeat
 # their line.
-Bridge/Bridge+Calls.swift	Swiit func runBridged
-Bridge/Bridge+Concurrency.swift	Swiit func bridgeAsync
-Bridge/Bridge+Concurrency.swift	Swiit func bridgeAsyncClosure
-Bridge/Bridge+Conversions.swift	Swiit func bridgeBox
-Bridge/Bridge+Conversions.swift	Swiit func bridgeBox
-Bridge/Bridge+Conversions.swift	Swiit func bridgeKeyPath
-Bridge/Bridge+Conversions.swift	Swiit func bridgeOptional
-Bridge/Bridge+Conversions.swift	Swiit func bridgeSequence
-Bridge/Bridge+Conversions.swift	Swiit func bridgeTuple
-Bridge/Bridge+Conversions.swift	Swiit func bridgeTuple
-Bridge/Bridge+Conversions.swift	Swiit func iterator
-Bridge/Bridge+Conversions.swift	Swiit func withFieldReader
-Bridge/Bridge.swift	Swiit func textLiteral
-Bridge/Bridge.swift	Swiit func textLiteral
-Bridge/Bridge.swift	Swiit func textLiteral
 Language/Checking/TypeChecker+Calls.swift	Layer func apply
 Language/Checking/TypeChecker+Calls.swift	Layer func call
 Language/Checking/TypeChecker+Calls.swift	Layer func commonReturn
@@ -114,9 +99,6 @@ Language/Checking/TypeChecker.swift	Layer var seen
 Language/Checking/TypeChecker.swift	Layer var stored
 Language/Checking/TypeChecker.swift	Layer var throwingSites
 Language/Checking/TypeChecker.swift	Layer var tryDepth
-Language/Checking/TypeChecker.swift	Swiit var initializers
-Language/Checking/TypeChecker.swift	Swiit var staticMethods
-Language/Checking/TypeChecker.swift	Swiit var staticProperties
 Language/Interpreter/Interpreter+Calls.swift	Layer func bind
 Language/Interpreter/Interpreter+Calls.swift	Layer func defaultArgument
 Language/Interpreter/Interpreter+Statements.swift	Layer func run
@@ -127,10 +109,6 @@ Language/Interpreter/Interpreter+Structs.swift	Layer func property
 Language/Interpreter/Interpreter+Structs.swift	Layer init init
 Language/Interpreter/Interpreter+Structs.swift	Layer init init
 Language/Interpreter/Interpreter+Structs.swift	Layer let stored
-Language/Interpreter/Interpreter+Structs.swift	Swiit func staticMember
-Language/Interpreter/Interpreter+Structs.swift	Swiit let initializers
-Language/Interpreter/Interpreter+Structs.swift	Swiit let staticMethods
-Language/Interpreter/Interpreter+Structs.swift	Swiit let staticProperties
 Language/Interpreter/Interpreter.swift	Layer func globalNames
 Language/Interpreter/Interpreter.swift	Layer var deadline
 Language/Interpreter/Interpreter.swift	Layer var frontEnd
@@ -194,13 +172,6 @@ Language/Syntax/Declarations.swift	Layer var type
 Language/Syntax/Declarations.swift	Layer var type
 Language/Syntax/Declarations.swift	Layer var value
 Language/Syntax/Declarations.swift	Layer var variadic
-Language/Syntax/Declarations.swift	Swiit var getter
-Language/Syntax/Declarations.swift	Swiit var getterNames
-Language/Syntax/Declarations.swift	Swiit var initializers
-Language/Syntax/Declarations.swift	Swiit var isAsync
-Language/Syntax/Declarations.swift	Swiit var op
-Language/Syntax/Declarations.swift	Swiit var staticMethods
-Language/Syntax/Declarations.swift	Swiit var staticProperties
 Language/Syntax/Expressions.swift	Layer enum BinaryOperator
 Language/Syntax/Expressions.swift	Layer enum CastKind
 Language/Syntax/Expressions.swift	Layer enum Expr
@@ -217,7 +188,6 @@ Language/Syntax/Expressions.swift	Layer var label
 Language/Syntax/Expressions.swift	Layer var value
 Language/Syntax/Expressions.swift	Layer var value
 Language/Syntax/Parser+Declarations.swift	Layer func memberNames
-Language/Syntax/Parser+Declarations.swift	Swiit func parseDeclaration
 Language/Syntax/Parser+Expressions.swift	Layer func parseArguments
 Language/Syntax/Parser+Expressions.swift	Layer func parseExpression
 Language/Syntax/Parser+Expressions.swift	Layer func parseNumber
@@ -226,7 +196,6 @@ Language/Syntax/Parser+Expressions.swift	Layer func parseTry
 Language/Syntax/Parser+Functions.swift	Layer func documentation
 Language/Syntax/Parser+Functions.swift	Layer func parseClosure
 Language/Syntax/Parser+Functions.swift	Layer func parseName
-Language/Syntax/Parser+Functions.swift	Swiit func parseType
 Language/Syntax/Parser+Scanning.swift	Layer func consume
 Language/Syntax/Parser+Scanning.swift	Layer func expected
 Language/Syntax/Parser+Scanning.swift	Layer func identifier
@@ -245,7 +214,6 @@ Language/Syntax/Parser+Statements.swift	Layer func matches
 Language/Syntax/Parser+Statements.swift	Layer func names
 Language/Syntax/Parser+Statements.swift	Layer func parseProgram
 Language/Syntax/Parser+Statements.swift	Layer let protocols
-Language/Syntax/Parser+Statements.swift	Swiit func parseAssignment
 Language/Syntax/Parser+Strings.swift	Layer func parseDollar
 Language/Syntax/Parser+Strings.swift	Layer func parseInterpolatedString
 Language/Syntax/Parser+Strings.swift	Layer func parseInterpolation
@@ -284,8 +252,6 @@ Language/Syntax/Parser.swift	Layer var sawImport
 Language/Syntax/Parser.swift	Layer var scopes
 Language/Syntax/Parser.swift	Layer var switchDepth
 Language/Syntax/Parser.swift	Layer var tryDepth
-Language/Syntax/Parser.swift	Swiit let keywords
-Language/Syntax/Parser.swift	Swiit var anonymousArity
 Language/Syntax/Statements.swift	Layer enum Condition
 Language/Syntax/Statements.swift	Layer enum Pattern
 Language/Syntax/Statements.swift	Layer enum Statement
@@ -337,13 +303,14 @@ Language/Syntax/Statements.swift	Layer var statements
 Language/Syntax/Statements.swift	Layer var then
 Language/Syntax/Statements.swift	Layer var type
 Language/Syntax/Statements.swift	Layer var variable
-Language/Syntax/Statements.swift	Swiit var asExpression
-Language/Syntax/Statements.swift	Swiit var isTry
-Language/Syntax/Statements.swift	Swiit var subject
 Language/Syntax/SwiftPrinter.swift	Layer func source
 Language/Syntax/SwiftPrinter.swift	Layer func source
 Language/Syntax/SwiftPrinter.swift	Layer init init
 Language/Syntax/SwiftPrinter.swift	Layer struct SwiftPrinter
+Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer func highlight
+Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer func parse
+Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer init init
+Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer struct SwiftSyntaxFrontEnd
 Language/Syntax/SyntaxExtension.swift	Layer func ==
 Language/Syntax/SyntaxExtension.swift	Layer func ==
 Language/Syntax/SyntaxExtension.swift	Layer func isEqual
@@ -374,12 +341,9 @@ Language/Syntax/TreeRewriter.swift	Layer init init
 Language/Syntax/TreeRewriter.swift	Layer struct TreeRewriter
 Language/Syntax/TreeRewriter.swift	Layer var expr
 Language/Syntax/TreeRewriter.swift	Layer var statement
-Language/Syntax/TreeRewriter.swift	Swiit func statementNode
 Language/Syntax/TypeAnnotation.swift	Layer init init
 Language/Syntax/TypeAnnotation.swift	Layer let output
 Language/Syntax/TypeAnnotation.swift	Layer var description
 Language/Syntax/TypeAnnotation.swift	Layer var label
 Language/Syntax/TypeAnnotation.swift	Layer var styled
 Language/Syntax/TypeAnnotation.swift	Layer var type
-Language/Syntax/TypeAnnotation.swift	Swiit func spelled
-Language/Syntax/TypeAnnotation.swift	Swiit var swiftType

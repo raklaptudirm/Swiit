@@ -6,7 +6,7 @@ import Foundation
 enum Boundaries {
     /// The directories of `Sources/Swiit` that stay in the core.
     static let coreDirectories = [
-        "Language/Syntax", "Language/Checking", "Language/Interpreter", "Language/Prelude", "Bridge",
+        "Language/Syntax", "Language/Syntax/SwiftSyntax", "Language/Checking", "Language/Interpreter", "Language/Prelude", "Bridge",
         "Language/Reflection", "Host", "Host/Embedding",
     ]
 

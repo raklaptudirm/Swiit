@@ -5,7 +5,7 @@ import SystemPackage
 
 /// A Swiit key path (`\.status.code`, or `--by size`) as a Swift one over
 /// values: each name a subscript that reads the field, one after another.
-@_spi(Swiit) public func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
+func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
     guard case .function(let keyPath as KeyPathValue) = value else {
         throw SwiitError("expected a key path, not \(value.typeName)")
     }
@@ -15,7 +15,7 @@ import SystemPackage
 /// Runs `body`, which reads fields through key paths, with fields read as the
 /// shell reads them; the first failure (a field that isn't there) is thrown
 /// after it, since a key path can't throw.
-@_spi(Swiit) public func withFieldReader<T>(_ shell: Interpreter, _ body: () throws -> T) throws -> T {
+func withFieldReader<T>(_ shell: Interpreter, _ body: () throws -> T) throws -> T {
     var failure: Error?
     let saved = FieldAccess.reader
     FieldAccess.reader = { value, name in
@@ -107,7 +107,7 @@ public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
 }
 
 /// A tuple's elements, by label or position, made into a Swift tuple.
-@_spi(Swiit) public func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T {
+func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T {
     guard case .record(let record) = value, record.typeName == nil, record.count == labels.count else {
         throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
     }
@@ -117,7 +117,7 @@ public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
 }
 
 /// A Swift tuple as Swiit's, from its elements' labels and values.
-@_spi(Swiit) public func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
+func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
     var record = Record()
     for (index, (label, value)) in elements(tuple).enumerated() { record[label ?? String(index)] = value }
     return .record(record)
@@ -126,7 +126,7 @@ public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
 /// The items of any sequence, for a Swift parameter that takes one: a
 /// String's Characters, a dictionary's (key, value) pairs, or what
 /// `Shell.items(of:)` gives.
-@_spi(Swiit) public func bridgeSequence(_ value: Value) throws -> [Value] {
+func bridgeSequence(_ value: Value) throws -> [Value] {
     switch value {
     case .string(let text):
         return Array(Interpreter.iterator(text))
@@ -151,11 +151,11 @@ func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throw
 
 /// A Swift value boxed as Swiit holds it, converted first (a `Set<Int>` to
 /// a `Set<Value>`).
-@_spi(Swiit) public func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
+func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
     SwiftValue.make(convert(value), as: typeName)
 }
 
-@_spi(Swiit) public func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
+func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
     SwiftValue.make(convert(value), as: typeName)
 }
 
@@ -200,7 +200,7 @@ extension Interpreter {
     }
 
     /// A Swift sequence's elements as Swiit values, boxed by their type's name.
-    @_spi(Swiit) public static func iterator<S: Sequence>(_ sequence: S) -> AnyIterator<Value> {
+    static func iterator<S: Sequence>(_ sequence: S) -> AnyIterator<Value> {
         var iterator = sequence.makeIterator()
         return AnyIterator {
             guard let next = iterator.next() else { return nil }
@@ -216,7 +216,7 @@ extension Interpreter {
 
 /// A Swiit function as a Swift closure.
 /// A Swiit value as a Swift optional: nil for nothing, else converted.
-@_spi(Swiit) public func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
+func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
     value == .nothing ? nil : try convert(value)
 }
 

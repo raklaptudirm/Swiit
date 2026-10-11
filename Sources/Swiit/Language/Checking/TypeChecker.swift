@@ -63,12 +63,12 @@ import SwiitKit
         @_spi(Layer) public var stored: [PropertyDecl]
         @_spi(Layer) public var computed: [String: TypeAnnotation]
         @_spi(Layer) public var methods: [String: [Signature]]
-        @_spi(Swiit) public var initializers: [Signature]
+        var initializers: [Signature]
         @_spi(Layer) public var memberwise: Signature
         @_spi(Layer) public var conformances: [String] = []
         /// `static let` and `static var`, stored and computed: read on the type.
-        @_spi(Swiit) public var staticProperties: [PropertyDecl] = []
-        @_spi(Swiit) public var staticMethods: [String: [Signature]] = [:]
+        var staticProperties: [PropertyDecl] = []
+        var staticMethods: [String: [Signature]] = [:]
 
         @_spi(Layer) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }

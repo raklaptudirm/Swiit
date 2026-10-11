@@ -73,6 +73,10 @@ extension TypeChecker {
             callee = .member(baseExpr, name)
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
+        // `ls()` with no `ls`: a function that isn't there, not a variable.
+        if case .variable(let name) = callee, lookup(name) == nil, !afterImport {
+            throw TypeError("no function named '\(name)'")
+        }
         let type = try typeOf(&callee)
         if case .variable(let name) = callee { return try apply(type, &arguments, name: name) }
         return try apply(type, &arguments, name: "the function")

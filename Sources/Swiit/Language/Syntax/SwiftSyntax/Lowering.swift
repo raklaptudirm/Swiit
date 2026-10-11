@@ -1,4 +1,3 @@
-@_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftOperators
 import SwiftSyntax
 import SwiitKit
@@ -88,6 +87,7 @@ struct Lowering {
     // MARK: Programs
 
     mutating func program() throws -> Program {
+        if plugin == nil, let refusal = LayerSyntaxFinder.first(in: tree) { throw SyntaxError("\(refusal.message) (line \(line(of: refusal.node)))") }
         for item in tree.statements { collectTypeNames(item.item) }
         // A SwiftParser tree that has problems has them in `unexpected` nodes
         // and missing tokens; the first one outside what the plug-in read is
@@ -315,5 +315,52 @@ private final class ProblemFinder: SyntaxVisitor {
             found = ("unexpected '\(node.trimmedDescription)'", node.position)
         }
         return .skipChildren
+    }
+}
+
+/// With no layer plugged in, the constructs only a layer reads (`$(…)`, `$name`,
+/// `async …`, `import Name from path`, a `|` between values) are refused by
+/// name: SwiftParser's reading of them is its guess at text that isn't Swift.
+private final class LayerSyntaxFinder: SyntaxVisitor {
+    var found: (message: String, node: Syntax)?
+
+    static func first(in tree: SourceFileSyntax) -> (message: String, node: Syntax)? {
+        let finder = LayerSyntaxFinder(viewMode: .sourceAccurate)
+        finder.walk(tree)
+        return finder.found
+    }
+
+    private func refuse(_ message: String, _ node: some SyntaxProtocol) -> SyntaxVisitorContinueKind {
+        if found == nil { found = (message, Syntax(node)) }
+        return .skipChildren
+    }
+
+    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
+        guard let callee = node.calledExpression.as(DeclReferenceExprSyntax.self) else { return .visitChildren }
+        switch callee.baseName.text {
+        case "$": return refuse("$(…) runs commands, which are shell syntax, and isn't available in Swift-only code", node)
+        case "async": return refuse("'async' starts a command in the background, which is shell syntax; Swift-only code has no async yet", node)
+        default: return .visitChildren
+        }
+    }
+
+    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+        let name = node.baseName.text
+        if name.hasPrefix("$"), name.count > 1, Int(name.dropFirst()) == nil {
+            return refuse("$name reads the environment, which is shell syntax, and isn't available in Swift-only code", node)
+        }
+        if name == "async" { return refuse("'async' starts a command in the background, which is shell syntax; Swift-only code has no async yet", node) }
+        return .visitChildren
+    }
+
+    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
+        refuse("importing a package from a path is shell syntax, and isn't available in Swift-only code", node)
+    }
+
+    override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
+        if node.operator.as(BinaryOperatorExprSyntax.self)?.operator.text == "|" {
+            return refuse("'|' pipes commands, which are shell syntax, and isn't an operator in Swift-only code", node)
+        }
+        return .visitChildren
     }
 }

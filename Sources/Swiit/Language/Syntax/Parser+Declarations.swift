@@ -314,7 +314,7 @@ extension Parser {
         return .declare(name: name, mutable: false, value: .childTask(operation))
     }
 
-    @_spi(Swiit) public mutating func parseDeclaration() throws(SyntaxError) -> Statement {
+    mutating func parseDeclaration() throws(SyntaxError) -> Statement {
         let keyword = identifier()!
         self.keyword(keyword)
         skipSpaces()

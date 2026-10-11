@@ -1,4 +1,4 @@
-@_spi(Layer) @_spi(Swiit) @testable import Swiit
+@_spi(Layer) @testable import Swiit
 import SwiitKit
 import Testing
 
@@ -46,7 +46,8 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 
 @Test func theCoreRefusesWhatItWasNotGiven() {
     // Shell syntax doesn't parse, and there is no environment to read.
-    #expect(runOnTheCore("git status").problem?.contains("no variable named 'git'") == true)
+    // Two words are two statements, as in Swift: a command is the shell's.
+    #expect(runOnTheCore("git status").problem?.contains("expected semicolon") == true)
     #expect(runOnTheCore("let h = $(echo hi)").problem?.contains("runs commands") == true)
     #expect(runOnTheCore(#"let h = env.HOME"#).problem?.contains("env") == true)
 }

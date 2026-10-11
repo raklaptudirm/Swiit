@@ -1,4 +1,3 @@
-@_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftOperators
 import SwiftParser
 import SwiftSyntax
@@ -6,11 +5,11 @@ import SwiftSyntax
 /// A front end on SwiftSyntax: SwiftParser reads the source, and the tree it
 /// gives is lowered to the core's. What it doesn't lower yet is an error that
 /// names the construct, so the supported subset is the set of nodes lowered.
-@_spi(Shell) public struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
-    @_spi(Shell) public init() {}
+@_spi(Layer) public struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
+    @_spi(Layer) public init() {}
 
-    @_spi(Shell) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
-        let parsed = Parser.parse(source: source)
+    @_spi(Layer) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
+        let parsed = SwiftParser.Parser.parse(source: source)
         var problems: [(message: String, offset: Int)] = []
         var other: Error?
         let folded = OperatorTable.standardOperators.foldAll(parsed) { error in
@@ -36,8 +35,8 @@ import SwiftSyntax
         }
     }
 
-    @_spi(Shell) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
-        let parsed = Parser.parse(source: source)
+    @_spi(Layer) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
+        let parsed = SwiftParser.Parser.parse(source: source)
         // Operators that don't fold (`a < b < c`) leave their sequence as it is.
         let folded = OperatorTable.standardOperators.foldAll(parsed) { _ in }
         guard let tree = folded.as(SourceFileSyntax.self) else { return [] }

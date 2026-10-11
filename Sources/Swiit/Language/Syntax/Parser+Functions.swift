@@ -353,7 +353,7 @@ extension Parser {
         }
     }
 
-    @_spi(Swiit) public mutating func parseType() throws(SyntaxError) -> TypeAnnotation {
+    mutating func parseType() throws(SyntaxError) -> TypeAnnotation {
         let type = try parseNonOptionalType()
         return consume("?") ? .optional(type) : type
     }
