@@ -171,9 +171,14 @@ extension Lowering {
             case .default:
                 break
             case .case(let label):
-                for item in label.caseItems {
+                for (position, item) in label.caseItems.enumerated() {
                     patterns.append(try pattern(item.pattern))
-                    if let clause = item.whereClause { guardExpr = clause.condition }
+                    guard let clause = item.whereClause else { continue }
+                    // A case holds one guard, the last pattern's.
+                    guard position == label.caseItems.count - 1 else {
+                        throw unsupported("a 'where' on a case's pattern other than its last", clause)
+                    }
+                    guardExpr = clause.condition
                 }
             }
             let lowered = try guardExpr.map { try expression($0) }

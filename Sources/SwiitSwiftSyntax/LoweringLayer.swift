@@ -60,7 +60,7 @@ extension Lowering {
         guard case .expr(let expr) = item, let infix = expr.as(InfixOperatorExprSyntax.self) else { return false }
         if infix.operator.is(AssignmentExprSyntax.self) { return true }
         guard let op = infix.operator.as(BinaryOperatorExprSyntax.self)?.operator.text else { return false }
-        return op.count > 1 && op.hasSuffix("=") && !["==", "!=", "<=", ">=", "==="].contains(op)
+        return Lowering.isCompoundAssignment(op)
     }
 
     private func isStaticMember(_ kind: NameKind?) -> Bool {

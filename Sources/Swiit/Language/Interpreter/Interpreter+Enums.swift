@@ -230,10 +230,12 @@ extension Interpreter {
             if switchCase.patterns.isEmpty {
                 return (index, anyName.map { [$0: Binding(value: subject, mutable: false)] } ?? [:])
             }
-            for pattern in switchCase.patterns {
+            for (position, pattern) in switchCase.patterns.enumerated() {
                 var bindings: [String: Binding] = [:]
                 guard try match(pattern, subject, into: &bindings) else { continue }
-                if let guardExpr = switchCase.guardExpr {
+                // The `where` is the last pattern's, as in Swift: in `case 1, 2
+                // where c:`, a 1 matches whatever c is.
+                if let guardExpr = switchCase.guardExpr, position == switchCase.patterns.count - 1 {
                     scopes.append(Scope(bindings))
                     defer { scopes.removeLast() }
                     let verdict = try evaluate(guardExpr)

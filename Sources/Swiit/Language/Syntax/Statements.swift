@@ -164,7 +164,8 @@ extension Statement {
     }
 }
 
-/// `case p1, p2 where guard: body`; no patterns is `default:`.
+/// `case p1, p2 where guard: body`; no patterns is `default:`. The guard is
+/// the last pattern's, as a `where` is the case item's it follows in Swift.
 @_spi(Layer) public struct SwitchCase: Equatable, Sendable {
     @_spi(Layer) public var patterns: [Pattern]
     @_spi(Layer) public var guardExpr: Expr?

@@ -30,6 +30,8 @@ private let programs: [(name: String, source: String)] = [
     ("discards", "func f() -> Int { 1 }\n_ = f()\nlet _ = f()"),
     ("recursion", "func fact(_ n: Int) -> Int { if n <= 1 { return 1 }; return n * fact(n - 1) }\nlet r = fact(5)"),
     ("closures", "let xs = [1, 2, 3]; let d = xs.map { $0 * 2 }; let e = xs.filter { $0 > 1 }.map { $0 + 1 }"),
+    // An inner closure's `$0` is its own: the outer one takes nothing.
+    ("nested anonymous closures", "let xs = [1, 2]; let f = { xs.map { $0 * 2 } }; let g = { $1 + [$0].map { $0 }.count }"),
     ("closure parameters", "let f = { (x: Int, y: Int) -> Int in x + y }; let g = f(1, 2)"),
     ("structs", "struct Point: Equatable { var x: Int; var y: Int; func sum() -> Int { x + y }; static let origin = Point(x: 0, y: 0) }\nlet p = Point(x: 1, y: 2); let s = p.sum()"),
     ("mutating methods", "struct Counter { var n = 0; mutating func bump() { n += 1 } }\nvar c = Counter(); c.bump()"),
@@ -37,6 +39,7 @@ private let programs: [(name: String, source: String)] = [
     ("enums", "enum Level: Int, Comparable { case low = 1, mid, high }\nlet l = Level.mid"),
     ("enums with payloads", "enum Result { case ok(Int); case failed(code: Int, String) }\nlet r = Result.failed(code: 2, \"no\")"),
     ("switch", "let n = 2\nswitch n {\ncase 1: let a = 1\ncase 2, 3: let b = 2\ndefault: let c = 3\n}"),
+    ("a guard on a case's last pattern", "let n = 2\nswitch n {\ncase 1, 2 where n > 1: let a = 1\ndefault: let b = 2\n}"),
     ("switch on enums", "enum E { case a(Int); case b }\nlet e = E.a(1)\nswitch e {\ncase .a(let n) where n > 0: let x = n\ncase .a: let y = 0\ncase .b: let z = 1\n}"),
     ("optionals", "let n: Int? = 3; let a = n!; let b = n ?? 0; let s: String? = \"x\"; let c = s?.count"),
     ("casts", "let x: Any = 1; let a = x as? Int; let b = x is String; let c = x as! Int"),
@@ -112,6 +115,10 @@ private let incomplete = [
 /// Input that is wrong where it is, and more lines wouldn't help.
 private let wrong = [
     "let = 1", "func (", "let x: = 3", "1 +* 2", "if { }", "for in x { }", "let 1x = 3", "}", ")", "let a = ]",
+    // A case holds one guard, its last pattern's.
+    "switch 1 {\ncase 1 where false, 2: let a = 1\ndefault: let b = 2\n}",
+    // Comparisons that end in `=` aren't compound assignments.
+    "var a = 1; a === 1", "var a = 1; a !== 1",
 ]
 
 private func isIncomplete(_ parse: () throws -> Program) -> Bool? {

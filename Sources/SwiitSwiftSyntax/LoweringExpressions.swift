@@ -256,12 +256,12 @@ extension Lowering {
         return ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
     }
 
+    /// The `$n` a closure's body mentions, outside the closures inside it,
+    /// whose `$0` is their own: `{ xs.map { $0 * 2 } }` takes nothing.
     private func anonymousArity(in node: some SyntaxProtocol) -> Int {
-        var highest = -1
-        for name in names(in: node) where name.hasPrefix("$") {
-            if let index = Int(name.dropFirst()) { highest = max(highest, index) }
-        }
-        return highest + 1
+        let counter = AnonymousArity()
+        counter.walk(node)
+        return counter.highest + 1
     }
 
     private mutating func keyPath(_ node: KeyPathExprSyntax) throws -> Expr {
@@ -288,6 +288,13 @@ extension Lowering {
         BinaryOperator(rawValue: text)
     }
 
+    /// Whether an operator assigns to its left side, from Swift's rule: `op=`
+    /// for an `op`, but not the comparisons that also end in `=` (`==`, `!=`,
+    /// `<=`, `>=`, `===`, `!==`).
+    static func isCompoundAssignment(_ text: String) -> Bool {
+        text.count > 1 && text.hasSuffix("=") && !["==", "!=", "<=", ">=", "===", "!=="].contains(text)
+    }
+
     private mutating func infix(_ node: InfixOperatorExprSyntax) throws -> Expr {
         if node.operator.is(AssignmentExprSyntax.self) { throw unsupported("an assignment in an expression", node) }
         guard let op = node.operator.as(BinaryOperatorExprSyntax.self), let kind = binaryOperator(op.operator.text) else {
@@ -308,8 +315,7 @@ extension Lowering {
         var op: BinaryOperator?
         if node.operator.is(AssignmentExprSyntax.self) {
             op = nil
-        } else if let binary = node.operator.as(BinaryOperatorExprSyntax.self), binary.operator.text.hasSuffix("="),
-                  !["==", "!=", "<=", ">="].contains(binary.operator.text) {
+        } else if let binary = node.operator.as(BinaryOperatorExprSyntax.self), Lowering.isCompoundAssignment(binary.operator.text) {
             guard let kind = binaryOperator(String(binary.operator.text.dropLast())) else {
                 throw unsupported("the operator '\(binary.operator.text)'", binary)
             }
@@ -344,5 +350,17 @@ extension Lowering {
             rootName = "self"
         }
         return Assignment(root: rootName, path: path, op: op, value: try expression(node.rightOperand))
+    }
+}
+
+/// The highest `$n` in a closure's body, not looking into closures nested in it.
+private final class AnonymousArity: SyntaxVisitor {
+    var highest = -1
+    init() { super.init(viewMode: .sourceAccurate) }
+    override func visit(_ node: ClosureExprSyntax) -> SyntaxVisitorContinueKind { .skipChildren }
+    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
+        let name = node.baseName.text
+        if name.hasPrefix("$"), let index = Int(name.dropFirst()) { highest = max(highest, index) }
+        return .visitChildren
     }
 }

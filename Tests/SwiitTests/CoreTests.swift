@@ -90,3 +90,11 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
     // The call's scope, which held `g` and `unused`, is gone once it returned.
     #expect(!capture.fallbacks.isEmpty && capture.fallbacks.allSatisfy { $0.scope == nil })
 }
+
+/// A case's `where` is its last pattern's, as in Swift: in `case 1, 2 where c:`
+/// a 1 matches whatever c is.
+@Test func aCasesGuardIsItsLastPatterns() throws {
+    let source = "func kind(_ n: Int) -> String { switch n { case 1, 2 where false: return \"small\"; default: return \"other\" } }; [kind(1), kind(2)]"
+    let value = try onLargeStack { try Interpreter().eval(source) }
+    #expect(value == .list([.string("small"), .string("other")]))
+}

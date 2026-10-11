@@ -37,6 +37,9 @@ struct Lowering {
     let characterOf: [Int]
     /// The byte offset each character starts at, and the end.
     let byteOf: [Int]
+    /// A parser over the source, made once: each cursor is a copy, which shares
+    /// its characters and line starts rather than reading the source again.
+    let blankParser: Parser
     /// The spans of source (in bytes) that the plug-in read: SwiftParser's tree
     /// for them is its best guess at what isn't Swift, and is not looked at.
     var consumed: [Range<Int>] = []
@@ -71,6 +74,7 @@ struct Lowering {
         characterOf.append(source.count)
         self.characterOf = characterOf
         self.byteOf = byteOf
+        self.blankParser = Parser(source, bound: [:])
     }
 
     func unsupported(_ what: String, _ node: some SyntaxProtocol) -> SyntaxError {
@@ -122,7 +126,8 @@ struct Lowering {
 
     /// A parser for the plug-in to read from, positioned at the byte offset.
     func cursor(at byteOffset: Int) -> Parser {
-        var parser = Parser(source, bound: names())
+        var parser = blankParser
+        parser.scopes = [names()]
         parser.plugin = plugin
         parser.tryDepth = tryDepth
         parser.functionDepth = leaving.function
