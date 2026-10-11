@@ -64,10 +64,15 @@ public struct SwishHost {
     public var error: OutputSink = .discard
     /// Asked at each step: a reason to stop, if there is one.
     public var interrupt: () -> StopReason? = { nil }
+    /// Runs a task's body on a thread of its own, with a stack large enough
+    /// for the interpreter's recursion; by default, one the core makes.
+    public var startThread: (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
 
-    public init(output: OutputSink = .discard, error: OutputSink = .discard, interrupt: @escaping () -> StopReason? = { nil }) {
+    public init(output: OutputSink = .discard, error: OutputSink = .discard, interrupt: @escaping () -> StopReason? = { nil },
+                startThread: @escaping (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread) {
         self.output = output
         self.error = error
         self.interrupt = interrupt
+        self.startThread = startThread
     }
 }

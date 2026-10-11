@@ -86,8 +86,9 @@ extension Lowering {
         if let reference = expr.as(DeclReferenceExprSyntax.self) {
             return reference.baseName.text == "async" || isDollarName(reference.baseName.text)
         }
+        // `$(…)`, and `async { … }`, which SwiftParser reads as a call with a trailing closure.
         if let call = expr.as(FunctionCallExprSyntax.self), let callee = call.calledExpression.as(DeclReferenceExprSyntax.self) {
-            return callee.baseName.text == "$"
+            return callee.baseName.text == "$" || callee.baseName.text == "async"
         }
         return false
     }

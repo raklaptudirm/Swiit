@@ -90,6 +90,7 @@ extension TypeChecker {
                 return .optional(type)
             }
         case .await(var operand, let throwing):
+            var handleType: TypeAnnotation?
             if var awaited = operand {
                 let sitesBefore = asyncSites
                 awaitDepth += 1
@@ -97,6 +98,7 @@ extension TypeChecker {
                 awaitDepth -= 1
                 operand = awaited
                 // `await f()`: what an `async` call gives, in an async context.
+                handleType = type
                 let isHandle = interpreter.awaiting.map { type == .unknown || fits(type, $0.operand) } ?? false
                 if !isHandle {
                     // Swift only warns of an `await` with nothing async in it; Swish has no warnings.
@@ -111,7 +113,7 @@ extension TypeChecker {
             guard let awaiting = interpreter.awaiting else { throw TypeError("there is nothing to await here") }
             if throwing { try throwingSite("awaiting a job") }
             expr = .await(operand, throwing: throwing)
-            return awaiting.result
+            return handleType.flatMap(awaiting.resultOf) ?? awaiting.result
         case .list(var items):
             let type = try listType(&items, expected: expected)
             expr = .list(items)

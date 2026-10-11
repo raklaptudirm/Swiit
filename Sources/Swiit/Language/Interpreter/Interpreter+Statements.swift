@@ -237,7 +237,7 @@ extension Interpreter {
 
     @_spi(Shell) public func checkInterrupt() throws {
         if cancellation.isSet { throw Cancelled() }
-        if let reason = host.interrupt() { throw Interrupted(reason: reason) }
+        if task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
         steps += 1
         if let maximum = limits.steps, steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
         if let deadline, ContinuousClock.now > deadline { throw LimitExceeded("time limit exceeded") }

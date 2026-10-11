@@ -22,6 +22,9 @@ import SwishKit
     @_spi(Shell) public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).
     @_spi(Shell) public var host: AnyObject?
+    /// Whether the host's interrupts (the shell's ^C) stop it: the task in the
+    /// foreground's do; a background task stops only when it's cancelled.
+    @_spi(Shell) public var receivesInterrupts = true
 
     @_spi(Shell) public init(globals: [Scope], host: AnyObject? = nil) {
         self.scopes = globals
@@ -65,6 +68,10 @@ extension Interpreter {
     /// wait, and it is where the async evaluator will let another task run
     /// (Docs/Design/async.md, step 2).
     @_spi(Shell) public func suspend<T>(_ wait: () throws -> T) rethrows -> T {
-        try wait()
+        // Another task runs meanwhile, if one is ready.
+        guard lock.isHeldByCurrentThread else { return try wait() }
+        let mine = task
+        defer { task = mine }
+        return try lock.releasing(wait)
     }
 }

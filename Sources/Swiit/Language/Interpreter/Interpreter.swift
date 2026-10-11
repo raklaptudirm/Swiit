@@ -29,6 +29,10 @@ public final class Interpreter {
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
     @_spi(Shell) public var task = TaskContext(globals: [Scope(), Scope()])
+    /// What Swish code runs under, one task at a time (InterpreterLock.swift).
+    @_spi(Shell) public let lock = InterpreterLock()
+    /// Tasks started and not yet ended.
+    @_spi(Shell) public var runningTasks = 0
     /// Each enum's associated value types, by case, for checking them.
     @_spi(Shell) public var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.

@@ -356,6 +356,23 @@ the task context's output and the `suspend` function sit.)
    let`), and the shell's `async f()` and `async { … }` rewritten to it; the
    shell's `Job` wraps processes or a core task, so `jobs`, `await job` and
    `job.cancel()` work the same for both. Switching only at waits, for now.
+   *Done,* but for Swift's own `Task { … }` type, which needs async
+   properties (`.value`) in the checker and goes with `async let` and task
+   groups: `InterpreterLock` (taken again by its holder; `releasing` for
+   `suspend`), `startTask(host:_:)` and `join`, a task limit in `Limits`, and
+   `SwishHost.startThread` (by default the core's large-stack thread). Only
+   the foreground task takes the host's interrupts; a background one stops
+   when it's cancelled. The shell takes the lock for each entry and for the
+   line editor's coloring and completion, which run while a line is read. In
+   the shell, `async` takes any expression (`async f(x)`, `async { … }`, `async
+   1 + 2`): `startTask`, a `Job<T>` whose output is kept, as `async $(…)`'s is,
+   and whose value `await` gives (typed `T`: a host type's generic instance
+   fits its name and has its members, and the job hook says what awaiting
+   gives). A command with a Swish function in it (`async f`) runs as a task
+   too, and gives its `Output`. A background task's programs don't get the
+   terminal. A cancelled task's `await` is an ordinary error. The shell
+   cancels and waits for its tasks when it goes away, ahead of step 5's
+   scope rule.
 5. **Cancellation and scopes.** `^C` and `cancel()` set the task's flag
    (checked at the interrupt checks) and signal the programs it started; every
    wait can be woken; a scope closing cancels and waits for the tasks it

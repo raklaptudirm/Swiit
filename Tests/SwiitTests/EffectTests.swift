@@ -52,3 +52,29 @@ private func typeError(_ source: String) -> String? {
     #expect(decl.parameters[0].type == .functionType([], .int, async: .async))
     #expect(SwiftPrinter().source(program).hasPrefix("func f(_ g: () async -> Int) async throws -> Int"))
 }
+
+// Tasks on threads, one at a time behind the interpreter's lock.
+
+@Test func aTaskRunsWhenTheLockIsLetGoAndIsJoined() throws {
+    let swish = interpreter()
+    let value = try onLargeStack {
+        try swish.lock.withLock { () throws -> Value in
+            let task = try swish.startTask(host: nil) { .int(21 * 2) }
+            // Joining lets go of the lock, so the task can run.
+            return try swish.join(task)
+        }
+    }
+    #expect(value == .int(42))
+}
+
+@Test func aTasksErrorIsWhatJoiningThrows() throws {
+    let swish = interpreter()
+    #expect(throws: RuntimeError.self) {
+        try onLargeStack {
+            try swish.lock.withLock { () throws -> Value in
+                let task = try swish.startTask(host: nil) { throw RuntimeError("no") }
+                return try swish.join(task)
+            }
+        }
+    }
+}

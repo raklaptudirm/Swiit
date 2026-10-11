@@ -14,6 +14,8 @@ extension TypeChecker {
         case (.dictionary(let ak, let av), .dictionary(let bk, let bv)): return fits(ak, bk) && fits(av, bv)
         case (.generic(let a, let aa), .generic(let b, let ba)):
             return a == b && aa.count == ba.count && zip(aa, ba).allSatisfy { fits($0, $1) }
+        // A host type with what it holds is one of that type: a `Job<Int>` is a `Job`.
+        case (.generic(let a, _), .named(let b)) where a == b && interpreter.objectMembers[a] != nil: return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
         case (_, .someSequence(let element)):
             guard let actualElement = anySequenceElement(actual) else { return false }

@@ -12,12 +12,17 @@ import SwishKit
     /// Whether a value is one of its handles; `await` of anything else is an
     /// `async` call's, and gives the value.
     @_spi(Shell) public var isHandle: (Value) -> Bool
+    /// What awaiting a handle of this type gives, where it depends on what
+    /// the handle holds (the shell's `Job<Int>` gives an Int); `result` else.
+    @_spi(Shell) public var resultOf: (TypeAnnotation) -> TypeAnnotation?
 
     @_spi(Shell) public init(operand: TypeAnnotation, result: TypeAnnotation, isHandle: @escaping (Value) -> Bool = { _ in true },
+                             resultOf: @escaping (TypeAnnotation) -> TypeAnnotation? = { _ in nil },
                              perform: @escaping (Value?, Bool) throws -> Value) {
         self.operand = operand
         self.result = result
         self.isHandle = isHandle
+        self.resultOf = resultOf
         self.perform = perform
     }
 }

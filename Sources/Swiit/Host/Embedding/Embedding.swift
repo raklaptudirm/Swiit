@@ -34,12 +34,15 @@ public struct Limits: Sendable {
     public var time: Duration?
     /// Bytes written to the host's output and error.
     public var output: Int?
+    /// Tasks running at once, each on a thread of its own.
+    public var tasks: Int
 
-    public init(steps: Int? = nil, depth: Int = 10_000, time: Duration? = nil, output: Int? = nil) {
+    public init(steps: Int? = nil, depth: Int = 10_000, time: Duration? = nil, output: Int? = nil, tasks: Int = 256) {
         self.steps = steps
         self.depth = depth
         self.time = time
         self.output = output
+        self.tasks = tasks
     }
 }
 
@@ -204,7 +207,8 @@ extension Interpreter {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self
         do {
-            return try onLargeStack { try interpreter.evaluate(source) }
+            // Swish code runs holding the lock, which a task it starts waits for.
+            return try onLargeStack { try interpreter.lock.withLock { try interpreter.evaluate(source) } }
         } catch let diagnostic as Diagnostic {
             throw diagnostic
         } catch {
