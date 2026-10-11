@@ -286,7 +286,13 @@ the task context's output and the `suspend` function sit.)
    per-task state (`stdoutFD`, the call stack and `callDepth`, the
    cancellation flag, the current job) into a `TaskContext`, leaving the
    global scope, the `jobs` table and configuration where they are. The
-   prompt runs in the one context. All tests pass unchanged.
+   prompt runs in the one context. All tests pass unchanged. *Done:* the core's
+   `TaskContext` holds a task's scopes (the global two shared, as `Scope`s
+   are references), `callDepth`, `returnTypes`, the per-item error count and
+   the cancellation flag, and a slot for what the host keeps per task; the
+   interpreter's properties of those names forward to the current task's. The
+   shell's `ShellTask`, in that slot, holds `stdoutFD`, `stderrFD` and the
+   status. (A call-heavy loop runs about 5% slower, from the extra hop.)
 2. **Suspension points name themselves.** Every wait goes through one
    function (`suspend { … }`) instead of calling `waitpid`, `read` or a
    semaphore directly: foreground commands, `$(…)`, `await`, a `Flow` read,

@@ -27,26 +27,17 @@ public final class Interpreter {
     @_spi(Shell) public var awaiting: Awaiting?
     @_spi(Shell) public var objectMembers: [String: [String: TypeAnnotation]] = [:]
 
-    /// Variable scopes, innermost last. The outermost holds the builtin
-    /// functions, so a `func` at the prompt shadows one rather than
-    /// overloading it.
-    @_spi(Shell) public var scopes = [Scope(), Scope()]
-    /// How many Swish function calls are in progress.
-    @_spi(Shell) public var callDepth = 0
+    /// The task running now: its call stack and cancellation (TaskContext.swift).
+    @_spi(Shell) public var task = TaskContext(globals: [Scope(), Scope()])
     /// Each enum's associated value types, by case, for checking them.
     @_spi(Shell) public var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     @_spi(Shell) public var enumConformances: [ObjectIdentifier: [String]] = [:]
-    /// The return types of the functions being run, innermost last, so a
-    /// returned `.case` knows its enum.
-    @_spi(Shell) public var returnTypes: [TypeAnnotation?] = []
     /// Methods every sequence has, like `sorted` and `filter`.
     @_spi(Shell) public var sequenceMethods: [String: OverloadSet] = [:]
     /// The declared types of globals, from entries already checked, so a
     /// later one knows `let xs: [Int] = []` is an [Int].
     @_spi(Shell) public var staticTypes: [String: TypeAnnotation] = [:]
-    /// Per-item errors reported so far, like a file `ls` couldn't read.
-    @_spi(Shell) public var itemErrorCount = 0
     /// Syntax added to Swift's, which its owner supplies (the shell's). Nil is
     /// Swift alone.
     @_spi(Shell) public var syntax: (any SyntaxPlugin)?
@@ -68,8 +59,6 @@ public final class Interpreter {
     @_spi(Shell) public var deadline: ContinuousClock.Instant?
     /// What a run has written, against `limits.output`.
     @_spi(Shell) public let outputCounter: OutputCounter
-    /// Asks a run to stop, from any thread.
-    @_spi(Shell) public let cancellation = Cancellation()
 
     @_spi(Shell) public init(host: SwishHost, outputCounter: OutputCounter = OutputCounter()) {
         self.host = host
