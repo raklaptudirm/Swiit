@@ -8,15 +8,15 @@ import SwishKit
 
 extension TypeChecker {
     /// A function's, a closure's, or the top level's effects so far.
-    @_spi(Shell) public struct EffectContext {
+    @_spi(Layer) public struct EffectContext {
         /// Whether `await` may be written here.
-        @_spi(Shell) public var allowsAwait: Bool
+        @_spi(Layer) public var allowsAwait: Bool
         /// `async` once an `async` call is awaited here.
-        @_spi(Shell) public var effect: Effect = .sync
+        @_spi(Layer) public var effect: Effect = .sync
         /// The functions called here by name without `await`.
         var unawaited: Set<String> = []
 
-        @_spi(Shell) public init(allowsAwait: Bool) {
+        @_spi(Layer) public init(allowsAwait: Bool) {
             self.allowsAwait = allowsAwait
         }
     }
@@ -42,7 +42,7 @@ extension TypeChecker {
     }
 
     /// Checks `body` in a context of its own, giving what waited in it.
-    @_spi(Shell) public func withEffects<T>(allowsAwait: Bool, _ body: () throws -> T) rethrows -> (T, EffectContext) {
+    @_spi(Layer) public func withEffects<T>(allowsAwait: Bool, _ body: () throws -> T) rethrows -> (T, EffectContext) {
         effectContexts.append(EffectContext(allowsAwait: allowsAwait))
         let awaitBefore = awaitDepth
         awaitDepth = 0 // An `await` outside doesn't reach in.

@@ -3,16 +3,16 @@ import SwishKit
 
 /// How `help` is colored: with the roles `DisplayStyle` names, the colors the
 /// highlighter gives the same things, so a signature reads as it would in code.
-@_spi(Shell) public enum HelpStyle {
+@_spi(Internals) public enum HelpStyle {
     /// A section's title.
-    @_spi(Shell) public static func heading(_ title: String) -> AttributedString {
+    @_spi(Internals) public static func heading(_ title: String) -> AttributedString {
         AttributedString(joining: [.init(title, .label)])
     }
 
     /// A hand-written usage (a shell builtin's): `--name`, `-a`, `<value>` and
     /// the rest, each colored as what it is, the command's name first. A
     /// function's usage is built from its parameters instead.
-    @_spi(Shell) public static func usage(_ text: String) -> [AttributedString] {
+    @_spi(Internals) public static func usage(_ text: String) -> [AttributedString] {
         var segments: [AttributedString] = []
         var first = true
         for (index, word) in text.split(separator: " ", omittingEmptySubsequences: false).enumerated() {
@@ -49,5 +49,5 @@ import SwishKit
 
 extension AttributedString {
     /// The width it takes on a line.
-    @_spi(Shell) public var width: Int { plain.count }
+    @_spi(Internals) public var width: Int { plain.count }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import SwishKit
 
-@_spi(Shell) public enum FunctionBody {
+@_spi(Internals) public enum FunctionBody {
     case swish(Program)
     /// A builtin written in Swift, called with the bound arguments.
     case native((Interpreter, [String: Value]) throws -> Value)
@@ -12,27 +12,27 @@ import SwishKit
 
 /// A Swish function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
-@_spi(Shell) public final class Function: Callable, @unchecked Sendable {
-    @_spi(Shell) public let name: String?
-    @_spi(Shell) public let parameters: [Parameter]
-    @_spi(Shell) public let returnType: TypeAnnotation?
-    @_spi(Shell) public let body: FunctionBody
-    @_spi(Shell) public let captured: [Scope]
-    @_spi(Shell) public let documentation: Documentation?
+@_spi(Internals) public final class Function: Callable, @unchecked Sendable {
+    @_spi(Internals) public let name: String?
+    @_spi(Internals) public let parameters: [Parameter]
+    @_spi(Internals) public let returnType: TypeAnnotation?
+    @_spi(Internals) public let body: FunctionBody
+    @_spi(Internals) public let captured: [Scope]
+    @_spi(Internals) public let documentation: Documentation?
     /// The imported module it came from, for a plugin's function.
-    @_spi(Shell) public let plugin: String?
+    @_spi(Internals) public let plugin: String?
     /// A struct's `mutating func` (or `init`), which may change `self`.
-    @_spi(Shell) public let isMutating: Bool
+    @_spi(Internals) public let isMutating: Bool
     /// `throws`: a call to it needs `try`.
-    @_spi(Shell) public let isThrowing: Bool
+    @_spi(Internals) public let isThrowing: Bool
     /// `rethrows`: a call throws if a closure passed to it does.
-    @_spi(Shell) public let isRethrowing: Bool
+    @_spi(Internals) public let isRethrowing: Bool
     /// `async` if declared so.
-    @_spi(Shell) public let effect: Effect
+    @_spi(Internals) public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
-    @_spi(Shell) public let generics: [String: [String]]
+    @_spi(Internals) public let generics: [String: [String]]
 
-    @_spi(Shell) public init(
+    @_spi(Internals) public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, plugin: String? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:]
@@ -51,23 +51,23 @@ import SwishKit
         self.documentation = documentation
     }
 
-    @_spi(Shell) public var inputParameter: Parameter? {
+    @_spi(Internals) public var inputParameter: Parameter? {
         parameters.first(where: \.isInput)
     }
 
     /// Whether a new declaration would replace this one rather than overload it.
-    @_spi(Shell) public func hasSameSignature(as other: Function) -> Bool {
+    @_spi(Internals) public func hasSameSignature(as other: Function) -> Bool {
         let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)", "\(p.isInput)"] }
         return parameters.map(signature) == other.parameters.map(signature)
     }
 
-    @_spi(Shell) public var description: String {
+    @_spi(Internals) public var description: String {
         guard let name else { return "<closure>" }
         let labels = parameters.map { ($0.label ?? "_") + ":" }.joined()
         return "<func \(name)(\(labels))>"
     }
 
-    @_spi(Shell) public var isBuiltin: Bool {
+    @_spi(Internals) public var isBuiltin: Bool {
         if case .swish = body { false } else { true }
     }
 

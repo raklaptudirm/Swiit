@@ -4,7 +4,7 @@ import SwishKit
 extension TypeChecker {
     // MARK: Statements
 
-    @_spi(Shell) public func checkBlock(_ program: inout Program, declaring names: [String: Symbol] = [:], newScope: Bool = false) throws {
+    @_spi(Layer) public func checkBlock(_ program: inout Program, declaring names: [String: Symbol] = [:], newScope: Bool = false) throws {
         if newScope { scopes.append(names) }
         defer { if newScope { scopes.removeLast() } }
         // Declared first, so functions and types can be used before (and by)
@@ -296,14 +296,14 @@ extension TypeChecker {
     // MARK: Throwing
 
     /// A plain `try` covers something that throws: it has to be handled.
-    @_spi(Shell) public func checkHandled(_ what: String) throws {
+    @_spi(Layer) public func checkHandled(_ what: String) throws {
         guard let context = errorContexts.last, !context.handled else { return }
         throw TypeError("\(what) can throw, but \(context.boundary.unhandled)")
     }
 
     /// Something that can throw, like a call to a `throws` function: it
     /// needs a `try` covering it.
-    @_spi(Shell) public func throwingSite(_ what: String) throws {
+    @_spi(Layer) public func throwingSite(_ what: String) throws {
         throwingSites += 1
         guard tryDepth > 0 else {
             throw TypeError("\(what) can throw, but isn't marked with 'try'")

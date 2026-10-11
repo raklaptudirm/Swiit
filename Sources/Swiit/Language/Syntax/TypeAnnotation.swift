@@ -2,7 +2,7 @@ import Foundation
 import SwishKit
 
 /// A type, as written in a declaration and as the checker works it out.
-@_spi(Shell) public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
+@_spi(Layer) public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
     case any, bool, int, double, string
     /// A record whose fields aren't known: a builtin's row, until the
     /// builtins declare their types.
@@ -35,22 +35,22 @@ import SwishKit
     /// declared its type. It fits anywhere, and anything fits it.
     case unknown
 
-    @_spi(Shell) public struct TupleElement: Hashable, Sendable {
-        @_spi(Shell) public var label: String?
-        @_spi(Shell) public var type: TypeAnnotation
+    @_spi(Layer) public struct TupleElement: Hashable, Sendable {
+        @_spi(Layer) public var label: String?
+        @_spi(Layer) public var type: TypeAnnotation
     
-        @_spi(Shell) public init(label: String? = nil, type: TypeAnnotation) {
+        @_spi(Layer) public init(label: String? = nil, type: TypeAnnotation) {
             self.label = label
             self.type = type
         }
     }
 
-    @_spi(Shell) public var description: String { AttributedString(joining: styled).text }
+    @_spi(Layer) public var description: String { AttributedString(joining: styled).text }
 
     /// As Swift writes it, in pieces by what each is (the name of a type, a
     /// label, a keyword, or punctuation), so help can color it and no one has
     /// to read the text back to find out.
-    @_spi(Shell) public var styled: [AttributedString] {
+    @_spi(Layer) public var styled: [AttributedString] {
         func name(_ text: String) -> AttributedString { .init(text, .type) }
         func punctuation(_ text: String) -> AttributedString { .init(text) }
         func list(_ items: [[AttributedString]]) -> [AttributedString] {
@@ -97,7 +97,7 @@ extension TypeAnnotation {
     /// sugar: `[T]`, `T?`, `[K: V]`.
     /// What `$(…)` gives: a command's output, which is a Swift type like any
     /// other, held as it is.
-    @_spi(Shell) public static let output = TypeAnnotation.named("Output")
+    @_spi(Layer) public static let output = TypeAnnotation.named("Output")
 
     private static let spelled: [(name: String, make: @Sendable ([TypeAnnotation]) -> TypeAnnotation?)] = [
         ("Int", { $0.isEmpty ? .int : nil }), ("Double", { $0.isEmpty ? .double : nil }),
@@ -136,7 +136,7 @@ extension TypeAnnotation {
 /// Whether a function is `async`, as `throws` says whether it throws
 /// (Docs/Design/async.md, "Types and effects"). Only Swift's own `async`: a
 /// layer's waits, like the shell's `$(…)`, are blocking calls, not effects.
-@_spi(Shell) public enum Effect: Equatable, Sendable {
+@_spi(Layer) public enum Effect: Equatable, Sendable {
     case sync
     /// Declared `async`: a call to it is marked with `await`, in an async context.
     case async

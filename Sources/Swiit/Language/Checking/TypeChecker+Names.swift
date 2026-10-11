@@ -4,7 +4,7 @@ import SwishKit
 extension TypeChecker {
     // MARK: Names
 
-    @_spi(Shell) public func lookup(_ name: String) -> Symbol? {
+    @_spi(Layer) public func lookup(_ name: String) -> Symbol? {
         for scope in scopes.reversed() {
             if let symbol = scope[name] { return symbol }
         }
@@ -32,7 +32,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func signature(_ function: Function) -> Signature {
+    @_spi(Layer) public func signature(_ function: Function) -> Signature {
         // A builtin that hasn't declared its result isn't known; a Swish
         // function without `->` returns nothing.
         var returns = function.returnType ?? (function.isBuiltin ? .unknown : .void)
@@ -42,7 +42,7 @@ extension TypeChecker {
                          isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)
     }
 
-    @_spi(Shell) public func structInfo(named name: String) -> StructInfo? {
+    @_spi(Layer) public func structInfo(named name: String) -> StructInfo? {
         if case .structType(let info)? = lookup(name) { return info }
         return nil
     }
@@ -52,7 +52,7 @@ extension TypeChecker {
         return nil
     }
 
-    @_spi(Shell) public func structInfo(_ type: StructType) -> StructInfo {
+    @_spi(Layer) public func structInfo(_ type: StructType) -> StructInfo {
         var methods: [String: [Signature]] = [:]
         for (name, set) in type.methods {
             methods[name] = set.candidates.enumerated().map { index, method in

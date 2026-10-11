@@ -127,7 +127,7 @@ extension Parser {
     }
 
     /// The `///` comment lines directly above the line starting at `index`.
-    @_spi(Shell) public func documentation(before index: Int) -> Documentation? {
+    @_spi(Layer) public func documentation(before index: Int) -> Documentation? {
         var lineStart = index
         while lineStart > 0 && (chars[lineStart - 1] == " " || chars[lineStart - 1] == "\t") { lineStart -= 1 }
         guard lineStart > 0 && chars[lineStart - 1] == "\n" else { return nil }
@@ -164,7 +164,7 @@ extension Parser {
 
     /// A closure, positioned after its opening brace: `{ x, y in … }`,
     /// `{ (x: Int) -> Int in … }`, or `{ $0 * 2 }`.
-    @_spi(Shell) public mutating func parseClosure() throws(SyntaxError) -> ClosureLiteral {
+    @_spi(Layer) public mutating func parseClosure() throws(SyntaxError) -> ClosureLiteral {
         var named: (parameters: [Parameter], returnType: TypeAnnotation?)?
         let beforeHead = self
         do {
@@ -451,7 +451,7 @@ extension Parser {
     }
 
     /// An identifier that isn't a keyword; `_` is allowed.
-    @_spi(Shell) public mutating func parseName(after context: String) throws(SyntaxError) -> String {
+    @_spi(Layer) public mutating func parseName(after context: String) throws(SyntaxError) -> String {
         guard let name = identifier() else { throw expected("a name after \(context)") }
         guard !Parser.keywords.contains(name) else { throw SyntaxError("'\(name)' is a keyword") }
         pos += name.count

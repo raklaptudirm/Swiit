@@ -4,7 +4,7 @@ import SwishKit
 /// What a name refers to, which decides the mode of a statement starting
 /// with it: a variable starts an expression, a function starts a command
 /// unless it's followed by `(`.
-@_spi(Shell) public enum NameKind: Equatable, Sendable {
+@_spi(Layer) public enum NameKind: Equatable, Sendable {
     /// `type`: an enum's or struct's name, as in `FileType.directory`.
     /// `member`: a property or method of the struct whose body this is,
     /// read through `self`. `staticMember`: a static one, read in a static
@@ -18,12 +18,12 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// The input ended in the middle of a construct, so more lines could complete it.
     public let incomplete: Bool
 
-    @_spi(Shell) public init(_ description: String, incomplete: Bool = false) {
+    @_spi(Layer) public init(_ description: String, incomplete: Bool = false) {
         self.description = description
         self.incomplete = incomplete
     }
 
-    @_spi(Shell) public static func incomplete(_ description: String) -> SyntaxError {
+    @_spi(Layer) public static func incomplete(_ description: String) -> SyntaxError {
         SyntaxError(description, incomplete: true)
     }
 }
@@ -31,15 +31,15 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
 /// What a stretch of source is, for syntax highlighting. The parser
 /// records these as it goes, so the colors always agree with how the line
 /// will actually be read.
-@_spi(Shell) public enum SpanKind: Equatable, Sendable {
+@_spi(Layer) public enum SpanKind: Equatable, Sendable {
     case keyword, command, flag, string, number, constant, variable, comment, type, punctuation
 }
 
-@_spi(Shell) public struct Span: Equatable, Sendable {
-    @_spi(Shell) public var range: Range<Int>
-    @_spi(Shell) public var kind: SpanKind
+@_spi(Layer) public struct Span: Equatable, Sendable {
+    @_spi(Layer) public var range: Range<Int>
+    @_spi(Layer) public var kind: SpanKind
 
-    @_spi(Shell) public init(range: Range<Int>, kind: SpanKind) {
+    @_spi(Layer) public init(range: Range<Int>, kind: SpanKind) {
         self.range = range
         self.kind = kind
     }
@@ -54,23 +54,23 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
 /// Mode is decided per unit, by what parses there (see `commandAhead`).
 /// Deciding it needs to know which names exist and what they are, so the
 /// parser tracks declarations lexically, seeded with the shell's globals.
-@_spi(Shell) public struct Parser {
+@_spi(Layer) public struct Parser {
     @_spi(Swiit) public static let keywords: Set = [
         "let", "var", "if", "else", "true", "false", "nil",
         "for", "in", "while", "func", "return", "break", "continue", "try", "do", "catch",
         "async", "await", "enum", "switch", "case", "default", "fallthrough", "import", "struct", "throws",
         "as", "is", "defer", "guard", "throw",
     ]
-    @_spi(Shell) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard", "throw"]
+    @_spi(Layer) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard", "throw"]
     /// The keywords a line can begin with: a statement's, a unit's
     /// (`if make { … }`), or an expression's (`await job`). Completion
     /// offers them where a command could go.
-    @_spi(Shell) public static let lineStarts = statementKeywords.subtracting(["catch"])
+    @_spi(Layer) public static let lineStarts = statementKeywords.subtracting(["catch"])
         .union(["if", "for", "while", "switch", "try", "async", "await"])
     /// The words a command can follow directly and still be in command
     /// position: `if make {`, `while pgrep x {`, `} else make`, `foreign ls`.
-    @_spi(Shell) public static let beforeCommand: Set = ["if", "while", "else", "foreign"]
-    @_spi(Shell) public static let precedence: [[BinaryOperator]] = [
+    @_spi(Layer) public static let beforeCommand: Set = ["if", "while", "else", "foreign"]
+    @_spi(Layer) public static let precedence: [[BinaryOperator]] = [
         [.or],
         [.and],
         // Two-character operators first, so `<=` isn't read as `<`.
@@ -84,15 +84,15 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// Levels whose operators can't be chained, like `a < b < c`.
     static let nonAssociativeLevels: Set = [2, 4]
 
-    @_spi(Shell) public let chars: [Character]
-    @_spi(Shell) public var pos = 0
+    @_spi(Layer) public let chars: [Character]
+    @_spi(Layer) public var pos = 0
     /// Syntax added to Swift's, which the grammar asks about where it has no
     /// meaning for what is there. Nil is Swift alone (SyntaxPlugin.swift).
-    @_spi(Shell) public var plugin: (any SyntaxPlugin)?
-    @_spi(Shell) public var scopes: [[String: NameKind]]
+    @_spi(Layer) public var plugin: (any SyntaxPlugin)?
+    @_spi(Layer) public var scopes: [[String: NameKind]]
     /// Parsing the prelude: builtins' declarations, which may be generic and
     /// have no bodies (their bodies are in Swift).
-    @_spi(Shell) public var prelude = false
+    @_spi(Layer) public var prelude = false
     /// Type parameters in scope, innermost last: `T`, or `Element`.
     var typeParameters: [Set<String>] = []
     /// The names each body being parsed mentions, innermost last.
@@ -101,30 +101,30 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     var lastBodyNames = NamesUsed()
 
     /// A name the body being parsed refers to.
-    @_spi(Shell) public mutating func use(_ name: String) {
+    @_spi(Layer) public mutating func use(_ name: String) {
         guard !namesUsed.isEmpty else { return }
         namesUsed[namesUsed.count - 1].insert(name)
     }
     /// An `import` came earlier: the functions it brings aren't known until
     /// it runs, so calling an unknown name is left for then.
-    @_spi(Shell) public var sawImport = false
+    @_spi(Layer) public var sawImport = false
     /// Where each line starts, for `line(at:)`.
-    @_spi(Shell) public var lineStarts: [Int] = [0]
+    @_spi(Layer) public var lineStarts: [Int] = [0]
     /// Inside (), [] and \( ), newlines don't end an expression.
-    @_spi(Shell) public var bracketDepth = 0
-    @_spi(Shell) public var loopDepth = 0
-    @_spi(Shell) public var functionDepth = 0
+    @_spi(Layer) public var bracketDepth = 0
+    @_spi(Layer) public var loopDepth = 0
+    @_spi(Layer) public var functionDepth = 0
     /// Inside a switch's cases, where `fallthrough` and `break` make sense.
-    @_spi(Shell) public var switchDepth = 0
+    @_spi(Layer) public var switchDepth = 0
     /// Inside an `if`/`while` condition, `{` after a command starts the body
     /// rather than a closure argument.
-    @_spi(Shell) public var conditionDepth = 0
+    @_spi(Layer) public var conditionDepth = 0
     /// In a guard's condition, where a command ends at `else`.
-    @_spi(Shell) public var guardCondition = false
+    @_spi(Layer) public var guardCondition = false
     /// Inside the operand of `try`, `try?` or `try!`, where `$(…)` throws
     /// when its command fails. Closures and function bodies start afresh:
     /// they decide for themselves whether to throw, as in Swift.
-    @_spi(Shell) public var tryDepth = 0
+    @_spi(Layer) public var tryDepth = 0
     /// One entry per enclosing function or closure: how many `$n`
     /// parameters a closure without named parameters uses, or nil if its
     /// parameters are named.
@@ -134,9 +134,9 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// interpolation inside a string) are shorter than what contains them.
     /// Input that doesn't parse yet, as while typing, still gets the spans
     /// found before the problem.
-    @_spi(Shell) public private(set) var spans: [Span] = []
+    @_spi(Layer) public private(set) var spans: [Span] = []
 
-    @_spi(Shell) public static func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) throws(SyntaxError) -> Program {
+    @_spi(Layer) public static func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) throws(SyntaxError) -> Program {
         var parser = Parser(source, bound: bound)
         parser.plugin = plugin
         return try parser.parseProgram(until: nil)
@@ -149,31 +149,31 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
         return try parser.parseProgram(until: nil)
     }
 
-    @_spi(Shell) public static func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) -> [Span] {
+    @_spi(Layer) public static func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) -> [Span] {
         var parser = Parser(source, bound: bound)
         parser.plugin = plugin
         _ = try? parser.parseProgram(until: nil)
         return parser.spans
     }
 
-    @_spi(Shell) public mutating func mark(_ kind: SpanKind, from start: Int, to end: Int? = nil) {
+    @_spi(Layer) public mutating func mark(_ kind: SpanKind, from start: Int, to end: Int? = nil) {
         let end = min(end ?? pos, chars.count)
         if start < end { spans.append(Span(range: start..<end, kind: kind)) }
     }
 
     /// Backs up after looking ahead, dropping spans recorded on the way.
-    @_spi(Shell) public mutating func rewind(to state: (position: Int, spans: Int)) {
+    @_spi(Layer) public mutating func rewind(to state: (position: Int, spans: Int)) {
         pos = state.position
         spans.removeSubrange(state.spans...)
     }
 
     /// Consumes a keyword known to be at the current position.
-    @_spi(Shell) public mutating func keyword(_ word: String) {
+    @_spi(Layer) public mutating func keyword(_ word: String) {
         mark(.keyword, from: pos, to: pos + word.count)
         pos += word.count
     }
 
-    @_spi(Shell) public init(_ source: String, bound: [String: NameKind]) {
+    @_spi(Layer) public init(_ source: String, bound: [String: NameKind]) {
         chars = Array(source.replacingOccurrences(of: "\r\n", with: "\n"))
         scopes = [bound]
         for (index, c) in chars.enumerated() where c == "\n" { lineStarts.append(index + 1) }

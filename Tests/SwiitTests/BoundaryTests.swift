@@ -1,4 +1,4 @@
-@_spi(Shell) @_spi(Swiit) @testable import Swiit
+@_spi(Host) @_spi(Layer) @_spi(Internals) @_spi(Swiit) @testable import Swiit
 import Testing
 
 @Test func theCoreStaysInsideItsBoundaries() throws {

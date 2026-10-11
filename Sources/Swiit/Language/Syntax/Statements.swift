@@ -3,23 +3,23 @@ import SwishKit
 
 // MARK: - AST
 
-@_spi(Shell) public struct Program: Equatable, Sendable {
-    @_spi(Shell) public var statements: [Statement]
+@_spi(Layer) public struct Program: Equatable, Sendable {
+    @_spi(Layer) public var statements: [Statement]
     /// Each statement's line in the source, 1-based, for error messages.
-    @_spi(Shell) public var lines: [Int] = []
+    @_spi(Layer) public var lines: [Int] = []
 
     /// Programs are equal by what they say, wherever it was written.
-    @_spi(Shell) public static func == (lhs: Program, rhs: Program) -> Bool {
+    @_spi(Layer) public static func == (lhs: Program, rhs: Program) -> Bool {
         lhs.statements == rhs.statements
     }
 
-    @_spi(Shell) public init(statements: [Statement], lines: [Int] = []) {
+    @_spi(Layer) public init(statements: [Statement], lines: [Int] = []) {
         self.statements = statements
         self.lines = lines
     }
 }
 
-@_spi(Shell) public enum Statement: Equatable, Sendable {
+@_spi(Layer) public enum Statement: Equatable, Sendable {
     case declare(name: String, mutable: Bool, value: Expr)
     /// `x = v`, `p.x += 1`, `xs[0] = v`.
     case assign(Assignment)
@@ -62,7 +62,7 @@ import SwishKit
 
 extension Statement {
     /// A struct or enum declaration, which a block declares before it runs.
-    @_spi(Shell) public var declaresType: Bool {
+    @_spi(Layer) public var declaresType: Bool {
         switch self {
         case .structDecl, .enumDecl: true
         default: false
@@ -70,8 +70,8 @@ extension Statement {
     }
 }
 
-@_spi(Shell) public struct IfStatement: Equatable, Sendable {
-    @_spi(Shell) public enum Condition: Equatable, Sendable {
+@_spi(Layer) public struct IfStatement: Equatable, Sendable {
+    @_spi(Layer) public enum Condition: Equatable, Sendable {
         /// A Bool.
         case expression(Expr)
         /// `if let name = value`: runs the body with `name` bound when the
@@ -81,9 +81,9 @@ extension Statement {
         case pattern(Pattern, Expr)
     }
 
-    @_spi(Shell) public var condition: Condition
-    @_spi(Shell) public var then: Program
-    @_spi(Shell) public var otherwise: Program?
+    @_spi(Layer) public var condition: Condition
+    @_spi(Layer) public var then: Program
+    @_spi(Layer) public var otherwise: Program?
 
     /// A branch of an `if` expression: the one expression it is, or an
     /// `else if`'s own `if` expression.
@@ -97,7 +97,7 @@ extension Statement {
     }
 
     /// A branch that is `expr`.
-    @_spi(Shell) public static func branch(_ expr: Expr) -> Program {
+    @_spi(Layer) public static func branch(_ expr: Expr) -> Program {
         Program(statements: [.expression(expr)])
     }
 
@@ -109,7 +109,7 @@ extension Statement {
         return IfStatement(condition: condition, then: IfStatement.branch(thenExpr), otherwise: IfStatement.branch(elseExpr))
     }
 
-    @_spi(Shell) public init(condition: Condition, then: Program, otherwise: Program? = nil) {
+    @_spi(Layer) public init(condition: Condition, then: Program, otherwise: Program? = nil) {
         self.condition = condition
         self.then = then
         self.otherwise = otherwise
@@ -117,14 +117,14 @@ extension Statement {
 }
 
 /// `enum Name: RawType { case a, b(label: Type) = raw }`
-@_spi(Shell) public struct EnumDecl: Equatable, Sendable {
-    @_spi(Shell) public var name: String
-    @_spi(Shell) public var rawType: TypeAnnotation?
-    @_spi(Shell) public var cases: [EnumCaseDecl]
+@_spi(Layer) public struct EnumDecl: Equatable, Sendable {
+    @_spi(Layer) public var name: String
+    @_spi(Layer) public var rawType: TypeAnnotation?
+    @_spi(Layer) public var cases: [EnumCaseDecl]
     /// `enum Level: Int, Comparable`: the protocols after any raw type.
-    @_spi(Shell) public var conformances: [String] = []
+    @_spi(Layer) public var conformances: [String] = []
 
-    @_spi(Shell) public init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
+    @_spi(Layer) public init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
         self.name = name
         self.rawType = rawType
         self.cases = cases
@@ -132,52 +132,52 @@ extension Statement {
     }
 }
 
-@_spi(Shell) public struct EnumCaseDecl: Equatable, Sendable {
-    @_spi(Shell) public var name: String
-    @_spi(Shell) public var rawValue: Expr?
-    @_spi(Shell) public var associated: [AssociatedValue]
+@_spi(Layer) public struct EnumCaseDecl: Equatable, Sendable {
+    @_spi(Layer) public var name: String
+    @_spi(Layer) public var rawValue: Expr?
+    @_spi(Layer) public var associated: [AssociatedValue]
 
-    @_spi(Shell) public init(name: String, rawValue: Expr? = nil, associated: [AssociatedValue]) {
+    @_spi(Layer) public init(name: String, rawValue: Expr? = nil, associated: [AssociatedValue]) {
         self.name = name
         self.rawValue = rawValue
         self.associated = associated
     }
 }
 
-@_spi(Shell) public struct AssociatedValue: Equatable, Sendable {
-    @_spi(Shell) public var label: String?
-    @_spi(Shell) public var type: TypeAnnotation
+@_spi(Layer) public struct AssociatedValue: Equatable, Sendable {
+    @_spi(Layer) public var label: String?
+    @_spi(Layer) public var type: TypeAnnotation
 
-    @_spi(Shell) public init(label: String? = nil, type: TypeAnnotation) {
+    @_spi(Layer) public init(label: String? = nil, type: TypeAnnotation) {
         self.label = label
         self.type = type
     }
 }
 
-@_spi(Shell) public struct SwitchStatement: Equatable, Sendable {
+@_spi(Layer) public struct SwitchStatement: Equatable, Sendable {
     @_spi(Swiit) public var subject: Expr
-    @_spi(Shell) public var cases: [SwitchCase]
+    @_spi(Layer) public var cases: [SwitchCase]
 
-    @_spi(Shell) public init(subject: Expr, cases: [SwitchCase]) {
+    @_spi(Layer) public init(subject: Expr, cases: [SwitchCase]) {
         self.subject = subject
         self.cases = cases
     }
 }
 
 /// `case p1, p2 where guard: body`; no patterns is `default:`.
-@_spi(Shell) public struct SwitchCase: Equatable, Sendable {
-    @_spi(Shell) public var patterns: [Pattern]
-    @_spi(Shell) public var guardExpr: Expr?
-    @_spi(Shell) public var body: Program
+@_spi(Layer) public struct SwitchCase: Equatable, Sendable {
+    @_spi(Layer) public var patterns: [Pattern]
+    @_spi(Layer) public var guardExpr: Expr?
+    @_spi(Layer) public var body: Program
 
-    @_spi(Shell) public init(patterns: [Pattern], guardExpr: Expr? = nil, body: Program) {
+    @_spi(Layer) public init(patterns: [Pattern], guardExpr: Expr? = nil, body: Program) {
         self.patterns = patterns
         self.guardExpr = guardExpr
         self.body = body
     }
 }
 
-@_spi(Shell) public indirect enum Pattern: Equatable, Sendable {
+@_spi(Layer) public indirect enum Pattern: Equatable, Sendable {
     /// `_`
     case wildcard
     /// `let x`: matches anything, binding it.
@@ -203,26 +203,26 @@ extension Pattern {
     }
 }
 
-@_spi(Shell) public struct PatternArgument: Equatable, Sendable {
-    @_spi(Shell) public var label: String?
-    @_spi(Shell) public var pattern: Pattern
+@_spi(Layer) public struct PatternArgument: Equatable, Sendable {
+    @_spi(Layer) public var label: String?
+    @_spi(Layer) public var pattern: Pattern
 
-    @_spi(Shell) public init(label: String? = nil, pattern: Pattern) {
+    @_spi(Layer) public init(label: String? = nil, pattern: Pattern) {
         self.label = label
         self.pattern = pattern
     }
 }
 
-@_spi(Shell) public struct ForLoop: Equatable, Sendable {
-    @_spi(Shell) public var variable: String
-    @_spi(Shell) public var sequence: Expr
-    @_spi(Shell) public var body: Program
+@_spi(Layer) public struct ForLoop: Equatable, Sendable {
+    @_spi(Layer) public var variable: String
+    @_spi(Layer) public var sequence: Expr
+    @_spi(Layer) public var body: Program
     /// `for try await x in s`: s is an AsyncSequence, whose reading waits
     /// (`await`) and may throw (`try`).
-    @_spi(Shell) public var isAwait = false
+    @_spi(Layer) public var isAwait = false
     @_spi(Swiit) public var isTry = false
 
-    @_spi(Shell) public init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false) {
+    @_spi(Layer) public init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false) {
         self.variable = variable
         self.sequence = sequence
         self.body = body
@@ -231,12 +231,12 @@ extension Pattern {
     }
 }
 
-@_spi(Shell) public struct WhileLoop: Equatable, Sendable {
+@_spi(Layer) public struct WhileLoop: Equatable, Sendable {
     /// A Bool.
-    @_spi(Shell) public var condition: Expr
-    @_spi(Shell) public var body: Program
+    @_spi(Layer) public var condition: Expr
+    @_spi(Layer) public var body: Program
 
-    @_spi(Shell) public init(condition: Expr, body: Program) {
+    @_spi(Layer) public init(condition: Expr, body: Program) {
         self.condition = condition
         self.body = body
     }

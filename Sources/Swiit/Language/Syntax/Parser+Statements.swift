@@ -4,7 +4,7 @@ import SwishKit
 extension Parser {
     // MARK: Statements
 
-    @_spi(Shell) public mutating func parseProgram(until terminator: Character?) throws(SyntaxError) -> Program {
+    @_spi(Layer) public mutating func parseProgram(until terminator: Character?) throws(SyntaxError) -> Program {
         // Functions and types can be used before their declarations, as in
         // Swift, so the names this block declares are bound from its start.
         for (keyword, name) in declaredNames(["func", "struct", "enum"], statementsOnly: true)
@@ -30,7 +30,7 @@ extension Parser {
     }
 
     /// The 1-based line `index` is on.
-    @_spi(Shell) public func line(at index: Int) -> Int {
+    @_spi(Layer) public func line(at index: Int) -> Int {
         var low = 0
         var high = lineStarts.count
         while low + 1 < high {
@@ -195,7 +195,7 @@ extension Parser {
         return assignment
     }
 
-    @_spi(Shell) public func matches(_ text: String) -> Bool {
+    @_spi(Layer) public func matches(_ text: String) -> Bool {
         text.enumerated().allSatisfy { peek($0.offset) == $0.element }
     }
 
@@ -248,10 +248,10 @@ extension Parser {
     }
 
     /// The protocols a type can conform to, for now all builtin.
-    @_spi(Shell) public static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error"]
+    @_spi(Layer) public static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error"]
 
     /// The names a pattern binds.
-    @_spi(Shell) public static func names(boundBy pattern: Pattern) -> [String] {
+    @_spi(Layer) public static func names(boundBy pattern: Pattern) -> [String] {
         switch pattern {
         case .binding(let name, _): [name]
         case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }

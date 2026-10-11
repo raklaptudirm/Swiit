@@ -1,10 +1,14 @@
 import Foundation
 
-/// The core's SPI: what it lets the shell use (`@_spi(Shell)`), and its own
-/// other modules, the SwiftSyntax front end and the bridge generator
-/// (`@_spi(Swiit)`), without making it public API. Each declaration is listed
-/// in spi-surface.txt, so a new one is a decision, and the list only shrinks
-/// as they become public API or internal (Docs/Design/extraction.md, stage 1).
+/// The core's SPI: what it lets its layers use without making it public API,
+/// by purpose. `Host` is what any host needs (the candidates for public API),
+/// `Layer` what a syntax layer like the shell's builds on (the tree, the
+/// parser, the checker), `Internals` the evaluator's insides, which a layer
+/// should come to need less, and `Swiit` what only the core's own other
+/// modules use (the SwiftSyntax front end, the bridge generator). Each
+/// declaration is listed in spi-surface.txt, so a new one is a decision, and
+/// the list only shrinks as they become public API or internal
+/// (Docs/Design/extraction.md, stages 1 and 2).
 enum SPISurface {
     private static let here = URL(fileURLWithPath: #filePath)
     private static let sources = here.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -12,7 +16,7 @@ enum SPISurface {
     static let ledger = here.deletingLastPathComponent().appendingPathComponent("spi-surface.txt")
 
     private static let declaration = try! NSRegularExpression(pattern:
-        #"@_spi\((Shell|Swiit)\)\s+public\s+(?:(?:static|final|indirect|mutating|nonisolated\(unsafe\)|override|convenience|required|lazy|weak|unowned)\s+)*(func|var|let|init|class|struct|enum|protocol|typealias|case|subscript)\b\s*([A-Za-z_][A-Za-z0-9_]*|[^\s(<:]+)?"#)
+        #"@_spi\((Host|Layer|Internals|Swiit)\)\s+public\s+(?:(?:static|final|indirect|mutating|nonisolated\(unsafe\)|override|convenience|required|lazy|weak|unowned)\s+)*(func|var|let|init|class|struct|enum|protocol|typealias|case|subscript)\b\s*([A-Za-z_][A-Za-z0-9_]*|[^\s(<:]+)?"#)
 
     /// Each SPI declaration, as `file<TAB>group kind name`, in order.
     static func current() throws -> [String] {

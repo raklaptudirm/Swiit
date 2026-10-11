@@ -11,7 +11,7 @@ import SwishKit
 /// `$(…)`) by calling the parser's own functions. See Docs/Design/frontend.md
 /// for why this is the shape it is, and what changes when another front end
 /// is added.
-@_spi(Shell) public protocol SyntaxPlugin: Sendable {
+@_spi(Layer) public protocol SyntaxPlugin: Sendable {
     /// Where an expression statement or a condition starts: the plug-in's own
     /// (the shell's commands, joined by `|`, `&&` and `||`, with Swift
     /// between them as in `x > 1 && echo big`), or nil to read Swift. A

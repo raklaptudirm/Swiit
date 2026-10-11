@@ -32,7 +32,7 @@ import SystemPackage
 
 /// A case of a Swift enum from a Swish value: the case of that name, among
 /// all the enum's.
-@_spi(Shell) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
+@_spi(Internals) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
         throw SwishError("expected a \(T.self), not \(value.typeName)")
     }
@@ -46,7 +46,7 @@ func pathValue(_ path: String) -> Value {
 
 /// What a record's field is that encoding loses: an enum is encoded as its
 /// raw text and a path as an object, and Swish holds them as what they are.
-@_spi(Shell) public enum FieldKind {
+@_spi(Internals) public enum FieldKind {
     case enumeration(String)
     /// A Swift type held as it is, of this name: a `FilePath`, a `FileSize`.
     case boxed(String)
@@ -56,7 +56,7 @@ func pathValue(_ path: String) -> Value {
 /// them and all there: the encoder leaves out a nil, and the declaration says
 /// it's a field. A field of `patches` is read from the Swift value itself and
 /// made what it is declared as.
-@_spi(Shell) public func bridgeRecord<T: Encodable>(_ shell: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
+@_spi(Internals) public func bridgeRecord<T: Encodable>(_ shell: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
     guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
     var record = Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
@@ -80,13 +80,13 @@ extension Interpreter {
     /// What a standard library function that asks for it is lent: the host's,
     /// if it lends one (the shell's carries what was entered before), else
     /// the output's traits and how values display.
-    @_spi(Shell) public var context: ShellContext {
+    @_spi(Internals) public var context: ShellContext {
         contextProvider?() ?? ShellContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
     }
 }
 
 /// A list's items, or an Output's lines.
-@_spi(Shell) public func bridgeList(_ value: Value) throws -> [Value] {
+@_spi(Internals) public func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
     default:
@@ -96,13 +96,13 @@ extension Interpreter {
 }
 
 /// A dictionary as Swift's, which is what it holds.
-@_spi(Shell) public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
+@_spi(Internals) public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
     guard case .dictionary(let dictionary) = value else { throw SwishError("expected a dictionary, not \(value.typeName)") }
     return dictionary.dictionary
 }
 
 /// Swift's dictionary as Swish's.
-@_spi(Shell) public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
+@_spi(Internals) public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
     .dictionary(ValueDictionary(dictionary))
 }
 
@@ -169,14 +169,14 @@ func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> V
 extension Interpreter {
     /// The items a value gives as they come, which can throw: a `Flow`'s,
     /// one at a time; nil for anything else.
-    @_spi(Shell) public static func flow(of value: Value) -> Flow<Value>? {
+    @_spi(Internals) public static func flow(of value: Value) -> Flow<Value>? {
         if case .object(let box as SwiftValue) = value { box.value as? Flow<Value> } else { nil }
     }
 
     /// The items of a list, an Output's lines, or a Swift sequence Swish
     /// holds (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
-    @_spi(Shell) public static func items(of value: Value) -> AnyIterator<Value>? {
+    @_spi(Internals) public static func items(of value: Value) -> AnyIterator<Value>? {
         switch value {
         case .list(let items):
             return AnyIterator(items.makeIterator())
@@ -220,7 +220,7 @@ extension Interpreter {
     value == .nothing ? nil : try convert(value)
 }
 
-@_spi(Shell) public func bridgeClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
+@_spi(Internals) public func bridgeClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
     { arguments in try shell.call(function, with: arguments) }
 }
 

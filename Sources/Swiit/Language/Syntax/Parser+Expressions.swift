@@ -8,7 +8,7 @@ extension Parser {
     /// `&&` and `||` are left to join it with commands in a chain.
     /// `try`, `try?` and `try!` cover everything to their right, as in
     /// Swift: `(try? $(cmd)) ?? "default"` needs its parentheses.
-    @_spi(Shell) public mutating func parseExpression(logical: Bool = true) throws(SyntaxError) -> Expr {
+    @_spi(Layer) public mutating func parseExpression(logical: Bool = true) throws(SyntaxError) -> Expr {
         skipSpaces()
         if let kind = try parseTry() {
             tryDepth += 1
@@ -43,7 +43,7 @@ extension Parser {
     }
 
     /// `try` (.some(nil)), `try?` or `try!` at the current position; nil if none.
-    @_spi(Shell) public mutating func parseTry() throws(SyntaxError) -> TryKind?? {
+    @_spi(Layer) public mutating func parseTry() throws(SyntaxError) -> TryKind?? {
         guard identifier() == "try" else { return nil }
         let start = pos
         pos += "try".count
@@ -212,7 +212,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func parseArguments() throws(SyntaxError) -> [Argument] {
+    @_spi(Layer) public mutating func parseArguments() throws(SyntaxError) -> [Argument] {
         pos += 1
         bracketDepth += 1
         defer { bracketDepth -= 1 }
@@ -233,7 +233,7 @@ extension Parser {
         }
     }
 
-    @_spi(Shell) public mutating func parsePrimary() throws(SyntaxError) -> Expr {
+    @_spi(Layer) public mutating func parsePrimary() throws(SyntaxError) -> Expr {
         skipSpaces()
         guard let c = peek() else { throw .incomplete("expected an expression") }
         if Parser.isDigit(c) { return try parseNumber() }
@@ -385,7 +385,7 @@ extension Parser {
         return isRecord == true ? .record(entries) : .list(elements)
     }
 
-    @_spi(Shell) public mutating func parseNumber() throws(SyntaxError) -> Expr {
+    @_spi(Layer) public mutating func parseNumber() throws(SyntaxError) -> Expr {
         let start = pos
         defer { mark(.number, from: start) }
         var text = readDigits()

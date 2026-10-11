@@ -12,7 +12,7 @@ extension Interpreter {
         return low..<(high + 1)
     }
 
-    @_spi(Shell) public func truth(_ expr: Expr, for op: BinaryOperator) throws -> Bool {
+    @_spi(Internals) public func truth(_ expr: Expr, for op: BinaryOperator) throws -> Bool {
         let value = try evaluate(expr)
         guard case .bool(let truth) = value else {
             throw RuntimeError("'\(op.rawValue)' needs Bool operands, not \(value.typeName)")
@@ -20,7 +20,7 @@ extension Interpreter {
         return truth
     }
 
-    @_spi(Shell) public func apply(_ op: UnaryOperator, _ value: Value) throws -> Value {
+    @_spi(Internals) public func apply(_ op: UnaryOperator, _ value: Value) throws -> Value {
         switch (op, value) {
         case (.not, .bool(let b)):
             return .bool(!b)
@@ -36,7 +36,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Shell) public func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
+    @_spi(Internals) public func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
         // What stands for text (a command's output) compares as its text;
         // other String operations go through `.text`.
         let comparisons: [BinaryOperator] = [.equal, .notEqual, .less, .lessEqual, .greater, .greaterEqual]
@@ -109,7 +109,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Shell) public func compare<T: Comparable>(_ op: BinaryOperator, _ a: T, _ b: T) -> Bool? {
+    @_spi(Internals) public func compare<T: Comparable>(_ op: BinaryOperator, _ a: T, _ b: T) -> Bool? {
         switch op {
         case .less: a < b
         case .lessEqual: a <= b

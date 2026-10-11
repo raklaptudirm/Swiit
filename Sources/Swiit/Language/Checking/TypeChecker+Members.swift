@@ -6,7 +6,7 @@ extension TypeChecker {
 
     /// `xs.filter { … }` and the rest: the prelude's `extension Sequence`,
     /// with `Element` the receiver's items' type.
-    @_spi(Shell) public func sequenceMethodType(
+    @_spi(Layer) public func sequenceMethodType(
         _ name: String, on base: TypeAnnotation, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation? {
         guard let methods = interpreter.sequenceMethods[name], let element = sequenceElement(base) else { return nil }
@@ -25,7 +25,7 @@ extension TypeChecker {
 
     /// A sequence method's signature as it's called: without the `@input`
     /// the sequence comes in by.
-    @_spi(Shell) public func sequenceSignatures(_ methods: OverloadSet) -> [Signature] {
+    @_spi(Layer) public func sequenceSignatures(_ methods: OverloadSet) -> [Signature] {
         methods.candidates.enumerated().map { index, method in
             var signature = signature(method)
             signature.parameters.removeAll(where: \.isInput)
@@ -48,7 +48,7 @@ extension TypeChecker {
 
     /// `select name size` on [FileEntry]: [(name: String, size: FileSize)],
     /// a tuple of the fields picked, which Swift's generics can't say.
-    @_spi(Shell) public func selectType(_ element: TypeAnnotation, arguments: inout [Argument]) throws -> TypeAnnotation {
+    @_spi(Layer) public func selectType(_ element: TypeAnnotation, arguments: inout [Argument]) throws -> TypeAnnotation {
         var fields: [TypeAnnotation.TupleElement] = []
         for index in arguments.indices {
             try expect(&arguments[index].value, .string, "select: a field's name")
@@ -64,7 +64,7 @@ extension TypeChecker {
 
     /// The Swift type a Swish type is, with its generic parameters bound:
     /// `[Int]` is Array with Element Int.
-    @_spi(Shell) public func bridged(_ type: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
+    @_spi(Layer) public func bridged(_ type: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
         Bridge.type(of: type)
     }
 
@@ -80,7 +80,7 @@ extension TypeChecker {
 
     /// The Element of a bridged Swift type that's a Sequence: Int for a
     /// ClosedRange<Int>, Character for a Substring; nil if it isn't one.
-    @_spi(Shell) public func bridgedElement(_ type: TypeAnnotation) -> TypeAnnotation? {
+    @_spi(Layer) public func bridgedElement(_ type: TypeAnnotation) -> TypeAnnotation? {
         // A `Flow` isn't a Sequence, its reading can throw, but passes on its elements the same.
         if case .generic("Flow", let arguments) = type, arguments.count == 1 { return arguments[0] }
         guard let (bridgedType, bindings) = bridged(type), bridgedConforms(bridgedType, bindings, to: "Sequence") else { return nil }
@@ -174,7 +174,7 @@ extension TypeChecker {
 extension TypeChecker {
     // MARK: Members
 
-    @_spi(Shell) public func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
+    @_spi(Layer) public func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
             case .enumType(let info):
@@ -202,7 +202,7 @@ extension TypeChecker {
         return try memberType(of: try typeOf(&baseExpr), name)
     }
 
-    @_spi(Shell) public func memberType(of base: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
+    @_spi(Layer) public func memberType(of base: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
         if let dynamic = dynamicType(of: base) { return dynamic.read }
         lastMemberBase = base
         if let (dynamic, plain) = plainType(of: base) {

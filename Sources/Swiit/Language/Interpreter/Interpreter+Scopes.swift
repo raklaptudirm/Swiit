@@ -2,7 +2,7 @@ import Foundation
 import SwishKit
 
 extension Interpreter {
-    @_spi(Shell) public func lookup(_ name: String) -> Binding? {
+    @_spi(Internals) public func lookup(_ name: String) -> Binding? {
         scopeHolding(name)?.bindings[name]
     }
 

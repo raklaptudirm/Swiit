@@ -7,7 +7,7 @@ import SwishKit
 extension Interpreter {
     /// Installs the builtins: the core's own, and the host's `libraries`
     /// (bridged functions and types, and declarations for the prelude).
-    @_spi(Shell) public func installBuiltinFunctions(libraries added: [Library] = []) {
+    @_spi(Host) public func installBuiltinFunctions(libraries added: [Library] = []) {
         libraries = [.standard] + added
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)
         installPrelude()

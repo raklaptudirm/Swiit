@@ -6,7 +6,7 @@ extension TypeChecker {
 
     /// `expr`'s type, which must fit `expected`.
     /// The expressions interpolated into a string.
-    @_spi(Shell) public func checkParts(_ parts: inout [StringPart]) throws {
+    @_spi(Layer) public func checkParts(_ parts: inout [StringPart]) throws {
         for index in parts.indices {
             if case .expression(var expr) = parts[index] {
                 _ = try typeOf(&expr)
@@ -15,7 +15,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
+    @_spi(Layer) public func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
         let type = try typeOf(&expr, expecting: expected)
         guard fits(type, expected) else {
             throw TypeError("\(what) must be \(expected), not \(type)")
@@ -25,7 +25,7 @@ extension TypeChecker {
     /// `expr`'s type, given what the context expects of it (which a literal,
     /// a closure or a `.case` takes its type from); `expr` gets what the
     /// checker decided.
-    @_spi(Shell) public func typeOf(_ expr: inout Expr, expecting expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
+    @_spi(Layer) public func typeOf(_ expr: inout Expr, expecting expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
         switch expr {
         case .literal(let value):
             switch value {
@@ -347,7 +347,7 @@ extension TypeChecker {
         return functionType(matching[0])
     }
 
-    @_spi(Shell) public func type(of value: Value) -> TypeAnnotation {
+    @_spi(Layer) public func type(of value: Value) -> TypeAnnotation {
         switch value {
         case .nothing: .optional(.unknown)
         case .bool: .bool

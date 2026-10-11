@@ -6,7 +6,7 @@ import _StringProcessing
 import SwishStandardLibrary
 
 extension Bridge {
-    @_spi(Shell) public nonisolated(unsafe) static let standardLibrary: [BridgedType] = [
+    @_spi(Internals) public nonisolated(unsafe) static let standardLibrary: [BridgedType] = [
 
         BridgedType(
             name: "String", genericParameters: [],

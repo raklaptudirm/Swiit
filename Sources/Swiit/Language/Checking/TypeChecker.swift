@@ -3,19 +3,19 @@ import SwishKit
 
 /// A mistake in types, found before anything runs: the statement (or, in a
 /// script, the whole script) doesn't run. See Docs/Design/types.md.
-@_spi(Shell) public struct TypeError: Error, CustomStringConvertible {
-    @_spi(Shell) public let message: String
+@_spi(Layer) public struct TypeError: Error, CustomStringConvertible {
+    @_spi(Layer) public let message: String
     /// The line of the statement it's in, when there's more than one.
-    @_spi(Shell) public var line: Int?
+    @_spi(Layer) public var line: Int?
     /// A call's arguments don't line up with a signature's parameters, as
     /// opposed to lining up with a value of the wrong type.
     var isArity = false
 
-    @_spi(Shell) public init(_ message: String) {
+    @_spi(Layer) public init(_ message: String) {
         self.message = message
     }
 
-    @_spi(Shell) public var description: String { message }
+    @_spi(Layer) public var description: String { message }
 }
 
 /// Works out the type of every expression and checks it fits where it's
@@ -28,24 +28,24 @@ import SwishKit
 /// and writes that into the program it returns: which overload a call
 /// uses (`.chosen`). Commands, pipelines and builtins' results are
 /// `unknown` until phase 3, which fits anywhere.
-@_spi(Shell) public final class TypeChecker {
-    @_spi(Shell) public struct Signature {
-        @_spi(Shell) public var name: String
-        @_spi(Shell) public var parameters: [Parameter]
-        @_spi(Shell) public var returns: TypeAnnotation
-        @_spi(Shell) public var isMutating = false
-        @_spi(Shell) public var isThrowing = false
+@_spi(Layer) public final class TypeChecker {
+    @_spi(Layer) public struct Signature {
+        @_spi(Layer) public var name: String
+        @_spi(Layer) public var parameters: [Parameter]
+        @_spi(Layer) public var returns: TypeAnnotation
+        @_spi(Layer) public var isMutating = false
+        @_spi(Layer) public var isThrowing = false
         /// `rethrows`: a call throws if a closure passed to it does.
-        @_spi(Shell) public var isRethrowing = false
+        @_spi(Layer) public var isRethrowing = false
         /// What it waits on: a call to an `async` one needs `await`.
-        @_spi(Shell) public var effect: Effect = .sync
+        @_spi(Layer) public var effect: Effect = .sync
         /// Its position among the overloads the interpreter will have.
-        @_spi(Shell) public var index = 0
+        @_spi(Layer) public var index = 0
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
-        @_spi(Shell) public var generics: [String: [String]] = [:]
+        @_spi(Layer) public var generics: [String: [String]] = [:]
     
-        @_spi(Shell) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
+        @_spi(Layer) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
             self.effect = effect
             self.name = name
             self.parameters = parameters
@@ -58,22 +58,22 @@ import SwishKit
         }
     }
 
-    @_spi(Shell) public struct StructInfo {
-        @_spi(Shell) public var name: String
-        @_spi(Shell) public var stored: [PropertyDecl]
-        @_spi(Shell) public var computed: [String: TypeAnnotation]
-        @_spi(Shell) public var methods: [String: [Signature]]
+    @_spi(Layer) public struct StructInfo {
+        @_spi(Layer) public var name: String
+        @_spi(Layer) public var stored: [PropertyDecl]
+        @_spi(Layer) public var computed: [String: TypeAnnotation]
+        @_spi(Layer) public var methods: [String: [Signature]]
         @_spi(Swiit) public var initializers: [Signature]
-        @_spi(Shell) public var memberwise: Signature
-        @_spi(Shell) public var conformances: [String] = []
+        @_spi(Layer) public var memberwise: Signature
+        @_spi(Layer) public var conformances: [String] = []
         /// `static let` and `static var`, stored and computed: read on the type.
         @_spi(Swiit) public var staticProperties: [PropertyDecl] = []
         @_spi(Swiit) public var staticMethods: [String: [Signature]] = [:]
 
-        @_spi(Shell) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
+        @_spi(Layer) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
     
-        @_spi(Shell) public init(name: String, stored: [PropertyDecl], computed: [String: TypeAnnotation], methods: [String: [Signature]], initializers: [Signature], memberwise: Signature, conformances: [String] = [], staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
+        @_spi(Layer) public init(name: String, stored: [PropertyDecl], computed: [String: TypeAnnotation], methods: [String: [Signature]], initializers: [Signature], memberwise: Signature, conformances: [String] = [], staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
             self.name = name
             self.stored = stored
             self.computed = computed
@@ -86,16 +86,16 @@ import SwishKit
         }
     }
 
-    @_spi(Shell) public struct EnumInfo {
-        @_spi(Shell) public var name: String
+    @_spi(Layer) public struct EnumInfo {
+        @_spi(Layer) public var name: String
         /// Each case's associated values, in declaration order.
-        @_spi(Shell) public var cases: [(name: String, payload: [AssociatedValue])]
-        @_spi(Shell) public var rawType: TypeAnnotation?
-        @_spi(Shell) public var conformances: [String] = []
+        @_spi(Layer) public var cases: [(name: String, payload: [AssociatedValue])]
+        @_spi(Layer) public var rawType: TypeAnnotation?
+        @_spi(Layer) public var conformances: [String] = []
 
         func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
     
-        @_spi(Shell) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = []) {
+        @_spi(Layer) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = []) {
             self.name = name
             self.cases = cases
             self.rawType = rawType
@@ -103,7 +103,7 @@ import SwishKit
         }
     }
 
-    @_spi(Shell) public enum Symbol {
+    @_spi(Layer) public enum Symbol {
         case variable(TypeAnnotation, mutable: Bool)
         case functions([Signature])
         case structType(StructInfo)
@@ -119,23 +119,23 @@ import SwishKit
 
     /// Where `return` goes: the declared result, or, for a closure that
     /// didn't say, the types its `return`s give.
-    @_spi(Shell) public final class ReturnContext {
-        @_spi(Shell) public let declared: TypeAnnotation?
-        @_spi(Shell) public var seen: [TypeAnnotation] = []
+    @_spi(Layer) public final class ReturnContext {
+        @_spi(Layer) public let declared: TypeAnnotation?
+        @_spi(Layer) public var seen: [TypeAnnotation] = []
 
-        @_spi(Shell) public init(declared: TypeAnnotation?) {
+        @_spi(Layer) public init(declared: TypeAnnotation?) {
             self.declared = declared
         }
     }
 
     /// Whether an error thrown here is handled: in a `throws` function, a
     /// closure, a `do` with a `catch`, or at the top level.
-    @_spi(Shell) public struct ErrorContext {
-        @_spi(Shell) public var handled: Bool
+    @_spi(Layer) public struct ErrorContext {
+        @_spi(Layer) public var handled: Bool
         /// What an error would have to leave, for messages.
         var boundary: Boundary = .topLevel
 
-        @_spi(Shell) public enum Boundary {
+        @_spi(Layer) public enum Boundary {
             case topLevel, function(String), deferBlock
 
             /// Why an error can't get out, and what would let it.
@@ -148,26 +148,26 @@ import SwishKit
             }
         }
     
-        @_spi(Shell) public init(handled: Bool, boundary: Boundary = .topLevel) {
+        @_spi(Layer) public init(handled: Bool, boundary: Boundary = .topLevel) {
             self.handled = handled
             self.boundary = boundary
         }
     }
 
-    @_spi(Shell) public unowned let interpreter: Interpreter
+    @_spi(Layer) public unowned let interpreter: Interpreter
     /// The type whose member was last looked up, so a JSON field can be
     /// written into a lookup that runs.
     var lastMemberBase: TypeAnnotation?
 
     /// What the program declares, innermost last, on top of the shell's names.
-    @_spi(Shell) public var scopes: [[String: Symbol]] = [[:]]
-    @_spi(Shell) public var returns: [ReturnContext] = []
+    @_spi(Layer) public var scopes: [[String: Symbol]] = [[:]]
+    @_spi(Layer) public var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]
     /// Above zero while checking what a `try` covers.
-    @_spi(Shell) public var tryDepth = 0
+    @_spi(Layer) public var tryDepth = 0
     /// Places that can throw, so far: how a `try` or a closure knows it
     /// covers one.
-    @_spi(Shell) public var throwingSites = 0
+    @_spi(Layer) public var throwingSites = 0
     /// Above zero while checking what an `await` covers.
     var awaitDepth = 0
     /// Calls to `async` functions so far: how an `await` knows it covers one.
@@ -180,15 +180,15 @@ import SwishKit
     /// The functions the program being checked declares at its top level.
     var redeclaredHere: Set<String> = []
     /// After an `import`, names it may bring can't be checked.
-    @_spi(Shell) public var afterImport = false
-    @_spi(Shell) public var line: Int?
+    @_spi(Layer) public var afterImport = false
+    @_spi(Layer) public var line: Int?
 
-    @_spi(Shell) public init(interpreter: Interpreter) {
+    @_spi(Layer) public init(interpreter: Interpreter) {
         self.interpreter = interpreter
     }
 
     /// Checks a program, returning it with what was decided written in.
-    @_spi(Shell) public func check(_ program: Program) throws(TypeError) -> Program {
+    @_spi(Layer) public func check(_ program: Program) throws(TypeError) -> Program {
         var checked = program
         for statement in program.statements { if case .function(let decl) = statement { redeclaredHere.insert(decl.name) } }
         do {
@@ -205,7 +205,7 @@ import SwishKit
 
     /// The types of the globals a checked program declared, for the next
     /// entry at the prompt.
-    @_spi(Shell) public var declaredGlobals: [String: TypeAnnotation] {
+    @_spi(Layer) public var declaredGlobals: [String: TypeAnnotation] {
         scopes[0].compactMapValues { if case .variable(let type, _) = $0 { type } else { nil } }
     }
 
@@ -213,7 +213,7 @@ import SwishKit
 
 /// A host object the checker types without knowing its class: `Job`, an
 /// imported module. Its members' types come from `Interpreter.objectMembers`.
-@_spi(Shell) public protocol CheckedObject: SwishObject {
+@_spi(Layer) public protocol CheckedObject: SwishObject {
     var checkedType: TypeAnnotation { get }
     /// Whether a name bound to it is a module, whose members are looked up
     /// in the value.
@@ -221,5 +221,5 @@ import SwishKit
 }
 
 extension CheckedObject {
-    @_spi(Shell) public var isModule: Bool { false }
+    @_spi(Layer) public var isModule: Bool { false }
 }

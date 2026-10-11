@@ -8,11 +8,11 @@ import SwishKit
 /// them here and rewrites what is inside them itself, with `program`,
 /// `expression` and the rest. This is how the shell's constructs become Swift
 /// (Docs/Design/desugaring.md).
-@_spi(Shell) public struct TreeRewriter {
-    @_spi(Shell) public var expr: (Expr) -> Expr
-    @_spi(Shell) public var statement: (Statement) -> Statement
+@_spi(Layer) public struct TreeRewriter {
+    @_spi(Layer) public var expr: (Expr) -> Expr
+    @_spi(Layer) public var statement: (Statement) -> Statement
 
-    @_spi(Shell) public init(
+    @_spi(Layer) public init(
         expr: @escaping (Expr) -> Expr = { $0 },
         statement: @escaping (Statement) -> Statement = { $0 }
     ) {
@@ -22,7 +22,7 @@ import SwishKit
 
     // MARK: Programs and statements
 
-    @_spi(Shell) public func program(_ program: Program) -> Program {
+    @_spi(Layer) public func program(_ program: Program) -> Program {
         Program(statements: program.statements.map(self.statementNode), lines: program.lines)
     }
 
@@ -96,14 +96,14 @@ import SwishKit
         return statement(rewritten)
     }
 
-    @_spi(Shell) public func function(_ decl: FunctionDecl) -> FunctionDecl {
+    @_spi(Layer) public func function(_ decl: FunctionDecl) -> FunctionDecl {
         var copy = decl
         copy.parameters = decl.parameters.map(parameter)
         copy.body = program(decl.body)
         return copy
     }
 
-    @_spi(Shell) public func parameter(_ parameter: Parameter) -> Parameter {
+    @_spi(Layer) public func parameter(_ parameter: Parameter) -> Parameter {
         var copy = parameter
         copy.defaultValue = parameter.defaultValue.map(expression)
         return copy
@@ -118,7 +118,7 @@ import SwishKit
 
     // MARK: Conditions and patterns
 
-    @_spi(Shell) public func ifStatement(_ node: IfStatement) -> IfStatement {
+    @_spi(Layer) public func ifStatement(_ node: IfStatement) -> IfStatement {
         IfStatement(condition: condition(node.condition), then: program(node.then), otherwise: block(node.otherwise))
     }
 
@@ -145,18 +145,18 @@ import SwishKit
 
     // MARK: Expressions
 
-    @_spi(Shell) public func arguments(_ arguments: [Argument]) -> [Argument] {
+    @_spi(Layer) public func arguments(_ arguments: [Argument]) -> [Argument] {
         arguments.map { Argument(label: $0.label, value: expression($0.value)) }
     }
 
-    @_spi(Shell) public func closure(_ closure: ClosureLiteral) -> ClosureLiteral {
+    @_spi(Layer) public func closure(_ closure: ClosureLiteral) -> ClosureLiteral {
         var copy = closure
         copy.parameters = closure.parameters.map(parameter)
         copy.body = program(closure.body)
         return copy
     }
 
-    @_spi(Shell) public func expression(_ node: Expr) -> Expr {
+    @_spi(Layer) public func expression(_ node: Expr) -> Expr {
         let rewritten: Expr
         switch node {
         case .literal, .variable, .filePath, .extended:

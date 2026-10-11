@@ -4,7 +4,7 @@ import SwishKit
 extension Parser {
     // MARK: Strings and interpolation
 
-    @_spi(Shell) public mutating func parseRawString() throws(SyntaxError) -> String {
+    @_spi(Layer) public mutating func parseRawString() throws(SyntaxError) -> String {
         guard let end = chars[(pos + 1)...].firstIndex(of: "'") else {
             mark(.string, from: pos, to: chars.count)
             throw .incomplete("unterminated string")
@@ -18,7 +18,7 @@ extension Parser {
     /// A double-quoted string: Swift escapes and `\(…)`, and in commands
     /// (`dollar`) also `$name` and `$(…)`. In expressions it's pure Swift,
     /// so `"costs $5"` and `"$HOME"` are literal there.
-    @_spi(Shell) public mutating func parseInterpolatedString(dollar: Bool) throws(SyntaxError) -> [StringPart] {
+    @_spi(Layer) public mutating func parseInterpolatedString(dollar: Bool) throws(SyntaxError) -> [StringPart] {
         let start = pos
         pos += 1
         var parts: [StringPart] = []
@@ -86,7 +86,7 @@ extension Parser {
     }
 
     /// `\(expression)`, positioned at the backslash.
-    @_spi(Shell) public mutating func parseInterpolation() throws(SyntaxError) -> Expr {
+    @_spi(Layer) public mutating func parseInterpolation() throws(SyntaxError) -> Expr {
         mark(.punctuation, from: pos, to: pos + 2)
         pos += 2
         bracketDepth += 1
@@ -101,7 +101,7 @@ extension Parser {
 
     /// `$0` in a closure, or a `$` form of the plug-in's (`$(…)`, `$name`),
     /// positioned at the dollar sign; nil if the dollar is just a character.
-    @_spi(Shell) public mutating func parseDollar() throws(SyntaxError) -> Expr? {
+    @_spi(Layer) public mutating func parseDollar() throws(SyntaxError) -> Expr? {
         switch peek(1) {
         case let c? where Parser.isDigit(c):
             // Only special in a closure without named parameters; elsewhere,

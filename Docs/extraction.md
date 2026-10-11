@@ -51,6 +51,7 @@ last stage, and mechanical by then.
    modules use moved to `@_spi(Swiit)`, which the shell doesn't import, so
    `@_spi(Shell)` is what the shell uses (650 declarations, types included,
    since one can be used without its name) and the ledger says which is which.
+   (Stage 2 then split `@_spi(Shell)` by purpose.)
 2. **Design the host API.** What the shell uses, sorted into what any host
    needs (made `public` and documented in embedding.md: tasks and the lock,
    `SwishHost`, `statementFinished`, `inputTurn`, `owner`, registering object
@@ -58,6 +59,24 @@ last stage, and mechanical by then.
    the shell, or behind a narrower call). An `@_spi(Swiit)` stays only for
    things the core's own modules (`SwiitSwiftSyntax`, the bridge generator)
    share. Done when the shell imports Swiit without `@_spi`.
+   *Started:* the shell's SPI is sorted into groups by purpose, and each file
+   imports only the groups it uses, so where the shell reaches in shows in its
+   imports:
+   - `Host` (116 declarations): what any host needs, the candidates for public
+     API. Sources/Swiit/Host, the interpreter's own type, its lock, its tasks
+     and its errors.
+   - `Layer` (323): what a syntax layer builds on, the tree, the parser and the
+     checker (Language/Syntax, Language/Checking). Stage 3 narrows it.
+   - `Internals` (211): the evaluator's insides (scopes, functions, structs,
+     calls, reflection, the bridge). A layer should come to need none of it.
+   - `Swiit` (40): only the core's own other modules.
+
+   Of the shell's 43 files that import the core, 30 use `Host`, 26 `Layer` and
+   23 `Internals`, and 8 none. The groups go by file for now; a declaration
+   moves group when it turns out to be another's (a host's need in
+   Language/Interpreter, say). The way to the end of this stage is emptying
+   `Internals` from the shell's imports, a file at a time, then making `Host`
+   public.
 3. **A syntax-plugin contract without the parser's internals.** Either the
    hand parser retires and the plugin works on SwiftSyntax tokens (frontend.md's
    end state), or `SyntaxPlugin` gets a small public cursor (peek, take, spans,

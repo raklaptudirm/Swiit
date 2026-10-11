@@ -9,7 +9,7 @@ import SwishKit
 /// It is a reference: assigning through a `let` binding is allowed, as with a
 /// class in Swift. (A registered object is the Lua userdata with `__index` and
 /// `__newindex`; the same feature serves JSON as a real type.)
-@_spi(Shell) public protocol DynamicObject: SwishObject {
+@_spi(Host) public protocol DynamicObject: SwishObject {
     /// What reading any member, or indexing by a String, gives.
     var readType: TypeAnnotation { get }
     /// What assigning to a member takes; nil removes it, if that makes sense.
@@ -22,13 +22,13 @@ import SwishKit
 /// What the checker knows of a dynamic type, by its name: an object's members
 /// (`env`), or the members of plain values that a host types as one of its
 /// own (parsed JSON).
-@_spi(Shell) public struct DynamicType {
-    @_spi(Shell) public var read: TypeAnnotation
-    @_spi(Shell) public var write: TypeAnnotation
+@_spi(Host) public struct DynamicType {
+    @_spi(Host) public var read: TypeAnnotation
+    @_spi(Host) public var write: TypeAnnotation
     /// Set for values that aren't objects but plain values, read by name.
-    @_spi(Shell) public var plain: PlainDynamic?
+    @_spi(Host) public var plain: PlainDynamic?
 
-    @_spi(Shell) public init(read: TypeAnnotation, write: TypeAnnotation, plain: PlainDynamic? = nil) {
+    @_spi(Host) public init(read: TypeAnnotation, write: TypeAnnotation, plain: PlainDynamic? = nil) {
         self.read = read
         self.write = write
         self.plain = plain
@@ -40,19 +40,19 @@ import SwishKit
 /// into a call of the host's functions, so the values stay ordinary lists,
 /// records and scalars. Parsed JSON is one: `json.name`, `json[0]`,
 /// `json.port?.int`.
-@_spi(Shell) public struct PlainDynamic {
+@_spi(Host) public struct PlainDynamic {
     /// A function in scope, `field(value, key)`: the member or element, or nil.
-    @_spi(Shell) public var field: String
+    @_spi(Host) public var field: String
     /// A function in scope, `view(value, "int")`: the value as that type, or nil.
-    @_spi(Shell) public var view: String
+    @_spi(Host) public var view: String
     /// The types of the views by name: `int` gives `Int?`.
-    @_spi(Shell) public var views: [String: TypeAnnotation]
+    @_spi(Host) public var views: [String: TypeAnnotation]
     /// What a sequence's items are, when it is read as one.
-    @_spi(Shell) public var element: TypeAnnotation
+    @_spi(Host) public var element: TypeAnnotation
     /// It fits wherever a type is wanted, being whatever it parsed as.
     var standsForAnything: Bool
 
-    @_spi(Shell) public init(field: String, view: String, views: [String: TypeAnnotation], element: TypeAnnotation, standsForAnything: Bool = true) {
+    @_spi(Host) public init(field: String, view: String, views: [String: TypeAnnotation], element: TypeAnnotation, standsForAnything: Bool = true) {
         self.field = field
         self.view = view
         self.views = views
@@ -64,7 +64,7 @@ import SwishKit
 extension Interpreter {
     /// Binds `name` to a dynamic object in the outermost scope, and tells the
     /// checker the type of its members.
-    @_spi(Shell) public func bind(_ name: String, to object: some DynamicObject) {
+    @_spi(Host) public func bind(_ name: String, to object: some DynamicObject) {
         dynamicTypes[object.typeName] = DynamicType(read: object.readType, write: object.writeType)
         scopes[0].bindings[name] = Binding(value: .object(object), mutable: false)
     }

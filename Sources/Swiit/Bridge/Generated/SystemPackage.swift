@@ -5,7 +5,7 @@ import SwishKit
 import SystemPackage
 
 extension Bridge {
-    @_spi(Shell) public nonisolated(unsafe) static let system: [BridgedType] = [
+    @_spi(Internals) public nonisolated(unsafe) static let system: [BridgedType] = [
 
         BridgedType(
             name: "FilePath", genericParameters: [],

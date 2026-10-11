@@ -198,7 +198,7 @@ extension Parser {
 
     /// The names a struct's body declares, found before parsing it so a
     /// member can use one declared further down.
-    @_spi(Shell) public func memberNames(static wantStatic: Bool = false) -> [String] {
+    @_spi(Layer) public func memberNames(static wantStatic: Bool = false) -> [String] {
         declaredNames(["var", "let", "func"], statementsOnly: false, statics: wantStatic).map(\.name)
     }
 

@@ -117,7 +117,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Shell) public func structInfo(_ decl: StructDecl) throws -> StructInfo {
+    @_spi(Layer) public func structInfo(_ decl: StructDecl) throws -> StructInfo {
         var computed: [String: TypeAnnotation] = [:]
         for property in decl.properties where property.getter != nil { computed[property.name] = property.type ?? .unknown }
         var methods: [String: [Signature]] = [:]

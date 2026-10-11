@@ -8,7 +8,7 @@ import SwishKit
 extension Bridge {
     /// The members of the types of `typeNames` that are the operator
     /// `symbol` taking `arity` operands.
-    @_spi(Shell) public static func operators(_ symbol: String, arity: Int, of typeNames: [String]) -> [BridgedMember] {
+    @_spi(Internals) public static func operators(_ symbol: String, arity: Int, of typeNames: [String]) -> [BridgedMember] {
         var seen: Set<String> = []
         return typeNames.filter { seen.insert($0).inserted }.flatMap { name in
             (types[name]?.members ?? []).filter {

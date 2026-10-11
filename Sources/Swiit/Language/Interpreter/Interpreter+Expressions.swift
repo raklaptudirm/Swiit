@@ -233,7 +233,7 @@ extension Interpreter {
     }
 
     /// Record fields first, then the few members values have.
-    @_spi(Shell) public func member(_ name: String, of value: Value) throws -> Value {
+    @_spi(Internals) public func member(_ name: String, of value: Value) throws -> Value {
         if case .enumValue(let enumValue) = value, name == "rawValue" {
             guard let raw = enumValue.rawValue else { throw RuntimeError("\(enumValue.type.name) has no raw values") }
             return raw
@@ -296,7 +296,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Shell) public func element(of base: Value, at index: Value) throws -> Value {
+    @_spi(Internals) public func element(of base: Value, at index: Value) throws -> Value {
         if case .object(let object as DynamicObject) = base {
             guard case .string(let name) = index else {
                 throw RuntimeError("\(object.typeName) is indexed by name, not \(index.typeName)")

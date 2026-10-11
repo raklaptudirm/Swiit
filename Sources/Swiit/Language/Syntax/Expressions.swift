@@ -1,35 +1,35 @@
 import Foundation
 import SwishKit
 
-@_spi(Shell) public struct RecordEntry: Equatable, Sendable {
-    @_spi(Shell) public var key: Expr
-    @_spi(Shell) public var value: Expr
+@_spi(Layer) public struct RecordEntry: Equatable, Sendable {
+    @_spi(Layer) public var key: Expr
+    @_spi(Layer) public var value: Expr
 
-    @_spi(Shell) public init(key: Expr, value: Expr) {
+    @_spi(Layer) public init(key: Expr, value: Expr) {
         self.key = key
         self.value = value
     }
 }
 
 /// A piece of a string: text, or an interpolated expression.
-@_spi(Shell) public enum StringPart: Equatable, Sendable {
+@_spi(Layer) public enum StringPart: Equatable, Sendable {
     case literal(String)
     case expression(Expr)
 }
 
-@_spi(Shell) public struct Argument: Equatable, Sendable {
-    @_spi(Shell) public var label: String?
-    @_spi(Shell) public var value: Expr
+@_spi(Layer) public struct Argument: Equatable, Sendable {
+    @_spi(Layer) public var label: String?
+    @_spi(Layer) public var value: Expr
 
-    @_spi(Shell) public init(label: String? = nil, value: Expr) {
+    @_spi(Layer) public init(label: String? = nil, value: Expr) {
         self.label = label
         self.value = value
     }
 }
 
-@_spi(Shell) public indirect enum Expr: Equatable, Sendable {
+@_spi(Layer) public indirect enum Expr: Equatable, Sendable {
     /// `await j`, or `try await j`.
-    @_spi(Shell) public var isAwait: Bool {
+    @_spi(Layer) public var isAwait: Bool {
         switch self {
         case .await: true
         case .attempt(let inner, _): inner.isAwait
@@ -95,7 +95,7 @@ import SwishKit
     case voidValue(Expr)
 }
 
-@_spi(Shell) public enum TryKind: Equatable, Sendable {
+@_spi(Layer) public enum TryKind: Equatable, Sendable {
     /// `try`: an error goes on to whatever handles it.
     case plain
     /// `try?`: nil instead of a runtime error.
@@ -104,7 +104,7 @@ import SwishKit
     case forced
 }
 
-@_spi(Shell) public enum CastKind: Equatable, Sendable {
+@_spi(Layer) public enum CastKind: Equatable, Sendable {
     /// `as?`: the value as that type, or nil.
     case conditional
     /// `as!`: the value as that type, or an error.
@@ -115,12 +115,12 @@ import SwishKit
     case upcast
 }
 
-@_spi(Shell) public enum UnaryOperator: String, Sendable {
+@_spi(Layer) public enum UnaryOperator: String, Sendable {
     case not = "!"
     case negate = "-"
 }
 
-@_spi(Shell) public enum BinaryOperator: String, Sendable {
+@_spi(Layer) public enum BinaryOperator: String, Sendable {
     case or = "||", and = "&&"
     case coalesce = "??"
     case equal = "==", notEqual = "!="

@@ -79,7 +79,7 @@ extension TypeChecker {
     }
 
     /// A call to a named function: the overload is chosen here.
-    @_spi(Shell) public func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+    @_spi(Layer) public func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
             // Which one isn't known until it runs (an argument isn't typed yet).
@@ -91,7 +91,7 @@ extension TypeChecker {
         return chosen.returns
     }
 
-    @_spi(Shell) public func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
+    @_spi(Layer) public func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
         overloads.allSatisfy { $0.returns == overloads[0].returns } ? overloads[0].returns : .unknown
     }
 
@@ -136,7 +136,7 @@ extension TypeChecker {
     }
 
     /// Calling a value of type `type`.
-    @_spi(Shell) public func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+    @_spi(Layer) public func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         switch type {
         case .functionType(let parameters, let result, let throwing, let effect):
             let signature = Signature(name: name, parameters: parameters.map { Parameter(label: nil, name: "_", type: $0) },
@@ -178,7 +178,7 @@ extension TypeChecker {
     /// When neither the prelude's method nor Swift's fits: the prelude's
     /// error, unless its overloads didn't even line up with the arguments
     /// (one was missing), when Swift's is the one that applies.
-    @_spi(Shell) public static func preferred(prelude: TypeError, swift: TypeError?) -> TypeError {
+    @_spi(Layer) public static func preferred(prelude: TypeError, swift: TypeError?) -> TypeError {
         guard let swift, prelude.message.contains("missing") else { return prelude }
         return swift
     }

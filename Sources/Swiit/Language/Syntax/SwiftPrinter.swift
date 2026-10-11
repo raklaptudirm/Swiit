@@ -7,16 +7,16 @@ import SwishKit
 /// compare with the interpreter. A construct a layer over the core adds, or
 /// that only the checker makes, prints as a comment saying so, so printing is
 /// total and the gap is visible.
-@_spi(Shell) public struct SwiftPrinter {
-    @_spi(Shell) public init() {}
+@_spi(Layer) public struct SwiftPrinter {
+    @_spi(Layer) public init() {}
 
     /// The program as source, one statement a line.
-    @_spi(Shell) public func source(_ program: Program) -> String {
+    @_spi(Layer) public func source(_ program: Program) -> String {
         lines(program, indent: 0).joined(separator: "\n")
     }
 
     /// One expression as source.
-    @_spi(Shell) public func source(_ expr: Expr) -> String {
+    @_spi(Layer) public func source(_ expr: Expr) -> String {
         expression(expr)
     }
 
