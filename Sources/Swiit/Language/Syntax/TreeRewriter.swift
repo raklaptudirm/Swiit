@@ -28,7 +28,7 @@ import SwishKit
 
     private func block(_ program: Program?) -> Program? { program.map(self.program) }
 
-    @_spi(Shell) public func statementNode(_ node: Statement) -> Statement {
+    @_spi(Swiit) public func statementNode(_ node: Statement) -> Statement {
         let rewritten: Statement
         switch node {
         case .declare(let name, let mutable, let value):

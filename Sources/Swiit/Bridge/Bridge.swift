@@ -37,17 +37,17 @@ import SystemPackage
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
-@_spi(Shell) public func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
+@_spi(Swiit) public func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
     T(stringLiteral: text)
 }
 
-@_spi(Shell) public func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
+@_spi(Swiit) public func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
 where T.ExtendedGraphemeClusterLiteralType == Character {
     guard let character = text.first, text.dropFirst().isEmpty else { return nil }
     return T(extendedGraphemeClusterLiteral: character)
 }
 
-@_spi(Shell) public func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
+@_spi(Swiit) public func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
 where T.UnicodeScalarLiteralType == Unicode.Scalar {
     guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else { return nil }
     return T(unicodeScalarLiteral: scalar)

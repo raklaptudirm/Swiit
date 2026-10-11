@@ -1,4 +1,4 @@
-@_spi(Shell) @testable import Swiit
+@_spi(Shell) @_spi(Swiit) @testable import Swiit
 import Testing
 
 @Test func theCoreStaysInsideItsBoundaries() throws {

@@ -55,7 +55,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
 /// Deciding it needs to know which names exist and what they are, so the
 /// parser tracks declarations lexically, seeded with the shell's globals.
 @_spi(Shell) public struct Parser {
-    @_spi(Shell) public static let keywords: Set = [
+    @_spi(Swiit) public static let keywords: Set = [
         "let", "var", "if", "else", "true", "false", "nil",
         "for", "in", "while", "func", "return", "break", "continue", "try", "do", "catch",
         "async", "await", "enum", "switch", "case", "default", "fallthrough", "import", "struct", "throws",
@@ -128,7 +128,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// One entry per enclosing function or closure: how many `$n`
     /// parameters a closure without named parameters uses, or nil if its
     /// parameters are named.
-    @_spi(Shell) public var anonymousArity: [Int?] = []
+    @_spi(Swiit) public var anonymousArity: [Int?] = []
 
     /// Highlight spans, in the order recorded; inner spans (like an
     /// interpolation inside a string) are shorter than what contains them.

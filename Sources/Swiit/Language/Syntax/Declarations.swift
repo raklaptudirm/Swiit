@@ -12,7 +12,7 @@ import SwishKit
     /// `throws`: calling it needs `try`.
     @_spi(Shell) public var isThrowing = false
     /// Declared `async`.
-    @_spi(Shell) public var isAsync = false
+    @_spi(Swiit) public var isAsync = false
     /// `async` if declared so.
     @_spi(Shell) public var effect: Effect = .sync
     /// `rethrows`: it throws only if a closure passed to it does.
@@ -48,7 +48,7 @@ import SwishKit
     @_spi(Shell) public var root: String
     @_spi(Shell) public var path: [Step] = []
     /// `+=` and the like: the operator applied to the current value.
-    @_spi(Shell) public var op: BinaryOperator?
+    @_spi(Swiit) public var op: BinaryOperator?
     @_spi(Shell) public var value: Expr
 
     @_spi(Shell) public init(root: String, path: [Step] = [], op: BinaryOperator? = nil, value: Expr) {
@@ -64,13 +64,13 @@ import SwishKit
     @_spi(Shell) public var name: String
     @_spi(Shell) public var properties: [PropertyDecl]
     @_spi(Shell) public var methods: [FunctionDecl]
-    @_spi(Shell) public var initializers: [FunctionDecl]
+    @_spi(Swiit) public var initializers: [FunctionDecl]
     /// `struct Point: Equatable, Hashable`.
     @_spi(Shell) public var conformances: [String] = []
     /// `static let origin = Point(x: 0, y: 0)`: values of the type itself,
     /// and `static func`s, which are called on it: `Point.origin`.
-    @_spi(Shell) public var staticProperties: [PropertyDecl] = []
-    @_spi(Shell) public var staticMethods: [FunctionDecl] = []
+    @_spi(Swiit) public var staticProperties: [PropertyDecl] = []
+    @_spi(Swiit) public var staticMethods: [FunctionDecl] = []
 
     @_spi(Shell) public init(name: String, properties: [PropertyDecl], methods: [FunctionDecl], initializers: [FunctionDecl], conformances: [String] = []) {
         self.name = name
@@ -87,8 +87,8 @@ import SwishKit
     @_spi(Shell) public var type: TypeAnnotation? = nil
     @_spi(Shell) public var defaultValue: Expr? = nil
     /// A computed property's body; nil for a stored one.
-    @_spi(Shell) public var getter: Program? = nil
-    @_spi(Shell) public var getterNames = NamesUsed()
+    @_spi(Swiit) public var getter: Program? = nil
+    @_spi(Swiit) public var getterNames = NamesUsed()
 
     @_spi(Shell) public init(name: String, mutable: Bool, type: TypeAnnotation? = nil, defaultValue: Expr? = nil, getter: Program? = nil, getterNames: NamesUsed = NamesUsed()) {
         self.name = name

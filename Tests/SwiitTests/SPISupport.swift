@@ -1,9 +1,10 @@
 import Foundation
 
-/// The core's SPI: what it lets its own layers (the shell, the SwiftSyntax
-/// front end) use without making it public API. Each declaration is listed in
-/// spi-surface.txt, so a new one is a decision, and the list only shrinks as
-/// they become public API or internal (Docs/Design/extraction.md, stage 1).
+/// The core's SPI: what it lets the shell use (`@_spi(Shell)`), and its own
+/// other modules, the SwiftSyntax front end and the bridge generator
+/// (`@_spi(Swiit)`), without making it public API. Each declaration is listed
+/// in spi-surface.txt, so a new one is a decision, and the list only shrinks
+/// as they become public API or internal (Docs/Design/extraction.md, stage 1).
 enum SPISurface {
     private static let here = URL(fileURLWithPath: #filePath)
     private static let sources = here.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
@@ -11,18 +12,19 @@ enum SPISurface {
     static let ledger = here.deletingLastPathComponent().appendingPathComponent("spi-surface.txt")
 
     private static let declaration = try! NSRegularExpression(pattern:
-        #"@_spi\(Shell\)\s+public\s+(?:(?:static|final|indirect|mutating|nonisolated\(unsafe\)|override|convenience|required|lazy|weak|unowned)\s+)*(func|var|let|init|class|struct|enum|protocol|typealias|case|subscript)\b\s*([A-Za-z_][A-Za-z0-9_]*|[^\s(<:]+)?"#)
+        #"@_spi\((Shell|Swiit)\)\s+public\s+(?:(?:static|final|indirect|mutating|nonisolated\(unsafe\)|override|convenience|required|lazy|weak|unowned)\s+)*(func|var|let|init|class|struct|enum|protocol|typealias|case|subscript)\b\s*([A-Za-z_][A-Za-z0-9_]*|[^\s(<:]+)?"#)
 
-    /// Each SPI declaration, as `file<TAB>kind name`, in order.
+    /// Each SPI declaration, as `file<TAB>group kind name`, in order.
     static func current() throws -> [String] {
         var entries: [String] = []
         let files = FileManager.default.enumerator(atPath: sources.path)!.compactMap { $0 as? String }.filter { $0.hasSuffix(".swift") }
         for file in files.sorted() {
             let text = try String(contentsOf: sources.appendingPathComponent(file), encoding: .utf8)
             for match in declaration.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
-                let kind = String(text[Range(match.range(at: 1), in: text)!])
-                let name = Range(match.range(at: 2), in: text).map { String(text[$0]) } ?? kind
-                entries.append("\(file)\t\(kind) \(kind == "init" || kind == "subscript" ? kind : name)")
+                let group = String(text[Range(match.range(at: 1), in: text)!])
+                let kind = String(text[Range(match.range(at: 2), in: text)!])
+                let name = Range(match.range(at: 3), in: text).map { String(text[$0]) } ?? kind
+                entries.append("\(file)\t\(group) \(kind) \(kind == "init" || kind == "subscript" ? kind : name)")
             }
         }
         return entries.sorted()

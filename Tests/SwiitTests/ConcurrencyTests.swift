@@ -1,4 +1,4 @@
-@_spi(Shell) @testable import Swiit
+@_spi(Shell) @_spi(Swiit) @testable import Swiit
 import Foundation
 import SwishKit
 import Testing

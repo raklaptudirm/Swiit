@@ -103,7 +103,7 @@ extension Statement {
 
     /// This `if` as an expression, when it can be one: with an `else`, and
     /// every branch one expression. `else if` branches become expressions too.
-    @_spi(Shell) public var asExpression: IfStatement? {
+    @_spi(Swiit) public var asExpression: IfStatement? {
         guard let otherwise, let thenExpr = IfStatement.branchExpression(then),
               let elseExpr = IfStatement.branchExpression(otherwise) else { return nil }
         return IfStatement(condition: condition, then: IfStatement.branch(thenExpr), otherwise: IfStatement.branch(elseExpr))
@@ -155,7 +155,7 @@ extension Statement {
 }
 
 @_spi(Shell) public struct SwitchStatement: Equatable, Sendable {
-    @_spi(Shell) public var subject: Expr
+    @_spi(Swiit) public var subject: Expr
     @_spi(Shell) public var cases: [SwitchCase]
 
     @_spi(Shell) public init(subject: Expr, cases: [SwitchCase]) {
@@ -220,7 +220,7 @@ extension Pattern {
     /// `for try await x in s`: s is an AsyncSequence, whose reading waits
     /// (`await`) and may throw (`try`).
     @_spi(Shell) public var isAwait = false
-    @_spi(Shell) public var isTry = false
+    @_spi(Swiit) public var isTry = false
 
     @_spi(Shell) public init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false) {
         self.variable = variable

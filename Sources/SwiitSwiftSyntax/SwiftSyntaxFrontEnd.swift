@@ -1,4 +1,4 @@
-@_spi(Shell) import Swiit
+@_spi(Shell) @_spi(Swiit) import Swiit
 import SwiftOperators
 import SwiftParser
 import SwiftSyntax

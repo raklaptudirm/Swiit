@@ -133,7 +133,7 @@ extension Interpreter {
 
 /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
 /// cancelling the task cancels it.
-@_spi(Shell) public func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
+@_spi(Swiit) public func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
     // Set by the operation's task, read by this thread once it's set.
     final class Outcome: @unchecked Sendable {
         let operation: () async throws -> Value
@@ -166,7 +166,7 @@ extension Interpreter {
 
 /// A Swish closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
-@_spi(Shell) public func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
+@_spi(Swiit) public func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
     nonisolated(unsafe) let shell = shell
     nonisolated(unsafe) let caller = shell.task
     nonisolated(unsafe) let function = function

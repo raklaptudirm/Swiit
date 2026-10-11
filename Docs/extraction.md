@@ -47,7 +47,10 @@ last stage, and mechanical by then.
    (approximate): 566 the shell's, 83 only the core's own other modules'
    (the SwiftSyntax front end, the bridge generator), 11 only tests', and 30
    that name nothing outside (types public signatures need, and protocol
-   requirements' defaults).
+   requirements' defaults). Then the 40 members only the core's own other
+   modules use moved to `@_spi(Swiit)`, which the shell doesn't import, so
+   `@_spi(Shell)` is what the shell uses (650 declarations, types included,
+   since one can be used without its name) and the ledger says which is which.
 2. **Design the host API.** What the shell uses, sorted into what any host
    needs (made `public` and documented in embedding.md: tasks and the lock,
    `SwishHost`, `statementFinished`, `inputTurn`, `owner`, registering object

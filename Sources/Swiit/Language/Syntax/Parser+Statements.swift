@@ -147,7 +147,7 @@ extension Parser {
     /// `name = v`, `name.a[i] += v`, …, or nil (having looked ahead) if the
     /// statement isn't an assignment. In a struct's body, a member's name
     /// assigns through `self`.
-    @_spi(Shell) public mutating func parseAssignment(_ name: String) throws(SyntaxError) -> Assignment? {
+    @_spi(Swiit) public mutating func parseAssignment(_ name: String) throws(SyntaxError) -> Assignment? {
         let start = (pos, spans.count)
         mark(.variable, from: pos, to: pos + name.count)
         pos += name.count

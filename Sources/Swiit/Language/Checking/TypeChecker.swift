@@ -63,12 +63,12 @@ import SwishKit
         @_spi(Shell) public var stored: [PropertyDecl]
         @_spi(Shell) public var computed: [String: TypeAnnotation]
         @_spi(Shell) public var methods: [String: [Signature]]
-        @_spi(Shell) public var initializers: [Signature]
+        @_spi(Swiit) public var initializers: [Signature]
         @_spi(Shell) public var memberwise: Signature
         @_spi(Shell) public var conformances: [String] = []
         /// `static let` and `static var`, stored and computed: read on the type.
-        @_spi(Shell) public var staticProperties: [PropertyDecl] = []
-        @_spi(Shell) public var staticMethods: [String: [Signature]] = [:]
+        @_spi(Swiit) public var staticProperties: [PropertyDecl] = []
+        @_spi(Swiit) public var staticMethods: [String: [Signature]] = [:]
 
         @_spi(Shell) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
