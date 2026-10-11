@@ -3,19 +3,17 @@ import SwishKit
 // Effects, as Swift has them for `async` (Docs/Design/async.md, "Types and
 // effects"): a call to an `async` function is marked with `await`, and
 // `await` is written in an async context (the top level, an `async`
-// function, or a closure, which becomes async). What waits only through a
-// layer's constructs (the shell's `$(…)` and commands) is implicitly async:
-// it is called with no `await`, and so is anything that calls it.
+// function, or a closure, which becomes async). A layer's waits, like the
+// shell's `$(…)`, are blocking calls and bring no effect.
 
 extension TypeChecker {
     /// A function's, a closure's, or the top level's effects so far.
     @_spi(Shell) public struct EffectContext {
         /// Whether `await` may be written here.
         @_spi(Shell) public var allowsAwait: Bool
-        /// What has waited here so far.
+        /// `async` once an `async` call is awaited here.
         @_spi(Shell) public var effect: Effect = .sync
-        /// The functions called here by name, and those called without `await`.
-        @_spi(Shell) public var callees: Set<String> = []
+        /// The functions called here by name without `await`.
         @_spi(Shell) public var unawaited: Set<String> = []
 
         @_spi(Shell) public init(allowsAwait: Bool) {
@@ -23,20 +21,16 @@ extension TypeChecker {
         }
     }
 
-    /// Something that waits, as `effect` says, here: an `async` one needs an
-    /// `await` covering it.
+    /// A call of `effect` here: an `async` one needs an `await` covering it.
     @_spi(Shell) public func effectSite(_ effect: Effect, _ what: String) throws {
-        guard effect.waits else { return }
-        if effect == .async {
-            guard awaitDepth > 0 else { throw TypeError("\(what) is async, but isn't marked with 'await'") }
-            asyncSites += 1
-        }
-        effectContexts[effectContexts.count - 1].effect = effectContexts[effectContexts.count - 1].effect.joined(effect)
+        guard effect == .async else { return }
+        guard awaitDepth > 0 else { throw TypeError("\(what) is async, but isn't marked with 'await'") }
+        asyncSites += 1
+        effectContexts[effectContexts.count - 1].effect = .async
     }
 
-    /// A call to the function `name`, for the call graph.
+    /// A call to the function `name`, for the redefinition rule.
     @_spi(Shell) public func calledByName(_ name: String) {
-        effectContexts[effectContexts.count - 1].callees.insert(name)
         if awaitDepth == 0 { effectContexts[effectContexts.count - 1].unawaited.insert(name) }
     }
 
@@ -73,31 +67,10 @@ extension TypeChecker {
         throw TypeError("\(decl.name) can't become async: \(list) call\(callers.count == 1 ? "s" : "") it without 'await'")
     }
 
-    /// The top-level functions of a checked program, each as implicitly async
-    /// as what it calls: a function can call one declared after it, which
-    /// wasn't known to wait when the call was checked.
-    @_spi(Shell) public func settleEffects(_ program: inout Program) {
-        var effects: [String: Effect] = [:]
-        for statement in program.statements { if case .function(let decl) = statement { effects[decl.name] = decl.effect } }
-        var changed = true
-        while changed {
-            changed = false
-            for (name, callees) in topLevelCalls where effects[name] == .sync {
-                if callees.contains(where: { effects[$0]?.waits == true }) {
-                    effects[name] = .implicitAsync
-                    changed = true
-                }
-            }
-        }
-        for index in program.statements.indices {
-            if case .function(var decl) = program.statements[index], let effect = effects[decl.name], effect != decl.effect {
-                decl.effect = effect
-                program.statements[index] = .function(decl)
-            }
-        }
-        // Who calls what without `await`, for the redefinition rule; what this
-        // program declares replaces what was declared before.
-        for name in topLevelCalls.keys {
+    /// Who calls what without `await`, kept for the redefinition rule; what
+    /// this program declares replaces what was declared before.
+    @_spi(Shell) public func recordUnawaitedCalls() {
+        for name in topLevelUnawaited.keys {
             for callee in interpreter.unawaitedCallers.keys { interpreter.unawaitedCallers[callee]?.remove(name) }
         }
         for (name, callees) in topLevelUnawaited {

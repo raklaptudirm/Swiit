@@ -64,8 +64,6 @@ extension TypeChecker {
         case .extended(var box):
             let type = try box.node.check(in: self, expecting: expected)
             expr = .extended(box)
-            // `$(…)` and commands wait, as the shell's own waits.
-            if box.node.waits { try effectSite(.implicitAsync, "this") }
             return type
         case .attempt(var inner, let kind):
             let sitesBefore = throwingSites
@@ -109,10 +107,9 @@ extension TypeChecker {
                 }
             }
             // `await job`, or `await` alone: the host's handles (the shell's
-            // jobs), which wait as the shell's constructs do.
+            // jobs), joined by blocking, anywhere.
             guard let awaiting = interpreter.awaiting else { throw TypeError("there is nothing to await here") }
             if throwing { try throwingSite("awaiting a job") }
-            try effectSite(.implicitAsync, "awaiting a job")
             expr = .await(operand, throwing: throwing)
             return awaiting.result
         case .list(var items):

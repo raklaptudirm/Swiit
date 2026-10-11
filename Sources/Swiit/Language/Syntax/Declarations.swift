@@ -13,8 +13,7 @@ import SwishKit
     @_spi(Shell) public var isThrowing = false
     /// Declared `async`.
     @_spi(Shell) public var isAsync = false
-    /// What it waits on, as the checker found: `async` if declared, else
-    /// whether its body waits through the shell's constructs.
+    /// `async` if declared so.
     @_spi(Shell) public var effect: Effect = .sync
     /// `rethrows`: it throws only if a closure passed to it does.
     @_spi(Shell) public var isRethrowing = false

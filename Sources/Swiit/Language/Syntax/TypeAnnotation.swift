@@ -73,7 +73,6 @@ import SwishKit
             }) + [punctuation(")")]
         case .function: return [name("function")]
         case .functionType(let parameters, let result, let throwing, let effect):
-            // An effect only the shell's waits give isn't written: it is called as if it were sync.
             return [punctuation("(")] + list(parameters.map(\.styled)) + [punctuation(")")]
                 + (effect == .async ? [punctuation(" "), .init("async", .keyword)] : [])
                 + (throwing ? [punctuation(" "), .init("throws", .keyword)] : []) + [punctuation(" -> ")] + result.styled
@@ -134,24 +133,11 @@ extension TypeAnnotation {
 }
 
 
-/// What a function waits on, as `throws` says whether it throws
-/// (Docs/Design/async.md, "Types and effects").
+/// Whether a function is `async`, as `throws` says whether it throws
+/// (Docs/Design/async.md, "Types and effects"). Only Swift's own `async`: a
+/// layer's waits, like the shell's `$(…)`, are blocking calls, not effects.
 @_spi(Shell) public enum Effect: Equatable, Sendable {
-    /// It never waits.
     case sync
-    /// It waits, but only through what a layer over the core adds (the shell's
-    /// `$(…)` and commands), or by calling what does: it is called with no
-    /// `await`, by name or through a value.
-    case implicitAsync
     /// Declared `async`: a call to it is marked with `await`, in an async context.
     case async
-
-    /// Whether it waits at all.
-    @_spi(Shell) public var waits: Bool { self != .sync }
-
-    /// The effect of doing both.
-    @_spi(Shell) public func joined(_ other: Effect) -> Effect {
-        if self == .async || other == .async { return .async }
-        return self.waits || other.waits ? .implicitAsync : .sync
-    }
 }

@@ -27,7 +27,7 @@ import SwishKit
     @_spi(Shell) public let isThrowing: Bool
     /// `rethrows`: a call throws if a closure passed to it does.
     @_spi(Shell) public let isRethrowing: Bool
-    /// What it waits on (`async`, or only the shell's waits), as checked.
+    /// `async` if declared so.
     @_spi(Shell) public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
     @_spi(Shell) public let generics: [String: [String]]

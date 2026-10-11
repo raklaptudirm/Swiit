@@ -6,10 +6,10 @@ it, and only programs can run in the background. This is a design for making
 `$(…)` a suspension point the way `try` is a throwing point: you write
 nothing extra, the language knows, and it can run other work meanwhile.
 
-Nothing here is built. It says what's decided, what isn't, and an order to
-build it in. It follows [direction.md](direction.md): Swish is Swift with the
-shell as seasoning, so concurrency follows Swift's model, and only the shell
-constructs get implicit behavior.
+Steps 1 to 3 of the plan are built; the rest says what's decided, what
+isn't, and an order to build it in. It follows [direction.md](direction.md)
+and the vision's parity with the compiler: concurrency follows Swift's model,
+and the shell's constructs are blocking calls, not effects.
 
 ## Where it stands
 
@@ -36,8 +36,10 @@ constructs get implicit behavior.
 
 ## What we want
 
-1. **`$(…)` is implicitly awaited.** `let x = $(git status)` reads as it does
-   now, and has type `Output`, not a task. Where it waits, other work may run.
+1. **`$(…)` blocks, and `async $(…)` doesn't.** `let x = $(git status)` reads
+   as it does now: it waits for the program and has type `Output`, and the
+   function it's in stays an ordinary function. `async $(…)` runs it in the
+   background and gives a `Job`. While one task waits, other tasks run.
 2. **Work can run concurrently, by choice.** `async` starts something and
    gives back a handle; `await` joins it. Anything can be started that way: a
    command, a Swish function, a closure, not only a program.
@@ -48,8 +50,8 @@ constructs get implicit behavior.
 5. **No cost where you don't use it.** A script that never says `async` runs
    as it does now, as fast, with the same errors.
 
-Not goals: running Swish code in parallel (programs run in parallel; Swish
-code doesn't need to), preemption, or a visible `async` on functions.
+Not goals, for now: running Swish code in parallel (programs run in
+parallel; Swish code doesn't need to), or preemption.
 
 ## The model
 
@@ -104,26 +106,20 @@ try await t                            // its value, or what it threw
 
 ### Types and effects
 
-`$(…)` is `Output`; `async $(…)` is `Job`. What a function waits on is an
-**effect** in its type, as `throws` is, and function types gain `async`
-(`(Int) async -> Int`), with a sync function converting to an async one.
+`$(…)` is `Output`; `async $(…)` is `Job`. Function types gain Swift's `async`
+(`(Int) async -> Int`), and only Swift's.
 
-- **User-written effects follow Swift.** An `async` function is declared
-  `async`, calling it needs `await`, and `await` needs an async context.
-- **Effects that come only from shell constructs are inferred.** `$(…)` is a
-  wait (and, with `try`, a throw), so a function whose only waits are `$(…)`
-  is async without saying so, and so is whatever calls it with no `await` of
-  its own. This is the one place Swish departs from Swift, and only because
-  the effect comes from a shell construct.
-- **Higher-order functions are `reasync`.** A Swish function that calls a
-  closure parameter is async at a call site exactly when that closure is. The
-  same tree is run by the sync or the async evaluator as the call needs, so
-  nothing is written twice.
-- **Pure code stays sync.** A function with no wait in it, or in anything it
-  calls, runs on the sync evaluator at full speed.
-- **Closures a Swift function can't await** are a static error: passing a
-  closure that waits to a Swift function with no async overload is rejected
-  with a message, not left to hang (see the spike's deadlock).
+- **Effects follow Swift.** An `async` function is declared `async`, calling
+  it needs `await`, and `await` needs an async context: the top level, an
+  `async` function, or a closure, which becomes async.
+- **The shell's waits are blocking calls, not effects.** `$(…)`, a command,
+  and `await job` block their own task until they're done, as
+  `Process.waitUntilExit()` does in compiled Swift. A function made of them is
+  an ordinary sync function, called and passed like any other, so nothing is
+  inferred and nothing departs from Swift.
+- **Concurrency is chosen with `async`.** `async $(…)` and `async cmd` start
+  programs in the background, and `async f()` and `async { … }` Swish code;
+  each gives a `Job`, which `await` joins by blocking.
 
 ### Output, and `$(…)` inside a task
 
@@ -229,15 +225,53 @@ of unknown type, and the async runtime. One shell-specific point: `$(…)` must
 count as a wait, or a background function made of `$(…)` calls would block the
 interpreter and freeze the prompt.
 
-### Recommendation
+### Decision: B, with `$(…)` blocking
 
-Given [direction.md](direction.md), **A with inferred effects is the
-destination.** Swish's concurrency should be Swift's (tasks, `async let`,
-task groups, `for await`, `AsyncSequence`, async library calls bridged as
-they are, a compiled plugin's `async` functions awaited directly), and B
-would reimplement that on a lock. B stays as the fallback if the effect
-system proves harder than it looks. The first two steps of the plan are
-shared by both, so they come first whichever is chosen.
+Earlier this recommended A with inferred effects, with B as the fallback.
+Making `$(…)` a blocking call, and `async $(…)` the way to run it in the
+background, changes the balance, and **B is the way it's built**:
+
+- A's inferred effects existed so that a background function made of `$(…)`
+  calls wouldn't freeze the prompt. Under B a blocking wait releases the
+  lock, so it blocks only its own task, and there is nothing to infer: the
+  checker applies Swift's rules and nothing else.
+- B keeps one evaluator, the bridge and plugins as they are, deep recursion
+  on a large stack per task, and macOS 14. Swift calling a Swish closure is a
+  plain call on the task's thread, so the spike's deadlock can't happen, and
+  no async overloads of `map` and the rest are needed.
+- The semantics are still Swift's (see "Against the compiler"): tasks, `async
+  let`, task groups, `for await`, cooperative cancellation and task-local
+  values are the interpreter's own, built on the task threads; a Swift
+  `async` API is bridged as a wait (the interpreter starts the Swift task and
+  waits for it in `suspend`, which a task thread may do, as it isn't the
+  cooperative pool's).
+
+### Against the compiler
+
+[vision.typ](../vision.typ) asks for parity with the compiler, speed aside.
+One task at a time is a correct execution of a Swift program: Swift 6 rules
+out data races with `Sendable` and actor isolation, so a program the
+compiler accepts can't tell tasks taking turns from tasks in parallel, except
+by speed. Actor isolation holds trivially, and an actor's reentrancy at an
+`await` is kept, as other tasks run exactly at waits. What parity still needs:
+
+1. **No parallel speed.** CPU-bound tasks run one at a time; the vision
+   allows that. The lock can be made finer later, because Swift's own
+   guarantees are what make that safe.
+2. **`Sendable` and actor isolation in the checker.** Under the lock, Swiit
+   would accept and run without a race programs the compiler rejects. That
+   is checker work, independent of the runtime.
+3. **Blocking bridged calls release the lock.** Bridged Swift code that
+   blocks (a `Mutex`, a semaphore, synchronous I/O) while holding the lock can
+   wait on a task that can't run. Every such call goes through `suspend`, and
+   the generator can mark them.
+4. **Swift's `async` APIs, both ways.** Called from Swish, as above. Called
+   by Swift with a Swish closure as an `async` closure, the closure is handed
+   to an interpreter thread and its result returned through a continuation,
+   so no pool thread waits for the lock.
+5. **Switching only at waits** can deadlock code Swift would run, like a task
+   spinning on an atomic another sets. Releasing the lock at atomics and
+   `Task.yield()`, or a time slice, are the fixes, when a program needs them.
 
 ## Spike results
 
@@ -272,7 +306,8 @@ one tree, sync and `async throws`, built in release on Swift 6.2, 8 cores.
 So A is affordable in speed and better in depth, and costs: a deployment
 target raised a version (or a duplicated evaluator), a thread per nested
 callback, and the rewrite of everything under `Interpreter/` and `Execution/`
-with its `Sendable` pass. B has none of these. The recommendation stands.
+with its `Sendable` pass. B has none of these, which is part of why it was
+chosen (see "Decision").
 
 ## Plan
 
@@ -303,85 +338,65 @@ the task context's output and the `suspend` function sit.)
    lines, a program's output read into an in-process stage, and a line of
    input at the prompt or from a script. The library's `readLine()` can't reach
    the interpreter from its module, and waits directly for now.
-3. **Effects in the checker, with no runtime change.** (The inferred part is
-   the rewrite pass of [desugaring.md](desugaring.md), "Effects": shell
-   constructs become `await`s and their functions `async`, and the checker
-   then applies only Swift's rules.) `async` in function
-   types and declarations; Swift's rules for explicit `async` and `await`;
-   `$(…)` as an inferred wait; `reasync` for closure parameters; the
-   redefinition rule. The interpreter still blocks at every wait, so only the
-   checker's answers are new, and they are tested as errors and inferred
-   types. *Done:* function types and declarations carry an `Effect` (`sync`,
-   `implicitAsync`, `async`), and both front ends read `async`. A call to an
-   `async` function needs `await`; `await` needs an async context (the top
-   level, an `async` function, or a closure, which becomes async); an `async`
-   function isn't passed where a sync one is wanted; an `await` with nothing
-   async in it is an error (Swift only warns). What waits only on the shell (a
-   layer's node that `waits`, `await` on a job, a call to an implicitly async
-   function) is implicitly async, settled over the program's call graph so a
-   function called before its declaration counts; it is called with no
-   `await`, by name or through a value, whose type carries the mark. A
-   function becoming `async` at the prompt is refused while functions declared
-   earlier call it without `await`, naming them. `reasync` for closure
-   parameters waits for step 4, where the bridge says which Swift functions
-   have an async form.
-4. **The generator reads `async`.** `BridgedMember` gains `isAsync`, native
-   bodies an async form, glue `try await`; the standard library's async
-   overloads are written and bridged; a waiting closure with no async overload
-   is the static error.
-5. **The async evaluator and tasks.** The async evaluator, generated from the
-   sync one; Swish tasks as Swift `Task`s on one serial executor, so Swish code
-   still runs one task at a time; `async` and `await` for any expression;
-   async versions of the leaf waits (process exit, `$(…)`, `Flow` reads,
-   `await` on a job, `sleep`).
-6. **Cancellation and scopes.** `^C` and `cancel()` cancel a task tree (Swift's
-   cancellation, plus the signal to the foreground process group); a scope
-   closing cancels and awaits its children; the task cap.
-7. **Per-task output and streams.** `$(…)` redirects the task's own output;
-   `Flow` becomes readable as an `AsyncSequence`.
+3. **Effects in the checker, with no runtime change.** *Done:* function
+   types and declarations carry an `Effect` (`sync` or `async`), and both front
+   ends read `async`. A call to an `async` function needs `await`; `await`
+   needs an async context (the top level, an `async` function, or a closure,
+   which becomes async); an `async` function isn't passed where a sync one is
+   wanted; an `await` with nothing async in it is an error (Swift only warns).
+   A function becoming `async` at the prompt is refused while functions
+   declared earlier call it without `await`, naming them. (A first version also
+   inferred an "implicitly async" effect from the shell's waits; it went when
+   `$(…)` became a blocking call.)
+4. **The interpreter lock, and tasks as threads.** One lock, held by the task
+   running Swish code; `suspend` releases it around the wait and makes the
+   task current again after. Tasks run on large-stack threads the host makes
+   (`SwishHost`, so an embedder can bring its own), up to the cap. The core's
+   task API in Swift's terms (`Task { … }`, `.value`, `.cancel()`, then `async
+   let`), and the shell's `async f()` and `async { … }` rewritten to it; the
+   shell's `Job` wraps processes or a core task, so `jobs`, `await job` and
+   `job.cancel()` work the same for both. Switching only at waits, for now.
+5. **Cancellation and scopes.** `^C` and `cancel()` set the task's flag
+   (checked at the interrupt checks) and signal the programs it started; every
+   wait can be woken; a scope closing cancels and waits for the tasks it
+   started.
+6. **Output and the terminal.** A background Swish task's output is kept on
+   its job, as `async $(…)`'s is, unless it prints; a background task reading
+   the terminal waits until it's brought forward with `await`, as a program
+   is stopped; plugins get a "wait without the lock" helper in SwishKit.
+7. **Swift's `async`, bridged.** The generator reads `async`; a Swift `async`
+   call from Swish is a wait in `suspend`, and a Swish closure Swift calls as
+   `async` runs on an interpreter thread; `Flow` readable as an
+   `AsyncSequence`, and `for await`.
 
 Tests that must hold by the end: two `async $(sleep 1)` awaited together take
 about one second; `async f()` runs a Swish function while the prompt carries
 on; `^C` stops a task and the programs it started; a variable changed by one
-task is seen by another only after a suspension; a waiting closure passed to
-`map` works, and to a function with no async form is an error; a script
-without waits runs the same suite, at the same speed.
+task is seen by another only after a wait; a closure running `$(…)` passed to
+`map` works while other tasks run; a script without `async` runs the same
+suite, at the same speed.
 
 ## Risks
 
-- **Yielding across a native call.** Lua forbids a yield across a C call
-  unless the call supplies a continuation (`lua_callk`, `lua_yieldk`). A
-  registered closure that calls back into the interpreter is the same case
-  here: under the cooperative design (A) it blocks its task's thread or must
-  be written as async. Say so in the registration API, and give such closures
-  an async form rather than a continuation.
-- **The effect system is the new weight.** Effects in function types, overload
-  choice by a closure's effect, `reasync` at call sites, and inference through
-  shell constructs touch the checker in many places. Step 3 is its own change
-  with no runtime effect for that reason: it can be tested, and rejected or
-  reshaped, before anything depends on it.
-- **Redefinition at the prompt.** A function changed from sync to async under
-  callers that already exist. Written as a clear error; the alternative,
-  re-checking the callers, is open.
-- **Values whose effect isn't known.** Untyped values from builtins and
-  plugins. They need a conservative rule or the same static error.
-- **One task at a time on one serial executor.** A sync function that blocks
-  (a plugin's, a native call) stalls every task for as long as it does, as it
-  blocks the shell today. Waits the interpreter owns (`$(…)`, process exit,
-  `Flow`, `sleep`) are async, so they don't. A plugin can be given an async
-  entry point later.
-- **Two evaluators.** One is generated from the other; the leaf waits are
-  written twice. A macro dependency, or hand-kept copies if it proves too
-  limited (the spike found it works syntactically and leaves invalid output to
-  the compiler).
-- **Cancelling a wait.** A task waiting on a process or a stream is woken by
-  the cancellation; each async wait needs its cancel path written and tested.
-- **State that isn't per task yet.** `lastStatus` and the current job are the
-  shell's today and become the task's; directory and environment are the
-  process's and stay global.
-- **If B is needed.** The lock invariants (every wait is `suspend`; Swish code
-  runs only under the lock) and `@unchecked Sendable` on the interpreter's
-  types, argued once next to the lock.
+- **The lock's invariants.** Swish code runs only under the lock; every wait
+  is a `suspend`; the lock is never held across a callback into Swift that
+  waits. Each is argued once, next to the lock, with `@unchecked Sendable` on
+  the interpreter's types.
+- **A blocking call that isn't a `suspend`.** A plugin's or a bridged Swift
+  function that blocks holding the lock stalls every task, as it blocks the
+  shell today. The generator marks blocking bridged calls; plugins get the
+  helper (step 6).
+- **A CPU-bound background task** holds the lock until it waits, freezing the
+  prompt. ^C still reaches the foreground through its signal. A time slice
+  is the fix if it proves a problem; it weakens "state changes only across
+  waits" to "no data races".
+- **A thread per task.** A large stack each, reserved rather than used; the
+  cap bounds them.
+- **Cancelling a wait.** A task waiting on a process, a job, a stream or input
+  is woken by the cancellation; each wait needs its cancel path written and
+  tested.
+- **State that isn't per task yet.** The current job becomes the task's;
+  directory and environment are the process's and stay global.
 
 ## Decided
 
@@ -391,11 +406,10 @@ without waits runs the same suite, at the same speed.
 - **Cancellation unwinds like an error** and runs `defer`s.
 - **The number of tasks is capped,** with a clear error when it's reached; a
   generous default (256), configurable.
-- **A, with inferred effects, is the destination.** It follows from
-  [direction.md](direction.md); B is the fallback (see "Recommendation"). The
-  spike below measured A's costs.
-- **Effects follow Swift for user-written code,** and are inferred only where
-  they come from shell constructs.
+- **B, tasks on threads behind one lock, switching only at waits** (see
+  "Decision"); the parity work it leaves is listed in "Against the compiler".
+- **`$(…)`, commands and `await job` are blocking calls,** not effects; only
+  Swift's `async` is an effect, with Swift's rules.
 
 ## Open questions
 

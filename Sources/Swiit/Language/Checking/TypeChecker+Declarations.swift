@@ -53,8 +53,7 @@ extension TypeChecker {
             scopes.removeLast()
         }
 
-        // `await` only in an `async` function; one that waits only through the
-        // shell's constructs is implicitly async.
+        // `await` only in an `async` function.
         let (_, effects) = try withEffects(allowsAwait: decl.isAsync) { () throws in
             // A body that's one expression is the result, when there's one.
             if result != .void, var expr = implicitReturn(decl.body) {
@@ -67,11 +66,7 @@ extension TypeChecker {
                 throw TypeError("\(decl.name) must return \(result) on every path")
             }
         }
-        decl.effect = decl.isAsync ? .async : effects.effect.waits ? .implicitAsync : .sync
-        if topLevel {
-            topLevelCalls[decl.name] = effects.callees
-            topLevelUnawaited[decl.name] = effects.unawaited
-        }
+        if topLevel { topLevelUnawaited[decl.name] = effects.unawaited }
     }
 
     @_spi(Shell) public func implicitReturn(_ body: Program) -> Expr? {

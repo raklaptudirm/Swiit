@@ -172,9 +172,7 @@ import SwishKit
     /// The effects of the top level, and of each function and closure being
     /// checked, innermost last (TypeChecker+Effects.swift).
     @_spi(Shell) public var effectContexts = [EffectContext(allowsAwait: true)]
-    /// For each top-level function: the functions it calls by name, and those
-    /// it calls without `await`.
-    @_spi(Shell) public var topLevelCalls: [String: Set<String>] = [:]
+    /// For each top-level function: the functions it calls without `await`.
     @_spi(Shell) public var topLevelUnawaited: [String: Set<String>] = [:]
     /// The functions the program being checked declares at its top level.
     @_spi(Shell) public var redeclaredHere: Set<String> = []
@@ -192,7 +190,7 @@ import SwishKit
         for statement in program.statements { if case .function(let decl) = statement { redeclaredHere.insert(decl.name) } }
         do {
             try checkBlock(&checked)
-            settleEffects(&checked)
+            recordUnawaitedCalls()
         } catch var error as TypeError {
             error.line = error.line ?? line
             throw error

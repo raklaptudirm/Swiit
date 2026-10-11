@@ -82,10 +82,7 @@ extension TypeChecker {
     @_spi(Shell) public func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
-            // Which one isn't known until it runs (an argument isn't typed yet):
-            // it waits if any of them does, though whether it needs `await`
-            // can't be told here.
-            if overloads.contains(where: \.effect.waits) { try effectSite(.implicitAsync, "'\(name)'") }
+            // Which one isn't known until it runs (an argument isn't typed yet).
             return commonReturn(overloads)
         }
         if overloads.count > 1 { callee = .chosen(callee, overload: chosen.index) }
