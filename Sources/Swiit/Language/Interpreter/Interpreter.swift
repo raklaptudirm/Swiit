@@ -8,7 +8,7 @@ import SwiitKit
 /// first; Docs/Design/boundaries.md). The shell owns one.
 public final class Interpreter {
     /// How this interpreter is run: where its output goes, how to tell it to stop.
-    @_spi(Host) public var host: SwishHost
+    @_spi(Host) public var host: SwiitHost
 
     /// What runs this interpreter, if it is more than an embedder's call: the
     /// shell, whose nodes reach it from here. Weak, as the owner holds the
@@ -31,7 +31,7 @@ public final class Interpreter {
     @_spi(Host) public var task: TaskContext
     /// The first task: the host's own (the shell's prompt, an embedder's `eval`).
     @_spi(Host) public let mainTask = TaskContext(globals: [Scope(), Scope()])
-    /// What Swish code runs under, one task at a time (InterpreterLock.swift).
+    /// What Swiit code runs under, one task at a time (InterpreterLock.swift).
     @_spi(Host) public let lock = InterpreterLock()
     /// Tasks started and not yet ended.
     var runningTasks = 0
@@ -79,7 +79,7 @@ public final class Interpreter {
     /// What a run has written, against `limits.output`.
     @_spi(Host) public let outputCounter: OutputCounter
 
-    @_spi(Host) public init(host: SwishHost, outputCounter: OutputCounter) {
+    @_spi(Host) public init(host: SwiitHost, outputCounter: OutputCounter) {
         self.host = host
         self.outputCounter = outputCounter
         self.task = mainTask
@@ -91,9 +91,9 @@ extension Interpreter {
     @_spi(Host) public func report(_ message: String) {
         let styled = host.error.traits().styled
         if message.hasPrefix("error: ") {
-            host.error.write("swish: error:".styled(DisplayStyle.error, styled) + message.dropFirst(6) + "\n")
+            host.error.write("\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6) + "\n")
         } else {
-            host.error.write("swish:".styled(DisplayStyle.error, styled) + " \(message)\n")
+            host.error.write("\(host.name):".styled(DisplayStyle.error, styled) + " \(message)\n")
         }
     }
 

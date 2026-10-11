@@ -1,18 +1,18 @@
 import SwiitKit
 
 /// A library of functions and types written in Swift and bridged by
-/// `swiit-bridge`, with the Swish declarations a host adds to the prelude: the
+/// `swiit-bridge`, with the Swiit declarations a host adds to the prelude: the
 /// core's own is `Library.standard`; a host has others (the shell's `ls` and
 /// `ps` are `SwishShellLibrary`).
 @_spi(Host) public struct Library {
-    /// Its structs and enums, as Swish source, declared with the prelude.
+    /// Its structs and enums, as Swiit source, declared with the prelude.
     @_spi(Host) public var types: String
     /// The columns a table starts with, for its types that say so.
     @_spi(Host) public var columns: [String: [DisplayColumn]]
     /// How its enums' cases are styled, by case name.
     @_spi(Host) public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
     @_spi(Host) public var functions: [BridgedMember]
-    /// Swish source a host writes by hand: structs, function signatures and
+    /// Swiit source a host writes by hand: structs, function signatures and
     /// `Sequence` extensions, read after the core prelude. Their bodies are in
     /// `bodies`.
     @_spi(Host) public var declarations: String

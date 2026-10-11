@@ -89,7 +89,7 @@ extension Interpreter {
         for property in decl.properties {
             guard let getter = property.getter else { continue }
             computed[property.name] = Function(
-                name: property.name, parameters: [], returnType: property.type, body: .swish(getter),
+                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
                 captured: captureScopes(property.getterNames)
             )
         }
@@ -97,7 +97,7 @@ extension Interpreter {
         for method in decl.methods {
             methods[method.name, default: []].append(Function(
                 name: method.name, parameters: method.parameters, returnType: method.returnType,
-                body: natives["\(decl.name).\(method.name)"] ?? .swish(method.body), captured: captureScopes(method.names),
+                body: natives["\(decl.name).\(method.name)"] ?? .swiit(method.body), captured: captureScopes(method.names),
                 documentation: method.documentation,
                 isMutating: method.isMutating, isThrowing: method.isThrowing
             ))
@@ -105,7 +105,7 @@ extension Interpreter {
         let initializers = decl.initializers.map { initializer in
             Function(
                 name: "\(decl.name).init", parameters: initializer.parameters, returnType: nil,
-                body: .swish(initializer.body), captured: captureScopes(initializer.names), documentation: initializer.documentation,
+                body: .swiit(initializer.body), captured: captureScopes(initializer.names), documentation: initializer.documentation,
                 isMutating: true, isThrowing: initializer.isThrowing
             )
         }
@@ -124,7 +124,7 @@ extension Interpreter {
         for property in decl.staticProperties {
             guard let getter = property.getter else { continue }
             staticComputed[property.name] = Function(
-                name: property.name, parameters: [], returnType: property.type, body: .swish(getter),
+                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
                 captured: captureScopes(property.getterNames)
             )
         }
@@ -132,7 +132,7 @@ extension Interpreter {
         for method in decl.staticMethods {
             staticMethods[method.name, default: []].append(Function(
                 name: method.name, parameters: method.parameters, returnType: method.returnType,
-                body: .swish(method.body), captured: captureScopes(method.names), documentation: method.documentation,
+                body: .swiit(method.body), captured: captureScopes(method.names), documentation: method.documentation,
                 isThrowing: method.isThrowing
             ))
         }

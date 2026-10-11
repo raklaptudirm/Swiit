@@ -78,7 +78,7 @@ private func harvested() throws -> [String] {
 }
 
 @Test func theSwiftSyntaxFrontEndAgreesOnWhatItReadsOfTheHarvestedPrograms() throws {
-    let interpreter = Interpreter(host: SwishHost(), limits: Limits())
+    let interpreter = Interpreter(host: SwiitHost(), limits: Limits())
     let bound = interpreter.globalNames()
     var swiftOnly = 0, agree = 0, unsupported: [String: Int] = [:], wrong: [String] = []
     for source in try harvested() {

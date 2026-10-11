@@ -1,7 +1,7 @@
 import Foundation
 import SwiitKit
 
-/// The builtins' types and signatures, written in Swish and read when the
+/// The builtins' types and signatures, written in Swiit and read when the
 /// shell starts. The checker works from these; the bodies are in Swift
 /// (StructuredBuiltins.swift), found by name. Doc comments are what `help`
 /// and `--help` show.

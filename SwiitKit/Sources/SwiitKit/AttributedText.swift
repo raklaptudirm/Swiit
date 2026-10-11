@@ -2,7 +2,7 @@ import Foundation
 
 // Text with styles is Foundation's `AttributedString`: what Swift uses for
 // it, so `help`, and anything else that shows text with emphasis, hands
-// Swish a standard type. Foundation alone has no colors (they're in AppKit,
+// Swiit a standard type. Foundation alone has no colors (they're in AppKit,
 // UIKit and SwiftUI), so the shell's own are one attribute: a style by what
 // the text is, which the terminal turns into a color when it's shown. (Nor
 // does Foundation on Linux parse Markdown, so documentation's is read here.)

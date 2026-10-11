@@ -250,7 +250,7 @@ extension Interpreter {
 
     /// Runs a switch: the first case whose pattern (and `where`) matches,
     /// then on through `fallthrough`. No match is an error: Swift checks a
-    /// switch covers everything when compiling; Swish can only check here.
+    /// switch covers everything when compiling; Swiit can only check here.
     func runSwitch(_ node: SwitchStatement) throws {
         let subject = try evaluate(node.subject)
         guard let start = try firstMatch(node.cases, subject) else {

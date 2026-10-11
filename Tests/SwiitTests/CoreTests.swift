@@ -8,7 +8,7 @@ import Testing
 /// `Shell`, no layer, only a host that collects output.
 private func runOnTheCore(_ source: String) -> (output: String, problem: String?) {
     var output = ""
-    let host = SwishHost(output: OutputSink(write: { output += $0; return true }),
+    let host = SwiitHost(output: OutputSink(write: { output += $0; return true }),
                          error: OutputSink(write: { output += "err: " + $0; return true }))
     let interpreter = Interpreter(host: host, limits: Limits())
     switch interpreter.parse(source) {

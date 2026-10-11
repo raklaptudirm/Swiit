@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// What a type has, for `help Type` and `members`: a Swift type's members
-/// from the bridge (with Swish's own extensions, and for a sequence the
+/// from the bridge (with Swiit's own extensions, and for a sequence the
 /// shell's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
 @_spi(Host) public struct TypeDescription {
@@ -47,7 +47,7 @@ import SwiitKit
 }
 
 extension Interpreter {
-    /// The type named `name`, if Swish knows one by that name.
+    /// The type named `name`, if Swiit knows one by that name.
     @_spi(Host) public func typeDescription(named name: String) -> TypeDescription? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
@@ -178,7 +178,7 @@ extension TypeDescription {
         return AttributedString(joining: pieces)
     }
 
-    /// A Swish function as a member, under `name` if given: its input is
+    /// A Swiit function as a member, under `name` if given: its input is
     /// what it's called on, so it isn't shown.
     @_spi(Host) public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])

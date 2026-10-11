@@ -3,7 +3,7 @@ import SwiitKit
 import SwiitStandardLibrary
 import SystemPackage
 
-/// A Swish key path (`\.status.code`, or `--by size`) as a Swift one over
+/// A Swiit key path (`\.status.code`, or `--by size`) as a Swift one over
 /// values: each name a subscript that reads the field, one after another.
 @_spi(Swiit) public func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
     guard case .function(let keyPath as KeyPathValue) = value else {
@@ -30,7 +30,7 @@ import SystemPackage
     return result
 }
 
-/// A case of a Swift enum from a Swish value: the case of that name, among
+/// A case of a Swift enum from a Swiit value: the case of that name, among
 /// all the enum's.
 @_spi(Host) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
@@ -39,13 +39,13 @@ import SystemPackage
     return match
 }
 
-/// A path as Swish holds it: a FilePath.
+/// A path as Swiit holds it: a FilePath.
 func pathValue(_ path: String) -> Value {
     SwiftValue.make(FilePath(path), as: "FilePath")
 }
 
 /// What a record's field is that encoding loses: an enum is encoded as its
-/// raw text and a path as an object, and Swish holds them as what they are.
+/// raw text and a path as an object, and Swiit holds them as what they are.
 @_spi(Host) public enum FieldKind {
     case enumeration(String)
     /// A Swift type held as it is, of this name: a `FilePath`, a `FileSize`.
@@ -101,7 +101,7 @@ extension Interpreter {
     return dictionary.dictionary
 }
 
-/// Swift's dictionary as Swish's.
+/// Swift's dictionary as Swiit's.
 @_spi(Host) public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
     .dictionary(ValueDictionary(dictionary))
 }
@@ -116,7 +116,7 @@ extension Interpreter {
     })
 }
 
-/// A Swift tuple as Swish's, from its elements' labels and values.
+/// A Swift tuple as Swiit's, from its elements' labels and values.
 @_spi(Swiit) public func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
     var record = Record()
     for (index, (label, value)) in elements(tuple).enumerated() { record[label ?? String(index)] = value }
@@ -138,7 +138,7 @@ extension Interpreter {
     }
 }
 
-/// A range with bounds of a Swift type, from Swish's range of values.
+/// A range with bounds of a Swift type, from Swiit's range of values.
 func bridgeRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> Range<Bound> {
     let range = try SwiftValue.unbox(Range<Value>.self, value)
     return Range(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
@@ -149,7 +149,7 @@ func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throw
     return ClosedRange(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
 }
 
-/// A Swift value boxed as Swish holds it, converted first (a `Set<Int>` to
+/// A Swift value boxed as Swiit holds it, converted first (a `Set<Int>` to
 /// a `Set<Value>`).
 @_spi(Swiit) public func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
     SwiftValue.make(convert(value), as: typeName)
@@ -173,7 +173,7 @@ extension Interpreter {
         if case .object(let box as SwiftValue) = value { box.value as? Flow<Value> } else { nil }
     }
 
-    /// The items of a list, an Output's lines, or a Swift sequence Swish
+    /// The items of a list, an Output's lines, or a Swift sequence Swiit
     /// holds (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
     @_spi(Host) public static func items(of value: Value) -> AnyIterator<Value>? {
@@ -199,13 +199,13 @@ extension Interpreter {
         }
     }
 
-    /// A Swift sequence's elements as Swish values, boxed by their type's name.
+    /// A Swift sequence's elements as Swiit values, boxed by their type's name.
     @_spi(Swiit) public static func iterator<S: Sequence>(_ sequence: S) -> AnyIterator<Value> {
         var iterator = sequence.makeIterator()
         return AnyIterator {
             guard let next = iterator.next() else { return nil }
             if let value = next as? Value { return value }
-            // By the name Swish writes it with, without its module:
+            // By the name Swiit writes it with, without its module:
             // FilePath.Component, not SystemPackage.FilePath.Component.
             let name = String(reflecting: type(of: next))
             let unqualified = String(name.drop { $0 != "." }.dropFirst())
@@ -214,8 +214,8 @@ extension Interpreter {
     }
 }
 
-/// A Swish function as a Swift closure.
-/// A Swish value as a Swift optional: nil for nothing, else converted.
+/// A Swiit function as a Swift closure.
+/// A Swiit value as a Swift optional: nil for nothing, else converted.
 @_spi(Swiit) public func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
     value == .nothing ? nil : try convert(value)
 }
@@ -224,7 +224,7 @@ extension Interpreter {
     { arguments in try shell.call(function, with: arguments) }
 }
 
-/// Swish's values sort as `order(comparedTo:)` has it, so Swift's generic
+/// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic
 /// algorithms that need Comparable elements work on them.
 extension Value: @retroactive Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {

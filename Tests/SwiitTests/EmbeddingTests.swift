@@ -11,7 +11,7 @@ private final class Log: @unchecked Sendable {
 
 private func interpreter(limits: Limits = Limits(), log: Log = Log()) -> Interpreter {
     Interpreter(
-        host: SwishHost(output: OutputSink(write: { log.text += $0; return true }),
+        host: SwiitHost(output: OutputSink(write: { log.text += $0; return true }),
                         error: OutputSink(write: { log.text += "err: " + $0; return true })),
         limits: limits)
 }
@@ -283,4 +283,13 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     }
     swish.awaiting = Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) }
     #expect(try swish.eval("await 21") == .int(42))
+}
+
+@Test func errorsAreReportedUnderTheHostsName() {
+    final class Log: @unchecked Sendable { var text = "" }
+    let log = Log()
+    let sink = OutputSink(write: { log.text += $0; return true })
+    Interpreter(host: SwiitHost(error: sink)).report("error: no")
+    Interpreter(host: SwiitHost(name: "tool", error: sink)).report("error: no")
+    #expect(log.text == "swiit: error: no\ntool: error: no\n")
 }

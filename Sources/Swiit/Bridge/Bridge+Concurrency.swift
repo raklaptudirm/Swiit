@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 import SwiitStandardLibrary
 
-// Swift's `Task`, bridged by hand: its operation is Swish code, which runs as
+// Swift's `Task`, bridged by hand: its operation is Swiit code, which runs as
 // a task of the interpreter's (InterpreterLock.swift), not on Swift's
 // executors. The checker reads these members as it reads the generator's.
 // Docs/Design/async.md, step 7.
@@ -128,7 +128,7 @@ extension Interpreter {
 }
 
 // Swift's `async` functions, bridged (the generator's glue): a call is a wait
-// in `suspend`, and a Swish closure Swift calls as `async` runs on a thread of
+// in `suspend`, and a Swiit closure Swift calls as `async` runs on a thread of
 // the interpreter's, as the task that passed it.
 
 /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
@@ -164,7 +164,7 @@ extension Interpreter {
     return try result.get()
 }
 
-/// A Swish closure as Swift's `async` one: each call runs it holding the lock,
+/// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
 @_spi(Swiit) public func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
     nonisolated(unsafe) let shell = shell
@@ -190,7 +190,7 @@ extension Interpreter {
 /// A Flow read with `for try await`, as Swift reads any asynchronous sequence:
 /// reading an item may wait (a job's next line). Declared here rather than
 /// with Flow, so the generator doesn't bridge AsyncSequence's own methods,
-/// whose iteration would run the Flow's Swish closures off the interpreter's
+/// whose iteration would run the Flow's Swiit closures off the interpreter's
 /// threads.
 extension Flow: AsyncSequence {
     public struct AsyncIterator: AsyncIteratorProtocol {

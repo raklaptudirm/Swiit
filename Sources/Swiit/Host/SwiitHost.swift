@@ -59,7 +59,10 @@ public struct StopReason: Sendable {
 /// defaults do nothing, so a host gives only what it wants. Modeled on how
 /// other embeddable languages are configured (Wren's write and error
 /// callbacks, Rhai's progress hook); see Docs/Design/embedding.md.
-public struct SwishHost {
+public struct SwiitHost {
+    /// What it calls itself where it reports an error, as in
+    /// `swiit: error: …`: the program's name, for one that has its own.
+    public var name = "swiit"
     public var output: OutputSink = .discard
     public var error: OutputSink = .discard
     /// Asked at each step: a reason to stop, if there is one.
@@ -68,8 +71,10 @@ public struct SwishHost {
     /// for the interpreter's recursion; by default, one the core makes.
     public var startThread: (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
 
-    public init(output: OutputSink = .discard, error: OutputSink = .discard, interrupt: @escaping () -> StopReason? = { nil },
+    public init(name: String = "swiit", output: OutputSink = .discard, error: OutputSink = .discard,
+                interrupt: @escaping () -> StopReason? = { nil },
                 startThread: @escaping (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread) {
+        self.name = name
         self.output = output
         self.error = error
         self.interrupt = interrupt

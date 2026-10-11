@@ -19,7 +19,7 @@ func annotation(_ type: SType) -> String {
     }
 }
 
-/// How Swift spells `type`, with Swish's values for generic parameters.
+/// How Swift spells `type`, with Swiit's values for generic parameters.
 func spelling(_ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name] != nil ? name : "Value"
@@ -37,18 +37,18 @@ func spelling(_ type: SType) -> String {
     }
 }
 
-/// A box's type as Swish holds it: its generic parameters all Swish values.
+/// A box's type as Swiit holds it: its generic parameters all Swiit values.
 func canonical(_ name: String, _ arguments: [SType]) -> String {
     spelling(.named(name, arguments.map { _ in .named("Value", []) }))
 }
 
-/// Whether a type is a leaf, which converts, rather than a Swish value.
+/// Whether a type is a leaf, which converts, rather than a Swiit value.
 func isLeaf(_ type: SType) -> Bool {
     if case .named(let name, []) = type { return leaves[name] != nil }
     return false
 }
 
-/// Swift code turning the Swish value `value` into a `type`.
+/// Swift code turning the Swiit value `value` into a `type`.
 func fromSwish(_ value: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.from(value) ?? value
@@ -92,7 +92,7 @@ func fromSwish(_ value: String, _ type: SType) -> String {
     }
 }
 
-/// Swift code turning `swift`, a `type`, into a Swish value.
+/// Swift code turning `swift`, a `type`, into a Swiit value.
 func toSwish(_ swift: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.to(swift) ?? swift
@@ -124,7 +124,7 @@ func toSwish(_ swift: String, _ type: SType) -> String {
     }
 }
 
-/// A Swish `Value` literal for a default that is one, like `true` or `1`.
+/// A Swiit `Value` literal for a default that is one, like `true` or `1`.
 func literalDefault(_ text: String) -> String? {
     if text == "true" || text == "false" { return ".literal(.bool(\(text)))" }
     if Int(text) != nil { return ".literal(.int(\(text)))" }

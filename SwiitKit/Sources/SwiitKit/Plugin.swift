@@ -17,7 +17,7 @@ import Foundation
 /// there's nothing to list.
 public let swiitExportSymbolPrefix = "swiit_export_"
 
-/// A Swift function as Swish sees it: the same signature a `func` in Swish
+/// A Swift function as Swiit sees it: the same signature a `func` in Swiit
 /// has, so it gets a command line, `--help` and completion the same way.
 /// `@SwiitExport` builds one from a declaration.
 public struct ExportedFunction: Sendable {
@@ -94,7 +94,7 @@ public struct ExportedParameter: Sendable {
     }
 }
 
-/// The type of a parameter or result, as Swish's type annotations name it.
+/// The type of a parameter or result, as Swiit's type annotations name it.
 public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
     case any, bool, int, double, string, record, filesize, date, output, function
     /// An enum the plugin exports, like `Level`.
@@ -135,7 +135,7 @@ public final class NativeFunction: Callable, @unchecked Sendable {
     }
 }
 
-/// A failure in converting between Swift and Swish values, or one a plugin
+/// A failure in converting between Swift and Swiit values, or one a plugin
 /// throws to report a problem the way the shell's own errors read.
 public struct SwiitError: Error, CustomStringConvertible {
     public let description: String
@@ -299,7 +299,7 @@ extension Value {
         case let object as any SwiitObject: self = .object(object)
         case let objects as [any SwiitObject]: self = .list(objects.map(Value.object))
         case let data as any Encodable: self = try ValueEncoder().encode(data)
-        default: throw SwiitError("can't return a \(type(of: result)) to Swish; make it Encodable or @SwiitExport it")
+        default: throw SwiitError("can't return a \(type(of: result)) to Swiit; make it Encodable or @SwiitExport it")
         }
     }
 }
@@ -339,7 +339,7 @@ public func swiitArgument<T: SwiitConvertible>(
     }
 }
 
-/// A Swift enum Swish can use: as a parameter (`volume .high`, or
+/// A Swift enum Swiit can use: as a parameter (`volume .high`, or
 /// `volume(.high)`), a result, and in `switch`. Conforming is all it takes,
 /// for an enum without associated values:
 ///
@@ -347,7 +347,7 @@ public func swiitArgument<T: SwiitConvertible>(
 ///
 /// The shell learns it by name from the functions that take it.
 public protocol SwiitEnum: SwiitConvertible, CaseIterable {
-    /// Its cases and raw values, as Swish sees them; one instance per type,
+    /// Its cases and raw values, as Swiit sees them; one instance per type,
     /// so values compare equal across calls.
     static var swiitEnumType: EnumType { get }
 }
@@ -402,13 +402,13 @@ final class EnumRegistry: @unchecked Sendable {
 
 // MARK: Macros
 
-/// Exports a function to Swish: its signature, doc comment, `@Flag`s and
-/// `@Input` become the same command line and `--help` a Swish `func` gets.
+/// Exports a function to Swiit: its signature, doc comment, `@Flag`s and
+/// `@Input` become the same command line and `--help` a Swiit `func` gets.
 /// Importing the package is all that's needed; there's nothing to list.
 @attached(peer, names: prefixed(__swiit_export_))
 public macro SwiitExport() = #externalMacro(module: "SwiitKitMacros", type: "SwiitExportMacro")
 
-/// Makes a class a live object in Swish: its public properties and methods
+/// Makes a class a live object in Swiit: its public properties and methods
 /// are members (`counter.total`, `counter.add(2)`), shown as fields in
 /// tables. Return it from an exported function to hand it out.
 @attached(extension, conformances: SwiitObject, Sendable, names: named(typeName), named(memberNames), named(member), named(description))

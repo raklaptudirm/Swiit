@@ -29,7 +29,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
 public struct Limits: Sendable {
     /// Statements and calls. Nil is no limit.
     public var steps: Int?
-    /// Nested Swish function calls.
+    /// Nested Swiit function calls.
     public var depth: Int
     public var time: Duration?
     /// Bytes written to the host's output and error.
@@ -109,12 +109,13 @@ extension Interpreter {
     /// An interpreter with Swift's syntax, the standard library and nothing
     /// else: no commands, no environment, no files. What a script can name
     /// is what the host registers.
-    public convenience init(host: SwishHost = SwishHost(), limits: Limits = Limits()) {
+    public convenience init(host: SwiitHost = SwiitHost(), limits: Limits = Limits()) {
         let counter = OutputCounter()
         func counted(_ sink: OutputSink) -> OutputSink {
             OutputSink(write: { counter.add($0.utf8.count); return sink.write($0) }, traits: sink.traits)
         }
-        self.init(host: SwishHost(output: counted(host.output), error: counted(host.error), interrupt: host.interrupt),
+        self.init(host: SwiitHost(name: host.name, output: counted(host.output), error: counted(host.error), interrupt: host.interrupt,
+                                  startThread: host.startThread),
                   outputCounter: counter)
         self.limits = limits
         installBuiltinFunctions()
@@ -235,7 +236,7 @@ extension Interpreter {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self
         do {
-            // Swish code runs holding the lock, which a task it starts waits for.
+            // Swiit code runs holding the lock, which a task it starts waits for.
             return try onLargeStack { try interpreter.withMainTask { try interpreter.evaluate(source) } }
         } catch let diagnostic as Diagnostic {
             throw diagnostic

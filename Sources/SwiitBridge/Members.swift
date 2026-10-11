@@ -1,7 +1,7 @@
 import Foundation
 
 /// Range and ClosedRange are sequences, and have most of their members,
-/// only when `Bound: Strideable` with a SignedInteger stride: for Swish,
+/// only when `Bound: Strideable` with a SignedInteger stride: for Swiit,
 /// when Bound is Int.
 func strideFix(_ constraint: Constraint) -> Bool {
     constraint.kind == "conformance" && constraint.rhs == "Strideable" && constraint.lhs == "Bound"
@@ -10,7 +10,7 @@ func strideFix(_ constraint: Constraint) -> Bool {
 /// Whether a concrete type conforms to `proto`, for constraints on them.
 func conforms(_ type: SType, _ proto: String) -> Bool {
     guard case .named(let name, []) = type else { return false }
-    // Swish's own Int, Double, String and Bool, which a run that isn't
+    // Swiit's own Int, Double, String and Bool, which a run that isn't
     // bridging the standard library knows nothing else about.
     let comparable: Set = ["Equatable", "Hashable", "Comparable", "Encodable", "CustomStringConvertible"]
     switch name {
@@ -142,7 +142,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     }
     for parameter in allGenerics where generics[parameter] == nil { generics[parameter] = [] }
 
-    // A parameter of type HostContext is lent by the shell: not Swish's.
+    // A parameter of type HostContext is lent by the host: not Swiit's.
     func isContext(_ parameter: Parameter) -> Bool {
         if case .named("HostContext", []) = parameter.type { return true }
         return false
@@ -186,7 +186,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     // The signature.
     let parameterCode = parameters.map { parameter, type in
         // In the order `Parameter` declares them.
-        // `@Rest` on an array: Swish's variadic parameter, of the element's type.
+        // `@Rest` on an array: Swiit's variadic parameter, of the element's type.
         var swiitType = type
         if parameter.isRest, case .array(let element) = type { swiitType = element }
         var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(swiitType))"]

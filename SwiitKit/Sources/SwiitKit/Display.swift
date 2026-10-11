@@ -103,7 +103,7 @@ public protocol DisplayStyled {
     var displayStyle: DisplayStyle? { get }
 }
 
-/// A Swift type that shows in Swish other than as its `description`: a date
+/// A Swift type that shows in Swiit other than as its `description`: a date
 /// in local time, to the second, and to the minute in a table.
 public protocol SwiitDisplayed {
     var swiitDescription: String { get }

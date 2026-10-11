@@ -1,7 +1,7 @@
 import Foundation
 
 /// An amount of bytes, shown in decimal units as Finder shows them (`532 B`,
-/// `1.2 KB`, `123 MB`) and written `1.5mb` in Swish. It adds and subtracts,
+/// `1.2 KB`, `123 MB`) and written `1.5mb` in Swiit. It adds and subtracts,
 /// scales by a number, and divides by another size for a ratio. Encodes as
 /// its byte count.
 public struct FileSize: Codable, Hashable, Comparable, Sendable, LosslessStringConvertible {

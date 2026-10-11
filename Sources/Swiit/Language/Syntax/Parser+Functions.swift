@@ -17,7 +17,7 @@ extension Parser {
         skipSpaces()
         var generics: [String: [String]] = [:]
         if peek() == "<" {
-            guard prelude else { throw SyntaxError("generic functions of your own come later; Swish's builtins are generic for now") }
+            guard prelude else { throw SyntaxError("generic functions of your own come later; Swiit's builtins are generic for now") }
             generics = try parseGenericParameters()
         }
         typeParameters.append(Set(generics.keys))

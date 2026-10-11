@@ -2,13 +2,13 @@ import Foundation
 
 // MARK: Bridging
 
-/// Swish's own values, and how Swift's are held in them.
+/// Swiit's own values, and how Swift's are held in them.
 nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> String, to: (String) -> String)] = [
     "Int": (".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     "Double": (".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     "Bool": (".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     "String": (".string", { "try String(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    // Swish's own value, passed as it is: what a function that lays values
+    // Swiit's own value, passed as it is: what a function that lays values
     // out takes. Spelled `SwiitValue`, which a generic parameter called
     // `Value` (Dictionary's) can't be mistaken for.
     "SwiitValue": (".any", { $0 }, { $0 }),
@@ -18,16 +18,16 @@ nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> 
 /// a signature may use.
 nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]
 
-/// Generic types Swish holds as they are, boxed (`SwiftValue`), with Swish's
+/// Generic types Swiit holds as they are, boxed (`SwiftValue`), with Swiit's
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.
 let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange", "Flow"]
 
 /// The protocols a type conforms to, as far as the checker needs to know.
 let knownProtocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "StandsForText",
                            "ExpressibleByStringLiteral"]
-/// What Swish's values (the stand-in for every generic parameter) can be.
+/// What Swiit's values (the stand-in for every generic parameter) can be.
 let valueProtocols: Set = ["Equatable", "Hashable", "Comparable"]
-/// Constraints every Swish value meets, so they say nothing.
+/// Constraints every Swiit value meets, so they say nothing.
 let alwaysMet: Set = ["Copyable", "Escapable", "Sendable", "SendableMetatype"]
 
 struct BridgedType {
@@ -132,15 +132,15 @@ func isSimple(_ type: SType, generics: Set<String>) -> Bool {
     return leaves[name] != nil || generics.contains(name)
 }
 
-/// Whether Swish can hold or pass `type`: its values, the leaf types above,
-/// generic parameters (as Swish values), boxes, and arrays, dictionaries,
+/// Whether Swiit can hold or pass `type`: its values, the leaf types above,
+/// generic parameters (as Swiit values), boxes, and arrays, dictionaries,
 /// optionals, tuples and closures of those. Closures only as parameters.
 func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool {
     switch type {
     case .named(let name, let arguments):
         if arguments.isEmpty { return isSimple(type, generics: generics) }
-        // A key path, which Swish reads by field name: `KeyPath<Element, V>`.
-        // Only over generic parameters, which are Swish's values: the path
+        // A key path, which Swiit reads by field name: `KeyPath<Element, V>`.
+        // Only over generic parameters, which are Swiit's values: the path
         // reads fields of them, as it can't of a Character.
         if name == "KeyPath", arguments.count == 2 {
             return asParameter && arguments.allSatisfy { if case .named(let n, []) = $0 { generics.contains(n) } else { false } }

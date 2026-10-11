@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 @_spi(Host) public enum FunctionBody {
-    case swish(Program)
+    case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
     case native((Interpreter, [String: Value]) throws -> Value)
     /// A builtin that transforms its `@input` stream lazily, so `first 5`
@@ -10,7 +10,7 @@ import SwiitKit
     case stream((Interpreter, ValueStream, [String: Value]) throws -> ValueStream)
 }
 
-/// A Swish function or closure, or a builtin written in Swift. Both get the
+/// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
 @_spi(Host) public final class Function: Callable, @unchecked Sendable {
     @_spi(Host) public let name: String?
@@ -68,14 +68,14 @@ import SwiitKit
     }
 
     @_spi(Host) public var isBuiltin: Bool {
-        if case .swish = body { false } else { true }
+        if case .swiit = body { false } else { true }
     }
 
     /// A body that is a single expression returns its value, as in Swift:
     /// a closure's, or a function's that says what it returns. A function
     /// without `->` returns nothing.
     var implicitReturn: Expr? {
-        guard name == nil || returnType != nil, case .swish(let body) = body, body.statements.count == 1,
+        guard name == nil || returnType != nil, case .swiit(let body) = body, body.statements.count == 1,
               case .expression(let expr) = body.statements[0] else { return nil }
         return expr
     }

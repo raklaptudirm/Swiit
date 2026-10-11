@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// Operators a bridged Swift type declares (`static func + (lhs: FileSize, rhs:
-/// FileSize)`), used for operands of that type, as Swift does. Swish's own
+/// FileSize)`), used for operands of that type, as Swift does. Swiit's own
 /// Int, Double, String and Bool keep their operators in the shell, so the
 /// bridge leaves out those the standard library declares.
 extension Bridge {

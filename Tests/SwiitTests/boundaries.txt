@@ -7,6 +7,6 @@
 # allow <file> <group> <n> the file may mention that group's concepts n times
 #
 # No file here may reach the operating system directly (stdoutFD, getenv,
-# waitpid, …); that goes through SwishHost, and has no allowance.
+# waitpid, …); that goes through SwiitHost, and has no allowance.
 
 # Empty: the core names nothing of the shell's.

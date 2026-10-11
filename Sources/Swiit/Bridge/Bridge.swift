@@ -2,14 +2,14 @@ import Foundation
 import SwiitKit
 import SystemPackage
 
-/// Swift's own types and members, as Swish sees them: read from the
+/// Swift's own types and members, as Swiit sees them: read from the
 /// standard library's symbol graph (and swift-system's, for FilePath) by
 /// `swiit-bridge`, which writes StandardLibrary.swift and SystemPackage.swift
 /// beside this file (see `run bridge` in Tasks.swish
 /// and Docs/Design/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 @_spi(Host) public enum Bridge {
-    /// The bridged types, by the name Swish writes them with.
+    /// The bridged types, by the name Swiit writes them with.
     @_spi(Host) public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency).map {
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []))
     })
@@ -23,7 +23,7 @@ import SystemPackage
         return .some(type.parse?(text) ?? type.literal?(text))
     }
 
-    /// The bridged type Swish's type annotation is, and its generic
+    /// The bridged type Swiit's type annotation is, and its generic
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     @_spi(Host) public static func type(of annotation: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
@@ -69,7 +69,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     @_spi(Host) public let name: String
     /// A generic type's parameters: `Element` for Array.
     @_spi(Host) public let genericParameters: [String]
-    /// The protocols it conforms to, of those Swish knows, each with what
+    /// The protocols it conforms to, of those Swiit knows, each with what
     /// its generic parameters must be for it: a ClosedRange is a Sequence
     /// when its Bound is Int (`["Bound": ["=Int"]]`).
     @_spi(Host) public let conformances: [String: [String: [String]]]

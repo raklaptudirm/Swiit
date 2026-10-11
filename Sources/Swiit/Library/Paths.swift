@@ -1,7 +1,7 @@
 import SwiitKit
 import SystemPackage
 
-// How a path shows in Swish: its text, unquoted, in the path color, unlike
+// How a path shows in Swiit: its text, unquoted, in the path color, unlike
 // a String.
 
 extension FilePath: @retroactive SwiitDisplayed {

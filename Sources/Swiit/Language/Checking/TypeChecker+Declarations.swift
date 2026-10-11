@@ -166,7 +166,7 @@ extension TypeChecker {
         // have them too; Comparable would need a `<` of its own.
         for proto in decl.conformances {
             if proto == "Comparable" { throw TypeError("\(decl.name) can't be Comparable yet: it would need a '<' of its own") }
-            // Iterating needs a `makeIterator` of its own, which nothing declared in Swish has yet.
+            // Iterating needs a `makeIterator` of its own, which nothing declared in Swiit has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
             guard !TypeChecker.askNothingOfMembers.contains(proto) else { continue }
             // Tabular isn't made from the fields: it asks for a static member.
@@ -241,7 +241,7 @@ extension TypeChecker {
     func checkEnum(_ decl: inout EnumDecl) throws {
         for proto in decl.conformances where !TypeChecker.askNothingOfMembers.contains(proto) {
             if proto == "Tabular" { throw TypeError("\(decl.name) can't be Tabular: only a struct can, as a table is made of records") }
-            // Iterating needs a `makeIterator` of its own, which nothing declared in Swish has yet.
+            // Iterating needs a `makeIterator` of its own, which nothing declared in Swiit has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
             for enumCase in decl.cases {
                 for value in enumCase.associated where !conforms(value.type, to: proto) {

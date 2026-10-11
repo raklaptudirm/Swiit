@@ -106,7 +106,7 @@ extension TypeChecker {
                 handleType = type
                 let isHandle = interpreter.awaiting.map { type == .unknown || fits(type, $0.operand) } ?? false
                 if !isHandle {
-                    // Swift only warns of an `await` with nothing async in it; Swish has no warnings.
+                    // Swift only warns of an `await` with nothing async in it; Swiit has no warnings.
                     guard asyncSites > sitesBefore else { throw TypeError("there is nothing to await here: no async call, and no job") }
                     try checkAwaitAllowed()
                     expr = .await(awaited, throwing: throwing)

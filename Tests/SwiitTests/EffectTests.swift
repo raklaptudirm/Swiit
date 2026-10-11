@@ -6,7 +6,7 @@ import Testing
 // the checker's answers are new; the interpreter waits at every wait anyway.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: SwishHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
 }
 
 /// The type error the source gives, or nil if it checks.

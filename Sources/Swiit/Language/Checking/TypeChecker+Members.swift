@@ -62,7 +62,7 @@ extension TypeChecker {
 extension TypeChecker {
     // MARK: Swift's members
 
-    /// The Swift type a Swish type is, with its generic parameters bound:
+    /// The Swift type a Swiit type is, with its generic parameters bound:
     /// `[Int]` is Array with Element Int.
     @_spi(Layer) public func bridged(_ type: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
         Bridge.type(of: type)
@@ -125,7 +125,7 @@ extension TypeChecker {
                       generics: member.generics)
         }
         guard !candidates.isEmpty else {
-            throw TypeError(kind == .initializer ? "\(typeName) can't be made this way from Swish yet" : "\(typeName) has no member '\(name)'")
+            throw TypeError(kind == .initializer ? "\(typeName) can't be made this way from Swiit yet" : "\(typeName) has no member '\(name)'")
         }
         var chosen = try resolve(candidates, &arguments, name: candidates[0].name, bindings: bindings)
         if chosen == nil, candidates.count == 1 { chosen = candidates[0] }
@@ -179,7 +179,7 @@ extension TypeChecker {
             switch symbol {
             case .enumType(let info):
                 // What Swift synthesizes for an enum: `allCases` and
-                // `rawValue`. A Swish enum isn't a Swift type the bridge
+                // `rawValue`. A Swiit enum isn't a Swift type the bridge
                 // could describe, so they're made here.
                 if name == "allCases" {
                     guard info.cases.allSatisfy({ $0.payload.isEmpty }) else {
@@ -256,7 +256,7 @@ extension TypeChecker {
         default:
             break
         }
-        // Swish's own kinds, and the views it gives Swift's: until step 4
+        // Swiit's own kinds, and the views it gives Swift's: until step 4
         // of the foundations makes them Swift types, their members are here
         // and in the interpreter's `member(_:of:)`.
         let members: [String: TypeAnnotation]

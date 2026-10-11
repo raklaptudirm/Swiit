@@ -221,7 +221,7 @@ func quoted(_ text: String) -> String {
 }
 
 /// A `///` doc comment: its summary, and `- Parameter name:` lines (or a
-/// `- Parameters:` list), as Swish reads its own functions' comments.
+/// `- Parameters:` list), as Swiit reads its own functions' comments.
 struct Documentation {
     var summary: String?
     var parameters: [String: String] = [:]

@@ -6,7 +6,7 @@ import Testing
 // `catch` clauses with patterns.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: SwishHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
 }
 
 private func eval(_ source: String) throws -> Value {

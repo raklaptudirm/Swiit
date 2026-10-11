@@ -261,7 +261,7 @@ extension Parser {
             let start = pos
             guard let name = identifier() else { throw expected("a protocol") }
             guard Parser.protocols.contains(name) else {
-                throw SyntaxError("unknown protocol '\(name)'; Swish has \(Parser.protocols.sorted().joined(separator: ", "))")
+                throw SyntaxError("unknown protocol '\(name)'; Swiit has \(Parser.protocols.sorted().joined(separator: ", "))")
             }
             pos += name.count
             mark(.type, from: start)

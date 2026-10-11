@@ -140,7 +140,7 @@ extension TypeChecker {
     }
 
     /// `for try await x in s`: s must be an AsyncSequence, read where `await`
-    /// may be written, and its reading throws (all of Swish's do).
+    /// may be written, and its reading throws (all of Swiit's do).
     func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
         try checkAwaitAllowed()
         effectContexts[effectContexts.count - 1].effect = .async

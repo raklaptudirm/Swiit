@@ -1,6 +1,6 @@
 import SwiitKit
 
-/// A line of execution through Swish code: its own call stack (the scopes
+/// A line of execution through Swiit code: its own call stack (the scopes
 /// of the calls and blocks it is in, under the global ones every task
 /// shares), its own cancellation flag, and what its host keeps for it, as the
 /// shell does its standard output. The prompt is the first task, and for now
@@ -11,7 +11,7 @@ import SwiitKit
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
     @_spi(Host) public var scopes: [Scope]
-    /// How many Swish function calls are in progress.
+    /// How many Swiit function calls are in progress.
     var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
     /// returned `.case` knows its enum.
@@ -43,7 +43,7 @@ extension Interpreter {
         _modify { yield &task.scopes }
     }
 
-    /// How many Swish function calls the current task has in progress.
+    /// How many Swiit function calls the current task has in progress.
     var callDepth: Int {
         _read { yield task.callDepth }
         _modify { yield &task.callDepth }

@@ -7,7 +7,7 @@ import SystemPackage
 
 extension Bridge {
 
-    /// The module's structs, as Swish source: declared with the prelude.
+    /// The module's structs, as Swiit source: declared with the prelude.
     internal static let standardTypes = #"""
 /// What `String.styled` can make text, each with its terminal code as its raw value.
 enum TextStyle: Equatable, Hashable {

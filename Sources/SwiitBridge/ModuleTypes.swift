@@ -3,8 +3,8 @@ import Foundation
 /// The module's types held as they are, from another module: a FilePath.
 nonisolated(unsafe) var externalTypes: Set<String> = []
 
-/// A field's type as Swish source, and what encoding leaves for the glue to
-/// fix (an enum or a path is text there); nil if Swish can't hold it so.
+/// A field's type as Swiit source, and what encoding leaves for the glue to
+/// fix (an enum or a path is text there); nil if Swiit can't hold it so.
 func fieldType(_ type: SType) -> (source: String, patch: String?)? {
     switch type {
     case .named(let name, []):
@@ -12,7 +12,7 @@ func fieldType(_ type: SType) -> (source: String, patch: String?)? {
         // A Swift type held as it is (a FilePath, a FileSize), which encoding
         // loses: the glue boxes the field from the Swift value.
         if externalTypes.contains(name) { return (name, ".boxed(\(quoted(name)))") }
-        // A value kind Swish has itself (Int, String, Date…), which encoding keeps.
+        // A value kind Swiit has itself (Int, String, Date…), which encoding keeps.
         if let leaf = leaves[name], !leaf.annotation.hasPrefix(".named") { return (name, nil) }
         return nil
     case .array(let element):

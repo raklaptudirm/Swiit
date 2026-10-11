@@ -1,9 +1,9 @@
 import Foundation
 import SwiitKit
 
-/// The one lock Swish code runs under (Docs/Design/async.md, "B"). Tasks
+/// The one lock Swiit code runs under (Docs/Design/async.md, "B"). Tasks
 /// run on threads of their own, and only the thread holding the lock runs
-/// Swish code or touches the interpreter, so Swish code never runs in
+/// Swiit code or touches the interpreter, so Swiit code never runs in
 /// parallel and the language needs no locks of its own. A task lets go only
 /// to wait (`Interpreter.suspend`), so state changes under it only across a
 /// wait. The thread that holds it may take it again.
@@ -76,7 +76,7 @@ import SwiitKit
     }
 }
 
-/// A task running Swish code on a thread of its own, from
+/// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
 @_spi(Host) public final class TaskHandle: @unchecked Sendable {
     @_spi(Host) public let context: TaskContext

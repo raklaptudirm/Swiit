@@ -3,7 +3,7 @@ import Foundation
 /// Turns any `Encodable` Swift value into a `Value`: structs become records
 /// named after their type, arrays become lists, `Date` and `FileSize` keep
 /// their meaning. Most library model types already conform, so they show up
-/// in Swish with no bridge code.
+/// in Swiit with no bridge code.
 public struct ValueEncoder {
     public init() {}
 

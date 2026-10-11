@@ -1,6 +1,6 @@
 import Foundation
 
-/// A value flowing through Swish.
+/// A value flowing through Swiit.
 ///
 /// This is the currency shared by the interpreter and every compiled plugin,
 /// which is why it lives in its own dynamic library.
@@ -70,7 +70,7 @@ extension SwiitObject {
     }
 }
 
-/// A Swish value as a Swift function takes or gives one whole, whatever it
+/// A Swiit value as a Swift function takes or gives one whole, whatever it
 /// is. The name tells a bridged function's parameter from a generic parameter
 /// called `Value`.
 public typealias SwiitValue = Value
@@ -86,7 +86,7 @@ extension Value {
     }
 }
 
-/// A type that holds a Swish value as it is, whose type says how it's read:
+/// A type that holds a Swiit value as it is, whose type says how it's read:
 /// `JSON`, which is whatever it parsed as. A function that gives one gives
 /// the value it holds.
 public protocol WrapsValue {
@@ -94,7 +94,7 @@ public protocol WrapsValue {
     init(_ value: Value)
 }
 
-/// A function value. The interpreter implements this for Swish functions and
+/// A function value. The interpreter implements this for Swiit functions and
 /// closures; plugins will implement it for bridged Swift functions.
 public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 

@@ -109,7 +109,7 @@ extension Interpreter {
             // Captures the scope it's bound in, so it can call itself.
             let function = Function(
                 name: decl.name, parameters: decl.parameters, returnType: decl.returnType,
-                body: .swish(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
+                body: .swiit(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
                 isThrowing: decl.isThrowing, effect: decl.effect
             )
             scopes[scopes.count - 1].declare(function, named: decl.name)
@@ -210,7 +210,7 @@ extension Interpreter {
 
     /// Iterates lists, ranges lazily (so `for i in 1...1_000_000_000` never
     /// builds a list), strings by character, as in Swift, the Swift
-    /// sequences Swish holds, and command output by line.
+    /// sequences Swiit holds, and command output by line.
     func forEachElement(of sequence: Expr, _ body: (Value) throws -> Bool) throws {
         if case .binary(let op, let lower, let upper) = sequence, op == .closedRange || op == .halfOpenRange {
             for i in try intRange(op, try evaluate(lower), try evaluate(upper)) {

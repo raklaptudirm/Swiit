@@ -9,7 +9,7 @@ import SwiitKit
     case record
     /// `()`: what a function without `->` returns.
     case void
-    /// A struct or enum, declared in Swish or by the shell, like `FileType`.
+    /// A struct or enum, declared in Swiit or by the shell, like `FileType`.
     case named(String)
     case list(TypeAnnotation)
     /// `[K: V]`.
@@ -26,7 +26,7 @@ import SwiitKit
     case functionType([TypeAnnotation], TypeAnnotation, throws: Bool = false, async: Effect = .sync)
     /// `T?`: a T, or nil.
     case optional(TypeAnnotation)
-    /// A generic Swift type Swish holds as it is: `Set<Int>`, `ClosedRange<Int>`.
+    /// A generic Swift type Swiit holds as it is: `Set<Int>`, `ClosedRange<Int>`.
     case generic(String, [TypeAnnotation])
     /// What a Swift parameter `S: Sequence` with `S.Element == E` takes:
     /// any sequence of E, as `some Sequence<E>` says.
@@ -91,7 +91,7 @@ import SwiitKit
 }
 
 extension TypeAnnotation {
-    /// Swift's types that Swish writes with an annotation of its own, by
+    /// Swift's types that Swiit writes with an annotation of its own, by
     /// name: one table for the parser (`Int` is `.int`) and for finding the
     /// Swift type an annotation is (`.int` is `Int`). The generic ones are
     /// sugar: `[T]`, `T?`, `[K: V]`.
@@ -110,7 +110,7 @@ extension TypeAnnotation {
         ("Dictionary", { $0.count == 2 ? .dictionary($0[0], $0[1]) : nil }),
     ]
 
-    /// The annotation Swish writes `name<arguments>` with, if it has one of
+    /// The annotation Swiit writes `name<arguments>` with, if it has one of
     /// its own: `Int`, `Array<Int>` as `[Int]`.
     @_spi(Swiit) public static func spelled(_ name: String, _ arguments: [TypeAnnotation] = []) -> TypeAnnotation? {
         spelled.lazy.compactMap { $0.name == name ? $0.make(arguments) : nil }.first

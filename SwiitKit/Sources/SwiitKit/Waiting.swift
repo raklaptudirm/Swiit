@@ -1,6 +1,6 @@
 import Foundation
 
-/// What runs Swish code, told when a function waits: the interpreter, which
+/// What runs Swiit code, told when a function waits: the interpreter, which
 /// lets another task run meanwhile (Docs/Design/async.md).
 public protocol WaitingHost: AnyObject {
     /// Runs `body`, a wait, letting other tasks run while it does.
@@ -11,10 +11,10 @@ public protocol WaitingHost: AnyObject {
 }
 
 /// For a function that waits, as a plugin's or a library's may: a blocking
-/// read, a network call, a long computation that touches no Swish values.
-/// Wrapped in `whileWaiting`, it lets other Swish tasks run meanwhile, as
+/// read, a network call, a long computation that touches no Swiit values.
+/// Wrapped in `whileWaiting`, it lets other Swiit tasks run meanwhile, as
 /// the shell's own waits do; unwrapped, it holds every task up while it waits.
-/// The host belongs to the thread that runs the Swish code calling it.
+/// The host belongs to the thread that runs the Swiit code calling it.
 public enum Waiting {
     private final class Box {
         weak var host: WaitingHost?
@@ -23,14 +23,14 @@ public enum Waiting {
 
     private static let key = "SwiitKit.Waiting.host"
 
-    /// What runs the Swish code on this thread, if anything does.
+    /// What runs the Swiit code on this thread, if anything does.
     public static var host: WaitingHost? {
         get { (Thread.current.threadDictionary[key] as? Box)?.host }
         set { Thread.current.threadDictionary[key] = Box(newValue) }
     }
 
-    /// Runs `body`, letting other Swish tasks run while it waits. It must not
-    /// touch the interpreter, or Swish values that others could change.
+    /// Runs `body`, letting other Swiit tasks run while it waits. It must not
+    /// touch the interpreter, or Swiit values that others could change.
     public static func whileWaiting<T>(_ body: () -> T) -> T {
         guard let host else { return body() }
         var result: T?

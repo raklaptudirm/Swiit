@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// Builtins written in Swift. They're ordinary functions to the rest of
-/// the shell: the same flags, help, overloads and streaming as Swish ones.
+/// the shell: the same flags, help, overloads and streaming as Swiit ones.
 
 extension Interpreter {
     /// Installs the builtins: the core's own, and the host's `libraries`

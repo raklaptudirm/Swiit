@@ -72,7 +72,7 @@ extension TypeChecker {
             return bridgedConforms(bridgedType, bindings, to: proto)
         }
         if proto == "CustomStringConvertible" { return true }
-        // Swish's own kinds, which aren't Swift types yet (foundations
+        // Swiit's own kinds, which aren't Swift types yet (foundations
         // step 4 makes them so, and these rules go).
         switch type {
         case .unknown, .parameter, .record: return true

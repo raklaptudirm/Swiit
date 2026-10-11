@@ -29,7 +29,7 @@ enum Boundaries {
         ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
     ]
 
-    /// The operating system, which the core reaches only through `SwishHost`.
+    /// The operating system, which the core reaches only through `SwiitHost`.
     static let operatingSystem = #"\b(stdoutFD|stderrFD|STDIN_FILENO|STDOUT_FILENO|STDERR_FILENO|writeAll|getenv|setenv|unsetenv|isatty|ioctl|termios|waitpid|posix_spawn|fork|execv|execvp|kill|sigaction|ProcessInfo|FileManager|dlopen|dlsym|getpgrp|tcsetpgrp|chdir|getcwd|currentDirectoryPath|takeInterruptSignal|takeInterrupt|FileHandle|DispatchSemaphore|DispatchQueue|Thread)\b|\benv\(|\bsignal\(|\bpipe\(|\bProcess\("#
 
     private static let here = URL(fileURLWithPath: #filePath)
@@ -60,7 +60,7 @@ enum Boundaries {
 
                 let reached = matches(operatingSystem, in: source).filter { !(permitted[file]?.contains($0) ?? false) }
                 if !reached.isEmpty {
-                    problems.append("\(file): reaches the operating system directly (\(Set(reached).sorted().joined(separator: ", "))); go through SwishHost")
+                    problems.append("\(file): reaches the operating system directly (\(Set(reached).sorted().joined(separator: ", "))); go through SwiitHost")
                 }
                 for (group, pattern) in groups {
                     let count = matches(pattern, in: source).count

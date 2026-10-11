@@ -1,18 +1,18 @@
 // Reads a Swift module's symbol graph and writes the Swift that bridges
-// its types' members to Swish: each member's signature, for the checker,
-// and glue that converts Swish values, calls Swift and converts back.
+// its types' members to Swiit: each member's signature, for the checker,
+// and glue that converts Swiit values, calls Swift and converts back.
 //
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //
-// `run bridge` (Tasks.swish) runs it on the standard library, on swift-system
+// `run bridge` (Tasks.swiit) runs it on the standard library, on swift-system
 // (for FilePath), on the interpreter's own SwiitStandardLibrary, which also
 // adds to the standard library's types, and on the shell's SwishShellLibrary. A member is bridged only if every
-// type in its signature is one Swish can pass or hold (see `supported`); the
+// type in its signature is one Swiit can pass or hold (see `supported`); the
 // rest are left out, and counted on stderr.
 //
 // The pieces: SymbolGraph reads the graph; SwiftTypes and Declarations parse
-// a declaration's text; Bridging says what Swish can hold, and Conversions
+// a declaration's text; Bridging says what Swiit can hold, and Conversions
 // how a value crosses; Members makes one member's glue; ModuleTypes reads a
 // module's own structs and enums. This file is the program that uses them.
 import Foundation
@@ -78,12 +78,12 @@ let modules: [String: (list: String, types: [(String, [String])], functions: Str
     // FilePath.Root is left out: the standard library's FilePath (SE-0529)
     // calls it Anchor.
     "SystemPackage": ("system", [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])], nil, [], [], false),
-    // Foundation's types Swish holds as Swift's: a date.
+    // Foundation's types Swiit holds as Swift's: a date.
     "Foundation": ("foundation", [("Date", []), ("AttributedString", [])], nil, [], [], false),
-    // SwiitKit's own types, which Swish holds as Swift's: a file size, a
-    // command's output. `Status` is a struct Swish declares itself (the
+    // SwiitKit's own types, which Swiit holds as Swift's: a file size, a
+    // command's output. `Status` is a struct Swiit declares itself (the
     // prelude), made from the Swift value as a record.
-    // A column of a table, which a struct of Swish's lists for `Tabular`.
+    // A column of a table, which a struct of Swiit's lists for `Tabular`.
     "SwiitKit": ("swiitKit", [("FileSize", []), ("Output", []), ("DisplayColumn", [])], nil, [], ["Status"], false),
     // The shell's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
@@ -111,8 +111,8 @@ for name in module.external where leaves[name] == nil {
     leaves[name] = (".named(\(quoted(name)))", { "try SwiftValue.unbox(\(name).self, \($0))" }, { "SwiftValue.make(\($0), as: \(quoted(name)))" })
 }
 
-/// A public enum or struct of the module is declared in Swish from its
-/// cases or fields (`standardTypes`, Swish source read with the prelude).
+/// A public enum or struct of the module is declared in Swiit from its
+/// cases or fields (`standardTypes`, Swiit source read with the prelude).
 /// Results only: a struct is made a record by encoding it, an enum a case
 /// by name. Enums come first, for the structs that have them.
 nonisolated(unsafe) var resultOnly: Set<String> = []
@@ -122,7 +122,7 @@ var typeSources: [String] = []
 /// by type name, calling the Swift that says so.
 var columnSources: [String] = []
 var styleSources: [String] = []
-// A struct Swish declares itself, whose Swift value is made a record.
+// A struct Swiit declares itself, whose Swift value is made a record.
 for name in module.records {
     resultOnly.insert(name)
     leaves[name] = (".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") }, { "bridgeRecord(shell, \($0))" })
@@ -170,7 +170,7 @@ do {
             if let patch = found.patch { patches.append("\(quoted(field.pathComponents[1])): \(patch)") }
         }
         guard declared.count == fields.count else {
-            FileHandle.standardError.write(Data("\(name): a field Swish can't hold; left out\n".utf8))
+            FileHandle.standardError.write(Data("\(name): a field Swiit can't hold; left out\n".utf8))
             continue
         }
         typeSources.append("\(declaredType(symbol))struct \(name): \(protocols.joined(separator: ", ")) {\n\(declared.joined(separator: "\n"))\n}")
@@ -180,12 +180,12 @@ do {
                         { "bridgeRecord(shell, \($0)\(patchesCode))" })
     }
 }
-// Other types that aren't generic, Swish having no value of its own for
+// Other types that aren't generic, Swiit having no value of its own for
 // them (Character, FilePath), are held as they are, boxed.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
     leaves[name] = (".named(\(quoted(name)))", { "try SwiftValue.unbox(\(name).self, \($0))" }, { "SwiftValue.make(\($0), as: \(quoted(name)))" })
 }
-/// Members Swish has its own way: the textual form of the types it
+/// Members Swiit has its own way: the textual form of the types it
 /// formats, and a dictionary's keys and values, which are arrays rather
 /// than Swift's views.
 let swiitOwn: [String: Set<String>] = [
@@ -226,7 +226,7 @@ for (name, _) in bridgedTypeNames {
         type.allConformances.insert(proto)
         if proto == "Collection" || proto == "BidirectionalCollection" { proto = "Sequence" }
         guard knownProtocols.contains(proto) else { continue }
-        // What the generic parameters must be for it, if Swish can say.
+        // What the generic parameters must be for it, if Swiit can say.
         var needs: [String: [String]] = [:]
         var sayable = true
         for constraint in relationship.swiftConstraints ?? [] where !alwaysMet.contains(constraint.rhs) {
@@ -287,12 +287,12 @@ for (name, _) in bridgedTypeNames {
     // protocol's, as in Swift (`Set.union(_: Sequence)` over
     // `SetAlgebra.union(_: Self)`); if it can't be bridged, the protocol's is
     // what there is (String's `reversed` gives a ReversedCollection, which
-    // Swish has no value for, but Sequence's gives an array).
+    // Swiit has no value for, but Sequence's gives an array).
     let path = name.split(separator: ".").map(String.init)
     let ownSymbols = graph.symbols.filter { $0.pathComponents.dropLast() == path[...] }
     var candidates = ownSymbols.map { ($0, [Constraint]()) }
     // A range is a sequence only when `Bound: Strideable` with a
-    // SignedInteger stride: for Swish, when Bound is Int.
+    // SignedInteger stride: for Swiit, when Bound is Int.
     let conditions = name == "Range" || name == "ClosedRange"
         ? [Constraint(kind: "conformance", lhs: "Bound", rhs: "Strideable"),
            Constraint(kind: "conformance", lhs: "Bound.Stride", rhs: "SignedInteger")]
@@ -392,7 +392,7 @@ for (name, _) in bridgedTypeNames {
 }
 if !module.types.isEmpty { output += "    ]\n" }
 if let list = module.functions {
-    output += "    /// The module's structs, as Swish source: declared with the prelude.\n"
+    output += "    /// The module's structs, as Swiit source: declared with the prelude.\n"
     // What the module is called in the names of its tables: `standard` for
     // `standardFunctions`, `shell` for `shellFunctions`.
     let prefix = String(list.dropLast("Functions".count))

@@ -67,7 +67,7 @@ extension Interpreter {
         case .closure(let literal):
             return .function(Function(
                 name: nil, parameters: literal.parameters, returnType: literal.returnType,
-                body: .swish(literal.body), captured: captureScopes(literal.names)
+                body: .swiit(literal.body), captured: captureScopes(literal.names)
             ))
         case .childTask(let literal):
             let operation = try evaluate(.closure(literal))
@@ -275,7 +275,7 @@ extension Interpreter {
            let found = try structMember(name, of: record, type) {
             return found
         }
-        // Swish's own kinds, and its views of Swift's, as the checker's
+        // Swiit's own kinds, and its views of Swift's, as the checker's
         // `memberType(of:_:)` types them.
         switch (value, name) {
         case (.record(let record), _) where record[name] != nil: return record[name]!

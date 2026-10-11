@@ -59,7 +59,7 @@ public enum FieldAccess {
 extension Value {
     /// A field by name, nil as `.nothing`: what a key path over values
     /// (`\Value.[field: "size"]`) reads, so a Swift function taking a
-    /// `KeyPath<Element, V>` works on Swish's values as on Swift's.
+    /// `KeyPath<Element, V>` works on Swiit's values as on Swift's.
     public subscript(field name: String) -> Value {
         FieldAccess.reader?(self, name) ?? .nothing
     }

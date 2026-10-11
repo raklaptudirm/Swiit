@@ -27,7 +27,7 @@ extension Interpreter {
             var items: [Value] = []
             while let item = try output.next() { items.append(item) }
             return .list(items)
-        case .swish:
+        case .swiit:
             break
         }
 
@@ -41,7 +41,7 @@ extension Interpreter {
         // A nested function reaches itself through the call, not by keeping
         // the binding it's stored in, which would be a cycle.
         if let name = function.name, function.captured.count > 2, argumentScope.bindings[name] == nil,
-           case .swish = function.body {
+           case .swiit = function.body {
             argumentScope.bindings[name] = Binding(
                 value: .function(OverloadSet(name: name, candidates: [function])), mutable: false, isFunction: true
             )
@@ -62,7 +62,7 @@ extension Interpreter {
         if let expr = function.implicitReturn {
             result = try evaluate(expr, expecting: function.returnType)
         } else {
-            guard case .swish(let body) = function.body else { preconditionFailure() }
+            guard case .swiit(let body) = function.body else { preconditionFailure() }
             do {
                 _ = try run(body)
                 result = .nothing
@@ -219,7 +219,7 @@ extension Interpreter {
 
 extension Interpreter {
     /// A plugin's function as the shell's own: the same binding, help and
-    /// streaming as a Swish `func`. `plugin` names the module it came from.
+    /// streaming as a Swiit `func`. `plugin` names the module it came from.
     @_spi(Host) public func hostFunction(_ export: ExportedFunction, plugin: String? = nil) -> Function {
         let parameters = export.parameters.map { parameter in
             Parameter(
