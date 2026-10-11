@@ -7,12 +7,12 @@ import SwiitKit
 /// parallel and the language needs no locks of its own. A task lets go only
 /// to wait (`Interpreter.suspend`), so state changes under it only across a
 /// wait. The thread that holds it may take it again.
-@_spi(Host) public final class InterpreterLock: @unchecked Sendable {
+public final class InterpreterLock: @unchecked Sendable {
     private let condition = NSCondition()
     private var holder: pthread_t?
     private var depth = 0
 
-    @_spi(Host) public init() {}
+    public init() {}
 
     private var isHolder: Bool {
         guard let holder else { return false }
@@ -20,13 +20,13 @@ import SwiitKit
     }
 
     /// Whether the thread asking holds it.
-    @_spi(Host) public var isHeldByCurrentThread: Bool {
+    public var isHeldByCurrentThread: Bool {
         condition.lock()
         defer { condition.unlock() }
         return isHolder
     }
 
-    @_spi(Host) public func acquire() {
+    public func acquire() {
         condition.lock()
         defer { condition.unlock() }
         if isHolder {
@@ -38,7 +38,7 @@ import SwiitKit
         depth = 1
     }
 
-    @_spi(Host) public func release() {
+    public func release() {
         condition.lock()
         defer { condition.unlock() }
         precondition(isHolder, "the interpreter lock released by a thread that doesn't hold it")
@@ -50,7 +50,7 @@ import SwiitKit
     }
 
     /// Runs `body` holding the lock.
-    @_spi(Host) public func withLock<T>(_ body: () throws -> T) rethrows -> T {
+    public func withLock<T>(_ body: () throws -> T) rethrows -> T {
         acquire()
         defer { release() }
         return try body()
@@ -78,8 +78,8 @@ import SwiitKit
 
 /// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
-@_spi(Host) public final class TaskHandle: @unchecked Sendable {
-    @_spi(Host) public let context: TaskContext
+public final class TaskHandle: @unchecked Sendable {
+    public let context: TaskContext
     private let condition = NSCondition()
     private var outcome: Result<Value, any Error>?
 
@@ -88,16 +88,16 @@ import SwiitKit
     }
 
     /// How it ended, once it has.
-    @_spi(Host) public var result: Result<Value, any Error>? {
+    public var result: Result<Value, any Error>? {
         condition.lock()
         defer { condition.unlock() }
         return outcome
     }
 
-    @_spi(Host) public var isFinished: Bool { result != nil }
+    public var isFinished: Bool { result != nil }
 
     /// Asks it to stop: it notices at its next interrupt check.
-    @_spi(Host) public func cancel() { context.cancellation.request() }
+    public func cancel() { context.cancellation.request() }
 
     func finish(_ result: Result<Value, any Error>) {
         condition.lock()
@@ -130,7 +130,7 @@ extension Interpreter {
     /// interrupts of the host's; it stops when it's cancelled. A structured
     /// task ends with the scope that started it (`closeTasks`); Swift's
     /// `Task { }` isn't one.
-    @_spi(Host) public func startTask(host taskHost: AnyObject?, structured: Bool = true,
+    public func startTask(host taskHost: AnyObject?, structured: Bool = true,
                                        _ body: @escaping () throws -> Value) throws -> TaskHandle {
         guard runningTasks < limits.tasks else {
             throw RuntimeError("there are already \(limits.tasks) tasks running")
@@ -162,7 +162,7 @@ extension Interpreter {
 
     /// Waits for a task to end, letting go of the lock meanwhile, and gives
     /// what it gave or throws what it threw.
-    @_spi(Host) public func join(_ handle: TaskHandle) throws -> Value {
+    public func join(_ handle: TaskHandle) throws -> Value {
         let waiter = task.cancellation
         // The host may bring it forward while it's awaited (the shell: to the foreground).
         let restore = awaitingTask?(handle)

@@ -1,4 +1,4 @@
-@_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
+@_spi(Layer) @_spi(Swiit) @testable import Swiit
 import SwiitKit
 import Testing
 
@@ -71,4 +71,22 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
     #expect(runOnTheCore("members([1])").problem != nil)
     #expect(runOnTheCore("[[\"a\": 1]].select(\"a\")").problem != nil)
     #expect(runOnTheCore("let j: JSON = 1").problem != nil)
+}
+
+/// A closure keeps only the variables it names, not the scopes around it:
+/// keeping the scope it's stored in was a cycle, leaked on every call.
+@Test func closuresKeepOnlyWhatTheyUse() throws {
+    let swish = Interpreter()
+    let value = try onLargeStack {
+        try swish.eval("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
+    }
+    #expect(value == .int(2))
+    guard case .function(let closure as Function)? = swish.lookup("h")?.value else {
+        Issue.record("h isn't a closure")
+        return
+    }
+    let capture = try #require(closure.captured.last)
+    #expect(capture.bindings.keys.sorted() == ["i"])
+    // The call's scope, which held `g` and `unused`, is gone once it returned.
+    #expect(!capture.fallbacks.isEmpty && capture.fallbacks.allSatisfy { $0.scope == nil })
 }

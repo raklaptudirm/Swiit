@@ -233,7 +233,7 @@ extension Interpreter {
     }
 
     /// Record fields first, then the few members values have.
-    @_spi(Host) public func member(_ name: String, of value: Value) throws -> Value {
+    public func member(_ name: String, of value: Value) throws -> Value {
         if case .enumValue(let enumValue) = value, name == "rawValue" {
             guard let raw = enumValue.rawValue else { throw RuntimeError("\(enumValue.type.name) has no raw values") }
             return raw

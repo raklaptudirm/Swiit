@@ -101,7 +101,7 @@ import SwiitKit
 }
 
 /// The `#` comment block directly above a `func`, for `--help`.
-@_spi(Layer) public struct Documentation: Equatable, Sendable {
+public struct Documentation: Equatable, Sendable {
     @_spi(Layer) public var summary: String
     /// From `- Parameter name: description` lines.
     @_spi(Layer) public var parameters: [String: String]
@@ -141,7 +141,7 @@ import SwiitKit
     }
 }
 
-@_spi(Layer) public struct Parameter: Equatable, Sendable {
+public struct Parameter: Equatable, Sendable {
     /// The argument label; nil for `_` (positional in command mode).
     @_spi(Layer) public var label: String?
     @_spi(Layer) public var name: String

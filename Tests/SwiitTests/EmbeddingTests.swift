@@ -1,5 +1,5 @@
 import Foundation
-@_spi(Host) @_spi(Layer) @_spi(Swiit) @testable import Swiit
+import Swiit
 import SwiitKit
 import Testing
 

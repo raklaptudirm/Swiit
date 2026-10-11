@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 extension Interpreter {
-    @_spi(Host) public func lookup(_ name: String) -> Binding? {
+    public func lookup(_ name: String) -> Binding? {
         scopeHolding(name)?.bindings[name]
     }
 

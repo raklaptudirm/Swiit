@@ -1,7 +1,7 @@
 import Foundation
 import SwiitKit
 
-@_spi(Host) public enum FunctionBody {
+public enum FunctionBody {
     case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
     case native((Interpreter, [String: Value]) throws -> Value)
@@ -12,27 +12,27 @@ import SwiitKit
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
-@_spi(Host) public final class Function: Callable, @unchecked Sendable {
-    @_spi(Host) public let name: String?
-    @_spi(Host) public let parameters: [Parameter]
-    @_spi(Host) public let returnType: TypeAnnotation?
-    @_spi(Host) public let body: FunctionBody
-    @_spi(Host) public let captured: [Scope]
-    @_spi(Host) public let documentation: Documentation?
+public final class Function: Callable, @unchecked Sendable {
+    public let name: String?
+    public let parameters: [Parameter]
+    public let returnType: TypeAnnotation?
+    public let body: FunctionBody
+    public let captured: [Scope]
+    public let documentation: Documentation?
     /// The imported module it came from, for a plugin's function.
-    @_spi(Host) public let plugin: String?
+    public let plugin: String?
     /// A struct's `mutating func` (or `init`), which may change `self`.
-    @_spi(Host) public let isMutating: Bool
+    public let isMutating: Bool
     /// `throws`: a call to it needs `try`.
-    @_spi(Host) public let isThrowing: Bool
+    public let isThrowing: Bool
     /// `rethrows`: a call throws if a closure passed to it does.
-    @_spi(Host) public let isRethrowing: Bool
+    public let isRethrowing: Bool
     /// `async` if declared so.
-    @_spi(Host) public let effect: Effect
+    public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
-    @_spi(Host) public let generics: [String: [String]]
+    public let generics: [String: [String]]
 
-    @_spi(Host) public init(
+    public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, plugin: String? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:]
@@ -51,23 +51,23 @@ import SwiitKit
         self.documentation = documentation
     }
 
-    @_spi(Host) public var inputParameter: Parameter? {
+    public var inputParameter: Parameter? {
         parameters.first(where: \.isInput)
     }
 
     /// Whether a new declaration would replace this one rather than overload it.
-    @_spi(Host) public func hasSameSignature(as other: Function) -> Bool {
+    public func hasSameSignature(as other: Function) -> Bool {
         let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)", "\(p.isInput)"] }
         return parameters.map(signature) == other.parameters.map(signature)
     }
 
-    @_spi(Host) public var description: String {
+    public var description: String {
         guard let name else { return "<closure>" }
         let labels = parameters.map { ($0.label ?? "_") + ":" }.joined()
         return "<func \(name)(\(labels))>"
     }
 
-    @_spi(Host) public var isBuiltin: Bool {
+    public var isBuiltin: Bool {
         if case .swiit = body { false } else { true }
     }
 

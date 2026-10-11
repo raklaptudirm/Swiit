@@ -4,23 +4,23 @@ import SwiitKit
 /// `swiit-bridge`, with the Swiit declarations a host adds to the prelude: the
 /// core's own is `Library.standard`; a host has others (the shell's `ls` and
 /// `ps` are `SwishShellLibrary`).
-@_spi(Host) public struct Library {
+public struct Library {
     /// Its structs and enums, as Swiit source, declared with the prelude.
-    @_spi(Host) public var types: String
+    public var types: String
     /// The columns a table starts with, for its types that say so.
-    @_spi(Host) public var columns: [String: [DisplayColumn]]
+    public var columns: [String: [DisplayColumn]]
     /// How its enums' cases are styled, by case name.
-    @_spi(Host) public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
-    @_spi(Host) public var functions: [BridgedMember]
+    public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
+    public var functions: [BridgedMember]
     /// Swiit source a host writes by hand: structs, function signatures and
     /// `Sequence` extensions, read after the core prelude. Their bodies are in
     /// `bodies`.
-    @_spi(Host) public var declarations: String
+    public var declarations: String
     /// Bodies for those declarations, by name (`help`, `Sequence.select`); a
     /// sequence method's also says how it reads the sequence.
-    @_spi(Host) public var bodies: [String: (body: FunctionBody, input: Parameter?)]
+    public var bodies: [String: (body: FunctionBody, input: Parameter?)]
 
-    @_spi(Host) public init(
+    public init(
         types: String, columns: [String: [DisplayColumn]],
         enumStyles: [String: @Sendable (String) -> DisplayStyle?], functions: [BridgedMember],
         declarations: String = "", bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
@@ -34,7 +34,7 @@ import SwiitKit
     }
 
     /// The core's own: conversions (`from`, `to`, `table`, `list`) and styles.
-    @_spi(Host) public nonisolated(unsafe) static let standard = Library(
+    public nonisolated(unsafe) static let standard = Library(
         types: Bridge.standardTypes, columns: Bridge.standardColumns,
         enumStyles: Bridge.standardEnumStyles, functions: Bridge.standardFunctions
     )

@@ -85,9 +85,23 @@ last stage, and mechanical by then.
    generated tables), became internal.
 
    Of the shell's 44 files that import the core, 32 use `Host`, 27 `Layer`,
-   and 8 none. What's left of this stage is making `Host` public: going
-   through it as API, naming and documenting what stays, narrowing what was
-   the shell's habit, in embedding.md.
+   and 8 none.
+
+   *Done:* `Host` is public, documented by area in embedding.md ("The public
+   API, and what stays SPI"), and the core's embedding tests import `Swiit`
+   without `@_spi`. Making it public drew the line between a host and a
+   syntax layer: what needs the tree to say is a layer's, so `parse`, `run`
+   of a parsed program, `runBlock`, `runDeferred`, `statementFinished` and its
+   observers, `syntax`, `frontEnd`, `globalNames`, the scope stack, and the
+   checker's tables (`sequenceMethods`, `staticTypes`) went to `Layer`.
+   `Program` is public but opaque, so a function's body can be. Of the tree's
+   types, the ones a function's signature needs are public: `TypeAnnotation`
+   (with `Effect`), `Parameter`, `Documentation`. What nothing outside used
+   became internal (`Binding`'s special kinds, a scope's weak fallbacks, the
+   evaluator's control flow), and the test of how closures capture scopes
+   moved to the core, where it can look at them. The SPI is now 376
+   declarations: 336 `Layer`, 40 `Swiit`. The shell still imports `Layer` in
+   most files that touch the core; stage 3 is where that narrows.
 3. **A syntax-plugin contract without the parser's internals.** Either the
    hand parser retires and the plugin works on SwiftSyntax tokens (frontend.md's
    end state), or `SyntaxPlugin` gets a small public cursor (peek, take, spans,

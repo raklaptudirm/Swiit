@@ -7,7 +7,7 @@ import SwiitKit
 extension Interpreter {
     /// Installs the builtins: the core's own, and the host's `libraries`
     /// (bridged functions and types, and declarations for the prelude).
-    @_spi(Host) public func installBuiltinFunctions(libraries added: [Library] = []) {
+    public func installBuiltinFunctions(libraries added: [Library] = []) {
         libraries = [.standard] + added
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)
         installPrelude()

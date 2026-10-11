@@ -5,36 +5,36 @@ import SwiitKit
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// `select` and `to json` work on them as on any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-@_spi(Host) public final class StructType: SwiitObject, @unchecked Sendable {
-    @_spi(Host) public let name: String
+public final class StructType: SwiitObject, @unchecked Sendable {
+    public let name: String
     /// Stored properties, in declaration order: the order of a value's fields.
-    @_spi(Host) public let stored: [PropertyDecl]
-    @_spi(Host) public let computed: [String: Function]
-    @_spi(Host) public let methods: [String: OverloadSet]
+    @_spi(Layer) public let stored: [PropertyDecl]
+    public let computed: [String: Function]
+    public let methods: [String: OverloadSet]
     /// Custom initializers; without any, the memberwise one.
     @_spi(Swiit) public let initializers: OverloadSet?
-    @_spi(Host) public let memberwise: Function
+    public let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
-    @_spi(Host) public let conformances: [String]
+    public let conformances: [String]
     /// `static let` and `static var`: declared, with their types once checked;
     /// the stored ones' values are in `statics`.
     @_spi(Swiit) public let staticProperties: [PropertyDecl]
     let staticComputed: [String: Function]
     @_spi(Swiit) public let staticMethods: [String: OverloadSet]
-    @_spi(Host) public var statics: [String: StaticValue] = [:]
+    public var statics: [String: StaticValue] = [:]
 
     /// A stored static property's value, kept on the type.
-    @_spi(Host) public final class StaticValue {
-        @_spi(Host) public var value: Value
-        @_spi(Host) public let mutable: Bool
+    public final class StaticValue {
+        public var value: Value
+        public let mutable: Bool
 
-        @_spi(Host) public init(_ value: Value, mutable: Bool) {
+        @_spi(Layer) public init(_ value: Value, mutable: Bool) {
             self.value = value
             self.mutable = mutable
         }
     }
 
-    @_spi(Host) public init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
+    @_spi(Layer) public init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
          initializers: OverloadSet?, memberwise: Function, conformances: [String] = [],
          staticProperties: [PropertyDecl] = [], staticComputed: [String: Function] = [:],
          staticMethods: [String: OverloadSet] = [:]) {
@@ -50,7 +50,7 @@ import SwiitKit
         self.memberwise = memberwise
     }
 
-    @_spi(Host) public func property(_ name: String) -> PropertyDecl? {
+    @_spi(Layer) public func property(_ name: String) -> PropertyDecl? {
         stored.first { $0.name == name }
     }
 
@@ -58,21 +58,21 @@ import SwiitKit
         staticProperties.first { $0.name == name }
     }
 
-    @_spi(Host) public var typeName: String { "struct" }
-    @_spi(Host) public var memberNames: [String] { [] }
-    @_spi(Host) public func member(_ name: String) -> Value? { nil }
-    @_spi(Host) public var fields: Record? { nil }
-    @_spi(Host) public var description: String { "struct \(name)" }
+    public var typeName: String { "struct" }
+    public var memberNames: [String] { [] }
+    public func member(_ name: String) -> Value? { nil }
+    public var fields: Record? { nil }
+    public var description: String { "struct \(name)" }
 }
 
 /// `self` for a method: its value going in, and as the method left it.
-@_spi(Host) public final class Receiver {
-    @_spi(Host) public var value: Value
-    @_spi(Host) public let mutable: Bool
+public final class Receiver {
+    public var value: Value
+    public let mutable: Bool
     /// In an `init`, which may also set `let` properties.
     let initializing: Bool
 
-    @_spi(Host) public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
+    public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
         self.value = value
         self.mutable = mutable
         self.initializing = initializing
@@ -159,12 +159,12 @@ extension Interpreter {
         }
     }
 
-    @_spi(Host) public func structType(named name: String) -> StructType? {
+    func structType(named name: String) -> StructType? {
         guard case .object(let type as StructType)? = lookup(name)?.value else { return nil }
         return type
     }
 
-    @_spi(Host) public func structType(of record: Record) -> StructType? {
+    func structType(of record: Record) -> StructType? {
         record.typeName.flatMap(structType(named:))
     }
 

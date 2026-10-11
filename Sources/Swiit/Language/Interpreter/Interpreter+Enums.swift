@@ -47,7 +47,7 @@ extension Interpreter {
     }
 
     /// The enum a type annotation names, looking through optionals.
-    @_spi(Host) public func enumType(for type: TypeAnnotation?) -> EnumType? {
+    public func enumType(for type: TypeAnnotation?) -> EnumType? {
         switch type {
         case .named(let name)?: enumType(named: name)
         case .optional(let wrapped)?: enumType(for: wrapped)
@@ -55,7 +55,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Host) public func enumType(named name: String) -> EnumType? {
+    public func enumType(named name: String) -> EnumType? {
         guard case .object(let type as EnumType)? = lookup(name)?.value else { return nil }
         return type
     }
@@ -107,7 +107,7 @@ extension Interpreter {
     }
 
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
-    @_spi(Host) public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
+    public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
         case .named(let name):
             // A plain dynamic type (parsed JSON) is whatever it parsed as.
@@ -146,7 +146,7 @@ extension Interpreter {
 
     /// A case from the command line: its name (`directory` or `.directory`),
     /// or its raw value.
-    @_spi(Host) public func enumCase(fromText text: String, _ type: EnumType) -> Value? {
+    public func enumCase(fromText text: String, _ type: EnumType) -> Value? {
         let name = text.hasPrefix(".") ? String(text.dropFirst()) : text
         if let definition = type.case(named: name), definition.labels.isEmpty {
             return .enumValue(EnumValue(type: type, name: name))
@@ -276,7 +276,7 @@ extension Interpreter {
 extension Interpreter {
     /// A case of an enum the prelude or the standard library module
     /// declares: `FileType.directory`.
-    @_spi(Host) public func declaredCase(_ type: String, _ name: String) -> Value {
+    public func declaredCase(_ type: String, _ name: String) -> Value {
         .enumValue(EnumValue(type: enumType(named: type)!, name: name))
     }
 }

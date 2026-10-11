@@ -3,7 +3,7 @@ import SwiitKit
 
 // MARK: - AST
 
-@_spi(Layer) public struct Program: Equatable, Sendable {
+public struct Program: Equatable, Sendable {
     @_spi(Layer) public var statements: [Statement]
     /// Each statement's line in the source, 1-based, for error messages.
     @_spi(Layer) public var lines: [Int] = []

@@ -6,11 +6,11 @@ import SwiitKit
 /// shell does its standard output. The prompt is the first task, and for now
 /// the only one (Docs/Design/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
-@_spi(Host) public final class TaskContext {
+public final class TaskContext {
     /// Variable scopes, innermost last. The outermost two are the global
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
-    @_spi(Host) public var scopes: [Scope]
+    @_spi(Layer) public var scopes: [Scope]
     /// How many Swiit function calls are in progress.
     var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
@@ -19,18 +19,18 @@ import SwiitKit
     /// Per-item errors reported so far, like a file `ls` couldn't read.
     var itemErrorCount = 0
     /// Asks the task to stop, from any thread.
-    @_spi(Host) public let cancellation = Cancellation()
+    public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).
-    @_spi(Host) public var host: AnyObject?
+    public var host: AnyObject?
     /// Whether the host's interrupts (the shell's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
     var receivesInterrupts = true
     /// The tasks it started and hasn't seen end, with how deep in its calls
     /// it was: each belongs to the scope that started it, which cancels and
     /// waits for it as it closes.
-    @_spi(Host) public var children: [(depth: Int, handle: TaskHandle)] = []
+    public var children: [(depth: Int, handle: TaskHandle)] = []
 
-    @_spi(Host) public init(globals: [Scope], host: AnyObject? = nil) {
+    public init(globals: [Scope], host: AnyObject? = nil) {
         self.scopes = globals
         self.host = host
     }
@@ -38,7 +38,7 @@ import SwiitKit
 
 extension Interpreter {
     /// The current task's scopes, innermost last.
-    @_spi(Host) public var scopes: [Scope] {
+    @_spi(Layer) public var scopes: [Scope] {
         _read { yield task.scopes }
         _modify { yield &task.scopes }
     }
@@ -62,7 +62,7 @@ extension Interpreter {
     }
 
     /// Asks the current task to stop, from any thread.
-    @_spi(Host) public var cancellation: Cancellation { task.cancellation }
+    public var cancellation: Cancellation { task.cancellation }
 }
 
 extension Interpreter {
@@ -74,7 +74,7 @@ extension Interpreter {
     /// `wake` ends the wait early if the task is cancelled meanwhile (by
     /// stopping the programs it waits for, say); the task then stops at its
     /// next step.
-    @_spi(Host) public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
+    public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
         let mine = task
         let token = wake.map { mine.cancellation.onRequest($0) }
         defer { token.map { mine.cancellation.remove($0) } }
@@ -86,7 +86,7 @@ extension Interpreter {
 
     /// Closes the scopes deeper than `depth` in the current task: the tasks
     /// they started are cancelled and waited for, as a scope closing does.
-    @_spi(Host) public func closeTasks(above depth: Int) {
+    public func closeTasks(above depth: Int) {
         var closing: [TaskHandle] = []
         while let last = task.children.last, last.depth > depth {
             closing.append(task.children.removeLast().handle)
@@ -100,7 +100,7 @@ extension Interpreter {
     /// Runs `body` as the main task, holding the lock: how the host enters
     /// the interpreter (a background task may have run last, and left itself
     /// current).
-    @_spi(Host) public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
+    public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
         lock.acquire()
         let previous = task
         let previousHost = Waiting.host

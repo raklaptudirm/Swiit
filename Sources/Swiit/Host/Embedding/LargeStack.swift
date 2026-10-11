@@ -4,7 +4,7 @@ import Foundation
 /// recurses in the interpreter, so a run happens on such a thread: the
 /// embedder needs no stack setup, and the shell uses it for the same reason.
 /// This is the one place the core makes threads.
-@_spi(Host) public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
+public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
     // The caller waits for the thread, so nothing runs at the same time.
     nonisolated(unsafe) var result: Result<T, any Error>?
     nonisolated(unsafe) let body = body

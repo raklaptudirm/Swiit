@@ -1,27 +1,31 @@
 import Foundation
 import SwiitKit
 
-@_spi(Host) public struct Binding {
-    @_spi(Host) public enum Special {
+public struct Binding {
+    enum Special {
         /// `self` in a struct's `init`, which may set its `let` properties.
         case initializing
     }
 
     /// Where the value lives, shared by every scope that has this
     /// variable: the one it was declared in, and closures that use it.
-    @_spi(Host) public let cell: Cell
-    @_spi(Host) public var value: Value {
+    public let cell: Cell
+    public var value: Value {
         get { cell.value }
         nonmutating set { cell.value = newValue }
     }
-    @_spi(Host) public let mutable: Bool
+    public let mutable: Bool
     /// Its value is worked out on each read; looking at its type reads nothing.
     var isComputed: Bool { cell.isComputed }
     /// Declared with `func`, which makes it callable in command mode.
-    @_spi(Host) public var isFunction = false
+    public var isFunction = false
     var special: Special?
 
-    @_spi(Host) public init(value: Value, mutable: Bool, isFunction: Bool = false, special: Special? = nil) {
+    public init(value: Value, mutable: Bool, isFunction: Bool = false) {
+        self.init(value: value, mutable: mutable, isFunction: isFunction, special: nil)
+    }
+
+    init(value: Value, mutable: Bool, isFunction: Bool = false, special: Special?) {
         cell = Cell(value)
         self.mutable = mutable
         self.isFunction = isFunction
@@ -30,23 +34,23 @@ import SwiitKit
 
     /// A name whose value is worked out each time it is read, like the shell's
     /// `jobs`, and can't be assigned.
-    @_spi(Host) public init(computed value: @escaping () -> Value) {
+    public init(computed value: @escaping () -> Value) {
         cell = Cell(compute: value)
         mutable = false
     }
 
     /// A variable's storage, so a closure can share it without keeping the
     /// whole scope it's in.
-    @_spi(Host) public final class Cell {
+    public final class Cell {
         private var stored: Value
         private let compute: (() -> Value)?
 
-        @_spi(Host) public var value: Value {
+        public var value: Value {
             get { compute?() ?? stored }
             set { stored = newValue }
         }
 
-        @_spi(Host) public init(_ value: Value) {
+        public init(_ value: Value) {
             stored = value
             compute = nil
         }
@@ -54,7 +58,7 @@ import SwiitKit
         /// Worked out on each read, not stored.
         var isComputed: Bool { compute != nil }
 
-        @_spi(Host) public init(compute: @escaping () -> Value) {
+        public init(compute: @escaping () -> Value) {
             stored = .nothing
             self.compute = compute
         }
@@ -63,20 +67,20 @@ import SwiitKit
 
 /// A reference type so closures share variables with the scope they
 /// captured, as in Swift.
-@_spi(Host) public final class Scope {
-    @_spi(Host) public var bindings: [String: Binding]
+public final class Scope {
+    public var bindings: [String: Binding]
     /// For a closure's scope: where it was made, held weakly so it can't
     /// keep them alive, for names bound there after it was made (a local
     /// function declared further down).
-    @_spi(Host) public var fallbacks: [WeakScope] = []
+    var fallbacks: [WeakScope] = []
 
-    @_spi(Host) public init(_ bindings: [String: Binding] = [:]) {
+    public init(_ bindings: [String: Binding] = [:]) {
         self.bindings = bindings
     }
 
     /// Declares a function by its name: another of that name is overloaded,
     /// unless the signature is the same, which replaces it.
-    @_spi(Host) public func declare(_ function: Function, named name: String) {
+    public func declare(_ function: Function, named name: String) {
         var candidates = [function]
         if let existing = bindings[name], existing.isFunction,
            case .function(let callable) = existing.value, let set = callable as? OverloadSet {
@@ -86,7 +90,7 @@ import SwiitKit
     }
 
     /// The scope binding `name`: this one, or where it was made.
-    @_spi(Host) public func holding(_ name: String) -> Scope? {
+    public func holding(_ name: String) -> Scope? {
         if bindings[name] != nil { return self }
         for fallback in fallbacks.reversed() {
             if let scope = fallback.scope, scope.bindings[name] != nil { return scope }
@@ -95,6 +99,6 @@ import SwiitKit
     }
 }
 
-@_spi(Host) public struct WeakScope {
-    @_spi(Host) public weak var scope: Scope?
+struct WeakScope {
+    weak var scope: Scope?
 }

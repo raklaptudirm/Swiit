@@ -8,8 +8,8 @@ import SwiitStandardLibrary
 // Docs/Design/async.md, step 7.
 
 /// A `Task`'s value: the interpreter's task it started.
-@_spi(Host) public final class TaskBox: @unchecked Sendable {
-    @_spi(Host) public let handle: TaskHandle
+public final class TaskBox: @unchecked Sendable {
+    public let handle: TaskHandle
     init(_ handle: TaskHandle) { self.handle = handle }
 }
 
@@ -111,7 +111,7 @@ extension Bridge {
 extension Interpreter {
     /// Waits until `deadline`, letting other tasks run; a cancelled task
     /// stops waiting, with a CancellationError.
-    @_spi(Host) public func sleep(until deadline: Date) throws {
+    public func sleep(until deadline: Date) throws {
         let cancellation = task.cancellation
         let condition = NSCondition()
         suspend(wake: {

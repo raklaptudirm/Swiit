@@ -64,7 +64,9 @@ Decided later (2026-10-10):
   `@_spi(Shell) import Swiit`, and what an embedder sees is only the plain
   `public` surface (`Interpreter(host:limits:)`, `eval`, `register`, `set`,
   `Diagnostic`, `Limits`, `SwiitHost`). Plain `public` for more is a promotion
-  from the SPI, one declaration at a time, as the API is decided.
+  from the SPI, one declaration at a time, as the API is decided. (Since
+  then, what any host needs is public, and the SPI is a syntax layer's: "The
+  public API, and what stays SPI", below.)
 - **`DynamicObject` stays a core protocol** for now. It is revisited when Swish
   has subscripts and classes (then `@dynamicMemberLookup`).
 - **The prompt shows each top-level expression** of an entry, only at the
@@ -183,6 +185,56 @@ let n: Int = try level.as(Int.self)
   a call. A hit limit is a runtime `Diagnostic`, not a crash. Memory is not
   limited: a script that builds a huge list can only be bounded by steps and
   time, and that is said plainly in the documentation.
+
+### The public API, and what stays SPI
+
+What any host needs is plain `public` (extraction.md, stage 2), and the core's
+own embedding tests use nothing else: EmbeddingTests imports `Swiit` without
+`@_spi`. By area:
+
+- **Running code.** `Interpreter(host:limits:)`, `eval`, `register`, `set`,
+  `Diagnostic`, `Limits`; `SwiitHost` (its `name`, output and error sinks,
+  `interrupt`, `startThread`) and `StopReason`; `report` and
+  `reportItemError`; the errors a host catches (`RuntimeError`, `FatalError`,
+  `Interrupted`, `Cancelled`, `LimitExceeded`, `AlreadyReported`); `file`, the
+  script being run; `checkInterrupt`; `onLargeStack`.
+- **Functions.** `Function`, made with `Function.builtin` and a `FunctionBody`
+  (`.native`, or `.stream` for one that transforms its input lazily), with
+  `Parameter.positional`, `.option` and `.input`; `OverloadSet`; calling a
+  value (`call`) or a function with bound arguments (`invoke`, with a
+  `Receiver` for a method), overload resolution (`resolve`, `narrowed`);
+  `ValueStream`; a plugin's export as a function (`hostFunction`).
+- **Values and types.** `TypeAnnotation`, `Effect`, `Documentation`;
+  `Value`'s `typeName`, `order` and `conforming`; `conform` and `member`;
+  declared types (`StructType`, `enumType`, `enumCase`, `declaredCase`) and
+  reflection for help (`TypeDescription`, `HelpStyle`); `KeyPathValue`.
+- **Globals and objects.** `lookup`, `bind`, `Binding`, `Scope` with its
+  `bindings` and `declare`; `DynamicObject`, `DynamicType` and `PlainDynamic`;
+  `objectMembers` (an object type's members, for the checker); `Awaiting`, what
+  `await` waits for in a host that has handles.
+- **Tasks.** `TaskContext` (its `host` is the host's per-task state),
+  `TaskHandle`, `startTask`, `join`, `closeTasks`, `suspend`, `withMainTask`,
+  `InterpreterLock`, `Cancellation`, and the hooks `inputTurn`, `newTaskHost`
+  and `awaitingTask` (async.md).
+- **Libraries and the bridge.** `Library` (what a host adds: types, prelude
+  declarations, functions and native bodies); the bridge's tables (`Bridge`,
+  `BridgedType`, `BridgedMember`, `BridgedTypeName`) and the glue a host's
+  generated library calls (`bridgeList`, `bridgeRecord`, `bridgeClosure`, …);
+  `context`, what a library function is lent.
+
+`Program` is public but opaque: a host passes one along (a function's body
+is one) and can't make or read one. The tree it holds, the parser, the
+checker and the hooks for running what a layer parsed (`parse`, `run`,
+`runBlock`, `runDeferred`, `statementFinished`, `syntax`, `frontEnd`, the scope
+stack) are `@_spi(Layer)`: what a syntax layer like the shell's builds on,
+which stage 3 narrows. What only the core's own modules share is
+`@_spi(Swiit)`. Everything else is internal. spi-surface.txt lists the SPI, and
+a test keeps it from growing.
+
+Much of the public API was promoted as the shell used it, and is more than an
+embedder writing to it from scratch would choose: `Scope` and `Binding` beside
+`lookup` and `bind`, `resolve` with a binder closure, the bridge's tables. It is
+the line a host stands on; narrowing it is work for before Swiit's 1.0.
 
 ## Prior art: Lua and Racket
 

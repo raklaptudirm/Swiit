@@ -46,36 +46,36 @@ public struct Limits: Sendable {
     }
 }
 
-@_spi(Host) public struct LimitExceeded: Error, CustomStringConvertible {
-    @_spi(Host) public let description: String
-    @_spi(Host) public init(_ description: String) { self.description = description }
+public struct LimitExceeded: Error, CustomStringConvertible {
+    public let description: String
+    public init(_ description: String) { self.description = description }
 }
 
-@_spi(Host) public struct Cancelled: Error {}
+public struct Cancelled: Error {}
 
 /// Bytes written so far, for the output limit.
-@_spi(Host) public final class OutputCounter: @unchecked Sendable {
+public final class OutputCounter: @unchecked Sendable {
     private let lock = NSLock()
     private var count = 0
 
-    @_spi(Host) public init() {}
+    public init() {}
 
-    @_spi(Host) public var written: Int { lock.withLock { count } }
-    @_spi(Host) public func add(_ bytes: Int) { lock.withLock { count += bytes } }
-    @_spi(Host) public func reset() { lock.withLock { count = 0 } }
+    public var written: Int { lock.withLock { count } }
+    public func add(_ bytes: Int) { lock.withLock { count += bytes } }
+    public func reset() { lock.withLock { count = 0 } }
 }
 
 /// A request to stop, from any thread.
-@_spi(Host) public final class Cancellation: @unchecked Sendable {
+public final class Cancellation: @unchecked Sendable {
     private let lock = NSLock()
     private var set = false
     /// What wakes the waits going on now, so a request ends them early.
     private var wakers: [Int: () -> Void] = [:]
     private var nextWaker = 0
 
-    @_spi(Host) public init() {}
+    public init() {}
 
-    @_spi(Host) public var isSet: Bool { lock.withLock { set } }
+    public var isSet: Bool { lock.withLock { set } }
 
     /// Asks for the stop, and wakes what is waiting.
     func request() {
@@ -86,7 +86,7 @@ public struct Limits: Sendable {
         wake.forEach { $0() }
     }
 
-    @_spi(Host) public func clear() { lock.withLock { set = false } }
+    public func clear() { lock.withLock { set = false } }
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
@@ -100,7 +100,7 @@ public struct Limits: Sendable {
         return token
     }
 
-    @_spi(Host) public func remove(_ token: Int) {
+    public func remove(_ token: Int) {
         lock.withLock { _ = wakers.removeValue(forKey: token) }
     }
 }

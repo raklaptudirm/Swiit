@@ -32,7 +32,7 @@ import SystemPackage
 
 /// A case of a Swift enum from a Swiit value: the case of that name, among
 /// all the enum's.
-@_spi(Host) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
+public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
         throw SwiitError("expected a \(T.self), not \(value.typeName)")
     }
@@ -46,7 +46,7 @@ func pathValue(_ path: String) -> Value {
 
 /// What a record's field is that encoding loses: an enum is encoded as its
 /// raw text and a path as an object, and Swiit holds them as what they are.
-@_spi(Host) public enum FieldKind {
+public enum FieldKind {
     case enumeration(String)
     /// A Swift type held as it is, of this name: a `FilePath`, a `FileSize`.
     case boxed(String)
@@ -56,7 +56,7 @@ func pathValue(_ path: String) -> Value {
 /// them and all there: the encoder leaves out a nil, and the declaration says
 /// it's a field. A field of `patches` is read from the Swift value itself and
 /// made what it is declared as.
-@_spi(Host) public func bridgeRecord<T: Encodable>(_ shell: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
+public func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
     guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
     var record = Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
@@ -67,7 +67,7 @@ func pathValue(_ path: String) -> Value {
             held = optional.children.first?.value
         }
         record[field] = switch (patches[field], held) {
-        case (.enumeration(let type)?, let held?): shell.declaredCase(type, "\(held)")
+        case (.enumeration(let type)?, let held?): interpreter.declaredCase(type, "\(held)")
         case (.boxed(let type)?, let held?): SwiftValue.make(held, as: type)
         case (_, .some): encoded[field] ?? .nothing
         default: .nothing
@@ -80,13 +80,13 @@ extension Interpreter {
     /// What a standard library function that asks for it is lent: the host's,
     /// if it lends one (the shell's carries what was entered before), else
     /// the output's traits and how values display.
-    @_spi(Host) public var context: HostContext {
+    public var context: HostContext {
         contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
     }
 }
 
 /// A list's items, or an Output's lines.
-@_spi(Host) public func bridgeList(_ value: Value) throws -> [Value] {
+public func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
     default:
@@ -96,13 +96,13 @@ extension Interpreter {
 }
 
 /// A dictionary as Swift's, which is what it holds.
-@_spi(Host) public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
+public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
     guard case .dictionary(let dictionary) = value else { throw SwiitError("expected a dictionary, not \(value.typeName)") }
     return dictionary.dictionary
 }
 
 /// Swift's dictionary as Swiit's.
-@_spi(Host) public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
+public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
     .dictionary(ValueDictionary(dictionary))
 }
 
@@ -169,14 +169,14 @@ func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> V
 extension Interpreter {
     /// The items a value gives as they come, which can throw: a `Flow`'s,
     /// one at a time; nil for anything else.
-    @_spi(Host) public static func flow(of value: Value) -> Flow<Value>? {
+    public static func flow(of value: Value) -> Flow<Value>? {
         if case .object(let box as SwiftValue) = value { box.value as? Flow<Value> } else { nil }
     }
 
     /// The items of a list, an Output's lines, or a Swift sequence Swiit
     /// holds (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
-    @_spi(Host) public static func items(of value: Value) -> AnyIterator<Value>? {
+    public static func items(of value: Value) -> AnyIterator<Value>? {
         switch value {
         case .list(let items):
             return AnyIterator(items.makeIterator())
@@ -220,8 +220,8 @@ extension Interpreter {
     value == .nothing ? nil : try convert(value)
 }
 
-@_spi(Host) public func bridgeClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
-    { arguments in try shell.call(function, with: arguments) }
+public func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
+    { arguments in try interpreter.call(function, with: arguments) }
 }
 
 /// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic

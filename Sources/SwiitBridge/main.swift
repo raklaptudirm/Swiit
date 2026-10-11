@@ -258,7 +258,7 @@ var output = """
 // Don't edit: `run bridge` remakes it.
 import Foundation
 import SwiitKit
-\(module.outsideCore ? "@_spi(Host) @_spi(Layer) import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
+\(module.outsideCore ? "@_spi(Layer) import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
 extension Bridge {
 \(module.types.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
 
