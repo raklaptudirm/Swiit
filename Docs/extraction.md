@@ -24,7 +24,7 @@ What isn't done is the part a separate repository makes expensive to change:
   drives that parser for the shell's lines (`Lowering.cursor(at:)`). The
   parser's internals are part of the contract.
 - **The names cross over.** The core reports errors as `swish:`, depends on
-  `SwishKit` and ships `SwishStandardLibrary`, and lends hosts a
+  `SwishKit` and ships `SwiitStandardLibrary`, and lends hosts a
   `ShellContext`.
 
 Moving now would freeze all three in their current shape. Moving after
@@ -96,7 +96,7 @@ last stage, and mechanical by then.
 4. **Names.**
    - Error reports take their prefix from the host (`SwishHost.name`, `swish`
      in the shell, `swiit` by default).
-   - `SwishStandardLibrary` becomes `SwiitStandardLibrary`.
+   - `SwiitStandardLibrary` becomes `SwiitStandardLibrary`.
    - `ShellContext` becomes `HostContext`.
    - SwishKit: the value model and the plugin ABI are the interpreter's, so
      it moves with Swiit as `SwiitKit`. A plugin compiled against it works in

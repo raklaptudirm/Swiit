@@ -90,7 +90,7 @@ Decided later (2026-10-10):
 |---|---|
 | `SwishKit` (exists) | `Value`, boxing, `SwishObject`, `@SwishExport`: what a host and a plugin share with the interpreter |
 | `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwishKit and Foundation, `SwishHost`, the embedding API |
-| `SwishStandardLibrary` | The pure part: `Flow`, `JSON`, formatter, pretty printer, `Sequence` extensions, `from`/`to`/`table`/`list`, text styling |
+| `SwiitStandardLibrary` | The pure part: `Flow`, `JSON`, formatter, pretty printer, `Sequence` extensions, `from`/`to`/`table`/`list`, text styling |
 | `SwishShellLibrary` (new) | The OS functions: `ls`, `ps`, `pwd`, `readLine`, `history`, `with(env:)`, jobs, paths, input |
 | `SwishShell` (new) | `Shell`, execution, platform, the line editor, shell builtins, config, plugin loading, tasks |
 | `Swish` (exists) | The `swish` executable |
@@ -267,7 +267,7 @@ call-stack frames in `Diagnostic`; selectable parts of the standard library;
 | `Execution/`, `Platform/`, `Editor/`, `Plugins/` | `SwishShell` |
 | `Builtins/` | shell builtins (`cd`, `exit`, `run`…) to `SwishShell`; the prelude and sequence methods stay |
 | `Presentation/Display/Display.swift` | the sink-based `show` stays; the fd-based formatter constructors go to `SwishShell` |
-| `SwishStandardLibrary` OS functions | `SwishShellLibrary` |
+| `SwiitStandardLibrary` OS functions | `SwishShellLibrary` |
 
 Open placement: `help`, `members` and `which` describe the language's own
 scopes and types, so they arguably belong to the core, but their output is
@@ -369,7 +369,7 @@ shell working.
    3b is its prerequisite. See [frontend.md](frontend.md) for what was tried and
    what it costs.
 4. **Split the targets.** `SwishShell` and `SwishShellLibrary` created, files
-   moved, `SwishStandardLibrary` and the generator's module table split, the
+   moved, `SwiitStandardLibrary` and the generator's module table split, the
    tests divided into core and shell, CI updated. The core builds with no
    reference to the shell.
    *Step 4a is done:* two targets, `Swiit` (the language: syntax, checker,
@@ -416,7 +416,7 @@ shell working.
    tables and can't yet write them into the shell's.
    *Step 4b is done:* `SwishShellLibrary` holds `ls`, `ps`, `pwd`, `with(env:)`,
    `readLine`, `history` and their types (`FileEntry`, `FileType`,
-   `ProcessEntry`, `JobState`); `SwishStandardLibrary` keeps the pure part. The
+   `ProcessEntry`, `JobState`); `SwiitStandardLibrary` keeps the pure part. The
    generator writes the shell library into `Sources/SwishShell/Bridge/Generated`
    (its tables are `shellTypes`, `shellFunctions`, …), and the core takes
    libraries as values: `Library.standard` is its own, the shell passes

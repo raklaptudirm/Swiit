@@ -1,6 +1,6 @@
 import Foundation
 import SwishKit
-import SwishStandardLibrary
+import SwiitStandardLibrary
 
 extension Interpreter {
     /// Joins a string's parts into one string. Interpolation never splits.

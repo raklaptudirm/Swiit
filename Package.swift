@@ -9,7 +9,7 @@ let package = Package(
         .library(name: "Swiit", targets: ["Swiit"]),
         // Plain Swift the interpreter bridges (`Flow`, the formatters); the
         // shell's own library builds on it.
-        .library(name: "SwishStandardLibrary", targets: ["SwishStandardLibrary"]),
+        .library(name: "SwiitStandardLibrary", targets: ["SwiitStandardLibrary"]),
         // Reads Swift's symbol graphs and writes the glue that bridges them
         // (`run bridge`); not part of the interpreter.
         .executable(name: "swiit-bridge", targets: ["SwiitBridge"]),
@@ -31,7 +31,7 @@ let package = Package(
         // The interpreter's own functions, written in Swift: `swiit-bridge`
         // reads their declarations and Swiit calls them.
         .target(
-            name: "SwishStandardLibrary",
+            name: "SwiitStandardLibrary",
             dependencies: [
                 .product(name: "SwishKit", package: "SwishKit"),
                 .product(name: "SystemPackage", package: "swift-system"),
@@ -41,7 +41,7 @@ let package = Package(
         .target(
             name: "Swiit",
             dependencies: [
-                "SwishStandardLibrary",
+                "SwiitStandardLibrary",
                 .product(name: "SwishKit", package: "SwishKit"),
                 .product(name: "SystemPackage", package: "swift-system"),
             ],

@@ -1,6 +1,6 @@
 import Foundation
 import SwishKit
-import SwishStandardLibrary
+import SwiitStandardLibrary
 import SystemPackage
 
 /// A Swish key path (`\.status.code`, or `--by size`) as a Swift one over

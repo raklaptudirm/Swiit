@@ -145,7 +145,7 @@ they change the shell is what they do, not how they're found.
    types like the rest.
    *In progress.* Every type gets its protocols' members, and other
    modules' additions to a type are read too (`_StringProcessing`'s
-   `contains`). `SwishStandardLibrary` is a Swift target the generator reads
+   `contains`). `SwiitStandardLibrary` is a Swift target the generator reads
    for free functions, structs and enums: `pwd`, `readLine`, `history`, `ls`
    and `ps`, with `FileEntry`, `ProcessEntry` and `FileType`, are done. A
    struct becomes a record, declared in Swish from its fields; a parameter

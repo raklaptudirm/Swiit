@@ -203,7 +203,7 @@ A's trouble was the synchronous callback: Swift's `map` can't await. Three
 things together remove it:
 
 1. **Async overloads of the closure-taking standard library functions,**
-   written as extensions in `SwishStandardLibrary` (`map`, `filter`,
+   written as extensions in `SwiitStandardLibrary` (`map`, `filter`,
    `compactMap`, `reduce`, `sorted(by:)`, `contains(where:)`, `first(where:)`,
    `forEach`, `prefix(while:)`, and the rest: about forty, each a short loop).
    Swift allows overloads that differ only in `async`, and the generator

@@ -1,6 +1,6 @@
 import Foundation
 import SwishKit
-import SwishStandardLibrary
+import SwiitStandardLibrary
 
 // Swift's `Task`, bridged by hand: its operation is Swish code, which runs as
 // a task of the interpreter's (InterpreterLock.swift), not on Swift's

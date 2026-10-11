@@ -19,7 +19,7 @@ extension Interpreter {
         }
     }
 
-    /// The shell's own functions, written in Swift (SwishStandardLibrary) and
+    /// The shell's own functions, written in Swift (SwiitStandardLibrary) and
     /// bridged: `pwd`, `readLine`. Each is an ordinary function to the rest
     /// of the shell, with its flags, help and overloads.
     private func installStandardFunctions() {

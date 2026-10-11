@@ -3,7 +3,7 @@
 import Foundation
 import SwishKit
 import Foundation
-import SwishStandardLibrary
+import SwiitStandardLibrary
 import SwishKit
 
 extension Bridge {

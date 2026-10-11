@@ -6,8 +6,8 @@
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //
 // `run bridge` (Tasks.swish) runs it on the standard library, on swift-system
-// (for FilePath) and on the shell's own SwishStandardLibrary, which also
-// adds to the standard library's types, and on SwishShellLibrary. A member is bridged only if every
+// (for FilePath), on the interpreter's own SwiitStandardLibrary, which also
+// adds to the standard library's types, and on the shell's SwishShellLibrary. A member is bridged only if every
 // type in its signature is one Swish can pass or hold (see `supported`); the
 // rest are left out, and counted on stderr.
 //
@@ -72,7 +72,7 @@ let modules: [String: (list: String, types: [(String, [String])], functions: Str
         ("String", []), ("Substring", []), ("Character", []), ("Int", []), ("Double", []), ("Bool", []),
         ("Array", ["Element"]), ("ArraySlice", ["Element"]), ("Set", ["Element"]), ("Dictionary", ["Key", "Value"]),
         ("Optional", ["Wrapped"]), ("Range", ["Bound"]), ("ClosedRange", ["Bound"]),
-        // The shell's own, which a pipeline reads lazily (SwishStandardLibrary).
+        // The interpreter's own, which a pipeline reads lazily (SwiitStandardLibrary).
         ("Flow", ["Element"]),
     ], nil, [], [], false),
     // FilePath.Root is left out: the standard library's FilePath (SE-0529)
@@ -87,7 +87,7 @@ let modules: [String: (list: String, types: [(String, [String])], functions: Str
     "SwishKit": ("swishKit", [("FileSize", []), ("Output", []), ("DisplayColumn", [])], nil, [], ["Status"], false),
     // The shell's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
-    "SwishStandardLibrary": ("", [], "standardFunctions", ["FilePath", "FileSize", "Date"], [], false),
+    "SwiitStandardLibrary": ("", [], "standardFunctions", ["FilePath", "FileSize", "Date"], [], false),
     // The shell's: the part of the library that reaches the process, the file
     // system and the session. It is generated into the shell's target.
     "SwishShellLibrary": ("", [], "shellFunctions", ["FilePath", "FileSize", "Date"], [], true),

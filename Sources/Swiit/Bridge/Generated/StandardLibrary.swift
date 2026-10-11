@@ -3,7 +3,7 @@
 import Foundation
 import SwishKit
 import _StringProcessing
-import SwishStandardLibrary
+import SwiitStandardLibrary
 
 extension Bridge {
     internal nonisolated(unsafe) static let standardLibrary: [BridgedType] = [
