@@ -106,12 +106,20 @@ import SwishKit
         condition.unlock()
     }
 
-    /// Blocks until it has ended. (Through `suspend`, so the lock is let go.)
-    func wait() -> Result<Value, any Error> {
+    /// Blocks until it has ended, or the waiting task is cancelled (nil).
+    /// (Through `suspend`, so the lock is let go.)
+    func wait(unless cancellation: Cancellation) -> Result<Value, any Error>? {
         condition.lock()
         defer { condition.unlock() }
-        while outcome == nil { condition.wait() }
-        return outcome!
+        while outcome == nil && !cancellation.isSet { condition.wait() }
+        return outcome
+    }
+
+    /// Wakes whoever is waiting for it, to look again.
+    func poke() {
+        condition.lock()
+        condition.broadcast()
+        condition.unlock()
     }
 }
 
@@ -128,6 +136,7 @@ extension Interpreter {
         context.receivesInterrupts = false
         let handle = TaskHandle(context: context)
         runningTasks += 1
+        task.children.append((callDepth, handle))
         // The interpreter and the task are touched only holding the lock,
         // which the thread takes first: that is what makes this safe.
         nonisolated(unsafe) let body = body
@@ -136,7 +145,10 @@ extension Interpreter {
         host.startThread {
             interpreter.lock.acquire()
             interpreter.task = taskContext
-            let result = Result { try body() }
+            var result = Result { try body() }
+            // Its own tasks end with it.
+            interpreter.closeTasks(above: -1)
+            if case .failure(let error) = result, error is Cancelled { result = .failure(Cancelled()) }
             interpreter.runningTasks -= 1
             handle.finish(result)
             interpreter.lock.release()
@@ -147,6 +159,11 @@ extension Interpreter {
     /// Waits for a task to end, letting go of the lock meanwhile, and gives
     /// what it gave or throws what it threw.
     @_spi(Shell) public func join(_ handle: TaskHandle) throws -> Value {
-        try suspend { handle.wait() }.get()
+        let waiter = task.cancellation
+        guard let result = suspend(wake: { handle.poke() }, { handle.wait(unless: waiter) }) else {
+            // The task waiting was cancelled: it stops, and leaves the other running.
+            throw Cancelled()
+        }
+        return try result.get()
     }
 }

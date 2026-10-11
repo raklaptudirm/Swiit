@@ -78,3 +78,19 @@ private func typeError(_ source: String) -> String? {
         }
     }
 }
+
+@Test func closingAScopeCancelsAndWaitsForItsTasks() throws {
+    let swish = interpreter()
+    try onLargeStack {
+        try swish.withMainTask {
+            let task = try swish.startTask(host: nil) {
+                // It never ends on its own; it stops when it's cancelled.
+                while true { try swish.checkInterrupt() }
+            }
+            #expect(swish.task.children.count == 1)
+            swish.closeTasks(above: -1)
+            #expect(swish.task.children.isEmpty)
+            #expect(task.isFinished)
+        }
+    }
+}

@@ -54,6 +54,8 @@ extension Interpreter {
             scopes = savedScopes
             callDepth -= 1
             returnTypes.removeLast()
+            // What the call started ends with it, however it ends.
+            if let last = task.children.last, last.depth > callDepth { closeTasks(above: callDepth) }
         }
 
         let result: Value

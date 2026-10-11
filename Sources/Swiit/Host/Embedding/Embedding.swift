@@ -69,12 +69,40 @@ public struct Limits: Sendable {
 @_spi(Shell) public final class Cancellation: @unchecked Sendable {
     private let lock = NSLock()
     private var set = false
+    /// What wakes the waits going on now, so a request ends them early.
+    private var wakers: [Int: () -> Void] = [:]
+    private var nextWaker = 0
 
     @_spi(Shell) public init() {}
 
     @_spi(Shell) public var isSet: Bool { lock.withLock { set } }
-    @_spi(Shell) public func request() { lock.withLock { set = true } }
+
+    /// Asks for the stop, and wakes what is waiting.
+    @_spi(Shell) public func request() {
+        let wake = lock.withLock { () -> [() -> Void] in
+            set = true
+            return Array(wakers.values)
+        }
+        wake.forEach { $0() }
+    }
+
     @_spi(Shell) public func clear() { lock.withLock { set = false } }
+
+    /// Calls `wake` when the stop is asked for (now, if it was already), until
+    /// `remove` is given what this gives.
+    @_spi(Shell) public func onRequest(_ wake: @escaping () -> Void) -> Int {
+        let (token, already) = lock.withLock { () -> (Int, Bool) in
+            nextWaker += 1
+            wakers[nextWaker] = wake
+            return (nextWaker, set)
+        }
+        if already { wake() }
+        return token
+    }
+
+    @_spi(Shell) public func remove(_ token: Int) {
+        lock.withLock { _ = wakers.removeValue(forKey: token) }
+    }
 }
 
 extension Interpreter {
@@ -208,7 +236,7 @@ extension Interpreter {
         nonisolated(unsafe) let interpreter = self
         do {
             // Swish code runs holding the lock, which a task it starts waits for.
-            return try onLargeStack { try interpreter.lock.withLock { try interpreter.evaluate(source) } }
+            return try onLargeStack { try interpreter.withMainTask { try interpreter.evaluate(source) } }
         } catch let diagnostic as Diagnostic {
             throw diagnostic
         } catch {

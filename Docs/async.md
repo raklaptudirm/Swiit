@@ -376,7 +376,18 @@ the task context's output and the `suspend` function sit.)
 5. **Cancellation and scopes.** `^C` and `cancel()` set the task's flag
    (checked at the interrupt checks) and signal the programs it started; every
    wait can be woken; a scope closing cancels and waits for the tasks it
-   started.
+   started. *Done:* `Cancellation` wakes the waits registered on it
+   (`suspend(wake:)`): a task's programs are terminated, which ends its
+   `waitpid`, and a task awaiting another is woken and stops as cancelled,
+   leaving the other running. Each task records the tasks it starts with the
+   depth of its calls; a Swish function or closure returning, by value or by
+   throwing, cancels and waits for those started inside it (`closeTasks`), as
+   a task's body ending does for its own, and a script or `swish -c` ending
+   does for its top level (`Shell.finishTasks`). The prompt is one scope, so
+   a task started there outlives the line. The host enters the interpreter as
+   its main task (`withMainTask`), whatever ran last, and code not holding
+   the lock acts for the main task. Waits that poll (a job's lines) notice
+   cancellation at their next check.
 6. **Output and the terminal.** A background Swish task's output is kept on
    its job, as `async $(…)`'s is, unless it prints; a background task reading
    the terminal waits until it's brought forward with `await`, as a program
@@ -431,7 +442,8 @@ suite, at the same speed.
 ## Open questions
 
 - **What does a closing scope do to a child still running, at a script's
-  end?** Written as cancel and await, as in Swift. A shell script is used to
+  end?** Built as cancel and await, as in Swift, for Swish tasks; background
+  programs (`async cmd`) are left running, as a shell leaves them. A shell script is used to
   background jobs outliving it, so a script that wants one to finish writes
   `await`; if that's too surprising, a script's end could await instead of
   cancel. The session's end, an interactive shell exiting, hangs up its jobs

@@ -25,6 +25,10 @@ import SwishKit
     /// Whether the host's interrupts (the shell's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
     @_spi(Shell) public var receivesInterrupts = true
+    /// The tasks it started and hasn't seen end, with how deep in its calls
+    /// it was: each belongs to the scope that started it, which cancels and
+    /// waits for it as it closes.
+    @_spi(Shell) public var children: [(depth: Int, handle: TaskHandle)] = []
 
     @_spi(Shell) public init(globals: [Scope], host: AnyObject? = nil) {
         self.scopes = globals
@@ -67,11 +71,43 @@ extension Interpreter {
     /// of input. Every wait goes through here; with one task it is just the
     /// wait, and it is where the async evaluator will let another task run
     /// (Docs/Design/async.md, step 2).
-    @_spi(Shell) public func suspend<T>(_ wait: () throws -> T) rethrows -> T {
+    /// `wake` ends the wait early if the task is cancelled meanwhile (by
+    /// stopping the programs it waits for, say); the task then stops at its
+    /// next step.
+    @_spi(Shell) public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
+        let mine = task
+        let token = wake.map { mine.cancellation.onRequest($0) }
+        defer { token.map { mine.cancellation.remove($0) } }
         // Another task runs meanwhile, if one is ready.
         guard lock.isHeldByCurrentThread else { return try wait() }
-        let mine = task
         defer { task = mine }
         return try lock.releasing(wait)
+    }
+
+    /// Closes the scopes deeper than `depth` in the current task: the tasks
+    /// they started are cancelled and waited for, as a scope closing does.
+    @_spi(Shell) public func closeTasks(above depth: Int) {
+        var closing: [TaskHandle] = []
+        while let last = task.children.last, last.depth > depth {
+            closing.append(task.children.removeLast().handle)
+        }
+        closing.forEach { $0.cancel() }
+        for handle in closing { _ = try? join(handle) }
+    }
+}
+
+extension Interpreter {
+    /// Runs `body` as the main task, holding the lock: how the host enters
+    /// the interpreter (a background task may have run last, and left itself
+    /// current).
+    @_spi(Shell) public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
+        lock.acquire()
+        let previous = task
+        task = mainTask
+        defer {
+            task = previous
+            lock.release()
+        }
+        return try body()
     }
 }

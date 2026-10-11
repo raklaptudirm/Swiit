@@ -28,7 +28,9 @@ public final class Interpreter {
     @_spi(Shell) public var objectMembers: [String: [String: TypeAnnotation]] = [:]
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
-    @_spi(Shell) public var task = TaskContext(globals: [Scope(), Scope()])
+    @_spi(Shell) public var task: TaskContext
+    /// The first task: the host's own (the shell's prompt, an embedder's `eval`).
+    @_spi(Shell) public let mainTask = TaskContext(globals: [Scope(), Scope()])
     /// What Swish code runs under, one task at a time (InterpreterLock.swift).
     @_spi(Shell) public let lock = InterpreterLock()
     /// Tasks started and not yet ended.
@@ -70,6 +72,7 @@ public final class Interpreter {
     @_spi(Shell) public init(host: SwishHost, outputCounter: OutputCounter) {
         self.host = host
         self.outputCounter = outputCounter
+        self.task = mainTask
     }
 }
 
