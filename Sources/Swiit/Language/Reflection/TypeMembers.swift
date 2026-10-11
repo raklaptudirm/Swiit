@@ -5,28 +5,28 @@ import SwishKit
 /// from the bridge (with Swish's own extensions, and for a sequence the
 /// shell's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
-@_spi(Internals) public struct TypeDescription {
+@_spi(Host) public struct TypeDescription {
     /// What a member is; the order of the cases is the order `help` shows
     /// them in.
-    @_spi(Internals) public enum Kind: String, CaseIterable {
+    @_spi(Host) public enum Kind: String, CaseIterable {
         case `case`, initializer, property, method
         case staticProperty = "static property", staticMethod = "static method"
 
         /// The heading `help` lists them under: "Properties", "Static methods".
-        @_spi(Internals) public var heading: String {
+        @_spi(Host) public var heading: String {
             let plural = rawValue.hasSuffix("y") ? rawValue.dropLast() + "ies" : rawValue + "s"
             return plural.prefix(1).uppercased() + plural.dropFirst()
         }
     }
 
-    @_spi(Internals) public struct Member {
-        @_spi(Internals) public let name: String
-        @_spi(Internals) public let kind: Kind
+    @_spi(Host) public struct Member {
+        @_spi(Host) public let name: String
+        @_spi(Host) public let kind: Kind
         /// As Swift writes it: `count: Int`, `uppercased() -> String`.
-        @_spi(Internals) public let signature: AttributedString
-        @_spi(Internals) public let summary: String
+        @_spi(Host) public let signature: AttributedString
+        @_spi(Host) public let summary: String
     
-        @_spi(Internals) public init(name: String, kind: Kind, signature: AttributedString, summary: String) {
+        @_spi(Host) public init(name: String, kind: Kind, signature: AttributedString, summary: String) {
             self.name = name
             self.kind = kind
             self.signature = signature
@@ -34,12 +34,12 @@ import SwishKit
         }
     }
 
-    @_spi(Internals) public let name: String
+    @_spi(Host) public let name: String
     /// What kind of type: "Swift type", "struct" or "enum".
-    @_spi(Internals) public let kind: String
-    @_spi(Internals) public let members: [Member]
+    @_spi(Host) public let kind: String
+    @_spi(Host) public let members: [Member]
 
-    @_spi(Internals) public init(name: String, kind: String, members: [Member]) {
+    @_spi(Host) public init(name: String, kind: String, members: [Member]) {
         self.name = name
         self.kind = kind
         self.members = members
@@ -48,7 +48,7 @@ import SwishKit
 
 extension Interpreter {
     /// The type named `name`, if Swish knows one by that name.
-    @_spi(Internals) public func typeDescription(named name: String) -> TypeDescription? {
+    @_spi(Host) public func typeDescription(named name: String) -> TypeDescription? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
         case .object(let type as StructType)?: return describe(type)
@@ -58,7 +58,7 @@ extension Interpreter {
     }
 
     /// The name `typeDescription` knows a value's type by.
-    @_spi(Internals) public func describedTypeName(of value: Value) -> String? {
+    @_spi(Host) public func describedTypeName(of value: Value) -> String? {
         if case .record(let record) = value { return record.typeName }
         return TypeChecker(interpreter: self).type(of: value).swiftType?.name
     }
@@ -144,7 +144,7 @@ extension Interpreter {
     /// What `help Type` shows: its members, grouped by kind, each with its
     /// signature (highlighted as Swift) and, on the line below, what its
     /// documentation says.
-    @_spi(Internals) public func helpLines(for type: TypeDescription) -> [AttributedString] {
+    @_spi(Host) public func helpLines(for type: TypeDescription) -> [AttributedString] {
         var lines = [AttributedString(joining: [.init(type.kind, DisplayStyle.keyword), .init(" "), .init(type.name, DisplayStyle.type)])]
         let groups = Dictionary(grouping: type.members, by: \.kind)
         for kind in TypeDescription.Kind.allCases {
@@ -163,7 +163,7 @@ extension Interpreter {
 
 extension TypeDescription {
     /// A bridged member as Swift declares it, in pieces by what each is.
-    @_spi(Internals) public static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
+    @_spi(Host) public static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
         var pieces: [AttributedString] = []
         switch member.kind {
         case .initializer:
@@ -180,14 +180,14 @@ extension TypeDescription {
 
     /// A Swish function as a member, under `name` if given: its input is
     /// what it's called on, so it isn't shown.
-    @_spi(Internals) public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
+    @_spi(Host) public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
                    + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.isInput })
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
-    @_spi(Internals) public static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
+    @_spi(Host) public static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
         [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .command), .init(": ")] + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }

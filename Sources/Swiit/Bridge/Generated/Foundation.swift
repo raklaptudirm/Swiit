@@ -7,7 +7,7 @@ import SwishStandardLibrary
 import SwishKit
 
 extension Bridge {
-    @_spi(Internals) public nonisolated(unsafe) static let foundation: [BridgedType] = [
+    internal nonisolated(unsafe) static let foundation: [BridgedType] = [
 
         BridgedType(
             name: "Date", genericParameters: [],

@@ -99,7 +99,7 @@ guard let module = modules[graph.module.name] else {
 let bridgedTypeNames = module.types
 /// How the generated tables are visible: the interpreter's to the shell as SPI,
 /// the shell's own within the shell's package.
-let access = module.outsideCore ? "package" : "@_spi(Internals) public"
+let access = module.outsideCore ? "package" : "internal"
 for symbol in graph.symbols where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     guard let equals = text.range(of: "=") else { continue }
@@ -258,7 +258,7 @@ var output = """
 // Don't edit: `run bridge` remakes it.
 import Foundation
 import SwishKit
-\(module.outsideCore ? "@_spi(Host) @_spi(Layer) @_spi(Internals) import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
+\(module.outsideCore ? "@_spi(Host) @_spi(Layer) import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
 extension Bridge {
 \(module.types.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
 

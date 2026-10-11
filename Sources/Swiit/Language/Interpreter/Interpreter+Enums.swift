@@ -6,7 +6,7 @@ extension Interpreter {
 
     /// `enum Name: Raw { … }`: builds the type, checking raw values, and binds
     /// its name.
-    @_spi(Internals) public func declare(_ decl: EnumDecl) throws {
+    func declare(_ decl: EnumDecl) throws {
         var cases: [EnumType.Case] = []
         var payloadTypes: [String: [TypeAnnotation]] = [:]
         var nextInt = 0
@@ -47,7 +47,7 @@ extension Interpreter {
     }
 
     /// The enum a type annotation names, looking through optionals.
-    @_spi(Internals) public func enumType(for type: TypeAnnotation?) -> EnumType? {
+    @_spi(Host) public func enumType(for type: TypeAnnotation?) -> EnumType? {
         switch type {
         case .named(let name)?: enumType(named: name)
         case .optional(let wrapped)?: enumType(for: wrapped)
@@ -55,7 +55,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Internals) public func enumType(named name: String) -> EnumType? {
+    @_spi(Host) public func enumType(named name: String) -> EnumType? {
         guard case .object(let type as EnumType)? = lookup(name)?.value else { return nil }
         return type
     }
@@ -107,7 +107,7 @@ extension Interpreter {
     }
 
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
-    @_spi(Internals) public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
+    @_spi(Host) public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
         case .named(let name):
             // A plain dynamic type (parsed JSON) is whatever it parsed as.
@@ -146,7 +146,7 @@ extension Interpreter {
 
     /// A case from the command line: its name (`directory` or `.directory`),
     /// or its raw value.
-    @_spi(Internals) public func enumCase(fromText text: String, _ type: EnumType) -> Value? {
+    @_spi(Host) public func enumCase(fromText text: String, _ type: EnumType) -> Value? {
         let name = text.hasPrefix(".") ? String(text.dropFirst()) : text
         if let definition = type.case(named: name), definition.labels.isEmpty {
             return .enumValue(EnumValue(type: type, name: name))
@@ -158,7 +158,7 @@ extension Interpreter {
     // MARK: Matching
 
     /// Whether `value` matches `pattern`, binding what the pattern names.
-    @_spi(Internals) public func match(_ pattern: Pattern, _ value: Value, into bindings: inout [String: Binding]) throws -> Bool {
+    func match(_ pattern: Pattern, _ value: Value, into bindings: inout [String: Binding]) throws -> Bool {
         switch pattern {
         case .wildcard:
             return true
@@ -276,7 +276,7 @@ extension Interpreter {
 extension Interpreter {
     /// A case of an enum the prelude or the standard library module
     /// declares: `FileType.directory`.
-    @_spi(Internals) public func declaredCase(_ type: String, _ name: String) -> Value {
+    @_spi(Host) public func declaredCase(_ type: String, _ name: String) -> Value {
         .enumValue(EnumValue(type: enumType(named: type)!, name: name))
     }
 }

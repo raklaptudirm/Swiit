@@ -8,7 +8,7 @@ import SystemPackage
 extension Bridge {
 
     /// The module's structs, as Swish source: declared with the prelude.
-    @_spi(Internals) public static let standardTypes = #"""
+    internal static let standardTypes = #"""
 /// What `String.styled` can make text, each with its terminal code as its raw value.
 enum TextStyle: Equatable, Hashable {
     case bold, dim, italic, underline, red, green, yellow, blue, magenta, cyan, white, gray
@@ -16,10 +16,10 @@ enum TextStyle: Equatable, Hashable {
 """#
 
     /// How the module's structs say which columns a table starts with.
-    @_spi(Internals) public nonisolated(unsafe) static let standardColumns: [String: [DisplayColumn]] = [:]
+    internal nonisolated(unsafe) static let standardColumns: [String: [DisplayColumn]] = [:]
 
     /// How the module's enums say how a case is shown, by case name.
-    @_spi(Internals) public nonisolated(unsafe) static let standardEnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [:]
+    internal nonisolated(unsafe) static let standardEnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [:]
 
-    @_spi(Internals) public nonisolated(unsafe) static let standardFunctions: [BridgedMember] = []
+    internal nonisolated(unsafe) static let standardFunctions: [BridgedMember] = []
 }

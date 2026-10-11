@@ -12,7 +12,7 @@ extension Expr {
 }
 
 extension Value {
-    @_spi(Internals) public var typeName: String {
+    @_spi(Host) public var typeName: String {
         switch self {
         case .nothing: "Nothing"
         case .bool: "Bool"
@@ -39,7 +39,7 @@ extension Value {
 
     /// `==` with Int and Double comparing numerically, as their literals
     /// would in Swift.
-    @_spi(Internals) public func isEqual(to other: Value) -> Bool {
+    @_spi(Host) public func isEqual(to other: Value) -> Bool {
         switch (self, other) {
         case (.int, .double), (.double, .int):
             return asDouble == other.asDouble
@@ -52,7 +52,7 @@ extension Value {
 
     /// This value as `type`, or nil if it doesn't fit. An Int passes as a
     /// Double, as an integer literal would in Swift.
-    @_spi(Internals) public func conforming(to type: TypeAnnotation) -> Value? {
+    @_spi(Host) public func conforming(to type: TypeAnnotation) -> Value? {
         switch (type, self) {
         // What stands for text is the text where a String is wanted, and a
         // command's output is its lines where a list of them is.
@@ -113,7 +113,7 @@ extension SwishKit.Value {
 
     /// A total order for sorting: numbers numerically (Int and Double
     /// together), then by kind for values of different kinds.
-    @_spi(Internals) public func order(comparedTo other: SwishKit.Value) -> ComparisonResult {
+    @_spi(Host) public func order(comparedTo other: SwishKit.Value) -> ComparisonResult {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }

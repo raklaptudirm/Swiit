@@ -5,36 +5,36 @@ import SwishKit
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// `select` and `to json` work on them as on any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-@_spi(Internals) public final class StructType: SwishObject, @unchecked Sendable {
-    @_spi(Internals) public let name: String
+@_spi(Host) public final class StructType: SwishObject, @unchecked Sendable {
+    @_spi(Host) public let name: String
     /// Stored properties, in declaration order: the order of a value's fields.
-    @_spi(Internals) public let stored: [PropertyDecl]
-    @_spi(Internals) public let computed: [String: Function]
-    @_spi(Internals) public let methods: [String: OverloadSet]
+    @_spi(Host) public let stored: [PropertyDecl]
+    @_spi(Host) public let computed: [String: Function]
+    @_spi(Host) public let methods: [String: OverloadSet]
     /// Custom initializers; without any, the memberwise one.
     @_spi(Swiit) public let initializers: OverloadSet?
-    @_spi(Internals) public let memberwise: Function
+    @_spi(Host) public let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
-    @_spi(Internals) public let conformances: [String]
+    @_spi(Host) public let conformances: [String]
     /// `static let` and `static var`: declared, with their types once checked;
     /// the stored ones' values are in `statics`.
     @_spi(Swiit) public let staticProperties: [PropertyDecl]
     let staticComputed: [String: Function]
     @_spi(Swiit) public let staticMethods: [String: OverloadSet]
-    @_spi(Internals) public var statics: [String: StaticValue] = [:]
+    @_spi(Host) public var statics: [String: StaticValue] = [:]
 
     /// A stored static property's value, kept on the type.
-    @_spi(Internals) public final class StaticValue {
-        @_spi(Internals) public var value: Value
-        @_spi(Internals) public let mutable: Bool
+    @_spi(Host) public final class StaticValue {
+        @_spi(Host) public var value: Value
+        @_spi(Host) public let mutable: Bool
 
-        @_spi(Internals) public init(_ value: Value, mutable: Bool) {
+        @_spi(Host) public init(_ value: Value, mutable: Bool) {
             self.value = value
             self.mutable = mutable
         }
     }
 
-    @_spi(Internals) public init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
+    @_spi(Host) public init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
          initializers: OverloadSet?, memberwise: Function, conformances: [String] = [],
          staticProperties: [PropertyDecl] = [], staticComputed: [String: Function] = [:],
          staticMethods: [String: OverloadSet] = [:]) {
@@ -50,7 +50,7 @@ import SwishKit
         self.memberwise = memberwise
     }
 
-    @_spi(Internals) public func property(_ name: String) -> PropertyDecl? {
+    @_spi(Host) public func property(_ name: String) -> PropertyDecl? {
         stored.first { $0.name == name }
     }
 
@@ -58,21 +58,21 @@ import SwishKit
         staticProperties.first { $0.name == name }
     }
 
-    @_spi(Internals) public var typeName: String { "struct" }
-    @_spi(Internals) public var memberNames: [String] { [] }
-    @_spi(Internals) public func member(_ name: String) -> Value? { nil }
-    @_spi(Internals) public var fields: Record? { nil }
-    @_spi(Internals) public var description: String { "struct \(name)" }
+    @_spi(Host) public var typeName: String { "struct" }
+    @_spi(Host) public var memberNames: [String] { [] }
+    @_spi(Host) public func member(_ name: String) -> Value? { nil }
+    @_spi(Host) public var fields: Record? { nil }
+    @_spi(Host) public var description: String { "struct \(name)" }
 }
 
 /// `self` for a method: its value going in, and as the method left it.
-@_spi(Internals) public final class Receiver {
-    @_spi(Internals) public var value: Value
-    @_spi(Internals) public let mutable: Bool
+@_spi(Host) public final class Receiver {
+    @_spi(Host) public var value: Value
+    @_spi(Host) public let mutable: Bool
     /// In an `init`, which may also set `let` properties.
     let initializing: Bool
 
-    @_spi(Internals) public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
+    @_spi(Host) public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
         self.value = value
         self.mutable = mutable
         self.initializing = initializing
@@ -84,7 +84,7 @@ extension Interpreter {
 
     /// `natives`: Swift bodies for the methods the prelude declares without
     /// one, by `Type.method`.
-    @_spi(Internals) public func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
+    func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
         var computed: [String: Function] = [:]
         for property in decl.properties {
             guard let getter = property.getter else { continue }
@@ -159,12 +159,12 @@ extension Interpreter {
         }
     }
 
-    @_spi(Internals) public func structType(named name: String) -> StructType? {
+    @_spi(Host) public func structType(named name: String) -> StructType? {
         guard case .object(let type as StructType)? = lookup(name)?.value else { return nil }
         return type
     }
 
-    @_spi(Internals) public func structType(of record: Record) -> StructType? {
+    @_spi(Host) public func structType(of record: Record) -> StructType? {
         record.typeName.flatMap(structType(named:))
     }
 
@@ -172,7 +172,7 @@ extension Interpreter {
 
     /// `Point(x: 1, y: 2)`: through an `init` the struct declares, or the
     /// memberwise one.
-    @_spi(Internals) public func construct(_ type: StructType, _ arguments: [Argument], overload: Int? = nil) throws -> Value {
+    func construct(_ type: StructType, _ arguments: [Argument], overload: Int? = nil) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -244,7 +244,7 @@ extension Interpreter {
                              throw RuntimeError("mutating method '\(name)' must be called on a variable, as in p.\(name)(…)")
                          }
                          return try shell.invoke(method, with: arguments, receiver: Receiver(.record(record), mutable: false))
-                     }, documentation: method.documentation)
+                     }, documentation: method.documentation, isMutating: method.isMutating)
         }
         return .function(OverloadSet(name: name, candidates: bound))
     }
@@ -315,7 +315,7 @@ extension Interpreter {
     // MARK: Assigning
 
     /// `x = v`, `p.x += 1`, `xs[0] = v`, `r["k"] = v`.
-    @_spi(Internals) public func assign(_ assignment: Assignment) throws {
+    func assign(_ assignment: Assignment) throws {
         // `Point.count += 1`: a static var, set through its type.
         if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false) {
             try checkAssignable(assignment.root, what: "assign to")

@@ -5,7 +5,7 @@ import SwishKit
 import SwishKit
 
 extension Bridge {
-    @_spi(Internals) public nonisolated(unsafe) static let swishKit: [BridgedType] = [
+    internal nonisolated(unsafe) static let swishKit: [BridgedType] = [
 
         BridgedType(
             name: "FileSize", genericParameters: [],

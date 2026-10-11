@@ -9,7 +9,7 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
-    @_spi(Internals) public func run(_ program: Program, observing observer: ValueObserver? = nil) throws {
+    @_spi(Host) public func run(_ program: Program, observing observer: ValueObserver? = nil) throws {
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
@@ -37,7 +37,7 @@ extension Interpreter {
     }
 
     /// What an `if` or `guard` condition binds when it holds; nil when it doesn't.
-    @_spi(Internals) public func holds(_ condition: IfStatement.Condition) throws -> [String: Binding]? {
+    func holds(_ condition: IfStatement.Condition) throws -> [String: Binding]? {
         switch condition {
         case .pattern(let pattern, let expr):
             var bindings: [String: Binding] = [:]
@@ -71,7 +71,7 @@ extension Interpreter {
     /// Deferred blocks, last first. One that fails is reported; the rest
     /// still run, as nothing can leave a `defer`. What they run isn't told to
     /// the host: cleaning up doesn't change how the block went.
-    @_spi(Internals) public func runDeferred(_ blocks: [Program]) {
+    @_spi(Host) public func runDeferred(_ blocks: [Program]) {
         let observer = statementFinished
         statementFinished = nil
         defer { statementFinished = observer }
@@ -86,13 +86,13 @@ extension Interpreter {
         }
     }
 
-    @_spi(Internals) public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
+    @_spi(Host) public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
         scopes.append(Scope(bindings))
         defer { scopes.removeLast() }
         try run(program)
     }
 
-    @_spi(Internals) public func run(_ statement: Statement) throws {
+    @_spi(Host) public func run(_ statement: Statement) throws {
         let errorsBefore = itemErrorCount
         switch statement {
         case .extensionDecl, .deferBlock:
@@ -238,7 +238,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Internals) public func checkInterrupt() throws {
+    @_spi(Host) public func checkInterrupt() throws {
         if cancellation.isSet { throw Cancelled() }
         if task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
         steps += 1
@@ -258,6 +258,6 @@ extension Interpreter {
 /// An `if`, a loop, a `switch` and a `do` are told as they start, with no
 /// value; the statements in them are told as they run. The shell keeps the
 /// exit status from these.
-@_spi(Internals) public typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
+@_spi(Host) public typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
 
-@_spi(Internals) public typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void
+@_spi(Host) public typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void

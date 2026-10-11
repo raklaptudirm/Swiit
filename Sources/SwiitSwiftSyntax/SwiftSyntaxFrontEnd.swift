@@ -1,4 +1,4 @@
-@_spi(Host) @_spi(Layer) @_spi(Internals) @_spi(Swiit) import Swiit
+@_spi(Host) @_spi(Layer) @_spi(Swiit) import Swiit
 import SwiftOperators
 import SwiftParser
 import SwiftSyntax

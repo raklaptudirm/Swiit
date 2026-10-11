@@ -62,21 +62,32 @@ last stage, and mechanical by then.
    *Started:* the shell's SPI is sorted into groups by purpose, and each file
    imports only the groups it uses, so where the shell reaches in shows in its
    imports:
-   - `Host` (116 declarations): what any host needs, the candidates for public
-     API. Sources/Swiit/Host, the interpreter's own type, its lock, its tasks
-     and its errors.
+   - `Host` (304 declarations): what any host needs, the candidates for public
+     API. Sources/Swiit/Host; the interpreter's own type, its lock, tasks and
+     errors; defining and calling functions (`Function`, `FunctionBody`,
+     `OverloadSet`, `invoke`, `call`, overload resolution); streams
+     (`ValueStream`); globals (`Scope`, `Binding`, `lookup`); inspecting values
+     and declared types (`typeName`, `conform`, `member`, `StructType`,
+     reflection for help); running code (`run`, `runBlock`, `runDeferred`,
+     `checkInterrupt`); and the bridge's tables and glue, which a host's
+     generated library calls.
    - `Layer` (323): what a syntax layer builds on, the tree, the parser and the
      checker (Language/Syntax, Language/Checking). Stage 3 narrows it.
-   - `Internals` (211): the evaluator's insides (scopes, functions, structs,
-     calls, reflection, the bridge). A layer should come to need none of it.
    - `Swiit` (40): only the core's own other modules.
 
-   Of the shell's 43 files that import the core, 30 use `Host`, 26 `Layer` and
-   23 `Internals`, and 8 none. The groups go by file for now; a declaration
-   moves group when it turns out to be another's (a host's need in
-   Language/Interpreter, say). The way to the end of this stage is emptying
-   `Internals` from the shell's imports, a file at a time, then making `Host`
-   public.
+   The evaluator's insides are in none of them: they're internal. There was
+   an `Internals` group, 211 declarations the shell reached into by file, and
+   it's empty now. The command-line argument (`CommandArgument`), which only
+   the shell used, moved to the shell; a piped value's method is read as a
+   member, bound to it (`member(_:of:)`), instead of from its struct's method
+   table; what any host needs, by the list above, moved to `Host`; and the
+   rest, the evaluator's own (`apply`, `compare`, `construct`, the bridge's
+   generated tables), became internal.
+
+   Of the shell's 44 files that import the core, 32 use `Host`, 27 `Layer`,
+   and 8 none. What's left of this stage is making `Host` public: going
+   through it as API, naming and documenting what stays, narrowing what was
+   the shell's habit, in embedding.md.
 3. **A syntax-plugin contract without the parser's internals.** Either the
    hand parser retires and the plugin works on SwiftSyntax tokens (frontend.md's
    end state), or `SyntaxPlugin` gets a small public cursor (peek, take, spans,
