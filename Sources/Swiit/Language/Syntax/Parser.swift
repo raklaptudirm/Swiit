@@ -143,7 +143,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     }
 
     /// The prelude: builtins' types and signatures (see Prelude.swift).
-    static func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+    @_spi(Layer) public static func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
         var parser = Parser(source, bound: bound)
         parser.prelude = true
         return try parser.parseProgram(until: nil)

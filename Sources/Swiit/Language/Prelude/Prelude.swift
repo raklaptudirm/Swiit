@@ -24,6 +24,11 @@ extension Interpreter {
 
     """#
 
+    /// The prelude as source: the language's own, then each library's types and declarations.
+    @_spi(Layer) public var preludeSource: String {
+        ([Interpreter.prelude] + libraries.flatMap { [$0.types, $0.declarations] }).joined(separator: "\n")
+    }
+
     /// Reads the prelude, binding its types, functions and sequence
     /// methods in the outermost scope with their Swift bodies.
     func installPrelude() {
@@ -31,7 +36,7 @@ extension Interpreter {
         let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
         let program: Program
         do {
-            program = try Parser.parsePrelude(([Interpreter.prelude] + libraries.flatMap { [$0.types, $0.declarations] }).joined(separator: "\n"), bound: bridgedTypeNames)
+            program = try PreludeCache.program(for: preludeSource, bound: bridgedTypeNames)
         } catch {
             preconditionFailure("the prelude doesn't parse: \(error)")
         }
@@ -73,5 +78,25 @@ extension Interpreter {
             body: body, documentation: decl.documentation, isThrowing: decl.isThrowing,
             isRethrowing: decl.isRethrowing, generics: decl.generics
         )
+    }
+}
+
+/// The prelude's tree, by its source: reading it costs more than an
+/// interpreter that starts often should pay, and the tree is a value, so
+/// interpreters with the same libraries share one reading.
+private enum PreludeCache {
+    nonisolated(unsafe) private static var programs: [String: Program] = [:]
+    private static let lock = NSLock()
+
+    static func program(for source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+        // The names a type may be spelled with come from the bridge, which doesn't change.
+        lock.lock()
+        if let known = programs[source] { lock.unlock(); return known }
+        lock.unlock()
+        let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: bound)
+        lock.lock()
+        programs[source] = program
+        lock.unlock()
+        return program
     }
 }

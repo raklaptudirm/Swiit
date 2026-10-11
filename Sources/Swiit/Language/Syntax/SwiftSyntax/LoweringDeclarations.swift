@@ -13,6 +13,7 @@ extension Lowering {
         }
         if let node = decl.as(StructDeclSyntax.self) { return [.structDecl(try structure(node))] }
         if let node = decl.as(EnumDeclSyntax.self) { return [.enumDecl(try enumeration(node))] }
+        if prelude, let node = decl.as(ExtensionDeclSyntax.self) { return [try sequenceExtension(node)] }
         throw unsupported("'\(decl.kind)'", decl)
     }
 
@@ -96,7 +97,17 @@ extension Lowering {
         let parameters = try parameters(node.signature.parameterClause)
         let returnType = try node.signature.returnClause.map { try type($0.type) }
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
-        guard let body = node.body else { throw unsupported("a function without a body", node) }
+        let isThrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws)
+        let isRethrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows)
+        // In the prelude, a builtin's body is in Swift.
+        guard let body = node.body else {
+            guard prelude else { throw unsupported("a function without a body", node) }
+            return FunctionDecl(
+                name: node.name.text, parameters: parameters, returnType: returnType, body: Program(statements: []),
+                documentation: documentation(of: node), isMutating: mutating, isThrowing: isThrowing,
+                isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing
+            )
+        }
         locals.append(Set(parameters.map(\.name)))
         let outer = (tryDepth, leaving)
         tryDepth = 0
@@ -106,9 +117,7 @@ extension Lowering {
         return FunctionDecl(
             name: node.name.text, parameters: parameters, returnType: returnType, body: program,
             documentation: documentation(of: node),
-            isMutating: mutating, isThrowing: effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws),
-            isAsync: effects?.asyncSpecifier != nil,
-            isRethrowing: effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows),
+            isMutating: mutating, isThrowing: isThrowing, isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing,
             names: NamesUsed(names: names(in: body))
         )
     }
@@ -127,6 +136,21 @@ extension Lowering {
             name: "init", parameters: parameters, body: program, documentation: documentation(of: node),
             isMutating: true, names: NamesUsed(names: names(in: body))
         )
+    }
+
+    /// `extension Sequence { func select(…) -> … }`, in the prelude: the methods
+    /// every sequence has, with its items' type as `Element`.
+    private mutating func sequenceExtension(_ node: ExtensionDeclSyntax) throws -> Statement {
+        guard node.extendedType.trimmedDescription == "Sequence" else { throw SyntaxError("only Sequence can be extended, for now") }
+        guard node.genericWhereClause == nil, node.inheritanceClause == nil else { throw unsupported("this extension", node) }
+        var methods: [FunctionDecl] = []
+        for member in node.memberBlock.members {
+            guard let method = member.decl.as(FunctionDeclSyntax.self) else { throw unsupported("'\(member.decl.kind)' in an extension", member) }
+            var lowered = try function(method, isMember: true)
+            lowered.generics["Element", default: []] += []
+            methods.append(lowered)
+        }
+        return .extensionDecl(name: "Sequence", methods: methods)
     }
 
     // MARK: Structs

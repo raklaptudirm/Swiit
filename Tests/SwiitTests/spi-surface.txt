@@ -118,6 +118,7 @@ Language/Interpreter/Interpreter.swift	Layer var staticTypes
 Language/Interpreter/Interpreter.swift	Layer var syntax
 Language/Interpreter/TaskContext.swift	Layer var scopes
 Language/Interpreter/TaskContext.swift	Layer var scopes
+Language/Prelude/Prelude.swift	Layer var preludeSource
 Language/Syntax/Declarations.swift	Layer enum Step
 Language/Syntax/Declarations.swift	Layer func ==
 Language/Syntax/Declarations.swift	Layer init init
@@ -225,6 +226,7 @@ Language/Syntax/Parser.swift	Layer func incomplete
 Language/Syntax/Parser.swift	Layer func keyword
 Language/Syntax/Parser.swift	Layer func mark
 Language/Syntax/Parser.swift	Layer func parse
+Language/Syntax/Parser.swift	Layer func parsePrelude
 Language/Syntax/Parser.swift	Layer func rewind
 Language/Syntax/Parser.swift	Layer func use
 Language/Syntax/Parser.swift	Layer init init
@@ -309,6 +311,7 @@ Language/Syntax/SwiftPrinter.swift	Layer init init
 Language/Syntax/SwiftPrinter.swift	Layer struct SwiftPrinter
 Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer func highlight
 Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer func parse
+Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer func parsePrelude
 Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer init init
 Language/Syntax/SwiftSyntax/SwiftSyntaxFrontEnd.swift	Layer struct SwiftSyntaxFrontEnd
 Language/Syntax/SyntaxExtension.swift	Layer func ==

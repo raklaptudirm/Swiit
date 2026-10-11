@@ -55,6 +55,10 @@ struct Lowering {
     var recovering = false
     /// The end of the innermost statement that couldn't be lowered (in bytes).
     var failedEnd: Int?
+    /// Reading the prelude, the builtins' declarations (Prelude.swift): a
+    /// function without a body has one in Swift, and `extension Sequence`
+    /// declares the methods every sequence has.
+    var prelude = false
 
     init(source: String, tree: SourceFileSyntax, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) {
         self.converter = SourceLocationConverter(fileName: "", tree: tree)
