@@ -9,7 +9,7 @@ shell as seasoning) and is the first thing to build, ahead of
 [desugaring.md](desugaring.md) and [async.md](async.md), which both build on
 the seam it creates.
 
-Step 1 of the plan is built (the `SwishHost` seam); the rest is not. This
+Step 1 of the plan is built (the `SwiitHost` seam); the rest is not. This
 records what is decided, the shape, and an order. How text becomes the core's tree, and what
 SwiftSyntax could do there, is in [frontend.md](frontend.md). The line between the core and
 the shell, what may cross it today and how each crossing exits are in
@@ -63,7 +63,7 @@ Decided later (2026-10-10):
   so what the shell uses is `@_spi(Shell) public`: the shell imports it as
   `@_spi(Shell) import Swiit`, and what an embedder sees is only the plain
   `public` surface (`Interpreter(host:limits:)`, `eval`, `register`, `set`,
-  `Diagnostic`, `Limits`, `SwishHost`). Plain `public` for more is a promotion
+  `Diagnostic`, `Limits`, `SwiitHost`). Plain `public` for more is a promotion
   from the SPI, one declaration at a time, as the API is decided.
 - **`DynamicObject` stays a core protocol** for now. It is revisited when Swish
   has subscripts and classes (then `@dynamicMemberLookup`).
@@ -80,7 +80,7 @@ Decided later (2026-10-10):
 - **Host functions are registered at run time first:** typed closures, no
   build step. `@SwiitExport` covers types next; pointing the generator at a
   host module follows once its module table is configurable.
-- **The split comes before desugaring and async.** The `SwishHost` seam is where
+- **The split comes before desugaring and async.** The `SwiitHost` seam is where
   async's per-task context and `suspend` function go, and where the
   desugaring library lives.
 
@@ -89,15 +89,15 @@ Decided later (2026-10-10):
 | Target | Contents |
 |---|---|
 | `SwiitKit` (exists) | `Value`, boxing, `SwiitObject`, `@SwiitExport`: what a host and a plugin share with the interpreter |
-| `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwiitKit and Foundation, `SwishHost`, the embedding API |
+| `Swiit` | Syntax, checking, the interpreter, the bridge runtime and its generated glue for Swift, swift-system, SwiitKit and Foundation, `SwiitHost`, the embedding API |
 | `SwiitStandardLibrary` | The pure part: `Flow`, `JSON`, formatter, pretty printer, `Sequence` extensions, `from`/`to`/`table`/`list`, text styling |
 | `SwishShellLibrary` (new) | The OS functions: `ls`, `ps`, `pwd`, `readLine`, `history`, `with(env:)`, jobs, paths, input |
 | `SwishShell` (new) | `Shell`, execution, platform, the line editor, shell builtins, config, plugin loading, tasks |
 | `Swish` (exists) | The `swish` executable |
 
-### `SwishHost`: the seam and the sandbox
+### `SwiitHost`: the seam and the sandbox
 
-The interpreter reaches the world through one value, a `SwishHost`. It is named
+The interpreter reaches the world through one value, a `SwiitHost`. It is named
 like SwiitKit's public types (`SwiitObject`, `SwiitError`), and not `Host`,
 because Foundation already has a `Host` (`NSHost`) that an embedder importing
 both would trip over.
@@ -117,7 +117,7 @@ everything else is a capability the host registers, so a sandbox is the absence
 of a global, not a method implemented as a no-op.
 
 ```swift
-struct SwishHost {
+struct SwiitHost {
     var output: OutputSink          // write, plus what the stream can show (terminal? width? styled?)
     var error: OutputSink
     var interrupt: () -> StopReason?  // asked at each step: a reason to stop, if there is one
@@ -129,7 +129,7 @@ its own mechanism:
 
 | Boundary | What it is | Mechanism |
 |---|---|---|
-| Plumbing | How this interpreter is run: output, errors, "should I stop", later module loading and limits | `SwishHost`; every embedder supplies it |
+| Plumbing | How this interpreter is run: output, errors, "should I stop", later module loading and limits | `SwiitHost`; every embedder supplies it |
 | Vocabulary | What a script can name: `env`, `jobs`, `history`, `ls`, `Command`, an embedder's functions and types | Registration; a sandbox is the absence of a name |
 | Grammar | What syntax the parser accepts and how it runs: commands, pipelines, `$(…)`, redirects | A layer the shell adds, which the desugaring turns into calls on the vocabulary |
 
@@ -160,7 +160,7 @@ host for embedders: `loadModule` (a script importing another) and limits
 ### The embedding API
 
 ```swift
-let swish = Interpreter(host: SwishHost(output: .init { print($0, terminator: ""); return true }),
+let swish = Interpreter(host: SwiitHost(output: .init { print($0, terminator: ""); return true }),
                         limits: .init(steps: 1_000_000, depth: 200, time: .seconds(2)))
 swish.register("clamp") { (x: Int, lo: Int, hi: Int) in min(max(x, lo), hi) }
 swish.set("config", config)                         // any Encodable, or a Value
@@ -278,10 +278,10 @@ terminal-styled. They stay with the shell for now.
 Each step is its own change, ends with all 267 tests passing, and leaves the
 shell working.
 
-1. **The `SwishHost` seam, no moves.** *Done.* `SwishHost`
-   (`Host/SwishHost.swift`) and the internal `ShellLayer`
+1. **The `SwiitHost` seam, no moves.** *Done.* `SwiitHost`
+   (`Host/SwiitHost.swift`) and the internal `ShellLayer`
    (`Host/ShellLayer.swift`) are defined, and the shell fills both with
-   the process (`Session/SwishHost+Process.swift`), reached as `shell.host` and
+   the process (`Session/SwiitHost+Process.swift`), reached as `shell.host` and
    `shell.shellLayer`. Everything in the language layers that writes output,
    checks for interrupts, reads or sets the environment, captures output, runs
    a pipeline, starts or lists jobs, or asks whether a program exists goes
@@ -424,7 +424,7 @@ shell working.
    now runs the core alone, and checks it has no `ls`. The Linux manifest for
    the new module (`Bridges/linux/SwishShellLibrary.json`) comes from CI's
    artifact, as the others do.
-5. **The embedding API:** the public `Interpreter`, `SwishHost`, `Diagnostic`,
+5. **The embedding API:** the public `Interpreter`, `SwiitHost`, `Diagnostic`,
    `register`, `set`, `eval`, output sink, limits and cancellation, the
    internal large-stack thread.
    *A bug found after:* the reader that key paths use to read fields
@@ -435,7 +435,7 @@ shell working.
    pins it.
    *Done.* `Interpreter(host:limits:)` is public and gives Swift's syntax, the
    standard library and `print`, with no commands, files or environment.
-   `SwishHost`, `OutputSink`, `StreamTraits`, `StopReason`, `Limits` and
+   `SwiitHost`, `OutputSink`, `StreamTraits`, `StopReason`, `Limits` and
    `Diagnostic` (kind: syntax, type, runtime, limit, cancelled; a message; the
    line for a type error) are public. `eval` returns the last expression's
    value on a large-stack thread (`onLargeStack`, moved from the shell);
@@ -521,7 +521,7 @@ output goes to the sink; the core builds on Linux with no shell target.
   look at Foundation and at threads.
 - **Naming the embedding product.** A package that consumers depend on may
   want a friendlier library name than `Swiit`. (The seam protocol is
-  settled: `SwishHost`.)
+  settled: `SwiitHost`.)
 
 ## Found on the way
 

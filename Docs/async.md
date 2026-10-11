@@ -314,7 +314,7 @@ chosen (see "Decision").
 Each step is its own change with its own tests, and each leaves the shell
 working.
 
-(The `SwishHost` seam of [embedding.md](embedding.md) comes first: it is where
+(The `SwiitHost` seam of [embedding.md](embedding.md) comes first: it is where
 the task context's output and the `suspend` function sit.)
 
 1. **Make the task explicit, change nothing visible.** Split the `Shell`'s
@@ -351,14 +351,14 @@ the task context's output and the `suspend` function sit.)
 4. **The interpreter lock, and tasks as threads.** One lock, held by the task
    running Swish code; `suspend` releases it around the wait and makes the
    task current again after. Tasks run on large-stack threads the host makes
-   (`SwishHost`, so an embedder can bring its own), up to the cap. The core's
+   (`SwiitHost`, so an embedder can bring its own), up to the cap. The core's
    task API in Swift's terms (`Task { … }`, `.value`, `.cancel()`, then `async
    let`), and the shell's `async f()` and `async { … }` rewritten to it; the
    shell's `Job` wraps processes or a core task, so `jobs`, `await job` and
    `job.cancel()` work the same for both. Switching only at waits, for now.
    *Done* (Swift's own `Task { … }` came with step 7): `InterpreterLock` (taken again by its holder; `releasing` for
    `suspend`), `startTask(host:_:)` and `join`, a task limit in `Limits`, and
-   `SwishHost.startThread` (by default the core's large-stack thread). Only
+   `SwiitHost.startThread` (by default the core's large-stack thread). Only
    the foreground task takes the host's interrupts; a background one stops
    when it's cancelled. The shell takes the lock for each entry and for the
    line editor's coloring and completion, which run while a line is read. In

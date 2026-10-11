@@ -54,7 +54,7 @@ last stage, and mechanical by then.
    (Stage 2 then split `@_spi(Shell)` by purpose.)
 2. **Design the host API.** What the shell uses, sorted into what any host
    needs (made `public` and documented in embedding.md: tasks and the lock,
-   `SwishHost`, `statementFinished`, `inputTurn`, `owner`, registering object
+   `SwiitHost`, `statementFinished`, `inputTurn`, `owner`, registering object
    members, installing libraries) and what's the shell's habit (moved into
    the shell, or behind a narrower call). An `@_spi(Swiit)` stays only for
    things the core's own modules (`SwiitSwiftSyntax`, the bridge generator)
@@ -94,7 +94,7 @@ last stage, and mechanical by then.
    recover) that the hand parser and the lowering both implement. The second
    is cheaper and doesn't wait on retiring the parser, so it comes first.
 4. **Names.**
-   - Error reports take their prefix from the host (`SwishHost.name`, `swish`
+   - Error reports take their prefix from the host (`SwiitHost.name`, `swish`
      in the shell, `swiit` by default).
    - `SwiitStandardLibrary` becomes `SwiitStandardLibrary`.
    - `HostContext` becomes `HostContext`.

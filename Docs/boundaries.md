@@ -9,7 +9,7 @@ keeps the line from moving the wrong way while the exits are built.
 
 | Boundary | What it is | Mechanism |
 |---|---|---|
-| **Plumbing** | How an interpreter is run: output, errors, "should I stop", later module loading and limits | `SwishHost`, supplied by every embedder |
+| **Plumbing** | How an interpreter is run: output, errors, "should I stop", later module loading and limits | `SwiitHost`, supplied by every embedder |
 | **Vocabulary** | What a script can name: `env`, `jobs`, `history`, `ls`, an embedder's functions and types | Registration; a sandbox is the absence of a name |
 | **Grammar** | What syntax the parser accepts and how it runs: commands, pipelines, `$(…)`, redirects | A layer the shell adds, which the desugaring turns into calls on the vocabulary |
 
@@ -27,7 +27,7 @@ language layers are an `Interpreter` class and the shell owns one. For them:
 
 1. **No direct reach into the operating system.** No descriptors, environment,
    signals, processes, terminal, directory, dynamic loading or threads; all of
-   it goes through `SwishHost`. There is no allowance for this rule, and today
+   it goes through `SwiitHost`. There is no allowance for this rule, and today
    nothing breaks it. (Step 5 of the embedding plan gave the interpreter a
    thread of its own for deep recursion: `Host/Embedding/LargeStack.swift` is the
    one place the test permits `Thread` and `DispatchSemaphore`.)
