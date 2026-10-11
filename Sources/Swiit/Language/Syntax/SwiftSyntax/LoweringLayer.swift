@@ -1,3 +1,4 @@
+import Foundation
 import SwiftSyntax
 import SwiitKit
 
@@ -5,10 +6,10 @@ import SwiitKit
 /// its plug-in from the source: SwiftParser's tree for those places is what it
 /// makes of text that isn't Swift, so it is read by the plug-in instead, and the
 /// tree there is not looked at. The plug-in works on a parser positioned in
-/// the source, as it does under the hand-written front end.
+/// the source.
 extension Lowering {
     /// Words that start a Swift statement, which are never a command.
-    private static let keywords: Set<String> = Parser.statementKeywords.union(["if", "for", "while", "switch", "let", "var"])
+    private static let keywords: Set<String> = SourceCursor.statementKeywords.union(["if", "for", "while", "switch", "let", "var"])
 
     /// A statement of the plug-in's starting at the byte offset: `import`, or
     /// commands joined by `|`, `&&` and `||`, and where its source ends.
@@ -17,7 +18,7 @@ extension Lowering {
         guard let plugin else { return nil }
         var parser = cursor(at: start)
         // `$0` is a closure's parameter, found where Swift reads one.
-        if parser.peek() == "$", let next = parser.peek(1), Parser.isDigit(next) { return nil }
+        if parser.peek() == "$", let next = parser.peek(1), SourceCursor.isDigit(next) { return nil }
         let word = parser.identifier()
         if let word, word != "try", Lowering.keywords.contains(word), word != "import" { return nil }
         // `_ = f()` is Swift's, and so is `async let x = f()`.
@@ -25,6 +26,7 @@ extension Lowering {
         if word == "async", case .decl(let decl)? = item, decl.is(VariableDeclSyntax.self) { return nil }
         if let statement = try read(&parser, from: start, plugin.statement) {
             consume(from: start, to: parser)
+            if parser.sawImport { sawImport = true }
             return (statement, byteOffset(of: parser))
         }
         // `name = …`, `name.a[i] += …` assign to what is a variable, and are Swift's.
@@ -33,8 +35,7 @@ extension Lowering {
             if let item {
                 if isAssignment(item) { return nil }
             } else {
-                var assigning = parser
-                if (try? assigning.parseAssignment(word)) != nil { return nil }
+                if parser.looksLikeAssignment(after: word) { return nil }
             }
         }
         // Commands, with Swift between them or not: the plug-in decides.
@@ -45,11 +46,17 @@ extension Lowering {
 
     /// Runs the plug-in on the parser. While highlighting, what it read before
     /// a problem (as in a line half typed) is still the layer's.
-    private mutating func read<T>(_ parser: inout Parser, from start: Int, _ body: (inout Parser) throws -> T) throws -> T {
+    private mutating func read<T>(_ parser: inout SourceCursor, from start: Int, _ body: (inout SourceCursor) throws -> T) throws -> T {
         do {
             return try body(&parser)
         } catch {
             if recovering { consume(from: start, to: parser) }
+            // What the layer says is wrong with what it read is the error, ahead of
+            // what SwiftParser makes of text that isn't Swift.
+            layerError = layerError ?? error as? SyntaxError
+            // Where it stopped, which a reading from inside it (`async $(a; b)`) tells apart
+            // from one that didn't get started.
+            failedAt = failedAt ?? byteOffset(of: parser)
             throw error
         }
     }
@@ -74,7 +81,7 @@ extension Lowering {
         // A condition's body ends it: `if n > 2 { … }` is Swift up to the brace.
         parser.conditionDepth = 1
         parser.guardCondition = isGuard
-        if parser.peek() == "$", let next = parser.peek(1), Parser.isDigit(next) { return nil }
+        if parser.peek() == "$", let next = parser.peek(1), SourceCursor.isDigit(next) { return nil }
         if let word = parser.identifier(), Lowering.keywords.contains(word) { return nil }
         guard let condition = try read(&parser, from: start, { try plugin.chain(&$0, condition: true) }) else { return nil }
         consume(from: start, to: parser)
@@ -131,5 +138,31 @@ extension Lowering {
         let start = node.positionAfterSkippingLeadingTrivia.utf8Offset
         let pipe = first.operator.positionAfterSkippingLeadingTrivia.utf8Offset
         return try layerPipeline(input: input, start: start, pipe: pipe)?.expression
+    }
+}
+
+extension SourceCursor {
+    /// Whether the text after `name` assigns to it: `n = 1`, `n += 1`, `p.x = 1`,
+    /// `xs[i] = 1`, which are Swift's, where `X=1 cmd` sets a variable for a command.
+    func looksLikeAssignment(after name: String) -> Bool {
+        var cursor = self
+        cursor.pos += name.count
+        while true {
+            if cursor.peek() == ".", let next = cursor.peek(1), SourceCursor.isIdentifierStart(next) {
+                cursor.pos += 1
+                cursor.pos += cursor.identifier()?.count ?? 0
+            } else if cursor.peek() == "[" {
+                var depth = 0
+                while let c = cursor.peek() {
+                    cursor.pos += 1
+                    if c == "[" { depth += 1 } else if c == "]" { depth -= 1; if depth == 0 { break } }
+                }
+            } else {
+                break
+            }
+        }
+        cursor.skipSpaces()
+        if ["+=", "-=", "*=", "/=", "%=", "??="].contains(where: cursor.startsWith) { return true }
+        return cursor.peek() == "=" && cursor.peek(1) != "="
     }
 }

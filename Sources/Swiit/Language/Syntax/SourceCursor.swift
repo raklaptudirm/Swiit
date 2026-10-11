@@ -45,16 +45,25 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     }
 }
 
-// MARK: - Parser
+// MARK: - SourceCursor
 
-/// A recursive-descent parser over characters rather than tokens, because
-/// command mode and expression mode split text differently: `-la` is a word
-/// in one and a negation in the other.
+/// Where a syntax layer reads the source: a position in the characters, and
+/// what it needs to read by: the scanning of text (`peek`, `identifier`,
+/// `skipSpaces`, `consume`), the names in scope and what they are, the depths
+/// that say where it is (inside a `try`, a condition, a loop), and the
+/// highlight spans it records as it goes.
 ///
-/// Mode is decided per unit, by what parses there (see `commandAhead`).
-/// Deciding it needs to know which names exist and what they are, so the
-/// parser tracks declarations lexically, seeded with the shell's globals.
-@_spi(Layer) public struct Parser {
+/// It scans characters rather than tokens, because a layer's text isn't
+/// Swift's: `-la` is a word in a command and a negation in an expression. Where
+/// the layer's syntax holds Swift (a `(…)` or `{ … }` word, `\(…)` in a string,
+/// the program in `$(…)`), the cursor reads it with `parseExpression`,
+/// `parseClosure`, `parseArguments` and `parseProgram`, which the front end
+/// answers (SwiftServices.swift).
+///
+/// Mode is decided per unit, by what reads there (see the shell's
+/// `commandAhead`). Deciding it needs to know which names exist and what they
+/// are, so the cursor carries the names declared where it is.
+@_spi(Layer) public struct SourceCursor {
     static let keywords: Set = [
         "let", "var", "if", "else", "true", "false", "nil",
         "for", "in", "while", "func", "return", "break", "continue", "try", "do", "catch",
@@ -70,46 +79,24 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// The words a command can follow directly and still be in command
     /// position: `if make {`, `while pgrep x {`, `} else make`, `foreign ls`.
     @_spi(Layer) public static let beforeCommand: Set = ["if", "while", "else", "foreign"]
-    @_spi(Layer) public static let precedence: [[BinaryOperator]] = [
-        [.or],
-        [.and],
-        // Two-character operators first, so `<=` isn't read as `<`.
-        [.equal, .notEqual, .lessEqual, .greaterEqual, .less, .greater],
-        [.coalesce],
-        [.closedRange, .halfOpenRange],
-        [.add, .subtract],
-        [.multiply, .divide, .remainder],
-    ]
-    static let comparisonLevel = 2
-    /// Levels whose operators can't be chained, like `a < b < c`.
-    static let nonAssociativeLevels: Set = [2, 4]
 
     @_spi(Layer) public let chars: [Character]
     @_spi(Layer) public var pos = 0
-    /// Syntax added to Swift's, which the grammar asks about where it has no
-    /// meaning for what is there. Nil is Swift alone (SyntaxPlugin.swift).
+    /// Syntax added to Swift's, which the front end asks about where Swift's
+    /// grammar has no meaning for what is there (SyntaxPlugin.swift).
     @_spi(Layer) public var plugin: (any SyntaxPlugin)?
     @_spi(Layer) public var scopes: [[String: NameKind]]
-    /// Parsing the prelude: builtins' declarations, which may be generic and
-    /// have no bodies (their bodies are in Swift).
-    @_spi(Layer) public var prelude = false
-    /// Type parameters in scope, innermost last: `T`, or `Element`.
-    var typeParameters: [Set<String>] = []
-    /// The names each body being parsed mentions, innermost last.
-    var namesUsed: [Set<String>] = []
-    /// What the body just parsed mentioned.
-    var lastBodyNames = NamesUsed()
+    /// The names the layer's own forms mention (`$name`, a command's name),
+    /// which a closure or function around them keeps.
+    @_spi(Layer) public private(set) var used: Set<String> = []
 
-    /// A name the body being parsed refers to.
+    /// A name the code being read refers to.
     @_spi(Layer) public mutating func use(_ name: String) {
-        guard !namesUsed.isEmpty else { return }
-        namesUsed[namesUsed.count - 1].insert(name)
+        used.insert(name)
     }
     /// An `import` came earlier: the functions it brings aren't known until
     /// it runs, so calling an unknown name is left for then.
     @_spi(Layer) public var sawImport = false
-    /// Where each line starts, for `line(at:)`.
-    @_spi(Layer) public var lineStarts: [Int] = [0]
     /// Inside (), [] and \( ), newlines don't end an expression.
     @_spi(Layer) public var bracketDepth = 0
     @_spi(Layer) public var loopDepth = 0
@@ -125,36 +112,21 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     /// when its command fails. Closures and function bodies start afresh:
     /// they decide for themselves whether to throw, as in Swift.
     @_spi(Layer) public var tryDepth = 0
-    /// One entry per enclosing function or closure: how many `$n`
-    /// parameters a closure without named parameters uses, or nil if its
-    /// parameters are named.
-    var anonymousArity: [Int?] = []
+    /// Inside a closure without named parameters, where `$0` is its first.
+    @_spi(Layer) public var inAnonymousClosure = false
+    /// What the front end knows of where the cursor is, for reading the Swift
+    /// inside the layer's forms (SwiftServices.swift).
+    var context = LoweringContext()
+    /// Where each line of the characters starts, and how many lines of the
+    /// whole source come before: for `line(at:)`.
+    var lineStarts: [Int] = [0]
+    var lineOffset = 0
 
     /// Highlight spans, in the order recorded; inner spans (like an
     /// interpolation inside a string) are shorter than what contains them.
-    /// Input that doesn't parse yet, as while typing, still gets the spans
+    /// Input that doesn't read yet, as while typing, still gets the spans
     /// found before the problem.
-    @_spi(Layer) public private(set) var spans: [Span] = []
-
-    @_spi(Layer) public static func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) throws(SyntaxError) -> Program {
-        var parser = Parser(source, bound: bound)
-        parser.plugin = plugin
-        return try parser.parseProgram(until: nil)
-    }
-
-    /// The prelude: builtins' types and signatures (see Prelude.swift).
-    @_spi(Layer) public static func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
-        var parser = Parser(source, bound: bound)
-        parser.prelude = true
-        return try parser.parseProgram(until: nil)
-    }
-
-    @_spi(Layer) public static func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) -> [Span] {
-        var parser = Parser(source, bound: bound)
-        parser.plugin = plugin
-        _ = try? parser.parseProgram(until: nil)
-        return parser.spans
-    }
+    @_spi(Layer) public internal(set) var spans: [Span] = []
 
     @_spi(Layer) public mutating func mark(_ kind: SpanKind, from start: Int, to end: Int? = nil) {
         let end = min(end ?? pos, chars.count)
@@ -173,10 +145,31 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
         pos += word.count
     }
 
-    @_spi(Layer) public init(_ source: String, bound: [String: NameKind]) {
-        chars = Array(source.replacingOccurrences(of: "\r\n", with: "\n"))
-        scopes = [bound]
-        for (index, c) in chars.enumerated() where c == "\n" { lineStarts.append(index + 1) }
+    init(chars: [Character], scopes: [[String: NameKind]]) {
+        self.chars = chars
+        self.scopes = scopes
     }
 
+    /// An identifier that isn't a keyword; `_` is allowed.
+    @_spi(Layer) public mutating func parseName(after context: String) throws(SyntaxError) -> String {
+        guard let name = identifier() else { throw expected("a name after \(context)") }
+        guard !SourceCursor.keywords.contains(name) else { throw SyntaxError("'\(name)' is a keyword") }
+        pos += name.count
+        return name
+    }
+
+    /// `try` (.some(nil)), `try?` or `try!` at the current position; nil if none.
+    @_spi(Layer) public mutating func parseTry() throws(SyntaxError) -> TryKind?? {
+        guard identifier() == "try" else { return nil }
+        let start = pos
+        pos += "try".count
+        var kind: TryKind?
+        if consume("?") {
+            kind = .optional
+        } else if consume("!") {
+            kind = .forced
+        }
+        mark(.keyword, from: start)
+        return .some(kind)
+    }
 }

@@ -102,7 +102,11 @@ last stage, and mechanical by then.
    moved to the core, where it can look at them. The SPI is now 376
    declarations: 336 `Layer`, 40 `Swiit`. The shell still imports `Layer` in
    most files that touch the core; stage 3 is where that narrows.
-3. **A syntax-plugin contract without the parser's internals.** Either the
+3. **A syntax-plugin contract without the parser's internals.** *Done*
+   (2026-10-11), and more: the hand parser is retired (frontend.md, "Retired").
+   The plug-in reads with a `SourceCursor`, which scans and records, and asks
+   for Swift's grammar in five places. What is still `Layer` is the tree, the
+   checker's hooks and the cursor, not a parser's internals. Original plan: Either the
    hand parser retires and the plugin works on SwiftSyntax tokens (frontend.md's
    end state), or `SyntaxPlugin` gets a small public cursor (peek, take, spans,
    recover) that the hand parser and the lowering both implement. The second

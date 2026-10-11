@@ -22,7 +22,10 @@ extension Lowering {
         if let node = expr.as(BooleanLiteralExprSyntax.self) { return .literal(.bool(node.literal.tokenKind == .keyword(.true))) }
         if expr.is(NilLiteralExprSyntax.self) { return .literal(.nothing) }
         if let node = expr.as(StringLiteralExprSyntax.self) { return try string(node) }
-        if let node = expr.as(DeclReferenceExprSyntax.self) { return reference(node) }
+        if let node = expr.as(DeclReferenceExprSyntax.self) {
+            try checkKnown(node, calling: false)
+            return reference(node)
+        }
         if let node = expr.as(MemberAccessExprSyntax.self) { return try member(node) }
         if let node = expr.as(FunctionCallExprSyntax.self) { return try call(node) }
         if let node = expr.as(SubscriptCallExprSyntax.self) { return try subscriptCall(node) }
@@ -64,11 +67,19 @@ extension Lowering {
         }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
         if let node = expr.as(IfExprSyntax.self) {
-            guard let lowered = try ifStatement(node).asExpression else { throw unsupported("an 'if' expression without an 'else'", node) }
+            let statement = try ifStatement(node)
+            guard statement.otherwise != nil else { throw SyntaxError("an if expression needs an else (line \(line(of: node)))") }
+            guard let lowered = statement.asExpression else {
+                throw SyntaxError("each branch of an if expression must be one expression (line \(line(of: node)))")
+            }
             return .ifExpression(lowered)
         }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "filePath" { return .filePath }
-        if let node = expr.as(OptionalChainingExprSyntax.self) { return try expression(node.expression) }
+        // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are lowered with their base.
+        if let node = expr.as(OptionalChainingExprSyntax.self) {
+            failedAt = node.questionMark.positionAfterSkippingLeadingTrivia.utf8Offset
+            throw SyntaxError("unexpected '?'")
+        }
         throw unsupported("'\(expr.kind)'", expr)
     }
 
@@ -101,6 +112,7 @@ extension Lowering {
                 throw SyntaxError.incomplete("unterminated string (line \(line(of: node)))")
             }
             accepted.insert(node.id)
+            extentHints.append(close.endPositionBeforeTrailingTrivia.utf8Offset)
             let text = bytes[open.endPositionBeforeTrailingTrivia.utf8Offset..<close.positionAfterSkippingLeadingTrivia.utf8Offset]
             return .literal(.string(String(decoding: text, as: UTF8.self)))
         }
@@ -170,6 +182,11 @@ extension Lowering {
                 return try fileSize(amount, name, node)
             }
         }
+        // `1.parsecs`: a number is followed by a unit, and this isn't one.
+        if base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
+            failedAt = node.declName.endPositionBeforeTrailingTrivia.utf8Offset
+            throw SyntaxError("unknown unit '\(name)'; file sizes use b, kb, mb, gb, tb, or kib, mib, gib, tib")
+        }
         if let chained = base.as(OptionalChainingExprSyntax.self) {
             return .optionalMember(try expression(chained.expression), name)
         }
@@ -181,32 +198,57 @@ extension Lowering {
         return .literal(.fileSize(size))
     }
 
-    private mutating func arguments(_ list: LabeledExprListSyntax) throws -> [Argument] {
+    mutating func arguments(_ list: LabeledExprListSyntax) throws -> [Argument] {
         try list.map { Argument(label: $0.label?.text, value: try expression($0.expression)) }
     }
 
     private mutating func call(_ node: FunctionCallExprSyntax) throws -> Expr {
+        // `.failed(code: 2)`: a case whose enum comes from context.
+        let isCase = node.calledExpression.as(MemberAccessExprSyntax.self).map { $0.base == nil } ?? false
+        // The callee first, as it is read: a name that isn't bound is found before
+        // what is wrong with the arguments.
+        var callee: Expr?
+        if !isCase {
+            if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
+                try checkKnown(reference, calling: true)
+                callee = self.reference(reference)
+            } else {
+                callee = try expression(node.calledExpression)
+            }
+        }
         guard node.additionalTrailingClosures.isEmpty else { throw unsupported("more than one trailing closure", node) }
         var arguments = try arguments(node.arguments)
         if let trailing = node.trailingClosure {
             arguments.append(Argument(label: nil, value: .closure(try closure(trailing))))
         }
-        // `.failed(code: 2)`: a case whose enum comes from context.
-        if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.base == nil {
+        if let member = node.calledExpression.as(MemberAccessExprSyntax.self), isCase {
             return .caseLiteral(member.declName.baseName.text, arguments)
         }
-        return .call(try expression(node.calledExpression), arguments)
+        return .call(callee!, arguments)
+    }
+
+    /// Where names have to be bound (`strictNames`): a name that isn't is not an
+    /// expression, which the layer takes for a command's word. After an `import`,
+    /// calling an unknown name is left for when it runs.
+    mutating func checkKnown(_ node: DeclReferenceExprSyntax, calling: Bool) throws {
+        guard strictNames else { return }
+        let name = node.baseName.text
+        if name == "self" || name == "_" || names()[name] != nil { return }
+        if calling && sawImport { return }
+        failedAt = node.endPositionBeforeTrailingTrivia.utf8Offset
+        throw SyntaxError(calling ? "no function named '\(name)'" : "no variable named '\(name)'")
     }
 
     private mutating func subscriptCall(_ node: SubscriptCallExprSyntax) throws -> Expr {
+        // The base first, as it is read: a name that isn't bound is found before
+        // what is wrong with the subscript.
+        let chained = node.calledExpression.as(OptionalChainingExprSyntax.self)
+        let base = try expression(chained?.expression ?? node.calledExpression)
         guard node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil else {
             throw unsupported("this subscript", node)
         }
         let index = try expression(argument.expression)
-        if let chained = node.calledExpression.as(OptionalChainingExprSyntax.self) {
-            return .optionalIndex(try expression(chained.expression), index)
-        }
-        return .index(try expression(node.calledExpression), index)
+        return chained != nil ? .optionalIndex(base, index) : .index(base, index)
     }
 
     private mutating func dictionary(_ node: DictionaryExprSyntax) throws -> Expr {
@@ -234,6 +276,7 @@ extension Lowering {
                 parameters = names.map { Parameter(name: $0.name.text) }
             case .parameterClause(let clause)?:
                 parameters = try clause.parameters.map { parameter in
+                    guard parameter.attributes.isEmpty else { throw unsupported("an attribute on a closure's parameter", parameter) }
                     let name = parameter.secondName?.text ?? parameter.firstName.text
                     return Parameter(name: name, type: try parameter.type.map { try type($0) } ?? .any)
                 }
@@ -250,7 +293,8 @@ extension Lowering {
         let outer = (tryDepth, leaving)
         tryDepth = 0
         leaving = Leaving(function: leaving.function + 1)
-        defer { locals.removeLast(); (tryDepth, leaving) = outer }
+        anonymous.append(node.signature == nil)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast() }
         let body = try block(node.statements, scoped: false)
         return ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
     }
@@ -295,11 +339,13 @@ extension Lowering {
     }
 
     private mutating func infix(_ node: InfixOperatorExprSyntax) throws -> Expr {
+        // Left to right, as it is read: a name that isn't bound is found before an operator that isn't Swish's.
+        let left = try expression(node.leftOperand)
         if node.operator.is(AssignmentExprSyntax.self) { throw unsupported("an assignment in an expression", node) }
         guard let op = node.operator.as(BinaryOperatorExprSyntax.self), let kind = binaryOperator(op.operator.text) else {
             throw unsupported("the operator '\(node.operator.trimmedDescription)'", node.operator)
         }
-        return .binary(kind, try expression(node.leftOperand), try expression(node.rightOperand))
+        return .binary(kind, left, try expression(node.rightOperand))
     }
 
     private mutating func ternary(_ node: TernaryExprSyntax) throws -> Expr {

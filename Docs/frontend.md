@@ -1,11 +1,11 @@
 # The front end
 
-The front end turns text into the core's syntax tree. Today it is a
-hand-written parser. The intention is to replace it with SwiftSyntax, so that
-Swish accepts Swift's syntax by construction and follows the language as it
-grows. This note fixes what stays the same across that swap (the contract, and
-how the shell plugs in), records what was learned about SwiftSyntax, and gives
-the steps. It builds on [embedding.md](embedding.md) and
+The front end turns text into the core's syntax tree. It is SwiftSyntax's
+parser, with its tree lowered to the core's, so that Swish accepts Swift's
+syntax by construction and follows the language as it grows. (It was a
+hand-written parser until 2026-10-11; "Retired" below says how that ended.)
+This note fixes the contract, and how the shell plugs in, records what was
+learned about SwiftSyntax, and what was built. It builds on [embedding.md](embedding.md) and
 [boundaries.md](boundaries.md): the core is Swift only, and the shell's grammar
 is a layer over it.
 
@@ -23,8 +23,9 @@ protocol SyntaxFrontEnd {
 }
 ```
 
-The hand parser is the only implementation today. Its `Parser.Dialect` (step 3)
-becomes "is a `ShellSyntax` plugged in?": no plug-in is the Swift dialect.
+`SwiftSyntaxFrontEnd` is the implementation, and `Interpreter.frontEnd` the
+way to give another. "Is a `ShellSyntax` plugged in?" is the dialect: no
+plug-in is Swift alone.
 
 ## The shell's plug-in
 
@@ -267,8 +268,65 @@ Slices 1 to 3 of 3c (the `SwiitSwiftSyntax` module in `Packages/Swiit`):
   One message changed: an unknown name is the checker's error, not a syntax
   error, as in Swift.
 
-Not built: retiring the hand parser (it is still the oracle, and the plug-in
-runs on its cursor), incremental re-parsing.
+Not built: incremental re-parsing.
+
+## Retired
+
+The hand-written parser (`Parser*.swift`, 2,200 lines of the core's and about
+as many again of the shell's) is gone, and SwiftSyntax is the only front end.
+It went in four steps, each with the suites green.
+
+1. **The front end moved into the core and became its default.** An embedder's
+   `eval` goes through SwiftParser, so Swiit links swift-syntax: about 5 MB of
+   a release `swish` (SwiftSyntax 4.1 MB, SwiftParser 1 MB, SwiftOperators
+   0.1 MB), none of which dead-stripping removes, since every node type is
+   reachable through its tables. The module that held it is no more.
+2. **The prelude is read through it** (a prelude mode: bodyless functions,
+   `extension Sequence`), cached by its source, so interpreters with the same
+   libraries share one reading.
+3. **What the oracle knew was kept as goldens** before the plug-in left it:
+   for the core's programs and for the 739 harvested ones, the tree printed
+   back as Swift (and for the shell's syntax, the color of each character).
+   Tests hold the front end to them. `UPDATE_GOLDENS=1` writes them again,
+   which is a decision, not a fix.
+4. **The plug-in moved onto a cursor, and the parser went.** `SourceCursor`
+   is what the parser's scanning half became: a position in the characters,
+   `peek`, `identifier`, `skipSpaces`, `consume`, the names in scope, the
+   depths that say where it is (inside a `try`, a condition, a loop), and the
+   spans it records. The plug-in reads its own text with it, and asks for
+   Swift's grammar in five places, answered by `SwiftServices.swift`:
+   `parseExpression`, `parseClosure`, `parseArguments`, `parseProgram(until:)`
+   and (for its string words) interpolation, which is `parseExpression` again.
+
+How the services answer, because SwiftParser can't say where an expression
+ended (it consumes all it's given, above): each reads the source from the cursor,
+a line at a time, in a lowering of its own that starts knowing the names, the
+struct it is in and the `try` depth around it, and grows the window by lines
+while the construct is unfinished. What it reads is what the first item of
+that window is, so it costs about what is read, not what follows. The
+layer's joiners end it: `|` always, and `&&` and `||` where the layer asks (a
+command chain), and in a condition a `{` that would be a trailing closure.
+A name that isn't bound is an error there, left to right, which is what tells a
+command's word from an expression, as it did in the hand parser; of two
+things wrong, the first in the text is the error, and what the layer reads
+inside an expression is part of its extent (`async sleep 1`).
+
+What changed for a user: an unknown name is the checker's error, not a syntax
+error (`(undefined + 1)`), as in Swift; `x -1` is `x` and `-1`, two things
+side by side, as in Swift, so with a variable `x` it's a command; a `case` with
+no statements and cases that bind different names, and a signature's
+duplicate names or `@input`s, are still refused, now by the lowering; and the
+messages for what's missing come from the tree ("expected 'else' after
+guard's condition, found '{'"), with a line. Swift alone says `ls -la`
+is two statements, `expected ';'`, which swiftc says too.
+
+What this cost: the oracle. Two readings of every program were a test that
+caught what neither would have (it found `a ?? b ?? c` grouped the wrong way),
+and the goldens only hold what the oracle read the day it left. The
+parameter-attribute and shell-line corners that tests of the hand parser
+exercised, and which the harvested programs didn't, were found by moving them:
+a statement SwiftParser gives no items to (`> out echo hi`), a missing `;`
+before what the layer read, a binding under `case let .c(m)`.
 
 ## Not tried yet
 

@@ -6,7 +6,7 @@ import SwiitKit
 /// layer's syntax. Half-typed input has a tree too, so a line is colored as
 /// it is typed.
 extension Lowering {
-    /// The spans of the source, in characters, as the hand parser records them.
+    /// The spans of the source, in characters, as the layer records them.
     func highlightSpans() -> [Span] {
         let classifier = TokenClassifier(consumed: consumed)
         classifier.walk(tree)
@@ -39,7 +39,7 @@ private final class TokenClassifier: SyntaxVisitor {
         spans.append(Span(range: start..<node.endPositionBeforeTrailingTrivia.utf8Offset, kind: kind))
     }
 
-    // `\.size.bytes` is one name, as the hand parser reads it.
+    // `\.size.bytes` is one name.
     override func visit(_ node: KeyPathExprSyntax) -> SyntaxVisitorContinueKind {
         add(.variable, node)
         return .skipChildren
@@ -170,7 +170,7 @@ private final class TokenClassifier: SyntaxVisitor {
     private func kind(ofName token: TokenSyntax, parent: Syntax?) -> SpanKind? {
         guard let parent else { return nil }
         if let reference = parent.as(DeclReferenceExprSyntax.self) {
-            // `a.name` is the member's, which the hand parser leaves plain;
+            // `a.name` is the member's, which is left plain;
             // `.name` alone is a case.
             if let access = reference.parent?.as(MemberAccessExprSyntax.self), access.declName.id == reference.id {
                 return nil
@@ -183,7 +183,7 @@ private final class TokenClassifier: SyntaxVisitor {
         if parent.is(FunctionDeclSyntax.self) { return .command }
         if parent.is(EnumCaseElementSyntax.self) { return .constant }
         if parent.is(IdentifierPatternSyntax.self) { return .variable }
-        // A parameter's names are left plain, as the hand parser leaves them.
+        // A parameter's names are left plain.
         if parent.is(FunctionParameterSyntax.self) { return nil }
         if parent.is(MacroExpansionExprSyntax.self) { return .keyword }
         return nil

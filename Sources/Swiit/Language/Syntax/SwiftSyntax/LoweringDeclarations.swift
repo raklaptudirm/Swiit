@@ -56,23 +56,57 @@ extension Lowering {
     // MARK: Functions
 
     mutating func parameters(_ clause: FunctionParameterClauseSyntax) throws -> [Parameter] {
+        let parameters = try lowerParameters(clause)
+        try validate(parameters, in: clause)
+        return parameters
+    }
+
+    /// What a signature can't say, as the layer's attributes make it: which parameter is
+    /// the piped input, and which short flags there are. As in Swift, what follows
+    /// a variadic needs a label, so it's clear where the variadic ends.
+    private func validate(_ parameters: [Parameter], in node: some SyntaxProtocol) throws {
+        var seen: Set<String> = []
+        var shortFlags: Set<Character> = []
+        if parameters.filter(\.isInput).count > 1 { throw SyntaxError("only one parameter can be @input (line \(line(of: node)))") }
+        for (index, parameter) in parameters.enumerated() {
+            if parameter.isInput && parameter.variadic {
+                throw SyntaxError("an @input parameter can't be variadic; use a list type for the whole stream (line \(line(of: node)))")
+            }
+            if let flag = parameter.shortFlag {
+                guard parameter.label != nil else { throw SyntaxError("@flag needs a labeled parameter (line \(line(of: node)))") }
+                guard shortFlags.insert(flag).inserted else { throw SyntaxError("duplicate short flag -\(flag) (line \(line(of: node)))") }
+            }
+            if parameter.name != "_" && !seen.insert(parameter.name).inserted {
+                throw SyntaxError("duplicate parameter '\(parameter.name)' (line \(line(of: node)))")
+            }
+            if parameter.variadic && index + 1 < parameters.count && parameters[index + 1].label == nil {
+                throw SyntaxError("the parameter after a variadic needs a label (line \(line(of: node)))")
+            }
+            if parameter.variadic && parameter.defaultValue != nil {
+                throw SyntaxError("a variadic parameter can't have a default value (line \(line(of: node)))")
+            }
+        }
+    }
+
+    private mutating func lowerParameters(_ clause: FunctionParameterClauseSyntax) throws -> [Parameter] {
         try clause.parameters.map { parameter in
             var shortFlag: Character?
             var isInput = false
             for attribute in parameter.attributes {
                 guard case .attribute(let attribute) = attribute else { throw unsupported("this attribute", parameter) }
                 switch attribute.attributeName.trimmedDescription {
-                case "flag":
+                case "flag", "Flag":
                     guard case .argumentList(let arguments)? = attribute.arguments, arguments.count == 1,
                           let literal = arguments.first?.expression.as(StringLiteralExprSyntax.self),
-                          let flag = literal.representedLiteralValue, flag.count == 1, let character = flag.first else {
-                        throw unsupported("this @flag", attribute)
+                          let flag = literal.representedLiteralValue, flag.count == 1, let character = flag.first,
+                          character.isLetter || character.isNumber else {
+                        throw SyntaxError("@flag needs a single letter or digit, like @flag(\"n\") (line \(line(of: attribute)))")
                     }
                     shortFlag = character
                 case "input", "Input":
                     isInput = true
                 default:
-                    throw unsupported("the attribute '@\(attribute.attributeName.trimmedDescription)'", attribute)
+                    throw SyntaxError("unknown attribute '@\(attribute.attributeName.trimmedDescription)' (line \(line(of: attribute)))")
                 }
             }
             let first = parameter.firstName.text
@@ -99,6 +133,8 @@ extension Lowering {
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
         let isThrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws)
         let isRethrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows)
+        // Whether a call throws by what it's given needs generics, which come later; the prelude's use it.
+        if isRethrowing && !prelude { throw unsupported("rethrows", node) }
         // In the prelude, a builtin's body is in Swift.
         guard let body = node.body else {
             guard prelude else { throw unsupported("a function without a body", node) }
@@ -112,7 +148,8 @@ extension Lowering {
         let outer = (tryDepth, leaving)
         tryDepth = 0
         leaving = Leaving(function: leaving.function + 1)
-        defer { locals.removeLast(); (tryDepth, leaving) = outer }
+        anonymous.append(false)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast() }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: node.name.text, parameters: parameters, returnType: returnType, body: program,
@@ -130,7 +167,8 @@ extension Lowering {
         let outer = (tryDepth, leaving)
         tryDepth = 0
         leaving = Leaving(function: leaving.function + 1)
-        defer { locals.removeLast(); (tryDepth, leaving) = outer }
+        anonymous.append(false)
+        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast() }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: "init", parameters: parameters, body: program, documentation: documentation(of: node),
@@ -158,6 +196,7 @@ extension Lowering {
     private mutating func structure(_ node: StructDeclSyntax) throws -> StructDecl {
         guard node.genericParameterClause == nil, node.genericWhereClause == nil else { throw unsupported("generics", node) }
         let conformances = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        try checkProtocols(conformances)
         var declaration = StructDecl(name: node.name.text, properties: [], methods: [], initializers: [], conformances: conformances)
 
         // The names a method reads through `self`.
@@ -204,6 +243,15 @@ extension Lowering {
         return declaration
     }
 
+    /// What a type can say it conforms to: the protocols Swiit has.
+    private func checkProtocols(_ names: [String]) throws {
+        for name in names where !Lowering.protocols.contains(name) {
+            throw SyntaxError("unknown protocol '\(name)'; Swiit has \(Lowering.protocols.sorted().joined(separator: ", "))")
+        }
+    }
+
+    static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error"]
+
     private func isStatic(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { $0.name.tokenKind == .keyword(.static) }
     }
@@ -243,6 +291,7 @@ extension Lowering {
                 conformances.append(name)
             }
         }
+        try checkProtocols(conformances)
         var cases: [EnumCaseDecl] = []
         for member in node.memberBlock.members {
             guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { throw unsupported("'\(member.decl.kind)' in an enum", member) }

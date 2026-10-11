@@ -19,23 +19,7 @@ import SwiftSyntax
     }
 
     private func lower(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?, prelude: Bool) throws(SyntaxError) -> Program {
-        let parsed = SwiftParser.Parser.parse(source: source)
-        var problems: [(message: String, offset: Int)] = []
-        var other: Error?
-        let folded = OperatorTable.standardOperators.foldAll(parsed) { error in
-            switch error as? OperatorError {
-            case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
-                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
-            case .incomparableOperators(_, _, let node, _)?:
-                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
-            default:
-                other = other ?? error
-            }
-        }
-        if let other { throw SyntaxError("\(other)") }
-        guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
-        var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
-        lowering.operatorProblems = problems
+        var lowering = try lowering(of: source, bound: bound, plugin: plugin)
         lowering.prelude = prelude
         do {
             return try lowering.program()
@@ -44,6 +28,31 @@ import SwiftSyntax
         } catch {
             throw SyntaxError("\(error)")
         }
+    }
+
+    /// A lowering of the source, SwiftParser's tree folded: what it lowers by
+    /// is its names and its layer. What operators don't fold is kept in it, as
+    /// a problem only outside what the layer reads.
+    func lowering(of source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Lowering {
+        let parsed = SwiftParser.Parser.parse(source: source)
+        var problems: [(message: String, offset: Int)] = []
+        var other: Error?
+        let folded = OperatorTable.standardOperators.foldAll(parsed) { error in
+            switch error as? OperatorError {
+            case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
+                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+            case .incomparableOperators(_, _, let node, _)?:
+                // `1...2...3`, `a < b < c`: the second operator can't follow the first.
+                problems.append(("'\(node.trimmedDescription)' can't be chained; use parentheses or '&&'", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+            default:
+                other = other ?? error
+            }
+        }
+        if let other { throw SyntaxError("\(other)") }
+        guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
+        var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
+        lowering.operatorProblems = problems
+        return lowering
     }
 
     @_spi(Layer) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {

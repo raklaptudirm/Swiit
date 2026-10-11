@@ -47,7 +47,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 @Test func theCoreRefusesWhatItWasNotGiven() {
     // Shell syntax doesn't parse, and there is no environment to read.
     // Two words are two statements, as in Swift: a command is the shell's.
-    #expect(runOnTheCore("git status").problem?.contains("expected semicolon") == true)
+    #expect(runOnTheCore("git status").problem?.contains("expected ';'") == true)
     #expect(runOnTheCore("let h = $(echo hi)").problem?.contains("runs commands") == true)
     #expect(runOnTheCore(#"let h = env.HOME"#).problem?.contains("env") == true)
 }

@@ -1,18 +1,8 @@
 import Foundation
 import SwiitKit
 
-extension Parser {
+extension SourceCursor {
     // MARK: Scanning
-
-    /// Digits with optional `_` separators, which are dropped.
-    mutating func readDigits() -> String {
-        var digits = ""
-        while let c = peek(), Parser.isDigit(c) || c == "_" {
-            if c != "_" { digits.append(c) }
-            pos += 1
-        }
-        return digits
-    }
 
     @_spi(Layer) public func peek(_ offset: Int = 0) -> Character? {
         let index = pos + offset
@@ -36,9 +26,9 @@ extension Parser {
 
     /// The identifier starting at the current position, without consuming it.
     @_spi(Layer) public func identifier() -> String? {
-        guard let first = peek(), Parser.isIdentifierStart(first) else { return nil }
+        guard let first = peek(), SourceCursor.isIdentifierStart(first) else { return nil }
         var name = String(first)
-        while let c = peek(name.count), Parser.isIdentifierPart(c) {
+        while let c = peek(name.count), SourceCursor.isIdentifierPart(c) {
             name.append(c)
         }
         return name
@@ -46,9 +36,9 @@ extension Parser {
 
     /// The identifier starting at `index`, without moving.
     @_spi(Layer) public func identifier(at index: Int) -> String? {
-        guard index < chars.count, Parser.isIdentifierStart(chars[index]) else { return nil }
+        guard index < chars.count, SourceCursor.isIdentifierStart(chars[index]) else { return nil }
         var end = index + 1
-        while end < chars.count, Parser.isIdentifierPart(chars[end]) { end += 1 }
+        while end < chars.count, SourceCursor.isIdentifierPart(chars[end]) { end += 1 }
         return String(chars[index..<end])
     }
 

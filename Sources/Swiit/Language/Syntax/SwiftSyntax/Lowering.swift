@@ -1,3 +1,4 @@
+import Foundation
 import SwiftOperators
 import SwiftSyntax
 import SwiitKit
@@ -36,9 +37,10 @@ struct Lowering {
     let characterOf: [Int]
     /// The byte offset each character starts at, and the end.
     let byteOf: [Int]
-    /// A parser over the source, made once: each cursor is a copy, which shares
-    /// its characters and line starts rather than reading the source again.
-    let blankParser: Parser
+    /// The source's characters, made once: each cursor shares them.
+    let characters: [Character]
+    /// Where each line of them starts.
+    let lineStarts: [Int]
     /// The spans of source (in bytes) that the plug-in read: SwiftParser's tree
     /// for them is its best guess at what isn't Swift, and is not looked at.
     var consumed: [Range<Int>] = []
@@ -55,10 +57,30 @@ struct Lowering {
     var recovering = false
     /// The end of the innermost statement that couldn't be lowered (in bytes).
     var failedEnd: Int?
+    /// Where readings ended that SwiftParser's own text doesn't show: a raw
+    /// string `'a b'` is its quotes missing, set aside as unexpected.
+    var extentHints: [Int] = []
+    /// What the layer found wrong with what it read: when it reads a command
+    /// at all, what is wrong in it is its own to say.
+    var layerError: SyntaxError?
     /// Reading the prelude, the builtins' declarations (Prelude.swift): a
     /// function without a body has one in Swift, and `extension Sequence`
     /// declares the methods every sequence has.
     var prelude = false
+    /// The closures around the code being lowered, innermost last: whether
+    /// each takes `$0`, `$1`, … (one without named parameters does).
+    var anonymous: [Bool] = []
+    /// An `import` came before: the functions it brings aren't known until it
+    /// runs, so calling an unknown name is left for then.
+    var sawImport = false
+    /// Where a name that isn't bound is an error, as the layer's reading of a
+    /// unit needs (a word that isn't a name is a command's): the Swift here
+    /// is read by what the names around it are.
+    var strictNames = false
+    /// Where the last error was, in bytes, for the cursor that asked.
+    var failedAt: Int?
+    /// How many lines of the whole source come before this one's first.
+    var lineOffset = 0
 
     init(source: String, tree: SourceFileSyntax, bound: [String: NameKind], plugin: (any SyntaxPlugin)? = nil) {
         self.converter = SourceLocationConverter(fileName: "", tree: tree)
@@ -77,7 +99,9 @@ struct Lowering {
         characterOf.append(source.count)
         self.characterOf = characterOf
         self.byteOf = byteOf
-        self.blankParser = Parser(source, bound: [:])
+        let characters = Array(source.replacingOccurrences(of: "\r\n", with: "\n"))
+        self.characters = characters
+        self.lineStarts = [0] + characters.indices.filter { characters[$0] == "\n" }.map { $0 + 1 }
     }
 
     func unsupported(_ what: String, _ node: some SyntaxProtocol) -> SyntaxError {
@@ -85,7 +109,13 @@ struct Lowering {
     }
 
     func line(of node: some SyntaxProtocol) -> Int {
-        converter.location(for: node.positionAfterSkippingLeadingTrivia).line
+        line(atByte: node.positionAfterSkippingLeadingTrivia.utf8Offset)
+    }
+
+    /// The line a byte offset is on, in the whole source: a lowering of part
+    /// of it (SwiftServices.swift) starts at a line of its own.
+    func line(atByte offset: Int) -> Int {
+        converter.location(for: AbsolutePosition(utf8Offset: offset)).line + lineOffset
     }
 
     // MARK: Programs
@@ -100,6 +130,7 @@ struct Lowering {
         do {
             lowered = try block(tree.statements, scoped: false)
         } catch {
+            if let layerError { throw layerError }
             // A problem in or before the statement that couldn't be lowered
             // explains it; one further on is in code not yet read, where the
             // plug-in's syntax may be.
@@ -108,7 +139,7 @@ struct Lowering {
         }
         if let (problem, _) = firstProblem(in: tree) { throw problem }
         if let problem = operatorProblems.first(where: { problem in !consumed.contains { $0.contains(problem.offset) } }) {
-            throw SyntaxError("\(problem.message) (line \(converter.location(for: AbsolutePosition(utf8Offset: problem.offset)).line))")
+            throw SyntaxError("\(problem.message) (line \(line(atByte: problem.offset)))")
         }
         return lowered
     }
@@ -129,25 +160,29 @@ struct Lowering {
     }
 
     /// A parser for the plug-in to read from, positioned at the byte offset.
-    func cursor(at byteOffset: Int) -> Parser {
-        var parser = blankParser
-        parser.scopes = [names()]
-        parser.plugin = plugin
-        parser.tryDepth = tryDepth
-        parser.functionDepth = leaving.function
-        parser.loopDepth = leaving.loop
-        parser.switchDepth = leaving.switchCase
-        parser.pos = characterOf[min(byteOffset, characterOf.count - 1)]
-        return parser
+    func cursor(at byteOffset: Int) -> SourceCursor {
+        var cursor = SourceCursor(chars: characters, scopes: [names()])
+        cursor.plugin = plugin
+        cursor.tryDepth = tryDepth
+        cursor.functionDepth = leaving.function
+        cursor.loopDepth = leaving.loop
+        cursor.switchDepth = leaving.switchCase
+        cursor.inAnonymousClosure = anonymous.last ?? false
+        cursor.sawImport = sawImport
+        cursor.context = context
+        cursor.lineStarts = lineStarts
+        cursor.lineOffset = lineOffset
+        cursor.pos = characterOf[min(byteOffset, characterOf.count - 1)]
+        return cursor
     }
 
-    /// Where a parser stopped, as a byte offset.
-    func byteOffset(of parser: Parser) -> Int {
+    /// Where a cursor stopped, as a byte offset.
+    func byteOffset(of parser: SourceCursor) -> Int {
         byteOf[min(parser.pos, byteOf.count - 1)]
     }
 
     /// Notes that the plug-in read from `start` to where its parser stopped.
-    mutating func consume(from start: Int, to parser: Parser) {
+    mutating func consume(from start: Int, to parser: SourceCursor) {
         consumed.append(start..<max(byteOffset(of: parser), start))
         layerSpans += parser.spans
     }
@@ -163,7 +198,9 @@ struct Lowering {
         var lines: [Int] = []
         var skipUntil = 0
         // Where the last statement the layer read ended, if the item it began swallowed more.
-        var islandEnd: Int?
+        // A block SwiftParser found no items in (`> out echo hi`, all of it unexpected
+        // tokens to Swift) starts from where its text does.
+        var islandEnd: Int? = items.isEmpty ? blockStart(items) : nil
         for item in items {
             let start = item.positionAfterSkippingLeadingTrivia.utf8Offset
             if start < skipUntil { continue }
@@ -213,6 +250,16 @@ struct Lowering {
         return Program(statements: statements, lines: lines)
     }
 
+    /// Where a block's statements start: after its `{`, or at the start of the source.
+    private func blockStart(_ items: CodeBlockItemListSyntax) -> Int {
+        if items.parent?.is(SourceFileSyntax.self) == true { return 0 }
+        if let block = items.parent?.as(CodeBlockSyntax.self) { return block.leftBrace.endPositionBeforeTrailingTrivia.utf8Offset }
+        if let closure = items.parent?.as(ClosureExprSyntax.self) {
+            return (closure.signature?.endPositionBeforeTrailingTrivia ?? closure.leftBrace.endPositionBeforeTrailingTrivia).utf8Offset
+        }
+        return items.positionAfterSkippingLeadingTrivia.utf8Offset
+    }
+
     /// SwiftParser can read one item over several of the layer's statements
     /// (`ls > out; head out`, which it takes for a regular expression): those
     /// the plug-in read before `limit`, past where the last one ended.
@@ -229,7 +276,7 @@ struct Lowering {
         skipUntil = end
         var readAny = false
         while true {
-            // Past blanks, comments and `;`, as the hand parser skips them.
+            // Past blanks, comments and `;`, as the layer skips them.
             var gap = cursor(at: skipUntil)
             while true {
                 gap.skipSpaces(newlines: true)
@@ -247,9 +294,49 @@ struct Lowering {
             guard let island = read else { return readAny }
             readAny = true
             statements.append(island.statement)
-            lines.append(converter.location(for: AbsolutePosition(utf8Offset: at)).line)
+            lines.append(line(atByte: at))
             skipUntil = island.end
         }
+    }
+
+    /// Where a node's text really ends, in bytes: SwiftParser can fold what
+    /// follows a construct that isn't Swift's into its last item, as unexpected
+    /// tokens, which aren't part of it.
+    func realEnd(of node: some SyntaxProtocol) -> Int {
+        var end = node.positionAfterSkippingLeadingTrivia.utf8Offset
+        for token in node.tokens(viewMode: .sourceAccurate) where token.presence == .present {
+            // Not inside what SwiftParser set aside as unexpected.
+            var inside = false
+            var parent = token.parent
+            while let current = parent, current.id != node.id {
+                if current.is(UnexpectedNodesSyntax.self) { inside = true; break }
+                parent = current.parent
+            }
+            if !inside { end = max(end, token.endPositionBeforeTrailingTrivia.utf8Offset) }
+        }
+        return end
+    }
+
+    /// The first item of the source, which a reading of one construct starts at.
+    func firstItem() throws -> CodeBlockItemSyntax {
+        guard let item = tree.statements.first else {
+            // Nothing to read: the input is blank (more could come), or only what Swift doesn't take.
+            let text = String(decoding: bytes, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            if let first = text.first { throw SyntaxError("unexpected '\(first)'") }
+            throw SyntaxError.incomplete("expected something to read")
+        }
+        return item
+    }
+
+    /// One statement starting at the byte offset: the layer's, or Swift's, and
+    /// where it ends; for the program in `$(…)`, read a statement at a time.
+    mutating func readStatement(at start: Int) throws -> (statements: [Statement], end: Int) {
+        if let island = try layerStatement(at: start, item: nil) { return ([island.statement], island.end) }
+        let item = try firstItem()
+        guard item.positionAfterSkippingLeadingTrivia.utf8Offset == start else { throw SyntaxError("expected a statement") }
+        // The item's own `;`, missing where the next token doesn't separate statements, isn't one.
+        let (lowered, end) = try reading(item.item) { try $0.statement(item.item) }
+        return (lowered, end)
     }
 
     mutating func collectTypeNames(_ item: CodeBlockItemSyntax.Item) {
@@ -259,13 +346,13 @@ struct Lowering {
         }
     }
 
-    /// The first problem SwiftParser found, and where (in bytes).
-    func firstProblem(in tree: some SyntaxProtocol) -> (SyntaxError, Int)? {
-        let finder = ProblemFinder(end: tree.endPositionBeforeTrailingTrivia, consumed: consumed, accepted: accepted)
+    /// The first problem SwiftParser found, and where (in bytes). `end` is where
+    /// the input ends, for telling a problem of what's missing from one of what's there.
+    func firstProblem(in tree: some SyntaxProtocol, end: AbsolutePosition? = nil) -> (SyntaxError, Int)? {
+        let finder = ProblemFinder(end: end ?? tree.endPositionBeforeTrailingTrivia, consumed: consumed, accepted: accepted)
         finder.walk(tree)
         guard let (message, position) = finder.found else { return nil }
-        let line = converter.location(for: position).line
-        let text = "\(message) (line \(line))"
+        let text = "\(message) (line \(line(atByte: position.utf8Offset)))"
         return (finder.incomplete ? .incomplete(text) : SyntaxError(text), position.utf8Offset)
     }
 }
@@ -293,10 +380,46 @@ private final class ProblemFinder: SyntaxVisitor {
     private func isConsumed(_ offset: Int) -> Bool {
         consumed.contains { $0.contains(offset) }
     }
+
+    /// What is missing, as Swift's own messages say it: `expected 'else' after
+    /// guard's condition, found '{'`.
+    private func describeMissing(_ token: TokenSyntax) -> String {
+        let name: String
+        switch token.tokenKind {
+        case .keyword(let keyword): name = "'\(keyword)'"
+        case .leftParen: name = "'('"
+        case .rightParen: name = "')'"
+        case .leftBrace: name = "'{'"
+        case .rightBrace: name = "'}'"
+        case .leftSquare: name = "'['"
+        case .rightSquare: name = "']'"
+        case .comma: name = "','"
+        case .colon: name = "':'"
+        case .semicolon: name = "';'"
+        case .equal: name = "'='"
+        case .arrow: name = "'->'"
+        case .identifier: name = "a name"
+        default: name = "\(token.tokenKind)"
+        }
+        var message = "expected " + name
+        var parent = token.parent
+        while let current = parent {
+            if current.is(GuardStmtSyntax.self), token.tokenKind == .keyword(.else) { message += " after guard's condition" }
+            if current.is(CodeBlockItemSyntax.self) { break }
+            parent = current.parent
+        }
+        if let next = token.nextToken(viewMode: .sourceAccurate), next.tokenKind != .endOfFile {
+            message += ", found '\(next.text)'"
+        }
+        return message
+    }
+
     /// Whether a missing token is in what the plug-in read: it is missing from
     /// a node that starts there, within its statement (`'a b'`, a string with
     /// its quotes missing to SwiftParser, at the end of a command).
     private func isInLayer(_ token: TokenSyntax) -> Bool {
+        // A statement the layer read, right after one of Swift's on the same line, wants its `;`.
+        if token.tokenKind == .semicolon, consumed.contains(where: { $0.lowerBound == token.position.utf8Offset }) { return false }
         if isConsumed(token.position.utf8Offset) { return true }
         var node = token.parent
         while let current = node {
@@ -309,7 +432,7 @@ private final class ProblemFinder: SyntaxVisitor {
     }
     override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
         if found == nil, token.presence == .missing, !isInLayer(token) {
-            found = ("expected \(token.tokenKind)", token.position)
+            found = (describeMissing(token), token.position)
             if token.position >= end { incomplete = true }
         }
         return .skipChildren

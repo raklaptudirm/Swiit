@@ -417,7 +417,8 @@ shell working.
    comparison (frontend.md, "Built"); shell lines are not.  A second implementation of the contract, as an
    optional module: SwiftParser, recognition of shell lines by the tree's
    recovery structure and by lexical lookup, a lowering to the core's tree, and
-   a hand-parser oracle to retire the old parser against. It follows step 4, but
+   a hand-parser oracle to retire the old parser against (which it did, and the
+parser is gone: frontend.md, "Retired"). It follows step 4, but
    3b is its prerequisite. See [frontend.md](frontend.md) for what was tried and
    what it costs.
 4. **Split the targets.** `SwishShell` and `SwishShellLibrary` created, files

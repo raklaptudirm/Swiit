@@ -181,6 +181,14 @@ extension Lowering {
                 }
             }
             let lowered = try guardExpr.map { try expression($0) }
+            // Every pattern of a case binds the same names, for the body to use.
+            let bound = patterns.map { Set(SwitchBinding.names(boundBy: $0)) }
+            if let first = bound.first, !bound.allSatisfy({ $0 == first }) {
+                throw SyntaxError("each pattern in a case must bind the same names (line \(line(of: switchCase)))")
+            }
+            guard !switchCase.statements.isEmpty else {
+                throw SyntaxError("a case needs at least one statement; write `break` to do nothing (line \(line(of: switchCase)))")
+            }
             cases.append(SwitchCase(patterns: patterns, guardExpr: lowered, body: try block(switchCase.statements, scoped: false)))
         }
         return SwitchStatement(subject: subject, cases: cases)
@@ -203,16 +211,16 @@ extension Lowering {
            cast.questionOrExclamationMark == nil {
             return .cast(try castOperand(cast.expression, mutable: mutable), try type(cast.type))
         }
-        if let node = pattern.as(ExpressionPatternSyntax.self) { return try expressionPattern(node.expression) }
-        throw unsupported("this pattern", pattern)
+        if let node = pattern.as(ExpressionPatternSyntax.self) { return try expressionPattern(node.expression, mutable: mutable) }
+        throw unsupported("the pattern '\(pattern.kind)'", pattern)
     }
 
     /// `.failed(code: let c)`, `Result.failed`, `.a`, or a value to compare with.
-    private mutating func expressionPattern(_ expr: ExprSyntax) throws -> Pattern {
+    private mutating func expressionPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
         if let call = expr.as(FunctionCallExprSyntax.self), let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
             var arguments: [PatternArgument] = []
             for argument in call.arguments {
-                arguments.append(PatternArgument(label: argument.label?.text, pattern: try argumentPattern(argument.expression)))
+                arguments.append(PatternArgument(label: argument.label?.text, pattern: try argumentPattern(argument.expression, mutable: mutable)))
             }
             return .enumCase(type: member.base.map { $0.trimmedDescription }, name: member.declName.baseName.text, arguments: arguments)
         }
@@ -230,13 +238,18 @@ extension Lowering {
             bind(reference.baseName.text)
             return .binding(name: reference.baseName.text, mutable: mutable)
         }
-        return try expressionPattern(expr)
+        return try expressionPattern(expr, mutable: mutable)
     }
 
-    private mutating func argumentPattern(_ expr: ExprSyntax) throws -> Pattern {
-        if let binding = expr.as(PatternExprSyntax.self) { return try pattern(binding.pattern) }
+    /// An argument of a case pattern: under `let`, a name is a binding, as in `case let .c(m)`.
+    private mutating func argumentPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
+        if let binding = expr.as(PatternExprSyntax.self) { return try pattern(binding.pattern, mutable: mutable) }
         if expr.is(DiscardAssignmentExprSyntax.self) { return .wildcard }
-        return try expressionPattern(expr)
+        if let mutable, let reference = expr.as(DeclReferenceExprSyntax.self) {
+            bind(reference.baseName.text)
+            return .binding(name: reference.baseName.text, mutable: mutable)
+        }
+        return try expressionPattern(expr, mutable: mutable)
     }
 
     /// `.a` or `E.a` in a pattern: a case, since a value would be written with its type's name.
@@ -248,5 +261,17 @@ extension Lowering {
 
     mutating func bind(_ name: String) {
         locals[locals.count - 1].insert(name)
+    }
+}
+
+/// The names a pattern binds.
+enum SwitchBinding {
+    static func names(boundBy pattern: Pattern) -> [String] {
+        switch pattern {
+        case .binding(let name, _): [name]
+        case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
+        case .cast(let inner, _): names(boundBy: inner)
+        case .wildcard, .expression, .isType: []
+        }
     }
 }

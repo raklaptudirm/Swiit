@@ -3,8 +3,8 @@ import Foundation
 import SwiitKit
 import Testing
 
-// The two front ends over the same Swift: the hand-written parser is the oracle,
-// and the SwiftSyntax front end must give the tree it gives.
+// The front end over Swift alone. What the hand-written parser read, which it
+// was held to while it existed, is kept as goldens (below).
 
 private let programs: [(name: String, source: String)] = [
     ("literals", #"let a = 1; let b = 2.5; let c = "hi \n \"there\""; let d = true; var e: Int? = nil"#),
@@ -52,23 +52,6 @@ private let programs: [(name: String, source: String)] = [
 ]
 
 
-@Test(arguments: programs)
-func theSwiftSyntaxFrontEndGivesTheOraclesTree(_ program: (name: String, source: String)) throws {
-    let oracle = try Parser.parse(program.source, bound: [:], plugin: nil)
-    let lowered: Program
-    do {
-        lowered = try SwiftSyntaxFrontEnd().parse(program.source, bound: [:], plugin: nil)
-    } catch {
-        Issue.record("\(program.name): \(error)")
-        return
-    }
-    if lowered != oracle {
-        let expected = SwiftPrinter().source(oracle)
-        let actual = SwiftPrinter().source(lowered)
-        Issue.record("\(program.name): the trees differ\n--- oracle\n\(expected)\n--- swiftsyntax\n\(actual)\n--- raw oracle\n\(String(reflecting: oracle.statements))\n--- raw swiftsyntax\n\(String(reflecting: lowered.statements))")
-    }
-}
-
 // MARK: Every program the test suites run
 
 /// Programs harvested from the test suites of the shell and the interpreter:
@@ -77,30 +60,6 @@ func theSwiftSyntaxFrontEndGivesTheOraclesTree(_ program: (name: String, source:
 private func harvested() throws -> [String] {
     let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("programs.txt")
     return try String(contentsOf: url, encoding: .utf8).split(separator: "\u{1E}", omittingEmptySubsequences: true).map(String.init)
-}
-
-@Test func theSwiftSyntaxFrontEndAgreesOnWhatItReadsOfTheHarvestedPrograms() throws {
-    let interpreter = Interpreter(host: SwiitHost(), limits: Limits())
-    let bound = interpreter.globalNames()
-    var swiftOnly = 0, agree = 0, unsupported: [String: Int] = [:], wrong: [String] = []
-    for source in try harvested() {
-        guard let oracle = try? Parser.parse(source, bound: bound, plugin: nil) else { continue }
-        swiftOnly += 1
-        do {
-            let lowered = try SwiftSyntaxFrontEnd().parse(source, bound: bound, plugin: nil)
-            if lowered == oracle { agree += 1 } else { wrong.append(source) }
-        } catch {
-            let reason = "\(error)".replacingOccurrences(of: #" \(line \d+\)"#, with: "", options: .regularExpression)
-            unsupported[reason, default: 0] += 1
-        }
-    }
-    print("harvested Swift-only programs: \(swiftOnly); agree \(agree); unsupported \(unsupported.values.reduce(0, +)); wrong \(wrong.count)")
-    for (reason, count) in unsupported.sorted(by: { $0.value > $1.value }).prefix(25) { print("  \(count) × \(reason)") }
-    // A tree that differs is a bug; what is unsupported is the work to do, and
-    // only goes down: `f -5 -3` is arithmetic to the oracle and two statements
-    // to Swift, and the other two are a type and a placeholder it doesn't read.
-    #expect(wrong.isEmpty, "\(wrong.count) programs differ, the first: \(wrong.first ?? "")")
-    #expect(unsupported.values.reduce(0, +) <= 3, "\(unsupported)")
 }
 
 // MARK: Input that isn't a program
@@ -124,21 +83,15 @@ private func isIncomplete(_ parse: () throws -> Program) -> Bool? {
     do { _ = try parse(); return nil } catch let error as SyntaxError { return error.incomplete } catch { return false }
 }
 
-@Test func bothFrontEndsSayWhenInputIsCutShort() {
+@Test func inputCutShortAsksForMore() {
     for source in incomplete {
-        let oracle = isIncomplete { try Parser.parse(source, bound: [:], plugin: nil) }
-        let lowered = isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) }
-        #expect(oracle == true, "the oracle: \(source)")
-        #expect(lowered == true, "swiftsyntax: \(source)")
+        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) } == true, Comment(rawValue: source))
     }
 }
 
-@Test func bothFrontEndsRefuseWhatIsWrong() {
+@Test func whatIsWrongIsRefused() {
     for source in wrong {
-        let oracle = isIncomplete { try Parser.parse(source, bound: [:], plugin: nil) }
-        let lowered = isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) }
-        #expect(oracle != nil, "the oracle took it: \(source)")
-        #expect(lowered != nil, "swiftsyntax took it: \(source)")
+        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) } == false, Comment(rawValue: source))
     }
 }
 
@@ -147,8 +100,7 @@ private func isIncomplete(_ parse: () throws -> Program) -> Bool? {
 /// What the front end reads is held to what the hand-written parser read
 /// (Goldens/swift.txt, made from it before it was deleted): each of this
 /// file's programs and the harvested Swift-only ones, as the tree printed
-/// back as Swift. A change is a decision, not an accident; `UPDATE_GOLDENS=1`
-/// writes the file again from the front end as it is.
+/// back as Swift. A change is a decision, not an accident.
 private func goldenURL() -> URL {
     URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Goldens/swift.txt")
 }
@@ -169,14 +121,12 @@ private func goldenPrograms() throws -> [(name: String, source: String)] {
 @Test func theFrontEndReadsAsTheHandWrittenParserDid() throws {
     let interpreter = Interpreter(host: SwiitHost(), limits: Limits())
     let bound = interpreter.globalNames()
+    // `UPDATE_GOLDENS=1` writes the file again from the front end as it is.
     if ProcessInfo.processInfo.environment["UPDATE_GOLDENS"] != nil {
-        // Written from the hand-written parser, the oracle, while it exists.
         var records: [String] = []
         for (name, source) in try goldenPrograms() {
-            guard let oracle = try? Parser.parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else { continue }
-            // `f -5 -3` is arithmetic to the oracle and two statements to Swift: not what is kept.
-            guard (try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil)) != nil else { continue }
-            records.append("\(name)\u{1F}\(SwiftPrinter().source(oracle))")
+            guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else { continue }
+            records.append("\(name)\u{1F}\(SwiftPrinter().source(lowered))")
         }
         try records.joined(separator: "\u{1E}").write(to: goldenURL(), atomically: true, encoding: .utf8)
     }
