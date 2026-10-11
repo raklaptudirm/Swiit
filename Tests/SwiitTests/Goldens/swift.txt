@@ -1,0 +1,1298 @@
+literalslet a = 1
+let b = 2.5
+let c = "hi \n \"there\""
+let d = true
+var e: Int? = nilannotationslet xs: [Int] = [1, 2, 3]
+let d: [String: Int] = ["a": 1]
+var o: Int? = niloperatorslet x = (1 + (2 * 3)) - ((4 / 2) % 3)
+let y = ((x > 3) && (x < 10)) || (x == 0)
+let z = !y
+let w = -xranges and coalescinglet r = 1 ... 3
+let s = 0 ..< 5
+let n: Int? = nil
+let v = n ?? 7interpolationlet name = "Rak"
+let greeting = "hello, \(name)! \(1 + 2)"collectionslet xs = [3, 1, 2]
+let ys = xs.sorted()
+let first = ys[0]
+let d = ["a": 1, "b": 2]
+let a = d["a"]
+let e: [String: Int] = [:]tupleslet t = (a: 1, b: "x")
+let u = t.a
+let v = (1, 2)assignmentvar n = 1
+n += 2
+n *= 3
+var xs = [1, 2]
+xs[0] = 9
+var t = (a: 1, b: 2)
+t.a = 5if and else iflet n = 3
+if n > 5 {
+    let big = 1
+} else if n > 1 {
+    let mid = 2
+} else {
+    let small = 3
+}if letlet n: Int? = 2
+if let m = n {
+    let k = m + 1
+}guardfunc f(_ n: Int?) -> Int {
+    guard let m = n else {
+        return 0
+    }
+    return m
+}while and forvar i = 0
+while i < 3 {
+    i += 1
+}
+for j in 1 ... 3 {
+    let k = j * 2
+}
+for c in "ab" {
+    let u = c
+}break and continuefor i in 0 ..< 5 {
+    if i == 1 {
+        continue
+    }
+    if i == 3 {
+        break
+    }
+}functionsfunc add(_ a: Int, _ b: Int) -> Int {
+    a + b
+}
+func greet(name: String, times: Int = 1) -> String {
+    name
+}
+let s = add(1, 2)
+let g = greet(name: "x")throwing functionsfunc risky(_ n: Int) throws -> Int {
+    n
+}
+let a = try? risky(1)
+let b = try! risky(2)async functionsfunc fetch(_ g: () async -> Int) async throws -> Int {
+    await g()
+}
+func one() async -> Int {
+    1
+}
+let n = try try await fetch(one)async letfunc f() async -> Int {
+    1
+}
+func g() async -> Int {
+    async let a = f()
+    async let b = f()
+    return await (a + b)
+}for try awaitfunc f(_ xs: Flow<Int>) async throws {
+    for try await x in xs {
+        let y = x
+    }
+}await covers what followsfunc f() async -> Int {
+    1
+}
+let n = await (f() + (f() * 2))discardsfunc f() -> Int {
+    1
+}
+let _ = f()
+let _ = f()recursionfunc fact(_ n: Int) -> Int {
+    if n <= 1 {
+        return 1
+    }
+    return n * fact(n - 1)
+}
+let r = fact(5)closureslet xs = [1, 2, 3]
+let d = xs.map { $0 * 2 }
+let e = xs.filter { $0 > 1 }.map { $0 + 1 }nested anonymous closureslet xs = [1, 2]
+let f = { xs.map { $0 * 2 } }
+let g = { $1 + [$0].map { $0 }.count }closure parameterslet f = { (x: Int, y: Int) -> Int in x + y }
+let g = f(1, 2)structsstruct Point: Equatable {
+    static let origin = Point(x: 0, y: 0)
+    var x: Int
+    var y: Int
+    func sum() -> Int {
+        self.x + self.y
+    }
+}
+let p = Point(x: 1, y: 2)
+let s = p.sum()mutating methodsstruct Counter {
+    var n = 0
+    mutating func bump() {
+        self.n += 1
+    }
+}
+var c = Counter()
+c.bump()computed properties and initstruct Temp {
+    var celsius: Double
+    var fahrenheit: Double {
+        (self.celsius * 1.8) + 32
+    }
+    init(f: Double) {
+        self.celsius = (f - 32) / 1.8
+    }
+}
+let t = Temp(f: 212)enumsenum Level: Int, Comparable {
+    case low = 1
+    case mid
+    case high
+}
+let l = Level.midenums with payloadsenum Result {
+    case ok(Int)
+    case failed(code: Int, String)
+}
+let r = Result.failed(code: 2, "no")switchlet n = 2
+switch n {
+case 1:
+    let a = 1
+case 2, 3:
+    let b = 2
+default:
+    let c = 3
+}a guard on a case's last patternlet n = 2
+switch n {
+case 1, 2 where n > 1:
+    let a = 1
+default:
+    let b = 2
+}switch on enumsenum E {
+    case a(Int)
+    case b
+}
+let e = E.a(1)
+switch e {
+case .a(let n) where n > 0:
+    let x = n
+case .a:
+    let y = 0
+case .b:
+    let z = 1
+}optionalslet n: Int? = 3
+let a = n!
+let b = n ?? 0
+let s: String? = "x"
+let c = s?.countcastslet x: Any = 1
+let a = x as? Int
+let b = x is String
+let c = x as! Intdo and catchdo {
+    let a = 1 / 1
+} catch {
+    let m = 1
+}
+do {
+    let a = 1
+} catch let e {
+    let m = e
+}deferfunc f() {
+    defer {
+        let a = 1
+    }
+    let b = 2
+}throw and catch clausesstruct Oops: Error {
+    let code: Int
+}
+enum Bad: Error {
+    case input
+    case network(code: Int)
+}
+func f() throws {
+    throw Oops(code: 1)
+}
+do {
+    try f()
+} catch let e as Oops where e.code > 0 {
+    let a = e.code
+} catch is Oops {
+    let b = 1
+} catch Bad.network(let code) {
+    let c = code
+} catch {
+    let d = error
+}cast patterns in a switchlet x: Any = 1
+switch x {
+case let n as Int:
+    let a = n
+case _ as String:
+    let b = 1
+case is Double:
+    let c = 2
+default:
+    let d = 3
+}key pathsstruct P {
+    var x: Int
+}
+let ps = [P(x: 2), P(x: 1)]
+let s = ps.sorted(by: \.x)conditional expressionlet n = 3
+let s = if n > 2 {
+    "big"
+} else {
+    "small"
+}
+let t = if n > 1 {
+    1
+} else {
+    2
+}nested blocksfunc f(_ n: Int) -> Int {
+    var total = 0
+    for i in 0 ..< n {
+        if (i % 2) == 0 {
+            total += i
+        } else {
+            continue
+        }
+    }
+    return total
+}
+let r = f(10)#3do {
+    1 / 0
+} catch let e {
+    print(e.localizedDescription)
+}#5let d = ["b": 2, "a": 1]
+d
+d.filter { $0.value > 1 }
+d.mapValues { $0 * 10 }#7let c = if true {
+    TextStyle.green
+} else {
+    .red
+}
+"y".styled(c) + "!"#8let d = ["b": 2, "a": 1]
+d.map { $0.key }.sorted()
+d.keys.sorted()
+d.values.sorted()#15let d = ["b": 2, "a": 1]
+d.count
+d.isEmpty
+d.sorted { $0.key < $1.key }.map { $0.value }
+d.first!.key == d.keys.first!#17do {
+    let x = 1
+    print(x)
+}#20do {
+    1 / 0
+}#25func size(_ n: Int) -> String {
+    switch n {
+    case 0:
+        return "none"
+    case 1 ... 5:
+        return "few"
+    case 6 ..< 100, 100:
+        return "many"
+    case let big where big > 1000:
+        return "huge \(big)"
+    default:
+        return "lots"
+    }
+}
+size(0)
+size(3)
+size(100)
+size(5000)
+size(500)#30Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])#31let prefixVariable = 1#33let o: Int? = 4
+o.map { $0 + 1 }
+let n: Int? = nil
+n.map { $0 + 1 } ?? 0#38"abc".reversed()
+"abc".sorted()#40let x: Int? = nil
+x ?? 3
+let s: String? = "ab"
+s?.count
+s!.count#41Set([1, 2]).union([9]).sorted()
+(1 ... 5).contains(3)#45(description: "mine", n: 1).description#47func f(_ x: Double) -> String {
+    "double"
+}
+func f(_ x: Int) -> String {
+    "int"
+}
+f(5)
+f(5.5)#51[1, 2, 3, 4].dropFirst()
+[1, 2, 3].split(separator: 2)
+Array([1, 2, 3].suffix(2))#56let x: Int? = nil
+x!#58[[1, 2], [3]].flatMap { $0 }
+[1, 2].elementsEqual([1, 2])#67enum Level: Int {
+    case low = 1
+    case mid
+    case high = 10
+}
+Level.mid.rawValue
+Level(rawValue: 10)
+Level(rawValue: 5) == nil#68"tab\there"
+let xs: [Any] = [1, "x", nil]
+xs
+["k": "v"].debugDescription#70enum Code: String {
+    case ok
+    case bad = "BAD"
+}
+Code.ok.rawValue
+Code.bad.rawValue#73enum E {
+    case a
+    case b(code: Int, String)
+}
+E.b(code: 2, "no")
+"\(E.b(code: 2, "no"))"#76enum L: Int {
+    case a = 1
+    case b = 1
+}#79enum L {
+    case a = 1
+}#82enum K {
+    case a
+}
+K.a.rawValue#86var n = 0
+while true {
+    n += 1
+}#106func f(_ i: Int) -> () -> Int {
+    let g = { i + 1 }
+    let unused = [1, 2]
+    return g
+}
+let h = f(1)
+h()#108let p: FilePath = "/usr/local/bin/swish.tar.gz"
+p.lastComponent!
+p.extension
+p.stem
+p.removingLastComponent()
+p.appending("x")
+p.isAbsolute#113let n = 3
+(n * 2) + 1#114func g(a: Int) {}
+func g(b: Int) {}
+g(c: 1)#115let c: FilePath.Component = "a.b"
+c.extension
+c.stem#117func g(_ x: Int, y: Int = 0) -> Int {
+    1
+}
+func g(_ x: Int, z: Int = 0) -> Int {
+    2
+}
+g(1)#118let n = 4#122var n = 0
+while n < 3 {
+    n = n + 1
+}
+n#125"a" + "b"
+[1, 2] + [3]#1271 < 2
+1 == 1.0
+[1, 2][1]#133let xs = [(n: 2, s: "b"), (n: 1, s: "a")]
+xs.sorted(by: \.n).map(\.s)
+xs.map(\.n)#135let p: FilePath = "/usr/local/bin/swish.tar.gz"
+p == FilePath("/usr/local/bin/swish.tar.gz")
+p.starts(with: "/usr")#137struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+var p = Point(x: 3, y: 4)
+p.move(by: 1)
+p
+p.reset()
+p#141String("x")
+let c: Character = "z"
+String(c)#144struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+struct Line {
+    var start: Point
+    var end: Point
+}
+var l = Line(start: Point(x: 0), end: Point(x: 5))
+l.end.move(by: 2)
+l.end#149struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+let q = Point(x: 1)
+q.move(by: 1)#152func zzgreet() {}#153struct C {
+    var n: Int
+    func bump() {
+        self.n += 1
+    }
+}
+var c = C(n: 1)
+c.bump()#165try? [1][5] == nil
+try? (1 / 0) == nil#169(try? [1][5]) == nil
+(try? 1 / 0) == nil#171func f() -> Int {
+    [1][9]
+}
+(try? f()) ?? 0#184let r = 1 ... 5
+r
+r.count
+r.contains(3)
+r.map { $0 * 2 }
+r.filter { ($0 % 2) == 0 }#196func counter() -> (Int) -> Int {
+    var c = 0
+    return {
+    c = c + $0
+    return c
+}
+}
+let next = counter()
+next(1)
+next(5)#198for i in 0 ..< 2 {
+    print(i)
+}
+let r = 5 ... 6
+for i in r {
+    print(i)
+}#200var fs: [() -> Int] = []
+for i in 1 ... 3 {
+    fs = fs + [{ i * 10 }]
+}
+fs[0]()
+fs[2]()#202(1.0 ... 2.0).contains(1.5)
+("a" ... "f").contains("c")#206let r = (name: "x", size: 2.0 MB)
+r.name
+r.size * 2
+r.1#208let r = (name: "x", size: 2.0 MB)
+r#211let r = 3 ... 1#212let r = (name: "x", size: 2.0 MB)
+r.nope#216"a\nb".lines.count
+[1, 2].last
+"abc".count#217let xs: [Int]? = [1, 2]
+xs?[1]
+let none: [Int]? = nil
+none?[0] == nil#221func f() {
+    42
+}
+f()#231let s = Set([3, 1, 2, 3])
+s.count
+s.contains(2)
+s.sorted()
+s.union([9]).sorted()#236let s = Set([1, 2])
+s.isSubset(of: 1 ... 5)
+s.intersection(Set([2, 3]))
+Set("hello").count#237struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.zero
+Counter.step
+Counter.make(3)
+Counter.next#239let s: Set<String> = Set(["a"])
+s.contains("a")
+Set([1]) == Set([1])#242struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.zero.bumped()
+let f = Counter.make
+f(1)#244let s = "a  b"#247struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.made += 5
+Counter.made = Counter.made * 2
+Counter.made#251struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.step = 3#2541
+2
+"a"#255struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.made = "x"#258for i in 1 ... 3 {
+    i
+}#259struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.nope#261struct Counter: Equatable {
+    static let zero = Counter(n: 0)
+    static let step = 2
+    static var made = 0
+    static var next: Int {
+        Counter.step + Counter.made
+    }
+    var n: Int
+    static func make(_ n: Int) -> Counter {
+        Counter.made += 1
+        return Counter(n: n * Counter.step)
+    }
+    func bumped() -> Counter {
+        Counter(n: self.n + Counter.step)
+    }
+}
+Counter.next = 1#263if true {
+    1
+} else {
+    2
+}#266var p: FilePath = "/a/b.txt"
+p.extension = "md"
+p
+p.extension = nil
+p#267do {
+    1
+}
+2#269let parts = "c,a,b".split(separator: ",")
+parts.sorted()
+parts.contains("a")#270func f() -> Int {
+    1
+}
+f()#272struct W {
+    var path: FilePath
+}
+var w = W(path: "/x/y.c")
+w.path.extension = "h"
+w.path#277let parts = "a,b,c".split(separator: ",")
+parts
+parts.count
+parts[0] == "a"
+String(parts[1])#282"swish".first
+"swish".first?.isLetter
+"a b".contains(" ")#284[1, 2, 3].filter { $0 > 1 }.map { $0 * 10 }#286["a", "b"].joined(separator: "-")#313func makeCounter() -> () -> Int {
+    var n = 0
+    return {
+    n += 1
+    return n
+}
+}
+let c = makeCounter()
+c()
+c()#316struct P: Equatable {
+    var x: Int
+}
+P(x: 1) == P(x: 1)#318func f() -> Int {
+    var n = 0
+    let inc = { n += 1 }
+    inc()
+    inc()
+    return n
+}
+f()#319let xs: [Int] = []#320func make() -> (Int) -> Int {
+    func fact(_ n: Int) -> Int {
+        if n <= 1 {
+            return 1
+        }
+        return n * fact(n - 1)
+    }
+    return fact
+}
+make()(5)#326let x: Any = 5
+x as? Int
+x as? String
+x is Int
+(x as! Int) + 1#337let a: Any = "s"
+a as! Int#340let a: Any = "s"
+(a as? Int) ?? 0#341func square(_ x: Int) -> Int {
+    x * x
+}
+square(7)#345func fib(_ n: Int) -> Int {
+    if n < 2 {
+        return n
+    }
+    return fib(n - 1) + fib(n - 2)
+}
+fib(15)#347for i in 1 ... 3 {
+    print(i)
+}#349for i in 0 ..< 2 {
+    print(i)
+}
+for x in ["a", "b"] {
+    print(x)
+}#352for c in "héy" {
+    print(c)
+}#354func outer() -> Int {
+    return inner() * 2
+    func inner() -> Int {
+        21
+    }
+}
+outer()#356let name = "Swish"#362var i = 1
+i = i + 1
+i#365let x = 1
+if true {
+    let x = 2
+    print(x)
+}
+x#369var x = 1
+if true {
+    x = 5
+}
+x#371func greet(_ name: String, times: Int = 1) -> String {
+    "\(name)x\(times)"
+}
+greet("a")
+greet("b", times: 2)#375func half(_ x: Double) -> Double {
+    x / 2
+}
+half(3)#378func sum(_ xs: Int...) -> Int {
+    var t = 0
+    for x in xs {
+        t = t + x
+    }
+    return t
+}
+sum()
+sum(1, 2, 3)#382"costs $5 and $HOME"#391var xs = [1, 2, 3]
+xs[1] = 20
+xs[0] += 5
+xs#393true
+false
+nil#395var r = ["a": 1]
+r["b"] = 2
+r["a"] = 3
+var t = (a: 1, b: 2)
+t.a *= 3
+r
+t#396false#398true#399var n = 10
+n -= 3
+n /= 7
+n#403struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+var p = Point(x: 1)
+p.x = "a"#404func describe() {}#406struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+var p = Point(x: 1)
+p.lengthSquared = 1#407var xs = [3, 1]
+xs.append(2)
+xs.append(contentsOf: [5])
+xs.insert(0, at: 0)
+xs.sort()
+xs#408let xs = [1]
+xs[0] = 2#409func g(_ x) -> String {
+    "any"
+}
+func g(_ x: Int) -> String {
+    "int"
+}
+let a: Any = 5
+g(a)
+g(5)#410var xs = [3, 1, 2]
+xs.removeAll { $0 > 2 }
+let last = xs.removeLast()
+xs
+last#412var xs = [1]
+xs[5] = 2#413func f(_ x: Int) -> String {
+    "int"
+}
+func f(_ x: Double) -> String {
+    "double"
+}
+f(5)
+f(5.5)#414var d = ["a": 1]
+d.updateValue(2, forKey: "b")
+d.removeValue(forKey: "a")
+d#416var d = ["a": 1]
+d.merge(["b": 2]) { (a, b) in b }
+d#418var s = Set([1])
+s.insert(2)
+s.remove(1)
+var t = "ab"
+t.append("c")
+s
+t#425struct S {
+    var xs: [Int]
+}
+var s = S(xs: [])
+s.xs.append(4)
+var m = [[1], [2]]
+m[0].append(9)
+s
+m#426struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+func far(_ p: Point) -> Int {
+    p.x
+}
+far(Point(x: 7))#430var xs = [1, 2, 3]
+xs.removeLast()
+xs.popLast()#432struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+func far(_ p: Point) -> Int {
+    p.x
+}
+far(["x": 1])#433struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+func origin() -> Point {
+    Point(x: 0)
+}
+origin()#4341 + 1
+1 / 0#435struct V {
+    let major = 1
+    var minor: Int
+}
+V(minor: 2)#437struct S {
+    var a: Int
+}
+S#438let t = (name: "x", 2)
+t.name
+t.1
+t#442var d = ["a": 1]
+d["b"] = 2
+d["a"]
+d["a"]! + 1
+d.keys.sorted()#448let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]
+xs.sorted(by: \.s).map { $0.n }#450[3, 1, 2].sorted()
+[3, 1, 2].sorted { $0 > $1 }
+[3, 1, 2].prefix(2)#4511 + 2.5
+let d: Double = 1
+d#452[1, 2, 3].count(where: { $0 > 1 })
+[1, 2, 3].count#459let r = 1 ... 9000000000000
+r.count#461for i in 3 ... 1 {}#476await 5#487enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+func describe(_ r: Result) -> String {
+    switch r {
+    case .ok:
+        return "fine"
+    case .failed(let code, let why) where code > 1:
+        return "bad \(code): \(why)"
+    case .failed:
+        return "other"
+    }
+}
+describe(.ok)
+describe(.failed(code: 2, "boom"))
+describe(.failed(code: 1, "meh"))#488struct P {
+    var x: Int
+    func twice() -> Int {
+        self.x * 2
+    }
+}
+enum K {
+    case a
+    case b(n: Int)
+}#489for i in 0 ..< 10 {
+    if i == 1 {
+        continue
+    }
+    if i == 3 {
+        break
+    }
+    print(i)
+}#495struct Temp {
+    let celsius: Double
+    var fahrenheit: Double {
+        ((self.celsius * 9) / 5) + 32
+    }
+    init(fahrenheit f: Double) {
+        self.celsius = ((f - 32) * 5) / 9
+    }
+    init(celsius: Double) {
+        self.celsius = celsius
+    }
+}
+Temp(fahrenheit: 212)
+Temp(celsius: 20).fahrenheit#500let rows: [Any] = [(n: 5, s: "a"), (n: 100, t: "b")]
+rows#503enum K {
+    case a
+    case b
+}
+func f(_ k: K) -> K {
+    k
+}
+f(.b)
+func g() -> K {
+    .a
+}
+g()
+func h(kind: K = .b) -> K {
+    kind
+}
+h#505struct S {
+    var a: Int
+    init() {}
+}
+S()#507enum K {
+    case a
+    case b
+}
+let x = .a#508struct Temp {
+    let celsius: Double
+    var fahrenheit: Double {
+        ((self.celsius * 9) / 5) + 32
+    }
+    init(fahrenheit f: Double) {
+        self.celsius = ((f - 32) * 5) / 9
+    }
+    init(celsius: Double) {
+        self.celsius = celsius
+    }
+}
+var t = Temp(celsius: 1)
+t.celsius = 2#510func f(times: Int = 1, color: Bool = true) {}#516let c = 1
+c = 2#517let zzvalue = 1#5211 / 0#525[1][5]#527enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+Result.failed(code: 2, "boom")#530enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+Result.failed#532enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+Result.failed(2, "boom")#537enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+Result.failed(code: "x", "boom")#539enum Result {
+    case ok
+    case failed(code: Int, String)
+}
+Result.allCases#541Date(timeIntervalSince1970: 0) < Date()
+Date(timeIntervalSince1970: 0).timeIntervalSince1970#544let d = Date(timeIntervalSince1970: 100)
+(d + 60) - d
+(d - 60) < d#545do {
+    1 / 0
+} catch {
+    print(error.localizedDescription)
+}#547do {
+    1 / 0
+} catch {
+    error.status
+}#550do {
+    1 / 0
+} catch {
+    error.message
+}#551await#553Date("someday") == nil#557struct S {
+    static let k = 1
+    func f() -> Int {
+        S.k
+    }
+}
+S().f()#562let n = 5
+if n > 3 {
+    "big"
+} else {
+    "small"
+}
+let s = if n > 9 {
+    "big"
+} else {
+    "small"
+}
+s#565if true {
+    if false {
+    "a"
+} else {
+    "b"
+}
+} else {
+    "c"
+}
+[1, 2].map { if $0 == 1 {
+    "one"
+} else {
+    "more"
+} }#573let n = 5
+let parity = if (n % 2) == 0 {
+    "even"
+} else {
+    if n > 4 {
+    "odd, big"
+} else {
+    "odd"
+}
+}
+parity
+let missing: Int? = nil
+let got = if let v = missing {
+    v
+} else {
+    -1
+}
+got
+func sign(_ x: Int) -> String {
+    if x < 0 {
+        "negative"
+    } else if x == 0 {
+        "zero"
+    } else {
+        "positive"
+    }
+}
+sign(-2)
+sign(3)#576func f() -> Int {
+    1
+}
+func f() -> Int {
+    2
+}
+f()#577let m = if 1 > 2 {
+    1
+} else {
+    nil
+}
+m ?? 0
+let d: Double = if true {
+    1
+} else {
+    2.5
+}
+d#583let n = 41#590func none() -> [Int] {
+    []
+}
+none#594enum Kind {
+    case file
+    case directory
+}
+let k = Kind.directory
+k
+k == .directory
+k != .file
+Kind.allCases#598let double = { $0 * 2 }
+double(21)#599enum Kind {
+    case file
+    case directory
+}
+Kind.socket#603let add = { (a, b) in a + b }
+add(1, 2)#606enum Kind {
+    case file
+    case directory
+}
+Kind.file == "file"#607func apply(_ f: (Int) -> Int, _ x: Int) -> Int {
+    f(x)
+}
+apply({ $0 + 100 }, 1)#615"swish".uppercased()
+"swish".hasPrefix("sw")
+"swish".count
+2.5.rounded()
+12.isMultiple(of: 4)#616nil ?? (1 + 2)
+(1 ?? 2) == 1
+nil ?? (nil ?? 3)#619[3, 1, 2].contains(2)
+[3, 1, 2].firstIndex(of: 1)
+[3, 1, 2].max()
+[1, 2, 3].reduce(0) { $0 + $1 }
+[1, 2].map { $0 * 2 }#623Int.max#628func f(_ x: Int, label: String = "d") -> Int {
+    x
+}
+f()#630func f(_ x: Int, label: String = "d") -> Int {
+    x
+}
+f("s")#632func f(_ x: Int, label: String = "d") -> Int {
+    x
+}
+f(1, other: "x")#633func f(_ x: Int, label: String = "d") -> Int {
+    x
+}
+f(1, 2)#635func f() -> Int {
+    "no"
+}
+f()#641let sign = { (x: Int) in
+    if x > 0 {
+        return "pos"
+    }
+    return "neg"
+}
+sign(-1).count#6441.5 GB + 500 MB
+1.0 KB.bytes
+10.0 MB / 4
+1.0 MB > 999 KB
+4.0 MB / 2.0 MB
+-1.0 KB#646struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+Point(x: 3, y: 4)
+Point(x: 1)#651func prompt() -> String {
+    "plain> "
+}#652struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+let p = Point(x: 3, y: 4)
+p.x
+p.lengthSquared
+p.describe()#653func prompt(status: Int) -> String {
+    "[\(status)]> "
+}
+false#654func prompt(_ n: Int) -> Int {
+    n
+}#659func double(_ x: Int) -> Int {
+    x * 2
+}
+[1, 2].map(double).map { $0 + 1 }#662func conv(_ x: Int) -> String {
+    "int"
+}
+func conv(_ x: String) -> String {
+    "string"
+}
+let f: (String) -> String = conv
+f("a")#665struct P: Equatable {
+    var x: Int
+    var y = 0
+}
+P(x: 1) == P(x: 1, y: 0)
+P(x: 1) != P(x: 2)#666func apply(_ f: (Int) -> Int, _ x: Int) -> Int {
+    f(x)
+}
+apply({ $0 * 3 }, 2)#667struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+Point(x: 1) == Point(x: 1, y: 0)#669#filePath#670struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+var a = Point(x: 1)
+var b = a
+b.x = 9
+a.x#671struct Entry: Tabular {
+    static let columns: [DisplayColumn] = ["size", "name"]
+    var name: String
+    var size: Int
+    var path: String
+}
+let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
+es#675[3, 1, 3, 2].uniqued().sorted()#676struct P: Tabular {
+    var x: Int
+}#677struct P: Tabular {
+    static let columns = 1
+    var x: Int
+}#678enum E: Tabular {
+    case a
+}#690let x: Int = "a"#696func down(_ n: Int) -> Int {
+    down(n + 1)
+}
+down(0)#699Int = "x"#700let shared = 1#7011 + 2#705let xs = [3, 1, 2]
+xs.sorted()#712[["a": 1]].select("a")#715[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }#716let answer = 42#722await 1#724await 21#728while true {}#732.HOME#734func sum(_ n: Int) -> Int {
+    if n == 0 {
+    0
+} else {
+    n + sum(n - 1)
+}
+}
+sum(5000)#735print("hello", 1 + 1)
+print([1, 2])#7371 + 1#738for i in 1 ... 100000 {
+    print("xxxxxxxxxx")
+}

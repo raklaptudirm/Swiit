@@ -50,6 +50,6 @@ let package = Package(
             exclude: ["Library"]
         ),
         // boundaries.txt and spi-surface.txt are data the boundary tests read from the source tree.
-        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "spi-surface.txt", "programs.txt"]),
+        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "spi-surface.txt", "programs.txt", "Goldens"]),
     ]
 )

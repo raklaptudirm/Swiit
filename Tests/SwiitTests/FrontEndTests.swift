@@ -141,3 +141,56 @@ private func isIncomplete(_ parse: () throws -> Program) -> Bool? {
         #expect(lowered != nil, "swiftsyntax took it: \(source)")
     }
 }
+
+// MARK: What the hand-written parser read, kept
+
+/// What the front end reads is held to what the hand-written parser read
+/// (Goldens/swift.txt, made from it before it was deleted): each of this
+/// file's programs and the harvested Swift-only ones, as the tree printed
+/// back as Swift. A change is a decision, not an accident; `UPDATE_GOLDENS=1`
+/// writes the file again from the front end as it is.
+private func goldenURL() -> URL {
+    URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("Goldens/swift.txt")
+}
+
+/// The records of the golden file: a program's name and its printed tree.
+private func goldenRecords() throws -> [(name: String, tree: String)] {
+    try String(contentsOf: goldenURL(), encoding: .utf8).split(separator: "\u{1E}", omittingEmptySubsequences: true).map { record in
+        let parts = record.split(separator: "\u{1F}", maxSplits: 1, omittingEmptySubsequences: false)
+        return (String(parts[0]), String(parts[1]))
+    }
+}
+
+/// Every program the golden file has, by name: this file's, then the harvested ones as `#index`.
+private func goldenPrograms() throws -> [(name: String, source: String)] {
+    programs.map { ($0.name, $0.source) } + (try harvested()).enumerated().map { ("#\($0.offset)", $0.element) }
+}
+
+@Test func theFrontEndReadsAsTheHandWrittenParserDid() throws {
+    let interpreter = Interpreter(host: SwiitHost(), limits: Limits())
+    let bound = interpreter.globalNames()
+    if ProcessInfo.processInfo.environment["UPDATE_GOLDENS"] != nil {
+        // Written from the hand-written parser, the oracle, while it exists.
+        var records: [String] = []
+        for (name, source) in try goldenPrograms() {
+            guard let oracle = try? Parser.parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else { continue }
+            // `f -5 -3` is arithmetic to the oracle and two statements to Swift: not what is kept.
+            guard (try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil)) != nil else { continue }
+            records.append("\(name)\u{1F}\(SwiftPrinter().source(oracle))")
+        }
+        try records.joined(separator: "\u{1E}").write(to: goldenURL(), atomically: true, encoding: .utf8)
+    }
+    let golden = try goldenRecords()
+    let sources = Dictionary(uniqueKeysWithValues: try goldenPrograms().map { ($0.name, $0.source) })
+    #expect(golden.count > 250)
+    var wrong: [String] = []
+    for (name, tree) in golden {
+        let source = try #require(sources[name])
+        guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else {
+            wrong.append("\(name): not read\n\(source.prefix(100))")
+            continue
+        }
+        if SwiftPrinter().source(lowered) != tree { wrong.append("\(name):\n\(source.prefix(100))") }
+    }
+    #expect(wrong.isEmpty, "\(wrong.count) programs differ from what the hand-written parser read:\n\(wrong.prefix(5).joined(separator: "\n---\n"))")
+}
