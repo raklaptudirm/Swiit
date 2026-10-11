@@ -39,6 +39,9 @@ import SwishKit
         switch statement {
         case .declare(let name, let mutable, let value):
             let keyword = mutable ? "var" : "let"
+            if case .childTask(let closure) = value, case .expression(let inner)? = closure.body.statements.first {
+                return ["\(p)async let \(name) = \(expression(inner))"]
+            }
             if case .annotated(let inner, let type) = value {
                 return ["\(p)\(keyword) \(name): \(type) = \(expression(inner))"]
             }
@@ -102,7 +105,8 @@ import SwishKit
             }
             return [p + text + "\(p)}"]
         case .forLoop(let loop):
-            return [p + "for \(loop.variable) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
+            let effects = (loop.isTry ? "try " : "") + (loop.isAwait ? "await " : "")
+            return [p + "for \(effects)\(loop.variable) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
         case .whileLoop(let loop):
             return [p + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"]
         }
@@ -260,6 +264,7 @@ import SwishKit
             if entries.isEmpty { return "[:]" }
             return "[" + entries.map { "\(expression($0.key)): \(expression($0.value))" }.joined(separator: ", ") + "]"
         case .closure(let closure): return closureText(closure)
+        case .childTask(let closure): return "Task " + closureText(closure)
         case .call(let callee, let arguments):
             // A closure last is written after the parentheses, as Swift does.
             if let last = arguments.last, last.label == nil, case .closure(let closure) = last.value {

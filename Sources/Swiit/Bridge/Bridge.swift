@@ -10,7 +10,9 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 @_spi(Shell) public enum Bridge {
     /// The bridged types, by the name Swish writes them with.
-    @_spi(Shell) public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swishKit + foundation).map { ($0.name, $0) })
+    @_spi(Shell) public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swishKit + foundation + concurrency).map {
+        ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []))
+    })
 
     /// Text as a value of the type named, if the type can be text and the
     /// text is one: through its failable initializer from text (`Int`), or
@@ -85,6 +87,15 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     @_spi(Shell) public let members: [BridgedMember]
 
 
+    /// It, conforming to `protocols` too, whatever its generic parameters are.
+    func conforming(to protocols: [String]) -> BridgedType {
+        guard !protocols.isEmpty else { return self }
+        var all = conformances
+        for name in protocols { all[name] = [:] }
+        return BridgedType(name: name, genericParameters: genericParameters, conformances: all, associatedTypes: associatedTypes,
+                           parse: parse, literal: literal, arrayLiteral: arrayLiteral, members: members)
+    }
+
     @_spi(Shell) public init(name: String, genericParameters: [String], conformances: [String: [String: [String]]], associatedTypes: [String: TypeAnnotation], parse: ((String) -> Value?)? = nil, literal: ((String) -> Value?)? = nil, arrayLiteral: (([Value]) -> Value)? = nil, members: [BridgedMember]) {
         self.name = name
         self.genericParameters = genericParameters
@@ -121,8 +132,16 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     @_spi(Shell) public let body: FunctionBody
     /// What each parameter is, from `- Parameter name:` lines: `help`'s flags.
     @_spi(Shell) public var parameterDocs: [String: String] = [:]
+    /// `async`: a call, or reading the property, needs `await`. Its glue
+    /// waits in `suspend`, so other tasks run meanwhile.
+    @_spi(Shell) public var effect: Effect = .sync
+    /// `throws(Failure)`, for a generic parameter of its type: it throws
+    /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
+    @_spi(Shell) public var typedThrows: String?
 
-    @_spi(Shell) public init(kind: Kind, name: String, isStatic: Bool, parameters: [Parameter], returns: TypeAnnotation, generics: [String: [String]], isThrowing: Bool, isRethrowing: Bool, isMutating: Bool, discardableResult: Bool, summary: String, body: FunctionBody, parameterDocs: [String: String] = [:]) {
+    @_spi(Shell) public init(kind: Kind, name: String, isStatic: Bool, parameters: [Parameter], returns: TypeAnnotation, generics: [String: [String]], isThrowing: Bool, isRethrowing: Bool, isMutating: Bool, discardableResult: Bool, summary: String, body: FunctionBody, parameterDocs: [String: String] = [:], effect: Effect = .sync, typedThrows: String? = nil) {
+        self.effect = effect
+        self.typedThrows = typedThrows
         self.kind = kind
         self.name = name
         self.isStatic = isStatic

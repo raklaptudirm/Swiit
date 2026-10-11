@@ -199,11 +199,17 @@ extension Statement {
     @_spi(Shell) public var variable: String
     @_spi(Shell) public var sequence: Expr
     @_spi(Shell) public var body: Program
+    /// `for try await x in s`: s is an AsyncSequence, whose reading waits
+    /// (`await`) and may throw (`try`).
+    @_spi(Shell) public var isAwait = false
+    @_spi(Shell) public var isTry = false
 
-    @_spi(Shell) public init(variable: String, sequence: Expr, body: Program) {
+    @_spi(Shell) public init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false) {
         self.variable = variable
         self.sequence = sequence
         self.body = body
+        self.isAwait = isAwait
+        self.isTry = isTry
     }
 }
 

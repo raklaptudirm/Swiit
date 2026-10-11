@@ -69,6 +69,10 @@ extension Interpreter {
                 name: nil, parameters: literal.parameters, returnType: literal.returnType,
                 body: .swish(literal.body), captured: captureScopes(literal.names)
             ))
+        case .childTask(let literal):
+            let operation = try evaluate(.closure(literal))
+            let handle = try startTask(host: newTaskHost?()) { [unowned self] in try call(operation, with: []) }
+            return SwiftValue.make(TaskBox(handle), as: "Task")
         case .call(let callee, let arguments):
             // The overload the checker chose, when there's a choice.
             var callee = callee

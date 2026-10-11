@@ -44,6 +44,8 @@ extension Parser {
         switch identifier() {
         case "let", "var":
             return try parseDeclaration()
+        case "async" where asyncLetAhead():
+            return try parseAsyncLet()
         case "func":
             return .function(try parseFunction())
         case "guard":
@@ -97,6 +99,18 @@ extension Parser {
         if let statement = try parseCompoundStatement() { return statement }
         if let word = identifier(), Parser.statementKeywords.contains(word) {
             throw SyntaxError("'\(word)' must start a statement")
+        }
+
+        // `_ = f()`: the value, thrown away, as `let _ = f()` does.
+        if identifier() == "_" {
+            let before = (pos, spans.count)
+            pos += 1
+            skipSpaces()
+            if peek() == "=" && peek(1) != "=" {
+                pos += 1
+                return .declare(name: "_", mutable: false, value: try parseExpression())
+            }
+            rewind(to: before)
         }
 
         // A statement of the plug-in's, like the shell's `env.NAME = value`.

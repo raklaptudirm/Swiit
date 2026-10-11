@@ -21,6 +21,9 @@ extension Lowering {
         if parser.peek() == "$", let next = parser.peek(1), Parser.isDigit(next) { return nil }
         let word = parser.identifier()
         if let word, word != "try", Lowering.keywords.contains(word), word != "import" { return nil }
+        // `_ = f()` is Swift's, and so is `async let x = f()`.
+        if word == "_", let item, isAssignment(item) { return nil }
+        if word == "async", case .decl(let decl)? = item, decl.is(VariableDeclSyntax.self) { return nil }
         if let statement = try read(&parser, from: start, plugin.statement) {
             consume(from: start, to: parser)
             return (statement, byteOffset(of: parser))

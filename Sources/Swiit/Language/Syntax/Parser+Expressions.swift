@@ -124,9 +124,24 @@ extension Parser {
             skipSpaces()
             // A bare `await` brings back the most recent job.
             let ends = peek().map { ";\n)}],".contains($0) } ?? true || startsWith("&&") || startsWith("||")
-            return .await(ends ? nil : try parseUnary(), throwing: tryDepth > 0)
+            // Like `try`, it covers what follows, as in Swift: `await a.value +
+            // b.value` waits for both. Up to `&&` and `||`, which join a
+            // layer's commands too: `await job && echo done`.
+            return .await(ends ? nil : try parseExpression(logical: false), throwing: tryDepth > 0)
         }
         var expr = try parsePrimary()
+        // `Task { … }`, `run { … }`: a type or a function called with only a
+        // trailing closure.
+        if case .variable(let name) = expr, kind(of: name) == .type || kind(of: name) == .function {
+            let beforeClosure = (pos, spans.count)
+            skipSpaces()
+            if peek() == "{" && conditionDepth == 0 {
+                pos += 1
+                expr = .call(expr, [Argument(label: nil, value: .closure(try parseClosure()))])
+            } else {
+                rewind(to: beforeClosure)
+            }
+        }
         // Postfix operators bind only without a space: `f(x)`, `xs[0]`.
         while true {
             if peek() == "[" {

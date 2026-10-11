@@ -60,6 +60,11 @@ extension TypeChecker {
                 return functionValue(name, overloads, expected: expected, expr: &expr)
             case .structType, .enumType, .module, .swiftType:
                 return .unknown
+            case .asyncLet:
+                // Its task's value, which waits for it (and throws what it threw).
+                let value = Bridge.types["Task"]!.members.firstIndex { $0.kind == .property && !$0.isStatic && $0.name == "value" }!
+                expr = .bridged(type: "Task", member: value, receiver: .variable(name), arguments: [])
+                return try typeOf(&expr)
             }
         case .extended(var box):
             let type = try box.node.check(in: self, expecting: expected)
@@ -132,6 +137,10 @@ extension TypeChecker {
             }
             expr = .tuple(elements)
             return .tuple(types)
+        case .childTask(var closure):
+            let (result, throwing) = try childTaskType(&closure)
+            expr = .childTask(closure)
+            return .generic("Task", [result, .named(throwing ? "Error" : "Never")])
         case .closure(var closure):
             let type = try closureType(&closure, expecting: expected)
             expr = .closure(closure)
@@ -141,8 +150,30 @@ extension TypeChecker {
             // A bridged member stands for the whole call.
             if case .bridged = callee { expr = callee } else { expr = .call(callee, arguments) }
             return type
-        case .bridged:
-            return .unknown // Only made by the checker, after typing.
+        case .bridged(let typeName, let index, var receiver, var arguments):
+            // Made by the checker, and typed again when what holds it is (an
+            // operator's overloads, each tried): the same type, the same effects.
+            guard let member = Bridge.types[typeName]?.members[index] else { return .unknown }
+            var bindings: [String: TypeAnnotation] = [:]
+            if var base = receiver {
+                // `async let x`'s reads: `x` itself is the task.
+                if case .variable(let name) = base, case .asyncLet(let task)? = lookup(name) {
+                    bindings = bridged(task)?.1 ?? [:]
+                } else {
+                    bindings = bridged(try typeOf(&base))?.1 ?? [:]
+                    receiver = base
+                }
+            }
+            var type = substitute(member.returns, bindings)
+            var throwing = member.isThrowing
+            if member.kind != .property {
+                let signature = Signature(name: member.name, parameters: member.parameters, returns: member.returns,
+                                          isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, generics: member.generics)
+                (_, _, type, throwing) = try match(&arguments, to: signature, bindings: bindings)
+            }
+            try bridgedEffects(member, bindings: bindings, throwing: throwing, "'\(member.name)'")
+            expr = .bridged(type: typeName, member: index, receiver: receiver, arguments: arguments)
+            return type
         case .member(var base, let name):
             // `Int.max`: a static member of a Swift type.
             if case .variable(let typeName) = base, case .swiftType? = lookup(typeName) {

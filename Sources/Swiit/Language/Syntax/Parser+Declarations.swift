@@ -271,6 +271,49 @@ extension Parser {
         return names
     }
 
+    /// Whether `async let` comes next, rather than the shell's `async`.
+    @_spi(Shell) public func asyncLetAhead() -> Bool {
+        var index = pos + "async".count
+        while index < chars.count, chars[index] == " " || chars[index] == "\t" { index += 1 }
+        return index > pos + "async".count && identifier(at: index) == "let"
+    }
+
+    /// `async let x = f()`: `f()` starts as a task the scope owns, and reading
+    /// `x` awaits it.
+    @_spi(Shell) public mutating func parseAsyncLet() throws(SyntaxError) -> Statement {
+        keyword("async")
+        skipSpaces()
+        keyword("let")
+        skipSpaces()
+        let nameStart = pos
+        let name = try parseName(after: "'async let'")
+        mark(.variable, from: nameStart)
+        skipSpaces()
+        var type: TypeAnnotation?
+        if consume(":") {
+            type = try parseType()
+            skipSpaces()
+        }
+        guard peek() == "=" && peek(1) != "=" else { throw expected("'=' after '\(name)'") }
+        pos += 1
+        // It runs as a closure would, keeping what it mentions.
+        let valueLine = line(at: pos)
+        namesUsed.append([])
+        let value: Expr
+        do {
+            value = try parseExpression()
+        } catch {
+            namesUsed.removeLast()
+            throw error
+        }
+        let mentioned = namesUsed.removeLast()
+        if !namesUsed.isEmpty { namesUsed[namesUsed.count - 1].formUnion(mentioned) }
+        scopes[scopes.count - 1][name] = .variable
+        let operation = ClosureLiteral(parameters: [], returnType: type, body: Program(statements: [.expression(value)], lines: [valueLine]),
+                                       names: NamesUsed(names: mentioned))
+        return .declare(name: name, mutable: false, value: .childTask(operation))
+    }
+
     @_spi(Shell) public mutating func parseDeclaration() throws(SyntaxError) -> Statement {
         let keyword = identifier()!
         self.keyword(keyword)

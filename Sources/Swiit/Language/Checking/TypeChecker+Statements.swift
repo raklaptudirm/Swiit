@@ -31,7 +31,13 @@ extension TypeChecker {
                 throw TypeError("'nil' needs a type: let \(name): T? = nil")
             }
             if case .tuple([]) = type { type = .void }
-            scopes[scopes.count - 1][name] = .variable(type, mutable: mutable)
+            // `let _ = f()` binds nothing.
+            if case .childTask = value {
+                try checkAwaitAllowed()
+                scopes[scopes.count - 1][name] = .asyncLet(type)
+            } else if name != "_" {
+                scopes[scopes.count - 1][name] = .variable(type, mutable: mutable)
+            }
             statement = .declare(name: name, mutable: mutable, value: value)
         case .assign(var assignment):
             try checkAssignment(&assignment)
@@ -102,7 +108,9 @@ extension TypeChecker {
             try checkSwitch(&node)
             statement = .switchStatement(node)
         case .forLoop(var loop):
-            let element = try elementType(of: try typeOf(&loop.sequence))
+            let sequence = try typeOf(&loop.sequence)
+            if loop.isAwait { try checkAsyncLoop(loop, over: sequence) }
+            let element = try elementType(of: sequence)
             try checkBlock(&loop.body, declaring: [loop.variable: .variable(element, mutable: false)], newScope: true)
             statement = .forLoop(loop)
         case .whileLoop(var loop):
@@ -110,6 +118,22 @@ extension TypeChecker {
             try checkBlock(&loop.body, newScope: true)
             statement = .whileLoop(loop)
         }
+    }
+
+    /// `for try await x in s`: s must be an AsyncSequence, read where `await`
+    /// may be written, and its reading throws (all of Swish's do).
+    @_spi(Shell) public func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
+        try checkAwaitAllowed()
+        effectContexts[effectContexts.count - 1].effect = .async
+        if sequence != .unknown {
+            guard let (bridgedType, bindings) = bridged(sequence), bridgedConforms(bridgedType, bindings, to: "AsyncSequence") else {
+                throw TypeError("'for await' reads an AsyncSequence, and \(sequence) isn't one")
+            }
+        }
+        guard loop.isTry else { throw TypeError("reading a \(sequence) can throw: write 'for try await'") }
+        tryDepth += 1
+        defer { tryDepth -= 1 }
+        try throwingSite("'for try await'")
     }
 
     /// A condition, which is a Bool.

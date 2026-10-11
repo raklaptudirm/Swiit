@@ -127,8 +127,11 @@ extension Interpreter {
     /// Starts `body` as a task of its own, on a thread the host makes: it
     /// runs when the lock is let go, as the task that starts it waits. `host`
     /// is what the host keeps for the task. A background task takes no
-    /// interrupts of the host's; it stops when it's cancelled.
-    @_spi(Shell) public func startTask(host taskHost: AnyObject?, _ body: @escaping () throws -> Value) throws -> TaskHandle {
+    /// interrupts of the host's; it stops when it's cancelled. A structured
+    /// task ends with the scope that started it (`closeTasks`); Swift's
+    /// `Task { }` isn't one.
+    @_spi(Shell) public func startTask(host taskHost: AnyObject?, structured: Bool = true,
+                                       _ body: @escaping () throws -> Value) throws -> TaskHandle {
         guard runningTasks < limits.tasks else {
             throw RuntimeError("there are already \(limits.tasks) tasks running")
         }
@@ -136,7 +139,7 @@ extension Interpreter {
         context.receivesInterrupts = false
         let handle = TaskHandle(context: context)
         runningTasks += 1
-        task.children.append((callDepth, handle))
+        if structured { task.children.append((callDepth, handle)) }
         // The interpreter and the task are touched only holding the lock,
         // which the thread takes first: that is what makes this safe.
         nonisolated(unsafe) let body = body
@@ -161,6 +164,9 @@ extension Interpreter {
     /// what it gave or throws what it threw.
     @_spi(Shell) public func join(_ handle: TaskHandle) throws -> Value {
         let waiter = task.cancellation
+        // The host may bring it forward while it's awaited (the shell: to the foreground).
+        let restore = awaitingTask?(handle)
+        defer { restore?() }
         guard let result = suspend(wake: { handle.poke() }, { handle.wait(unless: waiter) }) else {
             // The task waiting was cancelled: it stops, and leaves the other running.
             throw Cancelled()

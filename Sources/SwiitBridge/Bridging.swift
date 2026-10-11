@@ -117,10 +117,10 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
     case .tuple(let elements):
         let resolved = elements.compactMap { element in resolve(element.type, context).map { SType.Element(label: element.label, type: $0) } }
         return resolved.count == elements.count ? .tuple(resolved) : nil
-    case .function(let parameters, let result, let throwing):
+    case .function(let parameters, let result, let throwing, let isAsync):
         let resolved = parameters.compactMap { resolve($0, context) }
         guard resolved.count == parameters.count, let result = resolve(result, context) else { return nil }
-        return .function(resolved, result, throwing: throwing)
+        return .function(resolved, result, throwing: throwing, async: isAsync)
     case .someSequence:
         return type
     }
@@ -155,7 +155,7 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
             if case .function = element.type { return false }
             return supported(element.type, generics: generics, asParameter: false)
         }
-    case .function(let parameters, let result, _):
+    case .function(let parameters, let result, _, _):
         return asParameter && parameters.allSatisfy { supported($0, generics: generics, asParameter: false) }
             && supported(result, generics: generics, asParameter: false)
     case .member:

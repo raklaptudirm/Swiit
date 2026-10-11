@@ -84,7 +84,8 @@ import SwishKit
                 }
             ))
         case .forLoop(let loop):
-            rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body)))
+            rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body),
+                                         isAwait: loop.isAwait, isTry: loop.isTry))
         case .whileLoop(let loop):
             rewritten = .whileLoop(WhileLoop(condition: expression(loop.condition), body: program(loop.body)))
         }
@@ -168,6 +169,8 @@ import SwishKit
             rewritten = .record(entries.map { RecordEntry(key: expression($0.key), value: expression($0.value)) })
         case .closure(let literal):
             rewritten = .closure(closure(literal))
+        case .childTask(let literal):
+            rewritten = .childTask(closure(literal))
         case .call(let callee, let args):
             rewritten = .call(expression(callee), arguments(args))
         case .member(let base, let name):

@@ -39,6 +39,12 @@ public final class Interpreter {
     /// (the shell: a task in the background waits until it's awaited); then it
     /// runs the read, or doesn't, if the task is cancelled first.
     @_spi(Shell) public var inputTurn: ((_ read: () -> Void) -> Void)?
+    /// Told when the current task waits for `handle` to end (`join`), before
+    /// it does; what it gives back is called once the wait is over.
+    @_spi(Shell) public var awaitingTask: ((_ handle: TaskHandle) -> () -> Void)?
+    /// What the host keeps for a task the language starts (Swift's `Task { }`,
+    /// `async let`), as it passes its own to `startTask`.
+    @_spi(Shell) public var newTaskHost: (() -> AnyObject?)?
     /// Each enum's associated value types, by case, for checking them.
     @_spi(Shell) public var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.

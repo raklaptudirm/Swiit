@@ -100,7 +100,7 @@ extension Interpreter {
             return
         case .declare(let name, let mutable, let expr):
             let value = try evaluate(expr)
-            scopes[scopes.count - 1].bindings[name] = Binding(value: value, mutable: mutable)
+            if name != "_" { scopes[scopes.count - 1].bindings[name] = Binding(value: value, mutable: mutable) }
         case .assign(let assignment):
             try assign(assignment)
         case .structDecl(let decl):

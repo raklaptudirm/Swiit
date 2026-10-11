@@ -9,11 +9,22 @@ extension TypeChecker {
                       throws: signature.isThrowing, async: signature.effect)
     }
 
+    /// `async let`'s operation: what it gives, and whether it throws.
+    @_spi(Shell) public func childTaskType(_ closure: inout ClosureLiteral) throws -> (TypeAnnotation, Bool) {
+        // Its initializer is implicitly `try await`, as in Swift: what it
+        // waits for and throws, reading the variable does.
+        guard case .functionType(_, let result, let throwing, _) = try closureType(&closure, expecting: nil, implicitTryAwait: true) else {
+            return (.unknown, true)
+        }
+        return (result, throwing)
+    }
+
     /// A closure's type. Parameters without a type take the ones the context
     /// expects (`filter` expects `(Element) -> Bool`), or aren't known; its
     /// result is what the context expects, what it says, or what its
     /// `return`s give; it throws if its body can.
-    @_spi(Shell) public func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+    @_spi(Shell) public func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?,
+                                         implicitTryAwait: Bool = false) throws -> TypeAnnotation {
         var expectedParameters: [TypeAnnotation]?
         var expectedResult: TypeAnnotation?
         if case .functionType(let parameters, let result, _, _)? = expected, parameters.count == closure.parameters.count {
@@ -34,7 +45,7 @@ extension TypeChecker {
         returns.append(context)
         errorContexts.append(ErrorContext(handled: true))
         scopes.append(names)
-        tryDepth = 0 // A `try` outside doesn't reach in.
+        tryDepth = implicitTryAwait ? 1 : 0 // A `try` outside doesn't reach in.
         defer {
             returns.removeLast()
             errorContexts.removeLast()
@@ -47,6 +58,7 @@ extension TypeChecker {
         // A closure may `await`, which makes it async, as in Swift; one that
         // waits only through the shell's constructs is implicitly async.
         let (result, effects) = try withEffects(allowsAwait: true) { () throws -> TypeAnnotation in
+            if implicitTryAwait { awaitDepth = 1 }
             if var expr = implicitReturn(closure.body) {
                 let type = try typeOf(&expr, expecting: declared)
                 closure.body.statements[0] = .expression(expr)

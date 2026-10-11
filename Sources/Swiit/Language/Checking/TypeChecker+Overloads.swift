@@ -88,7 +88,11 @@ extension TypeChecker {
             // Swift ranks them: `merging([:])` takes the dictionary one.
             case (_, .someSequence): cost += 1
             case (let type?, let wanted) where type != wanted: cost += 1
-            default: break
+            default:
+                // A closure that doesn't throw takes the overload whose
+                // parameter doesn't either, as Swift ranks them: `Task { 1 }`
+                // is a `Task<Int, Never>`.
+                if case .functionType(_, _, false, _) = actual, case .functionType(_, _, true, _) = wanted { cost += 1 }
             }
             index += 1
         }

@@ -104,7 +104,9 @@ extension TypeChecker {
               let index = bridgedType.members.firstIndex(where: {
                   $0.kind == .property && $0.name == name && $0.isStatic == (receiver == nil)
               }) else { return nil }
-        let type = substitute(bridgedType.members[index].returns, bindings)
+        let member = bridgedType.members[index]
+        let type = substitute(member.returns, bindings)
+        try bridgedEffects(member, bindings: bindings, throwing: member.isThrowing, "'\(name)'")
         return (type, .bridged(type: typeName, member: index, receiver: receiver, arguments: []))
     }
 
@@ -119,7 +121,8 @@ extension TypeChecker {
             $0.element.kind == kind && $0.element.name == name && $0.element.isStatic == isStatic
         }.map { index, member in
             Signature(name: kind == .initializer ? typeName : name, parameters: member.parameters, returns: member.returns,
-                      isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, index: index, generics: member.generics)
+                      isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, effect: member.effect, index: index,
+                      generics: member.generics)
         }
         guard !candidates.isEmpty else {
             throw TypeError(kind == .initializer ? "\(typeName) can't be made this way from Swish yet" : "\(typeName) has no member '\(name)'")
@@ -129,13 +132,22 @@ extension TypeChecker {
         guard let chosen else {
             throw TypeError("\(candidates[0].name): which overload isn't clear until the arguments' types are known")
         }
-        if chosen.isThrowing { try throwingSite("'\(name)'") }
+        try bridgedEffects(bridgedType.members[chosen.index], bindings: bindings, throwing: chosen.isThrowing, "'\(name)'")
         if bridgedType.members[chosen.index].isMutating {
             // `xs.append(1)` changes xs, which must be a `var`.
             guard let receiver else { throw TypeError("\(typeName).\(name) is mutating: call it on a variable") }
             try checkMutable(receiver, method: name)
         }
         return (chosen.returns, .bridged(type: typeName, member: chosen.index, receiver: receiver, arguments: arguments))
+    }
+
+    /// A bridged member used here: it throws, as it says or by its typed
+    /// `throws(Failure)` unless Failure is bound to `Never`; and it waits, if
+    /// it's `async`.
+    @_spi(Shell) public func bridgedEffects(_ member: BridgedMember, bindings: [String: TypeAnnotation], throwing: Bool, _ what: String) throws {
+        let typed = member.typedThrows.map { bindings[$0] != .named("Never") } ?? false
+        if throwing || typed { try throwingSite(what) }
+        try effectSite(member.effect, what)
     }
 
     /// The initializer of `typeName` taking one unlabeled `from`, if any.

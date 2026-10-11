@@ -356,9 +356,7 @@ the task context's output and the `suspend` function sit.)
    let`), and the shell's `async f()` and `async { … }` rewritten to it; the
    shell's `Job` wraps processes or a core task, so `jobs`, `await job` and
    `job.cancel()` work the same for both. Switching only at waits, for now.
-   *Done,* but for Swift's own `Task { … }` type, which needs async
-   properties (`.value`) in the checker and goes with `async let` and task
-   groups: `InterpreterLock` (taken again by its holder; `releasing` for
+   *Done* (Swift's own `Task { … }` came with step 7): `InterpreterLock` (taken again by its holder; `releasing` for
    `suspend`), `startTask(host:_:)` and `join`, a task limit in `Limits`, and
    `SwishHost.startThread` (by default the core's large-stack thread). Only
    the foreground task takes the host's interrupts; a background one stops
@@ -404,7 +402,38 @@ the task context's output and the `suspend` function sit.)
 7. **Swift's `async`, bridged.** The generator reads `async`; a Swift `async`
    call from Swish is a wait in `suspend`, and a Swish closure Swift calls as
    `async` runs on an interpreter thread; `Flow` readable as an
-   `AsyncSequence`, and `for await`.
+   `AsyncSequence`, and `for await`. *Done,* with Swift's task API:
+   - The generator reads `async` on functions, initializers, getters and
+     function types. The glue waits for a call in `suspend` (`bridgeAsync`,
+     which runs it as a detached Swift task and cancels it with the Swish
+     task), and a Swish closure Swift calls as `async` runs holding the lock,
+     on a thread the host makes, as the task that passed it
+     (`bridgeAsyncClosure`). A bridged member says its `effect`, and a typed
+     `throws(Failure)` throws unless Failure is `Never`.
+   - `Task` is bridged by hand (Bridge+Concurrency.swift), as its operation is
+     Swish code: `Task { … }` starts an unstructured task (it outlives the
+     scope that made it, unlike `async { … }`), `Task<Success, Failure>` with
+     Failure `Never` or `Error` as the closure throws, an async `value`,
+     `cancel()`, `isCancelled`, and `Task.isCancelled`, `checkCancellation()`,
+     `sleep(nanoseconds:)` and `yield()`. A cancelled task's `value`, and
+     `Task.sleep`, throw a `CancellationError`. The shell gives such a task the
+     output of the code that started it, in the background until awaited
+     (`newTaskHost`, `awaitingTask`).
+   - `async let x = f()` starts `{ f() }` as a task the scope owns, its
+     initializer implicitly `try await`; reading `x` awaits it.
+   - `for try await x in s` reads an AsyncSequence. Flow is one, declared in
+     the core so the generator doesn't bridge AsyncSequence's own methods,
+     whose iteration would run a Flow's Swish closures off the interpreter's
+     threads.
+   - With them: `await` covers what follows it, as `try` does (up to `&&` and
+     `||`, which join the shell's commands too); `_ = f()` and `let _ = f()`;
+     a trailing closure after a type's or a function's name; a closure that
+     doesn't throw ranks the overload whose parameter doesn't either.
+   - Not yet: task groups (`withTaskGroup(of:)` takes a metatype),
+     `Task.sleep(for:)` (no `Duration`), priorities, task-local values and
+     actors. Cancellation is not cooperative: a cancelled task stops at its
+     next step, as `^C` stops the foreground, rather than running until it
+     checks.
 
 Tests that must hold by the end: two `async $(sleep 1)` awaited together take
 about one second; `async f()` runs a Swish function while the prompt carries

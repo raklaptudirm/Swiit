@@ -51,6 +51,9 @@ import SwishKit
     case list([Expr])
     case record([RecordEntry])
     case closure(ClosureLiteral)
+    /// `async let x = f()`'s value: the closure `{ f() }` run as a task the
+    /// scope owns, which is what `x` holds (a `Task`); reading `x` awaits it.
+    case childTask(ClosureLiteral)
     case call(Expr, [Argument])
     /// `value.name`: a record field, or a member like `count`.
     case member(Expr, String)

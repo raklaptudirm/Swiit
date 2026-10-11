@@ -12,8 +12,9 @@ func annotation(_ type: SType) -> String {
     case .tuple(let elements):
         if elements.isEmpty { return ".void" }
         return ".tuple([" + elements.map { ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))" }.joined(separator: ", ") + "])"
-    case .function(let parameters, let result, let throwing):
-        return ".functionType([\(parameters.map(annotation).joined(separator: ", "))], \(annotation(result)), throws: \(throwing))"
+    case .function(let parameters, let result, let throwing, let isAsync):
+        return ".functionType([\(parameters.map(annotation).joined(separator: ", "))], \(annotation(result)), throws: \(throwing)"
+            + (isAsync ? ", async: .async)" : ")")
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -30,8 +31,8 @@ func spelling(_ type: SType) -> String {
     case .tuple(let elements):
         if elements.isEmpty { return "Void" }
         return "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + spelling($0.type) }.joined(separator: ", ") + ")"
-    case .function(let parameters, let result, let throwing):
-        return "(\(parameters.map(spelling).joined(separator: ", ")))\(throwing ? " throws" : "") -> \(spelling(result))"
+    case .function(let parameters, let result, let throwing, let isAsync):
+        return "(\(parameters.map(spelling).joined(separator: ", ")))\(isAsync ? " async" : "")\(throwing ? " throws" : "") -> \(spelling(result))"
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -77,13 +78,16 @@ func fromSwish(_ value: String, _ type: SType) -> String {
             (element.label.map { "\($0): " } ?? "") + fromSwish("t[\(index)]", element.type)
         }
         return "try bridgeTuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
-    case .function(let parameters, let result, _):
+    case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
         let arguments = zip(names, parameters).map { toSwish($0, $1) }.joined(separator: ", ")
         let typed = zip(names, parameters).map { "\($0): \(spelling($1))" }.joined(separator: ", ")
-        let call = "try bridgeClosure(shell, \(value))([\(arguments)])"
-        if case .tuple(let elements) = result, elements.isEmpty { return "{ (\(typed)) throws -> Void in _ = \(call) }" }
-        return "{ (\(typed)) throws -> \(spelling(result)) in \(fromSwish(call, result)) }"
+        // A closure Swift calls as `async` runs on a thread of the interpreter's
+        // (`bridgeAsyncClosure`), as the task that passed it.
+        let call = isAsync ? "(try await bridgeAsyncClosure(shell, \(value))([\(arguments)]))" : "try bridgeClosure(shell, \(value))([\(arguments)])"
+        let effects = isAsync ? "async throws" : "throws"
+        if case .tuple(let elements) = result, elements.isEmpty { return "{ (\(typed)) \(effects) -> Void in _ = \(call) }" }
+        return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromSwish(call, result)) }"
     case .member: fatalError("unsupported \(type)")
     }
 }

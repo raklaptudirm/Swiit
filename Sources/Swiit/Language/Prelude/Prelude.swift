@@ -13,6 +13,15 @@ extension Interpreter {
         let localizedDescription: String
     }
 
+    /// What has no values: a `Task<Int, Never>` can't fail.
+    enum Never {}
+
+    /// What a task that was asked to stop throws, from `Task.checkCancellation()`
+    /// or `Task.sleep`.
+    struct CancellationError {
+        let localizedDescription: String
+    }
+
     """#
 
     /// Reads the prelude, binding its types, functions and sequence

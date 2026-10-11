@@ -105,6 +105,18 @@ extension Parser {
     @_spi(Shell) public mutating func parseFor() throws(SyntaxError) -> ForLoop {
         keyword("for")
         skipSpaces()
+        // `for try await line in lines`: an AsyncSequence's items.
+        let isTry = identifier() == "try"
+        if isTry {
+            keyword("try")
+            skipSpaces()
+        }
+        let isAwait = identifier() == "await"
+        if isAwait {
+            keyword("await")
+            skipSpaces()
+        }
+        if isTry && !isAwait { throw expected("'await' after 'for try'") }
         let variableStart = pos
         let variable = try parseName(after: "'for'")
         mark(.variable, from: variableStart)
@@ -118,7 +130,7 @@ extension Parser {
         loopDepth += 1
         defer { loopDepth -= 1 }
         let body = try parseBlock(declaring: variable == "_" ? [:] : [variable: .variable])
-        return ForLoop(variable: variable, sequence: sequence, body: body)
+        return ForLoop(variable: variable, sequence: sequence, body: body, isAwait: isAwait, isTry: isTry)
     }
 
     @_spi(Shell) public mutating func parseWhile() throws(SyntaxError) -> WhileLoop {

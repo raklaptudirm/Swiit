@@ -112,6 +112,9 @@ import SwishKit
         case module
         /// A Swift type by name, bridged: `String`, `Int`.
         case swiftType(String)
+        /// `async let x = …`: a `Task` the scope owns, whose value reading
+        /// `x` awaits.
+        case asyncLet(TypeAnnotation)
     }
 
     /// Where `return` goes: the declared result, or, for a closure that

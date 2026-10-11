@@ -30,6 +30,8 @@ struct Declaration {
     let returns: SType?
     let throwing: Bool
     let rethrowing: Bool
+    /// `async`: its glue waits for it in `suspend` (`bridgeAsync`).
+    var isAsync = false
     /// `throws(E)`: E, a generic parameter only for the error.
     let typedError: String?
     /// Its `where` clause, which the graph doesn't always give separately.
@@ -99,6 +101,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
     }
     var generics: [String: [String]] = [:]
     var typedError: String?
+    var isAsync = false
     func genericParameters(_ reader: inout Reader) throws {
         guard reader.consume("<") else { return }
         repeat {
@@ -165,7 +168,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         return parameters
     }
     func effects(_ reader: inout Reader) throws -> (throwing: Bool, rethrowing: Bool) {
-        if reader.consume("async") { throw Unsupported(reason: "async") }
+        isAsync = reader.consume("async")
         if reader.consume("rethrows") { return (false, true) }
         if reader.consume("throws") {
             // `throws(E)`, E from a closure it's given: it rethrows.
@@ -194,14 +197,20 @@ func parseDeclaration(_ text: String) throws -> Declaration {
                                       generics: generics, parameters: parameters, returns: returns,
                                       throwing: throwing, rethrowing: rethrowing, typedError: typedError)
         declaration.isOperator = isOperator
+        declaration.isAsync = isAsync
         if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
         return declaration
     }
     if reader.consume("var") || reader.consume("let") {
         guard let name = reader.identifier(), reader.consume(":") else { throw Unsupported(reason: "property") }
         let type = try reader.type()
-        return Declaration(kind: .property, name: name, isStatic: isStatic, isMutating: false, isFailable: false,
-                           generics: [:], parameters: [], returns: type, throwing: false, rethrowing: false, typedError: nil)
+        // `{ get async }`: reading it waits. A getter that throws isn't bridged.
+        let accessors = String(reader.chars[reader.pos...])
+        if accessors.contains("throws") { throw Unsupported(reason: "throwing getter") }
+        var declaration = Declaration(kind: .property, name: name, isStatic: isStatic, isMutating: false, isFailable: false,
+                                      generics: [:], parameters: [], returns: type, throwing: false, rethrowing: false, typedError: nil)
+        declaration.isAsync = accessors.contains("async")
+        return declaration
     }
     if reader.consume("init") {
         let failable = reader.consume("?")
@@ -212,6 +221,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         var declaration = Declaration(kind: .initializer, name: "init", isStatic: true, isMutating: false, isFailable: failable,
                                       generics: generics, parameters: parameters, returns: nil,
                                       throwing: throwing, rethrowing: rethrowing, typedError: typedError)
+        declaration.isAsync = isAsync
         if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
         return declaration
     }

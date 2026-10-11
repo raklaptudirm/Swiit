@@ -9,7 +9,7 @@ indirect enum SType: Equatable {
     case array(SType)
     case dictionary(SType, SType)
     case optional(SType)
-    case function([SType], SType, throwing: Bool)
+    case function([SType], SType, throwing: Bool, async: Bool = false)
     case tuple([Element])
     /// A parameter `S` where `S: Sequence, S.Element == E`: any sequence of
     /// E, which the glue passes as an array.
@@ -112,15 +112,17 @@ struct Reader {
                 } while consume(",")
                 guard consume(")") else { throw Unsupported(reason: "tuple") }
             }
+            let isAsync = consume("async")
             var throwing = false
             if consume("throws") {
                 // `throws(E)` with a generic E: throws whatever it throws.
                 if consume("(") { _ = identifier(); _ = consume(")") }
                 throwing = true
             }
-            if consume("async") { throw Unsupported(reason: "async") }
             if consume("->") {
-                result = .function(elements.map(\.type), try type(), throwing: throwing)
+                result = .function(elements.map(\.type), try type(), throwing: throwing, async: isAsync)
+            } else if isAsync || throwing {
+                throw Unsupported(reason: "effects without a result")
             } else if elements.count == 1 && elements[0].label == nil {
                 result = elements[0].type
             } else {

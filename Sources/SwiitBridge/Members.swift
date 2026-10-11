@@ -225,7 +225,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         target = (free ? graph.module.name : declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))(\(arguments))"
     case .property: target = (declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))"
     }
-    let tryPrefix = declaration.throwing || declaration.rethrowing ? "try " : ""
+    let tryPrefix = (declaration.throwing || declaration.rethrowing ? "try " : "") + (declaration.isAsync ? "await " : "")
     var body = ""
     if !declaration.isStatic && declaration.kind != .initializer && !free {
         let binding = declaration.isMutating ? "var" : "let"
@@ -275,6 +275,11 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let docs = free ? symbol.parameterDocs : [:]
     let parameterDocs = docs.isEmpty ? "" : ",\n                    parameterDocs: [" + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }.joined(separator: ", ") + "]"
     let genericsCode = generics.isEmpty ? "[:]" : "[" + generics.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }.joined(separator: ", ") + "]"
+    // An `async` one is waited for in `suspend`, letting other tasks run.
+    if declaration.isAsync {
+        if declaration.isMutating { throw Unsupported(reason: "async mutating") }
+        body = "return try bridgeAsync(shell) { () async throws -> Value in\n\(body)\n                }"
+    }
     // A key path reads fields as the shell reads them, for as long as the call.
     if parameters.contains(where: { annotation($0.1).hasPrefix(".keyPath") }) {
         body = "return try withFieldReader(shell) { () throws -> Value in\n\(body)\n                }"
@@ -289,7 +294,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
                     body: .native { shell, args in
                         _ = shell
                         \(body)
-                    }\(parameterDocs)
+                    }\(parameterDocs)\(declaration.isAsync ? ",\n                    effect: .async" : "")
                 )
 """
     return (key, shape, [member] + (setter.map { [$0] } ?? []))

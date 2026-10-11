@@ -18,18 +18,37 @@ extension Lowering {
     }
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
-        guard node.attributes.isEmpty, node.modifiers.isEmpty else { throw unsupported("a modifier on a variable", node) }
+        // `async let x = f()`: `f()` starts as a task the scope owns.
+        let isAsync = node.modifiers.count == 1 && node.modifiers.first?.name.tokenKind == .keyword(.async)
+            && node.bindingSpecifier.tokenKind == .keyword(.let)
+        guard node.attributes.isEmpty, node.modifiers.isEmpty || isAsync else { throw unsupported("a modifier on a variable", node) }
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
         var statements: [Statement] = []
         for binding in node.bindings {
-            guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self), binding.accessorBlock == nil else {
+            // `let _ = f()`: the value, thrown away.
+            let name: String
+            if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
+                name = identifier.identifier.text
+            } else if binding.pattern.is(WildcardPatternSyntax.self) {
+                name = "_"
+            } else {
                 throw unsupported("this variable", binding)
             }
+            guard binding.accessorBlock == nil else { throw unsupported("this variable", binding) }
             guard let initializer = binding.initializer else { throw unsupported("a variable without a value", binding) }
             var value = try expression(initializer.value)
-            if let annotation = binding.typeAnnotation { value = .annotated(value, try type(annotation.type)) }
-            bind(identifier.identifier.text)
-            statements.append(.declare(name: identifier.identifier.text, mutable: mutable, value: value))
+            if isAsync {
+                let operation = ClosureLiteral(
+                    parameters: [], returnType: try binding.typeAnnotation.map { try type($0.type) },
+                    body: Program(statements: [.expression(value)], lines: [line(of: initializer.value)]),
+                    names: NamesUsed(names: names(in: initializer.value))
+                )
+                value = .childTask(operation)
+            } else if let annotation = binding.typeAnnotation {
+                value = .annotated(value, try type(annotation.type))
+            }
+            if name != "_" { bind(name) }
+            statements.append(.declare(name: name, mutable: mutable, value: value))
         }
         return statements
     }

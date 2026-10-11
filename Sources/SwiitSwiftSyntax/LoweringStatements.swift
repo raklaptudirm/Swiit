@@ -23,6 +23,11 @@ extension Lowering {
         if let node = expr.as(InfixOperatorExprSyntax.self), let pipeline = try valuePipeline(node) {
             return .expression(pipeline)
         }
+        // `_ = f()`: the value, thrown away, as `let _ = f()` does.
+        if let node = expr.as(InfixOperatorExprSyntax.self), node.operator.is(AssignmentExprSyntax.self),
+           node.leftOperand.is(DiscardAssignmentExprSyntax.self) {
+            return .declare(name: "_", mutable: false, value: try expression(node.rightOperand))
+        }
         if let node = expr.as(InfixOperatorExprSyntax.self), let assignment = try assignment(node) {
             return .assign(assignment)
         }
@@ -115,7 +120,7 @@ extension Lowering {
     }
 
     private mutating func forLoop(_ node: ForStmtSyntax) throws -> ForLoop {
-        guard node.whereClause == nil, node.tryKeyword == nil, node.awaitKeyword == nil else { throw unsupported("this 'for'", node) }
+        guard node.whereClause == nil else { throw unsupported("this 'for'", node) }
         let variable: String
         if let identifier = node.pattern.as(IdentifierPatternSyntax.self) { variable = identifier.identifier.text }
         else if node.pattern.is(WildcardPatternSyntax.self) { variable = "_" }
@@ -124,7 +129,8 @@ extension Lowering {
         locals.append([variable])
         leaving.loop += 1
         defer { locals.removeLast(); leaving.loop -= 1 }
-        return ForLoop(variable: variable, sequence: sequence, body: try block(node.body.statements, scoped: false))
+        return ForLoop(variable: variable, sequence: sequence, body: try block(node.body.statements, scoped: false),
+                       isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil)
     }
 
     private mutating func doCatch(_ node: DoStmtSyntax) throws -> Statement {
