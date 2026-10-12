@@ -25,6 +25,12 @@ enum Boundaries {
         ("status", #"\b(lastStatus|lastSignalStatus)\b"#),
         ("file", #"\b(scriptPath|scriptDirectory)\b"#),
         ("history", #"\bhistoryEntries\b"#),
+        // What a command line is made of: flags, and what is piped in.
+        ("commandline", #"\b(isInput|shortFlag|inputParameter)\b|@input\b|@flag\b"#),
+        // What a command gives back, and the files it lists.
+        ("results", #"\b(Output|Status|FileSize|FileEntry|FileType)\b"#),
+        // How a terminal shows values: color, styles, tables.
+        ("display", #"\b(colorOutput|styled|TextStyle|Tabular|DisplayColumn|DisplayRegistry)\b"#),
         ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
     ]
 
