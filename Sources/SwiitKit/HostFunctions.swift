@@ -1,32 +1,14 @@
 import Foundation
 
-// MARK: What a plugin exports
-
-/// Raised when a plugin built against an older SwiitKit can no longer be
-/// loaded. Library evolution lets SwiitKit add to these types without it.
-/// Not bumped while everything is unstable, before 1.0.
-///
-/// Transparent, so it's compiled into each plugin as its number when the
-/// plugin was built, not read from SwiitKit when it's loaded, which would
-/// always agree.
-@_transparent public var swiitPluginABIVersion: Int { 1 }
-
-/// Each `@SwiitExport` function also defines a C symbol with this prefix
-/// and its name, `swiit_export_greet`, returning a retained
-/// `NativeFunction`. The shell finds a plugin's exports by these, so
-/// there's nothing to list.
-public let swiitExportSymbolPrefix = "swiit_export_"
+// MARK: What a host exports
 
 /// A Swift function as Swiit sees it: the same signature a `func` in Swiit
 /// has, so it gets a command line, `--help` and completion the same way.
-/// `@SwiitExport` builds one from a declaration.
 public struct ExportedFunction: Sendable {
     public let name: String
     public let summary: String?
     public let parameters: [ExportedParameter]
     public let returnType: SwiitType?
-    /// The `swiitPluginABIVersion` the plugin was built with.
-    public let abiVersion: Int
     /// Declared `throws`: a call to it needs `try`.
     public let isThrowing: Bool
     /// Called with every argument bound, by parameter name, except ones
@@ -35,26 +17,15 @@ public struct ExportedFunction: Sendable {
 
     public init(
         name: String, summary: String? = nil, parameters: [ExportedParameter], returnType: SwiitType?,
-        abiVersion: Int = swiitPluginABIVersion, isThrowing: Bool,
+        isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
     ) {
-        self.abiVersion = abiVersion
         self.isThrowing = isThrowing
         self.name = name
         self.summary = summary
         self.parameters = parameters
         self.returnType = returnType
         self.call = call
-    }
-
-    /// As plugins built before `isThrowing` call it: SwiitKit keeps every
-    /// public initializer it has shipped, so they still load.
-    public init(
-        name: String, summary: String? = nil, parameters: [ExportedParameter], returnType: SwiitType?,
-        abiVersion: Int = swiitPluginABIVersion, call: @escaping @Sendable ([String: Value]) throws -> Value
-    ) {
-        self.init(name: name, summary: summary, parameters: parameters, returnType: returnType,
-                  abiVersion: abiVersion, isThrowing: false, call: call)
     }
 }
 
@@ -97,7 +68,7 @@ public struct ExportedParameter: Sendable {
 /// The type of a parameter or result, as Swiit's type annotations name it.
 public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
     case any, bool, int, double, string, record, filesize, date, output, function
-    /// An enum the plugin exports, like `Level`.
+    /// An enum its function uses, like `Level`.
     case named(String)
     case list(SwiitType)
     case optional(SwiitType)
@@ -121,7 +92,7 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
     }
 }
 
-/// A plugin function or method as a value, as `repo.log` gives it. The
+/// A host's function or method as a value, as `repo.log` gives it. The
 /// shell calls it like any other function.
 public final class NativeFunction: Callable, @unchecked Sendable {
     public let function: ExportedFunction
@@ -135,7 +106,7 @@ public final class NativeFunction: Callable, @unchecked Sendable {
     }
 }
 
-/// A failure in converting between Swift and Swiit values, or one a plugin
+/// A failure in converting between Swift and Swiit values, or one a host's function
 /// throws to report a problem the way the shell's own errors read.
 public struct SwiitError: Error, CustomStringConvertible {
     public let description: String
@@ -299,7 +270,7 @@ extension Value {
         case let object as any SwiitObject: self = .object(object)
         case let objects as [any SwiitObject]: self = .list(objects.map(Value.object))
         case let data as any Encodable: self = try ValueEncoder().encode(data)
-        default: throw SwiitError("can't return a \(type(of: result)) to Swiit; make it Encodable or @SwiitExport it")
+        default: throw SwiitError("can't return a \(type(of: result)) to Swiit; make it Encodable")
         }
     }
 }
@@ -317,7 +288,7 @@ public func swiitReturnType(_ type: Any.Type) -> SwiitType {
     (type as? any SwiitConvertible.Type)?.swiitType ?? .any
 }
 
-/// An object argument: one of the plugin's own exported classes.
+/// An object argument: one of the host's own classes, held as a live object.
 public func swiitArgument<T: SwiitObject>(
     _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
 ) throws -> T {
@@ -400,22 +371,10 @@ final class EnumRegistry: @unchecked Sendable {
     }
 }
 
-// MARK: Macros
-
-/// Exports a function to Swiit: its signature, doc comment, `@Flag`s and
-/// `@Input` become the same command line and `--help` a Swiit `func` gets.
-/// Importing the package is all that's needed; there's nothing to list.
-@attached(peer, names: prefixed(__swiit_export_))
-public macro SwiitExport() = #externalMacro(module: "SwiitKitMacros", type: "SwiitExportMacro")
-
-/// Makes a class a live object in Swiit: its public properties and methods
-/// are members (`counter.total`, `counter.add(2)`), shown as fields in
-/// tables. Return it from an exported function to hand it out.
-@attached(extension, conformances: SwiitObject, Sendable, names: named(typeName), named(memberNames), named(member), named(description))
-public macro SwiitObject() = #externalMacro(module: "SwiitKitMacros", type: "SwiitObjectMacro")
+// MARK: Markers
 
 /// `@Flag("n") times: Int = 1`: a short flag on the command line. It only
-/// marks the parameter for `@SwiitExport`; the value passes through.
+/// marks the parameter for the bridge generator; the value passes through.
 /// `@Flag all: Bool = false` alone makes the parameter's first letter the
 /// flag (`-a`), which is the form a symbol graph can read: it keeps the
 /// attribute's name but not its arguments.
@@ -436,7 +395,7 @@ public struct Rest<T> {
 }
 
 /// `@Input _ lines: [String]`: receives what's piped in, per item, or the
-/// whole stream for a list. Only a marker for `@SwiitExport`.
+/// whole stream for a list. Only a marker for the bridge generator.
 @propertyWrapper
 public struct Input<T> {
     public var wrappedValue: T

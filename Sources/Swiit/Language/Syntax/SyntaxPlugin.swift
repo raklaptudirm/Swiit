@@ -28,7 +28,7 @@ import SwiitKit
     /// there.
     func expression(_ cursor: inout SourceCursor) throws(SyntaxError) -> Expr?
 
-    /// Where a statement starts (`env.NAME = value`, `import Name from path`):
+    /// Where a statement starts (`env.NAME = value`):
     /// the plug-in's statement, or nil if it has none there.
     func statement(_ cursor: inout SourceCursor) throws(SyntaxError) -> Statement?
 }

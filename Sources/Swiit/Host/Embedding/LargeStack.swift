@@ -13,7 +13,9 @@ public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
         result = Result { try body() }
         done.signal()
     }
-    thread.stackSize = 256 << 20
+    // Address space, not memory: a debug build's frames are large (about 60 KB
+    // a call), and the default depth limit has to fit.
+    thread.stackSize = 1 << 30
     thread.start()
     done.wait()
     return try result!.get()

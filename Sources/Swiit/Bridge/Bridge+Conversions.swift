@@ -226,7 +226,7 @@ public func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Va
 
 /// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic
 /// algorithms that need Comparable elements work on them.
-extension Value: @retroactive Comparable {
+extension Value: Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {
         lhs.order(comparedTo: rhs) == .orderedAscending
     }

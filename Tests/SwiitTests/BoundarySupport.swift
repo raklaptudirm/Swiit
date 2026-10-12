@@ -25,7 +25,6 @@ enum Boundaries {
         ("status", #"\b(lastStatus|lastSignalStatus)\b"#),
         ("file", #"\b(scriptPath|scriptDirectory)\b"#),
         ("history", #"\bhistoryEntries\b"#),
-        ("plugin", #"\bimportPlugin\b"#),
         ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
     ]
 

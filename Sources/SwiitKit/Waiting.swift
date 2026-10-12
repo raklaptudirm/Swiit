@@ -10,7 +10,7 @@ public protocol WaitingHost: AnyObject {
     func waitForInput(_ body: () -> Void)
 }
 
-/// For a function that waits, as a plugin's or a library's may: a blocking
+/// For a function that waits, as a host's or a library's may: a blocking
 /// read, a network call, a long computation that touches no Swiit values.
 /// Wrapped in `whileWaiting`, it lets other Swiit tasks run meanwhile, as
 /// the shell's own waits do; unwrapped, it holds every task up while it waits.

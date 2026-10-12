@@ -1,5 +1,5 @@
 /// An enum's definition: its name and cases, in order. Declared in Swiit
-/// (`enum FileType { case file, directory }`) or by the shell and plugins.
+/// (`enum FileType { case file, directory }`) or by the host.
 /// Types compare by identity, so two enums with the same name are distinct.
 public final class EnumType: SwiitObject, @unchecked Sendable {
     public struct Case: Sendable, Equatable {

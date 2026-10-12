@@ -446,7 +446,7 @@ private final class ProblemFinder: SyntaxVisitor {
 }
 
 /// With no layer plugged in, the constructs only a layer reads (`$(…)`, `$name`,
-/// `async …`, `import Name from path`, a `|` between values) are refused by
+/// `async …`, a `|` between values) are refused by
 /// name: SwiftParser's reading of them is its guess at text that isn't Swift.
 private final class LayerSyntaxFinder: SyntaxVisitor {
     var found: (message: String, node: Syntax)?
@@ -478,10 +478,6 @@ private final class LayerSyntaxFinder: SyntaxVisitor {
         }
         if name == "async" { return refuse("'async' starts a command in the background, which is shell syntax; Swift-only code has no async yet", node) }
         return .visitChildren
-    }
-
-    override func visit(_ node: ImportDeclSyntax) -> SyntaxVisitorContinueKind {
-        refuse("importing a package from a path is shell syntax, and isn't available in Swift-only code", node)
     }
 
     override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {

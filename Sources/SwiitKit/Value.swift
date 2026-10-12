@@ -2,7 +2,7 @@ import Foundation
 
 /// A value flowing through Swiit.
 ///
-/// This is the currency shared by the interpreter and every compiled plugin,
+/// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
     case nothing
@@ -95,7 +95,7 @@ public protocol WrapsValue {
 }
 
 /// A function value. The interpreter implements this for Swiit functions and
-/// closures; plugins will implement it for bridged Swift functions.
+/// closures; hosts implement it for Swift functions.
 public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 /// Fields in insertion order. Two records are equal when they have the same

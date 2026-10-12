@@ -32,8 +32,7 @@ jobs:
         with:
           path: |
             .build
-            SwiitKit/.build
-          key: macos-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved', 'SwiitKit/Package.swift') }}
+          key: macos-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: macos-${{ runner.arch }}-swift-
 
       - name: Build
@@ -41,9 +40,6 @@ jobs:
 
       - name: Unit tests
         run: swift test
-
-      - name: SwiitKit unit tests
-        run: swift test --package-path SwiitKit
 
   linux:
     name: Linux
@@ -57,8 +53,7 @@ jobs:
         with:
           path: |
             .build
-            SwiitKit/.build
-          key: linux-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved', 'SwiitKit/Package.swift') }}
+          key: linux-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: linux-${{ runner.arch }}-swift-
 
       - name: Build
@@ -66,9 +61,6 @@ jobs:
 
       - name: Unit tests
         run: swift test
-
-      - name: SwiitKit unit tests
-        run: swift test --package-path SwiitKit
 
   # The bridges (Sources/Swiit/Bridge/Generated) are made from symbol graphs,
   # and a graph is read on the platform it's made on. Each platform's members

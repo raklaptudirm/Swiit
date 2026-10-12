@@ -6,13 +6,12 @@ the standard library and whatever Swift code you bridge into it. It is the
 language underneath [Swish](https://github.com/raklaptudirm/Swish), a shell.
 
 - `Sources/Swiit`: the interpreter (`Interpreter`, `SwiitHost`, the bridges).
-- `SwiitKit`: the value model and plug-in ABI (`@SwiitExport`, `@SwiitObject`),
-  a package of its own so that a host and its plug-ins share one copy.
+- `Sources/SwiitKit`: the value model, and what a host registers and converts
+  through (`Value`, `SwiitConvertible`, `ExportedFunction`).
 
 ```
 swift build
 swift test
-swift test --package-path SwiitKit
 ```
 
 Not 1.0: a minor release may change the host API.

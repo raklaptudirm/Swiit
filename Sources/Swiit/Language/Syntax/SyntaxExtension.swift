@@ -31,7 +31,7 @@ extension ExprExtension {
     @_spi(Layer) public var leavesProgram: Bool { false }
 }
 
-/// A statement an extension adds: `env.NAME = value`, `import Name from path`.
+/// A statement an extension adds: `env.NAME = value`.
 @_spi(Layer) public protocol StatementExtension: SyntaxExtension {
     mutating func check(in checker: TypeChecker) throws
 }
