@@ -36,9 +36,9 @@ import SwiitKit
         @_spi(Layer) public var isMutating = false
         @_spi(Layer) public var isThrowing = false
         /// `rethrows`: a call throws if a closure passed to it does.
-        @_spi(Layer) public var isRethrowing = false
+        var isRethrowing = false
         /// What it waits on: a call to an `async` one needs `await`.
-        @_spi(Layer) public var effect: Effect = .sync
+        var effect: Effect = .sync
         /// Its position among the overloads the interpreter will have.
         @_spi(Layer) public var index = 0
         /// Its type parameters and the protocols each must conform to:
@@ -60,17 +60,17 @@ import SwiitKit
 
     @_spi(Layer) public struct StructInfo {
         @_spi(Layer) public var name: String
-        @_spi(Layer) public var stored: [PropertyDecl]
-        @_spi(Layer) public var computed: [String: TypeAnnotation]
+        var stored: [PropertyDecl]
+        var computed: [String: TypeAnnotation]
         @_spi(Layer) public var methods: [String: [Signature]]
         var initializers: [Signature]
-        @_spi(Layer) public var memberwise: Signature
-        @_spi(Layer) public var conformances: [String] = []
+        var memberwise: Signature
+        var conformances: [String] = []
         /// `static let` and `static var`, stored and computed: read on the type.
         var staticProperties: [PropertyDecl] = []
         var staticMethods: [String: [Signature]] = [:]
 
-        @_spi(Layer) public func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
+        func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
     
         @_spi(Layer) public init(name: String, stored: [PropertyDecl], computed: [String: TypeAnnotation], methods: [String: [Signature]], initializers: [Signature], memberwise: Signature, conformances: [String] = [], staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
@@ -89,9 +89,9 @@ import SwiitKit
     @_spi(Layer) public struct EnumInfo {
         @_spi(Layer) public var name: String
         /// Each case's associated values, in declaration order.
-        @_spi(Layer) public var cases: [(name: String, payload: [AssociatedValue])]
-        @_spi(Layer) public var rawType: TypeAnnotation?
-        @_spi(Layer) public var conformances: [String] = []
+        var cases: [(name: String, payload: [AssociatedValue])]
+        var rawType: TypeAnnotation?
+        var conformances: [String] = []
 
         func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
     
@@ -120,8 +120,8 @@ import SwiitKit
     /// Where `return` goes: the declared result, or, for a closure that
     /// didn't say, the types its `return`s give.
     @_spi(Layer) public final class ReturnContext {
-        @_spi(Layer) public let declared: TypeAnnotation?
-        @_spi(Layer) public var seen: [TypeAnnotation] = []
+        let declared: TypeAnnotation?
+        var seen: [TypeAnnotation] = []
 
         @_spi(Layer) public init(declared: TypeAnnotation?) {
             self.declared = declared
@@ -130,12 +130,12 @@ import SwiitKit
 
     /// Whether an error thrown here is handled: in a `throws` function, a
     /// closure, a `do` with a `catch`, or at the top level.
-    @_spi(Layer) public struct ErrorContext {
-        @_spi(Layer) public var handled: Bool
+    struct ErrorContext {
+        var handled: Bool
         /// What an error would have to leave, for messages.
         var boundary: Boundary = .topLevel
 
-        @_spi(Layer) public enum Boundary {
+        enum Boundary {
             case topLevel, function(String), deferBlock
 
             /// Why an error can't get out, and what would let it.

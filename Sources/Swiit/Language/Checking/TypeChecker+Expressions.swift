@@ -6,7 +6,7 @@ extension TypeChecker {
 
     /// `expr`'s type, which must fit `expected`.
     /// The expressions interpolated into a string.
-    @_spi(Layer) public func checkParts(_ parts: inout [StringPart]) throws {
+    func checkParts(_ parts: inout [StringPart]) throws {
         for index in parts.indices {
             if case .expression(var expr) = parts[index] {
                 _ = try typeOf(&expr)

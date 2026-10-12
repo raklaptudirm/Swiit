@@ -75,7 +75,7 @@ public final class Interpreter {
     /// of each `eval`.
     public var limits = Limits()
     var steps = 0
-    @_spi(Layer) public var deadline: ContinuousClock.Instant?
+    var deadline: ContinuousClock.Instant?
     /// What a run has written, against `limits.output`.
     public let outputCounter: OutputCounter
 

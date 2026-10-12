@@ -32,7 +32,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Layer) public func signature(_ function: Function) -> Signature {
+    func signature(_ function: Function) -> Signature {
         // A builtin that hasn't declared its result isn't known; a Swiit
         // function without `->` returns nothing.
         var returns = function.returnType ?? (function.isBuiltin ? .unknown : .void)

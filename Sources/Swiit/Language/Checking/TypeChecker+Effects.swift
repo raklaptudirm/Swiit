@@ -10,13 +10,13 @@ extension TypeChecker {
     /// A function's, a closure's, or the top level's effects so far.
     @_spi(Layer) public struct EffectContext {
         /// Whether `await` may be written here.
-        @_spi(Layer) public var allowsAwait: Bool
+        var allowsAwait: Bool
         /// `async` once an `async` call is awaited here.
-        @_spi(Layer) public var effect: Effect = .sync
+        var effect: Effect = .sync
         /// The functions called here by name without `await`.
         var unawaited: Set<String> = []
 
-        @_spi(Layer) public init(allowsAwait: Bool) {
+        init(allowsAwait: Bool) {
             self.allowsAwait = allowsAwait
         }
     }

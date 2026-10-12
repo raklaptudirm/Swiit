@@ -8,7 +8,7 @@ import SwiitKit
 public final class StructType: SwiitObject, @unchecked Sendable {
     public let name: String
     /// Stored properties, in declaration order: the order of a value's fields.
-    @_spi(Layer) public let stored: [PropertyDecl]
+    let stored: [PropertyDecl]
     public let computed: [String: Function]
     public let methods: [String: OverloadSet]
     /// Custom initializers; without any, the memberwise one.
@@ -28,13 +28,13 @@ public final class StructType: SwiitObject, @unchecked Sendable {
         public var value: Value
         public let mutable: Bool
 
-        @_spi(Layer) public init(_ value: Value, mutable: Bool) {
+        init(_ value: Value, mutable: Bool) {
             self.value = value
             self.mutable = mutable
         }
     }
 
-    @_spi(Layer) public init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
+    init(name: String, stored: [PropertyDecl], computed: [String: Function], methods: [String: OverloadSet],
          initializers: OverloadSet?, memberwise: Function, conformances: [String] = [],
          staticProperties: [PropertyDecl] = [], staticComputed: [String: Function] = [:],
          staticMethods: [String: OverloadSet] = [:]) {
@@ -50,7 +50,7 @@ public final class StructType: SwiitObject, @unchecked Sendable {
         self.memberwise = memberwise
     }
 
-    @_spi(Layer) public func property(_ name: String) -> PropertyDecl? {
+    func property(_ name: String) -> PropertyDecl? {
         stored.first { $0.name == name }
     }
 

@@ -4,8 +4,8 @@ import SwiitKit
 @_spi(Layer) public struct FunctionDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
     @_spi(Layer) public var parameters: [Parameter]
-    @_spi(Layer) public var returnType: TypeAnnotation?
-    @_spi(Layer) public var body: Program
+    var returnType: TypeAnnotation?
+    var body: Program
     @_spi(Layer) public var documentation: Documentation?
     /// A struct's `mutating func`, which may change `self`.
     @_spi(Layer) public var isMutating = false
@@ -14,15 +14,15 @@ import SwiitKit
     /// Declared `async`.
     var isAsync = false
     /// `async` if declared so.
-    @_spi(Layer) public var effect: Effect = .sync
+    var effect: Effect = .sync
     /// `rethrows`: it throws only if a closure passed to it does.
-    @_spi(Layer) public var isRethrowing = false
+    var isRethrowing = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
     @_spi(Layer) public var generics: [String: [String]] = [:]
-    @_spi(Layer) public var names = NamesUsed()
+    var names = NamesUsed()
 
-    @_spi(Layer) public init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
+    init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
         self.name = name
         self.parameters = parameters
         self.returnType = returnType
@@ -40,18 +40,18 @@ import SwiitKit
 
 /// Assigning to a variable, or to part of one: `p.x`, `xs[0]`, `r["k"]`.
 @_spi(Layer) public struct Assignment: Equatable, Sendable {
-    @_spi(Layer) public enum Step: Equatable, Sendable {
+    enum Step: Equatable, Sendable {
         case member(String)
         case index(Expr)
     }
 
-    @_spi(Layer) public var root: String
-    @_spi(Layer) public var path: [Step] = []
+    var root: String
+    var path: [Step] = []
     /// `+=` and the like: the operator applied to the current value.
     var op: BinaryOperator?
     @_spi(Layer) public var value: Expr
 
-    @_spi(Layer) public init(root: String, path: [Step] = [], op: BinaryOperator? = nil, value: Expr) {
+    init(root: String, path: [Step] = [], op: BinaryOperator? = nil, value: Expr) {
         self.root = root
         self.path = path
         self.op = op
@@ -62,17 +62,17 @@ import SwiitKit
 /// `struct Name { var x: Int; func f() {…}; init(…) {…} }`.
 @_spi(Layer) public struct StructDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
-    @_spi(Layer) public var properties: [PropertyDecl]
+    var properties: [PropertyDecl]
     @_spi(Layer) public var methods: [FunctionDecl]
     var initializers: [FunctionDecl]
     /// `struct Point: Equatable, Hashable`.
-    @_spi(Layer) public var conformances: [String] = []
+    var conformances: [String] = []
     /// `static let origin = Point(x: 0, y: 0)`: values of the type itself,
     /// and `static func`s, which are called on it: `Point.origin`.
     var staticProperties: [PropertyDecl] = []
     var staticMethods: [FunctionDecl] = []
 
-    @_spi(Layer) public init(name: String, properties: [PropertyDecl], methods: [FunctionDecl], initializers: [FunctionDecl], conformances: [String] = []) {
+    init(name: String, properties: [PropertyDecl], methods: [FunctionDecl], initializers: [FunctionDecl], conformances: [String] = []) {
         self.name = name
         self.properties = properties
         self.methods = methods
@@ -83,14 +83,14 @@ import SwiitKit
 
 @_spi(Layer) public struct PropertyDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
-    @_spi(Layer) public var mutable: Bool
+    var mutable: Bool
     @_spi(Layer) public var type: TypeAnnotation? = nil
     @_spi(Layer) public var defaultValue: Expr? = nil
     /// A computed property's body; nil for a stored one.
     var getter: Program? = nil
     var getterNames = NamesUsed()
 
-    @_spi(Layer) public init(name: String, mutable: Bool, type: TypeAnnotation? = nil, defaultValue: Expr? = nil, getter: Program? = nil, getterNames: NamesUsed = NamesUsed()) {
+    init(name: String, mutable: Bool, type: TypeAnnotation? = nil, defaultValue: Expr? = nil, getter: Program? = nil, getterNames: NamesUsed = NamesUsed()) {
         self.name = name
         self.mutable = mutable
         self.type = type
@@ -115,9 +115,9 @@ public struct Documentation: Equatable, Sendable {
 @_spi(Layer) public struct ClosureLiteral: Equatable, Sendable {
     /// For `{ $0 * 2 }`, the implicit `$0`, `$1`, … parameters.
     @_spi(Layer) public var parameters: [Parameter]
-    @_spi(Layer) public var returnType: TypeAnnotation?
-    @_spi(Layer) public var body: Program
-    @_spi(Layer) public var names = NamesUsed()
+    var returnType: TypeAnnotation?
+    var body: Program
+    var names = NamesUsed()
 
     @_spi(Layer) public init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
         self.parameters = parameters
@@ -132,7 +132,7 @@ public struct Documentation: Equatable, Sendable {
 /// stored in, and leak). Not part of what the code says, so it doesn't
 /// count toward equality.
 @_spi(Layer) public struct NamesUsed: Equatable, Sendable {
-    @_spi(Layer) public var names: Set<String> = []
+    var names: Set<String> = []
 
     @_spi(Layer) public static func == (lhs: NamesUsed, rhs: NamesUsed) -> Bool { true }
 

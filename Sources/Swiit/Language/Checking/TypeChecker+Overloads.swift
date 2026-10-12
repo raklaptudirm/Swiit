@@ -49,7 +49,7 @@ extension TypeChecker {
         return winners[0].signature
     }
 
-    @_spi(Layer) public func describe(_ signature: Signature) -> String {
+    func describe(_ signature: Signature) -> String {
         "\(signature.name)(" + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ") + ")"
     }
 
@@ -57,7 +57,7 @@ extension TypeChecker {
     /// labels, defaults, variadics and trailing closures. The cost counts
     /// conversions (a literal Int as a Double, a value made optional, an
     /// Output as its text) and untyped parameters, which match anything.
-    @_spi(Layer) public func match(
+    func match(
         _ arguments: inout [Argument], to signature: Signature, bindings initial: [String: TypeAnnotation]
     ) throws -> (cost: Int, uncertain: Bool, returns: TypeAnnotation, throws: Bool) {
         let name = signature.name

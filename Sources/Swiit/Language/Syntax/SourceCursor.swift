@@ -39,7 +39,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     @_spi(Layer) public var range: Range<Int>
     @_spi(Layer) public var kind: SpanKind
 
-    @_spi(Layer) public init(range: Range<Int>, kind: SpanKind) {
+    init(range: Range<Int>, kind: SpanKind) {
         self.range = range
         self.kind = kind
     }
@@ -84,11 +84,11 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     @_spi(Layer) public var pos = 0
     /// Syntax added to Swift's, which the front end asks about where Swift's
     /// grammar has no meaning for what is there (SyntaxPlugin.swift).
-    @_spi(Layer) public var plugin: (any SyntaxPlugin)?
+    var plugin: (any SyntaxPlugin)?
     @_spi(Layer) public var scopes: [[String: NameKind]]
     /// The names the layer's own forms mention (`$name`, a command's name),
     /// which a closure or function around them keeps.
-    @_spi(Layer) public private(set) var used: Set<String> = []
+    private(set) var used: Set<String> = []
 
     /// A name the code being read refers to.
     @_spi(Layer) public mutating func use(_ name: String) {

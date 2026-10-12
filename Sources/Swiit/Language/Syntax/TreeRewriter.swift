@@ -10,7 +10,7 @@ import SwiitKit
 /// (Docs/Design/desugaring.md).
 @_spi(Layer) public struct TreeRewriter {
     @_spi(Layer) public var expr: (Expr) -> Expr
-    @_spi(Layer) public var statement: (Statement) -> Statement
+    var statement: (Statement) -> Statement
 
     @_spi(Layer) public init(
         expr: @escaping (Expr) -> Expr = { $0 },
@@ -96,14 +96,14 @@ import SwiitKit
         return statement(rewritten)
     }
 
-    @_spi(Layer) public func function(_ decl: FunctionDecl) -> FunctionDecl {
+    func function(_ decl: FunctionDecl) -> FunctionDecl {
         var copy = decl
         copy.parameters = decl.parameters.map(parameter)
         copy.body = program(decl.body)
         return copy
     }
 
-    @_spi(Layer) public func parameter(_ parameter: Parameter) -> Parameter {
+    func parameter(_ parameter: Parameter) -> Parameter {
         var copy = parameter
         copy.defaultValue = parameter.defaultValue.map(expression)
         return copy
@@ -118,7 +118,7 @@ import SwiitKit
 
     // MARK: Conditions and patterns
 
-    @_spi(Layer) public func ifStatement(_ node: IfStatement) -> IfStatement {
+    func ifStatement(_ node: IfStatement) -> IfStatement {
         IfStatement(condition: condition(node.condition), then: program(node.then), otherwise: block(node.otherwise))
     }
 

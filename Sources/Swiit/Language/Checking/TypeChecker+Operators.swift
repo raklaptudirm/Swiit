@@ -71,7 +71,7 @@ extension TypeChecker {
     }
 
     /// An `if` expression's branches.
-    @_spi(Layer) public static func branches(of node: IfStatement) -> [Expr] {
+    static func branches(of node: IfStatement) -> [Expr] {
         [node.then, node.otherwise].compactMap { $0.flatMap(IfStatement.branchExpression) }
     }
 

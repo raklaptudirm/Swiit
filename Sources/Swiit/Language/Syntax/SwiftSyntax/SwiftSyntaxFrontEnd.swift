@@ -6,7 +6,7 @@ import SwiftSyntax
 /// gives is lowered to the core's. What it doesn't lower yet is an error that
 /// names the construct, so the supported subset is the set of nodes lowered.
 @_spi(Layer) public struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
-    @_spi(Layer) public init() {}
+    init() {}
 
     @_spi(Layer) public func parse(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Program {
         try lower(source, bound: bound, plugin: plugin, prelude: false)
@@ -14,7 +14,7 @@ import SwiftSyntax
 
     /// The prelude: the builtins' types and signatures, which have no bodies
     /// of their own (see Prelude.swift).
-    @_spi(Layer) public func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+    func parsePrelude(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
         try lower(source, bound: bound, plugin: nil, prelude: true)
     }
 

@@ -39,18 +39,18 @@ public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible
         @_spi(Layer) public var label: String?
         @_spi(Layer) public var type: TypeAnnotation
     
-        @_spi(Layer) public init(label: String? = nil, type: TypeAnnotation) {
+        init(label: String? = nil, type: TypeAnnotation) {
             self.label = label
             self.type = type
         }
     }
 
-    @_spi(Layer) public var description: String { AttributedString(joining: styled).text }
+    public var description: String { AttributedString(joining: styled).text }
 
     /// As Swift writes it, in pieces by what each is (the name of a type, a
     /// label, a keyword, or punctuation), so help can color it and no one has
     /// to read the text back to find out.
-    @_spi(Layer) public var styled: [AttributedString] {
+    var styled: [AttributedString] {
         func name(_ text: String) -> AttributedString { .init(text, .type) }
         func punctuation(_ text: String) -> AttributedString { .init(text) }
         func list(_ items: [[AttributedString]]) -> [AttributedString] {

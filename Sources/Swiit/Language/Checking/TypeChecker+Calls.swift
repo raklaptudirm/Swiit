@@ -83,7 +83,7 @@ extension TypeChecker {
     }
 
     /// A call to a named function: the overload is chosen here.
-    @_spi(Layer) public func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+    func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
             // Which one isn't known until it runs (an argument isn't typed yet).
@@ -140,7 +140,7 @@ extension TypeChecker {
     }
 
     /// Calling a value of type `type`.
-    @_spi(Layer) public func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+    func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         switch type {
         case .functionType(let parameters, let result, let throwing, let effect):
             let signature = Signature(name: name, parameters: parameters.map { Parameter(label: nil, name: "_", type: $0) },

@@ -155,7 +155,7 @@ extension TypeChecker {
     }
 
     /// The type of each item when iterating `type`.
-    @_spi(Layer) public func elementType(of type: TypeAnnotation) throws -> TypeAnnotation {
+    func elementType(of type: TypeAnnotation) throws -> TypeAnnotation {
         if case .named(let name) = type, let element = Bridge.types[name]?.associatedTypes["Element"] { return element }
         if case .generic = type {
             guard let element = bridgedElement(type) else { throw TypeError("can't iterate over \(type): it isn't a Sequence") }

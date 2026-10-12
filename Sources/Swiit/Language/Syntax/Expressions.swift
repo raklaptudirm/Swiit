@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 @_spi(Layer) public struct RecordEntry: Equatable, Sendable {
-    @_spi(Layer) public var key: Expr
+    var key: Expr
     @_spi(Layer) public var value: Expr
 
     @_spi(Layer) public init(key: Expr, value: Expr) {

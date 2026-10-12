@@ -25,7 +25,7 @@ extension Interpreter {
     """#
 
     /// The prelude as source: the language's own, then each library's types and declarations.
-    @_spi(Layer) public var preludeSource: String {
+    var preludeSource: String {
         ([Interpreter.prelude] + libraries.flatMap { [$0.types, $0.declarations] }).joined(separator: "\n")
     }
 

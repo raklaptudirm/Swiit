@@ -174,7 +174,7 @@ extension TypeChecker {
 extension TypeChecker {
     // MARK: Members
 
-    @_spi(Layer) public func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
+    func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
             case .enumType(let info):

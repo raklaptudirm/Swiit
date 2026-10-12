@@ -72,7 +72,7 @@ last stage, and mechanical by then.
      `checkInterrupt`); and the bridge's tables and glue, which a host's
      generated library calls.
    - `Layer` (323): what a syntax layer builds on, the tree, the parser and the
-     checker (Language/Syntax, Language/Checking). Stage 3 narrows it.
+     checker (Language/Syntax, Language/Checking). Stage 3 narrowed it, to 221.
    - `Swiit` (40): only the core's own other modules.
 
    The evaluator's insides are in none of them: they're internal. There was
@@ -102,6 +102,13 @@ last stage, and mechanical by then.
    moved to the core, where it can look at them. The SPI is now 376
    declarations: 336 `Layer`, 40 `Swiit`. The shell still imports `Layer` in
    most files that touch the core; stage 3 is where that narrows.
+   *Narrowed* (2026-10-12): the compiler decided. Every `Layer` declaration
+   was made internal and the shell was built; what it named came back, and
+   the rest stayed internal, 100 of the 321. The shell's tests see the tree
+   through `@testable import Swiit`, so they no longer hold it open. What
+   remains is the tree (its nodes, with the initializers a layer builds
+   them by), `SourceCursor` and `SyntaxPlugin`'s needs, the checker's
+   hooks for a layer's pipelines, and the front end's own entry points.
 3. **A syntax-plugin contract without the parser's internals.** *Done*
    (2026-10-11), and more: the hand parser is retired (frontend.md, "Retired").
    The plug-in reads with a `SourceCursor`, which scans and records, and asks
@@ -149,6 +156,10 @@ last stage, and mechanical by then.
      `../SwiitKit` once SwiitKit lives inside it). It runs the bridge
      generator check against `Packages/Swiit/Bridges` only.
    - The shell's bridges and manifests stay with the shell.
+   - *Started* (2026-10-12): `Swiit alone` jobs (macOS, Linux) check out only
+     `Packages/Swiit` and `Packages/SwiitKit`, then build and test both. Still
+     to do: the bridge-currency check, which runs from the shell's
+     `run bridge`, and so needs the generator to be runnable by itself.
 6. **Docs split.**
    - These go with Swiit: embedding.md, frontend.md, types.md, callables.md,
      swift-interop.md, foundations.md, the core parts of async.md and

@@ -4,7 +4,7 @@ import SwiitKit
 extension TypeChecker {
     // MARK: Closures
 
-    @_spi(Layer) public func functionType(_ signature: Signature) -> TypeAnnotation {
+    func functionType(_ signature: Signature) -> TypeAnnotation {
         .functionType(signature.parameters.map { $0.variadic ? .list($0.type) : $0.type }, signature.returns,
                       throws: signature.isThrowing, async: signature.effect)
     }
