@@ -93,7 +93,7 @@
   "name": "typealias",
   "source": "typealias I = Int; let x: I = 3; print(x)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Result",
@@ -147,7 +147,7 @@
   "name": "keypath",
   "source": "struct S { var a = 1 }; print(S()[keyPath: \\.a])",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "string interp",
@@ -159,7 +159,7 @@
   "name": "multiline string",
   "source": "print(\"\"\"\n  a\n  b\n  \"\"\")",
   "expected": "a\nb\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "closure capture",
@@ -177,13 +177,13 @@
   "name": "reduce",
   "source": "print([1,2,3].reduce(0, +))",
   "expected": "6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "sorted by",
   "source": "print([3,1,2].sorted(by: >))",
   "expected": "[3, 2, 1]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "enumerated",
@@ -477,7 +477,7 @@
   "name": "Double",
   "source": "print(3.5.rounded(), Double.pi > 3)",
   "expected": "4.0 true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "nested generic func",
@@ -507,13 +507,13 @@
   "name": "macro use",
   "source": "print(#line)",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "#if",
   "source": "#if os(macOS)\nprint(\"mac\")\n#else\nprint(\"other\")\n#endif",
   "expected": "mac\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "assert",
@@ -561,6 +561,246 @@
   "name": "Date",
   "source": "import Foundation; print(Date().timeIntervalSince1970 > 0)",
   "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "raw string",
+  "source": "let a = #\"a\\nb \"q\" \\#(1 + 2)\"#; print(a)",
+  "expected": "a\\nb \"q\" 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "raw string pounds",
+  "source": "print(##\"x\\#n \\##(3)\"##)",
+  "expected": "x\\#n 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "multiline interp",
+  "source": "let n = 3\nprint(\"\"\"\n    a \\(n)\n      b\n    \"\"\")",
+  "expected": "a 3\n  b\n",
+  "status": "ok"
+ },
+ {
+  "name": "multiline blank lines",
+  "source": "print(\"\"\"\n  one\n  two\n  \"\"\")",
+  "expected": "one\ntwo\n",
+  "status": "ok"
+ },
+ {
+  "name": "multiline continuation",
+  "source": "print(\"\"\"\n  a \\\n  b\n  \"\"\")",
+  "expected": "a b\n",
+  "status": "ok"
+ },
+ {
+  "name": "unicode escape",
+  "source": "print(\"\\u{41}\\t|\")",
+  "expected": "A\t|\n",
+  "status": "ok"
+ },
+ {
+  "name": "labeled continue",
+  "source": "outer: for i in 0..<3 { for j in 0..<3 { if j == 1 { continue outer }; print(i, j) } }",
+  "expected": "0 0\n1 0\n2 0\n",
+  "status": "ok"
+ },
+ {
+  "name": "labeled break while",
+  "source": "var i = 0; outer: while true { i += 1; for j in 0..<5 { if j == 2 { break outer } }; print(\"no\") }; print(i)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "repeat continue",
+  "source": "var i = 0; var n = 0; repeat { i += 1; if i == 2 { continue }; n += i } while i < 4; print(n)",
+  "expected": "8\n",
+  "status": "ok"
+ },
+ {
+  "name": "repeat once",
+  "source": "var i = 5; repeat { print(\"once\") } while i < 0",
+  "expected": "once\n",
+  "status": "ok"
+ },
+ {
+  "name": "tuple for dict",
+  "source": "for (k, v) in [\"a\": 1] { print(k, v) }",
+  "expected": "a 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "nested tuple pattern",
+  "source": "let t = ((1, 2), 3); for (a, b) in [t] { print(a, b) }",
+  "expected": "(1, 2) 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "tuple switch bind",
+  "source": "switch (1, \"x\") { case (let n, \"x\"): print(n); default: print(\"no\") }",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "tuple switch wild",
+  "source": "switch (2, 3) { case (_, 3): print(\"three\"); default: print(\"no\") }",
+  "expected": "three\n",
+  "status": "ok"
+ },
+ {
+  "name": "let tuple destructure",
+  "source": "let (a, b) = (1, \"x\"); print(a, b)",
+  "expected": "1 x\n",
+  "status": "ok"
+ },
+ {
+  "name": "var tuple destructure",
+  "source": "var (a, b) = (1, 2); a += 1; print(a, b)",
+  "expected": "2 2\n",
+  "status": "ok"
+ },
+ {
+  "name": "if case tuple",
+  "source": "if case (1, let y) = (1, 5) { print(y) }",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "shift edge",
+  "source": "print(1 << 63, 1 << 64, -8 >> 1, 8 >> 70, 1 << -1)",
+  "expected": "-9223372036854775808 0 -4 0 0\n",
+  "status": "ok"
+ },
+ {
+  "name": "bit not",
+  "source": "print(~0, ~5, 6 ^ 3, 6 | 1, 6 & 3)",
+  "expected": "-1 -6 5 7 2\n",
+  "status": "ok"
+ },
+ {
+  "name": "wrapping",
+  "source": "print(Int.max &+ 1, Int.min &- 1, Int.max &* 2)",
+  "expected": "-9223372036854775808 9223372036854775807 -2\n",
+  "status": "ok"
+ },
+ {
+  "name": "compound bit",
+  "source": "var x = 6; x &= 3; x |= 8; x ^= 1; x <<= 2; x >>= 1; print(x)",
+  "expected": "22\n",
+  "status": "ok"
+ },
+ {
+  "name": "stride through",
+  "source": "for i in stride(from: 10, through: 0, by: -5) { print(i) }",
+  "expected": "10\n5\n0\n",
+  "status": "ok"
+ },
+ {
+  "name": "stride double",
+  "source": "for x in stride(from: 0.0, to: 1.0, by: 0.25) { print(x) }",
+  "expected": "0.0\n0.25\n0.5\n0.75\n",
+  "status": "ok"
+ },
+ {
+  "name": "zip uneven",
+  "source": "for (a, b) in zip([1, 2, 3], [\"a\", \"b\"]) { print(a, b) }",
+  "expected": "1 a\n2 b\n",
+  "status": "ok"
+ },
+ {
+  "name": "zip range",
+  "source": "for (a, b) in zip(1...3, \"xyz\") { print(a, b) }",
+  "expected": "1 x\n2 y\n3 z\n",
+  "status": "ok"
+ },
+ {
+  "name": "enumerated filter",
+  "source": "print([5, 6, 7].enumerated().filter { $0.offset > 0 }.map { $0.element })",
+  "expected": "[6, 7]\n",
+  "status": "ok"
+ },
+ {
+  "name": "print nested",
+  "source": "print([[1, 2], [3]], [\"a\": [1]], (1, \"b\"), [(\"x\", 2)])",
+  "expected": "[[1, 2], [3]] [\"a\": [1]] (1, \"b\") [(\"x\", 2)]\n",
+  "status": "ok"
+ },
+ {
+  "name": "description in array",
+  "source": "struct S: CustomStringConvertible { var description: String { \"S!\" } }; print([S()], S(), \"\\(S())\", \"\\([S()])\")",
+  "expected": "[S!] S! S! [S!]\n",
+  "status": "ok"
+ },
+ {
+  "name": "description interpolation",
+  "source": "struct S: CustomStringConvertible { var description: String { \"S!\" } }; let s = S(); print(\"x\\(s)y\")",
+  "expected": "xS!y\n",
+  "status": "ok"
+ },
+ {
+  "name": "typealias use",
+  "source": "typealias Pair = (Int, Int); func f(_ p: Pair) -> Int { p.0 + p.1 }; print(f((1, 2)))",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "typealias array",
+  "source": "typealias Row = [Int]; let r: Row = [1, 2]; print(r.count)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "keypath subscript nested",
+  "source": "struct A { var b = B() }; struct B { var c = 4 }; print(A()[keyPath: \\.b.c])",
+  "expected": "4\n",
+  "status": "todo"
+ },
+ {
+  "name": "operator ref",
+  "source": "print([3, 1, 2].sorted(by: <), [\"b\", \"a\"].sorted(by: >), [1, 2, 3].reduce(1, *))",
+  "expected": "[1, 2, 3] [\"b\", \"a\"] 6\n",
+  "status": "ok"
+ },
+ {
+  "name": "operator ref minus",
+  "source": "print([10, 2].reduce(100, -))",
+  "expected": "88\n",
+  "status": "ok"
+ },
+ {
+  "name": "guard shorthand param",
+  "source": "func f(_ x: Int?) -> Int { guard let x else { return -1 }; return x * 2 }; print(f(4), f(nil))",
+  "expected": "8 -1\n",
+  "status": "ok"
+ },
+ {
+  "name": "if let shorthand",
+  "source": "let x: Int? = 5; if let x { print(x + 1) }",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "while let",
+  "source": "var xs = [1, 2]; while let x = xs.popLast() { print(x) }",
+  "expected": "2\n1\n",
+  "status": "ok"
+ },
+ {
+  "name": "import foundation",
+  "source": "import Foundation; print(abs(-3), max(2, 9), min(4, 1))",
+  "expected": "3 9 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "assert ok",
+  "source": "assert(1 < 2, \"no\"); precondition(true, \"fine\"); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "ok"
+ },
+ {
+  "name": "min max abs",
+  "source": "print(min(3, 1, 2), max(3.5, 1.5), abs(-2.5))",
+  "expected": "1 3.5 2.5\n",
   "status": "ok"
  }
 ]

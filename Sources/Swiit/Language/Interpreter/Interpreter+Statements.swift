@@ -234,7 +234,12 @@ extension Interpreter {
             return
         }
         let elements: AnyIterator<Value>
-        if case .string(let text) = value {
+        if case .dictionary(let dictionary) = value {
+            // In the order they are shown in, which is the same every run.
+            elements = AnyIterator(dictionary.sortedForDisplay.map { entry in
+                Value.record(Record(["key": entry.key, "value": entry.value]))
+            }.makeIterator())
+        } else if case .string(let text) = value {
             elements = AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
         } else if let items = Interpreter.items(of: value) {
             elements = items

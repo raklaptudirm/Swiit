@@ -15,6 +15,12 @@ extension Lowering {
         if let node = decl.as(EnumDeclSyntax.self) { return [.enumDecl(try enumeration(node))] }
         if prelude, let node = decl.as(ExtensionDeclSyntax.self) { return [try sequenceExtension(node)] }
         if let node = decl.as(ImportDeclSyntax.self) { return try importDeclaration(node) }
+        if let node = decl.as(IfConfigDeclSyntax.self) { return try conditional(node) }
+        if let node = decl.as(TypeAliasDeclSyntax.self) {
+            guard node.genericParameterClause == nil else { throw unsupported("a generic typealias", node) }
+            aliases[node.name.text] = try type(node.initializer.value)
+            return []
+        }
         throw unsupported("'\(decl.kind)'", decl)
     }
 
@@ -42,6 +48,20 @@ extension Lowering {
         var statements: [Statement] = []
         for binding in node.bindings {
             // `let _ = f()`: the value, thrown away.
+            // `let (a, b) = pair`: the pair held once, and each name from it.
+            if let tuple = binding.pattern.as(TuplePatternSyntax.self) {
+                guard !isAsync, binding.accessorBlock == nil, let initializer = binding.initializer else {
+                    throw unsupported("this variable", binding)
+                }
+                var value = try expression(initializer.value)
+                if let annotation = binding.typeAnnotation { value = .annotated(value, try type(annotation.type)) }
+                let pattern = try self.pattern(PatternSyntax(tuple), mutable: mutable)
+                destructurings += 1
+                let held = "$tuple\(destructurings)"
+                statements.append(.declare(name: held, mutable: false, value: value))
+                statements += Lowering.destructure(pattern, of: .variable(held))
+                continue
+            }
             let name: String
             if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
                 name = identifier.identifier.text
@@ -67,6 +87,16 @@ extension Lowering {
             statements.append(.declare(name: name, mutable: mutable, value: value))
         }
         return statements
+    }
+
+    /// The declarations that give each name in a tuple pattern its element of `value`.
+    static func destructure(_ pattern: Pattern, of value: Expr) -> [Statement] {
+        switch pattern {
+        case .binding(let name, let mutable): [.declare(name: name, mutable: mutable, value: value)]
+        case .tuple(let patterns):
+            patterns.enumerated().flatMap { destructure($1, of: .member(value, "\($0)")) }
+        default: []
+        }
     }
 
     // MARK: Functions
@@ -367,6 +397,7 @@ extension Lowering {
                 if name == "KeyPath", arguments.count == 2 { return .keyPath(arguments[0], arguments[1]) }
                 return TypeAnnotation.spelled(name, arguments) ?? .generic(name, arguments)
             }
+            if let alias = aliases[name] { return alias }
             if let spelled = TypeAnnotation.spelled(name) { return spelled }
             if name == "Void" { return .void }
             guard declaredTypes.contains(name) || bound[name] == .type else { throw SyntaxError("unknown type '\(name)'") }

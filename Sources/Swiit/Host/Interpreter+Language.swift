@@ -55,6 +55,47 @@ extension Interpreter {
                 return .list(pairs)
             }
         ))
+        // `abs`, `min` and `max`, for the numbers and strings there are.
+        for (type, name) in [(SwiitType.int, "Int"), (SwiitType.double, "Double")] {
+            declare(ExportedFunction(
+                name: "abs", summary: "The magnitude of an \(name).",
+                parameters: [ExportedParameter(label: nil, name: "x", type: type)], returnType: type, isThrowing: false,
+                call: { arguments in
+                    switch arguments["x"] {
+                    case .int(let n)?:
+                        guard n != Int.min else { throw RuntimeError("arithmetic overflow") }
+                        return .int(Swift.abs(n))
+                    case .double(let d)?: return .double(Swift.abs(d))
+                    default: return .nothing
+                    }
+                }
+            ))
+        }
+        for type in [SwiitType.int, .double, .string] {
+            for (name, picksLess) in [("min", true), ("max", false)] {
+                declare(ExportedFunction(
+                    name: name, summary: "The \(picksLess ? "smallest" : "largest") of its arguments.",
+                    parameters: [ExportedParameter(label: nil, name: "x", type: type), ExportedParameter(label: nil, name: "y", type: type),
+                                 ExportedParameter(label: nil, name: "rest", type: type, variadic: true)],
+                    returnType: type, isThrowing: false,
+                    call: { arguments in
+                        var values = [arguments["x"] ?? .nothing, arguments["y"] ?? .nothing]
+                        if case .list(let rest)? = arguments["rest"] { values += rest }
+                        func before(_ a: Value, _ b: Value) -> Bool {
+                            switch (a, b) {
+                            case (.int(let x), .int(let y)): return x < y
+                            case (.double(let x), .double(let y)): return x < y
+                            case (.string(let x), .string(let y)): return x < y
+                            default: return false
+                            }
+                        }
+                        var best = values[0]
+                        for value in values.dropFirst() where picksLess ? before(value, best) : before(best, value) { best = value }
+                        return best
+                    }
+                ))
+            }
+        }
         // `stride(from:to:by:)` and `stride(from:through:by:)`, for Int and Double.
         for (end, inclusive) in [("to", false), ("through", true)] {
             for (type, name) in [(SwiitType.int, "Int"), (SwiitType.double, "Double")] {

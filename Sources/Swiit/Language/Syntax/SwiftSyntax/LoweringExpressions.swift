@@ -23,6 +23,14 @@ extension Lowering {
         if expr.is(NilLiteralExprSyntax.self) { return .literal(.nothing) }
         if let node = expr.as(StringLiteralExprSyntax.self) { return try string(node) }
         if let node = expr.as(DeclReferenceExprSyntax.self) {
+            // `+`, `<`: an operator as a function, as in `reduce(0, +)`.
+            if case .binaryOperator = node.baseName.tokenKind, let op = binaryOperator(node.baseName.text) {
+                let body = Expr.binary(op, .variable("$0"), .variable("$1"))
+                return .closure(ClosureLiteral(
+                    parameters: [Parameter(name: "$0"), Parameter(name: "$1")], returnType: nil,
+                    body: Program(statements: [.expression(body)], lines: [line(of: node)]), names: NamesUsed(names: ["$0", "$1"])
+                ))
+            }
             try checkKnown(node, calling: false)
             return reference(node)
         }
@@ -75,6 +83,7 @@ extension Lowering {
             return .ifExpression(lowered)
         }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "filePath" { return .filePath }
+        if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "line" { return .literal(.int(line(of: node))) }
         // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are lowered with their base.
         if let node = expr.as(OptionalChainingExprSyntax.self) {
             failedAt = node.questionMark.positionAfterSkippingLeadingTrivia.utf8Offset
@@ -116,37 +125,72 @@ extension Lowering {
             let text = bytes[open.endPositionBeforeTrailingTrivia.utf8Offset..<close.positionAfterSkippingLeadingTrivia.utf8Offset]
             return .literal(.string(String(decoding: text, as: UTF8.self)))
         }
-        guard node.openingPounds == nil, node.openingQuote.tokenKind == .stringQuote else {
-            throw unsupported("a multi-line or raw string", node)
+        // `"…"`, `"""…"""` and either with `#` delimiters, where an escape is `\#n`.
+        let pounds = node.openingPounds?.text.count ?? 0
+        let multiline = node.openingQuote.tokenKind == .multilineStringQuote
+        guard node.openingQuote.tokenKind == .stringQuote || multiline else {
+            throw unsupported("this string", node)
+        }
+        // A multi-line string drops the closing quotes' indentation from every line.
+        var indent = ""
+        if multiline {
+            let trivia = node.closingQuote.leadingTrivia.description
+            indent = String(trivia.split(separator: "\n", omittingEmptySubsequences: false).last ?? "")
+            guard indent.allSatisfy({ $0 == " " || $0 == "\t" }) else { throw unsupported("this string", node) }
         }
         var parts: [StringPart] = []
         var text = ""
+        var atLineStart = multiline
         func flush() { if !text.isEmpty { parts.append(.literal(text)); text = "" } }
         for segment in node.segments {
             switch segment {
             case .stringSegment(let literal):
-                guard let unescaped = unescape(literal.content.text) else { throw unsupported("this escape", literal) }
+                var raw = literal.content.text
+                if multiline && !indent.isEmpty {
+                    var lines = raw.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                    for index in lines.indices where index > 0 || atLineStart {
+                        if lines[index].hasPrefix(indent) { lines[index].removeFirst(indent.count) }
+                        else if lines[index].allSatisfy({ $0 == " " || $0 == "\t" }) { lines[index] = "" }
+                    }
+                    raw = lines.joined(separator: "\n")
+                }
+                if multiline { atLineStart = raw.hasSuffix("\n") }
+                guard let unescaped = unescape(raw, pounds: pounds) else { throw unsupported("this escape", literal) }
                 text += unescaped
             case .expressionSegment(let interpolation):
                 guard interpolation.expressions.count == 1, let inner = interpolation.expressions.first else {
                     throw unsupported("this interpolation", interpolation)
                 }
                 flush()
+                atLineStart = false
                 parts.append(.expression(try expression(inner.expression)))
             }
         }
+        // The newline before the closing quotes isn't part of a multi-line string.
+        if multiline, text.hasSuffix("\n") { text.removeLast() }
         flush()
         if parts.isEmpty { return .literal(.string("")) }
         if parts.count == 1, case .literal(let only) = parts[0] { return .literal(.string(only)) }
         return .string(parts)
     }
 
-    private func unescape(_ text: String) -> String? {
+    /// A string's text with its escapes made: `\n`, or with `#` delimiters `\#n`
+    /// (a `\` alone is itself there).
+    private func unescape(_ text: String, pounds: Int = 0) -> String? {
+        let introducer = Array("\\" + String(repeating: "#", count: pounds))
+        let characters = Array(text)
         var result = ""
-        var iterator = text.makeIterator()
-        while let character = iterator.next() {
-            guard character == "\\" else { result.append(character); continue }
-            guard let next = iterator.next() else { return nil }
+        var index = 0
+        while index < characters.count {
+            guard characters[index...].starts(with: introducer) else {
+                result.append(characters[index])
+                index += 1
+                continue
+            }
+            index += introducer.count
+            guard index < characters.count else { return nil }
+            let next = characters[index]
+            index += 1
             switch next {
             case "n": result.append("\n")
             case "t": result.append("\t")
@@ -155,10 +199,13 @@ extension Lowering {
             case "\\": result.append("\\")
             case "\"": result.append("\"")
             case "'": result.append("'")
+            case "\n": break // A line continuation, in a multi-line string.
             case "u":
-                guard iterator.next() == "{" else { return nil }
+                guard index < characters.count, characters[index] == "{" else { return nil }
+                index += 1
                 var digits = ""
-                while let digit = iterator.next(), digit != "}" { digits.append(digit) }
+                while index < characters.count, characters[index] != "}" { digits.append(characters[index]); index += 1 }
+                index += 1
                 guard let value = UInt32(digits, radix: 16), let scalar = Unicode.Scalar(value) else { return nil }
                 result.unicodeScalars.append(scalar)
             default: return nil
@@ -169,7 +216,7 @@ extension Lowering {
 
     // MARK: Members, calls, subscripts
 
-    private mutating func member(_ node: MemberAccessExprSyntax) throws -> Expr {
+    private mutating func member(_ node: MemberAccessExprSyntax, called: Bool = false) throws -> Expr {
         guard node.declName.argumentNames == nil else { throw unsupported("a member with argument names", node) }
         let name = node.declName.baseName.text
         guard let base = node.base else { return .caseLiteral(name, nil) }
@@ -183,7 +230,7 @@ extension Lowering {
             }
         }
         // `1.parsecs`: a number is followed by a unit, and this isn't one.
-        if base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
+        if !called, base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
             failedAt = node.declName.endPositionBeforeTrailingTrivia.utf8Offset
             throw SyntaxError("unknown unit '\(name)'; file sizes use b, kb, mb, gb, tb, or kib, mib, gib, tib")
         }
@@ -212,6 +259,9 @@ extension Lowering {
             if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
+            } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self) {
+                // `3.5.rounded()`: a method of the number, not a unit.
+                callee = try self.member(member, called: true)
             } else {
                 callee = try expression(node.calledExpression)
             }
@@ -242,6 +292,12 @@ extension Lowering {
         // what is wrong with the subscript.
         let chained = node.calledExpression.as(OptionalChainingExprSyntax.self)
         let base = try expression(chained?.expression ?? node.calledExpression)
+        // `value[keyPath: \.a.b]`: the member it names.
+        if node.arguments.count == 1, let argument = node.arguments.first, argument.label?.text == "keyPath",
+           let literal = argument.expression.as(KeyPathExprSyntax.self), literal.root == nil {
+            guard case .keyPath(_, let path) = try keyPath(literal) else { throw unsupported("this key path", literal) }
+            return path.reduce(base) { .member($0, $1) }
+        }
         guard node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil else {
             throw unsupported("this subscript", node)
         }

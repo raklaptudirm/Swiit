@@ -137,12 +137,22 @@ extension Lowering {
     }
 
     private mutating func whileLoop(_ node: WhileStmtSyntax, label: String? = nil) throws -> Statement {
+        // What a condition binds is visible in the body only.
+        locals.append([])
+        defer { locals.removeLast() }
         let condition = try condition(node.conditions, node)
-        guard case .expression(let test) = condition else { throw unsupported("a binding in a 'while'", node) }
         leaving.loop += 1
         if let label { leaving.labels.append(label) }
         defer { leaving.loop -= 1; if label != nil { leaving.labels.removeLast() } }
-        return .whileLoop(WhileLoop(condition: test, body: try block(node.body.statements), label: label))
+        var body = try block(node.body.statements)
+        guard case .expression(let test) = condition else {
+            // `while let x = next() { … }` is `while true { guard let x = next() else { break }; … }`.
+            let first = body.lines.first ?? line(of: node)
+            body.statements.insert(.guardStatement(condition, otherwise: Program(statements: [.breakStatement()], lines: [first])), at: 0)
+            if !body.lines.isEmpty { body.lines.insert(first, at: 0) }
+            return .whileLoop(WhileLoop(condition: .literal(.bool(true)), body: body, label: label))
+        }
+        return .whileLoop(WhileLoop(condition: test, body: body, label: label))
     }
 
     private mutating func repeatLoop(_ node: RepeatStmtSyntax, label: String? = nil) throws -> Statement {

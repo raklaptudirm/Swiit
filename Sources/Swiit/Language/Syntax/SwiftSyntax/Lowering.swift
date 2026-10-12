@@ -74,6 +74,10 @@ struct Lowering {
     /// unit needs (a word that isn't a name is a command's): the Swift here
     /// is read by what the names around it are.
     var strictNames = false
+    /// `typealias Name = Type`, which a type written as `Name` stands for.
+    var aliases: [String: TypeAnnotation] = [:]
+    /// How many tuples `let (a, b) = …` has held, for their names.
+    var destructurings = 0
     /// Where the last error was, in bytes, for the cursor that asked.
     var failedAt: Int?
     /// How many lines of the whole source come before this one's first.
@@ -478,10 +482,4 @@ private final class LayerSyntaxFinder: SyntaxVisitor {
         return .visitChildren
     }
 
-    override func visit(_ node: InfixOperatorExprSyntax) -> SyntaxVisitorContinueKind {
-        if node.operator.as(BinaryOperatorExprSyntax.self)?.operator.text == "|" {
-            return refuse("'|' pipes commands, which are shell syntax, and isn't an operator in Swift-only code", node)
-        }
-        return .visitChildren
-    }
 }
