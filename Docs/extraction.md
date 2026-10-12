@@ -162,9 +162,9 @@ last stage, and mechanical by then.
      generator check against `Bridges` only.
    - The shell's bridges and manifests stay with the shell.
    - *Started* (2026-10-12): `Swiit alone` jobs (macOS, Linux) check out only
-     this repository and `Packages/SwiitKit`, then build and test both. Still
-     to do: the bridge-currency check, which runs from the shell's
-     `run bridge`, and so needs the generator to be runnable by itself.
+     this repository and `Packages/SwiitKit`, then build and test both. The bridge-currency
+     check moved with the generator: `Scripts/bridge` and two CI jobs in
+     the new repository.
 6. **Docs split.**
    - These go with Swiit: embedding.md, frontend.md, types.md, callables.md,
      swift-interop.md, foundations.md, the core parts of async.md and

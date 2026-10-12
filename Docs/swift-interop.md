@@ -123,7 +123,7 @@ scripts, reusing the twins.
    graph and generated glue, replacing the hand-written member tables.
    *Built so far:* `swiit-bridge` (Sources/SwiitBridge) reads the graph
    and writes Sources/Swiit/Bridge/Generated/StandardLibrary.swift;
-   `run bridge` reruns it. It bridges `String`,
+   `Scripts/bridge` reruns it. It bridges `String`,
    `Substring`, `Character`, `Int`, `Double`, `Bool`, `Array`,
    `ArraySlice`, `Set`, `Dictionary`, `Optional`, `Range` and
    `ClosedRange` (647 members). A member is bridged if every type in its

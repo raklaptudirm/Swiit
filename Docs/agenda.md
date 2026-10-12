@@ -13,10 +13,6 @@ the reasons stay in the notes it points to.
    and `Packages/Swiit` and `Packages/SwiitKit` leave it ([extraction.md](extraction.md), stage 7).
 2. **Tag 0.1.0, and the versioning rule.** A minor release may break the host
    API until 1.0; the shell pins exactly and moves up on purpose (stage 8).
-3. **The bridge-currency check in this repository's CI.** The generator is
-   run from the shell's `run bridge`; it needs to run by itself, so a stale
-   bridge fails here and not only in Swish.
-
 ## Next: the language
 
 4. **Swift parity gaps:** task groups (they need generics and metatypes),
