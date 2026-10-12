@@ -5,7 +5,7 @@
 # needs is public API (Docs/embedding.md); the evaluator's insides are
 # internal. A new line
 # is a decision; a line goes when its declaration becomes public API or
-# internal (Docs/Design/extraction.md, stages 1 and 2). Overloads repeat
+# internal (Docs/extraction.md, stages 1 and 2). Overloads repeat
 # their line.
 Language/Checking/TypeChecker+Calls.swift	Layer func commonReturn
 Language/Checking/TypeChecker+Calls.swift	Layer func preferred

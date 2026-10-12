@@ -6,7 +6,7 @@ import Foundation
 /// what it parsed). The evaluator's insides are internal. Each
 /// declaration is listed in spi-surface.txt, so a new one is a decision, and
 /// the list only shrinks as they become public API or internal
-/// (Docs/Design/extraction.md, stages 1 and 2).
+/// (Docs/extraction.md, stages 1 and 2).
 enum SPISurface {
     private static let here = URL(fileURLWithPath: #filePath)
     private static let sources = here.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

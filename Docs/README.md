@@ -1,8 +1,8 @@
 # Swiit's design notes
 
-The interpreter's own design, which goes where it goes. Links to the shell's
-notes (`../../../Docs/Design/…`) are the first client's, and become prose or
-links to its repository at the move (extraction stage 7).
+The interpreter's own design. Links to
+[Swish's notes](https://github.com/raklaptudirm/Swish/tree/main/Docs/Design)
+are to its first client, the shell.
 
 - [embedding.md](embedding.md): the public API, and what stays SPI.
 - [frontend.md](frontend.md): SwiftSyntax as the front end, the plug-in contract, and the retired hand parser.

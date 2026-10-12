@@ -4,9 +4,9 @@ Swish's interpreter should be usable as a library: an app or a tool links it,
 hands it Swift functions and values, and runs scripts written in Swift, with
 no shell, no terminal and no process access unless the host grants it. This
 is the design for separating that core out. It follows
-[direction.md](../../../Docs/Design/direction.md) (Swish is a Swift interpreter first, with the
+[direction.md](https://github.com/raklaptudirm/Swish/blob/main/Docs/Design/direction.md) (Swish is a Swift interpreter first, with the
 shell as seasoning) and is the first thing to build, ahead of
-[desugaring.md](../../../Docs/Design/desugaring.md) and [async.md](async.md), which both build on
+[desugaring.md](https://github.com/raklaptudirm/Swish/blob/main/Docs/Design/desugaring.md) and [async.md](async.md), which both build on
 the seam it creates.
 
 Step 1 of the plan is built (the `SwiitHost` seam); the rest is not. This
@@ -58,7 +58,7 @@ Decided later (2026-10-10):
   beyond the pretty printers and the members it adds to Swift's types (`Flow`
   stays until Swift has a lazy sequence that can throw). JSON becomes a dynamic
   object the shell registers.
-- **Two packages in one repository,** Swiit (`Packages/Swiit`) and Swish (the
+- **Two packages in one repository,** Swiit (this repository) and Swish (the
   root), the shell depending on Swiit. `package` access can't cross a package,
   so what the shell uses is `@_spi(Shell) public`: the shell imports it as
   `@_spi(Shell) import Swiit`, and what an embedder sees is only the plain

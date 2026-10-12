@@ -7,7 +7,7 @@ import SwiitKit
 /// that adds its own nodes (the shell's, held opaquely in `.extended`) sees
 /// them here and rewrites what is inside them itself, with `program`,
 /// `expression` and the rest. This is how the shell's constructs become Swift
-/// (Docs/Design/desugaring.md).
+/// (Swish's Docs/Design/desugaring.md).
 @_spi(Layer) public struct TreeRewriter {
     @_spi(Layer) public var expr: (Expr) -> Expr
     var statement: (Statement) -> Statement

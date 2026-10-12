@@ -1,6 +1,11 @@
 # Swiit in a repository of its own
 
-Swiit (`Packages/Swiit`) is meant to be an embeddable Swift interpreter that
+> *Status (2026-10-12):* this is the plan as it was written in the Swish
+> repository, where Swiit lived in `Packages/Swiit`; the history below uses
+> those paths. Stages 1 to 6 are done, and stage 7 produced this repository:
+> Swiit's package at the root, SwiitKit in `SwiitKit/`, these notes in `Docs/`.
+
+Swiit (this repository) is meant to be an embeddable Swift interpreter that
 Swish is one client of (vision.typ, boundaries.md). This note says whether it
 should move to its own repository, and how to get it there.
 
@@ -40,7 +45,7 @@ last stage, and mechanical by then.
    lists the `@_spi(Shell)` declarations the shell uses
    (`spi-surface.txt`); a new one fails the test until it's added on purpose.
    The list only shrinks from then on. *Done:* `theCoresSPIOnlyShrinks`
-   checks Packages/Swiit/Tests/SwiitTests/spi-surface.txt against every
+   checks Tests/SwiitTests/spi-surface.txt against every
    `@_spi(Shell) public` declaration in Sources/Swiit. Before it was written,
    the 188 members nothing outside the module named became internal: 878
    declarations went to 690. Of those, by the names other code uses
@@ -138,7 +143,7 @@ last stage, and mechanical by then.
      `@SwiitObject`) and types (`SwiitObject`, `SwiitError`,
      `SwiitConvertible`, `SwiitDisplayed`, `SwiitEnum`, `SwiitValue`;
      `HostContext`). It keeps the old type and macro names, deprecated, and
-     `Packages/SwishKit` is a package of the old name that re-exports it, so a
+     `Packages/SwishKit in the Swish repository` is a package of the old name that re-exports it, so a
      plugin written against SwishKit builds unchanged, manifest included (the
      example plugin does, and a test keeps it so). A protocol requirement
      implemented by hand is the one thing that must be renamed.
@@ -154,10 +159,10 @@ last stage, and mechanical by then.
    - `swift test --package-path Packages/Swiit` already runs alone.
    - Its CI job also builds and tests with no path outside `Packages/` (no
      `../SwiitKit` once SwiitKit lives inside it). It runs the bridge
-     generator check against `Packages/Swiit/Bridges` only.
+     generator check against `Bridges` only.
    - The shell's bridges and manifests stay with the shell.
    - *Started* (2026-10-12): `Swiit alone` jobs (macOS, Linux) check out only
-     `Packages/Swiit` and `Packages/SwiitKit`, then build and test both. Still
+     this repository and `Packages/SwiitKit`, then build and test both. Still
      to do: the bridge-currency check, which runs from the shell's
      `run bridge`, and so needs the generator to be runnable by itself.
 6. **Docs split.**
@@ -171,7 +176,7 @@ last stage, and mechanical by then.
      boundaries.md moved whole: their shell parts (`$(…)` and jobs, the
      ledger's shell concepts) are the first client's use of the core and say
      so; lifting them into the shell's notes is an edit for the move. The
-     links from Swiit's notes back to the shell's (`../../../Docs/Design/…`)
+     links from Swiit's notes back to the shell's (`https://github.com/raklaptudirm/Swish/blob/main/Docs/Design/…`)
      are the other thing the move must change. The interpreter half of
      vision.typ is the user's to split.
 7. **The move.**

@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         // A separate package so a host links SwiitKit as a dylib (products of
         // the same package would be linked statically into the executable).
-        .package(path: "../SwiitKit"),
+        .package(path: "SwiitKit"),
         // FilePath, until the standard library's (SE-0529) ships; swift-system's
         // then becomes a typealias for it, keeping the members added here.
         .package(url: "https://github.com/apple/swift-system.git", from: "1.4.0"),

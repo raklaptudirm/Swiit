@@ -1,0 +1,71 @@
+name: CI
+
+# Swiit on its own, where it is meant to run: macOS and Linux.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    name: macOS
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # The bridges in Sources/Swiit/Bridge/Generated are read from this
+      # Swift's symbol graphs, so the newest Xcode is the one they match.
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            SwiitKit/.build
+          key: macos-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved', 'SwiitKit/Package.swift') }}
+          restore-keys: macos-${{ runner.arch }}-swift-
+
+      - name: Build
+        run: swift build
+
+      - name: Unit tests
+        run: swift test
+
+      - name: SwiitKit unit tests
+        run: swift test --package-path SwiitKit
+
+  linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    container: swift:6.2
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            SwiitKit/.build
+          key: linux-${{ runner.arch }}-swift-${{ hashFiles('Package.swift', 'Package.resolved', 'SwiitKit/Package.swift') }}
+          restore-keys: linux-${{ runner.arch }}-swift-
+
+      - name: Build
+        run: swift build
+
+      - name: Unit tests
+        run: swift test
+
+      - name: SwiitKit unit tests
+        run: swift test --package-path SwiitKit

@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// Prints the core's tree as Swift source: the form every construct reduces
-/// to (Docs/Design/desugaring.md). It is for golden tests of what a rewrite
+/// to (Swish's Docs/Design/desugaring.md). It is for golden tests of what a rewrite
 /// produces, `--emit-swift`, and later compiling the result with `swiftc` to
 /// compare with the interpreter. A construct a layer over the core adds, or
 /// that only the checker makes, prints as a comment saying so, so printing is

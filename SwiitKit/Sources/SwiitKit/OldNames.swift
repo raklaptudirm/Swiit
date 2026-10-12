@@ -1,6 +1,6 @@
 // SwiitKit was SwishKit. Code written against it builds unchanged: these
 // are its types' and macros' old names, and the SwishKit package
-// (Packages/SwishKit) is a module of that name that brings in SwiitKit.
+// (Packages/SwishKit, in the Swish repository) is a module of that name that brings in SwiitKit.
 //
 // What can't keep its old name is a protocol requirement: a type that
 // conforms by hand implements `swiitValue`, `swiitDescription` and the rest.
