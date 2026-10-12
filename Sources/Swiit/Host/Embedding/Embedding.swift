@@ -131,10 +131,7 @@ extension Interpreter {
             parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true)], returnType: nil,
             call: { arguments in
                 guard case .list(let items)? = arguments["items"] else { return .nothing }
-                let line = items.map { item -> String in
-                    if case .string(let text) = item { return text }
-                    return "\(item)"
-                }.joined(separator: " ")
+                let line = try items.map { try interpreter.describing($0) }.joined(separator: " ")
                 interpreter.host.output.write(line + "\n")
                 return .nothing
             }

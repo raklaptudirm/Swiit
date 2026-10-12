@@ -81,10 +81,16 @@ import SwiitKit
                 }
             ))
         case .forLoop(let loop):
-            rewritten = .forLoop(ForLoop(variable: loop.variable, sequence: expression(loop.sequence), body: program(loop.body),
-                                         isAwait: loop.isAwait, isTry: loop.isTry))
+            var copy = loop
+            copy.sequence = expression(loop.sequence)
+            copy.pattern = pattern(loop.pattern)
+            copy.body = program(loop.body)
+            rewritten = .forLoop(copy)
         case .whileLoop(let loop):
-            rewritten = .whileLoop(WhileLoop(condition: expression(loop.condition), body: program(loop.body)))
+            var copy = loop
+            copy.condition = expression(loop.condition)
+            copy.body = program(loop.body)
+            rewritten = .whileLoop(copy)
         }
         return rewritten
     }
@@ -133,6 +139,7 @@ import SwiitKit
         case .expression(let inner): .expression(expression(inner))
         case .cast(let inner, let type): .cast(pattern(inner), type)
         case .isType: value
+        case .tuple(let patterns): .tuple(patterns.map(pattern))
         }
     }
 

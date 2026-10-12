@@ -148,14 +148,23 @@ extension Interpreter {
         case .forLoop(let loop):
             statementFinished?(statement, nil, false)
             try forEachElement(of: loop.sequence) { element in
-                let bindings = loop.variable == "_" ? [:] : [loop.variable: Binding(value: element, mutable: false)]
-                return try runLoopBody(loop.body, declaring: bindings)
+                var bindings: [String: Binding] = [:]
+                guard try match(loop.pattern, element, into: &bindings) else {
+                    throw RuntimeError("a \(element.typeName) doesn't fit this 'for' pattern")
+                }
+                return try runLoopBody(loop.body, declaring: bindings, label: loop.label)
             }
             return
         case .whileLoop(let loop):
             statementFinished?(statement, nil, false)
+            if loop.isRepeat {
+                repeat {
+                    guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
+                } while try isTrue(loop.condition)
+                return
+            }
             while try isTrue(loop.condition) {
-                guard try runLoopBody(loop.body, declaring: [:]) else { break }
+                guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
             }
             return
         case .fallthroughStatement:
@@ -172,10 +181,10 @@ extension Interpreter {
         case .returnStatement(let expr):
             // A `.case` returned from a function declared to return an enum.
             throw ControlFlow.returned(try expr.map { try evaluate($0, expecting: returnTypes.last ?? nil) } ?? .nothing)
-        case .breakStatement:
-            throw ControlFlow.breakLoop
-        case .continueStatement:
-            throw ControlFlow.continueLoop
+        case .breakStatement(let label):
+            throw ControlFlow.breakLoop(label)
+        case .continueStatement(let label):
+            throw ControlFlow.continueLoop(label)
         }
         statementFinished?(statement, nil, itemErrorCount > errorsBefore)
     }
@@ -195,14 +204,15 @@ extension Interpreter {
         statementFinished?(.expression(expr), value, itemErrorCount > errorsBefore)
     }
 
-    /// Runs one iteration; false means `break`.
-    func runLoopBody(_ body: Program, declaring bindings: [String: Binding]) throws -> Bool {
+    /// Runs one iteration; false means `break`. A `break` or `continue` that
+    /// names another loop goes on to it.
+    func runLoopBody(_ body: Program, declaring bindings: [String: Binding], label: String? = nil) throws -> Bool {
         try checkInterrupt()
         do {
             try runBlock(body, declaring: bindings)
-        } catch ControlFlow.breakLoop {
+        } catch ControlFlow.breakLoop(let named) where named == nil || named == label {
             return false
-        } catch ControlFlow.continueLoop {}
+        } catch ControlFlow.continueLoop(let named) where named == nil || named == label {}
         return true
     }
 

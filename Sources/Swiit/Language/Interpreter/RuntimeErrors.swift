@@ -45,8 +45,9 @@ public struct Interrupted: Error {
 /// parser guarantees each one has a handler.
 enum ControlFlow: Error {
     case returned(Value)
-    case breakLoop
-    case continueLoop
+    /// `break` or `continue`, with the label of the loop it names, if it does.
+    case breakLoop(String?)
+    case continueLoop(String?)
     case fallthroughCase
 }
 

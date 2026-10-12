@@ -9,6 +9,14 @@ extension Sequence where Element: Hashable {
 }
 
 extension Sequence {
+    /// Each item with its position, as pairs: Swift's lazy `EnumeratedSequence`
+    /// is held as the array it would give.
+    @_disfavoredOverload
+    public func enumerated() -> [(offset: Int, element: Element)] {
+        var position = 0
+        return map { element in defer { position += 1 }; return (offset: position, element: element) }
+    }
+
     /// The value of one field of each item.
     /// - Parameter key: a field, as in get name or get(\.name)
     public func get<V>(_ key: KeyPath<Element, V>) -> [V] {

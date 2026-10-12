@@ -321,6 +321,7 @@ extension Lowering {
         switch node.operator.text {
         case "-": return .unary(.negate, operand)
         case "!": return .unary(.not, operand)
+        case "~": return .unary(.bitNot, operand)
         default: throw unsupported("the operator '\(node.operator.text)'", node)
         }
     }

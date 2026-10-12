@@ -117,7 +117,7 @@
   "name": "guard",
   "source": "func f(_ x: Int?) -> Int { guard let x else { return 0 }; return x }; print(f(2))",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "defer",
@@ -189,13 +189,13 @@
   "name": "enumerated",
   "source": "for (i, x) in [5,6].enumerated() { print(i, x) }",
   "expected": "0 5\n1 6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "zip",
   "source": "for (a, b) in zip([1,2], [3,4]) { print(a + b) }",
   "expected": "4\n6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "dictionary",
@@ -237,7 +237,7 @@
   "name": "switch tuple",
   "source": "switch (1, 2) { case (1, _): print(\"one\"); default: break }",
   "expected": "one\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "range pattern",
@@ -261,7 +261,7 @@
   "name": "enum CaseIterable",
   "source": "enum E: CaseIterable { case a, b }; print(E.allCases.count)",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "indirect enum",
@@ -411,13 +411,13 @@
   "name": "CustomStringConvertible",
   "source": "struct S: CustomStringConvertible { var description: String { \"S!\" } }; print(S())",
   "expected": "S!\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Codable",
   "source": "struct S: Codable { var a: Int }; print(S(a: 1))",
   "expected": "S(a: 1)\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Optional map",
@@ -435,25 +435,25 @@
   "name": "labeled break",
   "source": "outer: for i in 0..<3 { for j in 0..<3 { if j == 1 { continue outer } ; print(i, j) } }",
   "expected": "0 0\n1 0\n2 0\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "repeat while",
   "source": "var i = 0; repeat { i += 1 } while i < 3; print(i)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "stride",
   "source": "for i in stride(from: 0, to: 6, by: 2) { print(i) }",
   "expected": "0\n2\n4\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "String methods",
   "source": "print(\"abc\".uppercased(), \"a,b\".split(separator: \",\"))",
   "expected": "ABC [\"a\", \"b\"]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "String index",
@@ -471,7 +471,7 @@
   "name": "Int ops",
   "source": "print(7 / 2, 7 % 3, 2 << 3, 5 & 3)",
   "expected": "3 1 16 1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Double",
@@ -519,7 +519,7 @@
   "name": "assert",
   "source": "assert(1 == 1); print(\"ok\")",
   "expected": "ok\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "fatalError",
@@ -531,7 +531,7 @@
   "name": "precondition",
   "source": "precondition(true); print(\"ok\")",
   "expected": "ok\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Mirror",
@@ -561,6 +561,6 @@
   "name": "Date",
   "source": "import Foundation; print(Date().timeIntervalSince1970 > 0)",
   "expected": "true\n",
-  "status": "todo"
+  "status": "ok"
  }
 ]

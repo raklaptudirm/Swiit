@@ -205,6 +205,12 @@ extension Interpreter {
             return try match(inner, converted, into: &bindings)
         case .isType(let type):
             return conform(value, to: type) != nil
+        case .tuple(let patterns):
+            guard case .record(let record) = value, record.typeName == nil, record.count == patterns.count else { return false }
+            for (pattern, field) in zip(patterns, record) {
+                guard try match(pattern, field.value, into: &bindings) else { return false }
+            }
+            return true
         }
     }
 
@@ -268,7 +274,7 @@ extension Interpreter {
             } catch ControlFlow.fallthroughCase {
                 index += 1
                 bindings = [:]
-            } catch ControlFlow.breakLoop {
+            } catch ControlFlow.breakLoop(nil) {
                 return // `break` leaves the switch.
             }
         }

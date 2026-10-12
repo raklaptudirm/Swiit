@@ -127,7 +127,9 @@ extension TypeChecker {
             let sequence = try typeOf(&loop.sequence)
             if loop.isAwait { try checkAsyncLoop(loop, over: sequence) }
             let element = try elementType(of: sequence)
-            try checkBlock(&loop.body, declaring: [loop.variable: .variable(element, mutable: false)], newScope: true)
+            var bound: [String: Symbol] = [:]
+            try checkPattern(&loop.pattern, against: element, binding: &bound)
+            try checkBlock(&loop.body, declaring: bound, newScope: true)
             statement = .forLoop(loop)
         case .whileLoop(var loop):
             try checkCondition(&loop.condition)
@@ -285,6 +287,19 @@ extension TypeChecker {
             pattern = .cast(inner, target)
         case .isType:
             break
+        case .tuple(var patterns):
+            switch type {
+            case .tuple(let elements):
+                guard elements.count == patterns.count else {
+                    throw TypeError("a tuple pattern of \(patterns.count) can't match \(type), which has \(elements.count)")
+                }
+                for index in patterns.indices { try checkPattern(&patterns[index], against: elements[index].type, binding: &bound) }
+            case .unknown, .any:
+                for index in patterns.indices { try checkPattern(&patterns[index], against: .unknown, binding: &bound) }
+            default:
+                throw TypeError("a tuple pattern matches a tuple, not \(type)")
+            }
+            pattern = .tuple(patterns)
         }
     }
 }

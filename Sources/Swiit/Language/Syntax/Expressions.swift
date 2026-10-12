@@ -118,6 +118,8 @@ import SwiitKit
 @_spi(Layer) public enum UnaryOperator: String, Sendable {
     case not = "!"
     case negate = "-"
+    /// `~x`: an Int's bits, flipped.
+    case bitNot = "~"
 }
 
 @_spi(Layer) public enum BinaryOperator: String, Sendable {
@@ -128,4 +130,9 @@ import SwiitKit
     case closedRange = "...", halfOpenRange = "..<"
     case add = "+", subtract = "-"
     case multiply = "*", divide = "/", remainder = "%"
+    /// An Int's bits: `&`, `|`, `^`, and shifts, which are Swift's smart ones
+    /// (an overshift is all zeros or all sign, a negative shift goes the other way).
+    case bitAnd = "&", bitOr = "|", bitXor = "^", shiftLeft = "<<", shiftRight = ">>"
+    /// Arithmetic that wraps around instead of overflowing.
+    case wrapAdd = "&+", wrapSubtract = "&-", wrapMultiply = "&*"
 }

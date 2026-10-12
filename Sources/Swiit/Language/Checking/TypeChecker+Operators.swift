@@ -123,7 +123,7 @@ extension TypeChecker {
             case (.int, .int), (.double, .double): return left
             default: throw fail
             }
-        case .remainder:
+        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply:
             guard left == .int, right == .int else { throw fail }
             return .int
         default:

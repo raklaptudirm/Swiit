@@ -359,6 +359,8 @@ struct Leaving {
     var function = 0
     var loop = 0
     var switchCase = 0
+    /// The labels of the loops around, which `break label` and `continue label` name.
+    var labels: [String] = []
 }
 
 private final class ProblemFinder: SyntaxVisitor {

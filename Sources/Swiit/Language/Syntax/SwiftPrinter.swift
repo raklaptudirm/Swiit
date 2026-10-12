@@ -84,10 +84,10 @@ struct SwiftPrinter {
             return [value.map { "\(p)return \(expression($0))" } ?? "\(p)return"]
         case .guardStatement(let condition, let otherwise):
             return ["\(p)guard \(conditionText(condition)) else \(block(otherwise, indent: indent))"]
-        case .breakStatement:
-            return ["\(p)break"]
-        case .continueStatement:
-            return ["\(p)continue"]
+        case .breakStatement(let label):
+            return ["\(p)break" + (label.map { " \($0)" } ?? "")]
+        case .continueStatement(let label):
+            return ["\(p)continue" + (label.map { " \($0)" } ?? "")]
         case .expression(let expr):
             return [p + expression(expr)]
         case .ifStatement(let node):
@@ -108,9 +108,12 @@ struct SwiftPrinter {
             return [p + text + "\(p)}"]
         case .forLoop(let loop):
             let effects = (loop.isTry ? "try " : "") + (loop.isAwait ? "await " : "")
-            return [p + "for \(effects)\(loop.variable) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
+            return [p + labelText(loop.label) + "for \(effects)\(loopPattern(loop.pattern)) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
         case .whileLoop(let loop):
-            return [p + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"]
+            if loop.isRepeat {
+                return [p + labelText(loop.label) + "repeat \(block(loop.body, indent: indent)) while \(expression(loop.condition))"]
+            }
+            return [p + labelText(loop.label) + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"]
         }
     }
 
@@ -212,6 +215,17 @@ struct SwiftPrinter {
 
     // MARK: Patterns
 
+    private func labelText(_ label: String?) -> String { label.map { "\($0): " } ?? "" }
+
+    /// A `for`'s pattern: names without `let`.
+    private func loopPattern(_ pattern: Pattern) -> String {
+        switch pattern {
+        case .binding(let name, _): name
+        case .tuple(let patterns): "(" + patterns.map(loopPattern).joined(separator: ", ") + ")"
+        default: self.pattern(pattern)
+        }
+    }
+
     private func pattern(_ pattern: Pattern) -> String {
         switch pattern {
         case .wildcard: "_"
@@ -225,6 +239,7 @@ struct SwiftPrinter {
         case .expression(let expr): expression(expr)
         case .cast(let inner, let type): "\(self.pattern(inner)) as \(type)"
         case .isType(let type): "is \(type)"
+        case .tuple(let patterns): "(" + patterns.map { self.pattern($0) }.joined(separator: ", ") + ")"
         }
     }
 

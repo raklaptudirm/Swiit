@@ -211,11 +211,12 @@ extension TypeChecker {
             }
             return type
         case .unary(let op, var operand):
-            let type = try typeOf(&operand, expecting: op == .negate ? expected : .bool)
+            let type = try typeOf(&operand, expecting: op == .not ? .bool : expected)
             expr = .unary(op, operand)
             switch (op, type) {
             case (.not, .bool), (.not, .unknown): return .bool
             case (.negate, .int), (.negate, .double), (.negate, .unknown): return type
+            case (.bitNot, .int), (.bitNot, .unknown): return .int
             default:
                 if op == .negate, let result = bridgedOperatorType(op.rawValue, [type]) { return result }
                 throw TypeError("'\(op.rawValue)' can't be applied to \(type)")

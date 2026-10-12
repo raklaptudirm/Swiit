@@ -14,8 +14,24 @@ extension Lowering {
         if let node = decl.as(StructDeclSyntax.self) { return [.structDecl(try structure(node))] }
         if let node = decl.as(EnumDeclSyntax.self) { return [.enumDecl(try enumeration(node))] }
         if prelude, let node = decl.as(ExtensionDeclSyntax.self) { return [try sequenceExtension(node)] }
+        if let node = decl.as(ImportDeclSyntax.self) { return try importDeclaration(node) }
         throw unsupported("'\(decl.kind)'", decl)
     }
+
+    /// `import Foundation`: what the interpreter already has, so nothing to do.
+    /// Any other module isn't there to import yet.
+    private func importDeclaration(_ node: ImportDeclSyntax) throws -> [Statement] {
+        guard node.importKindSpecifier == nil, let module = node.path.first, node.path.count == 1 else {
+            throw unsupported("this import", node)
+        }
+        guard Lowering.modules.contains(module.name.text) else {
+            throw SyntaxError("no such module '\(module.name.text)'; Swiit has \(Lowering.modules.sorted().joined(separator: ", ")) (line \(line(of: node)))")
+        }
+        return []
+    }
+
+    /// The modules whose declarations are always there.
+    static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "SwiitKit", "_StringProcessing"]
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.
@@ -250,7 +266,11 @@ extension Lowering {
         }
     }
 
-    static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error"]
+    /// The first group has a meaning here (the checker checks what they ask
+    /// for); the second are markers Swift's own code writes, with nothing to
+    /// check or do yet.
+    static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error",
+                                 "CaseIterable", "Sendable", "Decodable", "Codable"]
 
     private func isStatic(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { $0.name.tokenKind == .keyword(.static) }

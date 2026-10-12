@@ -30,6 +30,8 @@ extension Interpreter {
             return .int(result)
         case (.negate, .double(let d)):
             return .double(-d)
+        case (.bitNot, .int(let n)):
+            return .int(~n)
         default:
             if let result = try bridgedOperator(op.rawValue, [value]) { return result }
             throw RuntimeError("'\(op.rawValue)' can't be applied to \(value.typeName)")
@@ -91,6 +93,14 @@ extension Interpreter {
         case .divide, .remainder:
             guard b != 0 else { throw RuntimeError("division by zero") }
             result = op == .divide ? a.dividedReportingOverflow(by: b) : a.remainderReportingOverflow(dividingBy: b)
+        case .bitAnd: return .int(a & b)
+        case .bitOr: return .int(a | b)
+        case .bitXor: return .int(a ^ b)
+        case .shiftLeft: return .int(a << b)
+        case .shiftRight: return .int(a >> b)
+        case .wrapAdd: return .int(a &+ b)
+        case .wrapSubtract: return .int(a &- b)
+        case .wrapMultiply: return .int(a &* b)
         default:
             if let comparison = compare(op, a, b) { return .bool(comparison) }
             throw RuntimeError("'\(op.rawValue)' can't be applied to Int and Int")

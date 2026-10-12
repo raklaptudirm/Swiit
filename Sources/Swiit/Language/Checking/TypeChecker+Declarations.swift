@@ -231,7 +231,7 @@ extension TypeChecker {
 
     /// Protocols a type conforms to by saying so, whatever its members are:
     /// it describes itself, or can be thrown.
-    static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error"]
+    static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error", "CaseIterable", "Sendable", "Decodable", "Codable"]
 
     func enumInfo(_ decl: EnumDecl) -> EnumInfo {
         EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,

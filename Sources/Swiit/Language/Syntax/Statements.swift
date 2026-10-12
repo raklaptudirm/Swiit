@@ -48,8 +48,9 @@ public struct Program: Equatable, Sendable {
     /// the `else`, which must leave the block; what it binds stays bound
     /// for the rest of the block.
     case guardStatement(IfStatement.Condition, otherwise: Program)
-    case breakStatement
-    case continueStatement
+    /// `break`, or `break outer` out of the loop labeled `outer:`.
+    case breakStatement(label: String? = nil)
+    case continueStatement(label: String? = nil)
     /// An expression on its own: a call, an assignment's value, or at the
     /// prompt, a value to show.
     case expression(Expr)
@@ -191,6 +192,8 @@ struct EnumCaseDecl: Equatable, Sendable {
     case cast(Pattern, TypeAnnotation)
     /// `is Oops`: a value of that type.
     case isType(TypeAnnotation)
+    /// `(a, _)`, `(1, let b)`: a tuple, element by element.
+    case tuple([Pattern])
 }
 
 extension Pattern {
@@ -214,20 +217,30 @@ extension Pattern {
 }
 
 @_spi(Layer) public struct ForLoop: Equatable, Sendable {
-    var variable: String
+    /// What each element is matched with: a name, `_`, or a tuple of those
+    /// (`for (i, x) in …`).
+    var pattern: Pattern
     var sequence: Expr
     var body: Program
     /// `for try await x in s`: s is an AsyncSequence, whose reading waits
     /// (`await`) and may throw (`try`).
     @_spi(Layer) public var isAwait = false
     var isTry = false
+    /// `outer: for …`, which `break outer` and `continue outer` name.
+    var label: String?
 
-    init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false) {
-        self.variable = variable
+    init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false, label: String? = nil) {
+        self.init(pattern: variable == "_" ? .wildcard : .binding(name: variable, mutable: false), sequence: sequence, body: body,
+                  isAwait: isAwait, isTry: isTry, label: label)
+    }
+
+    init(pattern: Pattern, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false, label: String? = nil) {
+        self.pattern = pattern
         self.sequence = sequence
         self.body = body
         self.isAwait = isAwait
         self.isTry = isTry
+        self.label = label
     }
 }
 
@@ -235,9 +248,14 @@ extension Pattern {
     /// A Bool.
     var condition: Expr
     var body: Program
+    /// `repeat { … } while condition`: the body runs once before the first test.
+    var isRepeat = false
+    var label: String?
 
-    init(condition: Expr, body: Program) {
+    init(condition: Expr, body: Program, isRepeat: Bool = false, label: String? = nil) {
         self.condition = condition
         self.body = body
+        self.isRepeat = isRepeat
+        self.label = label
     }
 }
