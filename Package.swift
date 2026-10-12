@@ -11,7 +11,7 @@ let package = Package(
         // shell's own library builds on it.
         .library(name: "SwiitStandardLibrary", targets: ["SwiitStandardLibrary"]),
         // Reads Swift's symbol graphs and writes the glue that bridges them
-        // (`run bridge`); not part of the interpreter.
+        // (`Scripts/bridge`); not part of the interpreter.
         .executable(name: "swiit-bridge", targets: ["SwiitBridge"]),
     ],
     dependencies: [

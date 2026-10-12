@@ -69,3 +69,49 @@ jobs:
 
       - name: SwiitKit unit tests
         run: swift test --package-path SwiitKit
+
+  # The bridges (Sources/Swiit/Bridge/Generated) are made from symbol graphs,
+  # and a graph is read on the platform it's made on. Each platform's members
+  # are kept in Bridges/<platform>, and only what all of them have is bridged,
+  # so a member one platform lacks can't break the build on another.
+  bridges-macos:
+    name: Bridges (macOS)
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # Generating again must change nothing: otherwise the generator, the
+      # toolchain or a manifest changed and the bridges weren't remade.
+      - name: Bridges are current
+        run: |
+          Scripts/bridge
+          changes=$(git status --porcelain -- Sources Bridges)
+          if [ -n "$changes" ]; then
+            git status --short -- Sources Bridges
+            git diff --stat -- Sources Bridges
+            echo "::error::The bridges are out of date: run Scripts/bridge and commit the result."
+            exit 1
+          fi
+
+  bridges-linux:
+    name: Bridges (Linux)
+    runs-on: ubuntu-latest
+    container: swift:6.2
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      # What this platform has, for whoever commits it (`gh run download`).
+      - name: Make Linux's manifests
+        run: Scripts/bridge
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bridges-linux
+          path: Bridges/linux

@@ -1,0 +1,84 @@
+#!/bin/bash
+# Regenerates the bridges in Sources/Swiit/Bridge/Generated from the symbol
+# graphs of the standard library, Foundation, swift-system and Swiit's own
+# modules. Run it after changing swiit-bridge, the Swift toolchain or
+# swift-system. A graph is read on the platform it's made on, so each
+# platform's members are kept in Bridges/<platform>, and what's bridged is
+# what all the platforms there have: CI makes Linux's (see
+# .github/workflows/ci.yml), and a member only one has can't break the other.
+#
+# A client with bridges of its own (the shell has them) runs the generator
+# itself: `swift run --package-path <Swiit> -c release swiit-bridge --help`.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if [ "$(uname)" = Darwin ]; then platform=macos; else platform=linux; fi
+graphs=$(mktemp -d)
+trap 'rm -rf "$graphs"' EXIT
+
+swift build
+machine=$(uname -m)
+built=$(swift build --show-bin-path)
+
+# Writes a module's symbol graph into $graphs. SystemPackage is found among
+# what `swift build` built, with the C module it imports.
+graph() {
+    local search=(-I "$built" -I "$built/Modules" -I .build/checkouts/swift-system/Sources/CSystem/include)
+    if [ "$(uname)" = Darwin ]; then
+        "$(xcrun --find swift-symbolgraph-extract)" -module-name "$1" -target "$machine-apple-macosx14.0" \
+            -sdk "$(xcrun --show-sdk-path)" "${search[@]}" -output-dir "$graphs"
+    else
+        swift-symbolgraph-extract -module-name "$1" -target "$machine-unknown-linux-gnu" "${search[@]}" -output-dir "$graphs"
+    fi
+}
+
+# Other modules that extend a module's types, whose graphs are read with it.
+extensions() {
+    case "$1" in
+        Swift) echo "_StringProcessing SwiitStandardLibrary" ;;
+        Foundation) echo "SwiitStandardLibrary SwiitKit" ;;
+    esac
+}
+# A module's types can be defined in a module it re-exports, which some
+# platforms don't have: Foundation's Date is FoundationEssentials' on Linux.
+# Their graphs are read with it, and what adds to them is too.
+reexports() {
+    case "$1" in Foundation) echo "FoundationEssentials" ;; esac
+}
+output() {
+    case "$1" in
+        Swift) echo StandardLibrary ;;
+        SwiitStandardLibrary) echo SwiitLibrary ;;
+        *) echo "$1" ;;
+    esac
+}
+
+for module in Swift SystemPackage SwiitKit Foundation SwiitStandardLibrary; do
+    graph "$module"
+    extra=()
+    hosts=("$module")
+    for host in $(reexports "$module"); do
+        graph "$host" || true
+        if [ -f "$graphs/$host.symbols.json" ]; then
+            hosts+=("$host")
+            extra+=("$graphs/$host.symbols.json")
+        fi
+    done
+    for other in $(extensions "$module"); do
+        graph "$other"
+        for host in "${hosts[@]}"; do
+            file="$graphs/$other@$host.symbols.json"
+            if [ -f "$file" ]; then extra+=("$file"); fi
+        done
+        # The library's own types are declared in its module, which the
+        # extensions use.
+        if [ "$other" = SwiitStandardLibrary ]; then extra+=("$graphs/$other.symbols.json"); fi
+    done
+    platforms=(--manifest "Bridges/$platform/$module.json")
+    for other in macos linux; do
+        manifest="Bridges/$other/$module.json"
+        if [ "$other" != "$platform" ] && [ -f "$manifest" ]; then platforms+=(--also "$manifest"); fi
+    done
+    swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
+        "Sources/Swiit/Bridge/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
+done
