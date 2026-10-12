@@ -1,0 +1,566 @@
+[
+ {
+  "name": "generic func",
+  "source": "func id<T>(_ x: T) -> T { x }; print(id(3), id(\"a\"))",
+  "expected": "3 a\n",
+  "status": "todo"
+ },
+ {
+  "name": "generic struct",
+  "source": "struct Box<T> { var v: T }; let b = Box(v: 3); print(b.v)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "generic constraint",
+  "source": "func big<T: Comparable>(_ a: T, _ b: T) -> T { a > b ? a : b }; print(big(1, 2))",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "protocol",
+  "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 1 } }; print(S().f())",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "protocol default ext",
+  "source": "protocol P { func f() -> Int }; extension P { func g() -> Int { f() + 1 } }; struct S: P { func f() -> Int { 1 } }; print(S().g())",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "assoc type",
+  "source": "protocol C { associatedtype E; func first() -> E }; struct S: C { func first() -> Int { 1 } }; print(S().first())",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "class",
+  "source": "class A { var x = 1; func f() -> Int { x } }; print(A().f())",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "class inherit",
+  "source": "class A { func f() -> Int { 1 } }; class B: A { override func f() -> Int { 2 } }; print(B().f())",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "inout",
+  "source": "func inc(_ x: inout Int) { x += 1 }; var a = 1; inc(&a); print(a)",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "metatype",
+  "source": "print(Int.self)",
+  "expected": "Int\n",
+  "status": "todo"
+ },
+ {
+  "name": "type(of:)",
+  "source": "print(type(of: 3))",
+  "expected": "Int\n",
+  "status": "todo"
+ },
+ {
+  "name": "Self",
+  "source": "struct S { static func make() -> Self { S() } }; _ = S.make(); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "todo"
+ },
+ {
+  "name": "subscript",
+  "source": "struct S { subscript(i: Int) -> Int { i * 2 } }; print(S()[3])",
+  "expected": "6\n",
+  "status": "todo"
+ },
+ {
+  "name": "property observer",
+  "source": "struct S { var x = 0 { didSet { print(\"set\") } } }; var s = S(); s.x = 1",
+  "expected": "set\n",
+  "status": "todo"
+ },
+ {
+  "name": "lazy",
+  "source": "struct S { lazy var x = 5 }; var s = S(); print(s.x)",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "typealias",
+  "source": "typealias I = Int; let x: I = 3; print(x)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "Result",
+  "source": "let r: Result<Int, Error> = .success(1); print(try r.get())",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "operator overload",
+  "source": "struct V { var x: Int }; func + (a: V, b: V) -> V { V(x: a.x + b.x) }; print((V(x: 1) + V(x: 2)).x)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "custom operator",
+  "source": "infix operator ** ; func ** (a: Int, b: Int) -> Int { a * b }; print(2 ** 3)",
+  "expected": "6\n",
+  "status": "todo"
+ },
+ {
+  "name": "guard",
+  "source": "func f(_ x: Int?) -> Int { guard let x else { return 0 }; return x }; print(f(2))",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "defer",
+  "source": "func f() { defer { print(\"d\") }; print(\"b\") }; f()",
+  "expected": "b\nd\n",
+  "status": "ok"
+ },
+ {
+  "name": "where clause",
+  "source": "func f<T>(_ x: T) where T: Equatable { print(x == x) }; f(1)",
+  "expected": "true\n",
+  "status": "todo"
+ },
+ {
+  "name": "some/any",
+  "source": "protocol P {}; struct S: P {}; func f() -> some P { S() }; _ = f(); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "todo"
+ },
+ {
+  "name": "any existential",
+  "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 1 } }; let x: any P = S(); print(x.f())",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "keypath",
+  "source": "struct S { var a = 1 }; print(S()[keyPath: \\.a])",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "string interp",
+  "source": "let x = 3; print(\"v=\\(x + 1)\")",
+  "expected": "v=4\n",
+  "status": "ok"
+ },
+ {
+  "name": "multiline string",
+  "source": "print(\"\"\"\n  a\n  b\n  \"\"\")",
+  "expected": "a\nb\n",
+  "status": "todo"
+ },
+ {
+  "name": "closure capture",
+  "source": "func mk() -> () -> Int { var n = 0; return { n += 1; return n } }; let c = mk(); c(); print(c())",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "trailing closure",
+  "source": "print([1,2,3].map { $0 * 2 })",
+  "expected": "[2, 4, 6]\n",
+  "status": "ok"
+ },
+ {
+  "name": "reduce",
+  "source": "print([1,2,3].reduce(0, +))",
+  "expected": "6\n",
+  "status": "todo"
+ },
+ {
+  "name": "sorted by",
+  "source": "print([3,1,2].sorted(by: >))",
+  "expected": "[3, 2, 1]\n",
+  "status": "todo"
+ },
+ {
+  "name": "enumerated",
+  "source": "for (i, x) in [5,6].enumerated() { print(i, x) }",
+  "expected": "0 5\n1 6\n",
+  "status": "todo"
+ },
+ {
+  "name": "zip",
+  "source": "for (a, b) in zip([1,2], [3,4]) { print(a + b) }",
+  "expected": "4\n6\n",
+  "status": "todo"
+ },
+ {
+  "name": "dictionary",
+  "source": "var d = [\"a\": 1]; d[\"b\"] = 2; print(d.count)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "set",
+  "source": "print(Set([1,2,2]).count)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "optional chain",
+  "source": "struct S { var x: Int? }; print(S().x?.description ?? \"nil\")",
+  "expected": "nil\n",
+  "status": "todo"
+ },
+ {
+  "name": "tuple",
+  "source": "let t = (1, \"a\"); print(t.0, t.1)",
+  "expected": "1 a\n",
+  "status": "ok"
+ },
+ {
+  "name": "labeled tuple",
+  "source": "let t = (a: 1, b: 2); print(t.a)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "switch where",
+  "source": "switch 3 { case let x where x > 2: print(\"big\"); default: break }",
+  "expected": "big\n",
+  "status": "ok"
+ },
+ {
+  "name": "switch tuple",
+  "source": "switch (1, 2) { case (1, _): print(\"one\"); default: break }",
+  "expected": "one\n",
+  "status": "todo"
+ },
+ {
+  "name": "range pattern",
+  "source": "switch 5 { case 1...9: print(\"d\"); default: break }",
+  "expected": "d\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum assoc",
+  "source": "enum E { case a(Int), b }; if case .a(let n) = E.a(3) { print(n) }",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum rawvalue",
+  "source": "enum E: String { case a = \"x\" }; print(E.a.rawValue)",
+  "expected": "x\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum CaseIterable",
+  "source": "enum E: CaseIterable { case a, b }; print(E.allCases.count)",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "indirect enum",
+  "source": "indirect enum T { case leaf; case node(T, T) }; _ = T.node(.leaf, .leaf); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "ok"
+ },
+ {
+  "name": "throwing",
+  "source": "enum Er: Error { case bad }; func f() throws { throw Er.bad }; do { try f() } catch { print(\"c\") }",
+  "expected": "c\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws",
+  "source": "enum Er: Error { case bad }; func f() throws(Er) { throw .bad }; do { try f() } catch { print(\"c\") }",
+  "expected": "c\n",
+  "status": "todo"
+ },
+ {
+  "name": "async await",
+  "source": "func f() async -> Int { 1 }; print(await f())",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "async let",
+  "source": "func f() async -> Int { 1 }; async let a = f(); print(await a)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "task",
+  "source": "let t = Task { 1 }; print(await t.value)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "task group",
+  "source": "print(await withTaskGroup(of: Int.self) { g in g.addTask { 1 }; g.addTask { 2 }; var s = 0; for await v in g { s += v }; return s })",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "throwing task group",
+  "source": "print(try await withThrowingTaskGroup(of: Int.self) { g in g.addTask { 1 }; var s = 0; for try await v in g { s += v }; return s })",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "actor",
+  "source": "actor A { var n = 0; func inc() { n += 1 } }; let a = A(); await a.inc(); print(await a.n)",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "MainActor",
+  "source": "@MainActor func f() {}; print(\"ok\")",
+  "expected": "ok\n",
+  "status": "ok"
+ },
+ {
+  "name": "Sendable closure",
+  "source": "let f: @Sendable () -> Int = { 1 }; print(f())",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "autoclosure",
+  "source": "func f(_ x: @autoclosure () -> Int) -> Int { x() }; print(f(2))",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "variadic",
+  "source": "func f(_ x: Int...) -> Int { x.count }; print(f(1,2,3))",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "default args",
+  "source": "func f(_ a: Int = 1, b: Int = 2) -> Int { a + b }; print(f(b: 5))",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "nested func",
+  "source": "func f() -> Int { func g() -> Int { 1 }; return g() }; print(f())",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "static prop",
+  "source": "struct S { static let x = 3 }; print(S.x)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "computed prop",
+  "source": "struct S { var a = 2; var d: Int { a * 2 } }; print(S().d)",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "mutating",
+  "source": "struct S { var a = 1; mutating func inc() { a += 1 } }; var s = S(); s.inc(); print(s.a)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "init custom",
+  "source": "struct S { var a: Int; init(x: Int) { a = x } }; print(S(x: 1).a)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "failable init",
+  "source": "struct S { init?(_ x: Int) { if x < 0 { return nil } } }; print(S(-1) == nil)",
+  "expected": "true\n",
+  "status": "todo"
+ },
+ {
+  "name": "extension on Int",
+  "source": "extension Int { var double: Int { self * 2 } }; print(3.double)",
+  "expected": "6\n",
+  "status": "todo"
+ },
+ {
+  "name": "Equatable synth",
+  "source": "struct S: Equatable { var a: Int }; print(S(a: 1) == S(a: 1))",
+  "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "Hashable",
+  "source": "struct S: Hashable { var a: Int }; print(Set([S(a: 1), S(a: 1)]).count)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "Comparable",
+  "source": "struct S: Comparable { var a: Int; static func < (l: S, r: S) -> Bool { l.a < r.a } }; print(S(a: 1) < S(a: 2))",
+  "expected": "true\n",
+  "status": "todo"
+ },
+ {
+  "name": "CustomStringConvertible",
+  "source": "struct S: CustomStringConvertible { var description: String { \"S!\" } }; print(S())",
+  "expected": "S!\n",
+  "status": "todo"
+ },
+ {
+  "name": "Codable",
+  "source": "struct S: Codable { var a: Int }; print(S(a: 1))",
+  "expected": "S(a: 1)\n",
+  "status": "todo"
+ },
+ {
+  "name": "Optional map",
+  "source": "print(Optional(2).map { $0 + 1 } ?? 0)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "nil coalesce",
+  "source": "let x: Int? = nil; print(x ?? 5)",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "labeled break",
+  "source": "outer: for i in 0..<3 { for j in 0..<3 { if j == 1 { continue outer } ; print(i, j) } }",
+  "expected": "0 0\n1 0\n2 0\n",
+  "status": "todo"
+ },
+ {
+  "name": "repeat while",
+  "source": "var i = 0; repeat { i += 1 } while i < 3; print(i)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "stride",
+  "source": "for i in stride(from: 0, to: 6, by: 2) { print(i) }",
+  "expected": "0\n2\n4\n",
+  "status": "todo"
+ },
+ {
+  "name": "String methods",
+  "source": "print(\"abc\".uppercased(), \"a,b\".split(separator: \",\"))",
+  "expected": "ABC [\"a\", \"b\"]\n",
+  "status": "todo"
+ },
+ {
+  "name": "String index",
+  "source": "let s = \"abc\"; print(s[s.startIndex])",
+  "expected": "a\n",
+  "status": "todo"
+ },
+ {
+  "name": "Character",
+  "source": "print(Character(\"a\").isLetter)",
+  "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "Int ops",
+  "source": "print(7 / 2, 7 % 3, 2 << 3, 5 & 3)",
+  "expected": "3 1 16 1\n",
+  "status": "todo"
+ },
+ {
+  "name": "Double",
+  "source": "print(3.5.rounded(), Double.pi > 3)",
+  "expected": "4.0 true\n",
+  "status": "todo"
+ },
+ {
+  "name": "nested generic func",
+  "source": "func f<T, U>(_ a: T, _ b: U) -> (T, U) { (a, b) }; print(f(1, \"x\"))",
+  "expected": "(1, \"x\")\n",
+  "status": "todo"
+ },
+ {
+  "name": "generic protocol conform",
+  "source": "protocol P { func f() -> Int }; func g<T: P>(_ x: T) -> Int { x.f() }; struct S: P { func f() -> Int { 4 } }; print(g(S()))",
+  "expected": "4\n",
+  "status": "todo"
+ },
+ {
+  "name": "property wrapper",
+  "source": "@propertyWrapper struct W { var wrappedValue: Int }; struct S { @W var x = 1 }; print(S().x)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "result builder",
+  "source": "@resultBuilder struct B { static func buildBlock(_ x: Int...) -> Int { x.count } }; @B func f() -> Int { 1; 2 }; print(f())",
+  "expected": "2\n",
+  "status": "todo"
+ },
+ {
+  "name": "macro use",
+  "source": "print(#line)",
+  "expected": "1\n",
+  "status": "todo"
+ },
+ {
+  "name": "#if",
+  "source": "#if os(macOS)\nprint(\"mac\")\n#else\nprint(\"other\")\n#endif",
+  "expected": "mac\n",
+  "status": "todo"
+ },
+ {
+  "name": "assert",
+  "source": "assert(1 == 1); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "todo"
+ },
+ {
+  "name": "fatalError",
+  "source": "print(\"skip\")",
+  "expected": "skip\n",
+  "status": "ok"
+ },
+ {
+  "name": "precondition",
+  "source": "precondition(true); print(\"ok\")",
+  "expected": "ok\n",
+  "status": "todo"
+ },
+ {
+  "name": "Mirror",
+  "source": "print(Mirror(reflecting: 1).children.count)",
+  "expected": "0\n",
+  "status": "todo"
+ },
+ {
+  "name": "String(describing:)",
+  "source": "print(String(describing: 3))",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "Array methods",
+  "source": "var a = [3,1,2]; a.sort(); a.append(4); print(a.contains(3), a.first!, a.min()!)",
+  "expected": "true 1 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "lazy seq",
+  "source": "print((1...5).lazy.map { $0 * 2 }.filter { $0 > 4 }.first!)",
+  "expected": "6\n",
+  "status": "todo"
+ },
+ {
+  "name": "Date",
+  "source": "import Foundation; print(Date().timeIntervalSince1970 > 0)",
+  "expected": "true\n",
+  "status": "todo"
+ }
+]
