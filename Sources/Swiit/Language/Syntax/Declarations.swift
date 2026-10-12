@@ -155,7 +155,7 @@ public struct Parameter: Equatable, Sendable {
     @_spi(Layer) public var shortFlag: Character?
     /// `inout`: the argument is passed as `&place`, and the place gets the
     /// parameter's value back when the function ends.
-    @_spi(Layer) public var isInout = false
+    var isInout = false
     /// A default only Swift can compute, like `Date()`: the
     /// argument is left out for the Swift function to fill in. Its source, for help.
     @_spi(Layer) public var externalDefault: String?
