@@ -4,9 +4,9 @@ Swish's interpreter should be usable as a library: an app or a tool links it,
 hands it Swift functions and values, and runs scripts written in Swift, with
 no shell, no terminal and no process access unless the host grants it. This
 is the design for separating that core out. It follows
-[direction.md](direction.md) (Swish is a Swift interpreter first, with the
+[direction.md](../../../Docs/Design/direction.md) (Swish is a Swift interpreter first, with the
 shell as seasoning) and is the first thing to build, ahead of
-[desugaring.md](desugaring.md) and [async.md](async.md), which both build on
+[desugaring.md](../../../Docs/Design/desugaring.md) and [async.md](async.md), which both build on
 the seam it creates.
 
 Step 1 of the plan is built (the `SwiitHost` seam); the rest is not. This

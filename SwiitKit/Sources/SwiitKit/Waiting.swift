@@ -1,7 +1,7 @@
 import Foundation
 
 /// What runs Swiit code, told when a function waits: the interpreter, which
-/// lets another task run meanwhile (Docs/Design/async.md).
+/// lets another task run meanwhile (Packages/Swiit/Docs/async.md).
 public protocol WaitingHost: AnyObject {
     /// Runs `body`, a wait, letting other tasks run while it does.
     func wait(_ body: () -> Void)

@@ -5,7 +5,7 @@ import SwiitKit
 /// without knowing what it is, and the checker asks it to check itself; then
 /// the layer rewrites it into the core's own tree (as the shell's `Desugarer`
 /// does), so the interpreter only ever runs Swift. The core never names the
-/// node types, so it can be built without them (Docs/Design/frontend.md).
+/// node types, so it can be built without them (Docs/frontend.md).
 @_spi(Layer) public protocol SyntaxExtension: Sendable {
     /// Trees compare, so extensions do.
     func isEqual(to other: any SyntaxExtension) -> Bool

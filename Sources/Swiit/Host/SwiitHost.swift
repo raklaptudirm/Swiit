@@ -58,7 +58,7 @@ public struct StopReason: Sendable {
 /// not passed here, and what syntax it accepts is a layer on top. The
 /// defaults do nothing, so a host gives only what it wants. Modeled on how
 /// other embeddable languages are configured (Wren's write and error
-/// callbacks, Rhai's progress hook); see Docs/Design/embedding.md.
+/// callbacks, Rhai's progress hook); see Docs/embedding.md.
 public struct SwiitHost {
     /// What it calls itself where it reports an error, as in
     /// `swiit: error: …`: the program's name, for one that has its own.

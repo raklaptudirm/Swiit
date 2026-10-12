@@ -134,7 +134,7 @@ extension TypeAnnotation {
 
 
 /// Whether a function is `async`, as `throws` says whether it throws
-/// (Docs/Design/async.md, "Types and effects"). Only Swift's own `async`: a
+/// (Docs/async.md, "Types and effects"). Only Swift's own `async`: a
 /// layer's waits, like the shell's `$(…)`, are blocking calls, not effects.
 public enum Effect: Equatable, Sendable {
     case sync

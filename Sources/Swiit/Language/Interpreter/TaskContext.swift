@@ -4,7 +4,7 @@ import SwiitKit
 /// of the calls and blocks it is in, under the global ones every task
 /// shares), its own cancellation flag, and what its host keeps for it, as the
 /// shell does its standard output. The prompt is the first task, and for now
-/// the only one (Docs/Design/async.md, step 1); the interpreter's own state of
+/// the only one (Docs/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
 public final class TaskContext {
     /// Variable scopes, innermost last. The outermost two are the global
@@ -70,7 +70,7 @@ extension Interpreter {
     /// to finish, a `$(…)`'s output, a job, the next item of a `Flow` or line
     /// of input. Every wait goes through here; with one task it is just the
     /// wait, and it is where the async evaluator will let another task run
-    /// (Docs/Design/async.md, step 2).
+    /// (Docs/async.md, step 2).
     /// `wake` ends the wait early if the task is cancelled meanwhile (by
     /// stopping the programs it waits for, say); the task then stops at its
     /// next step.

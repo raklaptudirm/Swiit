@@ -1,7 +1,7 @@
 import Foundation
 import SwiitKit
 
-/// The one lock Swiit code runs under (Docs/Design/async.md, "B"). Tasks
+/// The one lock Swiit code runs under (Docs/async.md, "B"). Tasks
 /// run on threads of their own, and only the thread holding the lock runs
 /// Swiit code or touches the interpreter, so Swiit code never runs in
 /// parallel and the language needs no locks of its own. A task lets go only

@@ -1,7 +1,7 @@
 import Foundation
 import SwiitKit
 
-// The embedding API (Docs/Design/embedding.md): make an interpreter, give it
+// The embedding API (Docs/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.
 
 /// What went wrong in a run, as a value: its kind, the message the shell

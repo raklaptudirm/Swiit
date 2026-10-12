@@ -5,7 +5,7 @@ import SwiitStandardLibrary
 // Swift's `Task`, bridged by hand: its operation is Swiit code, which runs as
 // a task of the interpreter's (InterpreterLock.swift), not on Swift's
 // executors. The checker reads these members as it reads the generator's.
-// Docs/Design/async.md, step 7.
+// Docs/async.md, step 7.
 
 /// A `Task`'s value: the interpreter's task it started.
 public final class TaskBox: @unchecked Sendable {

@@ -5,7 +5,7 @@ import SwiitKit
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
 /// runs only Swift (a layer over it, like the shell, rewrites its own syntax
-/// first; Docs/Design/boundaries.md). The shell owns one.
+/// first; Docs/boundaries.md). The shell owns one.
 public final class Interpreter {
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     public var host: SwiitHost

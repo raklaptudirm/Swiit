@@ -166,6 +166,14 @@ last stage, and mechanical by then.
      boundaries.md, and the interpreter half of vision.typ.
    - These stay: desugaring.md, pipeline.md, plugins.md (pointing at Swiit's
      plugin ABI) and syntax.md.
+   - *Done* (2026-10-12): the eight notes moved to `Packages/Swiit/Docs`, with
+     an index, and every link and code comment follows. async.md and
+     boundaries.md moved whole: their shell parts (`$(…)` and jobs, the
+     ledger's shell concepts) are the first client's use of the core and say
+     so; lifting them into the shell's notes is an edit for the move. The
+     links from Swiit's notes back to the shell's (`../../../Docs/Design/…`)
+     are the other thing the move must change. The interpreter half of
+     vision.typ is the user's to split.
 7. **The move.**
    - Copy the history out with
      `git filter-repo --subdirectory-filter Packages/Swiit` (plus the moved

@@ -1,5 +1,5 @@
 # The boundary ledger: what the files headed for the embeddable core may
-# depend on that belongs to the shell. See Docs/Design/boundaries.md, which
+# depend on that belongs to the shell. See Docs/boundaries.md, which
 # says what each group is and how each exits. BoundaryTests checks it:
 # a new dependency fails the test, and so does an old one that's gone (lower
 # the count, or delete the line, in the change that removes it).

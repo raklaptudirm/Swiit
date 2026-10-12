@@ -47,7 +47,7 @@ The plug-in works on **statements and spans of text**, not on tokens:
 The core's tree gets **one opaque extension node** (for expressions and for
 units), replacing `PipelineNode`, `CommandNode`, redirects and the rest in its
 `switch`es. The checker gets a hook to visit the Swift nested in such a node.
-The desugaring ([desugaring.md](desugaring.md)) rewrites the nodes into Swift
+The desugaring ([desugaring.md](../../../Docs/Design/desugaring.md)) rewrites the nodes into Swift
 calls after checking, as planned.
 
 Token-level hooks in the hand parser would have been simpler to write and would
@@ -157,7 +157,7 @@ A scratch spike against swift-syntax 602, not in the repository.
 Keep it as the oracle. Run both front ends over the Swift-only subset of every
 test program and compare the trees; the hand parser goes once the lowering
 matches it on that corpus. The same corpus, run through `swiftc`, is the
-differential test against real Swift ([direction.md](direction.md)); it already
+differential test against real Swift ([direction.md](../../../Docs/Design/direction.md)); it already
 has one catch, `_ = expr`, which Swish reads as a command named `_`.
 
 ## Plan

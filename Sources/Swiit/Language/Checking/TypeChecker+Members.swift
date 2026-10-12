@@ -12,7 +12,7 @@ extension TypeChecker {
         guard let methods = interpreter.sequenceMethods[name], let element = sequenceElement(base) else { return nil }
         // `select`'s result is a tuple of the fields it names, which Swift could
         // only type with parameter packs over key paths; until then its rule is
-        // here (Docs/Design/foundations.md, open questions).
+        // here (Docs/foundations.md, open questions).
         if name == "select" { return try selectType(element, arguments: &arguments) }
         let candidates = sequenceSignatures(methods)
         guard let chosen = try resolve(candidates, &arguments, name: name, bindings: ["Element": element]) else {

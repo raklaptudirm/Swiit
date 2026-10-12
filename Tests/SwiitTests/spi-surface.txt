@@ -2,7 +2,7 @@
 # file<TAB>group kind name, checked by theCoresSPIOnlyShrinks. The groups are
 # by purpose: Layer, what a syntax layer like the shell's builds on (the tree,
 # the parser, the checker, the hooks for running what it parsed). What any host
-# needs is public API (Docs/Design/embedding.md); the evaluator's insides are
+# needs is public API (Docs/embedding.md); the evaluator's insides are
 # internal. A new line
 # is a decision; a line goes when its declaration becomes public API or
 # internal (Docs/Design/extraction.md, stages 1 and 2). Overloads repeat

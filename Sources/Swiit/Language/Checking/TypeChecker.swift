@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// A mistake in types, found before anything runs: the statement (or, in a
-/// script, the whole script) doesn't run. See Docs/Design/types.md.
+/// script, the whole script) doesn't run. See Docs/types.md.
 @_spi(Layer) public struct TypeError: Error, CustomStringConvertible {
     @_spi(Layer) public let message: String
     /// The line of the statement it's in, when there's more than one.

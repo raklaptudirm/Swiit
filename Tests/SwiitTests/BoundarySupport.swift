@@ -1,7 +1,7 @@
 import Foundation
 
 /// Checks the files headed for the embeddable core against the boundary
-/// rules (Docs/Design/boundaries.md). A support file because it reads source
+/// rules (Docs/boundaries.md). A support file because it reads source
 /// with Foundation, which the test file can't import beside Testing.
 enum Boundaries {
     /// The directories of `Sources/Swiit` that stay in the core.

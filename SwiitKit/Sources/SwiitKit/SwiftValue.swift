@@ -3,7 +3,7 @@ import Foundation
 /// A Swift value Swiit has no form of its own for, like a `Substring`, a
 /// `Character` or a `URL`, kept as it is. Its type is its Swift type, to
 /// the checker and to you; its members are bridged (see
-/// Docs/Design/swift-interop.md). It compares, hashes and sorts as the Swift
+/// Packages/Swiit/Docs/swift-interop.md). It compares, hashes and sorts as the Swift
 /// value does, when its type can.
 public final class SwiftValue: SwiitObject, @unchecked Sendable {
     public let value: Any

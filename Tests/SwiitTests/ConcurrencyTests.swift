@@ -3,7 +3,7 @@ import Foundation
 import SwiitKit
 import Testing
 
-// Swift's concurrency, from Swish (Docs/Design/async.md, step 7): `Task`,
+// Swift's concurrency, from Swish (Docs/async.md, step 7): `Task`,
 // `async let`, `for await`.
 
 private func interpreter() -> Interpreter {

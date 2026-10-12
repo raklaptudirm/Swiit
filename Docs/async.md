@@ -7,7 +7,7 @@ it, and only programs can run in the background. This is a design for making
 nothing extra, the language knows, and it can run other work meanwhile.
 
 Steps 1 to 3 of the plan are built; the rest says what's decided, what
-isn't, and an order to build it in. It follows [direction.md](direction.md)
+isn't, and an order to build it in. It follows [direction.md](../../../Docs/Design/direction.md)
 and the vision's parity with the compiler: concurrency follows Swift's model,
 and the shell's constructs are blocking calls, not effects.
 

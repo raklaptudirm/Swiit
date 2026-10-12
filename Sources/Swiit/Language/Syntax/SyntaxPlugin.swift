@@ -9,7 +9,7 @@ import SwiitKit
 /// A plug-in reads the text from a `SourceCursor`, which scans it, and asks the
 /// cursor for the Swift inside its own forms (a closure word, `\(expr)`, the
 /// program in `$(…)`) with `parseExpression`, `parseClosure`, `parseArguments`
-/// and `parseProgram`. See Docs/Design/frontend.md, "Retired", for how those
+/// and `parseProgram`. See Docs/frontend.md, "Retired", for how those
 /// are answered.
 @_spi(Layer) public protocol SyntaxPlugin: Sendable {
     /// Where an expression statement or a condition starts: the plug-in's own

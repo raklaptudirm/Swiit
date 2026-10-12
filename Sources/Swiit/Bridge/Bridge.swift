@@ -6,7 +6,7 @@ import SystemPackage
 /// standard library's symbol graph (and swift-system's, for FilePath) by
 /// `swiit-bridge`, which writes StandardLibrary.swift and SystemPackage.swift
 /// beside this file (see `run bridge` in Tasks.swish
-/// and Docs/Design/swift-interop.md). Each member comes with its signature,
+/// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 public enum Bridge {
     /// The bridged types, by the name Swiit writes them with.

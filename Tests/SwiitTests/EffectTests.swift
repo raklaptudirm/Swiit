@@ -2,7 +2,7 @@
 import SwiitKit
 import Testing
 
-// `async` and `await` as Swift has them (Docs/Design/async.md, step 3): only
+// `async` and `await` as Swift has them (Docs/async.md, step 3): only
 // the checker's answers are new; the interpreter waits at every wait anyway.
 
 private func interpreter() -> Interpreter {
@@ -96,7 +96,7 @@ private func typeError(_ source: String) -> String? {
 }
 
 // A function that waits, a plugin's, lets the lock go through SwiitKit's
-// `Waiting` (Docs/Design/async.md, step 6).
+// `Waiting` (Docs/async.md, step 6).
 @Test func waitingLetsTheLockGo() {
     let swish = interpreter()
     #expect(Waiting.host == nil || Waiting.host !== swish)
