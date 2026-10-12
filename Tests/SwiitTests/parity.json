@@ -511,8 +511,8 @@
  },
  {
   "name": "#if",
-  "source": "#if os(macOS)\nprint(\"mac\")\n#else\nprint(\"other\")\n#endif",
-  "expected": "mac\n",
+  "source": "#if os(macOS) || os(Linux)\nprint(\"unix\")\n#elseif os(Windows)\nprint(\"windows\")\n#else\nprint(\"other\")\n#endif\n#if swift(>=5.9) && !canImport(NoSuchModule)\nprint(\"recent\")\n#endif",
+  "expected": "unix\nrecent\n",
   "status": "ok"
  },
  {
