@@ -5,14 +5,14 @@ the reasons stay in the notes it points to.
 
 ## Now: finishing the split
 
-1. **Swish builds on this repository.** Until it does, there are two copies
-   of the interpreter and they drift. SwiitKit is a nested package, which a
-   URL dependency can't reach, so first decide how it ships: a repository of
-   its own, or a dynamic product of this package (the dylib is what lets a
-   host and its plug-ins share one copy). Then Swish pins an exact version
-   and `Packages/Swiit` and `Packages/SwiitKit` leave it ([extraction.md](extraction.md), stage 7).
-2. **Tag 0.1.0, and the versioning rule.** A minor release may break the host
-   API until 1.0; the shell pins exactly and moves up on purpose (stage 8).
+1. **SwiitKit in a repository of its own.** It is nested here, so Swish
+   reaches it by a path beside this checkout and can't pin it by URL. It can't
+   be a product of this package: SwiftPM then links a second copy into the
+   host, and a plug-in sees two SwiitKits (tried 2026-10-12). Once it has its
+   own repository, Swish pins both by version ([extraction.md](extraction.md), stage 7).
+2. **The versioning rule** (stage 8): a minor release may break the host API
+   until 1.0; the shell pins exactly and moves up on purpose. 0.1.0 is tagged.
+
 ## Next: the language
 
 4. **Swift parity gaps:** task groups (they need generics and metatypes),

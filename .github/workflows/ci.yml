@@ -115,3 +115,14 @@ jobs:
         with:
           name: bridges-linux
           path: Bridges/linux
+
+      - name: Manifests are current
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          changes=$(git status --porcelain -- Bridges/linux)
+          if [ -n "$changes" ]; then
+            git status --short -- Bridges/linux
+            git diff --stat -- Bridges/linux
+            echo "::error::Linux's bridge manifests changed: download the bridges-linux artifact into the repository root, run Scripts/bridge on macOS, and commit."
+            exit 1
+          fi
