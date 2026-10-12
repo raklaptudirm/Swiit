@@ -322,6 +322,7 @@ struct SwiftPrinter {
         case .ifExpression(let node): return ifText(node, indent: 0)
         case .keyPath(let root, let path): return "\\\(root ?? "")." + path.joined(separator: ".")
         case .voidValue(let inner): return expression(inner)
+        case .inoutArgument(let inner): return "&" + operand(inner)
         }
     }
 

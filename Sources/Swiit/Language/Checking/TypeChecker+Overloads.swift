@@ -68,6 +68,13 @@ extension TypeChecker {
         var bindings = initial
         var argumentsThrow = false
         func take(_ parameter: Parameter) throws {
+            let passed = if case .inoutArgument = arguments[index].value { true } else { false }
+            if parameter.isInout && !passed {
+                throw TypeError("\(name): '\(parameter.name)' is inout: pass it as &\(parameter.name)")
+            }
+            if !parameter.isInout && passed {
+                throw TypeError("\(name): '\(parameter.name)' isn't inout, so it can't be passed with &")
+            }
             let natural = TypeChecker.hasNaturalType(arguments[index].value) ? try typeOf(&arguments[index].value) : nil
             let isLiteral = if case .literal = arguments[index].value { true } else { false }
             let wanted = substitute(parameter.type, bindings)

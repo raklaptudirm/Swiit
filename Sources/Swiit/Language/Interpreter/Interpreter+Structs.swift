@@ -327,6 +327,27 @@ extension Interpreter {
         }
     }
 
+    /// Puts `value` where a place (`x`, `p.a`, `xs[0]`) is, as an assignment would.
+    func assign(_ place: Expr, _ value: Value) throws {
+        var path: [Assignment.Step] = []
+        var current = place
+        while true {
+            switch current {
+            case .member(let inner, let name):
+                path.insert(.member(name), at: 0)
+                current = inner
+            case .index(let inner, let index):
+                path.insert(.index(index), at: 0)
+                current = inner
+            case .variable(let root):
+                try assign(Assignment(root: root, path: path, op: nil, value: .literal(value)))
+                return
+            default:
+                throw RuntimeError("only a variable can be passed with &")
+            }
+        }
+    }
+
     private func checkAssignable(_ root: String, what: String) throws {
         guard let binding = lookup(root) else { throw RuntimeError("no variable named '\(root)'") }
         guard binding.mutable else {

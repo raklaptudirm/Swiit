@@ -211,6 +211,8 @@ import SwiitKit
             rewritten = node
         case .voidValue(let inner):
             rewritten = .voidValue(expression(inner))
+        case .inoutArgument(let inner):
+            rewritten = .inoutArgument(expression(inner))
         }
         return expr(rewritten)
     }

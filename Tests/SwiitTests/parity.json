@@ -51,7 +51,7 @@
   "name": "inout",
   "source": "func inc(_ x: inout Int) { x += 1 }; var a = 1; inc(&a); print(a)",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "metatype",
@@ -802,5 +802,497 @@
   "source": "print(min(3, 1, 2), max(3.5, 1.5), abs(-2.5))",
   "expected": "1 3.5 2.5\n",
   "status": "ok"
+ },
+ {
+  "name": "swap",
+  "source": "var a = 1, b = 2; swap(&a, &b); print(a, b)",
+  "expected": "2 1\n",
+  "status": "todo"
+ },
+ {
+  "name": "inout property",
+  "source": "struct S { var n = 1 }; func inc(_ x: inout Int) { x += 10 }; var s = S(); inc(&s.n); print(s.n)",
+  "expected": "11\n",
+  "status": "ok"
+ },
+ {
+  "name": "inout element",
+  "source": "func inc(_ x: inout Int) { x += 1 }; var xs = [1, 2]; inc(&xs[1]); print(xs)",
+  "expected": "[1, 3]\n",
+  "status": "ok"
+ },
+ {
+  "name": "inout early return",
+  "source": "func f(_ x: inout Int) { if x > 0 { x = 100; return }; x = -1 }; var a = 5; f(&a); var b = 0; f(&b); print(a, b)",
+  "expected": "100 -1\n",
+  "status": "ok"
+ },
+ {
+  "name": "inout array append",
+  "source": "func add(_ xs: inout [Int], _ n: Int) { xs.append(n) }; var xs: [Int] = []; add(&xs, 1); add(&xs, 2); print(xs)",
+  "expected": "[1, 2]\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum method",
+  "source": "enum D { case n, s; func opposite() -> D { self == .n ? .s : .n } }; print(D.n.opposite())",
+  "expected": "s\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum computed",
+  "source": "enum L: Int { case a = 1, b; var doubled: Int { rawValue * 2 } }; print(L.b.doubled)",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum static",
+  "source": "enum E { case a; static func make() -> E { .a } }; print(E.make())",
+  "expected": "a\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum mutating",
+  "source": "enum T { case on, off; mutating func toggle() { self = self == .on ? .off : .on } }; var t = T.on; t.toggle(); print(t)",
+  "expected": "off\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum switch self",
+  "source": "enum S { case c(Int), d; func v() -> Int { switch self { case .c(let n): return n; case .d: return 0 } } }; print(S.c(4).v(), S.d.v())",
+  "expected": "4 0\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum caseiterable use",
+  "source": "enum C: CaseIterable { case r, g, b }; print(C.allCases.map { \"\\($0)\" })",
+  "expected": "[\"r\", \"g\", \"b\"]\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum raw init",
+  "source": "enum E: String { case a = \"x\", b = \"y\" }; print(E(rawValue: \"y\") as Any, E(rawValue: \"z\") as Any)",
+  "expected": "Optional(a.E.b) nil\n",
+  "status": "todo"
+ },
+ {
+  "name": "enum assoc print",
+  "source": "enum E { case p(Int, String), q }; print(E.p(1, \"a\"), E.q)",
+  "expected": "p(1, \"a\") q\n",
+  "status": "todo"
+ },
+ {
+  "name": "struct static func",
+  "source": "struct M { static func twice(_ n: Int) -> Int { n * 2 } }; print(M.twice(4))",
+  "expected": "8\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct nested type",
+  "source": "struct O { struct I { var v = 3 }; var i = I() }; print(O().i.v)",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "struct closure prop",
+  "source": "struct S { var f: (Int) -> Int }; let s = S(f: { $0 + 1 }); print(s.f(2))",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct method chain",
+  "source": "struct B { var n = 0; func add(_ k: Int) -> B { B(n: n + k) } }; print(B().add(1).add(2).n)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct equatable",
+  "source": "struct P: Equatable { var x: Int; var y: Int }; print(P(x: 1, y: 2) == P(x: 1, y: 2), P(x: 1, y: 2) != P(x: 2, y: 2))",
+  "expected": "true true\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct hashable dict",
+  "source": "struct P: Hashable { var x: Int }; var d = [P(x: 1): \"a\"]; d[P(x: 1)] = \"b\"; print(d.count, d[P(x: 1)]!)",
+  "expected": "1 b\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct defaults",
+  "source": "struct S { var a = 1; var b = \"x\"; var c: [Int] = [] }; print(S(), S(a: 2), S(b: \"y\"))",
+  "expected": "S(a: 1, b: \"x\", c: []) S(a: 2, b: \"x\", c: []) S(a: 1, b: \"y\", c: [])\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct mutating array",
+  "source": "struct S { var xs: [Int] = []; mutating func add(_ n: Int) { xs.append(n) } }; var s = S(); s.add(1); s.add(2); print(s.xs)",
+  "expected": "[1, 2]\n",
+  "status": "ok"
+ },
+ {
+  "name": "struct copy semantics",
+  "source": "struct S { var n = 0 }; var a = S(); var b = a; b.n = 5; print(a.n, b.n)",
+  "expected": "0 5\n",
+  "status": "ok"
+ },
+ {
+  "name": "dict default subscript",
+  "source": "var d: [String: Int] = [:]; for w in [\"a\", \"b\", \"a\"] { d[w, default: 0] += 1 }; print(d[\"a\"]!, d[\"b\"]!)",
+  "expected": "2 1\n",
+  "status": "todo"
+ },
+ {
+  "name": "dict ops",
+  "source": "var d = [\"a\": 1, \"b\": 2]; d[\"c\"] = 3; d.removeValue(forKey: \"a\"); print(d.keys.sorted(), d.values.sorted())",
+  "expected": "[\"b\", \"c\"] [2, 3]\n",
+  "status": "ok"
+ },
+ {
+  "name": "dict map",
+  "source": "let d = [\"a\": 1, \"b\": 2]; print(d.mapValues { $0 * 2 }.sorted { $0.key < $1.key }.map { $0.value })",
+  "expected": "[2, 4]\n",
+  "status": "ok"
+ },
+ {
+  "name": "dict grouping",
+  "source": "let g = Dictionary(grouping: [1, 2, 3, 4], by: { $0 % 2 }); print(g[0]!, g[1]!)",
+  "expected": "[2, 4] [1, 3]\n",
+  "status": "todo"
+ },
+ {
+  "name": "set ops",
+  "source": "let a: Set = [1, 2, 3], b: Set = [2, 3, 4]; print(a.intersection(b).sorted(), a.union(b).count, a.subtracting(b).sorted())",
+  "expected": "[2, 3] 4 [1]\n",
+  "status": "todo"
+ },
+ {
+  "name": "array slices",
+  "source": "let xs = [1, 2, 3, 4, 5]; print(xs[1...3], xs[..<2], xs.prefix(2), xs.suffix(2), Array(xs.dropFirst()))",
+  "expected": "[2, 3, 4] [1, 2] [1, 2] [4, 5] [2, 3, 4, 5]\n",
+  "status": "todo"
+ },
+ {
+  "name": "array methods",
+  "source": "var xs = [3, 1, 2]; xs.sort(by: >); xs.insert(9, at: 1); xs.remove(at: 0); print(xs, xs.firstIndex(of: 2) as Any, xs.reversed())",
+  "expected": "[9, 2, 1] Optional(1) ReversedCollection<Array<Int>>(_base: [9, 2, 1])\n",
+  "status": "todo"
+ },
+ {
+  "name": "flatMap compactMap",
+  "source": "print([[1, 2], [3]].flatMap { $0 }, [\"1\", \"x\", \"3\"].compactMap { Int($0) })",
+  "expected": "[1, 2, 3] [1, 3]\n",
+  "status": "ok"
+ },
+ {
+  "name": "joined",
+  "source": "print([\"a\", \"b\", \"c\"].joined(separator: \"-\"), [1, 2].map(String.init).joined())",
+  "expected": "a-b-c 12\n",
+  "status": "todo"
+ },
+ {
+  "name": "string ops",
+  "source": "let s = \"Hello, World\"; print(s.lowercased(), s.hasPrefix(\"Hell\"), s.hasSuffix(\"d\"), s.count, s.contains(\"lo\"))",
+  "expected": "hello, world true true 12 true\n",
+  "status": "ok"
+ },
+ {
+  "name": "string reversed",
+  "source": "print(String(\"abc\".reversed()), \"abc\".uppercased(), \"ABC\".lowercased())",
+  "expected": "cba ABC abc\n",
+  "status": "ok"
+ },
+ {
+  "name": "string chars",
+  "source": "for c in \"hey\" { print(c, c.isLetter, c.uppercased()) }",
+  "expected": "h true H\ne true E\ny true Y\n",
+  "status": "todo"
+ },
+ {
+  "name": "string interpolation fmt",
+  "source": "let x = 3.14159; print(\"pi=\\(x)\", \"n=\\(7)\", \"b=\\(true)\", \"o=\\(Optional(1) as Any)\")",
+  "expected": "pi=3.14159 n=7 b=true o=Optional(1)\n",
+  "status": "todo"
+ },
+ {
+  "name": "int parse",
+  "source": "print(Int(\"42\") as Any, Int(\"x\") as Any, Double(\"2.5\") as Any, Int(\"7\")! + 1)",
+  "expected": "Optional(42) nil Optional(2.5) 8\n",
+  "status": "todo"
+ },
+ {
+  "name": "int ops",
+  "source": "print(17 / 5, 17 % 5, -17 / 5, -17 % 5, 2 + 3 * 4, (2 + 3) * 4)",
+  "expected": "3 2 -3 -2 14 20\n",
+  "status": "ok"
+ },
+ {
+  "name": "int methods",
+  "source": "print(5.isMultiple(of: 5), Int.max, Int.min, (-5).magnitude, 7.signum())",
+  "expected": "true 9223372036854775807 -9223372036854775808 5 1\n",
+  "status": "todo"
+ },
+ {
+  "name": "double ops",
+  "source": "print(10.0 / 4, 2.5.rounded(), 2.4.rounded(.up), (3.7).rounded(.down), Double(3) / 2, Int(3.9))",
+  "expected": "2.5 3.0 3.0 3.0 1.5 3\n",
+  "status": "todo"
+ },
+ {
+  "name": "double math",
+  "source": "import Foundation; print(sqrt(16.0), pow(2.0, 10.0), floor(2.7), ceil(2.1))",
+  "expected": "4.0 1024.0 2.0 3.0\n",
+  "status": "todo"
+ },
+ {
+  "name": "range ops",
+  "source": "print((1...5).contains(3), (0..<3).count, Array(1...3), (1..<4).reversed())",
+  "expected": "true 3 [1, 2, 3] ReversedCollection<Range<Int>>(_base: Range(1..<4))\n",
+  "status": "todo"
+ },
+ {
+  "name": "closure returns closure",
+  "source": "func adder(_ n: Int) -> (Int) -> Int { { $0 + n } }; print(adder(3)(4))",
+  "expected": "7\n",
+  "status": "ok"
+ },
+ {
+  "name": "closure capture inout-like",
+  "source": "var total = 0; [1, 2, 3].forEach { total += $0 }; print(total)",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "recursion",
+  "source": "func fib(_ n: Int) -> Int { n < 2 ? n : fib(n - 1) + fib(n - 2) }; print(fib(15))",
+  "expected": "610\n",
+  "status": "ok"
+ },
+ {
+  "name": "nested func capture",
+  "source": "func make() -> () -> Int { var c = 0; func inc() -> Int { c += 1; return c }; return inc }; let f = make(); _ = f(); print(f())",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "higher order",
+  "source": "func apply(_ f: (Int) -> Int, to x: Int) -> Int { f(x) }; print(apply({ $0 * 3 }, to: 4))",
+  "expected": "12\n",
+  "status": "ok"
+ },
+ {
+  "name": "sorted multiple",
+  "source": "let ps = [(\"b\", 2), (\"a\", 2), (\"c\", 1)]; print(ps.sorted { $0.1 != $1.1 ? $0.1 < $1.1 : $0.0 < $1.0 }.map(\\.0))",
+  "expected": "[\"c\", \"a\", \"b\"]\n",
+  "status": "ok"
+ },
+ {
+  "name": "reduce into",
+  "source": "print([1, 2, 3].reduce(into: [Int]()) { $0.append($1 * 2) })",
+  "expected": "[2, 4, 6]\n",
+  "status": "todo"
+ },
+ {
+  "name": "min max by",
+  "source": "print([3, 1, 2].min() as Any, [\"bb\", \"a\"].max(by: { $0.count < $1.count }) as Any)",
+  "expected": "Optional(1) Optional(\"bb\")\n",
+  "status": "todo"
+ },
+ {
+  "name": "allSatisfy",
+  "source": "print([2, 4].allSatisfy { $0 % 2 == 0 }, [1, 2].contains { $0 > 1 }, [1, 2, 3].first { $0 > 1 } as Any)",
+  "expected": "true true Optional(2)\n",
+  "status": "todo"
+ },
+ {
+  "name": "optional chaining",
+  "source": "struct A { var b: B? }; struct B { var n = 7 }; print(A(b: B()).b?.n as Any, A(b: nil).b?.n as Any)",
+  "expected": "Optional(7) nil\n",
+  "status": "todo"
+ },
+ {
+  "name": "optional map flatMap",
+  "source": "let x: Int? = 4; print(x.map { $0 + 1 } as Any, x.flatMap { $0 > 5 ? $0 : nil } as Any)",
+  "expected": "Optional(5) nil\n",
+  "status": "todo"
+ },
+ {
+  "name": "optional force",
+  "source": "let y: Int? = 3; print(y!, y ?? 0)",
+  "expected": "3 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "if let multiple",
+  "source": "let a: Int? = 1, b: Int? = 2; if let a, let b { print(a + b) }",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "nil comparison",
+  "source": "let z: Int? = nil; print(z == nil, z != nil)",
+  "expected": "true false\n",
+  "status": "ok"
+ },
+ {
+  "name": "ternary nest",
+  "source": "let n = 5; print(n < 3 ? \"low\" : n < 10 ? \"mid\" : \"high\")",
+  "expected": "mid\n",
+  "status": "ok"
+ },
+ {
+  "name": "switch string",
+  "source": "switch \"b\" { case \"a\": print(1); case \"b\", \"c\": print(2); default: print(3) }",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "switch where range",
+  "source": "switch 7 { case 0..<5: print(\"low\"); case 5...: print(\"high\"); default: break }",
+  "expected": "high\n",
+  "status": "todo"
+ },
+ {
+  "name": "switch enum payload",
+  "source": "enum R { case ok(Int), err(String) }; switch R.err(\"x\") { case .ok(let n): print(n); case .err(let m): print(m) }",
+  "expected": "x\n",
+  "status": "ok"
+ },
+ {
+  "name": "switch fallthrough",
+  "source": "switch 1 { case 1: print(\"one\"); fallthrough; case 2: print(\"two\"); default: print(\"d\") }",
+  "expected": "one\ntwo\n",
+  "status": "ok"
+ },
+ {
+  "name": "defer order",
+  "source": "func f() { defer { print(\"1\") }; defer { print(\"2\") }; print(\"body\") }; f()",
+  "expected": "body\n2\n1\n",
+  "status": "ok"
+ },
+ {
+  "name": "throws basic",
+  "source": "enum E: Error { case bad(Int) }; func f(_ n: Int) throws -> Int { if n < 0 { throw E.bad(n) }; return n }; do { print(try f(1)); _ = try f(-2) } catch E.bad(let n) { print(\"bad\", n) }",
+  "expected": "1\nbad -2\n",
+  "status": "ok"
+ },
+ {
+  "name": "try optional",
+  "source": "enum E: Error { case x }; func f() throws -> Int { throw E.x }; print(try? f() as Any)",
+  "expected": "nil\n",
+  "status": "todo"
+ },
+ {
+  "name": "error localized",
+  "source": "struct M: Error { var text: String }; do { throw M(text: \"t\") } catch { print(error) }",
+  "expected": "M(text: \"t\")\n",
+  "status": "ok"
+ },
+ {
+  "name": "rethrows closure",
+  "source": "func g(_ f: () throws -> Int) rethrows -> Int { try f() }; print(try g { 3 })",
+  "expected": "3\n",
+  "status": "todo"
+ },
+ {
+  "name": "labels defaults",
+  "source": "func f(a: Int = 1, b: Int, _ c: Int = 3) -> Int { a + b + c }; print(f(b: 2), f(a: 5, b: 2, 9))",
+  "expected": "6 16\n",
+  "status": "ok"
+ },
+ {
+  "name": "variadic sum",
+  "source": "func s(_ xs: Int...) -> Int { xs.reduce(0, +) }; print(s(), s(1, 2, 3))",
+  "expected": "0 6\n",
+  "status": "ok"
+ },
+ {
+  "name": "shadowing",
+  "source": "let x = 1; do { let x = 2; print(x) }; print(x)",
+  "expected": "2\n1\n",
+  "status": "ok"
+ },
+ {
+  "name": "global var closure",
+  "source": "var counter = 0; func bump() { counter += 1 }; bump(); bump(); print(counter)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "static counter",
+  "source": "struct C { static var n = 0; init() { C.n += 1 } }; _ = C(); _ = C(); print(C.n)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "computed setter",
+  "source": "struct T { var c = 0.0; var f: Double { get { c * 9 / 5 + 32 } set { c = (newValue - 32) * 5 / 9 } } }; var t = T(); t.f = 212; print(t.c)",
+  "expected": "100.0\n",
+  "status": "todo"
+ },
+ {
+  "name": "init with logic",
+  "source": "struct R { var w: Int; var h: Int; var area: Int; init(w: Int, h: Int) { self.w = w; self.h = h; area = w * h } }; print(R(w: 2, h: 3).area)",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "convenience init",
+  "source": "struct P { var x: Int; var y: Int; init(x: Int, y: Int) { self.x = x; self.y = y }; init(both v: Int) { self.init(x: v, y: v) } }; print(P(both: 4))",
+  "expected": "P(x: 4, y: 4)\n",
+  "status": "todo"
+ },
+ {
+  "name": "tuple return",
+  "source": "func mm(_ xs: [Int]) -> (min: Int, max: Int) { (xs.min()!, xs.max()!) }; let r = mm([3, 1, 2]); print(r.min, r.max, r)",
+  "expected": "1 3 (min: 1, max: 3)\n",
+  "status": "ok"
+ },
+ {
+  "name": "tuple compare",
+  "source": "print((1, \"a\") == (1, \"a\"), (1, 2) < (1, 3))",
+  "expected": "true true\n",
+  "status": "todo"
+ },
+ {
+  "name": "array of tuples",
+  "source": "let ps = [(1, \"a\"), (2, \"b\")]; for p in ps { print(p.0, p.1) }",
+  "expected": "1 a\n2 b\n",
+  "status": "ok"
+ },
+ {
+  "name": "nested array",
+  "source": "var g = [[0, 0], [0, 0]]; g[1][0] = 5; print(g)",
+  "expected": "[[0, 0], [5, 0]]\n",
+  "status": "ok"
+ },
+ {
+  "name": "array init",
+  "source": "print(Array(repeating: 0, count: 3), [Int](repeating: 1, count: 2), Array(\"ab\"))",
+  "expected": "[0, 0, 0] [1, 1] [\"a\", \"b\"]\n",
+  "status": "todo"
+ },
+ {
+  "name": "character ops",
+  "source": "let c: Character = \"a\"; print(c.asciiValue as Any, c.isUppercase, String(c) + \"b\")",
+  "expected": "Optional(97) false ab\n",
+  "status": "todo"
+ },
+ {
+  "name": "string unicode",
+  "source": "let s = \"héllo\"; print(s.count, s.utf8.count, s.uppercased())",
+  "expected": "5 6 HÉLLO\n",
+  "status": "todo"
+ },
+ {
+  "name": "string replace",
+  "source": "import Foundation; print(\"a-b-c\".replacingOccurrences(of: \"-\", with: \"+\"), \"  trim \".trimmingCharacters(in: .whitespaces))",
+  "expected": "a+b+c trim\n",
+  "status": "todo"
+ },
+ {
+  "name": "string split lines",
+  "source": "import Foundation; let t = \"a\\nb\\nc\"; print(t.split(separator: \"\\n\").map(String.init), t.components(separatedBy: \"\\n\").count)",
+  "expected": "[\"a\", \"b\", \"c\"] 3\n",
+  "status": "todo"
  }
 ]

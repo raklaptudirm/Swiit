@@ -138,6 +138,11 @@ extension Lowering {
         try clause.parameters.map { parameter in
             var shortFlag: Character?
             var isInput = false
+            // `inout Int`: a specifier before the type.
+            let isInout = parameter.type.as(AttributedTypeSyntax.self)?.specifiers.contains { specifier in
+                if case .simpleTypeSpecifier(let simple) = specifier { return simple.specifier.tokenKind == .keyword(.inout) }
+                return false
+            } ?? false
             for attribute in parameter.attributes {
                 guard case .attribute(let attribute) = attribute else { throw unsupported("this attribute", parameter) }
                 switch attribute.attributeName.trimmedDescription {
@@ -166,7 +171,7 @@ extension Lowering {
             let defaultValue = try parameter.defaultValue.map { try expression($0.value) }
             return Parameter(
                 label: first == "_" ? nil : first, name: name, type: type, variadic: variadic, defaultValue: defaultValue,
-                isInput: isInput, shortFlag: shortFlag
+                isInput: isInput, shortFlag: shortFlag, isInout: isInout
             )
         }
     }
@@ -239,31 +244,32 @@ extension Lowering {
 
     // MARK: Structs
 
+    /// The names a type's methods may use unqualified: its instance members,
+    /// read through `self`, and its static ones.
+    private func memberNames(of block: MemberBlockSyntax) -> (instance: Set<String>, static: Set<String>) {
+        var instance: Set<String> = []
+        var statics: Set<String> = []
+        for member in block.members {
+            if let variable = member.decl.as(VariableDeclSyntax.self) {
+                for binding in variable.bindings {
+                    guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
+                    if isStatic(variable.modifiers) { statics.insert(identifier.identifier.text) } else { instance.insert(identifier.identifier.text) }
+                }
+            }
+            if let method = member.decl.as(FunctionDeclSyntax.self) {
+                if isStatic(method.modifiers) { statics.insert(method.name.text) } else { instance.insert(method.name.text) }
+            }
+        }
+        return (instance, statics)
+    }
+
     private mutating func structure(_ node: StructDeclSyntax) throws -> StructDecl {
         guard node.genericParameterClause == nil, node.genericWhereClause == nil else { throw unsupported("generics", node) }
         let conformances = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
         try checkProtocols(conformances)
         var declaration = StructDecl(name: node.name.text, properties: [], methods: [], initializers: [], conformances: conformances)
 
-        // The names a method reads through `self`.
-        var instanceMembers: Set<String> = []
-        for member in node.memberBlock.members {
-            if let variable = member.decl.as(VariableDeclSyntax.self), !isStatic(variable.modifiers) {
-                for binding in variable.bindings {
-                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { instanceMembers.insert(identifier.identifier.text) }
-                }
-            }
-            if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) { instanceMembers.insert(method.name.text) }
-        }
-        var staticMembers: Set<String> = []
-        for member in node.memberBlock.members {
-            if let variable = member.decl.as(VariableDeclSyntax.self), isStatic(variable.modifiers) {
-                for binding in variable.bindings {
-                    if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { staticMembers.insert(identifier.identifier.text) }
-                }
-            }
-            if let method = member.decl.as(FunctionDeclSyntax.self), isStatic(method.modifiers) { staticMembers.insert(method.name.text) }
-        }
+        let (instanceMembers, staticMembers) = memberNames(of: node.memberBlock)
         members.append(instanceMembers)
         defer { members.removeLast() }
 
@@ -343,17 +349,43 @@ extension Lowering {
         }
         try checkProtocols(conformances)
         var cases: [EnumCaseDecl] = []
+        var declaration = EnumDecl(name: node.name.text, rawType: rawType, cases: [], conformances: conformances)
+        var (instanceMembers, staticMembers) = memberNames(of: node.memberBlock)
+        if rawType != nil { instanceMembers.insert("rawValue") }
+        members.append(instanceMembers)
+        defer { members.removeLast() }
         for member in node.memberBlock.members {
-            guard let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) else { throw unsupported("'\(member.decl.kind)' in an enum", member) }
-            for element in caseDecl.elements {
-                let associated: [AssociatedValue] = try element.parameterClause?.parameters.map { parameter in
-                    AssociatedValue(label: parameter.firstName?.text, type: try type(parameter.type))
-                } ?? []
-                let raw = try element.rawValue.map { try expression($0.value) }
-                cases.append(EnumCaseDecl(name: element.name.text, rawValue: raw, associated: associated))
+            if let caseDecl = member.decl.as(EnumCaseDeclSyntax.self) {
+                for element in caseDecl.elements {
+                    let associated: [AssociatedValue] = try element.parameterClause?.parameters.map { parameter in
+                        AssociatedValue(label: parameter.firstName?.text, type: try type(parameter.type))
+                    } ?? []
+                    let raw = try element.rawValue.map { try expression($0.value) }
+                    cases.append(EnumCaseDecl(name: element.name.text, rawValue: raw, associated: associated))
+                }
+            } else if let variable = member.decl.as(VariableDeclSyntax.self) {
+                let isStaticMember = isStatic(variable.modifiers)
+                staticContext = isStaticMember ? (node.name.text, staticMembers) : nil
+                defer { staticContext = nil }
+                for property in try properties(variable) {
+                    if isStaticMember {
+                        declaration.staticProperties.append(property)
+                    } else {
+                        guard property.getter != nil else { throw SyntaxError("an enum can't have a stored property: '\(property.name)' (line \(line(of: variable)))") }
+                        declaration.properties.append(property)
+                    }
+                }
+            } else if let method = member.decl.as(FunctionDeclSyntax.self) {
+                staticContext = isStatic(method.modifiers) ? (node.name.text, staticMembers) : nil
+                defer { staticContext = nil }
+                let lowered = try function(method, isMember: true)
+                if isStatic(method.modifiers) { declaration.staticMethods.append(lowered) } else { declaration.methods.append(lowered) }
+            } else {
+                throw unsupported("'\(member.decl.kind)' in an enum", member)
             }
         }
-        return EnumDecl(name: node.name.text, rawType: rawType, cases: cases, conformances: conformances)
+        declaration.cases = cases
+        return declaration
     }
 
     // MARK: Documentation

@@ -153,6 +153,9 @@ public struct Parameter: Equatable, Sendable {
     @_spi(Layer) public var isInput = false
     /// `@flag("n")`: a short flag in command mode.
     @_spi(Layer) public var shortFlag: Character?
+    /// `inout`: the argument is passed as `&place`, and the place gets the
+    /// parameter's value back when the function ends.
+    @_spi(Layer) public var isInout = false
     /// A default only Swift can compute, like `Date()`: the
     /// argument is left out for the Swift function to fill in. Its source, for help.
     @_spi(Layer) public var externalDefault: String?
@@ -161,8 +164,10 @@ public struct Parameter: Equatable, Sendable {
 
     @_spi(Layer) public init(
         label: String? = nil, name: String, type: TypeAnnotation = .any, variadic: Bool = false,
-        defaultValue: Expr? = nil, isInput: Bool = false, shortFlag: Character? = nil, externalDefault: String? = nil
+        defaultValue: Expr? = nil, isInput: Bool = false, shortFlag: Character? = nil, externalDefault: String? = nil,
+        isInout: Bool = false
     ) {
+        self.isInout = isInout
         self.label = label
         self.name = name
         self.type = type

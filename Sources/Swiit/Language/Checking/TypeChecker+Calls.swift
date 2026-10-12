@@ -58,6 +58,14 @@ extension TypeChecker {
             return result == .unknown || result == .void ? result : .optional(result)
         }
         if case .member(var baseExpr, let name) = callee {
+            // `Level.make()`: a static method of an enum.
+            if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName), let methods = info.staticMethods[name] {
+                guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
+                if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+                if chosen.isThrowing { try throwingSite("'\(name)'") }
+                try effectSite(chosen.effect, "'\(name)'")
+                return chosen.returns
+            }
             // `Result.failed(code: 2)`: a case with associated values.
             if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName) {
                 var payload: [Argument]? = arguments
@@ -101,6 +109,15 @@ extension TypeChecker {
         _ base: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
         if case .named(let structName) = base, let info = structInfo(named: structName), let methods = info.methods[name] {
+            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
+            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+            if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
+            if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
+            return chosen.returns
+        }
+        // An enum's own methods, with the case as `self`.
+        if case .named(let enumName) = base, let info = enumInfo(named: enumName), let methods = info.methods[name] {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
             if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
             if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
@@ -152,6 +169,23 @@ extension TypeChecker {
             throw TypeError("an Any can't be called: cast it first, as in (value as? (Int) -> Int)")
         default:
             throw TypeError("\(type) isn't a function")
+        }
+    }
+
+    /// What `&place` may pass: a variable (or part of one) that can change.
+    func checkPassable(_ place: Expr) throws {
+        var root = place
+        while true {
+            switch root {
+            case .member(let inner, _), .index(let inner, _): root = inner
+            case .variable(let name):
+                if case .variable(_, let mutable)? = lookup(name), !mutable {
+                    throw TypeError("cannot pass '\(name)' as inout: it's a 'let' constant")
+                }
+                return
+            default:
+                throw TypeError("only a variable can be passed with &")
+            }
         }
     }
 

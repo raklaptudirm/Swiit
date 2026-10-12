@@ -1,6 +1,16 @@
 import Foundation
 import SwiitKit
 
+/// What an enum declares besides its cases.
+final class EnumMembers {
+    var computed: [String: Function] = [:]
+    var methods: [String: OverloadSet] = [:]
+    var staticComputed: [String: Function] = [:]
+    var staticMethods: [String: OverloadSet] = [:]
+    var statics: [String: StructType.StaticValue] = [:]
+    var staticProperties: [PropertyDecl] = []
+}
+
 extension Interpreter {
     // MARK: Declaring
 
@@ -44,6 +54,84 @@ extension Interpreter {
         enumPayloadTypes[ObjectIdentifier(type)] = payloadTypes
         enumConformances[ObjectIdentifier(type)] = decl.conformances
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
+        try declareMembers(of: decl, on: type)
+    }
+
+    /// An enum's computed properties and methods, and its static ones.
+    private func declareMembers(of decl: EnumDecl, on type: EnumType) throws {
+        guard !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty || !decl.staticMethods.isEmpty else { return }
+        let members = EnumMembers()
+        members.staticProperties = decl.staticProperties
+        for property in decl.properties {
+            guard let getter = property.getter else { continue }
+            members.computed[property.name] = Function(
+                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
+                captured: captureScopes(property.getterNames)
+            )
+        }
+        var methods: [String: [Function]] = [:]
+        for method in decl.methods {
+            methods[method.name, default: []].append(Function(
+                name: method.name, parameters: method.parameters, returnType: method.returnType, body: .swiit(method.body),
+                captured: captureScopes(method.names), documentation: method.documentation,
+                isMutating: method.isMutating, isThrowing: method.isThrowing
+            ))
+        }
+        members.methods = methods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
+        for property in decl.staticProperties {
+            guard let getter = property.getter else { continue }
+            members.staticComputed[property.name] = Function(
+                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
+                captured: captureScopes(property.getterNames)
+            )
+        }
+        var staticMethods: [String: [Function]] = [:]
+        for method in decl.staticMethods {
+            staticMethods[method.name, default: []].append(Function(
+                name: method.name, parameters: method.parameters, returnType: method.returnType, body: .swiit(method.body),
+                captured: captureScopes(method.names), documentation: method.documentation, isThrowing: method.isThrowing
+            ))
+        }
+        members.staticMethods = staticMethods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
+        enumMembers[ObjectIdentifier(type)] = members
+        for property in decl.staticProperties where property.getter == nil {
+            guard let expr = property.defaultValue else { continue }
+            var value = try evaluate(expr, expecting: property.type)
+            if let expected = property.type {
+                guard let conforming = conform(value, to: expected) else {
+                    throw RuntimeError("\(decl.name).\(property.name) must be \(expected), not \(value.typeName)")
+                }
+                value = conforming
+            }
+            members.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
+        }
+    }
+
+    /// A computed property of an enum's case, or a method as a function value; nil if there isn't one.
+    func enumMember(_ name: String, of value: EnumValue) throws -> Value? {
+        guard let members = enumMembers[ObjectIdentifier(value.type)] else { return nil }
+        if let getter = members.computed[name] {
+            return try invoke(getter, with: [:], receiver: Receiver(.enumValue(value), mutable: false))
+        }
+        guard let methods = members.methods[name] else { return nil }
+        let bound = methods.candidates.map { method in
+            Function(name: method.name, parameters: method.parameters, returnType: method.returnType,
+                     body: .native { interpreter, arguments in
+                         guard !method.isMutating else {
+                             throw RuntimeError("mutating method '\(name)' must be called on a variable, as in value.\(name)(…)")
+                         }
+                         return try interpreter.invoke(method, with: arguments, receiver: Receiver(.enumValue(value), mutable: false))
+                     }, documentation: method.documentation, isMutating: method.isMutating)
+        }
+        return .function(OverloadSet(name: name, candidates: bound))
+    }
+
+    /// `Level.default`, `Level.make`: an enum's static member; nil if it has none by that name.
+    func enumStaticMember(_ name: String, of type: EnumType) throws -> Value? {
+        guard let members = enumMembers[ObjectIdentifier(type)] else { return nil }
+        if let getter = members.staticComputed[name] { return try invoke(getter, with: [:]) }
+        if let slot = members.statics[name] { return slot.value }
+        return members.staticMethods[name].map(Value.function)
     }
 
     /// The enum a type annotation names, looking through optionals.

@@ -73,75 +73,22 @@ extension Interpreter {
             let operation = try evaluate(.closure(literal))
             let handle = try startTask(host: newTaskHost?()) { [unowned self] in try call(operation, with: []) }
             return SwiftValue.make(TaskBox(handle), as: "Task")
+        case .inoutArgument(let inner):
+            return try evaluate(inner)
+        case .call(_, let arguments) where arguments.contains(where: { if case .inoutArgument = $0.value { true } else { false } }):
+            // `f(&x)`: x goes in, and what f leaves in its `inout` parameter comes back.
+            let places = arguments.compactMap { argument -> Expr? in
+                if case .inoutArgument(let place) = argument.value { place } else { nil }
+            }
+            guard case .call(let callee, _) = expr else { preconditionFailure() }
+            // The same call, without the marks the places need no more.
+            let plain = try evaluateCall(callee, arguments)
+            let outputs = task.inoutOutputs
+            task.inoutOutputs = []
+            for (place, value) in zip(places, outputs) { try assign(place, value) }
+            return plain
         case .call(let callee, let arguments):
-            // The overload the checker chose, when there's a choice.
-            var callee = callee
-            var overload: Int?
-            if case .chosen(let inner, let index) = callee {
-                callee = inner
-                overload = index
-            }
-            let value: Value
-            // `x?.f()`: nothing when `x` is nil.
-            if case .optionalMember(let baseExpr, let name) = callee {
-                let base = try evaluate(baseExpr)
-                if base == .nothing { return .nothing }
-                return try evaluate(.call(.member(.literal(base), name), arguments))
-            }
-            if case .member(let baseExpr, let name) = callee {
-                let base = try evaluate(baseExpr)
-                // `Result.failed(code: 2)`: a case with associated values.
-                if case .object(let type as EnumType) = base {
-                    return try makeCase(type, name, arguments)
-                }
-                // `Point.make(1)`: a static method.
-                if case .object(let type as StructType) = base, let methods = type.staticMethods[name] {
-                    return try callStatic(narrowed(methods, overload), arguments)
-                }
-                // `p.move(by: 1)`: a struct's method, with `p` as `self`.
-                if case .record(let record) = base, record[name] == nil, let type = structType(of: record),
-                   let methods = type.methods[name] {
-                    return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
-                }
-                // `xs.sorted(by: "size")`: a sequence's method.
-                if let methods = sequenceMethods[name], let items = base.sequenceItems {
-                    return try callSequenceMethod(narrowed(methods, overload), on: items, arguments)
-                }
-                value = try member(name, of: base)
-            } else {
-                value = try evaluate(callee)
-            }
-            // `Point(x: 1, y: 2)`: a new struct.
-            if case .object(let type as StructType) = value {
-                return try construct(type, arguments, overload: overload)
-            }
-            // `Level(rawValue: 2)`: the case with that raw value, or nil.
-            if case .object(let type as EnumType) = value {
-                guard arguments.count == 1, arguments[0].label == "rawValue" else {
-                    throw RuntimeError("\(type.name) is made from a raw value: \(type.name)(rawValue: …)")
-                }
-                return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue) ?? .nothing
-            }
-            // `.case` arguments wait for their parameter's type.
-            let values = try arguments.map { argument -> Argument in
-                if case .caseLiteral = argument.value { return argument }
-                return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
-            }
-            switch value {
-            case .function(let set as OverloadSet):
-                let (function, bindings) = try resolve(narrowed(set, overload)) { try self.bind(values, to: $0) }
-                return try invoke(function, with: bindings)
-            case .function(let function as Function):
-                return try invoke(function, with: try bind(values, to: function).bindings)
-            case .function(let native as NativeFunction):
-                let function = hostFunction(native.function)
-                return try invoke(function, with: try bind(values, to: function).bindings)
-            case .function(let keyPath as KeyPathValue):
-                guard values.count == 1 else { throw RuntimeError("a key path reads one value") }
-                return try keyPath.read(from: try evaluate(values[0].value), in: self)
-            default:
-                throw RuntimeError("\(value.typeName) isn't a function")
-            }
+            return try evaluateCall(callee, arguments)
         case .unary(let op, let operand):
             return try apply(op, try evaluate(operand))
         case .binary(.and, let lhs, let rhs):
@@ -228,6 +175,86 @@ extension Interpreter {
         }
     }
 
+    /// A call: the callee's overload, a struct or enum made, or a function run.
+    func evaluateCall(_ callee: Expr, _ arguments: [Argument]) throws -> Value {
+        // The overload the checker chose, when there's a choice.
+        var callee = callee
+        var overload: Int?
+        if case .chosen(let inner, let index) = callee {
+            callee = inner
+            overload = index
+        }
+        let value: Value
+        // `x?.f()`: nothing when `x` is nil.
+        if case .optionalMember(let baseExpr, let name) = callee {
+            let base = try evaluate(baseExpr)
+            if base == .nothing { return .nothing }
+            return try evaluate(.call(.member(.literal(base), name), arguments))
+        }
+        if case .member(let baseExpr, let name) = callee {
+            let base = try evaluate(baseExpr)
+            // `Level.make()`: a static method of an enum.
+            if case .object(let type as EnumType) = base, let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name] {
+                return try callStatic(narrowed(methods, overload), arguments)
+            }
+            // `Result.failed(code: 2)`: a case with associated values.
+            if case .object(let type as EnumType) = base {
+                return try makeCase(type, name, arguments)
+            }
+            // `direction.opposite()`: an enum's method, with the case as `self`.
+            if case .enumValue(let enumValue) = base, let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name] {
+                return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+            }
+            // `Point.make(1)`: a static method.
+            if case .object(let type as StructType) = base, let methods = type.staticMethods[name] {
+                return try callStatic(narrowed(methods, overload), arguments)
+            }
+            // `p.move(by: 1)`: a struct's method, with `p` as `self`.
+            if case .record(let record) = base, record[name] == nil, let type = structType(of: record),
+               let methods = type.methods[name] {
+                return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+            }
+            // `xs.sorted(by: "size")`: a sequence's method.
+            if let methods = sequenceMethods[name], let items = base.sequenceItems {
+                return try callSequenceMethod(narrowed(methods, overload), on: items, arguments)
+            }
+            value = try member(name, of: base)
+        } else {
+            value = try evaluate(callee)
+        }
+        // `Point(x: 1, y: 2)`: a new struct.
+        if case .object(let type as StructType) = value {
+            return try construct(type, arguments, overload: overload)
+        }
+        // `Level(rawValue: 2)`: the case with that raw value, or nil.
+        if case .object(let type as EnumType) = value {
+            guard arguments.count == 1, arguments[0].label == "rawValue" else {
+                throw RuntimeError("\(type.name) is made from a raw value: \(type.name)(rawValue: …)")
+            }
+            return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue) ?? .nothing
+        }
+        // `.case` arguments wait for their parameter's type.
+        let values = try arguments.map { argument -> Argument in
+            if case .caseLiteral = argument.value { return argument }
+            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
+        }
+        switch value {
+        case .function(let set as OverloadSet):
+            let (function, bindings) = try resolve(narrowed(set, overload)) { try self.bind(values, to: $0) }
+            return try invoke(function, with: bindings)
+        case .function(let function as Function):
+            return try invoke(function, with: try bind(values, to: function).bindings)
+        case .function(let native as NativeFunction):
+            let function = hostFunction(native.function)
+            return try invoke(function, with: try bind(values, to: function).bindings)
+        case .function(let keyPath as KeyPathValue):
+            guard values.count == 1 else { throw RuntimeError("a key path reads one value") }
+            return try keyPath.read(from: try evaluate(values[0].value), in: self)
+        default:
+            throw RuntimeError("\(value.typeName) isn't a function")
+        }
+    }
+
     static func isCaseLiteral(_ expr: Expr) -> Bool {
         if case .caseLiteral = expr { true } else { false }
     }
@@ -238,6 +265,8 @@ extension Interpreter {
             guard let raw = enumValue.rawValue else { throw RuntimeError("\(enumValue.type.name) has no raw values") }
             return raw
         }
+        if case .enumValue(let enumValue) = value, let found = try enumMember(name, of: enumValue) { return found }
+        if case .object(let type as EnumType) = value, let found = try enumStaticMember(name, of: type) { return found }
         if case .object(let type as EnumType) = value, type.case(named: name) != nil, type.member(name) == nil {
             return try makeCase(type, name, nil) // Says what values it needs.
         }

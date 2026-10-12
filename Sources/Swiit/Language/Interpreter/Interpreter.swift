@@ -49,6 +49,8 @@ public final class Interpreter {
     var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
+    /// What each enum adds to its cases: computed properties, methods, and the static ones.
+    var enumMembers: [ObjectIdentifier: EnumMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.
     @_spi(Layer) public var sequenceMethods: [String: OverloadSet] = [:]
     /// The declared types of globals, from entries already checked, so a

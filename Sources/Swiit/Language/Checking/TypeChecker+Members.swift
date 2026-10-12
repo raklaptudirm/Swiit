@@ -178,6 +178,8 @@ extension TypeChecker {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
             case .enumType(let info):
+                if let property = info.staticProperty(name) { return property.type ?? .unknown }
+                if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 // What Swift synthesizes for an enum: `allCases` and
                 // `rawValue`. A Swiit enum isn't a Swift type the bridge
                 // could describe, so they're made here.
@@ -237,6 +239,8 @@ extension TypeChecker {
                     guard let raw = info.rawType else { throw TypeError("\(typeName) has no raw values") }
                     return raw
                 }
+                if let computed = info.computed[name] { return computed }
+                if let methods = info.methods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 throw TypeError("\(typeName) has no member '\(name)'")
             }
             if let members = interpreter.objectMembers[typeName] {

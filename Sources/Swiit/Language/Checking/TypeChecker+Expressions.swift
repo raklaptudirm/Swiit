@@ -272,6 +272,11 @@ extension TypeChecker {
             _ = try typeOf(&inner)
             expr = .voidValue(inner)
             return .void
+        case .inoutArgument(var inner):
+            let type = try typeOf(&inner, expecting: expected)
+            try checkPassable(inner)
+            expr = .inoutArgument(inner)
+            return type
         case .cast(var inner, let type, let kind):
             let actual = try typeOf(&inner, expecting: kind == .upcast ? type : nil)
             expr = .cast(inner, type, kind)

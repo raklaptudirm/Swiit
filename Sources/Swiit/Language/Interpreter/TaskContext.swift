@@ -18,6 +18,9 @@ public final class TaskContext {
     var returnTypes: [TypeAnnotation?] = []
     /// Per-item errors reported so far, like a file `ls` couldn't read.
     var itemErrorCount = 0
+    /// What a call's `inout` parameters held when it ended, in order, for the
+    /// call to hand back to the places `&` named.
+    var inoutOutputs: [Value] = []
     /// Asks the task to stop, from any thread.
     public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).

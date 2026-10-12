@@ -32,7 +32,10 @@ extension Interpreter {
         }
 
         let savedScopes = scopes
-        let argumentScope = Scope(arguments.mapValues { Binding(value: $0, mutable: false) })
+        let inouts = Set(function.parameters.filter(\.isInout).map(\.name))
+        let argumentScope = Scope(arguments.reduce(into: [:]) { bindings, argument in
+            bindings[argument.key] = Binding(value: argument.value, mutable: inouts.contains(argument.key))
+        })
         if let receiver {
             argumentScope.bindings["self"] = Binding(
                 value: receiver.value, mutable: receiver.mutable, special: receiver.initializing ? .initializing : nil
@@ -71,6 +74,10 @@ extension Interpreter {
             }
         }
 
+        // What the `inout` parameters hold now goes back to where the call took them from.
+        if !inouts.isEmpty {
+            task.inoutOutputs = function.parameters.filter(\.isInout).map { argumentScope.bindings[$0.name]?.value ?? .nothing }
+        }
         guard let returnType = function.returnType else { return result }
         guard let conforming = conform(result, to: returnType) else {
             let what = result == .nothing ? "nothing" : result.typeName

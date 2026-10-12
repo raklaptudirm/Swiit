@@ -123,6 +123,11 @@ extension Statement {
     var cases: [EnumCaseDecl]
     /// `enum Level: Int, Comparable`: the protocols after any raw type.
     var conformances: [String] = []
+    /// Computed properties (an enum has no stored ones), methods and the static ones.
+    var properties: [PropertyDecl] = []
+    @_spi(Layer) public var methods: [FunctionDecl] = []
+    var staticProperties: [PropertyDecl] = []
+    var staticMethods: [FunctionDecl] = []
 
     init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
         self.name = name

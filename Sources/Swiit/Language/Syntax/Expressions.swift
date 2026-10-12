@@ -93,6 +93,9 @@ import SwiitKit
     /// A call returning Void, as a value: `()` once it's run, so `try?`
     /// can tell success (`()`) from failure (nil). Only the checker makes these.
     case voidValue(Expr)
+    /// `&x`, an argument for an `inout` parameter: the place whose value goes
+    /// in and comes back changed.
+    case inoutArgument(Expr)
 }
 
 @_spi(Layer) public enum TryKind: Equatable, Sendable {

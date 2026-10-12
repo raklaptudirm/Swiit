@@ -74,6 +74,7 @@ extension Lowering {
             return .await(try expression(node.expression), throwing: tryDepth > 0)
         }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
+        if let node = expr.as(InOutExprSyntax.self) { return .inoutArgument(try expression(node.expression)) }
         if let node = expr.as(IfExprSyntax.self) {
             let statement = try ifStatement(node)
             guard statement.otherwise != nil else { throw SyntaxError("an if expression needs an else (line \(line(of: node)))") }

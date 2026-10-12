@@ -92,14 +92,26 @@ import SwiitKit
         var cases: [(name: String, payload: [AssociatedValue])]
         var rawType: TypeAnnotation?
         var conformances: [String] = []
+        /// Computed properties' types, and methods.
+        var computed: [String: TypeAnnotation] = [:]
+        var methods: [String: [Signature]] = [:]
+        var staticProperties: [PropertyDecl] = []
+        var staticMethods: [String: [Signature]] = [:]
 
         func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
+        func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
     
-        @_spi(Layer) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = []) {
+        @_spi(Layer) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = [],
+                                 computed: [String: TypeAnnotation] = [:], methods: [String: [Signature]] = [:],
+                                 staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
             self.name = name
             self.cases = cases
             self.rawType = rawType
             self.conformances = conformances
+            self.computed = computed
+            self.methods = methods
+            self.staticProperties = staticProperties
+            self.staticMethods = staticMethods
         }
     }
 

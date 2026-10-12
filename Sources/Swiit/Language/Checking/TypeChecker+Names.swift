@@ -91,7 +91,23 @@ extension TypeChecker {
         case .double?: .double
         default: nil
         }
-        return EnumInfo(name: type.name, cases: cases, rawType: rawType,
-                        conformances: interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
+        var info = EnumInfo(name: type.name, cases: cases, rawType: rawType,
+                            conformances: interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
+        if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
+            func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
+                sets.mapValues { set in
+                    set.candidates.enumerated().map { index, method in
+                        var signature = signature(method)
+                        signature.index = index
+                        return signature
+                    }
+                }
+            }
+            info.computed = members.computed.mapValues { $0.returnType ?? .unknown }
+            info.methods = signatures(members.methods)
+            info.staticProperties = members.staticProperties
+            info.staticMethods = signatures(members.staticMethods)
+        }
+        return info
     }
 }
