@@ -113,8 +113,6 @@ extension Interpreter {
                 isThrowing: decl.isThrowing, effect: decl.effect
             )
             scopes[scopes.count - 1].declare(function, named: decl.name)
-        case .extended:
-            throw RuntimeError.unrewritten
         case .enumDecl(let decl):
             try declare(decl)
         case .expression(let expr):

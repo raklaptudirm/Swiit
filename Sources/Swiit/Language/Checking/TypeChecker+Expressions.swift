@@ -50,7 +50,6 @@ extension TypeChecker {
             return .string
         case .variable(let name):
             guard let symbol = lookup(name) else {
-                if afterImport { return .unknown }
                 throw TypeError("no variable named '\(name)'")
             }
             switch symbol {
@@ -58,7 +57,7 @@ extension TypeChecker {
                 return type
             case .functions(let overloads):
                 return functionValue(name, overloads, expected: expected, expr: &expr)
-            case .structType, .enumType, .module, .swiftType:
+            case .structType, .enumType, .swiftType:
                 return .unknown
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).

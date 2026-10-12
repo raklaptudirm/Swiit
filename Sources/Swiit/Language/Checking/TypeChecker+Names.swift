@@ -17,8 +17,6 @@ extension TypeChecker {
             return .enumType(enumInfo(type))
         case .object(let object as DynamicObject):
             return .variable(.named(object.typeName), mutable: false)
-        case .object(let object as CheckedObject) where object.isModule:
-            return .module
         case .object(let type as BridgedTypeName):
             return .swiftType(type.name)
         case .function(let set as OverloadSet):
@@ -35,8 +33,7 @@ extension TypeChecker {
     func signature(_ function: Function) -> Signature {
         // A builtin that hasn't declared its result isn't known; a Swiit
         // function without `->` returns nothing.
-        var returns = function.returnType ?? (function.isBuiltin ? .unknown : .void)
-        if function.plugin != nil && returns == .any { returns = .unknown }
+        let returns = function.returnType ?? (function.isBuiltin ? .unknown : .void)
         return Signature(name: function.name ?? "closure", parameters: function.parameters, returns: returns,
                          isMutating: function.isMutating, isThrowing: function.isThrowing,
                          isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)

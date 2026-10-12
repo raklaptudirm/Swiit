@@ -45,9 +45,6 @@ extension TypeChecker {
         case .function(var decl):
             try checkFunction(&decl)
             statement = .function(decl)
-        case .extended(var box):
-            try box.node.check(in: self)
-            statement = .extended(box)
         case .doCatch(var body, var clauses):
             // It handles what its body throws if a clause catches anything.
             let catchesAll = clauses.contains { $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll)) }

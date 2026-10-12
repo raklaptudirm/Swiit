@@ -14,7 +14,6 @@ struct LoweringContext {
     var leaving = Leaving()
     /// The closures around, innermost last: whether each takes `$0`, `$1`, …
     var anonymous: [Bool] = []
-    var sawImport = false
 }
 
 extension Lowering {
@@ -22,7 +21,7 @@ extension Lowering {
         get {
             LoweringContext(bound: bound, declaredTypes: declaredTypes, locals: locals, members: members,
                             staticContext: staticContext, functions: functions, tryDepth: tryDepth, leaving: leaving,
-                            anonymous: anonymous, sawImport: sawImport)
+                            anonymous: anonymous)
         }
         set {
             declaredTypes = newValue.declaredTypes
@@ -33,7 +32,6 @@ extension Lowering {
             tryDepth = newValue.tryDepth
             leaving = newValue.leaving
             anonymous = newValue.anonymous
-            sawImport = newValue.sawImport
         }
     }
 }

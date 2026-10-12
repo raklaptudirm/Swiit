@@ -65,16 +65,12 @@ extension TypeChecker {
                 arguments = payload ?? []
                 return type
             }
-            if case .variable(let module) = baseExpr, case .module? = lookup(module) {
-                for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
-                return .unknown
-            }
             let base = try typeOf(&baseExpr)
             callee = .member(baseExpr, name)
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
         // `ls()` with no `ls`: a function that isn't there, not a variable.
-        if case .variable(let name) = callee, lookup(name) == nil, !afterImport {
+        if case .variable(let name) = callee, lookup(name) == nil {
             throw TypeError("no function named '\(name)'")
         }
         let type = try typeOf(&callee)

@@ -11,8 +11,7 @@ extension Lowering {
     /// Words that start a Swift statement, which are never a command.
     private static let keywords: Set<String> = SourceCursor.statementKeywords.union(["if", "for", "while", "switch", "let", "var"])
 
-    /// A statement of the plug-in's starting at the byte offset: `import`, or
-    /// commands joined by `|`, `&&` and `||`, and where its source ends.
+    /// A statement of the plug-in's starting at the byte offset: commands joined by `|`, `&&` and `||`, and where its source ends.
     /// `item` is SwiftParser's reading of it, when it starts one.
     mutating func layerStatement(at start: Int, item: CodeBlockItemSyntax.Item? = nil) throws -> (statement: Statement, end: Int)? {
         guard let plugin else { return nil }
@@ -20,15 +19,10 @@ extension Lowering {
         // `$0` is a closure's parameter, found where Swift reads one.
         if parser.peek() == "$", let next = parser.peek(1), SourceCursor.isDigit(next) { return nil }
         let word = parser.identifier()
-        if let word, word != "try", Lowering.keywords.contains(word), word != "import" { return nil }
+        if let word, word != "try", Lowering.keywords.contains(word) { return nil }
         // `_ = f()` is Swift's, and so is `async let x = f()`.
         if word == "_", let item, isAssignment(item) { return nil }
         if word == "async", case .decl(let decl)? = item, decl.is(VariableDeclSyntax.self) { return nil }
-        if let statement = try read(&parser, from: start, plugin.statement) {
-            consume(from: start, to: parser)
-            if parser.sawImport { sawImport = true }
-            return (statement, byteOffset(of: parser))
-        }
         // `name = …`, `name.a[i] += …` assign to what is a variable, and are Swift's.
         // (`X=1 cmd` sets the environment, as `X` is no variable.)
         if let word, [.variable, .member, .type].contains(parser.kind(of: word)) || isStaticMember(parser.kind(of: word)) {

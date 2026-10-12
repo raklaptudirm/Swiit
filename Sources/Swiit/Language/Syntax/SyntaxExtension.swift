@@ -31,11 +31,6 @@ extension ExprExtension {
     @_spi(Layer) public var leavesProgram: Bool { false }
 }
 
-/// A statement an extension adds: `env.NAME = value`.
-@_spi(Layer) public protocol StatementExtension: SyntaxExtension {
-    mutating func check(in checker: TypeChecker) throws
-}
-
 extension RuntimeError {
     /// A layer's construct that reached the interpreter, which only runs Swift.
     static let unrewritten = RuntimeError("a construct from a layer over the core must be rewritten into Swift before it runs")
@@ -50,18 +45,6 @@ extension RuntimeError {
     }
 
     @_spi(Layer) public static func == (lhs: ExprExtensionBox, rhs: ExprExtensionBox) -> Bool {
-        lhs.node.isEqual(to: rhs.node)
-    }
-}
-
-@_spi(Layer) public struct StatementExtensionBox: Equatable, Sendable {
-    @_spi(Layer) public var node: any StatementExtension
-
-    @_spi(Layer) public init(_ node: any StatementExtension) {
-        self.node = node
-    }
-
-    @_spi(Layer) public static func == (lhs: StatementExtensionBox, rhs: StatementExtensionBox) -> Bool {
         lhs.node.isEqual(to: rhs.node)
     }
 }

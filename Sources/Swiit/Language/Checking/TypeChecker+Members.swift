@@ -161,11 +161,11 @@ extension TypeChecker {
         }
     }
 
-    /// Whether `expr` is a name that isn't a value: a type, `env`, a module.
+    /// Whether `expr` is a name that isn't a value: a type, `env`.
     static func namesSomething(_ expr: Expr, in checker: TypeChecker) -> Bool {
         guard case .variable(let name) = expr else { return false }
         switch checker.lookup(name) {
-        case .enumType?, .module?, .swiftType?, .structType?: return true
+        case .enumType?, .swiftType?, .structType?: return true
         default: return false
         }
     }
@@ -193,8 +193,6 @@ extension TypeChecker {
                 if let property = info.staticProperty(name) { return property.type ?? .unknown }
                 if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 throw TypeError("\(info.name) has no static member '\(name)'")
-            case .module:
-                return .unknown
             default:
                 break
             }

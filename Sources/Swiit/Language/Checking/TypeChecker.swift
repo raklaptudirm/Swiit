@@ -108,8 +108,6 @@ import SwiitKit
         case functions([Signature])
         case structType(StructInfo)
         case enumType(EnumInfo)
-        /// An imported module, `Tools`; its members aren't known until it loads.
-        case module
         /// A Swift type by name, bridged: `String`, `Int`.
         case swiftType(String)
         /// `async let x = …`: a `Task` the scope owns, whose value reading
@@ -179,8 +177,6 @@ import SwiitKit
     var topLevelUnawaited: [String: Set<String>] = [:]
     /// The functions the program being checked declares at its top level.
     var redeclaredHere: Set<String> = []
-    /// After an `import`, names it may bring can't be checked.
-    @_spi(Layer) public var afterImport = false
     @_spi(Layer) public var line: Int?
 
     @_spi(Layer) public init(interpreter: Interpreter) {
@@ -211,15 +207,8 @@ import SwiitKit
 
 }
 
-/// A host object the checker types without knowing its class: `Job`, an
-/// imported module. Its members' types come from `Interpreter.objectMembers`.
+/// A host object the checker types without knowing its class: `Job`. Its
+/// members' types come from `Interpreter.objectMembers`.
 @_spi(Layer) public protocol CheckedObject: SwiitObject {
     var checkedType: TypeAnnotation { get }
-    /// Whether a name bound to it is a module, whose members are looked up
-    /// in the value.
-    var isModule: Bool { get }
-}
-
-extension CheckedObject {
-    @_spi(Layer) public var isModule: Bool { false }
 }

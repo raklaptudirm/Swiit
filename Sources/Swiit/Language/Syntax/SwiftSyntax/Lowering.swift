@@ -70,9 +70,6 @@ struct Lowering {
     /// The closures around the code being lowered, innermost last: whether
     /// each takes `$0`, `$1`, … (one without named parameters does).
     var anonymous: [Bool] = []
-    /// An `import` came before: the functions it brings aren't known until it
-    /// runs, so calling an unknown name is left for then.
-    var sawImport = false
     /// Where a name that isn't bound is an error, as the layer's reading of a
     /// unit needs (a word that isn't a name is a command's): the Swift here
     /// is read by what the names around it are.
@@ -168,7 +165,6 @@ struct Lowering {
         cursor.loopDepth = leaving.loop
         cursor.switchDepth = leaving.switchCase
         cursor.inAnonymousClosure = anonymous.last ?? false
-        cursor.sawImport = sawImport
         cursor.context = context
         cursor.lineStarts = lineStarts
         cursor.lineOffset = lineOffset

@@ -76,8 +76,6 @@ struct SwiftPrinter {
         case .extensionDecl(let name, let methods):
             let inner = methods.map { pad(indent + 1) + function($0, keyword: "func", indent: indent + 1) }
             return ["\(p)extension \(name) {\n" + inner.joined(separator: "\n") + "\n\(p)}"]
-        case .extended:
-            return ["\(p)/* a construct from a layer over the core */"]
         case .deferBlock(let body):
             return ["\(p)defer \(block(body, indent: indent))"]
         case .fallthroughStatement:

@@ -2,22 +2,17 @@ import Foundation
 import SwiitKit
 
 /// Rewrites a tree bottom-up: every child is rewritten before its parent is
-/// offered to `expr` or `statement`, which return what stands in its
-/// place (the same node, if there is nothing to do). A layer over the core
+/// offered to `expr`, which returns what stands in its place (the same node,
+/// if there is nothing to do). A layer over the core
 /// that adds its own nodes (the shell's, held opaquely in `.extended`) sees
 /// them here and rewrites what is inside them itself, with `program`,
 /// `expression` and the rest. This is how the shell's constructs become Swift
 /// (Swish's Docs/Design/desugaring.md).
 @_spi(Layer) public struct TreeRewriter {
     @_spi(Layer) public var expr: (Expr) -> Expr
-    var statement: (Statement) -> Statement
 
-    @_spi(Layer) public init(
-        expr: @escaping (Expr) -> Expr = { $0 },
-        statement: @escaping (Statement) -> Statement = { $0 }
-    ) {
+    @_spi(Layer) public init(expr: @escaping (Expr) -> Expr = { $0 }) {
         self.expr = expr
-        self.statement = statement
     }
 
     // MARK: Programs and statements
@@ -63,8 +58,6 @@ import SwiitKit
             rewritten = .structDecl(decl)
         case .extensionDecl(let name, let methods):
             rewritten = .extensionDecl(name: name, methods: methods.map(function))
-        case .extended:
-            rewritten = node
         case .deferBlock(let body):
             rewritten = .deferBlock(program(body))
         case .fallthroughStatement, .breakStatement, .continueStatement:
@@ -93,7 +86,7 @@ import SwiitKit
         case .whileLoop(let loop):
             rewritten = .whileLoop(WhileLoop(condition: expression(loop.condition), body: program(loop.body)))
         }
-        return statement(rewritten)
+        return rewritten
     }
 
     func function(_ decl: FunctionDecl) -> FunctionDecl {

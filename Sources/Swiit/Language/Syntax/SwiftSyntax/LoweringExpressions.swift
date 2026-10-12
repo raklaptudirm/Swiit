@@ -228,13 +228,11 @@ extension Lowering {
     }
 
     /// Where names have to be bound (`strictNames`): a name that isn't is not an
-    /// expression, which the layer takes for a command's word. After an `import`,
-    /// calling an unknown name is left for when it runs.
+    /// expression, which the layer takes for a command's word.
     mutating func checkKnown(_ node: DeclReferenceExprSyntax, calling: Bool) throws {
         guard strictNames else { return }
         let name = node.baseName.text
         if name == "self" || name == "_" || names()[name] != nil { return }
-        if calling && sawImport { return }
         failedAt = node.endPositionBeforeTrailingTrivia.utf8Offset
         throw SyntaxError(calling ? "no function named '\(name)'" : "no variable named '\(name)'")
     }

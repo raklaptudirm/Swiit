@@ -27,13 +27,4 @@ import SwiitKit
     /// `$name`, `async …`): the plug-in's expression, or nil if it has none
     /// there.
     func expression(_ cursor: inout SourceCursor) throws(SyntaxError) -> Expr?
-
-    /// Where a statement starts (`env.NAME = value`):
-    /// the plug-in's statement, or nil if it has none there.
-    func statement(_ cursor: inout SourceCursor) throws(SyntaxError) -> Statement?
-}
-
-extension SyntaxPlugin {
-    /// A layer with no statements of its own, which is the shell's case.
-    @_spi(Layer) public func statement(_ cursor: inout SourceCursor) throws(SyntaxError) -> Statement? { nil }
 }

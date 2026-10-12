@@ -19,8 +19,6 @@ public final class Function: Callable, @unchecked Sendable {
     public let body: FunctionBody
     public let captured: [Scope]
     public let documentation: Documentation?
-    /// The imported module it came from, for a plugin's function.
-    public let plugin: String?
     /// A struct's `mutating func` (or `init`), which may change `self`.
     public let isMutating: Bool
     /// `throws`: a call to it needs `try`.
@@ -34,13 +32,12 @@ public final class Function: Callable, @unchecked Sendable {
 
     public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
-        captured: [Scope] = [], documentation: Documentation? = nil, plugin: String? = nil, isMutating: Bool = false,
+        captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:]
     ) {
         self.isRethrowing = isRethrowing
         self.effect = effect
         self.generics = generics
-        self.plugin = plugin
         self.isMutating = isMutating
         self.isThrowing = isThrowing
         self.name = name

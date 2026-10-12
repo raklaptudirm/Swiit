@@ -153,8 +153,8 @@ public struct Parameter: Equatable, Sendable {
     @_spi(Layer) public var isInput = false
     /// `@flag("n")`: a short flag in command mode.
     @_spi(Layer) public var shortFlag: Character?
-    /// A plugin's default only Swift can compute, like `Date()`: the
-    /// argument is left out for the plugin to fill in. Its source, for help.
+    /// A default only Swift can compute, like `Date()`: the
+    /// argument is left out for the Swift function to fill in. Its source, for help.
     @_spi(Layer) public var externalDefault: String?
 
     @_spi(Layer) public var hasDefault: Bool { defaultValue != nil || externalDefault != nil }

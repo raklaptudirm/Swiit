@@ -148,7 +148,7 @@ extension Interpreter {
             } else if let defaultValue = parameter.defaultValue {
                 bound[parameter.name] = try defaultArgument(defaultValue, for: parameter, of: function)
             } else if parameter.externalDefault != nil {
-                continue // The plugin fills it in.
+                continue // The Swift function fills it in.
             } else {
                 let label = parameter.label.map { "'\($0):'" } ?? "#\(function.parameters.firstIndex(of: parameter)! + 1)"
                 throw RuntimeError("\(name): missing argument \(label)")
@@ -218,9 +218,9 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    /// A plugin's function as the shell's own: the same binding, help and
-    /// streaming as a Swiit `func`. `plugin` names the module it came from.
-    public func hostFunction(_ export: ExportedFunction, plugin: String? = nil) -> Function {
+    /// A host's Swift function as a Swiit one: the same binding, help and
+    /// streaming as a Swiit `func`.
+    public func hostFunction(_ export: ExportedFunction) -> Function {
         let parameters = export.parameters.map { parameter in
             Parameter(
                 label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
@@ -246,7 +246,7 @@ extension Interpreter {
                 }
             },
             documentation: Documentation(summary: export.summary ?? "", parameters: docs),
-            plugin: plugin, isThrowing: export.isThrowing
+            isThrowing: export.isThrowing
         )
     }
 }

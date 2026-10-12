@@ -94,9 +94,6 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
     @_spi(Layer) public mutating func use(_ name: String) {
         used.insert(name)
     }
-    /// An `import` came earlier: the functions it brings aren't known until
-    /// it runs, so calling an unknown name is left for then.
-    @_spi(Layer) public var sawImport = false
     /// Inside (), [] and \( ), newlines don't end an expression.
     @_spi(Layer) public var bracketDepth = 0
     @_spi(Layer) public var loopDepth = 0
