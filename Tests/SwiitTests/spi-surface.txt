@@ -217,6 +217,7 @@ Language/Syntax/SyntaxExtension.swift	Layer var leavesProgram
 Language/Syntax/SyntaxExtension.swift	Layer var node
 Language/Syntax/SyntaxExtension.swift	Layer var node
 Language/Syntax/SyntaxFrontEnd.swift	Layer protocol SyntaxFrontEnd
+Language/Syntax/SyntaxPlugin.swift	Layer func statement
 Language/Syntax/SyntaxPlugin.swift	Layer protocol SyntaxPlugin
 Language/Syntax/TreeRewriter.swift	Layer func arguments
 Language/Syntax/TreeRewriter.swift	Layer func closure

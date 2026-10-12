@@ -32,3 +32,8 @@ import SwiitKit
     /// the plug-in's statement, or nil if it has none there.
     func statement(_ cursor: inout SourceCursor) throws(SyntaxError) -> Statement?
 }
+
+extension SyntaxPlugin {
+    /// A layer with no statements of its own, which is the shell's case.
+    @_spi(Layer) public func statement(_ cursor: inout SourceCursor) throws(SyntaxError) -> Statement? { nil }
+}
