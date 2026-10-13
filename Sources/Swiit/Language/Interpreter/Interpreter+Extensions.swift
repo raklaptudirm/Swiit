@@ -120,15 +120,20 @@ extension Interpreter {
         }
     }
 
-    /// What extensions add to a value's type.
-    func extensionMembers(of value: Value) -> TypeMembers? {
-        guard !typeExtensions.isEmpty, let key = typeKey(of: value) else { return nil }
-        return typeExtensions[key]
+    /// The members extensions add to a value's type (and protocols it conforms to) with a method of that name.
+    func extensionMethods(_ name: String, of value: Value) -> OverloadSet? {
+        extensionChain(of: value).lazy.compactMap { $0.methods[name] }.first
     }
 
     /// A computed property an extension adds, or a method as a function value; nil if there isn't one.
     func extensionMember(_ name: String, of value: Value) throws -> Value? {
-        guard let members = extensionMembers(of: value) else { return nil }
+        for members in extensionChain(of: value) {
+            if let found = try extensionMember(name, of: value, in: members) { return found }
+        }
+        return nil
+    }
+
+    private func extensionMember(_ name: String, of value: Value, in members: TypeMembers) throws -> Value? {
         if let getter = members.computed[name] {
             return try invoke(getter, with: [:], receiver: Receiver(value, mutable: false))
         }

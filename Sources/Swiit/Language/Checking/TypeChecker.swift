@@ -121,7 +121,19 @@ import SwiitKit
         }
     }
 
+    /// What a protocol asks of a conforming type.
+    @_spi(Layer) public struct ProtocolInfo {
+        var name: String
+        var inherited: [String] = []
+        var methods: [String: [Signature]] = [:]
+        var properties: [String: (type: TypeAnnotation, settable: Bool)] = [:]
+        var staticMethods: [String: [Signature]] = [:]
+        var staticProperties: [String: TypeAnnotation] = [:]
+        var initializers: [Signature] = []
+    }
+
     @_spi(Layer) public enum Symbol {
+        case protocolType(ProtocolInfo)
         case variable(TypeAnnotation, mutable: Bool)
         case functions([Signature])
         case structType(StructInfo)

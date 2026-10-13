@@ -175,6 +175,11 @@ extension TypeChecker {
         // Equatable, Hashable and Encodable come from the fields, which must
         // have them too; Comparable would need a `<` of its own.
         for proto in decl.conformances {
+            // A protocol of the program's asks what it says.
+            if protocolInfo(named: proto) != nil {
+                try checkConformance(of: decl.name, to: proto)
+                continue
+            }
             if proto == "Comparable", !decl.staticMethods.contains(where: { $0.name == "<" }) {
                 throw TypeError("\(decl.name) can't be Comparable without a '<' of its own: static func < (a: \(decl.name), b: \(decl.name)) -> Bool")
             }
@@ -300,6 +305,7 @@ extension TypeChecker {
 
     func checkEnum(_ decl: inout EnumDecl) throws {
         for proto in decl.conformances where !TypeChecker.askNothingOfMembers.contains(proto) {
+            if protocolInfo(named: proto) != nil { try checkConformance(of: decl.name, to: proto); continue }
             if proto == "Tabular" { throw TypeError("\(decl.name) can't be Tabular: only a struct can, as a table is made of records") }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swiit has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }

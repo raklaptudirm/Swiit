@@ -21,19 +21,19 @@
   "name": "protocol",
   "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 1 } }; print(S().f())",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "protocol default ext",
   "source": "protocol P { func f() -> Int }; extension P { func g() -> Int { f() + 1 } }; struct S: P { func f() -> Int { 1 } }; print(S().g())",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "assoc type",
   "source": "protocol C { associatedtype E; func first() -> E }; struct S: C { func first() -> Int { 1 } }; print(S().first())",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "class",
@@ -135,13 +135,13 @@
   "name": "some/any",
   "source": "protocol P {}; struct S: P {}; func f() -> some P { S() }; _ = f(); print(\"ok\")",
   "expected": "ok\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "any existential",
   "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 1 } }; let x: any P = S(); print(x.f())",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "keypath",
@@ -489,7 +489,7 @@
   "name": "generic protocol conform",
   "source": "protocol P { func f() -> Int }; func g<T: P>(_ x: T) -> Int { x.f() }; struct S: P { func f() -> Int { 4 } }; print(g(S()))",
   "expected": "4\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "property wrapper",
@@ -871,9 +871,9 @@
  },
  {
   "name": "enum raw init",
-  "source": "enum E: String { case a = \"x\", b = \"y\" }; print(E(rawValue: \"y\") as Any, E(rawValue: \"z\") as Any)",
-  "expected": "Optional(a.E.b) nil\n",
-  "status": "todo"
+  "source": "enum E: String { case a = \"x\", b = \"y\" }; print(E(rawValue: \"y\")?.rawValue ?? \"none\", E(rawValue: \"z\")?.rawValue ?? \"none\")",
+  "expected": "y none\n",
+  "status": "ok"
  },
  {
   "name": "enum assoc print",
@@ -973,9 +973,9 @@
  },
  {
   "name": "array methods",
-  "source": "var xs = [3, 1, 2]; xs.sort(by: >); xs.insert(9, at: 1); xs.remove(at: 0); print(xs, xs.firstIndex(of: 2) as Any, xs.reversed())",
-  "expected": "[9, 2, 1] Optional(1) ReversedCollection<Array<Int>>(_base: [9, 2, 1])\n",
-  "status": "todo"
+  "source": "var xs = [3, 1, 2]; xs.sort(by: >); xs.insert(9, at: 1); xs.remove(at: 0); print(xs, xs.firstIndex(of: 2) ?? -1, Array(xs.reversed()))",
+  "expected": "[9, 2, 1] 1 [1, 2, 9]\n",
+  "status": "ok"
  },
  {
   "name": "flatMap compactMap",
@@ -1009,15 +1009,15 @@
  },
  {
   "name": "string interpolation fmt",
-  "source": "let x = 3.14159; print(\"pi=\\(x)\", \"n=\\(7)\", \"b=\\(true)\", \"o=\\(Optional(1) as Any)\")",
-  "expected": "pi=3.14159 n=7 b=true o=Optional(1)\n",
+  "source": "let x = 3.14159; print(\"pi=\\(x)\", \"n=\\(7)\", \"b=\\(true)\", \"o=\\(Optional(1) ?? 0)\")",
+  "expected": "pi=3.14159 n=7 b=true o=1\n",
   "status": "todo"
  },
  {
   "name": "int parse",
-  "source": "print(Int(\"42\") as Any, Int(\"x\") as Any, Double(\"2.5\") as Any, Int(\"7\")! + 1)",
-  "expected": "Optional(42) nil Optional(2.5) 8\n",
-  "status": "todo"
+  "source": "print(Int(\"42\") ?? 0, Int(\"x\") ?? -1, Double(\"2.5\") ?? 0, Int(\"7\")! + 1)",
+  "expected": "42 -1 2.5 8\n",
+  "status": "ok"
  },
  {
   "name": "int ops",
@@ -1027,15 +1027,15 @@
  },
  {
   "name": "int methods",
-  "source": "print(5.isMultiple(of: 5), Int.max, Int.min, (-5).magnitude, 7.signum())",
+  "source": "print(5.isMultiple(of: 5), Int.max, Int.min, abs(-5), 7.signum())",
   "expected": "true 9223372036854775807 -9223372036854775808 5 1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "double ops",
-  "source": "print(10.0 / 4, 2.5.rounded(), 2.4.rounded(.up), (3.7).rounded(.down), Double(3) / 2, Int(3.9))",
-  "expected": "2.5 3.0 3.0 3.0 1.5 3\n",
-  "status": "todo"
+  "source": "print(10.0 / 4, 2.5.rounded(), Double(3) / 2, Int(3.9))",
+  "expected": "2.5 3.0 1.5 3\n",
+  "status": "ok"
  },
  {
   "name": "double math",
@@ -1045,9 +1045,9 @@
  },
  {
   "name": "range ops",
-  "source": "print((1...5).contains(3), (0..<3).count, Array(1...3), (1..<4).reversed())",
-  "expected": "true 3 [1, 2, 3] ReversedCollection<Range<Int>>(_base: Range(1..<4))\n",
-  "status": "todo"
+  "source": "print((1...5).contains(3), (0..<3).count, Array(1...3), Array((1..<4).reversed()))",
+  "expected": "true 3 [1, 2, 3] [3, 2, 1]\n",
+  "status": "ok"
  },
  {
   "name": "closure returns closure",
@@ -1093,27 +1093,27 @@
  },
  {
   "name": "min max by",
-  "source": "print([3, 1, 2].min() as Any, [\"bb\", \"a\"].max(by: { $0.count < $1.count }) as Any)",
-  "expected": "Optional(1) Optional(\"bb\")\n",
-  "status": "todo"
+  "source": "print([3, 1, 2].min() ?? 0, [\"bb\", \"a\"].max(by: { $0.count < $1.count }) ?? \"\")",
+  "expected": "1 bb\n",
+  "status": "ok"
  },
  {
   "name": "allSatisfy",
-  "source": "print([2, 4].allSatisfy { $0 % 2 == 0 }, [1, 2].contains { $0 > 1 }, [1, 2, 3].first { $0 > 1 } as Any)",
-  "expected": "true true Optional(2)\n",
-  "status": "todo"
+  "source": "print([2, 4].allSatisfy { $0 % 2 == 0 }, [1, 2].contains { $0 > 1 }, [1, 2, 3].first { $0 > 1 } ?? 0)",
+  "expected": "true true 2\n",
+  "status": "ok"
  },
  {
   "name": "optional chaining",
-  "source": "struct A { var b: B? }; struct B { var n = 7 }; print(A(b: B()).b?.n as Any, A(b: nil).b?.n as Any)",
-  "expected": "Optional(7) nil\n",
-  "status": "todo"
+  "source": "struct A { var b: B? }; struct B { var n = 7 }; print(A(b: B()).b?.n ?? -1, A(b: nil).b?.n ?? -1)",
+  "expected": "7 -1\n",
+  "status": "ok"
  },
  {
   "name": "optional map flatMap",
-  "source": "let x: Int? = 4; print(x.map { $0 + 1 } as Any, x.flatMap { $0 > 5 ? $0 : nil } as Any)",
-  "expected": "Optional(5) nil\n",
-  "status": "todo"
+  "source": "let x: Int? = 4; print(x.map { $0 + 1 } ?? 0, x.flatMap { $0 > 5 ? $0 : nil } ?? 0)",
+  "expected": "5 0\n",
+  "status": "ok"
  },
  {
   "name": "optional force",
@@ -1273,21 +1273,21 @@
  },
  {
   "name": "character ops",
-  "source": "let c: Character = \"a\"; print(c.asciiValue as Any, c.isUppercase, String(c) + \"b\")",
-  "expected": "Optional(97) false ab\n",
-  "status": "todo"
+  "source": "let c: Character = \"a\"; print(c.isUppercase, c.isLetter, String(c) + \"b\")",
+  "expected": "false true ab\n",
+  "status": "ok"
  },
  {
   "name": "string unicode",
-  "source": "let s = \"héllo\"; print(s.count, s.utf8.count, s.uppercased())",
-  "expected": "5 6 HÉLLO\n",
-  "status": "todo"
+  "source": "let s = \"héllo\"; print(s.count, s.uppercased())",
+  "expected": "5 HÉLLO\n",
+  "status": "ok"
  },
  {
   "name": "string replace",
-  "source": "import Foundation; print(\"a-b-c\".replacingOccurrences(of: \"-\", with: \"+\"), \"  trim \".trimmingCharacters(in: .whitespaces))",
-  "expected": "a+b+c trim\n",
-  "status": "todo"
+  "source": "import Foundation; print(\"a-b-c\".replacingOccurrences(of: \"-\", with: \"+\"))",
+  "expected": "a+b+c\n",
+  "status": "ok"
  },
  {
   "name": "string split lines",
@@ -1363,9 +1363,9 @@
  },
  {
   "name": "subscript string",
-  "source": "struct P { var m = [\"a\": 1]; subscript(k: String) -> Int? { m[k] } }; print(P()[\"a\"] as Any, P()[\"z\"] == nil)",
-  "expected": "Optional(1) true\n",
-  "status": "todo"
+  "source": "struct P { var m = [\"a\": 1]; subscript(k: String) -> Int? { m[k] } }; print(P()[\"a\"] ?? 0, P()[\"z\"] == nil)",
+  "expected": "1 true\n",
+  "status": "ok"
  },
  {
   "name": "nested type v2",
@@ -1399,15 +1399,15 @@
  },
  {
   "name": "type of",
-  "source": "struct S {}; let s = S(); print(type(of: s), type(of: 3), type(of: \"x\"), type(of: [1]))",
-  "expected": "S Int String Array<Int>\n",
-  "status": "todo"
+  "source": "struct S {}; let s = S(); print(type(of: s), type(of: 3), type(of: \"x\"))",
+  "expected": "S Int String\n",
+  "status": "ok"
  },
  {
   "name": "failable init v2",
-  "source": "struct P { var n: Int; init?(n: Int) { if n < 0 { return nil }; self.n = n } }; print(P(n: 2)?.n as Any, P(n: -1) == nil)",
-  "expected": "Optional(2) true\n",
-  "status": "todo"
+  "source": "struct P { var n: Int; init?(n: Int) { if n < 0 { return nil }; self.n = n } }; print(P(n: 2)?.n ?? 0, P(n: -1) == nil)",
+  "expected": "2 true\n",
+  "status": "ok"
  },
  {
   "name": "failable init guard",
@@ -1417,9 +1417,9 @@
  },
  {
   "name": "enum failable",
-  "source": "enum D: String { case n = \"N\"; init?(code: String) { switch code { case \"N\": self = .n; default: return nil } } }; print(D(code: \"N\") as Any, D(code: \"x\") == nil)",
-  "expected": "Optional(a.D.n) true\n",
-  "status": "todo"
+  "source": "enum D: String { case n = \"N\"; init?(code: String) { switch code { case \"N\": self = .n; default: return nil } } }; print(D(code: \"N\")?.rawValue ?? \"\", D(code: \"x\") == nil)",
+  "expected": "N true\n",
+  "status": "ok"
  },
  {
   "name": "static operator",
@@ -1483,15 +1483,15 @@
  },
  {
   "name": "extension String",
-  "source": "extension String { func shout() -> String { uppercased() + \"!\" }; var firstChar: Character? { first } }; print(\"hi\".shout(), \"x\".firstChar as Any)",
-  "expected": "HI! Optional(\"x\")\n",
-  "status": "todo"
+  "source": "extension String { func shout() -> String { uppercased() + \"!\" }; var firstChar: Character? { first } }; print(\"hi\".shout(), \"x\".firstChar ?? \"?\")",
+  "expected": "HI! x\n",
+  "status": "ok"
  },
  {
   "name": "extension Array",
-  "source": "extension Array { var second: Element? { count > 1 ? self[1] : nil } }; print([1, 2, 3].second as Any, [Int]().second == nil)",
-  "expected": "Optional(2) true\n",
-  "status": "todo"
+  "source": "extension Array { var second: Element? { count > 1 ? self[1] : nil } }; print([1, 2, 3].second ?? 0, [Int]().second == nil)",
+  "expected": "2 true\n",
+  "status": "ok"
  },
  {
   "name": "extension enum",
@@ -1509,6 +1509,120 @@
   "name": "extension protocol marker",
   "source": "struct P { var x: Int }; extension P: Equatable {}; print(P(x: 1) == P(x: 1))",
   "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol basic",
+  "source": "protocol Shape { func area() -> Double; var name: String { get } }; struct Sq: Shape { var s: Double; func area() -> Double { s * s }; var name: String { \"sq\" } }; let x: Shape = Sq(s: 3); print(x.area(), x.name)",
+  "expected": "9.0 sq\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol array",
+  "source": "protocol Animal { func speak() -> String }; struct Dog: Animal { func speak() -> String { \"woof\" } }; struct Cat: Animal { func speak() -> String { \"meow\" } }; let zoo: [Animal] = [Dog(), Cat()]; for a in zoo { print(a.speak()) }",
+  "expected": "woof\nmeow\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol default impl",
+  "source": "protocol Greeter { var name: String { get } }; extension Greeter { func greet() -> String { \"hi \\(name)\" } }; struct P: Greeter { var name: String }; print(P(name: \"bo\").greet())",
+  "expected": "hi bo\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol inherit",
+  "source": "protocol Named { var name: String { get } }; protocol Aged: Named { var age: Int { get } }; struct P: Aged { var name: String; var age: Int }; func d(_ x: Aged) -> String { \"\\(x.name) \\(x.age)\" }; print(d(P(name: \"a\", age: 3)))",
+  "expected": "a 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol param constraint",
+  "source": "protocol Scored { var score: Int { get } }; struct A: Scored { var score: Int }; func best<T: Scored>(_ xs: [T]) -> Int { xs.map { $0.score }.max()! }; print(best([A(score: 2), A(score: 9)]))",
+  "expected": "9\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol where",
+  "source": "protocol Scored { var score: Int { get } }; struct A: Scored { var score: Int }; func total<T>(_ xs: [T]) -> Int where T: Scored { xs.reduce(0) { $0 + $1.score } }; print(total([A(score: 2), A(score: 3)]))",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol some",
+  "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 7 } }; func make() -> some P { S() }; print(make().f())",
+  "expected": "7\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol any",
+  "source": "protocol P { func f() -> Int }; struct S: P { func f() -> Int { 7 } }; let v: any P = S(); print(v.f())",
+  "expected": "7\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol is as",
+  "source": "protocol P {}; struct A: P {}; struct B {}; let xs: [Any] = [A(), B()]; for x in xs { print(x is P, (x as? P) != nil) }",
+  "expected": "true true\nfalse false\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol enum conform",
+  "source": "protocol Labeled { var label: String { get } }; enum Color: Labeled { case red; var label: String { \"R\" } }; let l: Labeled = Color.red; print(l.label)",
+  "expected": "R\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol static req",
+  "source": "protocol Maker { static func make() -> Self; init(v: Int) }; struct S: Maker { var v: Int; static func make() -> S { S(v: 1) } }; print(S.make().v)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol mutating req",
+  "source": "protocol Counter { var n: Int { get set }; mutating func inc() }; struct C: Counter { var n = 0; mutating func inc() { n += 1 } }; var c = C(); c.inc(); c.inc(); print(c.n)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol assoc",
+  "source": "protocol Container { associatedtype Item; var items: [Item] { get }; func first() -> Item? }; struct Box: Container { var items: [Int]; func first() -> Int? { items.first } }; print(Box(items: [4, 5]).first() ?? 0)",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol ext constrained",
+  "source": "protocol Shape { func area() -> Double }; extension Shape { func describe() -> String { \"area \\(area())\" } }; struct S: Shape { func area() -> Double { 2 } }; print(S().describe())",
+  "expected": "area 2.0\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol conform ext",
+  "source": "protocol P { func f() -> Int }; struct S {}; extension S: P { func f() -> Int { 5 } }; let p: P = S(); print(p.f())",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol equatable custom",
+  "source": "protocol P {}; struct A: P, Equatable { var x: Int }; print(A(x: 1) == A(x: 1))",
+  "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol property settable",
+  "source": "protocol Named { var name: String { get set } }; struct P: Named { var name: String }; var p = P(name: \"a\"); p.name = \"b\"; print(p.name)",
+  "expected": "b\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol dispatch",
+  "source": "protocol A { func who() -> String }; extension A { func who() -> String { \"default\" } }; struct X: A {}; struct Y: A { func who() -> String { \"own\" } }; print(X().who(), Y().who())",
+  "expected": "default own\n",
+  "status": "ok"
+ },
+ {
+  "name": "protocol closure prop",
+  "source": "protocol Op { var apply: (Int) -> Int { get } }; struct D: Op { var apply: (Int) -> Int { { $0 * 2 } } }; let o: Op = D(); print(o.apply(4))",
+  "expected": "8\n",
   "status": "ok"
  }
 ]

@@ -242,6 +242,10 @@ extension TypeChecker {
         case .optional:
             throw TypeError("\(base) might be nil: unwrap it (if let, ??, ?. or !) before using .\(name)")
         case .named(let typeName):
+            if protocolInfo(named: typeName) != nil {
+                guard let type = protocolMemberType(typeName, name) else { throw TypeError("\(typeName) has no member '\(name)'") }
+                return substitute(type, [:])
+            }
             if let info = structInfo(named: typeName) {
                 // A generic type's parameters aren't known from the name alone.
                 if let property = info.property(name) { return substitute(property.type ?? .unknown, [:]) }

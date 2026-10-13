@@ -128,6 +128,7 @@ extension Interpreter {
             if binding.isComputed { return .variable }
             if case .object(is EnumType) = binding.value { return .type }
             if case .object(is StructType) = binding.value { return .type }
+            if case .object(is ProtocolType) = binding.value { return .type }
             if case .object(is BridgedTypeName) = binding.value { return .type }
             return .variable
         }.merging(declaredOperators.mapValues(NameKind.operatorDeclaration)) { $1 }

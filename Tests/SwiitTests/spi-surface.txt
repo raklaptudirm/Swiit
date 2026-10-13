@@ -48,6 +48,7 @@ Language/Checking/TypeChecker.swift	Layer let interpreter
 Language/Checking/TypeChecker.swift	Layer let message
 Language/Checking/TypeChecker.swift	Layer protocol CheckedObject
 Language/Checking/TypeChecker.swift	Layer struct EnumInfo
+Language/Checking/TypeChecker.swift	Layer struct ProtocolInfo
 Language/Checking/TypeChecker.swift	Layer struct Signature
 Language/Checking/TypeChecker.swift	Layer struct StructInfo
 Language/Checking/TypeChecker.swift	Layer struct TypeError
@@ -94,6 +95,7 @@ Language/Syntax/Declarations.swift	Layer struct ExtensionDecl
 Language/Syntax/Declarations.swift	Layer struct FunctionDecl
 Language/Syntax/Declarations.swift	Layer struct NamesUsed
 Language/Syntax/Declarations.swift	Layer struct PropertyDecl
+Language/Syntax/Declarations.swift	Layer struct ProtocolDecl
 Language/Syntax/Declarations.swift	Layer struct StructDecl
 Language/Syntax/Declarations.swift	Layer var defaultValue
 Language/Syntax/Declarations.swift	Layer var defaultValue
@@ -106,6 +108,7 @@ Language/Syntax/Declarations.swift	Layer var isMutating
 Language/Syntax/Declarations.swift	Layer var isThrowing
 Language/Syntax/Declarations.swift	Layer var label
 Language/Syntax/Declarations.swift	Layer var methods
+Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name

@@ -461,7 +461,7 @@ extension Interpreter {
         case (.member(let name), .record(var record)):
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.
-                if let setter = structType.setters[name] ?? typeExtensions[structType.name]?.setters[name], rest.isEmpty {
+                if let setter = structType.setters[name] ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first, rest.isEmpty {
                     let current = try structMember(name, of: record, structType) ?? .nothing
                     let receiver = Receiver(.record(record), mutable: true)
                     let newValue = try change(current, structType.computed[name]?.returnType)

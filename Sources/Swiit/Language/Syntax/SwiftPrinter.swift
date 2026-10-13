@@ -77,6 +77,8 @@ struct SwiftPrinter {
             return [typeExtension(decl, indent: indent)]
         case .operatorDeclaration(_, let source):
             return [p + source]
+        case .protocolDecl(let decl):
+            return [p + "protocol \(decl.name)" + (decl.inherited.isEmpty ? "" : ": " + decl.inherited.joined(separator: ", ")) + " {}"]
         case .structDecl(let decl):
             return [structure(decl, indent: indent)]
         case .extensionDecl(let name, let methods):

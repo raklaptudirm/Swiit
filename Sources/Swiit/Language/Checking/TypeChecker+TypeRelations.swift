@@ -7,6 +7,10 @@ extension TypeChecker {
     /// Whether a value of type `actual` can be used where `expected` is.
     @_spi(Layer) public func fits(_ actual: TypeAnnotation, _ expected: TypeAnnotation) -> Bool {
         if actual == expected || actual == .unknown || expected == .unknown || expected == .any { return true }
+        // A protocol's type is any type that conforms to it.
+        if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil, case .named = actual {
+            return conforms(actual, to: protocolName)
+        }
         switch (actual, expected) {
         case (.optional(let a), .optional(let b)): return fits(a, b)
         case (_, .optional(let wrapped)): return fits(actual, wrapped)
@@ -83,8 +87,10 @@ extension TypeChecker {
             return true
         case .named(let name):
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
-            let declared = (structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? [])
-                + (extensionInfo(forKey: name)?.conformances ?? [])
+            // A protocol is its own and what it takes in.
+            if protocolInfo(named: name) != nil, protocolClosure(name).contains(proto) { return true }
+            let declared = ((structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? [])
+                + (ownExtensionInfo(forKey: name)?.conformances ?? [])).flatMap(protocolClosure)
             if declared.contains(proto) || proto == "Equatable" && declared.contains("Hashable") {
                 // Swift only makes a Comparable enum's `<` without associated values.
                 guard proto == "Comparable", let info = enumInfo(named: name) else { return true }

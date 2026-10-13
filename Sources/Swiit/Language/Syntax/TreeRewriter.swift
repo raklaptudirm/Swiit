@@ -61,7 +61,7 @@ import SwiitKit
             rewritten = .enumDecl(decl)
         case .structDecl(let decl):
             rewritten = .structDecl(members(decl))
-        case .operatorDeclaration:
+        case .operatorDeclaration, .protocolDecl:
             rewritten = node
         case .typeExtension(var decl):
             decl.members = members(decl.members)

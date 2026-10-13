@@ -55,7 +55,18 @@ extension TypeChecker {
         extensionKey(of: type).flatMap(extensionInfo(forKey:))
     }
 
+    /// What extensions add to a type, and what the extensions of the protocols it conforms to give as defaults.
     func extensionInfo(forKey key: String) -> ExtensionInfo? {
+        var info = ownExtensionInfo(forKey: key)
+        let declared = (structInfo(named: key)?.conformances ?? enumInfo(named: key)?.conformances ?? []) + (info?.conformances ?? [])
+        for proto in declared.flatMap(protocolClosure) where proto != key {
+            guard let defaults = ownExtensionInfo(forKey: proto) else { continue }
+            if var existing = info { existing.merge(defaults); info = existing } else { info = defaults }
+        }
+        return info
+    }
+
+    func ownExtensionInfo(forKey key: String) -> ExtensionInfo? {
         var info = localExtensions[key]
         if let members = interpreter.typeExtensions[key] {
             var runtime = ExtensionInfo()
@@ -115,7 +126,7 @@ extension TypeChecker {
         case "Array": return .list(.unknown)
         case "Dictionary": return .dictionary(.unknown, .unknown)
         default:
-            if structInfo(named: key) != nil || enumInfo(named: key) != nil { return .named(key) }
+            if structInfo(named: key) != nil || enumInfo(named: key) != nil || protocolInfo(named: key) != nil { return .named(key) }
             if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
             throw TypeError("can't extend '\(key)': it isn't a type Swiit knows")
         }
@@ -169,6 +180,7 @@ extension TypeChecker {
             members.staticMethods[index].body = function.body
         }
         decl.members = members
+        for proto in decl.conformances { try checkConformance(of: decl.typeName, to: proto) }
     }
 
     /// Whether the type has a member by that name, for a bare name inside it to mean `self`'s.
@@ -176,6 +188,7 @@ extension TypeChecker {
         if let ext = extensionInfo(for: type), ext.computed[name] != nil || ext.methods[name] != nil { return true }
         switch type {
         case .named(let typeName):
+            if protocolMemberType(typeName, name) != nil { return true }
             if let info = structInfo(named: typeName) {
                 return info.property(name) != nil || info.computed[name] != nil || info.methods[name] != nil
             }

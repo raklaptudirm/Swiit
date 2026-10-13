@@ -70,7 +70,7 @@ extension Interpreter {
             }).joined(separator: ", ") + "]"
         case .record(let record):
             if let type = structType(of: record) {
-                let conformances = self.conformances(ofTypeNamed: type.name, declared: type.conformances)
+                let conformances = conformanceList(of: value)
                 if debug, conformances.contains("CustomDebugStringConvertible"), let text = try extensionMember("debugDescription", of: value) ?? structMember("debugDescription", of: record, type) {
                     return try describing(text)
                 }

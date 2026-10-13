@@ -147,6 +147,14 @@ extension TypeChecker {
             try effectSite(chosen.effect, "'\(name)'")
             return chosen.returns
         }
+        // A protocol's requirement, or a default an extension of it gives, on a value of its type.
+        if case .named(let protocolName) = base, protocolInfo(named: protocolName) != nil, !protocolMethods(protocolName, name).isEmpty {
+            let methods = protocolMethods(protocolName, name)
+            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
+            if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
+            return substitute(chosen.returns, [:])
+        }
         // An enum's own methods, with the case as `self`.
         if case .named(let enumName) = base, let info = enumInfo(named: enumName), let methods = info.methods[name] {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }

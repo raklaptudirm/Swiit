@@ -38,6 +38,8 @@ public struct Program: Equatable, Sendable {
     case extensionDecl(name: String, methods: [FunctionDecl])
     /// `extension Int { … }`: members and protocols added to a type.
     case typeExtension(ExtensionDecl)
+    /// `protocol Shape { … }`: what conforming types have.
+    case protocolDecl(ProtocolDecl)
     /// `infix operator ** : MultiplicationPrecedence`, `precedencegroup …`: kept, so later
     /// programs read operators by it; `key` names what it declares.
     case operatorDeclaration(key: String, source: String)
@@ -69,7 +71,7 @@ extension Statement {
     /// A struct or enum declaration, which a block declares before it runs.
     @_spi(Layer) public var declaresType: Bool {
         switch self {
-        case .structDecl, .enumDecl, .typeExtension: true
+        case .structDecl, .enumDecl, .typeExtension, .protocolDecl: true
         default: false
         }
     }

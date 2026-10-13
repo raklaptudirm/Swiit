@@ -89,6 +89,27 @@ import SwiitKit
     }
 }
 
+/// `protocol Shape { var area: Double { get }; func scaled(by k: Double) -> Self }`: what a
+/// type has to have to conform, and the protocols it takes in (`protocol A: B`).
+@_spi(Layer) public struct ProtocolDecl: Equatable, Sendable {
+    @_spi(Layer) public var name: String
+    var inherited: [String] = []
+    var methods: [FunctionDecl] = []
+    var properties: [ProtocolProperty] = []
+    var staticMethods: [FunctionDecl] = []
+    var staticProperties: [ProtocolProperty] = []
+    var initializers: [FunctionDecl] = []
+    /// `associatedtype Item`: a type the conforming type chooses.
+    var associatedTypes: [String] = []
+}
+
+/// `var area: Double { get }`, `var name: String { get set }`.
+struct ProtocolProperty: Equatable, Sendable {
+    var name: String
+    var type: TypeAnnotation
+    var settable: Bool
+}
+
 /// `extension Int { var squared: Int { … } }`: members added to a type declared
 /// elsewhere (a struct, an enum, or one of Swift's), and protocols it conforms to.
 @_spi(Layer) public struct ExtensionDecl: Equatable, Sendable {

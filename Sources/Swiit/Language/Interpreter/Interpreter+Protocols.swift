@@ -1,0 +1,78 @@
+import Foundation
+import SwiitKit
+
+/// A protocol a program declares: what a value of a type conforming to it can be asked as.
+public final class ProtocolType: SwiitObject, @unchecked Sendable {
+    public let name: String
+    /// The protocols it takes in: `protocol A: B`.
+    public let inherited: [String]
+    /// What it asks of a conforming type.
+    let declaration: ProtocolDecl
+
+    init(_ declaration: ProtocolDecl) {
+        self.name = declaration.name
+        self.inherited = declaration.inherited
+        self.declaration = declaration
+    }
+
+    public var typeName: String { "protocol" }
+    public var memberNames: [String] { [] }
+    public func member(_ name: String) -> Value? { nil }
+    public var fields: Record? { nil }
+    public var description: String { "protocol \(name)" }
+}
+
+extension Interpreter {
+    // MARK: Protocols
+
+    /// `protocol Shape { … }`: named, so a type can say it conforms and a value can be asked.
+    func declare(_ decl: ProtocolDecl) throws {
+        scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(ProtocolType(decl)), mutable: false)
+    }
+
+    func protocolType(named name: String) -> ProtocolType? {
+        guard case .object(let type as ProtocolType)? = lookup(name)?.value else { return nil }
+        return type
+    }
+
+    /// The protocols a value's type conforms to by saying so, and those those take in.
+    func conformanceList(of value: Value) -> [String] {
+        var declared: [String] = []
+        switch value {
+        case .record(let record):
+            if let type = structType(of: record) { declared = type.conformances }
+        case .enumValue(let enumValue):
+            declared = enumConformances[ObjectIdentifier(enumValue.type)] ?? []
+        default:
+            break
+        }
+        if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
+        // What each takes in.
+        var result: [String] = []
+        var queue = declared
+        while !queue.isEmpty {
+            let name = queue.removeFirst()
+            guard !result.contains(name) else { continue }
+            result.append(name)
+            if let proto = protocolType(named: name) { queue += proto.inherited }
+        }
+        return result
+    }
+
+    /// Whether a value's type conforms to the protocol named.
+    func value(_ value: Value, conformsTo name: String) -> Bool {
+        conformanceList(of: value).contains(name)
+    }
+
+    /// What types and protocols add to a value's type, most specific first: what extensions of its
+    /// type add, then the default members of each protocol it conforms to.
+    func extensionChain(of value: Value) -> [TypeMembers] {
+        guard !typeExtensions.isEmpty else { return [] }
+        var chain: [TypeMembers] = []
+        if let key = typeKey(of: value), let own = typeExtensions[key] { chain.append(own) }
+        for name in conformanceList(of: value) {
+            if let members = typeExtensions[name] { chain.append(members) }
+        }
+        return chain
+    }
+}

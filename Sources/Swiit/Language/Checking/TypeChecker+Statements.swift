@@ -10,6 +10,10 @@ extension TypeChecker {
         // Declared first, so functions and types can be used before (and by)
         // their declarations, as in Swift.
         var structs: [StructDecl] = []
+        // What types are held to first.
+        for statement in program.statements {
+            if case .protocolDecl(let decl) = statement { scopes[scopes.count - 1][decl.name] = .protocolType(protocolInfo(decl)) }
+        }
         for statement in program.statements {
             switch statement {
             case .function(let decl): declareFunction(decl)
@@ -127,7 +131,7 @@ extension TypeChecker {
         case .typeExtension(var decl):
             try checkExtension(&decl)
             statement = .typeExtension(decl)
-        case .operatorDeclaration:
+        case .operatorDeclaration, .protocolDecl:
             break
         case .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl:
             break

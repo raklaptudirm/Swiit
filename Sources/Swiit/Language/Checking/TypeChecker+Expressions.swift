@@ -78,7 +78,7 @@ extension TypeChecker {
                 return type
             case .functions(let overloads):
                 return functionValue(name, overloads, expected: expected, expr: &expr)
-            case .structType, .enumType, .swiftType:
+            case .structType, .enumType, .swiftType, .protocolType:
                 return .unknown
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).

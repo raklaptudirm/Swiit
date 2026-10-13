@@ -103,6 +103,8 @@ extension Interpreter {
             try declare(decl)
         case .operatorDeclaration(let key, let source):
             declaredOperators[key] = source
+        case .protocolDecl(let decl):
+            try declare(decl)
         case .extensionDecl, .deferBlock:
             // The prelude's, read at startup; collected by the block that holds it.
             return

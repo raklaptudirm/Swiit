@@ -228,10 +228,6 @@ extension Interpreter {
             if case .object(let type as EnumType) = base, let methods = typeExtensions[type.name]?.staticMethods[name] {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
-            // `x.double()`: a method an extension adds, to any type.
-            if let methods = extensionMembers(of: base)?.methods[name] {
-                return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
-            }
             // `direction.opposite()`: an enum's method, with the case as `self`.
             if case .enumValue(let enumValue) = base, let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name] {
                 return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
@@ -243,6 +239,10 @@ extension Interpreter {
             // `p.move(by: 1)`: a struct's method, with `p` as `self`.
             if case .record(let record) = base, record[name] == nil, let type = structType(of: record),
                let methods = type.methods[name] {
+                return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
+            }
+            // `x.double()`: a method an extension adds, or a protocol's default, after the type's own.
+            if let methods = extensionMethods(name, of: base) {
                 return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
             }
             // `xs.sorted(by: "size")`: a sequence's method.
@@ -300,7 +300,8 @@ extension Interpreter {
             return raw
         }
         if case .enumValue(let enumValue) = value, let found = try enumMember(name, of: enumValue) { return found }
-        if let found = try extensionMember(name, of: value) { return found }
+        // A struct's own members come before what extensions add.
+        if case .record = value {} else if let found = try extensionMember(name, of: value) { return found }
         if case .object(let type as StructType) = value, let found = try extensionStaticMember(name, ofTypeNamed: type.name) { return found }
         if case .object(let type as EnumType) = value, let found = try extensionStaticMember(name, ofTypeNamed: type.name) { return found }
         if case .object(let type as EnumType) = value, let found = try enumStaticMember(name, of: type) { return found }
@@ -341,6 +342,7 @@ extension Interpreter {
            let found = try structMember(name, of: record, type) {
             return found
         }
+        if case .record = value, let found = try extensionMember(name, of: value) { return found }
         // Swiit's own kinds, and its views of Swift's, as the checker's
         // `memberType(of:_:)` types them.
         switch (value, name) {

@@ -363,6 +363,7 @@ struct Lowering {
         let name: String
         if let node = decl.as(StructDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
         else if let node = decl.as(EnumDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
+        else if let node = decl.as(ProtocolDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
         else { return }
         declaredTypes.insert(name)
         for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
