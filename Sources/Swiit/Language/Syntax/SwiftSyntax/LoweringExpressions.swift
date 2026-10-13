@@ -118,6 +118,8 @@ extension Lowering {
         if let nested = nestedNames[name] { return .variable(nested) }
         if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
+        // The fixed-width integers are Int here, without its overflow rules.
+        if Lowering.fixedWidthIntegers.contains(name), bound[name] == nil, !declaredTypes.contains(name) { return .variable("Int") }
         return .variable(name)
     }
 

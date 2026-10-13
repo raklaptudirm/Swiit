@@ -208,7 +208,10 @@ extension TypeChecker {
     func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         switch type {
         case .functionType(let parameters, let result, let throwing, let effect):
-            let signature = Signature(name: name, parameters: parameters.map { Parameter(label: nil, name: "_", type: $0) },
+            let signature = Signature(name: name, parameters: parameters.map { type -> Parameter in
+                if case .inOut(let inner) = type { return Parameter(label: nil, name: "_", type: inner, isInout: true) }
+                return Parameter(label: nil, name: "_", type: type)
+            },
                                       returns: result, isThrowing: throwing, effect: effect)
             _ = try resolve([signature], &arguments, name: name)
             if throwing { try throwingSite(name) }

@@ -17,6 +17,8 @@ extension TypeChecker {
 
     /// Whether a value of type `actual` can be used where `expected` is.
     @_spi(Layer) public func fits(_ actual: TypeAnnotation, _ expected: TypeAnnotation) -> Bool {
+        if case .inOut(let inner) = actual { return fits(inner, expected) }
+        if case .inOut(let inner) = expected { return fits(actual, inner) }
         let actual = erased(actual), expected = erased(expected)
         if actual == expected || actual == .unknown || expected == .unknown || expected == .any { return true }
         // A protocol's type is any type that conforms to it.
@@ -52,6 +54,9 @@ extension TypeChecker {
             // wanted, nor an `async` one where a sync one is.
             return ap.count == bp.count && zip(bp, ap).allSatisfy { fits($0, $1) }
                 && (br == .void || fits(ar, br)) && (!athrows || bthrows) && (aeffect != .async || beffect == .async)
+        // A Swift generic type with its arguments is the type named without them (`Set<Int>` where a `Set` is written).
+        case (.generic(let a, _), .named(let b)) where a == b && Bridge.types[a] != nil: return true
+        case (.named(let a), .generic(let b, _)) where a == b && Bridge.types[a] != nil: return true
         // A class is its superclass too.
         case (.named(let a), .named(let b)) where isSubclass(a, of: b): return true
         // A struct's value is a record, as builtins that take any record see it.
@@ -132,6 +137,7 @@ extension TypeChecker {
         case .dictionary(let key, let value): return .dictionary(substitute(key, bindings), substitute(value, bindings))
         case .generic(let name, let arguments): return .generic(name, arguments.map { substitute($0, bindings) })
         case .someSequence(let element): return .someSequence(substitute(element, bindings))
+        case .inOut(let wrapped): return .inOut(substitute(wrapped, bindings))
         case .tuple(let elements): return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
         case .keyPath(let root, let value): return .keyPath(substitute(root, bindings), substitute(value, bindings))
         case .functionType(let parameters, let result, let throwing, let effect):

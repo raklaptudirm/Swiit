@@ -52,6 +52,36 @@ extension Interpreter {
         for (name, isThrowing) in [("withTaskGroup", false), ("withThrowingTaskGroup", true)] {
             scopes[0].declare(Bridge.taskGroupFunction(name, isThrowing: isThrowing), named: name)
         }
+        // What a Mirror shows: a struct's or class's stored properties, an array's items, a tuple's elements.
+        scopes[0].declare(Function(
+            name: "__mirrorChildren", parameters: [Parameter(label: nil, name: "subject", type: .any)],
+            returnType: .list(.tuple([.init(label: "label", type: .optional(.string)), .init(label: "value", type: .any)])),
+            body: .native { _, arguments in
+                func child(_ label: String?, _ value: Value) -> Value {
+                    .record(Record(["label": label.map(Value.string) ?? .nothing, "value": value]))
+                }
+                switch arguments["subject"] ?? .nothing {
+                case .record(let record): return .list(record.map { child($0.key, $0.value) })
+                case .list(let items): return .list(items.map { child(nil, $0) })
+                case .dictionary(let dictionary): return .list(dictionary.sortedForDisplay.map { child(nil, .record(Record(["key": $0.key, "value": $0.value]))) })
+                case .object(let instance as ClassInstance):
+                    return .list(instance.type.allStored.map { child($0.name, instance.storage[$0.name] ?? .nothing) })
+                case .enumValue(let value): return .list(value.values.map { child(nil, $0) })
+                default: return .list([])
+                }
+            },
+            documentation: Documentation(summary: "The pieces of a value, for Mirror.", parameters: [:])
+        ), named: "__mirrorChildren")
+        // `weak var x = e`: what e is, held weakly if it is a class instance.
+        scopes[0].declare(Function(
+            name: "$weak", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .parameter("T"),
+            body: .native { _, arguments in
+                if case .object(let instance as ClassInstance)? = arguments["x"] { return .object(WeakReference(instance)) }
+                if arguments["x"] == nil || arguments["x"] == .nothing { return .object(WeakReference(nil)) }
+                return arguments["x"] ?? .nothing
+            },
+            documentation: Documentation(summary: "A weak variable's initial value.", parameters: [:]), generics: ["T": []]
+        ), named: "$weak")
         // `Optional(x)`: x, as an optional.
         scopes[0].declare(Function(
             name: "$some", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),

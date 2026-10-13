@@ -186,6 +186,7 @@ extension Interpreter {
             if let output = box.value as? Output {
                 return AnyIterator(output.lines.lazy.map(Value.string).makeIterator())
             }
+            if let flow = box.value as? Flow<Value> { return AnyIterator { (try? flow.read()) ?? nil } }
             if let range = box.value as? ClosedRange<Value> {
                 guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else { return nil }
                 return AnyIterator((lower...upper).lazy.map(Value.int).makeIterator())
@@ -230,6 +231,20 @@ public func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Va
 /// algorithms that need Comparable elements work on them.
 extension Value: Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {
-        lhs.order(comparedTo: rhs) == .orderedAscending
+        // A type of the program's with its own `<` (Comparable) says which comes first.
+        if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
+           case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs]) { return less }
+        return lhs.order(comparedTo: rhs) == .orderedAscending
+    }
+}
+
+extension Value {
+    /// A struct or class instance, which a program's `<` may order.
+    fileprivate var isOfProgramsType: Bool {
+        switch self {
+        case .record(let record): record.typeName != nil
+        case .object(let object): object is ClassInstance
+        default: false
+        }
     }
 }

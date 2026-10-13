@@ -31,6 +31,8 @@ public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible
     /// What a Swift parameter `S: Sequence` with `S.Element == E` takes:
     /// any sequence of E, as `some Sequence<E>` says.
     case someSequence(TypeAnnotation)
+    /// `inout T`, a parameter of a function type that the function changes: `(inout Int) -> Void`.
+    case inOut(TypeAnnotation)
     /// Not known yet: what a program prints, or a builtin that hasn't
     /// declared its type. It fits anywhere, and anything fits it.
     case unknown
@@ -85,6 +87,7 @@ public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible
         case .optional(let wrapped):
             if case .functionType = wrapped { return [punctuation("(")] + wrapped.styled + [punctuation(")?")] }
             return wrapped.styled + [punctuation("?")]
+        case .inOut(let wrapped): return [punctuation("inout " + wrapped.description)]
         case .unknown: return [punctuation("_")]
         }
     }

@@ -55,6 +55,15 @@ extension Interpreter {
         }
     }
 
+    /// What `Mirror(reflecting:)` shows of a value: its stored properties, in order.
+    struct Mirror {
+        let children: [(label: String?, value: Any)]
+
+        init(reflecting subject: Any) {
+            children = __mirrorChildren(subject)
+        }
+    }
+
     /// The type of no value, for `Void.self` where a type is passed.
     enum Void {}
 

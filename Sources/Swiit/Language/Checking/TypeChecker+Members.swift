@@ -395,6 +395,15 @@ extension TypeChecker {
             }
             try expect(&index, .int, "a list's index")
             return element
+        case .string:
+            // A String is indexed by its own positions, not by Int, as in Swift.
+            let written = try typeOf(&index)
+            if written == .named("String.Index") { return .named("Character") }
+            if case .generic(let name, let arguments) = written, name == "ClosedRange" || name == "Range", arguments == [.named("String.Index")] {
+                return .named("Substring")
+            }
+            if written == .unknown { return .unknown }
+            throw TypeError("a String is indexed by String.Index, not \(written): write s.index(s.startIndex, offsetBy: n)")
         case .output:
             try expect(&index, .int, "a line's index")
             return .string

@@ -4,7 +4,7 @@ import SwiitKit
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
 final class WeakReference: SwiitObject, @unchecked Sendable {
     weak var target: ClassInstance?
-    init(_ target: ClassInstance) { self.target = target }
+    init(_ target: ClassInstance?) { self.target = target }
     var typeName: String { "weak" }
     var memberNames: [String] { [] }
     func member(_ name: String) -> Value? { nil }

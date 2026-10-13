@@ -140,6 +140,22 @@ extension TypeChecker {
             expr = .await(operand, throwing: throwing)
             return handleType.flatMap(awaiting.resultOf) ?? awaiting.result
         case .list(var items):
+            // `let s: Set<Int> = [1, 2]`: a Swift collection written as a literal is made from its items.
+            if var wanted = expected {
+                if case .optional(let wrapped) = wanted { wanted = wrapped }
+                var typeName: String?
+                switch wanted {
+                case .named(let name): typeName = name
+                case .generic(let name, _): typeName = name
+                default: break
+                }
+                if let typeName, typeName != "Array", Bridge.types[typeName]?.conformances["ExpressibleByArrayLiteral"] != nil || typeName == "Set" {
+                    expr = .call(.variable(typeName), [Argument(value: .list(items))])
+                    let made = try typeOf(&expr, expecting: nil)
+                    if case .named = wanted { return made }
+                    return wanted
+                }
+            }
             let type = try listType(&items, expected: expected)
             expr = .list(items)
             return type
@@ -274,8 +290,11 @@ extension TypeChecker {
             expr = .indexDefault(base, key, fallback)
             return valueType
         case .annotated(var inner, let type):
-            try expect(&inner, type, "the value")
+            let actual = try typeOf(&inner, expecting: type)
+            guard fits(actual, type) else { throw TypeError("the value must be \(type), not \(actual)") }
             expr = .annotated(inner, type)
+            // `let s: Set = [1, 2]`: a generic type written without its arguments takes them from the value.
+            if case .named(let name) = type, case .generic(name, _) = actual { return actual }
             return type
         case .forceUnwrap(var inner):
             let type = try typeOf(&inner)

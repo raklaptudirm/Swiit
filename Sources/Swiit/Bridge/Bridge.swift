@@ -10,8 +10,8 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 public enum Bridge {
     /// The bridged types, by the name Swiit writes them with.
-    public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency).map {
-        ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []))
+    public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map {
+        ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
     /// Text as a value of the type named, if the type can be text and the
@@ -86,6 +86,13 @@ public struct BridgedType {
     public var arrayLiteral: (([Value]) -> Value)? = nil
     public let members: [BridgedMember]
 
+
+    /// It, with members written by hand too, where the generator can't make them.
+    func adding(_ extra: [BridgedMember]) -> BridgedType {
+        guard !extra.isEmpty else { return self }
+        return BridgedType(name: name, genericParameters: genericParameters, conformances: conformances, associatedTypes: associatedTypes,
+                           parse: parse, literal: literal, arrayLiteral: arrayLiteral, members: members + extra)
+    }
 
     /// It, conforming to `protocols` too, whatever its generic parameters are.
     func conforming(to protocols: [String]) -> BridgedType {

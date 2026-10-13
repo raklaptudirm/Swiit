@@ -34,9 +34,13 @@ extension TypeChecker {
         var names: [String: Symbol] = [:]
         var parameterTypes: [TypeAnnotation] = []
         for (index, parameter) in closure.parameters.enumerated() {
-            let type = parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type
-            parameterTypes.append(type)
-            names[parameter.name] = .variable(type, mutable: false)
+            var type = parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type
+            // `(inout R, E) -> Void` is wanted: the closure changes its first.
+            var changes = false
+            if case .inOut(let inner) = type { changes = true; type = inner }
+            parameterTypes.append(changes ? .inOut(type) : type)
+            if changes { closure.parameters[index].isInout = true }
+            names[parameter.name] = .variable(type, mutable: changes)
         }
         let declared = closure.returnType ?? (expectedResult == .unknown ? nil : expectedResult)
         let context = ReturnContext(declared: declared == .void ? nil : declared)

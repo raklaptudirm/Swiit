@@ -425,6 +425,11 @@ extension Interpreter {
         }
         try update(assignment.root, assignment.path) { current, type in
             let value = try evaluate(assignment.value, expecting: type)
+            // A weak variable stays weak: what is put in it is held without being kept alive.
+            if assignment.path.isEmpty, case .object(is WeakReference) = current, assignment.op == nil {
+                if case .object(let instance as ClassInstance) = value { return .object(WeakReference(instance)) }
+                if value == .nothing { return .object(WeakReference(nil)) }
+            }
             guard let op = assignment.op else { return value }
             // `a += b` through a `+=` the type defines, whose first parameter is `inout`.
             if isDeclaredValue(current), !staticOperators("\(op.rawValue)=", of: current).isEmpty {

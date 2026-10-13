@@ -62,13 +62,17 @@ extension Lowering {
     }
 
     /// The modules whose declarations are always there.
+    /// Swift's other integer types, which Swiit reads as Int.
+    static let fixedWidthIntegers: Set<String> = ["Int8", "Int16", "Int32", "Int64", "UInt", "UInt8", "UInt16", "UInt32", "UInt64"]
     static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "SwiitKit", "_StringProcessing"]
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.
         let isAsync = node.modifiers.count == 1 && node.modifiers.first?.name.tokenKind == .keyword(.async)
             && node.bindingSpecifier.tokenKind == .keyword(.let)
-        guard node.attributes.isEmpty, node.modifiers.isEmpty || isAsync else { throw unsupported("a modifier on a variable", node) }
+        // `weak var x: T?`: it holds its instance without keeping it alive.
+        let isWeak = node.modifiers.count == 1 && (node.modifiers.first?.name.tokenKind == .keyword(.weak) || node.modifiers.first?.name.tokenKind == .keyword(.unowned))
+        guard node.attributes.isEmpty, node.modifiers.isEmpty || isAsync || isWeak else { throw unsupported("a modifier on a variable", node) }
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
         var statements: [Statement] = []
         for binding in node.bindings {
@@ -108,6 +112,7 @@ extension Lowering {
             } else if let annotation = binding.typeAnnotation {
                 value = .annotated(value, try type(annotation.type))
             }
+            if isWeak { value = .call(.variable("$weak"), [Argument(value: value)]) }
             if name != "_" { bind(name) }
             statements.append(.declare(name: name, mutable: mutable, value: value))
         }
@@ -163,6 +168,7 @@ extension Lowering {
         try clause.parameters.map { parameter in
             var shortFlag: Character?
             var isInput = false
+            var resultBuilder: String?
             // `inout Int`: a specifier before the type.
             let isInout = parameter.type.as(AttributedTypeSyntax.self)?.specifiers.contains { specifier in
                 if case .simpleTypeSpecifier(let simple) = specifier { return simple.specifier.tokenKind == .keyword(.inout) }
@@ -185,6 +191,8 @@ extension Lowering {
                     shortFlag = character
                 case "input", "Input":
                     isInput = true
+                case let name where declaredTypes.contains(name + "@"):
+                    resultBuilder = name
                 default:
                     throw SyntaxError("unknown attribute '@\(attribute.attributeName.trimmedDescription)' (line \(line(of: attribute)))")
                 }
@@ -201,7 +209,7 @@ extension Lowering {
             return Parameter(
                 label: first == "_" ? nil : first, name: name, type: type, variadic: variadic, defaultValue: defaultValue,
                 isInput: isInput, shortFlag: shortFlag, isInout: isInout, isAutoclosure: isAutoclosure
-            )
+            ).withBuilder(resultBuilder)
         }
     }
 
@@ -244,8 +252,6 @@ extension Lowering {
         let isThrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws)
             && !(effects?.throwsClause?.type != nil && thrownType == nil)
         let isRethrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows)
-        // Whether a call throws by what it's given needs generics, which come later; the prelude's use it.
-        if isRethrowing && !prelude { throw unsupported("rethrows", node) }
         // In the prelude, a builtin's body is in Swift.
         guard let body = node.body else {
             guard prelude else { throw unsupported("a function without a body", node) }
@@ -267,7 +273,11 @@ extension Lowering {
             documentation: documentation(of: node),
             isMutating: mutating, isThrowing: isThrowing, isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing,
             generics: generics, names: NamesUsed(names: names(in: body))
-        ).withThrown(thrownType).withModifiers(
+        ).withBuilder(node.attributes.compactMap { attribute -> String? in
+            guard case .attribute(let named) = attribute else { return nil }
+            let name = named.attributeName.trimmedDescription
+            return declaredTypes.contains(name + "@") ? name : nil
+        }.first).withThrown(thrownType).withModifiers(
             override: node.modifiers.contains { $0.name.tokenKind == .keyword(.override) },
             nonisolated: node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
         )
@@ -719,6 +729,9 @@ extension Lowering {
         if let identifier = node.as(IdentifierTypeSyntax.self) {
             let name = identifier.name.text
             if typeParameters.contains(name) { return .parameter(name) }
+            if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil, bound[name] == nil, !declaredTypes.contains(name) {
+                return .int
+            }
             let isGenericEnum = declaredTypes.contains((nestedNames[name] ?? name) + "<>") || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
             if let clause = identifier.genericArgumentClause, isGenericEnum {
                 let arguments = try clause.arguments.map { argument -> TypeAnnotation in
@@ -766,7 +779,14 @@ extension Lowering {
         if let function = node.as(FunctionTypeSyntax.self) {
             let throwing = function.effectSpecifiers?.throwsClause != nil
             let effect: Effect = function.effectSpecifiers?.asyncSpecifier != nil ? .async : .sync
-            return .functionType(try function.parameters.map { try type($0.type) }, try type(function.returnClause.type),
+            return .functionType(try function.parameters.map { parameter -> TypeAnnotation in
+                let isInout = parameter.type.as(AttributedTypeSyntax.self)?.specifiers.contains { specifier in
+                    if case .simpleTypeSpecifier(let simple) = specifier { return simple.specifier.tokenKind == .keyword(.inout) }
+                    return false
+                } ?? false
+                let lowered = try type(parameter.type)
+                return isInout ? .inOut(lowered) : lowered
+            }, try type(function.returnClause.type),
                                  throws: throwing, async: effect)
         }
         if let attributed = node.as(AttributedTypeSyntax.self) { return try type(attributed.baseType) }

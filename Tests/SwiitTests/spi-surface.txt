@@ -120,6 +120,8 @@ Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var parameters
 Language/Syntax/Declarations.swift	Layer var parameters
 Language/Syntax/Declarations.swift	Layer var parameters
+Language/Syntax/Declarations.swift	Layer var resultBuilder
+Language/Syntax/Declarations.swift	Layer var resultBuilder
 Language/Syntax/Declarations.swift	Layer var shortFlag
 Language/Syntax/Declarations.swift	Layer var summary
 Language/Syntax/Declarations.swift	Layer var thrownType
@@ -141,6 +143,9 @@ Language/Syntax/Expressions.swift	Layer var isAwait
 Language/Syntax/Expressions.swift	Layer var label
 Language/Syntax/Expressions.swift	Layer var value
 Language/Syntax/Expressions.swift	Layer var value
+Language/Syntax/ResultBuilder.swift	Layer func transform
+Language/Syntax/ResultBuilder.swift	Layer init init
+Language/Syntax/ResultBuilder.swift	Layer struct ResultBuilderTransform
 Language/Syntax/SourceCursor+Scanning.swift	Layer func consume
 Language/Syntax/SourceCursor+Scanning.swift	Layer func expected
 Language/Syntax/SourceCursor+Scanning.swift	Layer func identifier

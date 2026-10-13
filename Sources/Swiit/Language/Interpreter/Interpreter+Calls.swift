@@ -281,3 +281,24 @@ extension TypeAnnotation {
         }
     }
 }
+
+extension Interpreter {
+    /// Calls a closure of two values whose first it changes in place (`reduce(into:)`'s), giving what it left in the first.
+    func callChangingFirst(_ value: Value, _ first: Value, _ second: Value) throws -> Value {
+        guard case .function(let function as Function) = value, !function.parameters.isEmpty else {
+            return try { _ = try call(value, with: [first, second]); return first }()
+        }
+        var parameters = function.parameters
+        parameters[0].isInout = true
+        let changing = Function(
+            name: function.name, parameters: parameters, returnType: function.returnType, body: function.body,
+            captured: function.captured, documentation: function.documentation, isMutating: function.isMutating,
+            isThrowing: function.isThrowing, isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics
+        )
+        let unlabeled = [first, second].map { Argument(label: nil, value: .literal($0)) }
+        _ = try invoke(changing, with: try bind(unlabeled, to: changing).bindings)
+        let outputs = task.inoutOutputs
+        task.inoutOutputs = []
+        return outputs.first ?? first
+    }
+}

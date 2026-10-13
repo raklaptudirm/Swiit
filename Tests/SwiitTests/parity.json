@@ -459,7 +459,7 @@
   "name": "String index",
   "source": "let s = \"abc\"; print(s[s.startIndex])",
   "expected": "a\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Character",
@@ -501,7 +501,7 @@
   "name": "result builder",
   "source": "@resultBuilder struct B { static func buildBlock(_ x: Int...) -> Int { x.count } }; @B func f() -> Int { 1; 2 }; print(f())",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "macro use",
@@ -537,7 +537,7 @@
   "name": "Mirror",
   "source": "print(Mirror(reflecting: 1).children.count)",
   "expected": "0\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "String(describing:)",
@@ -555,7 +555,7 @@
   "name": "lazy seq",
   "source": "print((1...5).lazy.map { $0 * 2 }.filter { $0 > 4 }.first!)",
   "expected": "6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Date",
@@ -957,13 +957,13 @@
   "name": "dict grouping",
   "source": "let g = Dictionary(grouping: [1, 2, 3, 4], by: { $0 % 2 }); print(g[0]!, g[1]!)",
   "expected": "[2, 4] [1, 3]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "set ops",
   "source": "let a: Set = [1, 2, 3], b: Set = [2, 3, 4]; print(a.intersection(b).sorted(), a.union(b).count, a.subtracting(b).sorted())",
   "expected": "[2, 3] 4 [1]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "array slices",
@@ -987,7 +987,7 @@
   "name": "joined",
   "source": "print([\"a\", \"b\", \"c\"].joined(separator: \"-\"), [1, 2].map(String.init).joined())",
   "expected": "a-b-c 12\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "string ops",
@@ -1005,7 +1005,7 @@
   "name": "string chars",
   "source": "for c in \"hey\" { print(c, c.isLetter, c.uppercased()) }",
   "expected": "h true H\ne true E\ny true Y\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "string interpolation fmt",
@@ -1089,7 +1089,7 @@
   "name": "reduce into",
   "source": "print([1, 2, 3].reduce(into: [Int]()) { $0.append($1 * 2) })",
   "expected": "[2, 4, 6]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "min max by",
@@ -1191,7 +1191,7 @@
   "name": "rethrows closure",
   "source": "func g(_ f: () throws -> Int) rethrows -> Int { try f() }; print(try g { 3 })",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "labels defaults",
@@ -1437,7 +1437,7 @@
   "name": "comparable custom",
   "source": "struct V: Comparable { var x: Int; static func < (a: V, b: V) -> Bool { a.x < b.x } }; print(V(x: 1) < V(x: 2), V(x: 3) > V(x: 2), [V(x: 3), V(x: 1)].sorted().map(\\.x), V(x: 1) <= V(x: 1))",
   "expected": "true true [1, 3] true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "global operator",
@@ -1731,7 +1731,7 @@
   "name": "class weak",
   "source": "class A {}; weak var w: A? = nil; do { let a = A(); w = a; print(w != nil) }; print(w == nil)",
   "expected": "true\ntrue\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "class final",
@@ -1779,7 +1779,7 @@
   "name": "group completion order",
   "source": "let r = await withTaskGroup(of: Int.self) { g in for (i, ms) in [(1, 300_000_000), (2, 100_000_000), (3, 200_000_000)] as [(Int, UInt64)] { g.addTask { try? await Task.sleep(nanoseconds: ms); return i } }; var out: [Int] = []; for await v in g { out.append(v) }; return out }; print(r)",
   "expected": "[2, 3, 1]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "group next",
@@ -1911,6 +1911,102 @@
   "name": "optional member default",
   "source": "class C { var n: Int?; var s: String? }; let c = C(); print(c.n == nil); c.s = \"a\"; print(c.s!)",
   "expected": "true\na\n",
+  "status": "ok"
+ },
+ {
+  "name": "string index walk",
+  "source": "let s = \"héllo\"; var i = s.startIndex; var out = \"\"; while i < s.endIndex { out += String(s[i]).uppercased(); i = s.index(after: i) }; print(out)",
+  "expected": "HÉLLO\n",
+  "status": "ok"
+ },
+ {
+  "name": "string index slice",
+  "source": "let s = \"hello world\"; let sp = s.firstIndex(of: \" \")!; print(s[s.startIndex..<sp], s[s.index(after: sp)...])",
+  "expected": "hello world\n",
+  "status": "ok"
+ },
+ {
+  "name": "string index offset",
+  "source": "let s = \"abcdef\"; print(s[s.index(s.startIndex, offsetBy: 3)], s.distance(from: s.startIndex, to: s.endIndex))",
+  "expected": "d 6\n",
+  "status": "ok"
+ },
+ {
+  "name": "lazy filter first",
+  "source": "print((1...100).lazy.filter { $0 % 7 == 0 }.map { $0 * 2 }.first!)",
+  "expected": "14\n",
+  "status": "ok"
+ },
+ {
+  "name": "lazy array",
+  "source": "print(Array([1, 2, 3, 4].lazy.map { $0 * $0 }.filter { $0 > 3 }))",
+  "expected": "[4, 9, 16]\n",
+  "status": "ok"
+ },
+ {
+  "name": "reduce into dict",
+  "source": "let w = [\"a\", \"b\", \"a\"]; let c = w.reduce(into: [String: Int]()) { $0[$1, default: 0] += 1 }; print(c[\"a\"]!, c[\"b\"]!)",
+  "expected": "2 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "rethrows throwing",
+  "source": "enum E: Error { case x }; func g(_ f: () throws -> Int) rethrows -> Int { try f() }; do { _ = try g { throw E.x } } catch { print(\"c\") }; print(g { 1 })",
+  "expected": "c\n1\n",
+  "status": "ok"
+ },
+ {
+  "name": "string from number",
+  "source": "print(String(42) + \"!\", String(1.5), String(false))",
+  "expected": "42! 1.5 false\n",
+  "status": "ok"
+ },
+ {
+  "name": "fixed width",
+  "source": "let a: UInt8 = 200; let b = Int(a) + 100; let c: Int64 = 1 << 40; print(b, c)",
+  "expected": "300 1099511627776\n",
+  "status": "ok"
+ },
+ {
+  "name": "dictionary grouping words",
+  "source": "let g = Dictionary(grouping: [\"apple\", \"avocado\", \"bean\"], by: { $0.first! }); print(g[\"a\"]!.count, g[\"b\"]!)",
+  "expected": "2 [\"bean\"]\n",
+  "status": "ok"
+ },
+ {
+  "name": "generic enum method",
+  "source": "enum Box<T> { case some(T), none; func get(or d: T) -> T { switch self { case .some(let v): return v; case .none: return d } } }; print(Box.some(3).get(or: 0), (Box.none as Box<Int>).get(or: 9))",
+  "expected": "3 9\n",
+  "status": "ok"
+ },
+ {
+  "name": "builder blocks",
+  "source": "@resultBuilder struct L { static func buildExpression(_ e: String) -> [String] { [e] }; static func buildBlock(_ p: [String]...) -> [String] { p.flatMap { $0 } }; static func buildOptional(_ p: [String]?) -> [String] { p ?? [] }; static func buildEither(first: [String]) -> [String] { first }; static func buildEither(second: [String]) -> [String] { second }; static func buildArray(_ p: [[String]]) -> [String] { p.flatMap { $0 } } }; func lines(@L _ body: () -> [String]) -> [String] { body() }; let flag = true; print(lines { \"a\"; if flag { \"b\" }; if !flag { \"x\" } else { \"c\" }; for i in 1...2 { \"n\\(i)\" } })",
+  "expected": "[\"a\", \"b\", \"c\", \"n1\", \"n2\"]\n",
+  "status": "ok"
+ },
+ {
+  "name": "builder function",
+  "source": "@resultBuilder struct Sum { static func buildBlock(_ x: Int...) -> Int { x.reduce(0, +) } }; @Sum func total() -> Int { 1; 2; 3 }; print(total())",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "builder with lets",
+  "source": "@resultBuilder struct S { static func buildBlock(_ x: String...) -> String { x.joined(separator: \",\") } }; @S func f() -> String { let a = \"x\"; a; \"y\" }; print(f())",
+  "expected": "x,y\n",
+  "status": "ok"
+ },
+ {
+  "name": "builder final result",
+  "source": "@resultBuilder struct W { static func buildBlock(_ x: Int...) -> [Int] { x }; static func buildFinalResult(_ x: [Int]) -> Int { x.count * 10 } }; @W func g() -> Int { 1; 2 }; print(g())",
+  "expected": "20\n",
+  "status": "ok"
+ },
+ {
+  "name": "mirror struct",
+  "source": "struct P { var x = 1; var name = \"a\" }; let m = Mirror(reflecting: P()); for c in m.children { print(c.label ?? \"-\", c.value) }; print(m.children.count)",
+  "expected": "x 1\nname a\n2\n",
   "status": "ok"
  }
 ]

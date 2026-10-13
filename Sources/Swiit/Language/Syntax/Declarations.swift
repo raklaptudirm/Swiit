@@ -1,7 +1,21 @@
 import Foundation
 import SwiitKit
 
+extension Parameter {
+    func withBuilder(_ builder: String?) -> Parameter {
+        var copy = self
+        copy.resultBuilder = builder
+        return copy
+    }
+}
+
 extension FunctionDecl {
+    func withBuilder(_ builder: String?) -> FunctionDecl {
+        var copy = self
+        copy.resultBuilder = builder
+        return copy
+    }
+
     func withThrown(_ type: TypeAnnotation?) -> FunctionDecl {
         var copy = self
         copy.thrownType = type
@@ -38,6 +52,8 @@ extension FunctionDecl {
     var isFailable = false
     /// `override func`: replaces a superclass's.
     var isOverride = false
+    /// `@Builder func …`: its body is made by the result builder's `buildBlock`.
+    @_spi(Layer) public var resultBuilder: String?
     /// `nonisolated`: an actor's member reached without `await`.
     var isNonisolated = false
     /// `convenience init`: makes the value through another initializer.
@@ -222,6 +238,8 @@ public struct Documentation: Equatable, Sendable {
     var returnType: TypeAnnotation?
     var body: Program
     var names = NamesUsed()
+    /// The result builder whose `buildBlock` the body was made into, once it has been.
+    var builtBy: String?
 
     @_spi(Layer) public init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
         self.parameters = parameters
@@ -255,6 +273,8 @@ public struct Parameter: Equatable, Sendable {
     /// `@input`: receives pipeline input; per item, or the whole stream
     /// if its type is a list.
     @_spi(Layer) public var isInput = false
+    /// `@Builder content: () -> V`: a closure given for it is made by the result builder.
+    @_spi(Layer) public var resultBuilder: String?
     /// `@flag("n")`: a short flag in command mode.
     @_spi(Layer) public var shortFlag: Character?
     /// `inout`: the argument is passed as `&place`, and the place gets the

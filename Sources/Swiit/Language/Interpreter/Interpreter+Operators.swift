@@ -149,6 +149,17 @@ extension Interpreter {
             }
             return .bool(op == .lessEqual || op == .greaterEqual)
         }
+        // Swift values that order themselves (an index, a date).
+        if case .object(let a as SwiftValue) = lhs, case .object(let b as SwiftValue) = rhs,
+           [.less, .lessEqual, .greater, .greaterEqual].contains(op), let ordered = a.isLess(than: b) {
+            let equal = a.identity == b.identity
+            switch op {
+            case .less: return .bool(ordered)
+            case .lessEqual: return .bool(ordered || equal)
+            case .greater: return .bool(!ordered && !equal)
+            default: return .bool(!ordered)
+            }
+        }
         if let result = try bridgedOperator(op.rawValue, [lhs, rhs]) { return result }
         throw RuntimeError("'\(op.rawValue)' can't be applied to \(lhs.typeName) and \(rhs.typeName)")
     }

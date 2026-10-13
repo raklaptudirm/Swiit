@@ -18,7 +18,7 @@ extension TypeChecker {
         overloads.removeAll { sameParameters($0.parameters, decl.parameters) }
         var declared = Signature(
             name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
-            effect: decl.effect, generics: decl.generics
+            isRethrowing: decl.isRethrowing, effect: decl.effect, generics: decl.generics
         )
         declared.thrownType = decl.thrownType
         overloads.append(declared)
@@ -30,9 +30,20 @@ extension TypeChecker {
         a.count == b.count && zip(a, b).allSatisfy { $0.label == $1.label && $0.type == $1.type && $0.variadic == $1.variadic }
     }
 
+    /// A body written for the result builder `name`, as the plain code it stands for.
+    func resultBuilt(_ body: Program, by name: String) throws -> Program {
+        guard let info = structInfo(named: name) else { throw TypeError("@\(name) is not a result builder") }
+        var transform = ResultBuilderTransform(builder: name, methods: Set(info.staticMethods.keys))
+        do { return try transform.transform(body) } catch let error as SyntaxError { throw TypeError(error.description) }
+    }
+
     func checkFunction(
         _ decl: inout FunctionDecl, self selfType: TypeAnnotation? = nil, mutating: Bool = false, initializing: Bool = false
     ) throws {
+        if let builder = decl.resultBuilder {
+            decl.body = try resultBuilt(decl.body, by: builder)
+            decl.resultBuilder = nil
+        }
         var names: [String: Symbol] = [:]
         for index in decl.parameters.indices {
             let parameter = decl.parameters[index]
@@ -54,7 +65,7 @@ extension TypeChecker {
         try checkBecomingAsync(decl)
         let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))
-        errorContexts.append(ErrorContext(handled: decl.isThrowing, boundary: .function(decl.name), thrown: decl.thrownType))
+        errorContexts.append(ErrorContext(handled: decl.isThrowing || decl.isRethrowing, boundary: .function(decl.name), thrown: decl.thrownType))
         scopes.append(names)
         defer {
             returns.removeLast()

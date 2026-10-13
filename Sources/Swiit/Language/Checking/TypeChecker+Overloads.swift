@@ -83,6 +83,12 @@ extension TypeChecker {
                         parameters: [], body: Program(statements: [.expression(arguments[index].value)])))
                 }
             }
+            // `@Builder content: () -> V`: a closure given for it is made by the builder.
+            if let builder = parameter.resultBuilder, case .closure(var literal) = arguments[index].value, literal.builtBy == nil {
+                literal.body = try resultBuilt(literal.body, by: builder)
+                literal.builtBy = builder
+                arguments[index].value = .closure(literal)
+            }
             let natural = TypeChecker.hasNaturalType(arguments[index].value) ? try typeOf(&arguments[index].value) : nil
             let isLiteral = if case .literal = arguments[index].value { true } else { false }
             let wanted = substitute(parameter.type, bindings)

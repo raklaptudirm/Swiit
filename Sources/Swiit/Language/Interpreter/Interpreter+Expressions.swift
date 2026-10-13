@@ -12,7 +12,10 @@ extension Interpreter {
             return .string(try expand(parts))
         case .variable(let name):
             guard let binding = lookup(name) else { throw RuntimeError("no variable named '\(name)'") }
-            return binding.value
+            // A weak variable gives what it refers to, or nil once that is gone.
+            let value = binding.value
+            if case .object(let reference as WeakReference) = value { return reference.target.map { .object($0) } ?? .nothing }
+            return value
         case .extended:
             throw RuntimeError.unrewritten
         case .list(let elements):
@@ -393,6 +396,7 @@ extension Interpreter {
     }
 
     func element(of base: Value, at index: Value) throws -> Value {
+        if case .string(let text) = base { return try Bridge.subscriptString(text, index) }
         if case .object(let object as DynamicObject) = base {
             guard case .string(let name) = index else {
                 throw RuntimeError("\(object.typeName) is indexed by name, not \(index.typeName)")

@@ -368,6 +368,18 @@ struct Lowering {
         else if let node = decl.as(ActorDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
         else { return }
         declaredTypes.insert(name)
+        // A result builder: its name, and the functions it has.
+        let attributes = decl.as(StructDeclSyntax.self)?.attributes ?? decl.as(EnumDeclSyntax.self)?.attributes
+            ?? decl.as(ClassDeclSyntax.self)?.attributes
+        if attributes?.contains(where: { attribute in
+            if case .attribute(let named) = attribute { return named.attributeName.trimmedDescription == "resultBuilder" }
+            return false
+        }) == true {
+            declaredTypes.insert(name + "@")
+            for member in block.members {
+                if let function = member.decl.as(FunctionDeclSyntax.self) { declaredTypes.insert(name + "@" + function.name.text) }
+            }
+        }
         // A generic enum keeps its type arguments, which say what its cases hold.
         if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil { declaredTypes.insert(name + "<>") }
         for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
