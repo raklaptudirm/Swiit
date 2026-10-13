@@ -115,6 +115,7 @@ import SwiitKit
         var staticProperties: [PropertyDecl] = []
         var staticMethods: [String: [Signature]] = [:]
         var initializers: [Signature] = []
+        var typeParameters: [String] = []
 
         func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }

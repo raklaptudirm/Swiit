@@ -295,7 +295,11 @@ extension Lowering {
         // what is wrong with the arguments.
         var callee: Expr?
         if !isCase {
-            if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
+            if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), reference.baseName.text == "Optional",
+               node.arguments.count == 1, node.arguments.first?.label == nil, names()["Optional"] == nil || names()["Optional"] == .type {
+                // `Optional(x)`: x, as an optional.
+                callee = .variable("$some")
+            } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.declName.baseName.text == "init",

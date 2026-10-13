@@ -368,6 +368,8 @@ struct Lowering {
         else if let node = decl.as(ActorDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
         else { return }
         declaredTypes.insert(name)
+        // A generic enum keeps its type arguments, which say what its cases hold.
+        if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil { declaredTypes.insert(name + "<>") }
         for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
     }
 

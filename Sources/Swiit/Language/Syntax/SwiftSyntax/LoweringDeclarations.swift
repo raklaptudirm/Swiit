@@ -168,6 +168,10 @@ extension Lowering {
                 if case .simpleTypeSpecifier(let simple) = specifier { return simple.specifier.tokenKind == .keyword(.inout) }
                 return false
             } ?? false
+            let isAutoclosure = parameter.type.as(AttributedTypeSyntax.self)?.attributes.contains { attribute in
+                if case .attribute(let attribute) = attribute { return attribute.attributeName.trimmedDescription == "autoclosure" }
+                return false
+            } ?? false
             for attribute in parameter.attributes {
                 guard case .attribute(let attribute) = attribute else { throw unsupported("this attribute", parameter) }
                 switch attribute.attributeName.trimmedDescription {
@@ -196,7 +200,7 @@ extension Lowering {
             let defaultValue = try parameter.defaultValue.map { try expression($0.value) }
             return Parameter(
                 label: first == "_" ? nil : first, name: name, type: type, variadic: variadic, defaultValue: defaultValue,
-                isInput: isInput, shortFlag: shortFlag, isInout: isInout
+                isInput: isInput, shortFlag: shortFlag, isInout: isInout, isAutoclosure: isAutoclosure
             )
         }
     }
@@ -608,7 +612,9 @@ extension Lowering {
                 }
                 properties.append(property)
             } else {
-                let value = try binding.initializer.map { try expression($0.value) }
+                var value = try binding.initializer.map { try expression($0.value) }
+                // `var x: Int?` starts as nil.
+                if value == nil, mutable, case .optional? = type { value = .literal(.nothing) }
                 properties.append(PropertyDecl(name: identifier.identifier.text, mutable: mutable, type: type, defaultValue: value))
             }
         }
@@ -635,6 +641,7 @@ extension Lowering {
         var cases: [EnumCaseDecl] = []
         let qualified = typePrefix + node.name.text
         var declaration = EnumDecl(name: qualified, rawType: rawType, cases: [], conformances: conformances)
+        declaration.typeParameters = node.genericParameterClause?.parameters.map(\.name.text) ?? []
         var (instanceMembers, staticMembers) = memberNames(of: node.memberBlock)
         if rawType != nil { instanceMembers.insert("rawValue") }
         members.append(instanceMembers)
@@ -712,6 +719,14 @@ extension Lowering {
         if let identifier = node.as(IdentifierTypeSyntax.self) {
             let name = identifier.name.text
             if typeParameters.contains(name) { return .parameter(name) }
+            let isGenericEnum = declaredTypes.contains((nestedNames[name] ?? name) + "<>") || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
+            if let clause = identifier.genericArgumentClause, isGenericEnum {
+                let arguments = try clause.arguments.map { argument -> TypeAnnotation in
+                    guard case .type(let written) = argument.argument else { throw unsupported("this generic argument", argument) }
+                    return try type(written)
+                }
+                return .generic(nestedNames[name] ?? name, arguments)
+            }
             if identifier.genericArgumentClause != nil, declaredTypes.contains(nestedNames[name] ?? name) || bound[name] == .type && TypeAnnotation.spelled(name) == nil && Bridge.types[name] == nil {
                 // A generic type of the program's own: its arguments only say what it holds.
                 return .named(nestedNames[name] ?? name)

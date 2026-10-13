@@ -309,6 +309,7 @@ extension TypeChecker {
                       returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
                       isMutating: true, isThrowing: initializer.isThrowing, index: index)
         }
+        info.typeParameters = decl.typeParameters
         return info
     }
 

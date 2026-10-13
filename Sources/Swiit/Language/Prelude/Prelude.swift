@@ -16,6 +16,45 @@ extension Interpreter {
     /// What has no values: a `Task<Int, Never>` can't fail.
     enum Never {}
 
+    /// A value, or the error that kept it from being made.
+    enum Result<Success, Failure: Error> {
+        case success(Success)
+        case failure(Failure)
+
+        init(catching body: () throws -> Success) {
+            do { self = Result.success(try body()) } catch { self = Result.failure(error) }
+        }
+
+        /// The value, or throws the error.
+        func get() throws -> Success {
+            switch self {
+            case .success(let value): return value
+            case .failure(let error): throw error
+            }
+        }
+
+        func map<NewSuccess>(_ transform: (Success) -> NewSuccess) -> Result<NewSuccess, Failure> {
+            switch self {
+            case .success(let value): return .success(transform(value))
+            case .failure(let error): return .failure(error)
+            }
+        }
+
+        func mapError<NewFailure: Error>(_ transform: (Failure) -> NewFailure) -> Result<Success, NewFailure> {
+            switch self {
+            case .success(let value): return .success(value)
+            case .failure(let error): return .failure(transform(error))
+            }
+        }
+
+        func flatMap<NewSuccess>(_ transform: (Success) -> Result<NewSuccess, Failure>) -> Result<NewSuccess, Failure> {
+            switch self {
+            case .success(let value): return transform(value)
+            case .failure(let error): return .failure(error)
+            }
+        }
+    }
+
     /// The type of no value, for `Void.self` where a type is passed.
     enum Void {}
 

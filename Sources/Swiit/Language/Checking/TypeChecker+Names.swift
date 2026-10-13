@@ -102,6 +102,7 @@ extension TypeChecker {
         }
         var info = EnumInfo(name: type.name, cases: cases, rawType: rawType,
                             conformances: interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
+        info.typeParameters = interpreter.enumTypeParameters[ObjectIdentifier(type)] ?? []
         if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in

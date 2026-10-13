@@ -76,6 +76,13 @@ extension TypeChecker {
             if !parameter.isInout && passed {
                 throw TypeError("\(name): '\(parameter.name)' isn't inout, so it can't be passed with &")
             }
+            // `@autoclosure`: the argument is the closure's result, and is made a closure.
+            if parameter.isAutoclosure, case .functionType(let closureParameters, _, _, _) = parameter.type, closureParameters.isEmpty {
+                if case .closure = arguments[index].value {} else {
+                    arguments[index].value = .closure(ClosureLiteral(
+                        parameters: [], body: Program(statements: [.expression(arguments[index].value)])))
+                }
+            }
             let natural = TypeChecker.hasNaturalType(arguments[index].value) ? try typeOf(&arguments[index].value) : nil
             let isLiteral = if case .literal = arguments[index].value { true } else { false }
             let wanted = substitute(parameter.type, bindings)

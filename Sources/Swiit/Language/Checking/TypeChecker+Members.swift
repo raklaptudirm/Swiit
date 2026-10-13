@@ -208,7 +208,8 @@ extension TypeChecker {
         return try memberType(of: try typeOf(&baseExpr), name)
     }
 
-    @_spi(Layer) public func memberType(of base: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
+    @_spi(Layer) public func memberType(of written: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
+        let base = erased(written)
         if let dynamic = dynamicType(of: base) { return dynamic.read }
         lastMemberBase = base
         if let (dynamic, plain) = plainType(of: base) {
@@ -300,23 +301,43 @@ extension TypeChecker {
     }
 
     func caseType(_ name: String, _ arguments: inout [Argument]?, expected: TypeAnnotation?) throws -> TypeAnnotation {
-        var target = expected
-        if case .optional(let wrapped)? = target { target = wrapped }
-        guard let target, target != .unknown, target != .any else {
-            if target == nil { throw TypeError(".\(name) needs a type here; write the enum's name too, as in Kind.\(name)") }
+        var requested = expected
+        if case .optional(let wrapped)? = requested { requested = wrapped }
+        guard let found = requested, found != .unknown, found != .any else {
+            if requested == nil { throw TypeError(".\(name) needs a type here; write the enum's name too, as in Kind.\(name)") }
+            for index in (arguments ?? []).indices { _ = try typeOf(&arguments![index].value, expecting: .unknown) }
+            return .unknown
+        }
+        var target = found
+        // A generic enum's type arguments say what its cases hold: `Result<Int, E>`.
+        var bindings: [String: TypeAnnotation] = [:]
+        var result: TypeAnnotation? = target
+        if case .generic(let genericName, let arguments) = target, let info = enumInfo(named: genericName),
+           info.typeParameters.count == arguments.count {
+            bindings = Dictionary(uniqueKeysWithValues: zip(info.typeParameters, arguments))
+            result = .named(genericName)
+            target = .named(genericName)
+        }
+        // What isn't known (an erased type parameter) leaves the case to its payload.
+        if case .parameter = target {
             for index in (arguments ?? []).indices { _ = try typeOf(&arguments![index].value, expecting: .unknown) }
             return .unknown
         }
         guard case .named(let enumName) = target, let info = enumInfo(named: enumName) else {
             throw TypeError(".\(name) is a case, but a \(target) is wanted here")
         }
-        guard let payload = info.payload(of: name) else { throw TypeError("\(enumName) has no case '\(name)'") }
+        guard let rawPayload = info.payload(of: name) else { throw TypeError("\(enumName) has no case '\(name)'") }
+        let payload = rawPayload.map { value -> AssociatedValue in
+            var copy = value
+            copy.type = bindings.isEmpty ? value.type : substitute(value.type, bindings)
+            return copy
+        }
         guard arguments != nil else {
             guard payload.isEmpty else {
                 let labels = payload.map { ($0.label ?? "_") + ":" }.joined()
                 throw TypeError("\(enumName).\(name) needs its associated values: \(enumName).\(name)(\(labels))")
             }
-            return .named(enumName)
+            return result ?? .named(enumName)
         }
         guard !payload.isEmpty else { throw TypeError("\(enumName).\(name) has no associated values") }
         guard arguments!.count == payload.count else {
@@ -329,7 +350,7 @@ extension TypeChecker {
             }
             try expect(&arguments![index].value, payload[index].type, "\(enumName).\(name): value #\(index + 1)")
         }
-        return .named(enumName)
+        return result ?? .named(enumName)
     }
 
     /// What a struct's `subscript` gives for `arguments`, and whether it can be set.

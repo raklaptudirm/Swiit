@@ -139,6 +139,8 @@ extension Statement {
     var staticMethods: [FunctionDecl] = []
     /// `init(code: String)`, which sets `self` to a case.
     var initializers: [FunctionDecl] = []
+    /// `enum Result<Success, Failure>`: the type parameters, in order.
+    var typeParameters: [String] = []
 
     init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
         self.name = name

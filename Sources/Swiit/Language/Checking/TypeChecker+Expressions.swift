@@ -225,7 +225,10 @@ extension TypeChecker {
         case .caseLiteral(let name, var arguments):
             let type = try caseType(name, &arguments, expected: expected)
             // Written out with its enum, so running it needs no context.
-            if case .named(let enumName) = type, enumInfo(named: enumName) != nil {
+            var enumTypeName: String?
+            if case .named(let enumName) = type { enumTypeName = enumName }
+            if case .generic(let enumName, _) = type { enumTypeName = enumName }
+            if let enumName = enumTypeName, enumInfo(named: enumName) != nil {
                 let member = Expr.member(.variable(enumName), name)
                 expr = arguments.map { .call(member, $0) } ?? member
             } else {

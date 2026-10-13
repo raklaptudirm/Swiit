@@ -86,7 +86,9 @@ extension TypeChecker {
             // `Result.failed(code: 2)`: a case with associated values.
             if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName) {
                 var payload: [Argument]? = arguments
-                let type = try caseType(name, &payload, expected: .named(info.name))
+                var wanted = TypeAnnotation.named(info.name)
+                if case .generic(info.name, _)? = expected { wanted = expected! }
+                let type = try caseType(name, &payload, expected: wanted)
                 arguments = payload ?? []
                 return type
             }
@@ -129,8 +131,9 @@ extension TypeChecker {
     /// `base.name(arguments)` for a receiver of type `base`; `baseExpr` is
     /// where it came from, if it can be changed by a mutating method.
     func methodCallType(
-        _ base: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
+        _ written: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
+        let base = erased(written)
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
         if name == "init", case .named(let structName) = base, let info = structInfo(named: structName),
            lookup("$initializing") != nil {

@@ -43,6 +43,7 @@ extension Interpreter {
         let type = EnumType(name: decl.name, cases: cases)
         enumPayloadTypes[ObjectIdentifier(type)] = payloadTypes
         enumConformances[ObjectIdentifier(type)] = decl.conformances
+        enumTypeParameters[ObjectIdentifier(type)] = decl.typeParameters
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
         try declareMembers(of: decl, on: type)
     }
@@ -106,6 +107,7 @@ extension Interpreter {
     public func enumType(for type: TypeAnnotation?) -> EnumType? {
         switch type {
         case .named(let name)?: enumType(named: name)
+        case .generic(let name, _)?: enumType(named: name)
         case .optional(let wrapped)?: enumType(for: wrapped)
         default: nil
         }
@@ -190,6 +192,8 @@ extension Interpreter {
         case .generic(let name, _):
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
+            // A generic enum of the program's: its arguments say what its cases hold, and it is its name.
+            if enumType(named: name) != nil { return conform(value, to: .named(name)) }
             return nil
         case .someSequence:
             // Any sequence; the glue takes its items.

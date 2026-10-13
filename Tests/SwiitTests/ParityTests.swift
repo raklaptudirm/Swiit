@@ -64,3 +64,10 @@ func theGapsAndWhyTheyAreOpen() {
     }
     print(lines.joined(separator: "\n"))
 }
+
+/// `PARITY_RUN='print(1)' swift test --filter runTheGivenSource`: one program, for looking at what it does.
+@Test(.enabled(if: ProcessInfo.processInfo.environment["PARITY_RUN"] != nil))
+func runTheGivenSource() {
+    let result = printed(ProcessInfo.processInfo.environment["PARITY_RUN"]!)
+    print("OUTPUT:", result.output, "PROBLEM:", result.problem ?? "none")
+}

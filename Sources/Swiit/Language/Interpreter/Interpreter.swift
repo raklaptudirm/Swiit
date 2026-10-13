@@ -49,6 +49,7 @@ public final class Interpreter {
     var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
+    var enumTypeParameters: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
     var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
     /// The operators and precedence groups declared at the prompt, by what they declare, as source.

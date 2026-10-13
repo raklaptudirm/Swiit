@@ -2,10 +2,22 @@ import Foundation
 import SwiitKit
 
 extension TypeChecker {
+    /// A generic enum's type arguments say what its cases hold, and nothing else: its values are its name.
+    @_spi(Layer) public func erased(_ type: TypeAnnotation) -> TypeAnnotation {
+        switch type {
+        case .generic(let name, _) where enumInfo(named: name) != nil: return .named(name)
+        case .list(let element): return .list(erased(element))
+        case .optional(let wrapped): return .optional(erased(wrapped))
+        case .dictionary(let key, let value): return .dictionary(erased(key), erased(value))
+        default: return type
+        }
+    }
+
     // MARK: Fitting
 
     /// Whether a value of type `actual` can be used where `expected` is.
     @_spi(Layer) public func fits(_ actual: TypeAnnotation, _ expected: TypeAnnotation) -> Bool {
+        let actual = erased(actual), expected = erased(expected)
         if actual == expected || actual == .unknown || expected == .unknown || expected == .any { return true }
         // A protocol's type is any type that conforms to it.
         if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil, case .named = actual {

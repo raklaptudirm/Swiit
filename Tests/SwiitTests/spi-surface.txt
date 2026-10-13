@@ -30,6 +30,7 @@ Language/Checking/TypeChecker+Statements.swift	Layer func checkBlock
 Language/Checking/TypeChecker+Statements.swift	Layer func checkHandled
 Language/Checking/TypeChecker+Statements.swift	Layer func throwingSite
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func conforms
+Language/Checking/TypeChecker+TypeRelations.swift	Layer func erased
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func fits
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func substitute
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func unify
@@ -104,6 +105,7 @@ Language/Syntax/Declarations.swift	Layer var documentation
 Language/Syntax/Declarations.swift	Layer var externalDefault
 Language/Syntax/Declarations.swift	Layer var generics
 Language/Syntax/Declarations.swift	Layer var hasDefault
+Language/Syntax/Declarations.swift	Layer var isAutoclosure
 Language/Syntax/Declarations.swift	Layer var isInput
 Language/Syntax/Declarations.swift	Layer var isMutating
 Language/Syntax/Declarations.swift	Layer var isThrowing

@@ -260,6 +260,8 @@ public struct Parameter: Equatable, Sendable {
     /// `inout`: the argument is passed as `&place`, and the place gets the
     /// parameter's value back when the function ends.
     var isInout = false
+    /// `@autoclosure () -> T`: the argument is written as a T, and made a closure.
+    @_spi(Layer) public var isAutoclosure = false
     /// A default only Swift can compute, like `Date()`: the
     /// argument is left out for the Swift function to fill in. Its source, for help.
     @_spi(Layer) public var externalDefault: String?
@@ -269,8 +271,9 @@ public struct Parameter: Equatable, Sendable {
     @_spi(Layer) public init(
         label: String? = nil, name: String, type: TypeAnnotation = .any, variadic: Bool = false,
         defaultValue: Expr? = nil, isInput: Bool = false, shortFlag: Character? = nil, externalDefault: String? = nil,
-        isInout: Bool = false
+        isInout: Bool = false, isAutoclosure: Bool = false
     ) {
+        self.isAutoclosure = isAutoclosure
         self.isInout = isInout
         self.label = label
         self.name = name

@@ -99,7 +99,7 @@
   "name": "Result",
   "source": "let r: Result<Int, Error> = .success(1); print(try r.get())",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "operator overload",
@@ -213,7 +213,7 @@
   "name": "optional chain",
   "source": "struct S { var x: Int? }; print(S().x?.description ?? \"nil\")",
   "expected": "nil\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "tuple",
@@ -333,7 +333,7 @@
   "name": "autoclosure",
   "source": "func f(_ x: @autoclosure () -> Int) -> Int { x() }; print(f(2))",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "variadic",
@@ -423,7 +423,7 @@
   "name": "Optional map",
   "source": "print(Optional(2).map { $0 + 1 } ?? 0)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "nil coalesce",
@@ -1011,7 +1011,7 @@
   "name": "string interpolation fmt",
   "source": "let x = 3.14159; print(\"pi=\\(x)\", \"n=\\(7)\", \"b=\\(true)\", \"o=\\(Optional(1) ?? 0)\")",
   "expected": "pi=3.14159 n=7 b=true o=1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "int parse",
@@ -1851,6 +1851,66 @@
   "name": "typed throws try optional",
   "source": "enum Er: Error { case bad }; func f() throws(Er) -> Int { throw .bad }; print((try? f()) as Int?)",
   "expected": "nil\n",
+  "status": "ok"
+ },
+ {
+  "name": "result catching",
+  "source": "enum E: Error { case bad }; func f(_ ok: Bool) throws -> Int { if ok { return 1 }; throw E.bad }; let a = Result { try f(true) }; let b = Result { try f(false) }; print(try a.get()); if case .failure(let e) = b { print(\"failed\", e) }",
+  "expected": "1\nfailed bad\n",
+  "status": "ok"
+ },
+ {
+  "name": "result map",
+  "source": "let r: Result<Int, Error> = .success(2); print(try r.map { $0 * 3 }.get())",
+  "expected": "6\n",
+  "status": "ok"
+ },
+ {
+  "name": "result switch",
+  "source": "enum E: Error { case bad }; let r: Result<Int, E> = .failure(.bad); switch r { case .success(let v): print(v); case .failure(let e): print(\"err\", e) }",
+  "expected": "err bad\n",
+  "status": "ok"
+ },
+ {
+  "name": "result func",
+  "source": "enum E: Error { case neg }; func root(_ x: Int) -> Result<Int, E> { x < 0 ? .failure(.neg) : .success(x * 2) }; print(try root(4).get()); print((try? root(-1).get()) == nil)",
+  "expected": "8\ntrue\n",
+  "status": "ok"
+ },
+ {
+  "name": "autoclosure lazy",
+  "source": "var n = 0; func bump() -> Int { n += 1; return n }; func pick(_ c: Bool, _ x: @autoclosure () -> Int) -> Int { c ? x() : 0 }; print(pick(false, bump()), n, pick(true, bump()), n)",
+  "expected": "0 0 1 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "autoclosure capture",
+  "source": "func both(_ a: Bool, _ b: @autoclosure () -> Bool) -> Bool { a && b() }; let xs = [1, 2]; print(both(xs.count > 1, xs[1] == 2))",
+  "expected": "true\n",
+  "status": "ok"
+ },
+ {
+  "name": "optional init",
+  "source": "let a: Int? = Optional(4); let b = Optional(\"s\"); print(a ?? 0, b!)",
+  "expected": "4 s\n",
+  "status": "ok"
+ },
+ {
+  "name": "optional flatMap",
+  "source": "let a: Int? = 4; print(a.flatMap { $0 > 3 ? $0 : nil } ?? -1, a.map { $0 * 2 } ?? 0)",
+  "expected": "4 8\n",
+  "status": "ok"
+ },
+ {
+  "name": "optional var default",
+  "source": "struct P { var x: Int?; var y = 2 }; var p = P(); print(p.x == nil, p.y); p.x = 3; print(p.x!)",
+  "expected": "true 2\n3\n",
+  "status": "ok"
+ },
+ {
+  "name": "optional member default",
+  "source": "class C { var n: Int?; var s: String? }; let c = C(); print(c.n == nil); c.s = \"a\"; print(c.s!)",
+  "expected": "true\na\n",
   "status": "ok"
  }
 ]

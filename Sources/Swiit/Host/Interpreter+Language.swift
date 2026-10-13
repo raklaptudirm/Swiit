@@ -52,6 +52,12 @@ extension Interpreter {
         for (name, isThrowing) in [("withTaskGroup", false), ("withThrowingTaskGroup", true)] {
             scopes[0].declare(Bridge.taskGroupFunction(name, isThrowing: isThrowing), named: name)
         }
+        // `Optional(x)`: x, as an optional.
+        scopes[0].declare(Function(
+            name: "$some", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),
+            body: .native { _, arguments in arguments["x"] ?? .nothing },
+            documentation: Documentation(summary: "Optional(x).", parameters: [:]), generics: ["T": []]
+        ), named: "$some")
         // `a === b`: whether two class instances are the same one.
         scopes[0].declare(Function(
             name: "===",

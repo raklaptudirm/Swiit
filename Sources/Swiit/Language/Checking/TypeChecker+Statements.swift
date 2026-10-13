@@ -308,7 +308,8 @@ extension TypeChecker {
         }
     }
 
-    func checkPattern(_ pattern: inout Pattern, against type: TypeAnnotation, binding bound: inout [String: Symbol]) throws {
+    func checkPattern(_ pattern: inout Pattern, against written: TypeAnnotation, binding bound: inout [String: Symbol]) throws {
+        let type = erased(written)
         switch pattern {
         case .wildcard:
             break
