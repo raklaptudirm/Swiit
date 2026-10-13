@@ -158,7 +158,7 @@ extension TypeChecker {
             case (.int, .int), (.double, .double): return left
             default: throw fail
             }
-        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply:
+        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply, .maskShiftLeft, .maskShiftRight:
             guard left == .int, right == .int else { throw fail }
             return .int
         default:

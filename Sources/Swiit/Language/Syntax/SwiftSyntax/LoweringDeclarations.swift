@@ -68,11 +68,17 @@ extension Lowering {
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.
-        let isAsync = node.modifiers.count == 1 && node.modifiers.first?.name.tokenKind == .keyword(.async)
+        // Who may see it (`private var x`) matters to no one in a program that is one file.
+        let access: Set<Keyword> = [.private, .fileprivate, .internal, .public, .open, .package]
+        let modifiers = node.modifiers.filter { modifier in
+            if case .keyword(let keyword) = modifier.name.tokenKind { return !access.contains(keyword) }
+            return true
+        }
+        let isAsync = modifiers.count == 1 && modifiers.first?.name.tokenKind == .keyword(.async)
             && node.bindingSpecifier.tokenKind == .keyword(.let)
         // `weak var x: T?`: it holds its instance without keeping it alive.
-        let isWeak = node.modifiers.count == 1 && (node.modifiers.first?.name.tokenKind == .keyword(.weak) || node.modifiers.first?.name.tokenKind == .keyword(.unowned))
-        guard node.attributes.isEmpty, node.modifiers.isEmpty || isAsync || isWeak else { throw unsupported("a modifier on a variable", node) }
+        let isWeak = modifiers.count == 1 && (modifiers.first?.name.tokenKind == .keyword(.weak) || modifiers.first?.name.tokenKind == .keyword(.unowned))
+        guard node.attributes.isEmpty, modifiers.isEmpty || isAsync || isWeak else { throw unsupported("a modifier on a variable", node) }
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
         var statements: [Statement] = []
         for binding in node.bindings {
@@ -99,8 +105,29 @@ extension Lowering {
             } else {
                 throw unsupported("this variable", binding)
             }
-            guard binding.accessorBlock == nil else { throw unsupported("this variable", binding) }
-            guard let initializer = binding.initializer else { throw unsupported("a variable without a value", binding) }
+            if binding.accessorBlock != nil {
+                guard !isAsync, !isWeak, binding.initializer == nil, name != "_", let annotation = binding.typeAnnotation else {
+                    throw unsupported("this variable", binding)
+                }
+                statements += try computedVariable(name, type: try type(annotation.type), binding)
+                continue
+            }
+            // `var x: Int?` starts as nil; `let y: Int` is given its value later.
+            guard let initializer = binding.initializer else {
+                guard let annotation = binding.typeAnnotation, !isAsync else { throw unsupported("a variable without a value", binding) }
+                let written = try type(annotation.type)
+                if isWeak {
+                    if name != "_" { bind(name) }
+                    statements.append(.declare(name: name, mutable: true, value: .call(.variable("$weak"), [Argument(value: .annotated(.literal(.nothing), .optional(written)))])))
+                } else if case .optional = written {
+                    if name != "_" { bind(name) }
+                    statements.append(.declare(name: name, mutable: true, value: .annotated(.literal(.nothing), written)))
+                } else {
+                    if name != "_" { bind(name) }
+                    statements.append(.declare(name: name, mutable: true, value: .call(.variable("$uninitialized"), [])))
+                }
+                continue
+            }
             var value = try expression(initializer.value)
             if isAsync {
                 let operation = ClosureLiteral(
@@ -115,6 +142,48 @@ extension Lowering {
             if isWeak { value = .call(.variable("$weak"), [Argument(value: value)]) }
             if name != "_" { bind(name) }
             statements.append(.declare(name: name, mutable: mutable, value: value))
+        }
+        return statements
+    }
+
+    /// `var total: Int { get { … } set { … } }` outside a type: a getter function, and a setter if there is one,
+    /// which a read and an assignment of the name call.
+    private mutating func computedVariable(_ name: String, type: TypeAnnotation, _ binding: PatternBindingSyntax) throws -> [Statement] {
+        guard let accessors = binding.accessorBlock else { return [] }
+        var getter: CodeBlockItemListSyntax?
+        var setter: CodeBlockItemListSyntax?
+        var newValue = "newValue"
+        switch accessors.accessors {
+        case .getter(let body): getter = body
+        case .accessors(let list):
+            for accessor in list {
+                guard let body = accessor.body?.statements else { throw unsupported("an accessor without a body", accessor) }
+                switch accessor.accessorSpecifier.tokenKind {
+                case .keyword(.get): getter = body
+                case .keyword(.set): setter = body; newValue = accessor.parameters?.name.text ?? "newValue"
+                default: throw unsupported("this accessor on a variable", accessor)
+                }
+            }
+        }
+        guard let getter else { throw unsupported("a variable without a getter", binding) }
+        declaredTypes.insert(name + "%")
+        func lowered(_ body: CodeBlockItemListSyntax, parameters: [Parameter]) throws -> Program {
+            locals.append(Set(parameters.map(\.name)))
+            let outer = leaving
+            leaving = Leaving(function: leaving.function + 1)
+            defer { locals.removeLast(); leaving = outer }
+            return try block(body, scoped: false)
+        }
+        var statements = [Statement.function(FunctionDecl(
+            name: "$get_" + name, parameters: [], returnType: type, body: try lowered(getter, parameters: []),
+            names: NamesUsed(names: names(in: getter))
+        ))]
+        if let setter {
+            let parameter = Parameter(label: nil, name: newValue, type: type)
+            statements.append(.function(FunctionDecl(
+                name: "$set_" + name, parameters: [parameter], returnType: nil, body: try lowered(setter, parameters: [parameter]),
+                names: NamesUsed(names: names(in: setter))
+            )))
         }
         return statements
     }
@@ -266,7 +335,8 @@ extension Lowering {
         tryDepth = 0
         leaving = Leaving(function: leaving.function + 1)
         anonymous.append(false)
-        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast() }
+        functionNames.append(name + "(" + parameters.map { ($0.label ?? "_") + ":" }.joined() + ")")
+        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast(); functionNames.removeLast() }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: name, parameters: parameters, returnType: returnType, body: program,
@@ -352,12 +422,24 @@ extension Lowering {
         let outerParameters = typeParameters
         typeParameters.formUnion(genericParameters(generics, where: whereClause).keys)
         defer { typeParameters = outerParameters }
-        let inherited = inheritance?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        // `Base<String>` is Base: its arguments only say what it holds.
+        let inherited = inheritance?.inheritedTypes.map { inheritedType -> String in
+            let text = inheritedType.type.trimmedDescription
+            return text.firstIndex(of: "<").map { String(text[..<$0]) } ?? text
+        } ?? []
         try checkProtocols(inherited)
         let qualified = typePrefix + written
         var members = StructDecl(name: qualified, properties: [], methods: [], initializers: [], conformances: [])
         var declaration = ClassDecl(name: qualified, inherited: inherited, members: members, deinitializer: nil, isActor: isActor)
-        let (instanceMembers, staticMembers) = memberNames(of: block)
+        var (instanceMembers, staticMembers) = memberNames(of: block)
+        // What it inherits from the classes above, which its bodies name as their own.
+        var above = inherited.first
+        var seen: Set<String> = []
+        while let superclass = above, seen.insert(superclass).inserted {
+            let prefix = superclass + "#"
+            for marker in declaredTypes where marker.hasPrefix(prefix) { instanceMembers.insert(String(marker.dropFirst(prefix.count))) }
+            above = declaredTypes.first { $0.hasPrefix(superclass + "^") }.map { String($0.dropFirst(superclass.count + 1)) }
+        }
         self.members.append(instanceMembers)
         let outer = enter(type: written, members: block)
         defer { self.members.removeLast(); (typePrefix, currentType, nestedNames) = outer }
@@ -380,7 +462,14 @@ extension Lowering {
 
     /// A type's body: its properties, methods, initializers, subscripts and the types inside it.
     mutating func lowerMembers(of block: MemberBlockSyntax, owner qualified: String, staticMembers: Set<String>, into declaration: inout StructDecl) throws {
+        // A `typealias` inside a type, which the members name.
         for member in block.members {
+            if let alias = member.decl.as(TypeAliasDeclSyntax.self), alias.genericParameterClause == nil {
+                aliases[alias.name.text] = try type(alias.initializer.value)
+            }
+        }
+        for member in block.members {
+            if member.decl.is(TypeAliasDeclSyntax.self) { continue }
             if let variable = member.decl.as(VariableDeclSyntax.self) {
                 let isStaticMember = isStatic(variable.modifiers)
                 staticContext = isStaticMember ? (qualified, staticMembers) : nil
@@ -429,7 +518,8 @@ extension Lowering {
     private mutating func protocolDeclaration(_ node: ProtocolDeclSyntax) throws -> ProtocolDecl {
         let name = typePrefix + node.name.text
         var declaration = ProtocolDecl(name: name)
-        declaration.inherited = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        // `protocol P: class` limits it to classes, as AnyObject does.
+        declaration.inherited = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription == "class" ? "AnyObject" : $0.type.trimmedDescription } ?? []
         try checkProtocols(declaration.inherited)
         // The types the conforming type chooses are only known to it.
         let outerParameters = typeParameters
@@ -558,7 +648,11 @@ extension Lowering {
     /// for); the second are markers Swift's own code writes, with nothing to
     /// check or do yet.
     static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error",
-                                 "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject", "CustomDebugStringConvertible"]
+                                 "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject", "CustomDebugStringConvertible",
+                                 "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection", "RangeReplaceableCollection",
+                                 "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger",
+                                 "FloatingPoint", "BinaryFloatingPoint", "IteratorProtocol", "LosslessStringConvertible", "Identifiable",
+                                 "ExpressibleByArrayLiteral", "ExpressibleByStringLiteral", "ExpressibleByIntegerLiteral"]
 
     func isStatic(_ modifiers: DeclModifierListSyntax) -> Bool {
         modifiers.contains { $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class) }
@@ -577,6 +671,10 @@ extension Lowering {
     private mutating func storedAndComputedProperties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
         var properties: [PropertyDecl] = []
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
+        // An accessor is a function: `return` leaves it.
+        let outer = leaving
+        leaving = Leaving(function: leaving.function + 1)
+        defer { leaving = outer }
         for binding in node.bindings {
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { throw unsupported("this property", binding) }
             let type = try binding.typeAnnotation.map { try self.type($0.type) }
@@ -754,10 +852,13 @@ extension Lowering {
             }
             if let alias = aliases[name] { return alias }
             if name == "Self", let current = currentType { return .named(current) }
+            if name == "AnyObject", bound[name] == nil, !declaredTypes.contains(name) { return .any }
             if typeParameters.contains(name) { return .parameter(name) }
             if let nested = nestedNames[name] { return .named(nested) }
             if let spelled = TypeAnnotation.spelled(name) { return spelled }
             if name == "Void" { return .void }
+            // `any Collection`, `any Numeric`: Swift's protocols as types hold any value.
+            if Lowering.protocols.contains(name), bound[name] != .type, !declaredTypes.contains(name) { return .any }
             guard declaredTypes.contains(name) || bound[name] == .type else { throw SyntaxError("unknown type '\(name)'") }
             return .named(name)
         }
@@ -771,6 +872,10 @@ extension Lowering {
         if let array = node.as(ArrayTypeSyntax.self) { return .list(try type(array.element)) }
         if let dictionary = node.as(DictionaryTypeSyntax.self) { return .dictionary(try type(dictionary.key), try type(dictionary.value)) }
         if let optional = node.as(OptionalTypeSyntax.self) { return .optional(try type(optional.wrappedType)) }
+        // `Foo!`: an optional that is taken to hold a value.
+        if let optional = node.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) { return .optional(try type(optional.wrappedType)) }
+        // `T.Type`, `Any.Type`: the type itself as a value.
+        if let metatype = node.as(MetatypeTypeSyntax.self) { _ = try type(metatype.baseType); return .any }
         if let tuple = node.as(TupleTypeSyntax.self) {
             if tuple.elements.isEmpty { return .void }
             if tuple.elements.count == 1, let only = tuple.elements.first, only.firstName == nil { return try type(only.type) }
@@ -792,7 +897,13 @@ extension Lowering {
         if let attributed = node.as(AttributedTypeSyntax.self) { return try type(attributed.baseType) }
         // `any Shape`, `some Shape`: the protocol's type; `A & B`, the first, which the others add to.
         if let existential = node.as(SomeOrAnyTypeSyntax.self) { return try type(existential.constraint) }
-        if let composition = node.as(CompositionTypeSyntax.self), let first = composition.elements.first { return try type(first.type) }
+        if let composition = node.as(CompositionTypeSyntax.self), let first = composition.elements.first {
+            let parts = try composition.elements.map { try type($0.type) }
+            let names = parts.compactMap { part -> String? in if case .named(let name) = part { name } else { nil } }
+            // Protocols together: `A & B`. Anything else stands for the first.
+            if names.count == parts.count, names.count > 1 { return .named(names.joined(separator: " & ")) }
+            return try type(first.type)
+        }
         throw unsupported("this type", node)
     }
 

@@ -218,7 +218,13 @@ extension Interpreter {
             throw RuntimeError("\(set.name): no overload accepts these arguments; candidates:\n"
                 + set.candidates.map { "  " + $0.signature }.joined(separator: "\n"))
         }
-        let bestMatches = matches.filter { $0.penalty == best }
+        var bestMatches = matches.filter { $0.penalty == best }
+        // Of equals, a function that takes a type itself beats one generic in it, as in Swift.
+        if bestMatches.count > 1 {
+            let generic = { (function: Function) in function.parameters.filter { if case .parameter = $0.type { true } else { false } }.count }
+            let fewest = bestMatches.map { generic($0.function) }.min()!
+            bestMatches = bestMatches.filter { generic($0.function) == fewest }
+        }
         guard bestMatches.count == 1 else {
             throw RuntimeError("\(set.name): ambiguous call; these overloads all match:\n"
                 + bestMatches.map { "  " + $0.function.signature }.joined(separator: "\n"))

@@ -39,6 +39,13 @@ extension TypeChecker {
             throw TypeError("\(name): no overload accepts these arguments; candidates:\n" + list.joined(separator: "\n"))
         }
         let winners = fitting.filter { $0.cost == best }
+        if winners.count > 1, !winners.contains(where: \.uncertain), let specific = mostSpecific(winners.map(\.signature)),
+           let position = winners.firstIndex(where: { $0.signature.index == specific.index }) {
+            arguments = winners[position].arguments
+            throwingSites = winners[position].sites
+            lastThrown = winners[position].signature.thrownType
+            return winners[position].signature
+        }
         if winners.count > 1 {
             if winners.contains(where: \.uncertain) { return nil }
             throw TypeError("\(name): ambiguous call; these overloads all match:\n"
@@ -48,6 +55,39 @@ extension TypeChecker {
         throwingSites = winners[0].sites
         lastThrown = winners[0].signature.thrownType
         return winners[0].signature
+    }
+
+    /// Of overloads that all fit, the one Swift prefers: with fewer generic parameters, or constraints that
+    /// refine the others' (`T: P3` over `T: P1` when P3 takes in P1).
+    func mostSpecific(_ candidates: [Signature]) -> Signature? {
+        func genericCount(_ signature: Signature) -> Int {
+            func count(_ type: TypeAnnotation) -> Int {
+                switch type {
+                case .parameter: 1
+                case .list(let e), .optional(let e), .someSequence(let e), .inOut(let e): count(e)
+                case .dictionary(let k, let v): count(k) + count(v)
+                case .generic(_, let arguments): arguments.map(count).reduce(0, +)
+                case .functionType(let parameters, let result, _, _): parameters.map(count).reduce(0, +) + count(result)
+                case .tuple(let elements): elements.map { count($0.type) }.reduce(0, +)
+                default: 0
+                }
+            }
+            return signature.parameters.map { count($0.type) }.reduce(0, +)
+        }
+        let fewest = candidates.map(genericCount).min()!
+        let narrowed = candidates.filter { genericCount($0) == fewest }
+        if narrowed.count == 1 { return narrowed[0] }
+        // `a` refines `b` when each of b's constraints is among what a's constraints take in.
+        func refines(_ a: Signature, _ b: Signature) -> Bool {
+            b.generics.allSatisfy { parameter, protocols in
+                let have = Set((a.generics[parameter] ?? []).flatMap(protocolClosure))
+                return protocols.allSatisfy { have.contains($0) }
+            }
+        }
+        let best = narrowed.filter { a in narrowed.allSatisfy { b in refines(a, b) } }
+        // Equal in every way is no preference.
+        guard best.count == 1 else { return nil }
+        return best[0]
     }
 
     func describe(_ signature: Signature) -> String {

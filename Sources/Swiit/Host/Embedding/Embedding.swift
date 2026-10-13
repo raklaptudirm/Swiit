@@ -128,11 +128,17 @@ extension Interpreter {
         nonisolated(unsafe) let interpreter = self
         let print = hostFunction(ExportedFunction(
             name: "print", summary: "Writes its arguments to the output, separated by spaces, then a newline.",
-            parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true)], returnType: nil,
+            parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true),
+                         ExportedParameter(label: "separator", name: "separator", type: .string, defaultValue: .string(" ")),
+                         ExportedParameter(label: "terminator", name: "terminator", type: .string, defaultValue: .string("\n"))],
+            returnType: nil,
             call: { arguments in
                 guard case .list(let items)? = arguments["items"] else { return .nothing }
-                let line = try items.map { try interpreter.describing($0) }.joined(separator: " ")
-                interpreter.host.output.write(line + "\n")
+                var separator = " ", terminator = "\n"
+                if case .string(let text)? = arguments["separator"] { separator = text }
+                if case .string(let text)? = arguments["terminator"] { terminator = text }
+                let line = try items.map { try interpreter.describing($0) }.joined(separator: separator)
+                interpreter.host.output.write(line + terminator)
                 return .nothing
             }
         ))

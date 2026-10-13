@@ -9,9 +9,11 @@ extension TypeChecker {
         if case .variable(let name) = callee, let symbol = lookup(name) {
             switch symbol {
             case .structType(let info):
-                let candidates = info.initializers.isEmpty ? [info.memberwise] : info.initializers
+                // What an extension adds goes after the type's own.
+                let added = extensionInfo(forKey: name)?.initializers ?? []
+                let candidates = (info.initializers.isEmpty ? [info.memberwise] : info.initializers) + added
                 let chosen = try resolve(candidates, &arguments, name: name)
-                if let chosen, !info.initializers.isEmpty, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
+                if let chosen, !info.initializers.isEmpty, !info.isClass, added.isEmpty { callee = .chosen(callee, overload: chosen.index) }
                 if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
                 if let chosen { try effectSite(chosen.effect, "\(name).init") }
                 return chosen?.returns ?? .named(name)
@@ -137,9 +139,10 @@ extension TypeChecker {
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
         if name == "init", case .named(let structName) = base, let info = structInfo(named: structName),
            lookup("$initializing") != nil {
-            let candidates = info.initializers.isEmpty ? [info.memberwise] : info.initializers
+            let added = extensionInfo(forKey: structName)?.initializers ?? []
+            let candidates = (info.initializers.isEmpty ? [info.memberwise] : info.initializers) + added
             guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
-            if candidates.count > 1, !info.initializers.isEmpty, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
+            if candidates.count > 1, !info.initializers.isEmpty, !info.isClass, added.isEmpty { callee = .chosen(callee, overload: chosen.index) }
             if chosen.isThrowing { try throwingSite("init") }
             return .void
         }

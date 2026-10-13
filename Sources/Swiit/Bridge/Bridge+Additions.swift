@@ -140,6 +140,13 @@ extension Bridge {
         "Array": [reduceInto, lazyMember(.parameter("Element"))], "Set": [reduceInto, lazyMember(.parameter("Element"))],
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))], "Range": [reduceInto, lazyMember(.parameter("Bound"))],
         "Flow": [
+            member(.method, "reversed", returns: .generic("Flow", [.parameter("Element")]), summary: "The items in the opposite order.") { _, arguments in
+                guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing, let flow = box.value as? Flow<Value> else { return .nothing }
+                var items: [Value] = []
+                while let item = try flow.read() { items.append(item) }
+                var reversed = items.reversed().makeIterator()
+                return SwiftValue.make(Flow<Value> { reversed.next() }, as: "Flow")
+            },
             member(.property, "first", returns: .optional(.parameter("Element")),
                    summary: "The first item, if there is one.") { _, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing, let flow = box.value as? Flow<Value> else { return .nothing }

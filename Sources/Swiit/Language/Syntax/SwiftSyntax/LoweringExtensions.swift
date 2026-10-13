@@ -31,7 +31,6 @@ extension Lowering {
         for property in declaration.properties where property.getter == nil {
             throw SyntaxError("an extension can't add a stored property: '\(property.name)' (line \(line(of: node)))")
         }
-        guard declaration.initializers.isEmpty else { throw unsupported("an initializer in an extension", node) }
         guard declaration.subscripts.isEmpty else { throw unsupported("a subscript in an extension", node) }
         return takeNested() + [.typeExtension(ExtensionDecl(typeName: target, members: declaration, conformances: conformances))]
     }

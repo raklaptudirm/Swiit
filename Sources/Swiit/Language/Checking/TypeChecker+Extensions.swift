@@ -9,6 +9,7 @@ struct ExtensionInfo {
     var staticProperties: [PropertyDecl] = []
     var staticMethods: [String: [Signature]] = [:]
     var conformances: [String] = []
+    var initializers: [Signature] = []
 
     typealias Signature = TypeChecker.Signature
 
@@ -19,6 +20,7 @@ struct ExtensionInfo {
         staticProperties += other.staticProperties
         for (name, signatures) in other.staticMethods { staticMethods[name, default: []] += signatures.map { var s = $0; s.index = staticMethods[name]?.count ?? 0; return s } }
         conformances += other.conformances
+        initializers += other.initializers
     }
 }
 
@@ -112,6 +114,11 @@ extension TypeChecker {
         info.staticProperties = members.staticProperties
         info.staticMethods = signatures(members.staticMethods)
         info.conformances = decl.conformances
+        info.initializers = members.initializers.map { initializer in
+            Signature(name: "\(decl.typeName).init", parameters: initializer.parameters,
+                      returns: initializer.isFailable ? .optional(.named(decl.typeName)) : .named(decl.typeName),
+                      isMutating: true, isThrowing: initializer.isThrowing)
+        }
         if var existing = localExtensions[decl.typeName] { existing.merge(info); localExtensions[decl.typeName] = existing }
         else { localExtensions[decl.typeName] = info }
     }
@@ -178,6 +185,12 @@ extension TypeChecker {
             var function = members.staticMethods[index]
             try checkFunction(&function)
             members.staticMethods[index].body = function.body
+        }
+        for index in members.initializers.indices {
+            var function = members.initializers[index]
+            function.name = "init"
+            try checkFunction(&function, self: selfType, initializing: true)
+            members.initializers[index].body = function.body
         }
         decl.members = members
         for proto in decl.conformances { try checkConformance(of: decl.typeName, to: proto) }

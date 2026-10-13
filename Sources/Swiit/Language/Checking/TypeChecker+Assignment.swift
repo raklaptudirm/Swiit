@@ -105,6 +105,12 @@ extension TypeChecker {
                 guard settable else { throw TypeError("cannot assign through \(structName)'s subscript: it's get-only") }
                 type = result
                 assignment.path[index] = .subscripted(arguments)
+            case .optionalChain:
+                guard case .optional(let wrapped) = type else { throw TypeError("'?' needs an optional, not \(type)") }
+                type = wrapped
+            case .unwrap:
+                guard case .optional(let wrapped) = type else { throw TypeError("'!' needs an optional, not \(type)") }
+                type = wrapped
             case .indexDefault(var key, var fallback):
                 guard case .dictionary(let keyType, let valueType) = type else {
                     throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")

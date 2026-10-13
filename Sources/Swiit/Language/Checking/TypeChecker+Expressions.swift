@@ -166,7 +166,14 @@ extension TypeChecker {
         case .tuple(var elements):
             if elements.isEmpty { return .void }
             var wanted: [TypeAnnotation.TupleElement]?
-            if case .tuple(let elementTypes)? = expected, elementTypes.count == elements.count { wanted = elementTypes }
+            if case .tuple(let elementTypes)? = expected, elementTypes.count == elements.count {
+                wanted = elementTypes
+                // `(hi: 2, lo: 1)` where `(lo:, hi:)` is wanted: Swift reorders by the labels.
+                let written = elements.map(\.label), labels = elementTypes.map(\.label)
+                if !written.contains(nil), !labels.contains(nil), written != labels, Set(written.compactMap { $0 }) == Set(labels.compactMap { $0 }) {
+                    elements = labels.compactMap { label in elements.first { $0.label == label } }
+                }
+            }
             var types: [TypeAnnotation.TupleElement] = []
             for index in elements.indices {
                 types.append(.init(label: elements[index].label, type: try typeOf(&elements[index].value, expecting: wanted?[index].type)))
@@ -239,6 +246,18 @@ extension TypeChecker {
             expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
             return type
         case .caseLiteral(let name, var arguments):
+            // `.none` and `.some(x)`, where an optional is wanted.
+            if case .optional(let wrapped)? = expected {
+                if name == "none", arguments == nil {
+                    expr = .literal(.nothing)
+                    return .optional(wrapped)
+                }
+                if name == "some", var payload = arguments, payload.count == 1 {
+                    try expect(&payload[0].value, wrapped, "the wrapped value")
+                    expr = .call(.variable("$some"), payload)
+                    return .optional(wrapped)
+                }
+            }
             let type = try caseType(name, &arguments, expected: expected)
             // Written out with its enum, so running it needs no context.
             var enumTypeName: String?

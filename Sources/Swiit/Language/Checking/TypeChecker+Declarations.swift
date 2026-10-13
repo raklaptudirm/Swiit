@@ -14,8 +14,12 @@ extension TypeChecker {
                   case .function(let set as OverloadSet) = binding.value {
             // At the top, it joins what earlier entries declared.
             overloads = set.candidates.map(signature)
+        } else if scopes.count == 1, let binding = interpreter.scopes.first?.bindings[decl.name], binding.isFunction,
+                  case .function(let set as OverloadSet) = binding.value {
+            // A builtin of that name is overloaded, not replaced.
+            overloads = set.candidates.map(signature)
         }
-        overloads.removeAll { sameParameters($0.parameters, decl.parameters) }
+        overloads.removeAll { sameParameters($0.parameters, decl.parameters) && $0.generics == decl.generics }
         var declared = Signature(
             name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
             isRethrowing: decl.isRethrowing, effect: decl.effect, generics: decl.generics
@@ -297,7 +301,15 @@ extension TypeChecker {
 
     /// Protocols a type conforms to by saying so, whatever its members are:
     /// it describes itself, or can be thrown.
-    static let askNothingOfMembers: Set = ["CustomStringConvertible", "Error", "CaseIterable", "Sendable", "Decodable", "Codable"]
+    static let askNothingOfMembers: Set<String> = Set(["CustomStringConvertible", "Error", "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject"])
+        .union(looseProtocols)
+    /// Swift's protocols that Swiit takes on trust: a type that says it has one is believed, and a generic asking for one is given any type.
+    static let looseProtocols: Set<String> = [
+        "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection", "RangeReplaceableCollection",
+        "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger", "FloatingPoint",
+        "BinaryFloatingPoint", "IteratorProtocol", "LosslessStringConvertible", "Identifiable",
+        "ExpressibleByArrayLiteral", "ExpressibleByStringLiteral", "ExpressibleByIntegerLiteral",
+    ]
 
     func enumInfo(_ decl: EnumDecl) -> EnumInfo {
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {

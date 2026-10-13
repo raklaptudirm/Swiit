@@ -126,7 +126,12 @@ extension Interpreter {
                 body: .swiit(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
                 isThrowing: decl.isThrowing, effect: decl.effect
             )
-            scopes[scopes.count - 1].declare(function, named: decl.name)
+            // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_ items: Any...)`.
+            let current = scopes[scopes.count - 1]
+            if current.bindings[decl.name] == nil, scopes.count > 1, let builtin = scopes[0].bindings[decl.name], builtin.isFunction {
+                current.bindings[decl.name] = builtin
+            }
+            current.declare(function, named: decl.name)
         case .enumDecl(let decl):
             try declare(decl)
         case .expression(let expr):

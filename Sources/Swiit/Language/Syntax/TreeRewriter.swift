@@ -34,7 +34,7 @@ import SwiitKit
                 case .index(let index): .index(expression(index))
                 case .indexDefault(let key, let fallback): .indexDefault(expression(key), expression(fallback))
                 case .subscripted(let list): .subscripted(arguments(list))
-                case .member: step
+                case .member, .unwrap, .optionalChain: step
                 }
             }
             assignment.value = expression(assignment.value)
@@ -172,6 +172,7 @@ import SwiitKit
         case .expression(let inner): .expression(expression(inner))
         case .cast(let inner, let type): .cast(pattern(inner), type)
         case .isType: value
+        case .some(let inner): .some(pattern(inner))
         case .tuple(let patterns): .tuple(patterns.map(pattern))
         case .partialRange(let lower, let upper, let closed): .partialRange(lower: lower.map(expression), upper: upper.map(expression), closed: closed)
         }
@@ -187,6 +188,7 @@ import SwiitKit
         var copy = closure
         copy.parameters = closure.parameters.map(parameter)
         copy.body = program(closure.body)
+        copy.captures = closure.captures.map { ClosureLiteral.Capture(name: $0.name, value: expression($0.value), isWeak: $0.isWeak) }
         return copy
     }
 

@@ -10,7 +10,13 @@ extension Lowering {
         case .stmt(let stmt):
             if let node = stmt.as(GuardStmtSyntax.self) { return try guardStatements(node) }
             return [try statementNode(stmt)]
-        case .expr(let expr): return [try expressionStatement(expr)]
+        case .expr(let expr):
+            if let node = expr.as(InfixOperatorExprSyntax.self) {
+                if let statements = try tupleAssignment(node) { return statements }
+                if let statements = try computedAssignment(node) { return statements }
+                if let statements = try customCompound(node) { return statements }
+            }
+            return [try expressionStatement(expr)]
         }
     }
 
@@ -193,7 +199,6 @@ extension Lowering {
     }
 
     private mutating func forLoop(_ node: ForStmtSyntax, label: String? = nil) throws -> ForLoop {
-        guard node.whereClause == nil else { throw unsupported("this 'for'", node) }
         // A name, `_`, or a tuple of them: `for (i, x) in …`.
         let bound = locals
         let pattern = try self.pattern(node.pattern, mutable: false)
@@ -203,7 +208,19 @@ extension Lowering {
         leaving.loop += 1
         if let label { leaving.labels.append(label) }
         defer { locals.removeLast(); leaving.loop -= 1; if label != nil { leaving.labels.removeLast() } }
-        return ForLoop(pattern: pattern, sequence: sequence, body: try block(node.body.statements, scoped: false),
+        var body = try block(node.body.statements, scoped: false)
+        // `for x in xs where c { … }`: the body runs for the items `c` holds for.
+        if let clause = node.whereClause {
+            let condition = try expression(clause.condition)
+            body = Program(statements: [.ifStatement(IfStatement(condition: .expression(condition), then: body))], lines: [line(of: clause)])
+        }
+        // `for case let x? in xs`: the body runs for the items that match the pattern.
+        if node.caseKeyword != nil {
+            body = Program(statements: [.ifStatement(IfStatement(condition: .pattern(pattern, .variable("$item")), then: body))], lines: [line(of: node)])
+            return ForLoop(pattern: .binding(name: "$item", mutable: false), sequence: sequence, body: body,
+                           isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil, label: label)
+        }
+        return ForLoop(pattern: pattern, sequence: sequence, body: body,
                        isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil, label: label)
     }
 
@@ -296,6 +313,8 @@ extension Lowering {
 
     /// `.failed(code: let c)`, `Result.failed`, `.a`, or a value to compare with.
     private mutating func expressionPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
+        // `let x?`: what isn't nil.
+        if let node = expr.as(OptionalChainingExprSyntax.self) { return .some(try argumentPattern(node.expression, mutable: mutable)) }
         // `5...`, `..<3`, `...9`.
         if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text == "..." {
             return .partialRange(lower: try expression(node.expression), upper: nil, closed: true)
@@ -363,6 +382,7 @@ enum SwitchBinding {
         case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
         case .cast(let inner, _): names(boundBy: inner)
         case .tuple(let patterns): patterns.flatMap { names(boundBy: $0) }
+        case .some(let inner): names(boundBy: inner)
         case .wildcard, .expression, .isType, .partialRange: []
         }
     }

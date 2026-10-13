@@ -70,9 +70,23 @@ extension Interpreter {
         case .member(let base, let name):
             return try member(name, of: try evaluate(base))
         case .closure(let literal):
+            // What the capture list names is taken by it, not by the scope around.
+            var used = literal.names
+            used.names.subtract(literal.captures.map(\.name))
+            var captured = captureScopes(used)
+            // `[weak self, n]`: values taken now, which the body sees first.
+            if !literal.captures.isEmpty {
+                let scope = Scope()
+                for capture in literal.captures {
+                    var value = try evaluate(capture.value)
+                    if capture.isWeak, case .object(let instance as ClassInstance) = value { value = .object(WeakReference(instance)) }
+                    scope.bindings[capture.name] = Binding(value: value, mutable: false)
+                }
+                captured.append(scope)
+            }
             return .function(Function(
                 name: nil, parameters: literal.parameters, returnType: literal.returnType,
-                body: .swiit(literal.body), captured: captureScopes(literal.names)
+                body: .swiit(literal.body), captured: captured
             ))
         case .childTask(let literal):
             let operation = try evaluate(.closure(literal))

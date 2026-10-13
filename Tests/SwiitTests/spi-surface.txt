@@ -31,6 +31,7 @@ Language/Checking/TypeChecker+Statements.swift	Layer func checkHandled
 Language/Checking/TypeChecker+Statements.swift	Layer func throwingSite
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func conforms
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func erased
+Language/Checking/TypeChecker+TypeRelations.swift	Layer func erasedName
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func fits
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func substitute
 Language/Checking/TypeChecker+TypeRelations.swift	Layer func unify
@@ -91,6 +92,7 @@ Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer struct Assignment
+Language/Syntax/Declarations.swift	Layer struct Capture
 Language/Syntax/Declarations.swift	Layer struct ClassDecl
 Language/Syntax/Declarations.swift	Layer struct ClosureLiteral
 Language/Syntax/Declarations.swift	Layer struct ExtensionDecl
@@ -99,6 +101,7 @@ Language/Syntax/Declarations.swift	Layer struct NamesUsed
 Language/Syntax/Declarations.swift	Layer struct PropertyDecl
 Language/Syntax/Declarations.swift	Layer struct ProtocolDecl
 Language/Syntax/Declarations.swift	Layer struct StructDecl
+Language/Syntax/Declarations.swift	Layer var captures
 Language/Syntax/Declarations.swift	Layer var defaultValue
 Language/Syntax/Declarations.swift	Layer var defaultValue
 Language/Syntax/Declarations.swift	Layer var documentation
@@ -109,8 +112,10 @@ Language/Syntax/Declarations.swift	Layer var isAutoclosure
 Language/Syntax/Declarations.swift	Layer var isInput
 Language/Syntax/Declarations.swift	Layer var isMutating
 Language/Syntax/Declarations.swift	Layer var isThrowing
+Language/Syntax/Declarations.swift	Layer var isWeak
 Language/Syntax/Declarations.swift	Layer var label
 Language/Syntax/Declarations.swift	Layer var methods
+Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var name
@@ -127,6 +132,7 @@ Language/Syntax/Declarations.swift	Layer var summary
 Language/Syntax/Declarations.swift	Layer var thrownType
 Language/Syntax/Declarations.swift	Layer var type
 Language/Syntax/Declarations.swift	Layer var type
+Language/Syntax/Declarations.swift	Layer var value
 Language/Syntax/Declarations.swift	Layer var value
 Language/Syntax/Declarations.swift	Layer var variadic
 Language/Syntax/Expressions.swift	Layer enum BinaryOperator

@@ -51,6 +51,6 @@ let package = Package(
         ),
         .testTarget(name: "SwiitKitTests", dependencies: ["SwiitKit"]),
         // boundaries.txt and spi-surface.txt are data the boundary tests read from the source tree.
-        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "spi-surface.txt", "programs.txt", "parity.json", "Goldens"]),
+        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "spi-surface.txt", "programs.txt", "parity.json", "parity-NOTICE.txt", "Goldens"]),
     ]
 )

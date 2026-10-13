@@ -178,6 +178,8 @@ extension Interpreter {
         case .bitXor: return .int(a ^ b)
         case .shiftLeft: return .int(a << b)
         case .shiftRight: return .int(a >> b)
+        case .maskShiftLeft: return .int(a &<< b)
+        case .maskShiftRight: return .int(a &>> b)
         case .wrapAdd: return .int(a &+ b)
         case .wrapSubtract: return .int(a &- b)
         case .wrapMultiply: return .int(a &* b)

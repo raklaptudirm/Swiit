@@ -167,6 +167,14 @@ extension Interpreter {
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
     public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
+        case .named(let name) where name.contains(" & "):
+            // `A & B`: a value that is each.
+            var held = value
+            for part in name.components(separatedBy: " & ") {
+                guard let conforming = conform(held, to: .named(part)) else { return nil }
+                held = conforming
+            }
+            return held
         case .named(let name):
             // A class of the program's: an instance of it or of a subclass.
             if let type = classType(named: name) {
@@ -208,6 +216,17 @@ extension Interpreter {
                 converted.append(conforming)
             }
             return .list(converted)
+        case .tuple(let elements):
+            // Each element as its own type, which may be a protocol of the program's.
+            guard case .record(let record) = value, record.typeName == nil, record.count == elements.count else {
+                return value.conforming(to: type)
+            }
+            var made = Record()
+            for (element, field) in zip(elements, record) {
+                guard let conforming = conform(field.value, to: element.type) else { return nil }
+                made[element.label ?? field.key] = conforming
+            }
+            return .record(made)
         default:
             return value.conforming(to: type)
         }
@@ -274,6 +293,8 @@ extension Interpreter {
             return try match(inner, converted, into: &bindings)
         case .isType(let type):
             return conform(value, to: type) != nil
+        case .some(let inner):
+            return value != .nothing ? try match(inner, value, into: &bindings) : false
         case .partialRange(let lower, let upper, let closed):
             if let lower, try apply(.less, value, try evaluate(lower)) == .bool(true) { return false }
             if let upper {

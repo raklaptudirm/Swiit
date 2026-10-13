@@ -32,6 +32,11 @@ extension TypeChecker {
             expectedResult = result
         }
         var names: [String: Symbol] = [:]
+        // `[weak self]`: what is taken, which is an optional if it is weak.
+        for index in closure.captures.indices {
+            let type = try typeOf(&closure.captures[index].value)
+            names[closure.captures[index].name] = .variable(closure.captures[index].isWeak ? .optional(type) : type, mutable: false)
+        }
         var parameterTypes: [TypeAnnotation] = []
         for (index, parameter) in closure.parameters.enumerated() {
             var type = parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type

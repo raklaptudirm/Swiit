@@ -64,7 +64,7 @@ public final class Function: Callable, @unchecked Sendable {
     /// Whether a new declaration would replace this one rather than overload it.
     public func hasSameSignature(as other: Function) -> Bool {
         let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)", "\(p.isInput)"] }
-        return parameters.map(signature) == other.parameters.map(signature)
+        return parameters.map(signature) == other.parameters.map(signature) && generics == other.generics
     }
 
     public var description: String {

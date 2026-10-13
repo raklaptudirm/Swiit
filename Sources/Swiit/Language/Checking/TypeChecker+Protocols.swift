@@ -30,6 +30,8 @@ extension TypeChecker {
 
     func protocolInfo(named name: String) -> ProtocolInfo? {
         if case .protocolType(let info)? = lookup(name) { return info }
+        // `A & B`: what both ask.
+        if name.contains(" & ") { return ProtocolInfo(name: name, inherited: name.components(separatedBy: " & ")) }
         return nil
     }
 

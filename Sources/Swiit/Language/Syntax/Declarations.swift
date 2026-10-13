@@ -88,6 +88,10 @@ extension FunctionDecl {
         case indexDefault(Expr, Expr)
         /// A subscript with several or labeled arguments.
         case subscripted([Argument])
+        /// `x!`: through an optional, which must hold a value.
+        case unwrap
+        /// `x?.p = v`, `x? += 1`: nothing happens if `x` is nil.
+        case optionalChain
     }
 
     var root: String
@@ -240,6 +244,15 @@ public struct Documentation: Equatable, Sendable {
     var names = NamesUsed()
     /// The result builder whose `buildBlock` the body was made into, once it has been.
     var builtBy: String?
+    /// `[weak self, count]`: values taken when the closure is made.
+    @_spi(Layer) public var captures: [Capture] = []
+
+    @_spi(Layer) public struct Capture: Equatable, Sendable {
+        @_spi(Layer) public var name: String
+        @_spi(Layer) public var value: Expr
+        /// `weak` makes it optional, nil once the instance is gone; `unowned` holds it as it is.
+        @_spi(Layer) public var isWeak: Bool
+    }
 
     @_spi(Layer) public init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
         self.parameters = parameters

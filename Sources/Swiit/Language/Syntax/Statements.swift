@@ -214,6 +214,8 @@ struct EnumCaseDecl: Equatable, Sendable {
     case tuple([Pattern])
     /// `5...`, `..<3`, `...9`: what is at least, below, or at most a bound.
     case partialRange(lower: Expr?, upper: Expr?, closed: Bool)
+    /// `let x?`: a value that isn't nil, matched as what it holds.
+    case some(Pattern)
 }
 
 extension Pattern {

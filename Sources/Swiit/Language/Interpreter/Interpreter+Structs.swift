@@ -215,7 +215,19 @@ extension Interpreter {
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
-        guard let initializers = type.initializers else {
+        // What an extension adds is tried when the type's own don't take the arguments.
+        var chosenInitializers = type.initializers
+        var overload = overload
+        if let added = typeExtensions[type.name]?.initializers {
+            let ownTakes: Bool
+            if let own = type.initializers {
+                ownTakes = (try? resolve(narrowed(own, overload)) { try self.bind(values, to: $0) }) != nil
+            } else {
+                ownTakes = (try? bind(values, to: type.memberwise)) != nil
+            }
+            if !ownTakes { chosenInitializers = added; overload = nil }
+        }
+        guard let initializers = chosenInitializers else {
             let bound = try bind(values, to: type.memberwise).bindings
             var record = Record(typeName: type.name)
             for property in type.stored {
@@ -497,6 +509,13 @@ extension Interpreter {
         guard let step = path.first else { return try change(base, type) }
         let rest = path.dropFirst()
         switch (step, base) {
+        case (.optionalChain, _):
+            // Nothing is nil's to change, and what would have been assigned isn't worked out.
+            guard base != .nothing else { return base }
+            return try updated(base, rest, type: type, initializing: initializing, change)
+        case (.unwrap, _):
+            guard base != .nothing else { throw RuntimeError("nil was unwrapped with '!'") }
+            return try updated(base, rest, type: type, initializing: initializing, change)
         case (.member(let name), .record(var record)):
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.

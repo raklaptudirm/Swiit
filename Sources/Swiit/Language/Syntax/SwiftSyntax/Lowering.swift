@@ -76,6 +76,8 @@ struct Lowering {
     var strictNames = false
     /// `typealias Name = Type`, which a type written as `Name` stands for.
     var aliases: [String: TypeAnnotation] = [:]
+    /// The functions around the code being lowered, innermost last, as `#function` names them.
+    var functionNames: [String] = []
     /// Inside a type: its name with the types around it (`Outer.Inner`), what `Self` is,
     /// the types declared in it by the short name they go by there, and those
     /// lowered but not yet put in the program (they come before the type holding them).
@@ -368,6 +370,18 @@ struct Lowering {
         else if let node = decl.as(ActorDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
         else { return }
         declaredTypes.insert(name)
+        // A class's members, and its superclass, for a subclass's bodies to name what it inherits.
+        if let node = decl.as(ClassDeclSyntax.self) {
+            if let first = node.inheritanceClause?.inheritedTypes.first { declaredTypes.insert(name + "^" + first.type.trimmedDescription) }
+            for member in block.members {
+                if let variable = member.decl.as(VariableDeclSyntax.self), !isStatic(variable.modifiers) {
+                    for binding in variable.bindings {
+                        if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { declaredTypes.insert(name + "#" + identifier.identifier.text) }
+                    }
+                }
+                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) { declaredTypes.insert(name + "#" + method.name.text) }
+            }
+        }
         // A result builder: its name, and the functions it has.
         let attributes = decl.as(StructDeclSyntax.self)?.attributes ?? decl.as(EnumDeclSyntax.self)?.attributes
             ?? decl.as(ClassDeclSyntax.self)?.attributes

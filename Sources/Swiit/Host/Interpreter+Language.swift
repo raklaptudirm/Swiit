@@ -82,6 +82,11 @@ extension Interpreter {
             },
             documentation: Documentation(summary: "A weak variable's initial value.", parameters: [:]), generics: ["T": []]
         ), named: "$weak")
+        // `let x: Int`, given its value later.
+        scopes[0].declare(Function(
+            name: "$uninitialized", parameters: [], returnType: nil, body: .native { _, _ in .nothing },
+            documentation: Documentation(summary: "A variable declared without a value.", parameters: [:])
+        ), named: "$uninitialized")
         // `Optional(x)`: x, as an optional.
         scopes[0].declare(Function(
             name: "$some", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),

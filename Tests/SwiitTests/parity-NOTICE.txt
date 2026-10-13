@@ -1,0 +1,5 @@
+Cases named "swift-test/…" in parity.json are programs from the Swift project's
+test/Interpreter directory (https://github.com/swiftlang/swift), licensed under
+the Apache License v2.0 with Runtime Library Exception. Each is run by swiftc, whose
+output is the expectation; the FileCheck lines in their comments are not used.
+Copyright (c) Apple Inc. and the Swift project authors.

@@ -3,6 +3,8 @@ import SwiitKit
 
 extension TypeChecker {
     /// A generic enum's type arguments say what its cases hold, and nothing else: its values are its name.
+    @_spi(Layer) public func erasedName(_ type: TypeAnnotation) -> String? { if case .named(let name) = erased(type) { name } else { nil } }
+
     @_spi(Layer) public func erased(_ type: TypeAnnotation) -> TypeAnnotation {
         switch type {
         case .generic(let name, _) where enumInfo(named: name) != nil: return .named(name)
@@ -22,8 +24,11 @@ extension TypeChecker {
         let actual = erased(actual), expected = erased(expected)
         if actual == expected || actual == .unknown || expected == .unknown || expected == .any { return true }
         // A protocol's type is any type that conforms to it.
-        if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil, case .named = actual {
-            return conforms(actual, to: protocolName)
+        if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil {
+            switch actual {
+            case .named, .int, .double, .string, .bool, .list, .dictionary, .generic: return conforms(actual, to: protocolName)
+            default: break
+            }
         }
         switch (actual, expected) {
         case (.optional(let a), .optional(let b)): return fits(a, b)
@@ -86,13 +91,20 @@ extension TypeChecker {
     @_spi(Layer) public func conforms(_ type: TypeAnnotation, to proto: String) -> Bool {
         // `=String`: a bridged member for one element type only
         // (`joined(separator:)` where Element == String).
+        if TypeChecker.looseProtocols.contains(proto) { return true }
+        if proto.contains(" & ") { return proto.components(separatedBy: " & ").allSatisfy { conforms(type, to: $0) } }
         if proto.hasPrefix("=") { return type == .unknown || type.description == String(proto.dropFirst()) }
         // A plain dynamic type (JSON) stands in for whatever it parsed as (see `conform`).
         if plainType(of: type)?.plain.standsForAnything == true { return true }
         // A Swift type conforms as it declares: Int, [T] where T does,
         // ClosedRange<Int>.
         if let (bridgedType, bindings) = bridged(type) {
-            return bridgedConforms(bridgedType, bindings, to: proto)
+            if bridgedConforms(bridgedType, bindings, to: proto) { return true }
+            // Or an extension says so: `extension Int: Fooable {}`.
+            if let key = extensionKey(of: type), let declared = extensionInfo(forKey: key)?.conformances {
+                return declared.flatMap(protocolClosure).contains(proto)
+            }
+            return false
         }
         if proto == "CustomStringConvertible" { return true }
         // Swiit's own kinds, which aren't Swift types yet (foundations

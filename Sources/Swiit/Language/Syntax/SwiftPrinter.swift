@@ -54,6 +54,8 @@ struct SwiftPrinter {
                 case .index(let index): target += "[\(expression(index))]"
                 case .indexDefault(let key, let fallback): target += "[\(expression(key)), default: \(expression(fallback))]"
                 case .subscripted(let list): target += "[\(arguments(list))]"
+                case .unwrap: target += "!"
+                case .optionalChain: target += "?"
                 }
             }
             let op = assignment.op.map { "\($0.rawValue)=" } ?? "="
@@ -260,6 +262,7 @@ struct SwiftPrinter {
         case .cast(let inner, let type): "\(self.pattern(inner)) as \(type)"
         case .isType(let type): "is \(type)"
         case .tuple(let patterns): "(" + patterns.map { self.pattern($0) }.joined(separator: ", ") + ")"
+        case .some(let inner): self.pattern(inner) + "?"
         case .partialRange(let lower, let upper, let closed):
             (lower.map { expression($0) } ?? "") + (closed ? "..." : "..<") + (upper.map { expression($0) } ?? "")
         }

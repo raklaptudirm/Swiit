@@ -90,6 +90,7 @@ extension Lowering {
             return .ifExpression(lowered)
         }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "filePath" { return .filePath }
+        if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "function" { return .literal(.string(functionNames.last ?? "")) }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "line" { return .literal(.int(line(of: node))) }
         // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are lowered with their base.
         if let node = expr.as(OptionalChainingExprSyntax.self) {
@@ -116,6 +117,13 @@ extension Lowering {
         if locals.contains(where: { $0.contains(name) }) { return .variable(name) }
         if name == "Self", let current = currentType { return .variable(current) }
         if let nested = nestedNames[name] { return .variable(nested) }
+        // A type alias, used where the type is (`BChar()`): the type it stands for.
+        if let alias = aliases[name] {
+            if case .named(let target) = alias { return .variable(target) }
+            if let (target, _) = alias.swiftType { return .variable(target) }
+        }
+        // A computed variable is read by its getter.
+        if declaredTypes.contains(name + "%") { return .call(.variable("$get_" + name), []) }
         if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         // The fixed-width integers are Int here, without its overflow rules.
@@ -387,8 +395,22 @@ extension Lowering {
     mutating func closure(_ node: ClosureExprSyntax) throws -> ClosureLiteral {
         var parameters: [Parameter] = []
         var returnType: TypeAnnotation?
+        var captures: [ClosureLiteral.Capture] = []
         if let signature = node.signature {
-            guard signature.attributes.isEmpty, signature.capture == nil else { throw unsupported("this closure signature", signature) }
+            guard signature.attributes.isEmpty else { throw unsupported("this closure signature", signature) }
+            for item in signature.capture?.items ?? [] {
+                let specifier = item.specifier?.specifier.tokenKind
+                let isWeak = specifier == .keyword(.weak)
+                guard item.specifier == nil || isWeak || specifier == .keyword(.unowned) else { throw unsupported("this capture", item) }
+                let name = item.name.text
+                let value: Expr
+                if let initializer = item.initializer {
+                    value = try expression(initializer.value)
+                } else {
+                    value = reference(DeclReferenceExprSyntax(baseName: item.name))
+                }
+                captures.append(ClosureLiteral.Capture(name: name, value: value, isWeak: isWeak))
+            }
             switch signature.parameterClause {
             case .simpleInput(let names)?:
                 parameters = names.map { Parameter(name: $0.name.text) }
@@ -414,7 +436,9 @@ extension Lowering {
         anonymous.append(node.signature == nil)
         defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast() }
         let body = try block(node.statements, scoped: false)
-        return ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
+        var literal = ClosureLiteral(parameters: parameters, returnType: returnType, body: body, names: NamesUsed(names: names(in: node.statements)))
+        literal.captures = captures
+        return literal
     }
 
     /// The `$n` a closure's body mentions, outside the closures inside it,
@@ -499,12 +523,65 @@ extension Lowering {
         } else {
             return nil
         }
+        return try placeAssignment(node.leftOperand, op: op, value: node.rightOperand, node: node)
+    }
+
+    /// `total = 5`, `total += 1` where `total` is a computed variable: its setter.
+    mutating func computedAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
+        guard let target = node.leftOperand.as(DeclReferenceExprSyntax.self), declaredTypes.contains(target.baseName.text + "%"),
+              !locals.contains(where: { $0.contains(target.baseName.text) }) else { return nil }
+        let name = target.baseName.text
+        var op: BinaryOperator?
+        if node.operator.is(AssignmentExprSyntax.self) {
+            op = nil
+        } else if let binary = node.operator.as(BinaryOperatorExprSyntax.self), Lowering.isCompoundAssignment(binary.operator.text) {
+            op = binaryOperator(String(binary.operator.text.dropLast()))
+            guard op != nil else { return nil }
+        } else {
+            return nil
+        }
+        var value = try expression(node.rightOperand)
+        if let op { value = .binary(op, .call(.variable("$get_" + name), []), value) }
+        return [.expression(.call(.variable("$set_" + name), [Argument(value: value)]))]
+    }
+
+    /// `x <+>= y` where the program declares `func <+>= (lhs: inout T, rhs: T)`: a call, with `x` passed as `&x`.
+    mutating func customCompound(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
+        guard let binary = node.operator.as(BinaryOperatorExprSyntax.self), Lowering.isCompoundAssignment(binary.operator.text),
+              binaryOperator(String(binary.operator.text.dropLast())) == nil, names()[binary.operator.text] != nil else { return nil }
+        let place = try expression(node.leftOperand)
+        return [.expression(.call(.variable(binary.operator.text),
+                                  [Argument(value: .inoutArgument(place)), Argument(value: try expression(node.rightOperand))]))]
+    }
+
+    /// `(a, b) = (b, a + b)`: the right side held once, and each place given its element.
+    mutating func tupleAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
+        guard node.operator.is(AssignmentExprSyntax.self), let tuple = node.leftOperand.as(TupleExprSyntax.self), tuple.elements.count > 1 else { return nil }
+        destructurings += 1
+        let held = "$tuple\(destructurings)"
+        var statements: [Statement] = [.declare(name: held, mutable: false, value: try expression(node.rightOperand))]
+        for (index, element) in tuple.elements.enumerated() {
+            if element.expression.is(DiscardAssignmentExprSyntax.self) { continue }
+            statements.append(.assign(try placeAssignment(element.expression, op: nil, value: nil, held: .member(.variable(held), "\(index)"), node: element)))
+        }
+        return statements
+    }
+
+    private mutating func placeAssignment(
+        _ leftOperand: ExprSyntax, op: BinaryOperator?, value rightOperand: ExprSyntax?, held: Expr? = nil, node: some SyntaxProtocol
+    ) throws -> Assignment {
         var path: [Assignment.Step] = []
-        var place = node.leftOperand
+        var place = leftOperand
         while true {
             if let member = place.as(MemberAccessExprSyntax.self), let base = member.base {
                 path.insert(.member(member.declName.baseName.text), at: 0)
                 place = base
+            } else if let chained = place.as(OptionalChainingExprSyntax.self) {
+                path.insert(.optionalChain, at: 0)
+                place = chained.expression
+            } else if let unwrapped = place.as(ForceUnwrapExprSyntax.self) {
+                path.insert(.unwrap, at: 0)
+                place = unwrapped.expression
             } else if let subscripted = place.as(SubscriptCallExprSyntax.self), subscripted.arguments.count == 2,
                       let key = subscripted.arguments.first, key.label == nil, let fallback = subscripted.arguments.last,
                       fallback.label?.text == "default" {
@@ -521,7 +598,7 @@ extension Lowering {
                 break
             }
         }
-        guard let root = place.as(DeclReferenceExprSyntax.self) else { throw unsupported("this assignment", node.leftOperand) }
+        guard let root = place.as(DeclReferenceExprSyntax.self) else { throw unsupported("this assignment", leftOperand) }
         var rootName = root.baseName.text
         // A static member, in a static member: `made += 1` is `Counter.made += 1`.
         if !locals.contains(where: { $0.contains(rootName) }), let context = staticContext, context.names.contains(rootName) {
@@ -533,7 +610,7 @@ extension Lowering {
             path.insert(.member(rootName), at: 0)
             rootName = "self"
         }
-        return Assignment(root: rootName, path: path, op: op, value: try expression(node.rightOperand))
+        return Assignment(root: rootName, path: path, op: op, value: try held ?? expression(rightOperand!))
     }
 }
 

@@ -317,6 +317,20 @@ extension TypeChecker {
             bound[name] = .variable(type, mutable: mutable)
         case .enumCase(let typeName, let name, var arguments):
             var subject = type
+            // `.none` and `.some(let x)` against an optional.
+            if case .optional(let held) = subject, typeName == nil || typeName == "Optional", name == "none" || name == "some",
+               !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil) {
+                if name == "none", arguments == nil || arguments?.isEmpty == true {
+                    pattern = .expression(.literal(.nothing))
+                    return
+                }
+                if name == "some", let arguments, arguments.count == 1 {
+                    var inner = arguments[0].pattern
+                    try checkPattern(&inner, against: held, binding: &bound)
+                    pattern = .some(inner)
+                    return
+                }
+            }
             if case .optional(let wrapped) = subject { subject = wrapped }
             // `catch Bad.input`: an Error matched as the enum named, if it is one.
             if subject == .named("Error") {
@@ -364,6 +378,13 @@ extension TypeChecker {
             pattern = .cast(inner, target)
         case .isType:
             break
+        case .some(var inner):
+            var wrapped = TypeAnnotation.unknown
+            if case .optional(let held) = type { wrapped = held } else if type != .unknown && type != .any {
+                throw TypeError("'?' in a pattern matches an optional, not \(type)")
+            }
+            try checkPattern(&inner, against: wrapped, binding: &bound)
+            pattern = .some(inner)
         case .partialRange(var lower, var upper, let closed):
             let boundType = type == .double ? TypeAnnotation.double : type
             if lower != nil { try expect(&lower!, boundType, "a range's bound") }

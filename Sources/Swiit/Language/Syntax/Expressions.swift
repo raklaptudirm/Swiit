@@ -146,4 +146,6 @@ import SwiitKit
     case bitAnd = "&", bitOr = "|", bitXor = "^", shiftLeft = "<<", shiftRight = ">>"
     /// Arithmetic that wraps around instead of overflowing.
     case wrapAdd = "&+", wrapSubtract = "&-", wrapMultiply = "&*"
+    /// Shifts by the amount's low bits: `1 &<< 65` is `1 << 1`.
+    case maskShiftLeft = "&<<", maskShiftRight = "&>>"
 }
