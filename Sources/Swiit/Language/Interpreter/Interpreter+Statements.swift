@@ -64,7 +64,11 @@ extension Interpreter {
     func hoistDeclarations(_ program: Program) throws {
         for statement in program.statements {
             if case .function = statement { try run(statement) }
-            else if statement.declaresType { try run(statement) }
+            else if statement.declaresType, case .typeExtension = statement {} else if statement.declaresType { try run(statement) }
+        }
+        // What extensions add comes once the types are there to be made.
+        for statement in program.statements {
+            if case .typeExtension = statement { try run(statement) }
         }
     }
 
@@ -95,6 +99,10 @@ extension Interpreter {
     @_spi(Layer) public func run(_ statement: Statement) throws {
         let errorsBefore = itemErrorCount
         switch statement {
+        case .typeExtension(let decl):
+            try declare(decl)
+        case .operatorDeclaration(let key, let source):
+            declaredOperators[key] = source
         case .extensionDecl, .deferBlock:
             // The prelude's, read at startup; collected by the block that holds it.
             return

@@ -63,6 +63,10 @@ import SwiitKit
     case unary(UnaryOperator, Expr)
     case binary(BinaryOperator, Expr, Expr)
     case index(Expr, Expr)
+    /// `counts[word, default: 0]`: a dictionary's value for the key, or the default.
+    case indexDefault(Expr, Expr, Expr)
+    /// `grid[row: 1, column: 2]`, `m[1, 2]`: a subscript with several or labeled arguments.
+    case subscripted(Expr, [Argument])
     /// `(name: "x", 2)`: a tuple, labeled or not.
     case tuple([Argument])
     /// `let x: T = e`: the value, of the type written.
@@ -96,6 +100,10 @@ import SwiitKit
     /// `&x`, an argument for an `inout` parameter: the place whose value goes
     /// in and comes back changed.
     case inoutArgument(Expr)
+    /// A value shown as text by its static type, which says what the value
+    /// alone can't: an optional's `Optional(5)`, in `print(x)` and `"\(x)"`.
+    /// Only the checker makes these.
+    case described(Expr, TypeAnnotation)
 }
 
 @_spi(Layer) public enum TryKind: Equatable, Sendable {

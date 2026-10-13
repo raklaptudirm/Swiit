@@ -52,6 +52,8 @@ struct SwiftPrinter {
                 switch step {
                 case .member(let name): target += ".\(name)"
                 case .index(let index): target += "[\(expression(index))]"
+                case .indexDefault(let key, let fallback): target += "[\(expression(key)), default: \(expression(fallback))]"
+                case .subscripted(let list): target += "[\(arguments(list))]"
                 }
             }
             let op = assignment.op.map { "\($0.rawValue)=" } ?? "="
@@ -71,6 +73,10 @@ struct SwiftPrinter {
             return ["\(p)throw \(expression(value))"]
         case .enumDecl(let decl):
             return [enumeration(decl, indent: indent)]
+        case .typeExtension(let decl):
+            return [typeExtension(decl, indent: indent)]
+        case .operatorDeclaration(_, let source):
+            return [p + source]
         case .structDecl(let decl):
             return [structure(decl, indent: indent)]
         case .extensionDecl(let name, let methods):
@@ -194,6 +200,13 @@ struct SwiftPrinter {
         return text + " {\n" + members.joined(separator: "\n") + (members.isEmpty ? "" : "\n") + "\(p)}"
     }
 
+    private func typeExtension(_ decl: ExtensionDecl, indent: Int) -> String {
+        let text = structure(decl.members, indent: indent)
+        let heading = "\(pad(indent))struct \(decl.members.name)"
+        return "\(pad(indent))extension \(decl.typeName)" + (decl.conformances.isEmpty ? "" : ": " + decl.conformances.joined(separator: ", "))
+            + text.dropFirst(heading.count)
+    }
+
     private func enumeration(_ decl: EnumDecl, indent: Int) -> String {
         let p = pad(indent)
         var inherited: [String] = []
@@ -240,6 +253,8 @@ struct SwiftPrinter {
         case .cast(let inner, let type): "\(self.pattern(inner)) as \(type)"
         case .isType(let type): "is \(type)"
         case .tuple(let patterns): "(" + patterns.map { self.pattern($0) }.joined(separator: ", ") + ")"
+        case .partialRange(let lower, let upper, let closed):
+            (lower.map { expression($0) } ?? "") + (closed ? "..." : "..<") + (upper.map { expression($0) } ?? "")
         }
     }
 
@@ -297,6 +312,8 @@ struct SwiftPrinter {
         case .unary(let op, let inner): return "\(op.rawValue)\(operand(inner))"
         case .binary(let op, let lhs, let rhs): return "\(operand(lhs)) \(op.rawValue) \(operand(rhs))"
         case .index(let base, let index): return "\(operand(base))[\(expression(index))]"
+        case .subscripted(let base, let list): return "\(operand(base))[\(arguments(list))]"
+        case .indexDefault(let base, let key, let fallback): return "\(operand(base))[\(expression(key)), default: \(expression(fallback))]"
         case .tuple(let elements): return "(\(arguments(elements)))"
         case .annotated(let inner, let type): return "\(operand(inner)) as \(type)"
         case .forceUnwrap(let inner): return "\(operand(inner))!"
@@ -323,6 +340,7 @@ struct SwiftPrinter {
         case .keyPath(let root, let path): return "\\\(root ?? "")." + path.joined(separator: ".")
         case .voidValue(let inner): return expression(inner)
         case .inoutArgument(let inner): return "&" + operand(inner)
+        case .described(let inner, _): return expression(inner)
         }
     }
 

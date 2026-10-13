@@ -32,6 +32,45 @@ extension Interpreter {
                 throw RuntimeError("Fatal error" + (text.isEmpty ? "" : ": \(text)"))
             }
         ))
+        // `type(of: x)`: the type of a value, as the value that stands for the type.
+        declare(ExportedFunction(
+            name: "type", summary: "The type of a value.",
+            parameters: [ExportedParameter(label: "of", name: "value", type: .any)], returnType: .any, isThrowing: false,
+            call: { arguments in interpreter.typeObject(of: arguments["value"] ?? .nothing) }
+        ))
+        // `swap(&a, &b)`: each takes what the other held, through the call's `inout` write-back.
+        scopes[0].declare(Function(
+            name: "swap",
+            parameters: [Parameter(label: nil, name: "a", type: .any, isInout: true), Parameter(label: nil, name: "b", type: .any, isInout: true)],
+            returnType: nil,
+            body: .native { interpreter, arguments in
+                interpreter.task.inoutOutputs = [arguments["b"] ?? .nothing, arguments["a"] ?? .nothing]
+                return .nothing
+            },
+            documentation: Documentation(summary: "Exchanges the values of two variables.", parameters: [:])
+        ), named: "swap")
+        // The functions of Foundation's math, on Doubles.
+        let unary: [(String, @Sendable (Double) -> Double)] = [
+            ("sqrt", { $0.squareRoot() }), ("floor", { $0.rounded(.down) }), ("ceil", { $0.rounded(.up) }), ("trunc", { $0.rounded(.towardZero) }),
+            ("round", { $0.rounded(.toNearestOrAwayFromZero) }), ("sin", sin), ("cos", cos), ("tan", tan), ("asin", asin), ("acos", acos),
+            ("atan", atan), ("exp", exp), ("log", log), ("log2", log2), ("log10", log10), ("fabs", { Swift.abs($0) }),
+        ]
+        for (name, function) in unary {
+            declare(ExportedFunction(
+                name: name, summary: "\(name) of a Double.",
+                parameters: [ExportedParameter(label: nil, name: "x", type: .double)], returnType: .double, isThrowing: false,
+                call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0)) }
+            ))
+        }
+        let binary: [(String, @Sendable (Double, Double) -> Double)] = [("pow", pow), ("atan2", atan2), ("fmod", fmod), ("hypot", hypot)]
+        for (name, function) in binary {
+            declare(ExportedFunction(
+                name: name, summary: "\(name) of two Doubles.",
+                parameters: [ExportedParameter(label: nil, name: "x", type: .double), ExportedParameter(label: nil, name: "y", type: .double)],
+                returnType: .double, isThrowing: false,
+                call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0, arguments["y"]?.asDouble ?? 0)) }
+            ))
+        }
         // `zip(a, b)`: pairs of what two sequences hold, as far as the shorter goes. Swift's
         // lazy `Zip2Sequence` is held as the array it would give.
         declare(ExportedFunction(
@@ -136,5 +175,25 @@ extension Interpreter {
                 ))
             }
         }
+    }
+
+    /// What stands for a value's type: the struct's or enum's own, or Swift's by name.
+    func typeObject(of value: Value) -> Value {
+        let name: String
+        switch value {
+        case .int: name = "Int"
+        case .double: name = "Double"
+        case .string: name = "String"
+        case .bool: name = "Bool"
+        case .list: name = "Array"
+        case .dictionary: name = "Dictionary"
+        case .enumValue(let enumValue): return .object(enumValue.type)
+        case .record(let record):
+            guard let typeName = record.typeName, let type = structType(named: typeName) else { return .nothing }
+            return .object(type)
+        case .object(let box as SwiftValue): name = box.typeName
+        default: return .nothing
+        }
+        return lookup(name)?.value ?? .nothing
     }
 }

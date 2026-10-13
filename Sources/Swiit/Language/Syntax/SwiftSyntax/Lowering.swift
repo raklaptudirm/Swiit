@@ -76,6 +76,15 @@ struct Lowering {
     var strictNames = false
     /// `typealias Name = Type`, which a type written as `Name` stands for.
     var aliases: [String: TypeAnnotation] = [:]
+    /// Inside a type: its name with the types around it (`Outer.Inner`), what `Self` is,
+    /// the types declared in it by the short name they go by there, and those
+    /// lowered but not yet put in the program (they come before the type holding them).
+    var typePrefix = ""
+    var currentType: String?
+    var nestedNames: [String: String] = [:]
+    /// In an extension of a collection, the names its items go by (`Element`).
+    var typeParameters: Set<String> = []
+    var pendingNested: [Statement] = []
     /// How many tuples `let (a, b) = …` has held, for their names.
     var destructurings = 0
     /// Where the last error was, in bytes, for the cursor that asked.
@@ -340,10 +349,23 @@ struct Lowering {
     }
 
     mutating func collectTypeNames(_ item: CodeBlockItemSyntax.Item) {
-        if case .decl(let decl) = item {
-            if let node = decl.as(StructDeclSyntax.self) { declaredTypes.insert(node.name.text) }
-            if let node = decl.as(EnumDeclSyntax.self) { declaredTypes.insert(node.name.text) }
+        guard case .decl(let decl) = item else { return }
+        collectTypeNames(decl, prefix: "")
+        // An operator declared in the program can be used before its declaration, as any function can.
+        if let node = decl.as(FunctionDeclSyntax.self), let first = node.name.text.first, !(first.isLetter || first == "_") {
+            functions.insert(node.name.text)
         }
+    }
+
+    /// A type's name, and the names of the types declared inside it.
+    private mutating func collectTypeNames(_ decl: DeclSyntax, prefix: String) {
+        let block: MemberBlockSyntax
+        let name: String
+        if let node = decl.as(StructDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
+        else if let node = decl.as(EnumDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
+        else { return }
+        declaredTypes.insert(name)
+        for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
     }
 
     /// The first problem SwiftParser found, and where (in bytes). `end` is where

@@ -36,6 +36,11 @@ public struct Program: Equatable, Sendable {
     /// `extension Sequence { func filter(…) … }`: the prelude's methods of
     /// every sequence.
     case extensionDecl(name: String, methods: [FunctionDecl])
+    /// `extension Int { … }`: members and protocols added to a type.
+    case typeExtension(ExtensionDecl)
+    /// `infix operator ** : MultiplicationPrecedence`, `precedencegroup …`: kept, so later
+    /// programs read operators by it; `key` names what it declares.
+    case operatorDeclaration(key: String, source: String)
     /// Syntax a layer over the core adds: the shell's `env.NAME = value` and
     /// `import Tools from "./Tools"` (Language/Syntax/SyntaxExtension.swift).
     /// `defer { … }`: runs when the block it's in ends, however it ends,
@@ -64,7 +69,7 @@ extension Statement {
     /// A struct or enum declaration, which a block declares before it runs.
     @_spi(Layer) public var declaresType: Bool {
         switch self {
-        case .structDecl, .enumDecl: true
+        case .structDecl, .enumDecl, .typeExtension: true
         default: false
         }
     }
@@ -128,6 +133,8 @@ extension Statement {
     var methods: [FunctionDecl] = []
     var staticProperties: [PropertyDecl] = []
     var staticMethods: [FunctionDecl] = []
+    /// `init(code: String)`, which sets `self` to a case.
+    var initializers: [FunctionDecl] = []
 
     init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
         self.name = name
@@ -199,6 +206,8 @@ struct EnumCaseDecl: Equatable, Sendable {
     case isType(TypeAnnotation)
     /// `(a, _)`, `(1, let b)`: a tuple, element by element.
     case tuple([Pattern])
+    /// `5...`, `..<3`, `...9`: what is at least, below, or at most a bound.
+    case partialRange(lower: Expr?, upper: Expr?, closed: Bool)
 }
 
 extension Pattern {

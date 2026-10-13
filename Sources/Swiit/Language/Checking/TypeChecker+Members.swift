@@ -178,7 +178,10 @@ extension TypeChecker {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
             case .enumType(let info):
-                if let property = info.staticProperty(name) { return property.type ?? .unknown }
+                if let property = info.staticProperty(name) ?? extensionInfo(forKey: typeName)?.staticProperties.first(where: { $0.name == name }) {
+                    return property.type ?? .unknown
+                }
+                if let methods = extensionInfo(forKey: typeName)?.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 // What Swift synthesizes for an enum: `allCases` and
                 // `rawValue`. A Swiit enum isn't a Swift type the bridge
@@ -192,7 +195,10 @@ extension TypeChecker {
                 var none: [Argument]?
                 return try caseType(name, &none, expected: .named(info.name))
             case .structType(let info):
-                if let property = info.staticProperty(name) { return property.type ?? .unknown }
+                if let property = info.staticProperty(name) ?? extensionInfo(forKey: typeName)?.staticProperties.first(where: { $0.name == name }) {
+                    return property.type ?? .unknown
+                }
+                if let methods = extensionInfo(forKey: typeName)?.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
                 throw TypeError("\(info.name) has no static member '\(name)'")
             default:
@@ -207,6 +213,14 @@ extension TypeChecker {
         lastMemberBase = base
         if let (dynamic, plain) = plainType(of: base) {
             return plain.views[name] ?? dynamic.read
+        }
+        // What an extension adds.
+        if let ext = extensionInfo(for: base) {
+            let bindings = elementBindings(for: base)
+            if let computed = ext.computed[name] { return substitute(computed, bindings) }
+            if let methods = ext.methods[name] {
+                return methods.count == 1 ? substitute(functionType(methods[0]), bindings) : .function
+            }
         }
         // Every value has its textual form, as interpolation shows it; a
         // struct's own property of that name comes first.
@@ -229,9 +243,10 @@ extension TypeChecker {
             throw TypeError("\(base) might be nil: unwrap it (if let, ??, ?. or !) before using .\(name)")
         case .named(let typeName):
             if let info = structInfo(named: typeName) {
-                if let property = info.property(name) { return property.type ?? .unknown }
-                if let computed = info.computed[name] { return computed }
-                if let methods = info.methods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
+                // A generic type's parameters aren't known from the name alone.
+                if let property = info.property(name) { return substitute(property.type ?? .unknown, [:]) }
+                if let computed = info.computed[name] { return substitute(computed, [:]) }
+                if let methods = info.methods[name] { return methods.count == 1 ? substitute(functionType(methods[0]), [:]) : .function }
                 throw TypeError("\(typeName) has no member '\(name)'")
             }
             if let info = enumInfo(named: typeName) {
@@ -313,6 +328,15 @@ extension TypeChecker {
         return .named(enumName)
     }
 
+    /// What a struct's `subscript` gives for `arguments`, and whether it can be set.
+    func structSubscript(_ info: StructInfo, _ arguments: inout [Argument]) throws -> (type: TypeAnnotation, settable: Bool) {
+        guard !info.subscripts.isEmpty else { throw TypeError("\(info.name) can't be indexed: it has no subscript") }
+        guard let chosen = try resolve(info.subscripts, &arguments, name: "\(info.name)'s subscript") else {
+            return (commonReturn(info.subscripts), info.subscriptSettable.contains(true))
+        }
+        return (chosen.returns, info.subscriptSettable[chosen.index])
+    }
+
     func indexType(_ baseExpr: inout Expr, _ index: inout Expr) throws -> TypeAnnotation {
         return try indexType(of: try typeOf(&baseExpr), &index)
     }
@@ -331,8 +355,19 @@ extension TypeChecker {
             }
             return dynamic.read
         }
+        if case .named(let structName) = base, let info = structInfo(named: structName), !info.subscripts.isEmpty {
+            var arguments = [Argument(value: index)]
+            let result = try structSubscript(info, &arguments).type
+            index = arguments[0].value
+            return result
+        }
         switch base {
         case .list(let element):
+            // `xs[1...3]` is a slice.
+            let written = try typeOf(&index)
+            if case .generic(let name, let arguments) = written, name == "ClosedRange" || name == "Range", arguments == [.int] {
+                return .generic("ArraySlice", [element])
+            }
             try expect(&index, .int, "a list's index")
             return element
         case .output:

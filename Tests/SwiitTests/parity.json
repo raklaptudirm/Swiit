@@ -3,19 +3,19 @@
   "name": "generic func",
   "source": "func id<T>(_ x: T) -> T { x }; print(id(3), id(\"a\"))",
   "expected": "3 a\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "generic struct",
   "source": "struct Box<T> { var v: T }; let b = Box(v: 3); print(b.v)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "generic constraint",
   "source": "func big<T: Comparable>(_ a: T, _ b: T) -> T { a > b ? a : b }; print(big(1, 2))",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "protocol",
@@ -57,31 +57,31 @@
   "name": "metatype",
   "source": "print(Int.self)",
   "expected": "Int\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "type(of:)",
   "source": "print(type(of: 3))",
   "expected": "Int\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Self",
   "source": "struct S { static func make() -> Self { S() } }; _ = S.make(); print(\"ok\")",
   "expected": "ok\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "subscript",
   "source": "struct S { subscript(i: Int) -> Int { i * 2 } }; print(S()[3])",
   "expected": "6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "property observer",
   "source": "struct S { var x = 0 { didSet { print(\"set\") } } }; var s = S(); s.x = 1",
   "expected": "set\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "lazy",
@@ -105,13 +105,13 @@
   "name": "operator overload",
   "source": "struct V { var x: Int }; func + (a: V, b: V) -> V { V(x: a.x + b.x) }; print((V(x: 1) + V(x: 2)).x)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "custom operator",
   "source": "infix operator ** ; func ** (a: Int, b: Int) -> Int { a * b }; print(2 ** 3)",
   "expected": "6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "guard",
@@ -129,7 +129,7 @@
   "name": "where clause",
   "source": "func f<T>(_ x: T) where T: Equatable { print(x == x) }; f(1)",
   "expected": "true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "some/any",
@@ -381,13 +381,13 @@
   "name": "failable init",
   "source": "struct S { init?(_ x: Int) { if x < 0 { return nil } } }; print(S(-1) == nil)",
   "expected": "true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "extension on Int",
   "source": "extension Int { var double: Int { self * 2 } }; print(3.double)",
   "expected": "6\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "Equatable synth",
@@ -405,7 +405,7 @@
   "name": "Comparable",
   "source": "struct S: Comparable { var a: Int; static func < (l: S, r: S) -> Bool { l.a < r.a } }; print(S(a: 1) < S(a: 2))",
   "expected": "true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "CustomStringConvertible",
@@ -483,7 +483,7 @@
   "name": "nested generic func",
   "source": "func f<T, U>(_ a: T, _ b: U) -> (T, U) { (a, b) }; print(f(1, \"x\"))",
   "expected": "(1, \"x\")\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "generic protocol conform",
@@ -753,7 +753,7 @@
   "name": "keypath subscript nested",
   "source": "struct A { var b = B() }; struct B { var c = 4 }; print(A()[keyPath: \\.b.c])",
   "expected": "4\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "operator ref",
@@ -807,7 +807,7 @@
   "name": "swap",
   "source": "var a = 1, b = 2; swap(&a, &b); print(a, b)",
   "expected": "2 1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "inout property",
@@ -879,7 +879,7 @@
   "name": "enum assoc print",
   "source": "enum E { case p(Int, String), q }; print(E.p(1, \"a\"), E.q)",
   "expected": "p(1, \"a\") q\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "struct static func",
@@ -891,7 +891,7 @@
   "name": "struct nested type",
   "source": "struct O { struct I { var v = 3 }; var i = I() }; print(O().i.v)",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "struct closure prop",
@@ -939,7 +939,7 @@
   "name": "dict default subscript",
   "source": "var d: [String: Int] = [:]; for w in [\"a\", \"b\", \"a\"] { d[w, default: 0] += 1 }; print(d[\"a\"]!, d[\"b\"]!)",
   "expected": "2 1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "dict ops",
@@ -969,7 +969,7 @@
   "name": "array slices",
   "source": "let xs = [1, 2, 3, 4, 5]; print(xs[1...3], xs[..<2], xs.prefix(2), xs.suffix(2), Array(xs.dropFirst()))",
   "expected": "[2, 3, 4] [1, 2] [1, 2] [4, 5] [2, 3, 4, 5]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "array methods",
@@ -1041,7 +1041,7 @@
   "name": "double math",
   "source": "import Foundation; print(sqrt(16.0), pow(2.0, 10.0), floor(2.7), ceil(2.1))",
   "expected": "4.0 1024.0 2.0 3.0\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "range ops",
@@ -1125,7 +1125,7 @@
   "name": "if let multiple",
   "source": "let a: Int? = 1, b: Int? = 2; if let a, let b { print(a + b) }",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "nil comparison",
@@ -1149,7 +1149,7 @@
   "name": "switch where range",
   "source": "switch 7 { case 0..<5: print(\"low\"); case 5...: print(\"high\"); default: break }",
   "expected": "high\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "switch enum payload",
@@ -1179,7 +1179,7 @@
   "name": "try optional",
   "source": "enum E: Error { case x }; func f() throws -> Int { throw E.x }; print(try? f() as Any)",
   "expected": "nil\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "error localized",
@@ -1227,7 +1227,7 @@
   "name": "computed setter",
   "source": "struct T { var c = 0.0; var f: Double { get { c * 9 / 5 + 32 } set { c = (newValue - 32) * 5 / 9 } } }; var t = T(); t.f = 212; print(t.c)",
   "expected": "100.0\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "init with logic",
@@ -1239,7 +1239,7 @@
   "name": "convenience init",
   "source": "struct P { var x: Int; var y: Int; init(x: Int, y: Int) { self.x = x; self.y = y }; init(both v: Int) { self.init(x: v, y: v) } }; print(P(both: 4))",
   "expected": "P(x: 4, y: 4)\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "tuple return",
@@ -1251,7 +1251,7 @@
   "name": "tuple compare",
   "source": "print((1, \"a\") == (1, \"a\"), (1, 2) < (1, 3))",
   "expected": "true true\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "array of tuples",
@@ -1269,7 +1269,7 @@
   "name": "array init",
   "source": "print(Array(repeating: 0, count: 3), [Int](repeating: 1, count: 2), Array(\"ab\"))",
   "expected": "[0, 0, 0] [1, 1] [\"a\", \"b\"]\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "character ops",
@@ -1293,6 +1293,222 @@
   "name": "string split lines",
   "source": "import Foundation; let t = \"a\\nb\\nc\"; print(t.split(separator: \"\\n\").map(String.init), t.components(separatedBy: \"\\n\").count)",
   "expected": "[\"a\", \"b\", \"c\"] 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "computed setter v2",
+  "source": "struct T { var c = 0.0; var f: Double { get { c * 9 / 5 + 32 } set { c = (newValue - 32) * 5 / 9 } } }; var t = T(); t.f = 212; print(t.c, t.f)",
+  "expected": "100.0 212.0\n",
+  "status": "ok"
+ },
+ {
+  "name": "setter named param",
+  "source": "struct S { var raw = 0; var doubled: Int { get { raw * 2 } set(v) { raw = v / 2 } } }; var s = S(); s.doubled = 10; print(s.raw)",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "setter compound",
+  "source": "struct S { var raw = 1; var d: Int { get { raw * 2 } set { raw = newValue / 2 } } }; var s = S(); s.d += 4; print(s.raw)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "didSet",
+  "source": "struct S { var n = 0 { didSet { print(\"was\", oldValue, \"now\", n) } } }; var s = S(); s.n = 3; s.n = 5",
+  "expected": "was 0 now 3\nwas 3 now 5\n",
+  "status": "ok"
+ },
+ {
+  "name": "willSet",
+  "source": "struct S { var n = 0 { willSet { print(\"will\", newValue, \"from\", n) } } }; var s = S(); s.n = 9",
+  "expected": "will 9 from 0\n",
+  "status": "ok"
+ },
+ {
+  "name": "observer init skipped",
+  "source": "struct S { var n = 0 { didSet { print(\"changed\") } }; init(n: Int) { self.n = n } }; var s = S(n: 4); s.n = 5; print(s.n)",
+  "expected": "changed\n5\n",
+  "status": "ok"
+ },
+ {
+  "name": "observer clamp",
+  "source": "struct V { var x = 0 { didSet { if x > 10 { x = 10 } } } }; var v = V(); v.x = 50; print(v.x)",
+  "expected": "10\n",
+  "status": "ok"
+ },
+ {
+  "name": "subscript get",
+  "source": "struct M { var d = [1, 2, 3]; subscript(i: Int) -> Int { d[i] * 10 } }; print(M()[2])",
+  "expected": "30\n",
+  "status": "ok"
+ },
+ {
+  "name": "subscript set",
+  "source": "struct M { var d = [0, 0]; subscript(i: Int) -> Int { get { d[i] } set { d[i] = newValue } } }; var m = M(); m[1] = 7; m[0] += 2; print(m.d)",
+  "expected": "[2, 7]\n",
+  "status": "ok"
+ },
+ {
+  "name": "subscript two",
+  "source": "struct G { var cells = [[1, 2], [3, 4]]; subscript(r: Int, c: Int) -> Int { cells[r][c] } }; print(G()[1, 0])",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "subscript labeled",
+  "source": "struct G { subscript(row r: Int) -> Int { r * 2 } }; print(G()[row: 4])",
+  "expected": "8\n",
+  "status": "ok"
+ },
+ {
+  "name": "subscript string",
+  "source": "struct P { var m = [\"a\": 1]; subscript(k: String) -> Int? { m[k] } }; print(P()[\"a\"] as Any, P()[\"z\"] == nil)",
+  "expected": "Optional(1) true\n",
   "status": "todo"
+ },
+ {
+  "name": "nested type v2",
+  "source": "struct Outer { struct Inner { var v = 3 }; var i = Inner(); func get() -> Int { i.v } }; print(Outer().get(), Outer.Inner().v)",
+  "expected": "3 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "nested enum",
+  "source": "struct Deck { enum Suit { case h, s }; var suit = Suit.h }; print(Deck().suit, Deck.Suit.s)",
+  "expected": "h s\n",
+  "status": "ok"
+ },
+ {
+  "name": "Self return",
+  "source": "struct P { var x = 1; func moved() -> Self { P(x: x + 1) }; static func origin() -> Self { P() } }; print(P().moved().x, P.origin().x)",
+  "expected": "2 1\n",
+  "status": "ok"
+ },
+ {
+  "name": "Self in static",
+  "source": "struct C { static let one = C(n: 1); var n: Int; static func make() -> C { Self.one } }; print(C.make().n)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "metatype print",
+  "source": "struct S {}; enum E { case a }; print(S.self, E.self, Int.self, String.self)",
+  "expected": "S E Int String\n",
+  "status": "ok"
+ },
+ {
+  "name": "type of",
+  "source": "struct S {}; let s = S(); print(type(of: s), type(of: 3), type(of: \"x\"), type(of: [1]))",
+  "expected": "S Int String Array<Int>\n",
+  "status": "todo"
+ },
+ {
+  "name": "failable init v2",
+  "source": "struct P { var n: Int; init?(n: Int) { if n < 0 { return nil }; self.n = n } }; print(P(n: 2)?.n as Any, P(n: -1) == nil)",
+  "expected": "Optional(2) true\n",
+  "status": "todo"
+ },
+ {
+  "name": "failable init guard",
+  "source": "struct P { var s: String; init?(_ s: String) { guard !s.isEmpty else { return nil }; self.s = s } }; if let p = P(\"hi\") { print(p.s) }; print(P(\"\") == nil)",
+  "expected": "hi\ntrue\n",
+  "status": "ok"
+ },
+ {
+  "name": "enum failable",
+  "source": "enum D: String { case n = \"N\"; init?(code: String) { switch code { case \"N\": self = .n; default: return nil } } }; print(D(code: \"N\") as Any, D(code: \"x\") == nil)",
+  "expected": "Optional(a.D.n) true\n",
+  "status": "todo"
+ },
+ {
+  "name": "static operator",
+  "source": "struct V { var x: Int; static func + (a: V, b: V) -> V { V(x: a.x + b.x) } }; print((V(x: 1) + V(x: 2)).x)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "static equal",
+  "source": "struct V: Equatable { var x: Int; static func == (a: V, b: V) -> Bool { a.x == b.x } }; print(V(x: 1) == V(x: 1), V(x: 1) != V(x: 2))",
+  "expected": "true true\n",
+  "status": "ok"
+ },
+ {
+  "name": "comparable custom",
+  "source": "struct V: Comparable { var x: Int; static func < (a: V, b: V) -> Bool { a.x < b.x } }; print(V(x: 1) < V(x: 2), V(x: 3) > V(x: 2), [V(x: 3), V(x: 1)].sorted().map(\\.x), V(x: 1) <= V(x: 1))",
+  "expected": "true true [1, 3] true\n",
+  "status": "todo"
+ },
+ {
+  "name": "global operator",
+  "source": "struct V { var x: Int }; func + (a: V, b: V) -> V { V(x: a.x + b.x) }; func * (a: V, k: Int) -> V { V(x: a.x * k) }; print((V(x: 1) + V(x: 2)).x, (V(x: 2) * 3).x)",
+  "expected": "3 6\n",
+  "status": "ok"
+ },
+ {
+  "name": "prefix operator",
+  "source": "struct V { var x: Int; static prefix func - (v: V) -> V { V(x: -v.x) } }; print((-V(x: 3)).x)",
+  "expected": "-3\n",
+  "status": "ok"
+ },
+ {
+  "name": "custom operator v2",
+  "source": "infix operator ** : MultiplicationPrecedence; func ** (a: Int, b: Int) -> Int { var r = 1; for _ in 0..<b { r *= a }; return r }; print(2 ** 10, 2 + 3 ** 2)",
+  "expected": "1024 11\n",
+  "status": "ok"
+ },
+ {
+  "name": "custom precedence",
+  "source": "precedencegroup PowerPrecedence { higherThan: MultiplicationPrecedence }; infix operator ^^ : PowerPrecedence; func ^^ (a: Int, b: Int) -> Int { var r = 1; for _ in 0..<b { r *= a }; return r }; print(2 * 3 ^^ 2)",
+  "expected": "18\n",
+  "status": "ok"
+ },
+ {
+  "name": "compound custom",
+  "source": "struct V { var x: Int; static func += (a: inout V, b: V) { a.x += b.x } }; var v = V(x: 1); v += V(x: 2); print(v.x)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "extension struct",
+  "source": "struct P { var x = 1 }; extension P { func double() -> Int { x * 2 }; var triple: Int { x * 3 }; static let zero = P(x: 0) }; print(P().double(), P().triple, P.zero.x)",
+  "expected": "2 3 0\n",
+  "status": "ok"
+ },
+ {
+  "name": "extension Int",
+  "source": "extension Int { var squared: Int { self * self }; func plus(_ n: Int) -> Int { self + n }; mutating func bump() { self += 1 } }; var n = 4; n.bump(); print(5.squared, 3.plus(4), n)",
+  "expected": "25 7 5\n",
+  "status": "ok"
+ },
+ {
+  "name": "extension String",
+  "source": "extension String { func shout() -> String { uppercased() + \"!\" }; var firstChar: Character? { first } }; print(\"hi\".shout(), \"x\".firstChar as Any)",
+  "expected": "HI! Optional(\"x\")\n",
+  "status": "todo"
+ },
+ {
+  "name": "extension Array",
+  "source": "extension Array { var second: Element? { count > 1 ? self[1] : nil } }; print([1, 2, 3].second as Any, [Int]().second == nil)",
+  "expected": "Optional(2) true\n",
+  "status": "todo"
+ },
+ {
+  "name": "extension enum",
+  "source": "enum E { case a, b }; extension E { var other: E { self == .a ? .b : .a } }; print(E.a.other)",
+  "expected": "b\n",
+  "status": "ok"
+ },
+ {
+  "name": "extension conform",
+  "source": "struct P { var x: Int }; extension P: CustomStringConvertible { var description: String { \"P\\(x)\" } }; print(P(x: 3))",
+  "expected": "P3\n",
+  "status": "ok"
+ },
+ {
+  "name": "extension protocol marker",
+  "source": "struct P { var x: Int }; extension P: Equatable {}; print(P(x: 1) == P(x: 1))",
+  "expected": "true\n",
+  "status": "ok"
  }
 ]

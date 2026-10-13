@@ -90,6 +90,7 @@ Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer struct Assignment
 Language/Syntax/Declarations.swift	Layer struct ClosureLiteral
+Language/Syntax/Declarations.swift	Layer struct ExtensionDecl
 Language/Syntax/Declarations.swift	Layer struct FunctionDecl
 Language/Syntax/Declarations.swift	Layer struct NamesUsed
 Language/Syntax/Declarations.swift	Layer struct PropertyDecl

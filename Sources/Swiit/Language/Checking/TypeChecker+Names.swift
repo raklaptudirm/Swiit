@@ -58,12 +58,13 @@ extension TypeChecker {
                 return signature
             }
         }
-        return StructInfo(
+        var info = StructInfo(
             name: type.name, stored: type.stored,
             computed: type.computed.mapValues { $0.returnType ?? .unknown },
             methods: methods,
             initializers: type.initializers?.candidates.enumerated().map { index, initializer in
-                Signature(name: initializer.name ?? type.name, parameters: initializer.parameters, returns: .named(type.name),
+                Signature(name: initializer.name ?? type.name, parameters: initializer.parameters,
+                          returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
                           isMutating: true, isThrowing: initializer.isThrowing, index: index)
             } ?? [],
             memberwise: Signature(name: type.name, parameters: type.memberwise.parameters, returns: .named(type.name)),
@@ -77,6 +78,12 @@ extension TypeChecker {
                 }
             }
         )
+        info.settable = Set(type.setters.keys)
+        for (index, getter) in type.subscriptGetters.enumerated() {
+            info.subscripts.append(Signature(name: "subscript", parameters: getter.parameters, returns: getter.returnType ?? .unknown, index: index))
+            info.subscriptSettable.append(type.subscriptSetters[index] != nil)
+        }
+        return info
     }
 
     func enumInfo(_ type: EnumType) -> EnumInfo {
@@ -107,6 +114,11 @@ extension TypeChecker {
             info.methods = signatures(members.methods)
             info.staticProperties = members.staticProperties
             info.staticMethods = signatures(members.staticMethods)
+            info.initializers = members.initializers?.candidates.enumerated().map { index, initializer in
+                Signature(name: initializer.name ?? type.name, parameters: initializer.parameters,
+                          returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
+                          isMutating: true, isThrowing: initializer.isThrowing, index: index)
+            } ?? []
         }
         return info
     }

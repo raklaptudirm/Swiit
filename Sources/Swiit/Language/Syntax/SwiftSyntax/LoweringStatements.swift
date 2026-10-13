@@ -7,7 +7,9 @@ extension Lowering {
     mutating func statement(_ item: CodeBlockItemSyntax.Item) throws -> [Statement] {
         switch item {
         case .decl(let decl): return try declaration(decl)
-        case .stmt(let stmt): return [try statementNode(stmt)]
+        case .stmt(let stmt):
+            if let node = stmt.as(GuardStmtSyntax.self) { return try guardStatements(node) }
+            return [try statementNode(stmt)]
         case .expr(let expr): return [try expressionStatement(expr)]
         }
     }
@@ -67,10 +69,6 @@ extension Lowering {
             defer { leaving = outer }
             return .deferBlock(try block(node.body.statements))
         }
-        if let node = stmt.as(GuardStmtSyntax.self) {
-            let condition = try condition(node.conditions, node, isGuard: true)
-            return .guardStatement(condition, otherwise: try block(node.body.statements))
-        }
         if let node = stmt.as(LabeledStmtSyntax.self) { return try labeled(node) }
         if let node = stmt.as(WhileStmtSyntax.self) { return try whileLoop(node) }
         if let node = stmt.as(RepeatStmtSyntax.self) { return try repeatLoop(node) }
@@ -81,8 +79,24 @@ extension Lowering {
 
     // MARK: Conditions and loops
 
+    /// `guard a, let b else { … }`: one guard for each condition, each with the same `else`.
+    private mutating func guardStatements(_ node: GuardStmtSyntax) throws -> [Statement] {
+        let conditions = try conditionList(node.conditions, isGuard: true)
+        let otherwise = try block(node.body.statements)
+        return conditions.map { .guardStatement($0, otherwise: otherwise) }
+    }
+
+    /// Every condition of an `if`, `guard` or `while`, each seeing what the ones before it bind.
+    mutating func conditionList(_ list: ConditionElementListSyntax, isGuard: Bool = false) throws -> [IfStatement.Condition] {
+        try list.map { try condition(element: $0, isGuard: isGuard) }
+    }
+
     mutating func condition(_ conditions: ConditionElementListSyntax, _ node: some SyntaxProtocol, isGuard: Bool = false) throws -> IfStatement.Condition {
         guard conditions.count == 1, let element = conditions.first else { throw unsupported("more than one condition", node) }
+        return try condition(element: element, isGuard: isGuard)
+    }
+
+    mutating func condition(element: ConditionElementSyntax, isGuard: Bool = false) throws -> IfStatement.Condition {
         switch element.condition {
         case .expression(let expr):
             // A command as a condition (`if grep -q x f { … }`), read by the layer.
@@ -112,9 +126,9 @@ extension Lowering {
     }
 
     mutating func ifStatement(_ node: IfExprSyntax) throws -> IfStatement {
-        // What the condition binds is visible in the first branch only.
+        // What the conditions bind is visible in the first branch only.
         locals.append([])
-        let condition = try condition(node.conditions, node)
+        let conditions = try conditionList(node.conditions)
         let then = try block(node.body.statements)
         locals.removeLast()
         var otherwise: Program?
@@ -124,7 +138,12 @@ extension Lowering {
         case .ifExpr(let nested)?:
             otherwise = Program(statements: [.ifStatement(try ifStatement(nested))])
         }
-        return IfStatement(condition: condition, then: then, otherwise: otherwise)
+        // `if a, let b { … } else { … }` is `if a { if let b { … } else { … } } else { … }`.
+        var result = IfStatement(condition: conditions[conditions.count - 1], then: then, otherwise: otherwise)
+        for condition in conditions.dropLast().reversed() {
+            result = IfStatement(condition: condition, then: Program(statements: [.ifStatement(result)], lines: [line(of: node)]), otherwise: otherwise)
+        }
+        return result
     }
 
     /// `outer: for …`, `outer: while …`: a loop `break outer` and `continue outer` name.
@@ -140,19 +159,21 @@ extension Lowering {
         // What a condition binds is visible in the body only.
         locals.append([])
         defer { locals.removeLast() }
-        let condition = try condition(node.conditions, node)
+        let conditions = try conditionList(node.conditions)
         leaving.loop += 1
         if let label { leaving.labels.append(label) }
         defer { leaving.loop -= 1; if label != nil { leaving.labels.removeLast() } }
         var body = try block(node.body.statements)
-        guard case .expression(let test) = condition else {
-            // `while let x = next() { … }` is `while true { guard let x = next() else { break }; … }`.
-            let first = body.lines.first ?? line(of: node)
-            body.statements.insert(.guardStatement(condition, otherwise: Program(statements: [.breakStatement()], lines: [first])), at: 0)
-            if !body.lines.isEmpty { body.lines.insert(first, at: 0) }
-            return .whileLoop(WhileLoop(condition: .literal(.bool(true)), body: body, label: label))
+        let tests = conditions.compactMap { condition -> Expr? in if case .expression(let test) = condition { test } else { nil } }
+        if tests.count == conditions.count, let first = tests.first {
+            return .whileLoop(WhileLoop(condition: tests.dropFirst().reduce(first) { .binary(.and, $0, $1) }, body: body, label: label))
         }
-        return .whileLoop(WhileLoop(condition: test, body: body, label: label))
+        // `while let x = next() { … }` is `while true { guard let x = next() else { break }; … }`.
+        let first = body.lines.first ?? line(of: node)
+        let leave = Program(statements: [.breakStatement()], lines: [first])
+        body.statements.insert(contentsOf: conditions.map { .guardStatement($0, otherwise: leave) }, at: 0)
+        if !body.lines.isEmpty { body.lines.insert(contentsOf: conditions.map { _ in first }, at: 0) }
+        return .whileLoop(WhileLoop(condition: .literal(.bool(true)), body: body, label: label))
     }
 
     private mutating func repeatLoop(_ node: RepeatStmtSyntax, label: String? = nil) throws -> Statement {
@@ -275,6 +296,13 @@ extension Lowering {
 
     /// `.failed(code: let c)`, `Result.failed`, `.a`, or a value to compare with.
     private mutating func expressionPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
+        // `5...`, `..<3`, `...9`.
+        if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text == "..." {
+            return .partialRange(lower: try expression(node.expression), upper: nil, closed: true)
+        }
+        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "..." || node.operator.text == "..<" {
+            return .partialRange(lower: nil, upper: try expression(node.expression), closed: node.operator.text == "...")
+        }
         // `(1, _)`: a tuple, element by element. One in parentheses is its element.
         if let tuple = expr.as(TupleExprSyntax.self), tuple.elements.count != 1 {
             guard tuple.elements.allSatisfy({ $0.label == nil }) else { throw unsupported("a label in a tuple pattern", tuple) }
@@ -335,7 +363,7 @@ enum SwitchBinding {
         case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
         case .cast(let inner, _): names(boundBy: inner)
         case .tuple(let patterns): patterns.flatMap { names(boundBy: $0) }
-        case .wildcard, .expression, .isType: []
+        case .wildcard, .expression, .isType, .partialRange: []
         }
     }
 }

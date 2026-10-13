@@ -14,8 +14,15 @@ extension TypeChecker {
                 if let chosen, !info.initializers.isEmpty { callee = .chosen(callee, overload: chosen.index) }
                 if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
                 if let chosen { try effectSite(chosen.effect, "\(name).init") }
-                return .named(name)
+                return chosen?.returns ?? .named(name)
             case .enumType(let info):
+                // An `init` the enum declares.
+                if !info.initializers.isEmpty, !(arguments.count == 1 && arguments[0].label == "rawValue") {
+                    let chosen = try resolve(info.initializers, &arguments, name: name)
+                    if let chosen, info.initializers.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+                    if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
+                    return chosen?.returns ?? .named(name)
+                }
                 guard arguments.count == 1, arguments[0].label == "rawValue" else {
                     throw TypeError("\(name) is made from a raw value: \(name)(rawValue: …)")
                 }
@@ -37,6 +44,16 @@ extension TypeChecker {
             let (type, bridgedExpr) = try bridgedCall(typeName, kind: .method, isStatic: true, receiver: nil, bindings: [:], name: name, &arguments)
             callee = bridgedExpr
             return type
+        }
+        // `Point.make(1)` where an extension adds the static method.
+        if case .member(.variable(let typeName), let name) = callee, let symbol = lookup(typeName),
+           { if case .structType = symbol { true } else if case .enumType = symbol { true } else { false } }(),
+           let methods = extensionInfo(forKey: typeName)?.staticMethods[name] {
+            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
+            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+            if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
+            return chosen.returns
         }
         // `Point.make(1)`: a static method.
         if case .member(.variable(let typeName), let name) = callee, case .structType(let info)? = lookup(typeName),
@@ -77,6 +94,11 @@ extension TypeChecker {
             callee = .member(baseExpr, name)
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
+        // In a type's body, a call to a name that isn't bound may be to the type's own method.
+        if case .variable(let name) = callee, lookup(name) == nil, case .variable(let selfType, _)? = lookup("self"), hasMember(selfType, named: name) {
+            callee = .member(.variable("self"), name)
+            return try callType(&callee, &arguments, expected: expected)
+        }
         // `ls()` with no `ls`: a function that isn't there, not a variable.
         if case .variable(let name) = callee, lookup(name) == nil {
             throw TypeError("no function named '\(name)'")
@@ -108,6 +130,15 @@ extension TypeChecker {
     func methodCallType(
         _ base: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
+        // `self.init(x: 1)` in an initializer: another initializer makes the value.
+        if name == "init", case .named(let structName) = base, let info = structInfo(named: structName),
+           lookup("$initializing") != nil {
+            let candidates = info.initializers.isEmpty ? [info.memberwise] : info.initializers
+            guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
+            if candidates.count > 1, !info.initializers.isEmpty { callee = .chosen(callee, overload: chosen.index) }
+            if chosen.isThrowing { try throwingSite("init") }
+            return .void
+        }
         if case .named(let structName) = base, let info = structInfo(named: structName), let methods = info.methods[name] {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
             if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
@@ -119,6 +150,15 @@ extension TypeChecker {
         // An enum's own methods, with the case as `self`.
         if case .named(let enumName) = base, let info = enumInfo(named: enumName), let methods = info.methods[name] {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
+            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+            if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
+            if chosen.isThrowing { try throwingSite("'\(name)'") }
+            try effectSite(chosen.effect, "'\(name)'")
+            return chosen.returns
+        }
+        // A method an extension adds, to any type: `self` is the receiver, and a collection's items are known.
+        if let ext = extensionInfo(for: base), let methods = ext.methods[name] {
+            guard let chosen = try resolve(methods, &arguments, name: name, bindings: elementBindings(for: base)) else { return commonReturn(methods) }
             if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
             if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
             if chosen.isThrowing { try throwingSite("'\(name)'") }

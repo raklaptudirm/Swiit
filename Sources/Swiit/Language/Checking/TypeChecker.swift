@@ -62,6 +62,11 @@ import SwiitKit
         @_spi(Layer) public var name: String
         var stored: [PropertyDecl]
         var computed: [String: TypeAnnotation]
+        /// The computed properties that can be set.
+        var settable: Set<String> = []
+        /// What `value[…]` reads, with whether each can also be written.
+        var subscripts: [Signature] = []
+        var subscriptSettable: [Bool] = []
         @_spi(Layer) public var methods: [String: [Signature]]
         var initializers: [Signature]
         var memberwise: Signature
@@ -97,6 +102,7 @@ import SwiitKit
         var methods: [String: [Signature]] = [:]
         var staticProperties: [PropertyDecl] = []
         var staticMethods: [String: [Signature]] = [:]
+        var initializers: [Signature] = []
 
         func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
@@ -190,6 +196,8 @@ import SwiitKit
     /// The functions the program being checked declares at its top level.
     var redeclaredHere: Set<String> = []
     @_spi(Layer) public var line: Int?
+    /// What the extensions in the program being checked add, by type name.
+    var localExtensions: [String: ExtensionInfo] = [:]
 
     @_spi(Layer) public init(interpreter: Interpreter) {
         self.interpreter = interpreter

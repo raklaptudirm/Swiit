@@ -37,7 +37,7 @@ import SwiftSyntax
         let parsed = SwiftParser.Parser.parse(source: source)
         var problems: [(message: String, offset: Int)] = []
         var other: Error?
-        let folded = OperatorTable.standardOperators.foldAll(parsed) { error in
+        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { error in
             switch error as? OperatorError {
             case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
                 problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
@@ -58,11 +58,25 @@ import SwiftSyntax
     @_spi(Layer) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
         let parsed = SwiftParser.Parser.parse(source: source)
         // Operators that don't fold (`a < b < c`) leave their sequence as it is.
-        let folded = OperatorTable.standardOperators.foldAll(parsed) { _ in }
+        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { _ in }
         guard let tree = folded.as(SourceFileSyntax.self) else { return [] }
         var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
         lowering.recovering = true
         _ = try? lowering.program()
         return lowering.highlightSpans()
+    }
+
+    /// Swift's operators, with those declared before and those in this program.
+    static func operators(declaredIn parsed: SourceFileSyntax, bound: [String: NameKind]) -> OperatorTable {
+        var table = OperatorTable.standardOperators
+        // The groups first, which the operators name.
+        let earlier = bound.compactMap { key, kind -> (String, String)? in
+            if case .operatorDeclaration(let source) = kind { (key, source) } else { nil }
+        }.sorted { ($0.0.hasPrefix("precedencegroup") ? 0 : 1, $0.0) < ($1.0.hasPrefix("precedencegroup") ? 0 : 1, $1.0) }
+        if !earlier.isEmpty {
+            table.addSourceFile(SwiftParser.Parser.parse(source: earlier.map(\.1).joined(separator: "\n"))) { _ in }
+        }
+        table.addSourceFile(parsed) { _ in }
+        return table
     }
 }

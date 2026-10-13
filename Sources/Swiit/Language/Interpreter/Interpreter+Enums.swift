@@ -1,16 +1,6 @@
 import Foundation
 import SwiitKit
 
-/// What an enum declares besides its cases.
-final class EnumMembers {
-    var computed: [String: Function] = [:]
-    var methods: [String: OverloadSet] = [:]
-    var staticComputed: [String: Function] = [:]
-    var staticMethods: [String: OverloadSet] = [:]
-    var statics: [String: StructType.StaticValue] = [:]
-    var staticProperties: [PropertyDecl] = []
-}
-
 extension Interpreter {
     // MARK: Declaring
 
@@ -59,52 +49,30 @@ extension Interpreter {
 
     /// An enum's computed properties and methods, and its static ones.
     private func declareMembers(of decl: EnumDecl, on type: EnumType) throws {
-        guard !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty || !decl.staticMethods.isEmpty else { return }
-        let members = EnumMembers()
-        members.staticProperties = decl.staticProperties
-        for property in decl.properties {
-            guard let getter = property.getter else { continue }
-            members.computed[property.name] = Function(
-                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
-                captured: captureScopes(property.getterNames)
-            )
-        }
-        var methods: [String: [Function]] = [:]
-        for method in decl.methods {
-            methods[method.name, default: []].append(Function(
-                name: method.name, parameters: method.parameters, returnType: method.returnType, body: .swiit(method.body),
-                captured: captureScopes(method.names), documentation: method.documentation,
-                isMutating: method.isMutating, isThrowing: method.isThrowing
-            ))
-        }
-        members.methods = methods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
-        for property in decl.staticProperties {
-            guard let getter = property.getter else { continue }
-            members.staticComputed[property.name] = Function(
-                name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
-                captured: captureScopes(property.getterNames)
-            )
-        }
-        var staticMethods: [String: [Function]] = [:]
-        for method in decl.staticMethods {
-            staticMethods[method.name, default: []].append(Function(
-                name: method.name, parameters: method.parameters, returnType: method.returnType, body: .swiit(method.body),
-                captured: captureScopes(method.names), documentation: method.documentation, isThrowing: method.isThrowing
-            ))
-        }
-        members.staticMethods = staticMethods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
+        guard !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty || !decl.staticMethods.isEmpty
+            || !decl.initializers.isEmpty else { return }
+        let members = TypeMembers()
+        try fill(members, of: decl.name, properties: decl.properties, methods: decl.methods, staticProperties: decl.staticProperties,
+                 staticMethods: decl.staticMethods, initializers: decl.initializers, subscripts: [])
         enumMembers[ObjectIdentifier(type)] = members
-        for property in decl.staticProperties where property.getter == nil {
-            guard let expr = property.defaultValue else { continue }
-            var value = try evaluate(expr, expecting: property.type)
-            if let expected = property.type {
-                guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError("\(decl.name).\(property.name) must be \(expected), not \(value.typeName)")
-                }
-                value = conforming
-            }
-            members.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
+    }
+
+    /// `Direction(code: "N")`: through an `init` the enum declares, which sets `self` to a case.
+    func constructEnum(_ type: EnumType, _ initializers: OverloadSet, _ arguments: [Argument], overload: Int?) throws -> Value {
+        let values = try arguments.map { argument -> Argument in
+            if case .caseLiteral = argument.value { return argument }
+            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
+        let (initializer, bindings) = try resolve(narrowed(initializers, overload)) { try self.bind(values, to: $0) }
+        let receiver = Receiver(.nothing, mutable: true, initializing: true)
+        task.failedInit = false
+        _ = try invoke(initializer, with: bindings, receiver: receiver)
+        if task.failedInit {
+            task.failedInit = false
+            return .nothing
+        }
+        guard case .enumValue = receiver.value else { throw RuntimeError("\(type.name).init must set self to a case") }
+        return receiver.value
     }
 
     /// A computed property of an enum's case, or a method as a function value; nil if there isn't one.
@@ -202,6 +170,8 @@ extension Interpreter {
             if dynamicTypes[name]?.plain?.standsForAnything == true { return value }
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
+            // A Character is held as the one-letter String it is.
+            if name == "Character", case .string(let text) = value, text.count == 1 { return value }
             if case .record(let record) = value, record.typeName == name, structType(named: name) != nil {
                 return value
             }
@@ -293,6 +263,13 @@ extension Interpreter {
             return try match(inner, converted, into: &bindings)
         case .isType(let type):
             return conform(value, to: type) != nil
+        case .partialRange(let lower, let upper, let closed):
+            if let lower, try apply(.less, value, try evaluate(lower)) == .bool(true) { return false }
+            if let upper {
+                let bound = try evaluate(upper)
+                return try apply(closed ? .lessEqual : .less, value, bound) == .bool(true)
+            }
+            return true
         case .tuple(let patterns):
             guard case .record(let record) = value, record.typeName == nil, record.count == patterns.count else { return false }
             for (pattern, field) in zip(patterns, record) {

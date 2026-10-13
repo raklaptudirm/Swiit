@@ -9,13 +9,31 @@ extension TypeChecker {
         defer { if newScope { scopes.removeLast() } }
         // Declared first, so functions and types can be used before (and by)
         // their declarations, as in Swift.
+        var structs: [StructDecl] = []
         for statement in program.statements {
             switch statement {
             case .function(let decl): declareFunction(decl)
-            case .structDecl(let decl): scopes[scopes.count - 1][decl.name] = .structType(try structInfo(decl))
+            case .structDecl(let decl): structs.append(decl)
             case .enumDecl(let decl): scopes[scopes.count - 1][decl.name] = .enumType(enumInfo(decl))
+            case .typeExtension(let decl): registerExtension(decl)
             default: break
             }
+        }
+        // A struct's untyped property takes its default's type, which may use
+        // a struct declared after it: those wait for the ones they need.
+        var firstError: TypeError?
+        while !structs.isEmpty {
+            var waiting: [StructDecl] = []
+            for decl in structs {
+                do {
+                    scopes[scopes.count - 1][decl.name] = .structType(try structInfo(decl))
+                } catch let error as TypeError {
+                    firstError = firstError ?? error
+                    waiting.append(decl)
+                }
+            }
+            if waiting.count == structs.count, let firstError { throw firstError }
+            structs = waiting
         }
         for index in program.statements.indices {
             if index < program.lines.count { line = program.lines[index] }
@@ -102,10 +120,15 @@ extension TypeChecker {
                 } else {
                     context.seen.append(try typeOf(&value!))
                 }
-            } else if let declared = context.declared, declared != .void, declared != .unknown {
+            } else if let declared = context.declared, declared != .void, declared != .unknown, declared != .optional(.void) {
                 throw TypeError("this function must return \(declared)")
             }
             statement = .returnStatement(value)
+        case .typeExtension(var decl):
+            try checkExtension(&decl)
+            statement = .typeExtension(decl)
+        case .operatorDeclaration:
+            break
         case .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl:
             break
         case .deferBlock(var body):
@@ -287,6 +310,11 @@ extension TypeChecker {
             pattern = .cast(inner, target)
         case .isType:
             break
+        case .partialRange(var lower, var upper, let closed):
+            let boundType = type == .double ? TypeAnnotation.double : type
+            if lower != nil { try expect(&lower!, boundType, "a range's bound") }
+            if upper != nil { try expect(&upper!, boundType, "a range's bound") }
+            pattern = .partialRange(lower: lower, upper: upper, closed: closed)
         case .tuple(var patterns):
             switch type {
             case .tuple(let elements):

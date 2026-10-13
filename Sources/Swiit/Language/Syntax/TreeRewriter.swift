@@ -30,7 +30,12 @@ import SwiitKit
             rewritten = .declare(name: name, mutable: mutable, value: expression(value))
         case .assign(var assignment):
             assignment.path = assignment.path.map { step in
-                if case .index(let index) = step { .index(expression(index)) } else { step }
+                switch step {
+                case .index(let index): .index(expression(index))
+                case .indexDefault(let key, let fallback): .indexDefault(expression(key), expression(fallback))
+                case .subscripted(let list): .subscripted(arguments(list))
+                case .member: step
+                }
             }
             assignment.value = expression(assignment.value)
             rewritten = .assign(assignment)
@@ -48,14 +53,19 @@ import SwiitKit
                 copy.rawValue = enumCase.rawValue.map(expression)
                 return copy
             }
-            rewritten = .enumDecl(decl)
-        case .structDecl(var decl):
             decl.properties = decl.properties.map(property)
             decl.staticProperties = decl.staticProperties.map(property)
             decl.methods = decl.methods.map(function)
             decl.staticMethods = decl.staticMethods.map(function)
             decl.initializers = decl.initializers.map(function)
-            rewritten = .structDecl(decl)
+            rewritten = .enumDecl(decl)
+        case .structDecl(let decl):
+            rewritten = .structDecl(members(decl))
+        case .operatorDeclaration:
+            rewritten = node
+        case .typeExtension(var decl):
+            decl.members = members(decl.members)
+            rewritten = .typeExtension(decl)
         case .extensionDecl(let name, let methods):
             rewritten = .extensionDecl(name: name, methods: methods.map(function))
         case .deferBlock(let body):
@@ -112,6 +122,25 @@ import SwiitKit
         var copy = decl
         copy.defaultValue = decl.defaultValue.map(expression)
         copy.getter = block(decl.getter)
+        copy.setter = block(decl.setter)
+        copy.willSet = block(decl.willSet)
+        copy.didSet = block(decl.didSet)
+        return copy
+    }
+
+    private func members(_ decl: StructDecl) -> StructDecl {
+        var copy = decl
+        copy.properties = decl.properties.map(property)
+        copy.staticProperties = decl.staticProperties.map(property)
+        copy.methods = decl.methods.map(function)
+        copy.staticMethods = decl.staticMethods.map(function)
+        copy.initializers = decl.initializers.map(function)
+        copy.subscripts = decl.subscripts.map { declared in
+            var changed = declared
+            changed.getter = program(declared.getter)
+            changed.setter = block(declared.setter)
+            return changed
+        }
         return copy
     }
 
@@ -140,6 +169,7 @@ import SwiitKit
         case .cast(let inner, let type): .cast(pattern(inner), type)
         case .isType: value
         case .tuple(let patterns): .tuple(patterns.map(pattern))
+        case .partialRange(let lower, let upper, let closed): .partialRange(lower: lower.map(expression), upper: upper.map(expression), closed: closed)
         }
     }
 
@@ -189,6 +219,10 @@ import SwiitKit
             rewritten = .binary(op, expression(lhs), expression(rhs))
         case .index(let base, let index):
             rewritten = .index(expression(base), expression(index))
+        case .indexDefault(let base, let key, let fallback):
+            rewritten = .indexDefault(expression(base), expression(key), expression(fallback))
+        case .subscripted(let base, let list):
+            rewritten = .subscripted(expression(base), arguments(list))
         case .tuple(let elements):
             rewritten = .tuple(arguments(elements))
         case .annotated(let inner, let type):
@@ -213,6 +247,8 @@ import SwiitKit
             rewritten = .voidValue(expression(inner))
         case .inoutArgument(let inner):
             rewritten = .inoutArgument(expression(inner))
+        case .described(let inner, let type):
+            rewritten = .described(expression(inner), type)
         }
         return expr(rewritten)
     }

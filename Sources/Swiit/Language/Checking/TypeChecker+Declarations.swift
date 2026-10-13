@@ -18,7 +18,7 @@ extension TypeChecker {
         overloads.removeAll { sameParameters($0.parameters, decl.parameters) }
         overloads.append(Signature(
             name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
-            effect: decl.effect
+            effect: decl.effect, generics: decl.generics
         ))
         for index in overloads.indices { overloads[index].index = index }
         scopes[scopes.count - 1][decl.name] = .functions(overloads)
@@ -37,11 +37,14 @@ extension TypeChecker {
             if decl.parameters[index].defaultValue != nil {
                 try expect(&decl.parameters[index].defaultValue!, parameter.type, "\(parameter.name)'s default")
             }
-            names[parameter.name] = .variable(parameter.variadic ? .list(parameter.type) : parameter.type, mutable: parameter.isInout)
+            // A type parameter isn't known in the body: values of it can be used as any.
+            let known = substitute(parameter.type, [:])
+            names[parameter.name] = .variable(parameter.variadic ? .list(known) : known, mutable: parameter.isInout)
         }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
         if initializing { names["$initializing"] = .variable(.void, mutable: false) }
-        let result = decl.returnType ?? .void
+        // `init?` may `return nil`.
+        let result = decl.isFailable ? TypeAnnotation.optional(.void) : substitute(decl.returnType ?? .void, [:])
         try checkBecomingAsync(decl)
         let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))
@@ -62,7 +65,7 @@ extension TypeChecker {
                 return
             }
             try checkBlock(&decl.body)
-            if result != .void && result != .unknown && !definitelyReturns(decl.body) {
+            if result != .void && result != .unknown && !decl.isFailable && !definitelyReturns(decl.body) {
                 throw TypeError("\(decl.name) must return \(result) on every path")
             }
         }
@@ -143,7 +146,8 @@ extension TypeChecker {
             returns: .named(decl.name)
         )
         let initializers = decl.initializers.enumerated().map { index, initializer in
-            Signature(name: "\(decl.name).init", parameters: initializer.parameters, returns: .named(decl.name),
+            Signature(name: "\(decl.name).init", parameters: initializer.parameters,
+                      returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
                       isMutating: true, isThrowing: initializer.isThrowing, index: index)
         }
         // An untyped static takes its value's type once the struct is known
@@ -155,9 +159,15 @@ extension TypeChecker {
             signature.index = staticMethods[method.name]?.count ?? 0
             staticMethods[method.name, default: []].append(signature)
         }
-        return StructInfo(name: decl.name, stored: stored, computed: computed, methods: methods,
-                          initializers: initializers, memberwise: memberwise, conformances: decl.conformances,
-                          staticProperties: decl.staticProperties, staticMethods: staticMethods)
+        var info = StructInfo(name: decl.name, stored: stored, computed: computed, methods: methods,
+                              initializers: initializers, memberwise: memberwise, conformances: decl.conformances,
+                              staticProperties: decl.staticProperties, staticMethods: staticMethods)
+        info.settable = Set(decl.properties.filter { $0.getter != nil && $0.setter != nil }.map(\.name))
+        for (index, declared) in decl.subscripts.enumerated() {
+            info.subscripts.append(Signature(name: "subscript", parameters: declared.parameters, returns: declared.returnType, index: index))
+            info.subscriptSettable.append(declared.setter != nil)
+        }
+        return info
     }
 
     func checkStruct(_ decl: inout StructDecl) throws {
@@ -165,7 +175,9 @@ extension TypeChecker {
         // Equatable, Hashable and Encodable come from the fields, which must
         // have them too; Comparable would need a `<` of its own.
         for proto in decl.conformances {
-            if proto == "Comparable" { throw TypeError("\(decl.name) can't be Comparable yet: it would need a '<' of its own") }
+            if proto == "Comparable", !decl.staticMethods.contains(where: { $0.name == "<" }) {
+                throw TypeError("\(decl.name) can't be Comparable without a '<' of its own: static func < (a: \(decl.name), b: \(decl.name)) -> Bool")
+            }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swiit has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
             guard !TypeChecker.askNothingOfMembers.contains(proto) else { continue }
@@ -185,16 +197,45 @@ extension TypeChecker {
         }
         for index in decl.properties.indices {
             let property = decl.properties[index]
+            // Observers see the property's value, and may change the rest of the struct.
+            if property.getter == nil {
+                for (observer, name) in [(property.willSet, property.willSetName), (property.didSet, property.didSetName)] {
+                    guard let body = observer else { continue }
+                    var function = FunctionDecl(name: property.name, parameters: [Parameter(name: name, type: property.type ?? .unknown)],
+                                                returnType: nil, body: body)
+                    try checkFunction(&function, self: selfType, mutating: true)
+                    if body == property.willSet && name == property.willSetName { decl.properties[index].willSet = function.body }
+                    else { decl.properties[index].didSet = function.body }
+                }
+            }
             if let getter = property.getter {
                 var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type, body: getter)
                 try checkFunction(&function, self: selfType)
                 decl.properties[index].getter = function.body
+                if let setter = property.setter {
+                    var function = FunctionDecl(name: property.name, parameters: [Parameter(name: property.setterName, type: property.type ?? .unknown)],
+                                                returnType: nil, body: setter)
+                    try checkFunction(&function, self: selfType, mutating: true)
+                    decl.properties[index].setter = function.body
+                }
             } else if property.defaultValue != nil, let type = property.type {
                 try expect(&decl.properties[index].defaultValue!, type, "\(decl.name).\(property.name)'s default")
             }
         }
         for index in decl.methods.indices {
             try checkFunction(&decl.methods[index], self: selfType, mutating: decl.methods[index].isMutating)
+        }
+        for index in decl.subscripts.indices {
+            let declared = decl.subscripts[index]
+            var getter = FunctionDecl(name: "subscript", parameters: declared.parameters, returnType: declared.returnType, body: declared.getter)
+            try checkFunction(&getter, self: selfType)
+            decl.subscripts[index].getter = getter.body
+            if let body = declared.setter {
+                var setter = FunctionDecl(name: "subscript", parameters: declared.parameters + [Parameter(name: declared.setterName, type: declared.returnType)],
+                                          returnType: nil, body: body)
+                try checkFunction(&setter, self: selfType, mutating: true)
+                decl.subscripts[index].setter = setter.body
+            }
         }
         for index in decl.staticProperties.indices {
             let property = decl.staticProperties[index]
@@ -246,9 +287,15 @@ extension TypeChecker {
         }
         var computed: [String: TypeAnnotation] = [:]
         for property in decl.properties where property.getter != nil { computed[property.name] = property.type ?? .unknown }
-        return EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,
-                        conformances: decl.conformances, computed: computed, methods: signatures(decl.methods),
-                        staticProperties: decl.staticProperties, staticMethods: signatures(decl.staticMethods))
+        var info = EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,
+                            conformances: decl.conformances, computed: computed, methods: signatures(decl.methods),
+                            staticProperties: decl.staticProperties, staticMethods: signatures(decl.staticMethods))
+        info.initializers = decl.initializers.enumerated().map { index, initializer in
+            Signature(name: "\(decl.name).init", parameters: initializer.parameters,
+                      returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
+                      isMutating: true, isThrowing: initializer.isThrowing, index: index)
+        }
+        return info
     }
 
     func checkEnum(_ decl: inout EnumDecl) throws {
@@ -296,6 +343,13 @@ extension TypeChecker {
         }
         for index in decl.staticMethods.indices {
             try checkFunction(&decl.staticMethods[index])
+        }
+        for index in decl.initializers.indices {
+            var function = decl.initializers[index]
+            function.name = "\(decl.name).init"
+            try checkFunction(&function, self: selfType, initializing: true)
+            function.name = "init"
+            decl.initializers[index] = function
         }
     }
 }

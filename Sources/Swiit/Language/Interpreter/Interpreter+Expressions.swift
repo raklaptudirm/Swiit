@@ -75,6 +75,8 @@ extension Interpreter {
             return SwiftValue.make(TaskBox(handle), as: "Task")
         case .inoutArgument(let inner):
             return try evaluate(inner)
+        case .described(let inner, let type):
+            return .string(try describing(try evaluate(inner), type: type))
         case .call(_, let arguments) where arguments.contains(where: { if case .inoutArgument = $0.value { true } else { false } }):
             // `f(&x)`: x goes in, and what f leaves in its `inout` parameter comes back.
             let places = arguments.compactMap { argument -> Expr? in
@@ -171,7 +173,19 @@ extension Interpreter {
         case .binary(let op, let lhs, let rhs):
             return try apply(op, try evaluate(lhs), try evaluate(rhs))
         case .index(let base, let index):
-            return try element(of: try evaluate(base), at: try evaluate(index))
+            let value = try evaluate(base)
+            if case .record(let record) = value, let type = structType(of: record), !type.subscriptGetters.isEmpty {
+                return try readSubscript(record, type, [Argument(value: index)])
+            }
+            return try element(of: value, at: try evaluate(index))
+        case .subscripted(let base, let arguments):
+            guard case .record(let record) = try evaluate(base), let type = structType(of: record), !type.subscriptGetters.isEmpty else {
+                throw RuntimeError("this value has no subscript")
+            }
+            return try readSubscript(record, type, arguments)
+        case .indexDefault(let base, let key, let fallback):
+            guard case .dictionary(let dictionary) = try evaluate(base) else { throw RuntimeError("'default:' goes with a dictionary") }
+            return try dictionary[try evaluate(key)] ?? evaluate(fallback)
         }
     }
 
@@ -193,6 +207,12 @@ extension Interpreter {
         }
         if case .member(let baseExpr, let name) = callee {
             let base = try evaluate(baseExpr)
+            // `self.init(x: 1)`: another initializer makes the value.
+            if name == "init", case .record(let record) = base, let type = structType(of: record) {
+                let made = try construct(type, arguments, overload: overload)
+                try assign(Assignment(root: "self", path: [], op: nil, value: .literal(made)))
+                return .nothing
+            }
             // `Level.make()`: a static method of an enum.
             if case .object(let type as EnumType) = base, let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name] {
                 return try callStatic(narrowed(methods, overload), arguments)
@@ -200,6 +220,17 @@ extension Interpreter {
             // `Result.failed(code: 2)`: a case with associated values.
             if case .object(let type as EnumType) = base {
                 return try makeCase(type, name, arguments)
+            }
+            // `P.make()`: a static method an extension adds to a struct or enum.
+            if case .object(let type as StructType) = base, let methods = typeExtensions[type.name]?.staticMethods[name] {
+                return try callStatic(narrowed(methods, overload), arguments)
+            }
+            if case .object(let type as EnumType) = base, let methods = typeExtensions[type.name]?.staticMethods[name] {
+                return try callStatic(narrowed(methods, overload), arguments)
+            }
+            // `x.double()`: a method an extension adds, to any type.
+            if let methods = extensionMembers(of: base)?.methods[name] {
+                return try callMethod(narrowed(methods, overload), of: base, at: baseExpr, arguments)
             }
             // `direction.opposite()`: an enum's method, with the case as `self`.
             if case .enumValue(let enumValue) = base, let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name] {
@@ -228,6 +259,9 @@ extension Interpreter {
         }
         // `Level(rawValue: 2)`: the case with that raw value, or nil.
         if case .object(let type as EnumType) = value {
+            if !(arguments.count == 1 && arguments[0].label == "rawValue"), let initializers = enumMembers[ObjectIdentifier(type)]?.initializers {
+                return try constructEnum(type, initializers, arguments, overload: overload)
+            }
             guard arguments.count == 1, arguments[0].label == "rawValue" else {
                 throw RuntimeError("\(type.name) is made from a raw value: \(type.name)(rawValue: …)")
             }
@@ -266,6 +300,9 @@ extension Interpreter {
             return raw
         }
         if case .enumValue(let enumValue) = value, let found = try enumMember(name, of: enumValue) { return found }
+        if let found = try extensionMember(name, of: value) { return found }
+        if case .object(let type as StructType) = value, let found = try extensionStaticMember(name, ofTypeNamed: type.name) { return found }
+        if case .object(let type as EnumType) = value, let found = try extensionStaticMember(name, ofTypeNamed: type.name) { return found }
         if case .object(let type as EnumType) = value, let found = try enumStaticMember(name, of: type) { return found }
         if case .object(let type as EnumType) = value, type.case(named: name) != nil, type.member(name) == nil {
             return try makeCase(type, name, nil) // Says what values it needs.
@@ -344,6 +381,21 @@ extension Interpreter {
         }
         guard case .list(let elements) = base else {
             throw RuntimeError("\(base.typeName) can't be indexed")
+        }
+        // `xs[1...3]`: a slice, as Swift's ArraySlice.
+        if case .object(let box as SwiftValue) = index {
+            var bounds: Range<Int>?
+            if let range = box.value as? ClosedRange<Value>, case .int(let low) = range.lowerBound, case .int(let high) = range.upperBound, high < Int.max {
+                bounds = low..<(high + 1)
+            } else if let range = box.value as? Range<Value>, case .int(let low) = range.lowerBound, case .int(let high) = range.upperBound {
+                bounds = low..<high
+            }
+            if let bounds {
+                guard bounds.lowerBound >= 0, bounds.upperBound <= elements.count else {
+                    throw RuntimeError("range \(bounds.lowerBound)..<\(bounds.upperBound) is out of range for a list of \(elements.count)")
+                }
+                return SwiftValue.make(ArraySlice(elements[bounds]), as: "ArraySlice")
+            }
         }
         guard case .int(let i) = index else {
             throw RuntimeError("a list index must be an Int, not \(index.typeName)")

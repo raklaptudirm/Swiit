@@ -71,6 +71,7 @@ extension Interpreter {
                 result = .nothing
             } catch ControlFlow.returned(let value) {
                 result = value
+                if function.isFailable && value == .nothing { task.failedInit = true }
             }
         }
 

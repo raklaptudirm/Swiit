@@ -50,7 +50,11 @@ public final class Interpreter {
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
-    var enumMembers: [ObjectIdentifier: EnumMembers] = [:]
+    var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
+    /// The operators and precedence groups declared at the prompt, by what they declare, as source.
+    var declaredOperators: [String: String] = [:]
+    /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
+    var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.
     @_spi(Layer) public var sequenceMethods: [String: OverloadSet] = [:]
     /// The declared types of globals, from entries already checked, so a
@@ -126,6 +130,6 @@ extension Interpreter {
             if case .object(is StructType) = binding.value { return .type }
             if case .object(is BridgedTypeName) = binding.value { return .type }
             return .variable
-        }
+        }.merging(declaredOperators.mapValues(NameKind.operatorDeclaration)) { $1 }
     }
 }

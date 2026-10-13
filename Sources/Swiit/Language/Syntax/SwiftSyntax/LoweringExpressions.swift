@@ -43,6 +43,9 @@ extension Lowering {
         if let node = expr.as(ClosureExprSyntax.self) { return .closure(try closure(node)) }
         if let node = expr.as(PrefixOperatorExprSyntax.self) { return try prefix(node) }
         if let node = expr.as(ForceUnwrapExprSyntax.self) { return .forceUnwrap(try expression(node.expression)) }
+        if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text != "..." {
+            return .call(.variable("postfix " + node.operator.text), [Argument(value: try expression(node.expression))])
+        }
         if let node = expr.as(InfixOperatorExprSyntax.self) { return try infix(node) }
         if let node = expr.as(TernaryExprSyntax.self) { return try ternary(node) }
         if let node = expr.as(AsExprSyntax.self) {
@@ -74,6 +77,8 @@ extension Lowering {
             return .await(try expression(node.expression), throwing: tryDepth > 0)
         }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
+        // `Box<Int>(…)`, `f<Int>(…)`: the types only say what a call would infer.
+        if let node = expr.as(GenericSpecializationExprSyntax.self) { return try expression(node.expression) }
         if let node = expr.as(InOutExprSyntax.self) { return .inoutArgument(try expression(node.expression)) }
         if let node = expr.as(IfExprSyntax.self) {
             let statement = try ifStatement(node)
@@ -108,6 +113,8 @@ extension Lowering {
     func reference(_ node: DeclReferenceExprSyntax) -> Expr {
         let name = node.baseName.text
         if locals.contains(where: { $0.contains(name) }) { return .variable(name) }
+        if name == "Self", let current = currentType { return .variable(current) }
+        if let nested = nestedNames[name] { return .variable(nested) }
         if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         return .variable(name)
@@ -221,6 +228,24 @@ extension Lowering {
         guard node.declName.argumentNames == nil else { throw unsupported("a member with argument names", node) }
         let name = node.declName.baseName.text
         guard let base = node.base else { return .caseLiteral(name, nil) }
+        // `x.self`, `Int.self`: the value, or the type, itself.
+        if name == "self" { return try expression(base) }
+        // `Outer.Inner`: a type declared inside another.
+        if let reference = base.as(DeclReferenceExprSyntax.self) {
+            let outer = reference.baseName.text == "Self" ? currentType : (nestedNames[reference.baseName.text] ?? reference.baseName.text)
+            if let outer, declaredTypes.contains(outer + "." + name) { return .variable(outer + "." + name) }
+        }
+        if let nested = base.as(MemberAccessExprSyntax.self), case .variable(let outer)? = try? member(nested), declaredTypes.contains(outer + "." + name) {
+            return .variable(outer + "." + name)
+        }
+        // `String.init`: the initializer as a function, which takes one value.
+        if name == "init", !called, !base.is(DeclReferenceExprSyntax.self) || base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
+            let made = Expr.call(try expression(base), [Argument(label: nil, value: .variable("$0"))])
+            return .closure(ClosureLiteral(
+                parameters: [Parameter(name: "$0")], returnType: nil,
+                body: Program(statements: [.expression(made)], lines: [line(of: node)]), names: NamesUsed(names: ["$0"])
+            ))
+        }
         // `2.mb`: a file size, written as a number and its unit.
         if FileSize.units[name] != nil {
             if let integer = base.as(IntegerLiteralExprSyntax.self), let amount = Double(integer.literal.text.replacingOccurrences(of: "_", with: "")) {
@@ -231,7 +256,7 @@ extension Lowering {
             }
         }
         // `1.parsecs`: a number is followed by a unit, and this isn't one.
-        if !called, base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
+        if !called, plugin != nil, base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
             failedAt = node.declName.endPositionBeforeTrailingTrivia.utf8Offset
             throw SyntaxError("unknown unit '\(name)'; file sizes use b, kb, mb, gb, tb, or kib, mib, gib, tib")
         }
@@ -253,6 +278,18 @@ extension Lowering {
     private mutating func call(_ node: FunctionCallExprSyntax) throws -> Expr {
         // `.failed(code: 2)`: a case whose enum comes from context.
         let isCase = node.calledExpression.as(MemberAccessExprSyntax.self).map { $0.base == nil } ?? false
+        // `[Int](repeating: 0, count: 3)`, `[String: Int]()`: an array or dictionary made, of the type written.
+        if let written = node.calledExpression.as(ArrayExprSyntax.self), written.elements.count == 1,
+           let element = written.elements.first?.expression.as(DeclReferenceExprSyntax.self) {
+            let made = Expr.call(.variable("Array"), try arguments(node.arguments))
+            return .annotated(made, .list(TypeAnnotation.spelled(element.baseName.text) ?? .named(element.baseName.text)))
+        }
+        if let written = node.calledExpression.as(DictionaryExprSyntax.self), case .elements(let pairs) = written.content, pairs.count == 1,
+           let pair = pairs.first, let key = pair.key.as(DeclReferenceExprSyntax.self), let value = pair.value.as(DeclReferenceExprSyntax.self) {
+            let made = Expr.call(.variable("Dictionary"), try arguments(node.arguments))
+            return .annotated(made, .dictionary(TypeAnnotation.spelled(key.baseName.text) ?? .named(key.baseName.text),
+                                                TypeAnnotation.spelled(value.baseName.text) ?? .named(value.baseName.text)))
+        }
         // The callee first, as it is read: a name that isn't bound is found before
         // what is wrong with the arguments.
         var callee: Expr?
@@ -260,6 +297,10 @@ extension Lowering {
             if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
+            } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.declName.baseName.text == "init",
+                      let base = member.base, base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
+                // `Point.init(x: 1)` is `Point(x: 1)`.
+                callee = try expression(base)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self) {
                 // `3.5.rounded()`: a method of the number, not a unit.
                 callee = try self.member(member, called: true)
@@ -299,8 +340,23 @@ extension Lowering {
             guard case .keyPath(_, let path) = try keyPath(literal) else { throw unsupported("this key path", literal) }
             return path.reduce(base) { .member($0, $1) }
         }
+        // `counts[word, default: 0]`.
+        if node.arguments.count == 2, let key = node.arguments.first, key.label == nil, let fallback = node.arguments.last,
+           fallback.label?.text == "default" {
+            return .indexDefault(base, try expression(key.expression), try expression(fallback.expression))
+        }
+        // `xs[2...]`, `xs[..<3]`, `xs[...3]`: what `suffix(from:)`, `prefix(upTo:)` and `prefix(through:)` give.
+        if node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil {
+            if let partial = argument.expression.as(PostfixOperatorExprSyntax.self), partial.operator.text == "..." {
+                return .call(.member(base, "suffix"), [Argument(label: "from", value: try expression(partial.expression))])
+            }
+            if let partial = argument.expression.as(PrefixOperatorExprSyntax.self), partial.operator.text == "..." || partial.operator.text == "..<" {
+                let label = partial.operator.text == "..." ? "through" : "upTo"
+                return .call(.member(base, "prefix"), [Argument(label: label, value: try expression(partial.expression))])
+            }
+        }
         guard node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil else {
-            throw unsupported("this subscript", node)
+            return .subscripted(base, try arguments(node.arguments))
         }
         let index = try expression(argument.expression)
         return chained != nil ? .optionalIndex(base, index) : .index(base, index)
@@ -379,7 +435,8 @@ extension Lowering {
         case "-": return .unary(.negate, operand)
         case "!": return .unary(.not, operand)
         case "~": return .unary(.bitNot, operand)
-        default: throw unsupported("the operator '\(node.operator.text)'", node)
+        // A prefix operator the program declares.
+        default: return .call(.variable("prefix " + node.operator.text), [Argument(value: operand)])
         }
     }
 
@@ -398,8 +455,14 @@ extension Lowering {
         // Left to right, as it is read: a name that isn't bound is found before an operator that isn't Swish's.
         let left = try expression(node.leftOperand)
         if node.operator.is(AssignmentExprSyntax.self) { throw unsupported("an assignment in an expression", node) }
-        guard let op = node.operator.as(BinaryOperatorExprSyntax.self), let kind = binaryOperator(op.operator.text) else {
+        guard let op = node.operator.as(BinaryOperatorExprSyntax.self) else {
             throw unsupported("the operator '\(node.operator.trimmedDescription)'", node.operator)
+        }
+        // An operator the program declares is a function of that name.
+        guard let kind = binaryOperator(op.operator.text) else {
+            // Only one a program declares is a function it can call.
+            guard names()[op.operator.text] != nil else { throw unsupported("the operator '\(op.operator.text)'", node.operator) }
+            return .call(.variable(op.operator.text), [Argument(value: left), Argument(value: try expression(node.rightOperand))])
         }
         return .binary(kind, left, try expression(node.rightOperand))
     }
@@ -430,9 +493,17 @@ extension Lowering {
             if let member = place.as(MemberAccessExprSyntax.self), let base = member.base {
                 path.insert(.member(member.declName.baseName.text), at: 0)
                 place = base
+            } else if let subscripted = place.as(SubscriptCallExprSyntax.self), subscripted.arguments.count == 2,
+                      let key = subscripted.arguments.first, key.label == nil, let fallback = subscripted.arguments.last,
+                      fallback.label?.text == "default" {
+                path.insert(.indexDefault(try expression(key.expression), try expression(fallback.expression)), at: 0)
+                place = subscripted.calledExpression
             } else if let subscripted = place.as(SubscriptCallExprSyntax.self), subscripted.arguments.count == 1,
-                      let argument = subscripted.arguments.first {
+                      let argument = subscripted.arguments.first, argument.label == nil {
                 path.insert(.index(try expression(argument.expression)), at: 0)
+                place = subscripted.calledExpression
+            } else if let subscripted = place.as(SubscriptCallExprSyntax.self) {
+                path.insert(.subscripted(try arguments(subscripted.arguments)), at: 0)
                 place = subscripted.calledExpression
             } else {
                 break

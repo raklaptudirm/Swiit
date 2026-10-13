@@ -83,7 +83,8 @@ extension TypeChecker {
             return true
         case .named(let name):
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
-            let declared = structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? []
+            let declared = (structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? [])
+                + (extensionInfo(forKey: name)?.conformances ?? [])
             if declared.contains(proto) || proto == "Equatable" && declared.contains("Hashable") {
                 // Swift only makes a Comparable enum's `<` without associated values.
                 guard proto == "Comparable", let info = enumInfo(named: name) else { return true }
@@ -163,7 +164,7 @@ extension TypeChecker {
         }
         switch type {
         case .list(let element): return element
-        case .string: return .string
+        case .string: return .named("Character")
         case .dictionary(let key, let value):
             return .tuple([.init(label: "key", type: key), .init(label: "value", type: value)])
         case .unknown, .any: return .unknown

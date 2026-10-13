@@ -38,6 +38,14 @@ extension TypeChecker {
                 if let dynamic = dynamicType(of: type) {
                     type = dynamic.write
                 } else if case .member(let name) = assignment.path[index], case .named(let structName) = type, let info = structInfo(named: structName) {
+                    if info.property(name) == nil, info.settable.contains(name), let computed = info.computed[name] {
+                        type = computed
+                        continue
+                    }
+                    if info.property(name) == nil, let ext = extensionInfo(forKey: structName), ext.settable.contains(name), let computed = ext.computed[name] {
+                        type = computed
+                        continue
+                    }
                     guard let property = info.property(name) else {
                         let why = info.computed[name] != nil ? "it's a computed property" : "\(structName) has no property '\(name)'"
                         throw TypeError("cannot assign to '\(name)': \(why)")
@@ -67,6 +75,12 @@ extension TypeChecker {
                 case .named where dynamicType(of: type) != nil:
                     try expect(&indexExpr, .string, "\(type)'s member name")
                     type = dynamicType(of: type)!.write
+                case .named(let structName) where structInfo(named: structName)?.subscripts.isEmpty == false:
+                    var arguments = [Argument(value: indexExpr)]
+                    let (result, settable) = try structSubscript(structInfo(named: structName)!, &arguments)
+                    guard settable else { throw TypeError("cannot assign through \(structName)'s subscript: it's get-only") }
+                    indexExpr = arguments[0].value
+                    type = result
                 case .list(let element):
                     try expect(&indexExpr, .int, "a list's index")
                     type = element
@@ -81,10 +95,31 @@ extension TypeChecker {
                     throw TypeError("cannot assign into \(type) by index")
                 }
                 assignment.path[index] = .index(indexExpr)
+            case .subscripted(var arguments):
+                guard case .named(let structName) = type, let info = structInfo(named: structName) else {
+                    throw TypeError("cannot assign into \(type) by several indexes")
+                }
+                let (result, settable) = try structSubscript(info, &arguments)
+                guard settable else { throw TypeError("cannot assign through \(structName)'s subscript: it's get-only") }
+                type = result
+                assignment.path[index] = .subscripted(arguments)
+            case .indexDefault(var key, var fallback):
+                guard case .dictionary(let keyType, let valueType) = type else {
+                    throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")
+                }
+                try expect(&key, keyType, "the key")
+                try expect(&fallback, valueType, "the default")
+                type = valueType
+                assignment.path[index] = .indexDefault(key, fallback)
             }
         }
         if let op = assignment.op {
             let valueType = try typeOf(&assignment.value, expecting: type)
+            // `a += b` through a `+=` the type defines.
+            if case .named(let typeName) = type,
+               (structInfo(named: typeName)?.staticMethods["\(op.rawValue)="] ?? extensionInfo(forKey: typeName)?.staticMethods["\(op.rawValue)="]) != nil {
+                return
+            }
             let result = try binaryType(op, type, valueType)
             guard fits(result, type) else { throw TypeError("'\(op.rawValue)=' would make \(type) a \(result)") }
         } else {

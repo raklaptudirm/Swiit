@@ -83,6 +83,10 @@ extension TypeChecker {
                 throw TypeError("\(name): '\(parameter.name)' must be \(wanted), not \(actual)")
             }
             unify(parameter.type, actual, &bindings)
+            // `print(x)` shows an optional as Swift does, which the type says.
+            if name == "print", parameter.type == .any, parameter.variadic, TypeChecker.isShownByType(actual) {
+                arguments[index].value = .described(arguments[index].value, actual)
+            }
             if case .functionType(_, _, true, _) = actual { argumentsThrow = true }
             switch (natural, wanted) {
             case (.unknown?, _): uncertain = true

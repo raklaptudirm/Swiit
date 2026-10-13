@@ -17,6 +17,8 @@ import SwiitKit
     var effect: Effect = .sync
     /// `rethrows`: it throws only if a closure passed to it does.
     var isRethrowing = false
+    /// `init?`: `return nil` leaves nothing made.
+    var isFailable = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
     @_spi(Layer) public var generics: [String: [String]] = [:]
@@ -43,6 +45,10 @@ import SwiitKit
     enum Step: Equatable, Sendable {
         case member(String)
         case index(Expr)
+        /// `counts[word, default: 0] += 1`: a dictionary's entry, or the default if it has none.
+        case indexDefault(Expr, Expr)
+        /// A subscript with several or labeled arguments.
+        case subscripted([Argument])
     }
 
     var root: String
@@ -71,6 +77,8 @@ import SwiitKit
     /// and `static func`s, which are called on it: `Point.origin`.
     var staticProperties: [PropertyDecl] = []
     var staticMethods: [FunctionDecl] = []
+    /// `subscript(i: Int) -> T { get … set … }`: what `value[i]` reads and writes.
+    var subscripts: [SubscriptDecl] = []
 
     init(name: String, properties: [PropertyDecl], methods: [FunctionDecl], initializers: [FunctionDecl], conformances: [String] = []) {
         self.name = name
@@ -81,6 +89,27 @@ import SwiitKit
     }
 }
 
+/// `extension Int { var squared: Int { … } }`: members added to a type declared
+/// elsewhere (a struct, an enum, or one of Swift's), and protocols it conforms to.
+@_spi(Layer) public struct ExtensionDecl: Equatable, Sendable {
+    /// The type as written: `Int`, `Array`, `Outer.Inner`.
+    var typeName: String
+    /// Its members, in the shape a struct's are; the name is the type's.
+    var members: StructDecl
+    var conformances: [String]
+}
+
+/// `subscript(row: Int, column: Int) -> Double { get { … } set { … } }`.
+struct SubscriptDecl: Equatable, Sendable {
+    var parameters: [Parameter]
+    var returnType: TypeAnnotation
+    var getter: Program
+    var getterNames = NamesUsed()
+    var setter: Program?
+    var setterName = "newValue"
+    var setterNames = NamesUsed()
+}
+
 @_spi(Layer) public struct PropertyDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
     var mutable: Bool
@@ -89,6 +118,17 @@ import SwiitKit
     /// A computed property's body; nil for a stored one.
     var getter: Program? = nil
     var getterNames = NamesUsed()
+    /// `set { … }` of a computed property, with the name its value goes by.
+    var setter: Program? = nil
+    var setterName = "newValue"
+    var setterNames = NamesUsed()
+    /// `willSet` and `didSet` of a stored property: run before and after it changes.
+    var willSet: Program? = nil
+    var willSetName = "newValue"
+    var willSetNames = NamesUsed()
+    var didSet: Program? = nil
+    var didSetName = "oldValue"
+    var didSetNames = NamesUsed()
 
     init(name: String, mutable: Bool, type: TypeAnnotation? = nil, defaultValue: Expr? = nil, getter: Program? = nil, getterNames: NamesUsed = NamesUsed()) {
         self.name = name

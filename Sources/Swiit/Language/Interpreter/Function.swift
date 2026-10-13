@@ -29,12 +29,16 @@ public final class Function: Callable, @unchecked Sendable {
     public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
     public let generics: [String: [String]]
+    /// `init?`: leaving it with `return nil` makes nothing.
+    let isFailable: Bool
 
     public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
-        isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:]
+        isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:],
+        isFailable: Bool = false
     ) {
+        self.isFailable = isFailable
         self.isRethrowing = isRethrowing
         self.effect = effect
         self.generics = generics

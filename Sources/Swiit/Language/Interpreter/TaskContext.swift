@@ -21,6 +21,8 @@ public final class TaskContext {
     /// What a call's `inout` parameters held when it ended, in order, for the
     /// call to hand back to the places `&` named.
     var inoutOutputs: [Value] = []
+    /// Whether the failable initializer just run left with `return nil`.
+    var failedInit = false
     /// Asks the task to stop, from any thread.
     public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).

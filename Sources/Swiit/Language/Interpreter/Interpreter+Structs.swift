@@ -22,6 +22,14 @@ public final class StructType: SwiitObject, @unchecked Sendable {
     let staticComputed: [String: Function]
     let staticMethods: [String: OverloadSet]
     public var statics: [String: StaticValue] = [:]
+    /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
+    /// parameters are the getter's, then the new value).
+    var subscriptGetters: [Function] = []
+    var subscriptSetters: [Function?] = []
+    /// What setting a computed property runs, with its value as the one parameter.
+    var setters: [String: Function] = [:]
+    /// What runs before and after a stored property changes.
+    var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
 
     /// A stored static property's value, kept on the type.
     public final class StaticValue {
@@ -106,7 +114,7 @@ extension Interpreter {
             Function(
                 name: "\(decl.name).init", parameters: initializer.parameters, returnType: nil,
                 body: .swiit(initializer.body), captured: captureScopes(initializer.names), documentation: initializer.documentation,
-                isMutating: true, isThrowing: initializer.isThrowing
+                isMutating: true, isThrowing: initializer.isThrowing, isFailable: initializer.isFailable
             )
         }
         let stored = decl.properties.filter { $0.getter == nil }
@@ -118,7 +126,7 @@ extension Interpreter {
                 Parameter(label: property.name, name: property.name, type: property.type ?? .any,
                           defaultValue: property.defaultValue)
             },
-            returnType: nil, body: .native { _, _ in .nothing }
+            returnType: nil, body: .native { _, _ in .nothing }, captured: captureScopes(NamesUsed())
         )
         var staticComputed: [String: Function] = [:]
         for property in decl.staticProperties {
@@ -144,6 +152,36 @@ extension Interpreter {
             staticProperties: decl.staticProperties, staticComputed: staticComputed,
             staticMethods: staticMethods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
         )
+        for declared in decl.subscripts {
+            type.subscriptGetters.append(Function(
+                name: "subscript", parameters: declared.parameters, returnType: declared.returnType, body: .swiit(declared.getter),
+                captured: captureScopes(declared.getterNames)
+            ))
+            type.subscriptSetters.append(declared.setter.map { setter in
+                Function(
+                    name: "subscript", parameters: declared.parameters + [Parameter(name: declared.setterName, type: declared.returnType)],
+                    returnType: nil, body: .swiit(setter), captured: captureScopes(declared.setterNames), isMutating: true
+                )
+            })
+        }
+        for property in decl.properties {
+            if let setter = property.setter {
+                type.setters[property.name] = Function(
+                    name: property.name, parameters: [Parameter(name: property.setterName, type: property.type ?? .any)], returnType: nil,
+                    body: .swiit(setter), captured: captureScopes(property.setterNames), isMutating: true
+                )
+            }
+            if property.willSet != nil || property.didSet != nil {
+                func observer(_ body: Program?, _ parameter: String, _ names: NamesUsed) -> Function? {
+                    body.map { body in
+                        Function(name: property.name, parameters: [Parameter(name: parameter, type: property.type ?? .any)], returnType: nil,
+                                 body: .swiit(body), captured: captureScopes(names), isMutating: true)
+                    }
+                }
+                type.observers[property.name] = (observer(property.willSet, property.willSetName, property.willSetNames),
+                                                 observer(property.didSet, property.didSetName, property.didSetNames))
+            }
+        }
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
         // Bound first, so a static value can be made of the type itself.
         for property in decl.staticProperties where property.getter == nil {
@@ -199,7 +237,12 @@ extension Interpreter {
             }
         }
         let receiver = Receiver(.record(start), mutable: true, initializing: true)
+        task.failedInit = false
         _ = try invoke(initializer, with: bindings, receiver: receiver)
+        if task.failedInit {
+            task.failedInit = false
+            return .nothing
+        }
         guard case .record(let made) = receiver.value else {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
@@ -255,6 +298,32 @@ extension Interpreter {
         if let getter = type.staticComputed[name] { return try invoke(getter, with: [:]) }
         if let slot = type.statics[name] { return slot.value }
         return type.staticMethods[name].map(Value.function)
+    }
+
+    /// `grid[1, 2]`: a struct's subscript read, with `self` the value.
+    func readSubscript(_ record: Record, _ type: StructType, _ arguments: [Argument]) throws -> Value {
+        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
+        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: type.subscriptGetters)) { try self.bind(values, to: $0) }
+        return try invoke(getter, with: bindings, receiver: Receiver(.record(record), mutable: false))
+    }
+
+    /// `grid[1, 2] = v` (or with `rest`, a change deeper inside it): the value through the subscript's setter.
+    func writeSubscript(
+        _ record: Record, _ type: StructType, _ arguments: [Argument], _ rest: ArraySlice<Assignment.Step>,
+        _ change: (Value, TypeAnnotation?) throws -> Value
+    ) throws -> Value {
+        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
+        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: type.subscriptGetters)) { try self.bind(values, to: $0) }
+        guard let position = type.subscriptGetters.firstIndex(where: { $0 === getter }), let setter = type.subscriptSetters[position] else {
+            throw RuntimeError("cannot assign through \(type.name)'s subscript: it's get-only")
+        }
+        let current = try invoke(getter, with: bindings, receiver: Receiver(.record(record), mutable: false))
+        let updatedValue = try rest.isEmpty ? change(current, getter.returnType) : updated(current, rest, type: getter.returnType, change)
+        var all = bindings
+        all[setter.parameters[setter.parameters.count - 1].name] = updatedValue
+        let receiver = Receiver(.record(record), mutable: true)
+        _ = try invoke(setter, with: all, receiver: receiver)
+        return receiver.value
     }
 
     /// `Point.make(1)`.
@@ -323,6 +392,14 @@ extension Interpreter {
         try update(assignment.root, assignment.path) { current, type in
             let value = try evaluate(assignment.value, expecting: type)
             guard let op = assignment.op else { return value }
+            // `a += b` through a `+=` the type defines, whose first parameter is `inout`.
+            if isDeclaredValue(current), !staticOperators("\(op.rawValue)=", of: current).isEmpty {
+                task.inoutOutputs = []
+                _ = try userOperator("\(op.rawValue)=", [current, value])
+                let outputs = task.inoutOutputs
+                task.inoutOutputs = []
+                if let changed = outputs.first { return changed }
+            }
             return try apply(op, current, value)
         }
     }
@@ -383,6 +460,15 @@ extension Interpreter {
         switch (step, base) {
         case (.member(let name), .record(var record)):
             if let structType = structType(of: record) {
+                // A computed property with a setter: the new value goes through it.
+                if let setter = structType.setters[name] ?? typeExtensions[structType.name]?.setters[name], rest.isEmpty {
+                    let current = try structMember(name, of: record, structType) ?? .nothing
+                    let receiver = Receiver(.record(record), mutable: true)
+                    let newValue = try change(current, structType.computed[name]?.returnType)
+                    let parameter = setter.parameters[0]
+                    _ = try invoke(setter, with: [parameter.name: try checked(newValue, for: parameter, of: name)], receiver: receiver)
+                    return receiver.value
+                }
                 guard let property = structType.property(name) else {
                     let what = structType.computed[name] != nil ? "it's a computed property" : "\(structType.name) has no property '\(name)'"
                     throw RuntimeError("cannot assign to '\(name)': \(what)")
@@ -391,7 +477,25 @@ extension Interpreter {
                     throw RuntimeError("cannot assign to '\(name)': it's a 'let' property of \(structType.name)")
                 }
                 let value = try updated(record[name] ?? .nothing, rest, type: property.type, change)
-                record[name] = try checked(value, as: property, of: structType)
+                let stored = try checked(value, as: property, of: structType)
+                // `willSet` and `didSet` run for a change from outside, not while the value is made.
+                if let observers = structType.observers[name], !initializing {
+                    var working = record
+                    if let willSet = observers.willSet {
+                        let receiver = Receiver(.record(working), mutable: true)
+                        _ = try invoke(willSet, with: [willSet.parameters[0].name: stored], receiver: receiver)
+                        if case .record(let changed) = receiver.value { working = changed }
+                    }
+                    let old = working[name] ?? .nothing
+                    working[name] = stored
+                    if let didSet = observers.didSet {
+                        let receiver = Receiver(.record(working), mutable: true)
+                        _ = try invoke(didSet, with: [didSet.parameters[0].name: old], receiver: receiver)
+                        if case .record(let changed) = receiver.value { working = changed }
+                    }
+                    return .record(working)
+                }
+                record[name] = stored
             } else {
                 guard record[name] != nil || rest.isEmpty else {
                     throw RuntimeError("\(record.typeName ?? "Record") has no field '\(name)'")
@@ -410,6 +514,16 @@ extension Interpreter {
         case (.index(let indexExpr), .dictionary(var dictionary)):
             let key = try evaluate(indexExpr)
             let current = dictionary[key] ?? .nothing
+            let value = try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
+            dictionary[key] = value == .nothing ? nil : value
+            return .dictionary(dictionary)
+        case (.index(let indexExpr), .record(let record)) where structType(of: record)?.subscriptGetters.isEmpty == false:
+            return try writeSubscript(record, structType(of: record)!, [Argument(value: indexExpr)], rest, change)
+        case (.subscripted(let arguments), .record(let record)) where structType(of: record)?.subscriptGetters.isEmpty == false:
+            return try writeSubscript(record, structType(of: record)!, arguments, rest, change)
+        case (.indexDefault(let keyExpr, let fallback), .dictionary(var dictionary)):
+            let key = try evaluate(keyExpr)
+            let current = try dictionary[key] ?? evaluate(fallback)
             let value = try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
@@ -458,7 +572,7 @@ extension Interpreter {
             return base
         case (.member(let name), _):
             throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
-        case (.index, _):
+        case (.index, _), (.indexDefault, _), (.subscripted, _):
             throw RuntimeError("cannot assign into \(base.typeName) by index")
         }
     }

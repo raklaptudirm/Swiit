@@ -83,7 +83,36 @@ extension TypeChecker {
         }
     }
 
+    /// What an operator a program defines gives for these operands: a static method of one of their
+    /// types, or a function of that name.
+    func userOperatorType(_ name: String, _ operands: [TypeAnnotation]) -> TypeAnnotation? {
+        var candidates: [Signature] = []
+        for case .named(let typeName) in operands {
+            candidates += structInfo(named: typeName)?.staticMethods[name] ?? enumInfo(named: typeName)?.staticMethods[name] ?? []
+            candidates += extensionInfo(forKey: typeName)?.staticMethods[name] ?? []
+        }
+        if case .functions(let overloads)? = lookup(name) { candidates += overloads }
+        let fitting = candidates.filter { candidate in
+            candidate.parameters.count == operands.count && zip(candidate.parameters, operands).allSatisfy { fits($1, $0.type) }
+        }
+        guard let first = fitting.first else { return nil }
+        return fitting.allSatisfy { $0.returns == first.returns } ? first.returns : .unknown
+    }
+
+    /// The type of `a op b` where an operand is of a type the program declared: through an
+    /// operator it defines, or one Comparable and Equatable give.
+    func declaredOperatorType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) -> TypeAnnotation? {
+        if let type = userOperatorType(op.rawValue, [left, right]) { return type }
+        switch op {
+        case .notEqual: return userOperatorType("==", [left, right]) != nil ? .bool : nil
+        case .greater, .lessEqual, .greaterEqual: return userOperatorType("<", [right, left]) != nil ? .bool : nil
+        default: return nil
+        }
+    }
+
     func binaryType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) throws -> TypeAnnotation {
+        if case .named = left, let type = declaredOperatorType(op, left, right) { return type }
+        if case .named = right, let type = declaredOperatorType(op, left, right) { return type }
         if left == .unknown || right == .unknown {
             switch op {
             case .less, .lessEqual, .greater, .greaterEqual: return .bool
@@ -93,6 +122,12 @@ extension TypeChecker {
             }
         }
         let fail = TypeError("'\(op.rawValue)' can't be applied to \(left) and \(right)")
+        // Tuples compare element by element when their elements do.
+        if case .tuple(let a) = left, case .tuple(let b) = right, a.count == b.count,
+           [.less, .lessEqual, .greater, .greaterEqual].contains(op) {
+            for (x, y) in zip(a, b) { _ = try binaryType(.less, x.type, y.type) }
+            return .bool
+        }
         // An operator a bridged type declares, for operands of it.
         if let result = bridgedOperatorType(op.rawValue, [left, right]) { return result }
         switch op {

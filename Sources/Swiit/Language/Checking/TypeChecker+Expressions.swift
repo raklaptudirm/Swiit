@@ -6,12 +6,28 @@ extension TypeChecker {
 
     /// `expr`'s type, which must fit `expected`.
     /// The expressions interpolated into a string.
+    /// What is interpolated is shown as Swift shows its type's values (an
+    /// optional as `Optional(5)`).
     func checkParts(_ parts: inout [StringPart]) throws {
         for index in parts.indices {
             if case .expression(var expr) = parts[index] {
-                _ = try typeOf(&expr)
+                let type = try typeOf(&expr)
+                if TypeChecker.isShownByType(type) { expr = .described(expr, type) }
                 parts[index] = .expression(expr)
             }
+        }
+    }
+
+    /// Whether showing a value of this type needs the type: one holding an
+    /// optional, whose `nil` and `Optional(5)` the value alone doesn't tell.
+    static func isShownByType(_ type: TypeAnnotation) -> Bool {
+        switch type {
+        case .optional: true
+        case .list(let element): isShownByType(element)
+        case .dictionary(let key, let value): isShownByType(key) || isShownByType(value)
+        case .tuple(let elements): elements.contains { isShownByType($0.type) }
+        case .named: true
+        default: false
         }
     }
 
@@ -50,6 +66,11 @@ extension TypeChecker {
             return .string
         case .variable(let name):
             guard let symbol = lookup(name) else {
+                // In a type's body, a name that isn't bound may be the type's own member.
+                if case .variable(let selfType, _)? = lookup("self"), hasMember(selfType, named: name) {
+                    expr = .member(.variable("self"), name)
+                    return try typeOf(&expr, expecting: expected)
+                }
                 throw TypeError("no variable named '\(name)'")
             }
             switch symbol {
@@ -218,6 +239,7 @@ extension TypeChecker {
             case (.negate, .int), (.negate, .double), (.negate, .unknown): return type
             case (.bitNot, .int), (.bitNot, .unknown): return .int
             default:
+                if case .named = type, let result = userOperatorType("prefix " + op.rawValue, [type]) { return result }
                 if op == .negate, let result = bridgedOperatorType(op.rawValue, [type]) { return result }
                 throw TypeError("'\(op.rawValue)' can't be applied to \(type)")
             }
@@ -230,6 +252,23 @@ extension TypeChecker {
             let type = try indexType(&base, &index)
             expr = plainIndex(lastMemberBase, base, index) ?? .index(base, index)
             return type
+        case .subscripted(var base, var arguments):
+            let baseType = try typeOf(&base)
+            guard case .named(let structName) = baseType, let info = structInfo(named: structName) else {
+                throw TypeError("\(baseType) can't be indexed by several values")
+            }
+            let type = try structSubscript(info, &arguments).type
+            expr = .subscripted(base, arguments)
+            return type
+        case .indexDefault(var base, var key, var fallback):
+            let baseType = try typeOf(&base)
+            guard case .dictionary(let keyType, let valueType) = baseType else {
+                throw TypeError("'default:' goes with a dictionary's key, not \(baseType)'s index")
+            }
+            try expect(&key, keyType, "the key")
+            try expect(&fallback, valueType, "the default")
+            expr = .indexDefault(base, key, fallback)
+            return valueType
         case .annotated(var inner, let type):
             try expect(&inner, type, "the value")
             expr = .annotated(inner, type)
@@ -272,6 +311,10 @@ extension TypeChecker {
             _ = try typeOf(&inner)
             expr = .voidValue(inner)
             return .void
+        case .described(var inner, let type):
+            _ = try typeOf(&inner)
+            expr = .described(inner, type)
+            return .string
         case .inoutArgument(var inner):
             let type = try typeOf(&inner, expecting: expected)
             try checkPassable(inner)

@@ -33,12 +33,72 @@ extension Interpreter {
         case (.bitNot, .int(let n)):
             return .int(~n)
         default:
+            if isDeclaredValue(value), let result = try userOperator("prefix " + op.rawValue, [value]) { return result }
             if let result = try bridgedOperator(op.rawValue, [value]) { return result }
             throw RuntimeError("'\(op.rawValue)' can't be applied to \(value.typeName)")
         }
     }
 
+    /// Whether a value is of a type the program declared, which may have operators of its own.
+    func isDeclaredValue(_ value: Value) -> Bool {
+        switch value {
+        case .record(let record): record.typeName != nil
+        case .enumValue: true
+        default: false
+        }
+    }
+
+    /// The static methods named `name` a value's type has (a struct's, an enum's, or an extension's).
+    func staticOperators(_ name: String, of value: Value) -> [Function] {
+        var found: [Function] = []
+        switch value {
+        case .record(let record):
+            if let type = structType(of: record) { found += type.staticMethods[name]?.candidates ?? [] }
+        case .enumValue(let enumValue):
+            found += enumMembers[ObjectIdentifier(enumValue.type)]?.staticMethods[name]?.candidates ?? []
+        default:
+            break
+        }
+        if let key = typeKey(of: value) { found += typeExtensions[key]?.staticMethods[name]?.candidates ?? [] }
+        return found
+    }
+
+    /// The operator a program defines for these operands, as a static method of one of their types or
+    /// a function: nil if none takes them.
+    func userOperator(_ name: String, _ operands: [Value]) throws -> Value? {
+        var candidates: [Function] = []
+        for operand in operands { candidates += staticOperators(name, of: operand) }
+        if case .function(let set as OverloadSet)? = lookup(name)?.value { candidates += set.candidates }
+        var unique: [Function] = []
+        for candidate in candidates where !unique.contains(where: { $0 === candidate }) { unique.append(candidate) }
+        guard !unique.isEmpty else { return nil }
+        let arguments = operands.map { Argument(label: nil, value: .literal($0)) }
+        let chosen: (Function, [String: Value])
+        do {
+            chosen = try resolve(OverloadSet(name: name, candidates: unique)) { try self.bind(arguments, to: $0) }
+        } catch is RuntimeError {
+            return nil
+        }
+        return try invoke(chosen.0, with: chosen.1)
+    }
+
+    /// `a > b` from a `<` the type defines, and `a != b` from its `==`, as Comparable and Equatable give them.
+    private func derivedOperator(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value? {
+        func truth(_ value: Value?) -> Bool? { if case .bool(let result)? = value { result } else { nil } }
+        switch op {
+        case .notEqual: return truth(try userOperator("==", [lhs, rhs])).map { .bool(!$0) }
+        case .greater: return truth(try userOperator("<", [rhs, lhs])).map(Value.bool)
+        case .lessEqual: return truth(try userOperator("<", [rhs, lhs])).map { .bool(!$0) }
+        case .greaterEqual: return truth(try userOperator("<", [lhs, rhs])).map { .bool(!$0) }
+        default: return nil
+        }
+    }
+
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
+        if isDeclaredValue(lhs) || isDeclaredValue(rhs) {
+            if let result = try userOperator(op.rawValue, [lhs, rhs]) { return result }
+            if let result = try derivedOperator(op, lhs, rhs) { return result }
+        }
         // What stands for text (a command's output) compares as its text;
         // other String operations go through `.text`.
         let comparisons: [BinaryOperator] = [.equal, .notEqual, .less, .lessEqual, .greater, .greaterEqual]
@@ -79,6 +139,15 @@ extension Interpreter {
             if let result = compare(op, a.index, b.index) { return .bool(result) }
         default:
             break
+        }
+        // Tuples compare element by element, as Swift's do.
+        if case .record(let a) = lhs, case .record(let b) = rhs, a.typeName == nil, b.typeName == nil, a.count == b.count,
+           [.less, .lessEqual, .greater, .greaterEqual].contains(op) {
+            for (x, y) in zip(a, b) {
+                if try apply(.equal, x.value, y.value) == .bool(true) { continue }
+                return try apply(op == .lessEqual ? .less : op == .greaterEqual ? .greater : op, x.value, y.value)
+            }
+            return .bool(op == .lessEqual || op == .greaterEqual)
         }
         if let result = try bridgedOperator(op.rawValue, [lhs, rhs]) { return result }
         throw RuntimeError("'\(op.rawValue)' can't be applied to \(lhs.typeName) and \(rhs.typeName)")

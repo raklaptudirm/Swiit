@@ -11,6 +11,8 @@ import SwiitKit
     /// member's body through the type's name.
     case variable, function, type, member
     case staticMember(of: String)
+    /// An `operator` or `precedencegroup` declared earlier: its source, for the operators to fold by.
+    case operatorDeclaration(String)
 }
 
 public struct SyntaxError: Error, Equatable, CustomStringConvertible {

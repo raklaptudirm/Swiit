@@ -28,22 +28,10 @@ private func printed(_ source: String) -> (output: String, problem: String?) {
                          error: OutputSink(write: { output += "err: " + $0; return true }))
     let interpreter = Interpreter(host: host, limits: Limits())
     do {
-        return try onLargeStack {
-            switch interpreter.parse(source) {
-            case .failure(let error):
-                return (output, "syntax error: \(error)")
-            case .success(let program):
-                do {
-                    let checked = try TypeChecker(interpreter: interpreter).check(program)
-                    _ = try interpreter.run(checked) { _, _, _ in }
-                    return (output, nil)
-                } catch let error as TypeError {
-                    return (output, "error: \(error.message)")
-                } catch {
-                    return (output, "error: \(error)")
-                }
-            }
-        }
+        _ = try interpreter.eval(source)
+        return (output, nil)
+    } catch let diagnostic as Diagnostic {
+        return (output, "\(diagnostic.kind) error: \(diagnostic.message)")
     } catch {
         return (output, "error: \(error)")
     }
