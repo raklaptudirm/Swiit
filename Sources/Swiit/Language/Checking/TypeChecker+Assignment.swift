@@ -13,7 +13,7 @@ extension TypeChecker {
             guard case .member(let name)? = assignment.path.first, let property = info.staticProperty(name) else {
                 throw TypeError("cannot assign to '\(assignment.root)': it isn't a variable")
             }
-            guard property.mutable, property.getter == nil else {
+            guard property.mutable, property.getter == nil || property.setter != nil else {
                 let why = property.getter != nil ? "it's a computed property" : "it's a 'let' constant"
                 throw TypeError("cannot assign to '\(info.name).\(name)': \(why)")
             }
@@ -109,8 +109,10 @@ extension TypeChecker {
                 guard case .optional(let wrapped) = type else { throw TypeError("'?' needs an optional, not \(type)") }
                 type = wrapped
             case .unwrap:
-                guard case .optional(let wrapped) = type else { throw TypeError("'!' needs an optional, not \(type)") }
-                type = wrapped
+                // A dictionary's entry is written as the value, but read as an optional: `d[k]![0] = 1`.
+                if case .optional(let wrapped) = type { type = wrapped }
+                else if index > 0, case .index = assignment.path[index - 1] {}
+                else { throw TypeError("'!' needs an optional, not \(type)") }
             case .indexDefault(var key, var fallback):
                 guard case .dictionary(let keyType, let valueType) = type else {
                     throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")

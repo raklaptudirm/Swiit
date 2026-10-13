@@ -216,6 +216,14 @@ extension Interpreter {
                 converted.append(conforming)
             }
             return .list(converted)
+        case .dictionary(let keyType, let valueType):
+            guard case .dictionary(let dictionary) = value else { return value.conforming(to: type) }
+            var made = ValueDictionary()
+            for (key, entry) in dictionary {
+                guard let conformingKey = conform(key, to: keyType), let conformingValue = conform(entry, to: valueType) else { return nil }
+                made[conformingKey] = conformingValue
+            }
+            return .dictionary(made)
         case .tuple(let elements):
             // Each element as its own type, which may be a protocol of the program's.
             guard case .record(let record) = value, record.typeName == nil, record.count == elements.count else {

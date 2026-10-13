@@ -25,6 +25,10 @@ extension TypeChecker {
     /// `return`s give; it throws if its body can.
     @_spi(Layer) public func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?,
                                          implicitTryAwait: Bool = false) throws -> TypeAnnotation {
+        // `{ () }` where a function of one value is wanted: Swift takes the value and leaves it unused.
+        if closure.parameters.isEmpty, case .functionType(let wanted, _, _, _)? = expected, !wanted.isEmpty {
+            closure.parameters = wanted.indices.map { Parameter(name: "$ignored\($0)") }
+        }
         var expectedParameters: [TypeAnnotation]?
         var expectedResult: TypeAnnotation?
         if case .functionType(let parameters, let result, _, _)? = expected, parameters.count == closure.parameters.count {

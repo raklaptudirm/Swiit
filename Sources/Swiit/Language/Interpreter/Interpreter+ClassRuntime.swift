@@ -123,6 +123,7 @@ extension Interpreter {
 
     /// What a stored property starts as: its default, or nil if an optional `var`.
     private func initialValue(of property: PropertyDecl) throws -> Value? {
+        if property.isLazy { return nil }
         if let defaultValue = property.defaultValue {
             let value = try evaluate(defaultValue, expecting: property.type)
             if let expected = property.type, let conforming = conform(value, to: expected) { return wrapped(conforming, property) }
@@ -168,7 +169,7 @@ extension Interpreter {
                 return .nothing
             }
         }
-        for property in type.allStored where instance.storage[property.name] == nil {
+        for property in type.allStored where instance.storage[property.name] == nil && !property.isLazy {
             throw RuntimeError("\(type.name).init must set '\(property.name)'")
         }
         return .object(instance)
@@ -241,6 +242,14 @@ extension Interpreter {
     /// A property, a computed property or a method of an instance, as a value; nil if it has none by that name.
     func classMember(_ name: String, of instance: ClassInstance) throws -> Value? {
         if let stored = instance.storage[name] { return read(stored) }
+        // A `lazy var`, read for the first time: worked out now, with `self`.
+        if let lazy = instance.type.allStored.first(where: { $0.name == name && $0.isLazy }), let expr = lazy.defaultValue {
+            let function = Function(name: name, parameters: [], returnType: lazy.type, body: .swiit(Program(statements: [.returnStatement(expr)])),
+                                    captured: captureScopes(NamesUsed()))
+            let value = try invoke(function, with: [:], receiver: Receiver(.object(instance), mutable: true))
+            instance.storage[name] = wrapped(value, lazy)
+            return value
+        }
         if let getter = instance.type.computedProperty(name) {
             return try invoke(getter, with: [:], receiver: Receiver(.object(instance), mutable: true))
         }

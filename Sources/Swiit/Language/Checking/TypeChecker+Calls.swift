@@ -109,6 +109,13 @@ extension TypeChecker {
             throw TypeError("no function named '\(name)'")
         }
         let type = try typeOf(&callee)
+        // `f(x)` where f's type has `callAsFunction`: that method is called.
+        if case .named(let typeName) = type, let info = structInfo(named: typeName), info.methods["callAsFunction"] != nil {
+            var method = Expr.member(callee, "callAsFunction")
+            let result = try callType(&method, &arguments, expected: expected)
+            callee = method
+            return result
+        }
         if case .variable(let name) = callee { return try apply(type, &arguments, name: name) }
         return try apply(type, &arguments, name: "the function")
     }
@@ -123,6 +130,8 @@ extension TypeChecker {
         if overloads.count > 1 { callee = .chosen(callee, overload: chosen.index) }
         if chosen.isThrowing { try throwingSite("'\(name)'") }
         try effectSite(chosen.effect, "'\(name)'")
+        // An optional chain's result is an optional, whatever the last link gives (`o?.a` of an `Int?` is an `Int?`).
+        if name == "$chain", case .optional(.optional(let inner)) = chosen.returns { return .optional(inner) }
         return chosen.returns
     }
 
@@ -233,10 +242,14 @@ extension TypeChecker {
     /// What `&place` may pass: a variable (or part of one) that can change.
     func checkPassable(_ place: Expr) throws {
         var root = place
+        var throughMember = false
         while true {
             switch root {
-            case .member(let inner, _), .index(let inner, _): root = inner
+            case .member(let inner, _): root = inner; throughMember = true
+            case .index(let inner, _), .forceUnwrap(let inner): root = inner
             case .variable(let name):
+                // A member of a class instance is changed on the instance, whatever holds it.
+                if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }
                 if case .variable(_, let mutable)? = lookup(name), !mutable {
                     throw TypeError("cannot pass '\(name)' as inout: it's a 'let' constant")
                 }
@@ -251,10 +264,14 @@ extension TypeChecker {
     /// part of one).
     func checkMutable(_ base: Expr, method: String) throws {
         var root = base
+        var throughMember = false
         while true {
             switch root {
-            case .member(let inner, _), .index(let inner, _): root = inner
+            case .member(let inner, _): root = inner; throughMember = true
+            case .index(let inner, _): root = inner
+            case .forceUnwrap(let inner), .optionalMember(let inner, _): root = inner
             case .variable(let name):
+                if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }
                 if case .variable(_, let mutable)? = lookup(name), !mutable {
                     throw TypeError("cannot use mutating method '\(method)' on '\(name)': it's a 'let' constant")
                 }

@@ -10,6 +10,11 @@ extension Lowering {
            let lowered = try layerExpression(at: expr.positionAfterSkippingLeadingTrivia.utf8Offset) {
             return lowered
         }
+        // `o?.i.v`: what follows the `?` goes on only if `o` has a value.
+        if let (core, depth) = optionalChainCore(expr) {
+            if depth >= 2, chainPlaceholders[core.id] == nil { return try chain(expr, core) }
+        }
+        if let node = expr.as(OptionalChainingExprSyntax.self), let placeholder = chainPlaceholders[node.id] { return .variable(placeholder) }
         if let node = expr.as(IntegerLiteralExprSyntax.self) {
             let text = node.literal.text.replacingOccurrences(of: "_", with: "")
             guard let number = Int(text) ?? parseRadix(text) else { throw unsupported("this integer", node) }
@@ -271,7 +276,7 @@ extension Lowering {
             failedAt = node.declName.endPositionBeforeTrailingTrivia.utf8Offset
             throw SyntaxError("unknown unit '\(name)'; file sizes use b, kb, mb, gb, tb, or kib, mib, gib, tib")
         }
-        if let chained = base.as(OptionalChainingExprSyntax.self) {
+        if let chained = base.as(OptionalChainingExprSyntax.self), chainPlaceholders[chained.id] == nil {
             return .optionalMember(try expression(chained.expression), name)
         }
         return .member(try expression(base), name)
@@ -344,10 +349,41 @@ extension Lowering {
         throw SyntaxError(calling ? "no function named '\(name)'" : "no variable named '\(name)'")
     }
 
+    /// The `x?` a postfix chain starts from, and how many links (members, subscripts, `!`; a call with its method counts once) are after it.
+    private func optionalChainCore(_ expr: ExprSyntax) -> (OptionalChainingExprSyntax, Int)? {
+        var node = expr
+        var depth = 0
+        while true {
+            if let chained = node.as(OptionalChainingExprSyntax.self) { return (chained, depth) }
+            if let member = node.as(MemberAccessExprSyntax.self), let base = member.base { node = base; depth += 1 }
+            else if let subscripted = node.as(SubscriptCallExprSyntax.self) { node = subscripted.calledExpression; depth += 1 }
+            else if let unwrapped = node.as(ForceUnwrapExprSyntax.self) { node = unwrapped.expression; depth += 1 }
+            else if let call = node.as(FunctionCallExprSyntax.self) {
+                node = call.calledExpression
+                if !node.is(MemberAccessExprSyntax.self) { depth += 1 }
+            } else { return nil }
+        }
+    }
+
+    /// `o?.i.v` as `$chain(o) { $chain1 in $chain1.i.v }`: nil if `o` is, else what the rest gives.
+    private mutating func chain(_ expr: ExprSyntax, _ core: OptionalChainingExprSyntax) throws -> Expr {
+        chainCount += 1
+        let name = "$chain\(chainCount)"
+        chainPlaceholders[core.id] = name
+        defer { chainPlaceholders[core.id] = nil }
+        locals.append([name])
+        let rest = try expression(expr)
+        locals.removeLast()
+        let base = try expression(core.expression)
+        let closure = ClosureLiteral(parameters: [Parameter(name: name)], body: Program(statements: [.expression(rest)], lines: [line(of: expr)]),
+                                     names: NamesUsed(names: names(in: expr)))
+        return .call(.variable("$chain"), [Argument(value: base), Argument(value: .closure(closure))])
+    }
+
     private mutating func subscriptCall(_ node: SubscriptCallExprSyntax) throws -> Expr {
         // The base first, as it is read: a name that isn't bound is found before
         // what is wrong with the subscript.
-        let chained = node.calledExpression.as(OptionalChainingExprSyntax.self)
+        let chained = node.calledExpression.as(OptionalChainingExprSyntax.self).flatMap { chainPlaceholders[$0.id] == nil ? $0 : nil }
         let base = try expression(chained?.expression ?? node.calledExpression)
         // `value[keyPath: \.a.b]`: the member it names.
         if node.arguments.count == 1, let argument = node.arguments.first, argument.label?.text == "keyPath",
@@ -409,7 +445,7 @@ extension Lowering {
                 } else {
                     value = reference(DeclReferenceExprSyntax(baseName: item.name))
                 }
-                captures.append(ClosureLiteral.Capture(name: name, value: value, isWeak: isWeak))
+                captures.append(ClosureLiteral.Capture(name: name, value: value, isWeak: isWeak, isUnowned: specifier == .keyword(.unowned)))
             }
             switch signature.parameterClause {
             case .simpleInput(let names)?:

@@ -18,6 +18,16 @@ extension Interpreter {
     /// (and its `debugDescription` for `debug`, in a collection or a tuple),
     /// and anything inside a collection the way `debugPrint` shows it, so a
     /// text in an array has its quotes.
+    /// A type of the program's with its module in front, as Swift shows it where it is shown whole
+    /// (`main.Point(x: 1)` in an array, `main.Color.red`); Swiit's own types by their names.
+    func qualified(_ name: String) -> String {
+        let declared = scopes.dropFirst().contains { scope in
+            guard case .object(let object)? = scope.bindings[name]?.value else { return false }
+            return object is StructType || object is EnumType || object is ClassType
+        }
+        return declared ? moduleName + "." + name : name
+    }
+
     func describing(_ value: Value, debug: Bool = false, type: TypeAnnotation? = nil) throws -> String {
         // What the type knows: an optional is `Optional(…)` or `nil`, and so is one inside a collection.
         switch type {
@@ -45,10 +55,12 @@ extension Interpreter {
             break
         }
         switch value {
+ case .enumValue(let enumValue) where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
+            return qualified(enumValue.type.name) + "." + enumValue.name
         case .enumValue(let enumValue) where !enumValue.values.isEmpty:
             let labels = enumValue.definition?.labels ?? []
             let payloads = enumPayloadTypes[ObjectIdentifier(enumValue.type)]?[enumValue.name] ?? []
-            return enumValue.name + "(" + (try enumValue.values.enumerated().map { index, item in
+            return (debug ? qualified(enumValue.type.name) + "." : "") + enumValue.name + "(" + (try enumValue.values.enumerated().map { index, item in
                 let label = index < labels.count ? labels[index] : nil
                 return (label.map { "\($0): " } ?? "") + (try describing(item, debug: true, type: index < payloads.count ? payloads[index] : nil))
             }).joined(separator: ", ") + ")"
@@ -67,7 +79,7 @@ extension Interpreter {
             if conformanceList(of: value).contains("CustomStringConvertible"), let text = try classMember("description", of: instance) {
                 return try describing(text)
             }
-            return instance.type.name
+            return qualified(instance.type.name)
         case .list(let items):
             return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ") + "]"
         case .dictionary(let dictionary):
@@ -86,7 +98,8 @@ extension Interpreter {
                 }
             }
             let declared = structType(of: record)
-            return (record.typeName ?? "") + "(" + (try record.map { field in
+            let shownName = record.typeName.map { debug ? qualified($0) : $0 } ?? ""
+            return shownName + "(" + (try record.map { field in
                 (Record.isPosition(field.key) ? "" : "\(field.key): ")
                     + (try describing(field.value, debug: true, type: declared?.property(field.key)?.type))
             }).joined(separator: ", ") + ")"

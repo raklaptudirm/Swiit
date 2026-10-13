@@ -79,7 +79,7 @@ extension Interpreter {
                 let scope = Scope()
                 for capture in literal.captures {
                     var value = try evaluate(capture.value)
-                    if capture.isWeak, case .object(let instance as ClassInstance) = value { value = .object(WeakReference(instance)) }
+                    if capture.isWeak || capture.isUnowned, case .object(let instance as ClassInstance) = value { value = .object(WeakReference(instance)) }
                     scope.bindings[capture.name] = Binding(value: value, mutable: false)
                 }
                 captured.append(scope)

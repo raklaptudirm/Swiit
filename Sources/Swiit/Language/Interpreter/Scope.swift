@@ -84,7 +84,14 @@ public final class Scope {
         var candidates = [function]
         if let existing = bindings[name], existing.isFunction,
            case .function(let callable) = existing.value, let set = callable as? OverloadSet {
-            candidates = set.candidates.filter { !$0.hasSameSignature(as: function) } + candidates
+            // The same signature is replaced where it stood, so each overload keeps its place (the checker numbers them).
+            if let position = set.candidates.firstIndex(where: { $0.hasSameSignature(as: function) }) {
+                candidates = set.candidates
+                candidates[position] = function
+                candidates = candidates.enumerated().filter { $0.offset == position || !$0.element.hasSameSignature(as: function) }.map(\.element)
+            } else {
+                candidates = set.candidates + candidates
+            }
         }
         bindings[name] = Binding(value: .function(OverloadSet(name: name, candidates: candidates)), mutable: false, isFunction: true)
     }

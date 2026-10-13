@@ -24,14 +24,16 @@ extension Interpreter {
                 }
             ))
         }
-        declare(ExportedFunction(
-            name: "fatalError", summary: "Stops with the message.",
-            parameters: [message], returnType: nil, isThrowing: false,
-            call: { arguments in
-                let text = arguments["message"].map { "\($0)" } ?? ""
-                throw RuntimeError("Fatal error" + (text.isEmpty ? "" : ": \(text)"))
-            }
-        ))
+        for name in ["fatalError", "preconditionFailure"] {
+            declare(ExportedFunction(
+                name: name, summary: "Stops with the message.",
+                parameters: [message], returnType: nil, isThrowing: false,
+                call: { arguments in
+                    let text = arguments["message"].map { "\($0)" } ?? ""
+                    throw RuntimeError((name == "fatalError" ? "Fatal error" : "Precondition failed") + (text.isEmpty ? "" : ": \(text)"))
+                }
+            ))
+        }
         // `type(of: x)`: the type of a value, as the value that stands for the type.
         declare(ExportedFunction(
             name: "type", summary: "The type of a value.",
@@ -87,6 +89,18 @@ extension Interpreter {
             name: "$uninitialized", parameters: [], returnType: nil, body: .native { _, _ in .nothing },
             documentation: Documentation(summary: "A variable declared without a value.", parameters: [:])
         ), named: "$uninitialized")
+        // `o?.a.b`: the rest of the chain, if `o` has a value, as an optional.
+        scopes[0].declare(Function(
+            name: "$chain",
+            parameters: [Parameter(label: nil, name: "base", type: .optional(.parameter("T"))),
+                         Parameter(label: nil, name: "rest", type: .functionType([.parameter("T")], .parameter("R"), throws: true))],
+            returnType: .optional(.parameter("R")),
+            body: .native { shell, arguments in
+                guard let base = arguments["base"], base != .nothing else { return .nothing }
+                return try shell.call(arguments["rest"]!, with: [base])
+            },
+            documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]), isRethrowing: true, generics: ["T": [], "R": []]
+        ), named: "$chain")
         // `Optional(x)`: x, as an optional.
         scopes[0].declare(Function(
             name: "$some", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),

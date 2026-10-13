@@ -2073,7 +2073,7 @@
   "name": "swift-test/capture_unowned",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nclass C {\n   let name: String\n   init(name: String) { self.name = name }\n   lazy var asString: () -> String = { [unowned self] in return self.name }\n   deinit { print(\"deinitializing...\") }\n}\nvar c: C? = C(name: \"I am a C\")\nprint(c!.asString())\nc = nil\n\n// CHECK: I am a C\n// CHECK-NEXT: deinitializing...\n",
   "expected": "I am a C\ndeinitializing...\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/checked_cast_test",
@@ -2084,7 +2084,7 @@
  {
   "name": "swift-test/class_in_constrained_extension",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nclass Foo {}\n\nextension Array where Element == Foo {\n  class Bar { var foo = Foo() }\n  \n  init(withAThing: String) {\n    self = [Bar(), Bar(), Bar()].map { $0.foo }\n  }\n}\n\n// CHECK: [main.Foo, main.Foo, main.Foo]\nlet foos = [Foo](withAThing: \"Hi\")\nprint(foos)\n",
-  "expected": "[a.Foo, a.Foo, a.Foo]\n",
+  "expected": "[main.Foo, main.Foo, main.Foo]\n",
   "status": "todo"
  },
  {
@@ -2168,13 +2168,13 @@
  {
   "name": "swift-test/enum_runtime_alignment",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n\n// REQUIRES: executable_test\n\nstruct Structure {\n  var a: UInt8\n  var b: UInt8\n  var c: UInt8\n}\n\nenum Enum: Int {\n  case One, Two, Three, Four\n}\n\nvar x: [Enum: (Structure?, Structure?)] = [\n    .One: (Structure(a: 1, b: 2, c: 3), nil)\n]\n\n// CHECK: [main.Enum.One: (Optional(main.Structure(a: 1, b: 2, c: 3)), nil)]\nprint(x)\n",
-  "expected": "[a.Enum.One: (Optional(a.Structure(a: 1, b: 2, c: 3)), nil)]\n",
-  "status": "todo"
+  "expected": "[main.Enum.One: (Optional(main.Structure(a: 1, b: 2, c: 3)), nil)]\n",
+  "status": "ok"
  },
  {
   "name": "swift-test/error_self_conformance",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nstruct BoxedError<T: Error> {\n  var contents: T\n}\n\nenum MyError: Error {\n  case nothingImportant\n  case reallyImportant(String)\n}\n\n// CHECK: start\nprint(\"start\")\n\nlet value = MyError.reallyImportant(\"hello\")\n\n// CHECK-NEXT: reallyImportant(\"hello\")\nprint(value)\n\nfunc takeBoxedError<T>(error: BoxedError<T>) -> Error {\n  return error.contents\n}\n\nfunc makeBoxedError<T: Error>(error: T) -> BoxedError<Error> {\n  return BoxedError(contents: error)\n}\n\nlet unboxedValue = takeBoxedError(error: makeBoxedError(error: value))\n\n// CHECK-NEXT: reallyImportant(\"hello\")\nprint(unboxedValue)\n\nlet errorValue: Error = MyError.reallyImportant(\"goodbye\")\n\nfunc castValueToError<T>(error: T) -> Error? {\n  return error as? Error\n}\n\n// CHECK-NEXT: reallyImportant(\"goodbye\")\nprint(castValueToError(error: errorValue) ?? value)\n\nstruct Carrier<T> {\n  var name: String\n}\nprotocol ErrorCarrier {}\nextension Carrier: ErrorCarrier where T: Error {}\n\nfunc castValueToErrorCarrier<T>(_ value: T) -> ErrorCarrier? {\n  return value as? ErrorCarrier\n}\n\n// CHECK-NEXT: nil\nprint(castValueToErrorCarrier(Carrier<Int>(name: \"A carrier of numbers\")))\n\n// CHECK-NEXT: A carrier of my errors\nprint(castValueToErrorCarrier(Carrier<MyError>(name: \"A carrier of my errors\")))\n\n// CHECK-NEXT: A carrier of all errors\nprint(castValueToErrorCarrier(Carrier<Error>(name: \"A carrier of all errors\")))\n\n// CHECK-NEXT: nil\nprotocol ErrorRefinement : Error {}\nprint(castValueToErrorCarrier(Carrier<ErrorRefinement>(name: \"A carrier of refined errors\")))\n\n// CHECK-NEXT: nil\nprotocol OtherProtocol {}\nprint(castValueToErrorCarrier(Carrier<Error & OtherProtocol>(name: \"A carrier of composed errors\")))\n\n// CHECK-NEXT: nil\nclass C {}\nprint(castValueToErrorCarrier(Carrier<Error & C>(name: \"A carrier of classic composed errors\")))\n\n// CHECK-NEXT: end\nprint(\"end\")\n",
-  "expected": "start\nreallyImportant(\"hello\")\nreallyImportant(\"hello\")\nreallyImportant(\"goodbye\")\nnil\nOptional(a.Carrier<a.MyError>(name: \"A carrier of my errors\"))\nOptional(a.Carrier<Swift.Error>(name: \"A carrier of all errors\"))\nnil\nnil\nnil\nend\n",
+  "expected": "start\nreallyImportant(\"hello\")\nreallyImportant(\"hello\")\nreallyImportant(\"goodbye\")\nnil\nOptional(main.Carrier<main.MyError>(name: \"A carrier of my errors\"))\nOptional(main.Carrier<Swift.Error>(name: \"A carrier of all errors\"))\nnil\nnil\nnil\nend\n",
   "status": "todo"
  },
  {
@@ -2199,7 +2199,7 @@
   "name": "swift-test/functions",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nfunc double(_ x: Int) -> Int {\n  return x+x\n}\n\nfunc curriedSubtract(_ x: Int) -> (Int) -> Int {\n  return { y in x - y }\n}\n\nfunc twice(_ f: (Int) -> Int, _ x: Int) -> Int {\n  return f(f(x))\n}\n\n// CHECK: 4\nprint(double(2))\n// CHECK: 8\nprint(double(4))\n\n// CHECK: 12\nprint(curriedSubtract(16)(4))\n\n// CHECK: 20\nprint(twice(double, 5))\n// CHECK: 7\nprint(twice({ $0 + 1 }, 5))\n// CHECK: 3\nprint(twice({ x in x - 1 }, 5))\n\n// <rdar://problem/22044607>\nclass C {}\nclass D : C {}\n\nfunc foo(_ a: Any, p2: Bool = true) { print(\"Wrong\") }\nfunc foo(_ c: C) { print(\"Right\") }\n\nfunc bar(_ a: Any..., p2: Bool = true) { print(\"Wrong\") }\nfunc bar(_ c: C) { print(\"Right\") }\n\n// CHECK: Right\nfoo(D())\n// CHECK: Right\nbar(D())\n\nprotocol Number {}\nextension Int: Number {}\n\nfunc foo() -> (String, String, String, Number, Number) {\n    return (\"1\", \"2\", \"3\", 42, 7)\n}\n\n// CHECK: (\"1\", \"2\", \"3\", 42, 7)\nprint(foo())\n",
   "expected": "4\n8\n12\n20\n7\n3\nRight\nRight\n(\"1\", \"2\", \"3\", 42, 7)\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/generalized_accessors",
@@ -2252,8 +2252,8 @@
  {
   "name": "swift-test/issue-53000",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n\n// REQUIRES: executable_test\n\n// https://github.com/apple/swift/issues/53000\n\npublic class BaseView { }\npublic class GenericView<T>: BaseView { }\npublic class FinalView: GenericView<ContentForTheView> { }\n\n\npublic class ContentForTheView { }\nextension ContentForTheView: InfoNeededByControllers { }\n\npublic protocol ConditionallyConformed { }\npublic protocol InfoNeededByControllers { }\n\nextension GenericView: ConditionallyConformed where T: InfoNeededByControllers { }\n\nopen class BaseGenericController<T> where T: BaseView & ConditionallyConformed { }\n\n\nopen class FinalController: BaseGenericController<FinalView> { public override init() { } }\n\n// CHECK: FinalController\nprint(FinalController())\n",
-  "expected": "a.FinalController\n",
-  "status": "todo"
+  "expected": "main.FinalController\n",
+  "status": "ok"
  },
  {
   "name": "swift-test/issue-85020",
@@ -2270,7 +2270,7 @@
  {
   "name": "swift-test/metatype",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nprotocol Bar : class {\n}\n\npublic class Foo : Bar {\n}\n\npublic class Base {\n   final fileprivate(set) var a: UInt32 = 0\n}\n\npublic class Derived<T> : Base {\n  final var type : Bar.Type\n  final var k = Foo()\n\n  init(_ t: Bar.Type, _ kl: Foo ) {\n    type = t\n    k = kl\n  }\n}\n\npublic func dontCrash() {\n  // CHECK: Derived<Swift.Int>\n  print(Derived<Int>(Foo.self, Foo()))\n}\n\ndontCrash()\n",
-  "expected": "a.Derived<Swift.Int>\n",
+  "expected": "main.Derived<Swift.Int>\n",
   "status": "todo"
  },
  {
@@ -2313,7 +2313,7 @@
   "name": "swift-test/opt_unowned",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nprotocol Protocol : class {\n  func noop()\n}\n\n//========================== Test pure Swift classes ==========================\n\nclass SwiftClassBase : Protocol {\n  func noop() { print(\"noop\") }\n}\n\nclass SwiftClass : SwiftClassBase {\n  override init() {\n    print(\"SwiftClass Created\")\n  }\n\n  deinit {\n    print(\"SwiftClass Destroyed\")\n  }\n}\n\nfunc printState(_ x : SwiftClassBase?) {\n  print((x != nil) ? \"is present\" : \"is nil\")\n}\n\nfunc testSwiftClass() {\n  print(\"testSwiftClass\")               // CHECK: testSwiftClass\n  \n  unowned var w : SwiftClassBase?\n  printState(w)                           // CHECK-NEXT: is nil\n  var c : SwiftClassBase = SwiftClass()   // CHECK: SwiftClass Created\n  printState(w)                           // CHECK-NEXT: is nil\n  w = c\n  printState(w)                           // CHECK-NEXT: is present\n  c.noop()                                // CHECK-NEXT: noop\n  c = SwiftClassBase()                    // CHECK-NEXT: SwiftClass Destroyed\n}\n\ntestSwiftClass()\n\n\n\nfunc testSwiftImplicitOptionalClass() {\n  print(\"testSwiftImplicitOptionalClass\") // CHECK: testSwiftImplicitOptionalClass\n  \n  unowned var w : SwiftClassBase!\n  printState(w)                           // CHECK-NEXT: is nil\n  var c : SwiftClassBase = SwiftClass()   // CHECK: SwiftClass Created\n  printState(w)                           // CHECK-NEXT: is nil\n  w = c\n  printState(w)                           // CHECK-NEXT: is present\n  c.noop()                                // CHECK-NEXT: noop\n  c = SwiftClassBase()                    // CHECK-NEXT: SwiftClass Destroyed\n}\n\ntestSwiftImplicitOptionalClass()\n\n\nfunc testWeakInLet() {\n  print(\"testWeakInLet\") // CHECK-LABEL: testWeakInLet\n\n  struct WeakBox {\n    unowned var value: SwiftClassBase?\n  }\n\n  var obj: SwiftClassBase? = SwiftClass() // CHECK: SwiftClass Created\n  let box = WeakBox(value: obj)\n  printState(box.value) // CHECK-NEXT: is present\n  obj = nil // CHECK-NEXT: SwiftClass Destroyed\n}\n\ntestWeakInLet()\n\n\n//======================== Test Classbound Protocols ========================\n\n\n  \nfunc printState(_ x : Protocol?) {\n  print((x != nil) ? \"is present\" : \"is nil\")\n}\n\nfunc testProtocol() {\n  print(\"testProtocol\")                 // CHECK: testProtocol\n  \n  unowned var w : Protocol?\n  printState(w)                           // CHECK-NEXT: is nil\n  var c : SwiftClassBase = SwiftClass()   // CHECK: SwiftClass Created\n  printState(w)                           // CHECK-NEXT: is nil\n  w = c\n  printState(w)                           // CHECK-NEXT: is present\n  c.noop()                                // CHECK-NEXT: noop\n  c = SwiftClassBase()                    // CHECK-NEXT: SwiftClass Destroyed\n}\n\ntestProtocol()\n",
   "expected": "testSwiftClass\nis nil\nSwiftClass Created\nis nil\nis present\nnoop\nSwiftClass Destroyed\ntestSwiftImplicitOptionalClass\nis nil\nSwiftClass Created\nis nil\nis present\nnoop\nSwiftClass Destroyed\ntestWeakInLet\nSwiftClass Created\nis present\nSwiftClass Destroyed\ntestProtocol\nis nil\nSwiftClass Created\nis nil\nis present\nnoop\nSwiftClass Destroyed\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/optional",
@@ -2325,7 +2325,7 @@
   "name": "swift-test/optional_lvalues",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nvar x: Int! = 0\nx! = 2\nprint(x) // CHECK: 2\nx! += 1\nprint(x) // CHECK-NEXT: 3\n\nvar sequences = [\"fibonacci\": [1, 1, 2, 3, 0]]\nprint(sequences) // CHECK-NEXT: [\"fibonacci\": [1, 1, 2, 3, 0]]\nsequences[\"fibonacci\"]![4] = 5\nprint(sequences) // CHECK-NEXT: [\"fibonacci\": [1, 1, 2, 3, 5]]\nsequences[\"fibonacci\"]!.append(8)\nprint(sequences) // CHECK-NEXT: [\"fibonacci\": [1, 1, 2, 3, 5, 8]]\n\nfunc printAndReturn(_ x: Int) -> Int { print(x); return x }\n\nprint(\"optional binding\") // CHECK-NEXT: optional binding\nvar y: Int? = nil\ny? += printAndReturn(4)\nprint(\"done with binding test\") // CHECK-NEXT: done with binding test\n",
   "expected": "Optional(2)\nOptional(3)\n[\"fibonacci\": [1, 1, 2, 3, 0]]\n[\"fibonacci\": [1, 1, 2, 3, 5]]\n[\"fibonacci\": [1, 1, 2, 3, 5, 8]]\noptional binding\ndone with binding test\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/properties",
@@ -2385,7 +2385,7 @@
   "name": "swift-test/statements",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\n// Foreach loops\n\nprint(\"foreach/where\")\nfor i in 0...6 where i & 1 == 0 {\n  print(i)\n}\n\n// CHECK-LABEL: foreach/where\n// CHECK-NEXT: 0\n// CHECK-NEXT: 2\n// CHECK-NEXT: 4\n// CHECK-NEXT: 6\n\n\nlet OptionalArr : [Int?] = [1, nil, 2, nil, 3, nil, nil, nil, 4, 5]\n\nprint(\"foreach/case\")\nfor case let i? in OptionalArr {\n  print(i)\n}\n\n// CHECK-LABEL: foreach/case\n// CHECK-NEXT: 1\n// CHECK-NEXT: 2\n// CHECK-NEXT: 3\n// CHECK-NEXT: 4\n// CHECK-NEXT: 5\n\nprint(\"foreach/case/where\")\n\nfor case let i? in OptionalArr where i != 3 {\n  print(i)\n}\n\n// CHECK-LABEL: foreach/case/where\n// CHECK-NEXT: 1\n// CHECK-NEXT: 2\n// CHECK-NEXT: 4\n// CHECK-NEXT: 5\n\nprint(\"guard top level\")\nguard let guardvalue = Optional(42) else { preconditionFailure() }\nprint(guardvalue)\n\n// CHECK-LABEL: guard top level\n// CHECK-NEXT: 42\n\nprint(\"done\");\n// CHECK-LABEL: done\n\nfunc testAnyCollection(_ c: any Collection) {\n  for v in c {\n    print(v)\n  }\n}\n\ntestAnyCollection([1, 2.0, \"Hello\"])\n// CHECK-NEXT: 1\n// CHECK-NEXT: 2.0\n// CHECK-NEXT: Hello\n",
   "expected": "foreach/where\n0\n2\n4\n6\nforeach/case\n1\n2\n3\n4\n5\nforeach/case/where\n1\n2\n4\n5\nguard top level\n42\ndone\n1\n2.0\nHello\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/static_objc_var",

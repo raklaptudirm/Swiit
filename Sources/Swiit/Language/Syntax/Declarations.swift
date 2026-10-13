@@ -203,6 +203,8 @@ struct SubscriptDecl: Equatable, Sendable {
     var setterNames = NamesUsed()
     /// `weak var parent: Node?`: the value is held without keeping it alive.
     var isWeak = false
+    /// `lazy var`: its value is worked out when it is first read, which may use `self`.
+    var isLazy = false
     /// `override var`: replaces a superclass's property.
     var isOverride = false
     var isNonisolated = false
@@ -252,6 +254,8 @@ public struct Documentation: Equatable, Sendable {
         @_spi(Layer) public var value: Expr
         /// `weak` makes it optional, nil once the instance is gone; `unowned` holds it as it is.
         @_spi(Layer) public var isWeak: Bool
+        /// `unowned`: not kept alive by the closure either, but not an optional.
+        @_spi(Layer) public var isUnowned = false
     }
 
     @_spi(Layer) public init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {

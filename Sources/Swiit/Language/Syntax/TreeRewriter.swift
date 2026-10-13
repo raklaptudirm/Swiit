@@ -188,7 +188,7 @@ import SwiitKit
         var copy = closure
         copy.parameters = closure.parameters.map(parameter)
         copy.body = program(closure.body)
-        copy.captures = closure.captures.map { ClosureLiteral.Capture(name: $0.name, value: expression($0.value), isWeak: $0.isWeak) }
+        copy.captures = closure.captures.map { ClosureLiteral.Capture(name: $0.name, value: expression($0.value), isWeak: $0.isWeak, isUnowned: $0.isUnowned) }
         return copy
     }
 

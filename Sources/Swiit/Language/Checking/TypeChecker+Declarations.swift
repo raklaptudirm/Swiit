@@ -134,6 +134,9 @@ extension TypeChecker {
         case .switchStatement(let node):
             // A switch always matches (or fails), so every case returning is enough.
             return !node.cases.isEmpty && node.cases.allSatisfy { leaves($0.body) }
+        // What never comes back.
+        case .expression(.call(.variable("fatalError"), _)), .expression(.call(.variable("preconditionFailure"), _)):
+            return true
         case .expression(.extended(let box)) where orExits:
             return box.node.leavesProgram
         default:
@@ -156,7 +159,8 @@ extension TypeChecker {
         for var property in decl.properties where property.getter == nil {
             // An untyped property takes its default's type.
             if property.type == nil, var defaultValue = property.defaultValue {
-                property.type = try typeOf(&defaultValue)
+                // A lazy one may use `self`, which isn't there yet: its type is found when the body is checked.
+                property.type = property.isLazy ? ((try? typeOf(&defaultValue)) ?? .unknown) : try typeOf(&defaultValue)
             }
             stored.append(property)
         }
@@ -248,6 +252,9 @@ extension TypeChecker {
                     decl.properties[index].setter = function.body
                 }
             } else if property.defaultValue != nil, let type = property.type {
+                // A lazy one is worked out with `self`.
+                if property.isLazy { scopes.append(["self": .variable(selfType, mutable: true)]) }
+                defer { if property.isLazy { scopes.removeLast() } }
                 try expect(&decl.properties[index].defaultValue!, type, "\(decl.name).\(property.name)'s default")
             }
         }

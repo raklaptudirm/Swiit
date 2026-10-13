@@ -20,6 +20,8 @@ public final class StructType: SwiitObject, @unchecked Sendable {
     /// the stored ones' values are in `statics`.
     let staticProperties: [PropertyDecl]
     let staticComputed: [String: Function]
+    /// The setters of `static var`s that are computed.
+    var staticSetters: [String: Function] = [:]
     let staticMethods: [String: OverloadSet]
     public var statics: [String: StaticValue] = [:]
     /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
@@ -129,12 +131,19 @@ extension Interpreter {
             returnType: nil, body: .native { _, _ in .nothing }, captured: captureScopes(NamesUsed())
         )
         var staticComputed: [String: Function] = [:]
+        var staticSetters: [String: Function] = [:]
         for property in decl.staticProperties {
             guard let getter = property.getter else { continue }
             staticComputed[property.name] = Function(
                 name: property.name, parameters: [], returnType: property.type, body: .swiit(getter),
                 captured: captureScopes(property.getterNames)
             )
+            if let setter = property.setter {
+                staticSetters[property.name] = Function(
+                    name: property.name, parameters: [Parameter(name: property.setterName, type: property.type ?? .any)], returnType: nil,
+                    body: .swiit(setter), captured: captureScopes(property.setterNames)
+                )
+            }
         }
         var staticMethods: [String: [Function]] = [:]
         for method in decl.staticMethods {
@@ -152,6 +161,7 @@ extension Interpreter {
             staticProperties: decl.staticProperties, staticComputed: staticComputed,
             staticMethods: staticMethods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
         )
+        type.staticSetters = staticSetters
         for declared in decl.subscripts {
             type.subscriptGetters.append(Function(
                 name: "subscript", parameters: declared.parameters, returnType: declared.returnType, body: .swiit(declared.getter),
@@ -414,6 +424,8 @@ extension Interpreter {
             return lvalue(base).map { ($0.0, $0.1 + [.member(name)]) }
         case .index(let base, let index):
             return lvalue(base).map { ($0.0, $0.1 + [.index(index)]) }
+        case .forceUnwrap(let base):
+            return lvalue(base).map { ($0.0, $0.1 + [.unwrap]) }
         default:
             return nil
         }
@@ -435,6 +447,8 @@ extension Interpreter {
         if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false), !holdsInstance {
             try checkAssignable(assignment.root, what: "assign to")
         }
+        task.assigningPlainly = assignment.op == nil
+        defer { task.assigningPlainly = false }
         try update(assignment.root, assignment.path) { current, type in
             let value = try evaluate(assignment.value, expecting: type)
             // A weak variable stays weak: what is put in it is held without being kept alive.
@@ -466,6 +480,9 @@ extension Interpreter {
                 current = inner
             case .index(let inner, let index):
                 path.insert(.index(index), at: 0)
+                current = inner
+            case .forceUnwrap(let inner):
+                path.insert(.unwrap, at: 0)
                 current = inner
             case .variable(let root):
                 try assign(Assignment(root: root, path: path, op: nil, value: .literal(value)))
@@ -520,7 +537,7 @@ extension Interpreter {
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.
                 if let setter = structType.setters[name] ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first, rest.isEmpty {
-                    let current = try structMember(name, of: record, structType) ?? .nothing
+                    let current = task.assigningPlainly ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
                     let receiver = Receiver(.record(record), mutable: true)
                     let newValue = try change(current, structType.computed[name]?.returnType)
                     let parameter = setter.parameters[0]
@@ -609,6 +626,14 @@ extension Interpreter {
             }
             guard slot.mutable else { throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant") }
             slot.value = try updated(slot.value, rest, type: nil, change)
+            return base
+        case (.member(let name), .object(let type as StructType)) where type.staticSetters[name] != nil && rest.isEmpty:
+            // A computed `static var` with a setter: the new value goes through it.
+            // What it holds now is read only to change it (`+=`); `= v` only sets.
+            let current = task.assigningPlainly ? Value.nothing : try type.staticComputed[name].map { try invoke($0, with: [:]) } ?? .nothing
+            let newValue = try change(current, type.staticProperty(name)?.type)
+            let setter = type.staticSetters[name]!
+            _ = try invoke(setter, with: [setter.parameters[0].name: newValue])
             return base
         case (.member(let name), .object(let type as StructType)):
             guard let slot = type.statics[name] else {

@@ -78,6 +78,9 @@ struct Lowering {
     var aliases: [String: TypeAnnotation] = [:]
     /// The functions around the code being lowered, innermost last, as `#function` names them.
     var functionNames: [String] = []
+    /// `o?.a.b`: the name the chain's `o?` is read by inside the closure that runs the rest of it.
+    var chainPlaceholders: [SyntaxIdentifier: String] = [:]
+    var chainCount = 0
     /// Inside a type: its name with the types around it (`Outer.Inner`), what `Self` is,
     /// the types declared in it by the short name they go by there, and those
     /// lowered but not yet put in the program (they come before the type holding them).

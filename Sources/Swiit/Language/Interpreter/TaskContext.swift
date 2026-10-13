@@ -21,6 +21,8 @@ public final class TaskContext {
     /// What a call's `inout` parameters held when it ended, in order, for the
     /// call to hand back to the places `&` named.
     var inoutOutputs: [Value] = []
+    /// An assignment with no operator (`x = v`) is under way: what it replaces needn't be read.
+    var assigningPlainly = false
     /// Whether the failable initializer just run left with `return nil`.
     var failedInit = false
     /// The classes whose methods are running, innermost last: what `super` looks above.

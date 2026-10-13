@@ -49,6 +49,8 @@ public final class Interpreter {
     var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
+    /// The module a program's types are in, shown before their names where Swift shows it (`main.Point`).
+    public var moduleName = "main"
     var enumTypeParameters: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
     var enumMembers: [ObjectIdentifier: TypeMembers] = [:]

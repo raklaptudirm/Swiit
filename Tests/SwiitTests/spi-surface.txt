@@ -112,6 +112,7 @@ Language/Syntax/Declarations.swift	Layer var isAutoclosure
 Language/Syntax/Declarations.swift	Layer var isInput
 Language/Syntax/Declarations.swift	Layer var isMutating
 Language/Syntax/Declarations.swift	Layer var isThrowing
+Language/Syntax/Declarations.swift	Layer var isUnowned
 Language/Syntax/Declarations.swift	Layer var isWeak
 Language/Syntax/Declarations.swift	Layer var label
 Language/Syntax/Declarations.swift	Layer var methods

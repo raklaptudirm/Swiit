@@ -106,10 +106,10 @@ extension Lowering {
                 throw unsupported("this variable", binding)
             }
             if binding.accessorBlock != nil {
-                guard !isAsync, !isWeak, binding.initializer == nil, name != "_", let annotation = binding.typeAnnotation else {
+                guard !isAsync, !isWeak, name != "_", binding.typeAnnotation != nil || binding.initializer != nil else {
                     throw unsupported("this variable", binding)
                 }
-                statements += try computedVariable(name, type: try type(annotation.type), binding)
+                statements += try computedVariable(name, type: try binding.typeAnnotation.map { try type($0.type) } ?? .any, binding)
                 continue
             }
             // `var x: Int?` starts as nil; `let y: Int` is given its value later.
@@ -118,7 +118,7 @@ extension Lowering {
                 let written = try type(annotation.type)
                 if isWeak {
                     if name != "_" { bind(name) }
-                    statements.append(.declare(name: name, mutable: true, value: .call(.variable("$weak"), [Argument(value: .annotated(.literal(.nothing), .optional(written)))])))
+                    statements.append(.declare(name: name, mutable: true, value: .call(.variable("$weak"), [Argument(value: .annotated(.literal(.nothing), { if case .optional = written { written } else { .optional(written) } }()))])))
                 } else if case .optional = written {
                     if name != "_" { bind(name) }
                     statements.append(.declare(name: name, mutable: true, value: .annotated(.literal(.nothing), written)))
@@ -152,7 +152,8 @@ extension Lowering {
         guard let accessors = binding.accessorBlock else { return [] }
         var getter: CodeBlockItemListSyntax?
         var setter: CodeBlockItemListSyntax?
-        var newValue = "newValue"
+        var willSet: CodeBlockItemListSyntax?, didSet: CodeBlockItemListSyntax?
+        var newValue = "newValue", willSetName = "newValue", oldValue = "oldValue"
         switch accessors.accessors {
         case .getter(let body): getter = body
         case .accessors(let list):
@@ -161,12 +162,46 @@ extension Lowering {
                 switch accessor.accessorSpecifier.tokenKind {
                 case .keyword(.get): getter = body
                 case .keyword(.set): setter = body; newValue = accessor.parameters?.name.text ?? "newValue"
+                case .keyword(.willSet): willSet = body; willSetName = accessor.parameters?.name.text ?? "newValue"
+                case .keyword(.didSet): didSet = body; oldValue = accessor.parameters?.name.text ?? "oldValue"
                 default: throw unsupported("this accessor on a variable", accessor)
                 }
             }
         }
-        guard let getter else { throw unsupported("a variable without a getter", binding) }
         declaredTypes.insert(name + "%")
+        // `var x: T? { didSet { … } }`: a variable of its own, set through a function that runs the observers.
+        if getter == nil, willSet != nil || didSet != nil {
+            let held = "$stored_" + name
+            var statements: [Statement] = []
+            let start: Expr
+            if let initializer = binding.initializer {
+                start = type == .any ? try expression(initializer.value) : .annotated(try expression(initializer.value), type)
+            }
+            else if case .optional = type { start = .annotated(.literal(.nothing), type) }
+            else { throw unsupported("a variable with observers and no value", binding) }
+            statements.append(.declare(name: held, mutable: true, value: start))
+            let reading = Program(statements: [.returnStatement(.variable(held))])
+            statements.append(.function(FunctionDecl(name: "$get_" + name, parameters: [], returnType: type == .any ? .unknown : type, body: reading)))
+            func lowered(_ body: CodeBlockItemListSyntax, parameters: [String]) throws -> [Statement] {
+                locals.append(Set(parameters))
+                let outer = leaving
+                leaving = Leaving(function: leaving.function + 1)
+                defer { locals.removeLast(); leaving = outer }
+                return try block(body, scoped: false).statements
+            }
+            var body: [Statement] = []
+            if let willSet { body += try lowered(willSet, parameters: [willSetName]).map { $0 } }
+            if didSet != nil { body.append(.declare(name: oldValue, mutable: false, value: .variable(held))) }
+            body.append(.assign(Assignment(root: held, path: [], op: nil, value: .variable(willSet != nil ? willSetName : "newValue"))))
+            if let didSet { body += try lowered(didSet, parameters: [oldValue]) }
+            let parameter = Parameter(label: nil, name: willSet != nil ? willSetName : "newValue", type: type == .any ? .unknown : type)
+            statements.append(.function(FunctionDecl(
+                name: "$set_" + name, parameters: [parameter], returnType: nil, body: Program(statements: body),
+                names: NamesUsed(names: (willSet.map { names(in: $0) } ?? []).union(didSet.map { names(in: $0) } ?? []))
+            )))
+            return statements
+        }
+        guard let getter else { throw unsupported("a variable without a getter", binding) }
         func lowered(_ body: CodeBlockItemListSyntax, parameters: [Parameter]) throws -> Program {
             locals.append(Set(parameters.map(\.name)))
             let outer = leaving
@@ -661,6 +696,7 @@ extension Lowering {
     private mutating func properties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
         var properties = try storedAndComputedProperties(node)
         for index in properties.indices {
+            properties[index].isLazy = node.modifiers.contains { $0.name.tokenKind == .keyword(.lazy) }
             properties[index].isWeak = node.modifiers.contains { $0.name.tokenKind == .keyword(.weak) || $0.name.tokenKind == .keyword(.unowned) }
             properties[index].isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
             properties[index].isNonisolated = node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
