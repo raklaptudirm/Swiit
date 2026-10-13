@@ -50,11 +50,13 @@ extension Interpreter {
             )
         }
         scopes = function.captured + [argumentScope]
+        if let owner = function.owner { task.owners.append(owner) }
         callDepth += 1
         returnTypes.append(function.returnType)
         defer {
             if let receiver, let changed = argumentScope.bindings["self"]?.value { receiver.value = changed }
             scopes = savedScopes
+            if function.owner != nil { task.owners.removeLast() }
             callDepth -= 1
             returnTypes.removeLast()
             // What the call started ends with it, however it ends.

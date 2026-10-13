@@ -27,6 +27,16 @@ extension Lowering {
             let lowered = try enumeration(node)
             return takeNested() + [.enumDecl(lowered)]
         }
+        if let node = decl.as(ClassDeclSyntax.self) {
+            let lowered = try classDeclaration(node.name.text, node.genericParameterClause, node.genericWhereClause, node.inheritanceClause,
+                                               node.memberBlock, isActor: false, node: node)
+            return takeNested() + [.classDecl(lowered)]
+        }
+        if let node = decl.as(ActorDeclSyntax.self) {
+            let lowered = try classDeclaration(node.name.text, node.genericParameterClause, node.genericWhereClause, node.inheritanceClause,
+                                               node.memberBlock, isActor: true, node: node)
+            return takeNested() + [.classDecl(lowered)]
+        }
         if prelude, let node = decl.as(ExtensionDeclSyntax.self) { return [try sequenceExtension(node)] }
         if let node = decl.as(ExtensionDeclSyntax.self) { return try typeExtension(node) }
         if let node = decl.as(ImportDeclSyntax.self) { return try importDeclaration(node) }
@@ -249,7 +259,7 @@ extension Lowering {
             documentation: documentation(of: node),
             isMutating: mutating, isThrowing: isThrowing, isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing,
             generics: generics, names: NamesUsed(names: names(in: body))
-        )
+        ).withOverride(node.modifiers.contains { $0.name.tokenKind == .keyword(.override) })
     }
 
     private mutating func initializer(_ node: InitializerDeclSyntax) throws -> FunctionDecl {
@@ -271,6 +281,8 @@ extension Lowering {
             isMutating: true, names: NamesUsed(names: names(in: body))
         )
         declaration.isFailable = node.optionalMark != nil
+        declaration.isConvenience = node.modifiers.contains { $0.name.tokenKind == .keyword(.convenience) }
+        declaration.isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
         return declaration
     }
 
@@ -310,6 +322,40 @@ extension Lowering {
         return (instance, statics)
     }
 
+    /// `class Dog: Animal { … }`, `actor Counter { … }`.
+    private mutating func classDeclaration(
+        _ written: String, _ generics: GenericParameterClauseSyntax?, _ whereClause: GenericWhereClauseSyntax?,
+        _ inheritance: InheritanceClauseSyntax?, _ block: MemberBlockSyntax, isActor: Bool, node: some SyntaxProtocol
+    ) throws -> ClassDecl {
+        let outerParameters = typeParameters
+        typeParameters.formUnion(genericParameters(generics, where: whereClause).keys)
+        defer { typeParameters = outerParameters }
+        let inherited = inheritance?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        try checkProtocols(inherited)
+        let qualified = typePrefix + written
+        var members = StructDecl(name: qualified, properties: [], methods: [], initializers: [], conformances: [])
+        var declaration = ClassDecl(name: qualified, inherited: inherited, members: members, deinitializer: nil, isActor: isActor)
+        let (instanceMembers, staticMembers) = memberNames(of: block)
+        self.members.append(instanceMembers)
+        let outer = enter(type: written, members: block)
+        defer { self.members.removeLast(); (typePrefix, currentType, nestedNames) = outer }
+        try lowerMembers(of: block, owner: qualified, staticMembers: staticMembers, into: &members)
+        declaration.members = members
+        // `deinit { … }`.
+        for member in block.members {
+            guard let deinitializer = member.decl.as(DeinitializerDeclSyntax.self), let body = deinitializer.body else { continue }
+            let outerState = (tryDepth, leaving)
+            tryDepth = 0
+            leaving = Leaving(function: leaving.function + 1)
+            anonymous.append(false)
+            locals.append([])
+            defer { locals.removeLast(); (tryDepth, leaving) = outerState; anonymous.removeLast() }
+            declaration.deinitializer = try self.block(body.statements, scoped: false)
+            declaration.deinitializerNames = NamesUsed(names: names(in: body))
+        }
+        return declaration
+    }
+
     /// A type's body: its properties, methods, initializers, subscripts and the types inside it.
     mutating func lowerMembers(of block: MemberBlockSyntax, owner qualified: String, staticMembers: Set<String>, into declaration: inout StructDecl) throws {
         for member in block.members {
@@ -327,8 +373,10 @@ extension Lowering {
                 if isStatic(method.modifiers) { declaration.staticMethods.append(lowered) } else { declaration.methods.append(lowered) }
             } else if let initializerNode = member.decl.as(InitializerDeclSyntax.self) {
                 declaration.initializers.append(try initializer(initializerNode))
-            } else if member.decl.is(StructDeclSyntax.self) || member.decl.is(EnumDeclSyntax.self) {
+            } else if member.decl.is(StructDeclSyntax.self) || member.decl.is(EnumDeclSyntax.self) || member.decl.is(ClassDeclSyntax.self) {
                 pendingNested += try self.declaration(member.decl)
+            } else if member.decl.is(DeinitializerDeclSyntax.self) {
+                continue // Lowered with the class.
             } else if let subscriptNode = member.decl.as(SubscriptDeclSyntax.self) {
                 declaration.subscripts.append(try subscriptDeclaration(subscriptNode))
             } else {
@@ -491,10 +539,19 @@ extension Lowering {
                                  "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject", "CustomDebugStringConvertible"]
 
     func isStatic(_ modifiers: DeclModifierListSyntax) -> Bool {
-        modifiers.contains { $0.name.tokenKind == .keyword(.static) }
+        modifiers.contains { $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class) }
     }
 
     private mutating func properties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
+        var properties = try storedAndComputedProperties(node)
+        for index in properties.indices {
+            properties[index].isWeak = node.modifiers.contains { $0.name.tokenKind == .keyword(.weak) || $0.name.tokenKind == .keyword(.unowned) }
+            properties[index].isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
+        }
+        return properties
+    }
+
+    private mutating func storedAndComputedProperties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
         var properties: [PropertyDecl] = []
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
         for binding in node.bindings {

@@ -27,6 +27,8 @@ extension Interpreter {
                 try run(statement)
             }
         }
+        // Whatever the last statement let go of.
+        if hasPendingDeinits { runPendingDeinits() }
     }
 
     /// The branch of an `if` its condition picks, with what the condition
@@ -104,6 +106,8 @@ extension Interpreter {
         case .operatorDeclaration(let key, let source):
             declaredOperators[key] = source
         case .protocolDecl(let decl):
+            try declare(decl)
+        case .classDecl(let decl):
             try declare(decl)
         case .extensionDecl, .deferBlock:
             // The prelude's, read at startup; collected by the block that holds it.
@@ -262,6 +266,7 @@ extension Interpreter {
     }
 
     public func checkInterrupt() throws {
+        if hasPendingDeinits { runPendingDeinits() }
         if cancellation.isSet { throw Cancelled() }
         if task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
         steps += 1

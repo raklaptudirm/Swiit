@@ -1,6 +1,14 @@
 import Foundation
 import SwiitKit
 
+extension FunctionDecl {
+    func withOverride(_ override: Bool) -> FunctionDecl {
+        var copy = self
+        copy.isOverride = override
+        return copy
+    }
+}
+
 @_spi(Layer) public struct FunctionDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
     @_spi(Layer) public var parameters: [Parameter]
@@ -19,6 +27,10 @@ import SwiitKit
     var isRethrowing = false
     /// `init?`: `return nil` leaves nothing made.
     var isFailable = false
+    /// `override func`: replaces a superclass's.
+    var isOverride = false
+    /// `convenience init`: makes the value through another initializer.
+    var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
     @_spi(Layer) public var generics: [String: [String]] = [:]
@@ -89,6 +101,21 @@ import SwiitKit
     }
 }
 
+/// `class Dog: Animal, Named { … }`, and `actor Counter { … }`: reference types, whose
+/// instances are shared, with inheritance.
+@_spi(Layer) public struct ClassDecl: Equatable, Sendable {
+    @_spi(Layer) public var name: String
+    /// What follows the colon: the superclass first if there is one, then protocols.
+    var inherited: [String]
+    /// Its properties, methods, initializers, subscripts and static members, as a struct has them.
+    var members: StructDecl
+    /// `deinit { … }`: runs when the last reference to an instance is gone.
+    var deinitializer: Program?
+    var deinitializerNames = NamesUsed()
+    /// `actor`: its members are reached from outside with `await`.
+    var isActor = false
+}
+
 /// `protocol Shape { var area: Double { get }; func scaled(by k: Double) -> Self }`: what a
 /// type has to have to conform, and the protocols it takes in (`protocol A: B`).
 @_spi(Layer) public struct ProtocolDecl: Equatable, Sendable {
@@ -143,6 +170,10 @@ struct SubscriptDecl: Equatable, Sendable {
     var setter: Program? = nil
     var setterName = "newValue"
     var setterNames = NamesUsed()
+    /// `weak var parent: Node?`: the value is held without keeping it alive.
+    var isWeak = false
+    /// `override var`: replaces a superclass's property.
+    var isOverride = false
     /// `willSet` and `didSet` of a stored property: run before and after it changes.
     var willSet: Program? = nil
     var willSetName = "newValue"

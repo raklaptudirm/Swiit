@@ -61,6 +61,13 @@ extension Interpreter {
             return type.name
         case .object(let type as BridgedTypeName):
             return type.name
+        case .object(let type as ClassType):
+            return type.name
+        case .object(let instance as ClassInstance):
+            if conformanceList(of: value).contains("CustomStringConvertible"), let text = try classMember("description", of: instance) {
+                return try describing(text)
+            }
+            return instance.type.name
         case .list(let items):
             return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ") + "]"
         case .dictionary(let dictionary):

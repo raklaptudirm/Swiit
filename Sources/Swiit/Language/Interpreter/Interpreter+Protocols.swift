@@ -43,10 +43,14 @@ extension Interpreter {
             if let type = structType(of: record) { declared = type.conformances }
         case .enumValue(let enumValue):
             declared = enumConformances[ObjectIdentifier(enumValue.type)] ?? []
+        case .object(let instance as ClassInstance):
+            declared = instance.type.allConformances
         default:
             break
         }
-        if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
+        if case .object(let instance as ClassInstance) = value {
+            for type in instance.type.chain { declared += typeExtensions[type.name]?.conformances ?? [] }
+        } else if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
         // What each takes in.
         var result: [String] = []
         var queue = declared
@@ -69,7 +73,9 @@ extension Interpreter {
     func extensionChain(of value: Value) -> [TypeMembers] {
         guard !typeExtensions.isEmpty else { return [] }
         var chain: [TypeMembers] = []
-        if let key = typeKey(of: value), let own = typeExtensions[key] { chain.append(own) }
+        if case .object(let instance as ClassInstance) = value {
+            for type in instance.type.chain { if let own = typeExtensions[type.name] { chain.append(own) } }
+        } else if let key = typeKey(of: value), let own = typeExtensions[key] { chain.append(own) }
         for name in conformanceList(of: value) {
             if let members = typeExtensions[name] { chain.append(members) }
         }

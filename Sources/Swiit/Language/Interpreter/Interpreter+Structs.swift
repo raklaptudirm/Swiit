@@ -301,6 +301,32 @@ extension Interpreter {
     }
 
     /// `grid[1, 2]`: a struct's subscript read, with `self` the value.
+    func readSubscript(_ instance: ClassInstance, _ arguments: [Argument]) throws -> Value {
+        guard let owner = instance.type.subscriptOwner else { throw RuntimeError("\(instance.type.name) has no subscript") }
+        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
+        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: owner.subscriptGetters)) { try self.bind(values, to: $0) }
+        return try invoke(getter, with: bindings, receiver: Receiver(.object(instance), mutable: true))
+    }
+
+    func writeSubscript(
+        _ instance: ClassInstance, _ arguments: [Argument], _ rest: ArraySlice<Assignment.Step>,
+        _ change: (Value, TypeAnnotation?) throws -> Value
+    ) throws -> Value {
+        guard let owner = instance.type.subscriptOwner else { throw RuntimeError("\(instance.type.name) has no subscript") }
+        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
+        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: owner.subscriptGetters)) { try self.bind(values, to: $0) }
+        guard let position = owner.subscriptGetters.firstIndex(where: { $0 === getter }), let setter = owner.subscriptSetters[position] else {
+            throw RuntimeError("cannot assign through \(instance.type.name)'s subscript: it's get-only")
+        }
+        let receiver = Receiver(.object(instance), mutable: true)
+        let current = try invoke(getter, with: bindings, receiver: receiver)
+        let updatedValue = try rest.isEmpty ? change(current, getter.returnType) : updated(current, rest, type: getter.returnType, change)
+        var all = bindings
+        all[setter.parameters[setter.parameters.count - 1].name] = updatedValue
+        _ = try invoke(setter, with: all, receiver: receiver)
+        return .object(instance)
+    }
+
     func readSubscript(_ record: Record, _ type: StructType, _ arguments: [Argument]) throws -> Value {
         let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
         let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: type.subscriptGetters)) { try self.bind(values, to: $0) }
@@ -386,7 +412,15 @@ extension Interpreter {
     /// `x = v`, `p.x += 1`, `xs[0] = v`, `r["k"] = v`.
     func assign(_ assignment: Assignment) throws {
         // `Point.count += 1`: a static var, set through its type.
-        if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false) {
+        // A change inside an instance is to the instance itself, which the variable holding it needn't allow.
+        var holdsInstance = false
+        if !assignment.path.isEmpty {
+            switch lookup(assignment.root)?.value {
+            case .object(is ClassInstance)?, .object(is ClassType)?: holdsInstance = true
+            default: break
+            }
+        }
+        if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false), !holdsInstance {
             try checkAssignable(assignment.root, what: "assign to")
         }
         try update(assignment.root, assignment.path) { current, type in
@@ -521,6 +555,10 @@ extension Interpreter {
             return try writeSubscript(record, structType(of: record)!, [Argument(value: indexExpr)], rest, change)
         case (.subscripted(let arguments), .record(let record)) where structType(of: record)?.subscriptGetters.isEmpty == false:
             return try writeSubscript(record, structType(of: record)!, arguments, rest, change)
+        case (.index(let indexExpr), .object(let instance as ClassInstance)):
+            return try writeSubscript(instance, [Argument(value: indexExpr)], rest, change)
+        case (.subscripted(let arguments), .object(let instance as ClassInstance)):
+            return try writeSubscript(instance, arguments, rest, change)
         case (.indexDefault(let keyExpr, let fallback), .dictionary(var dictionary)):
             let key = try evaluate(keyExpr)
             let current = try dictionary[key] ?? evaluate(fallback)
@@ -535,6 +573,19 @@ extension Interpreter {
             }
             record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
             return .record(record)
+        case (.member(let name), .object(let instance as ClassInstance)):
+            try updatedInstance(instance, name, rest: rest, initializing: initializing, change) { current, remaining, type in
+                try self.updated(current, remaining, type: type, change)
+            }
+            return base
+        case (.member(let name), .object(let type as ClassType)):
+            // `Counter.total += 1`: a static var of the class.
+            guard let slot = type.chain.lazy.compactMap({ $0.statics[name] }).first else {
+                throw RuntimeError("cannot assign to '\(name)': \(type.name) has no static property '\(name)'")
+            }
+            guard slot.mutable else { throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant") }
+            slot.value = try updated(slot.value, rest, type: nil, change)
+            return base
         case (.member(let name), .object(let type as StructType)):
             guard let slot = type.statics[name] else {
                 let what = type.staticComputed[name] != nil ? "it's a computed property" : "\(type.name) has no static property '\(name)'"

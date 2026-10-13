@@ -39,13 +39,13 @@
   "name": "class",
   "source": "class A { var x = 1; func f() -> Int { x } }; print(A().f())",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "class inherit",
   "source": "class A { func f() -> Int { 1 } }; class B: A { override func f() -> Int { 2 } }; print(B().f())",
   "expected": "2\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "inout",
@@ -1623,6 +1623,126 @@
   "name": "protocol closure prop",
   "source": "protocol Op { var apply: (Int) -> Int { get } }; struct D: Op { var apply: (Int) -> Int { { $0 * 2 } } }; let o: Op = D(); print(o.apply(4))",
   "expected": "8\n",
+  "status": "ok"
+ },
+ {
+  "name": "class basic",
+  "source": "class A { var n: Int; init(n: Int) { self.n = n }; func inc() { n += 1 } }; let a = A(n: 1); a.inc(); print(a.n)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "class shared",
+  "source": "class A { var n = 0 }; let a = A(); let b = a; b.n = 5; print(a.n)",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "class identity",
+  "source": "class A {}; let a = A(); let b = a; print(a === b, a === A(), a !== A())",
+  "expected": "true false true\n",
+  "status": "ok"
+ },
+ {
+  "name": "class super call",
+  "source": "class A { func f() -> String { \"A\" } }; class B: A { override func f() -> String { super.f() + \"B\" } }; print(B().f())",
+  "expected": "AB\n",
+  "status": "ok"
+ },
+ {
+  "name": "class super init",
+  "source": "class A { var n: Int; init(n: Int) { self.n = n } }; class B: A { var m: Int; init(m: Int) { self.m = m; super.init(n: m * 2) } }; let b = B(m: 3); print(b.n, b.m)",
+  "expected": "6 3\n",
+  "status": "ok"
+ },
+ {
+  "name": "class inherited init",
+  "source": "class A { var n: Int; init(n: Int) { self.n = n } }; class B: A { var extra = 7 }; let b = B(n: 1); print(b.n, b.extra)",
+  "expected": "1 7\n",
+  "status": "ok"
+ },
+ {
+  "name": "class convenience",
+  "source": "class A { var n: Int; init(n: Int) { self.n = n }; convenience init() { self.init(n: 9) } }; print(A().n)",
+  "expected": "9\n",
+  "status": "ok"
+ },
+ {
+  "name": "class static",
+  "source": "class A { static var count = 0; init() { A.count += 1 } }; _ = A(); _ = A(); print(A.count)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "class computed",
+  "source": "class A { var w = 2; var area: Int { w * w } }; let a = A(); a.w = 3; print(a.area)",
+  "expected": "9\n",
+  "status": "ok"
+ },
+ {
+  "name": "class deinit",
+  "source": "class A { deinit { print(\"gone\") } }; do { let a = A(); print(\"in\") }; print(\"out\")",
+  "expected": "in\ngone\nout\n",
+  "status": "ok"
+ },
+ {
+  "name": "class protocol",
+  "source": "protocol P { func f() -> Int }; class A: P { func f() -> Int { 4 } }; let p: P = A(); print(p.f())",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "class cast",
+  "source": "class A {}; class B: A {}; let x: A = B(); print(x is B, (x as? B) != nil, A() is B)",
+  "expected": "true true false\n",
+  "status": "ok"
+ },
+ {
+  "name": "class array of base",
+  "source": "class A { func n() -> String { \"a\" } }; class B: A { override func n() -> String { \"b\" } }; for x in [A(), B()] { print(x.n()) }",
+  "expected": "a\nb\n",
+  "status": "ok"
+ },
+ {
+  "name": "class description",
+  "source": "class A { var n = 1 }; let a = A(); print(type(of: a))",
+  "expected": "A\n",
+  "status": "ok"
+ },
+ {
+  "name": "class let property",
+  "source": "class A { let n = 1 }; let a = A(); print(a.n)",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "class override property",
+  "source": "class A { var n: Int { 1 } }; class B: A { override var n: Int { 2 } }; let x: A = B(); print(x.n)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "class mutate through let",
+  "source": "class A { var n = 0 }; func bump(_ a: A) { a.n += 1 }; let a = A(); bump(a); bump(a); print(a.n)",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "class weak",
+  "source": "class A {}; weak var w: A? = nil; do { let a = A(); w = a; print(w != nil) }; print(w == nil)",
+  "expected": "true\ntrue\n",
+  "status": "todo"
+ },
+ {
+  "name": "class final",
+  "source": "final class A { func f() -> Int { 1 } }; print(A().f())",
+  "expected": "1\n",
+  "status": "ok"
+ },
+ {
+  "name": "class subscript",
+  "source": "class A { var xs = [1, 2, 3]; subscript(i: Int) -> Int { get { xs[i] } set { xs[i] = newValue } } }; let a = A(); a[1] = 9; print(a[1])",
+  "expected": "9\n",
   "status": "ok"
  }
 ]

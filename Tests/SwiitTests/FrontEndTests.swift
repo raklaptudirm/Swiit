@@ -75,8 +75,6 @@ private let wrong = [
     "let = 1", "func (", "let x: = 3", "1 +* 2", "if { }", "for in x { }", "let 1x = 3", "}", ")", "let a = ]",
     // A case holds one guard, its last pattern's.
     "switch 1 {\ncase 1 where false, 2: let a = 1\ndefault: let b = 2\n}",
-    // Comparisons that end in `=` aren't compound assignments.
-    "var a = 1; a === 1", "var a = 1; a !== 1",
 ]
 
 private func isIncomplete(_ parse: () throws -> Program) -> Bool? {

@@ -63,6 +63,10 @@ import SwiitKit
             rewritten = .structDecl(members(decl))
         case .operatorDeclaration, .protocolDecl:
             rewritten = node
+        case .classDecl(var decl):
+            decl.members = members(decl.members)
+            decl.deinitializer = block(decl.deinitializer)
+            rewritten = .classDecl(decl)
         case .typeExtension(var decl):
             decl.members = members(decl.members)
             rewritten = .typeExtension(decl)

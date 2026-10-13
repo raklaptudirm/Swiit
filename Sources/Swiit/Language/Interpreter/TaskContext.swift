@@ -23,6 +23,10 @@ public final class TaskContext {
     var inoutOutputs: [Value] = []
     /// Whether the failable initializer just run left with `return nil`.
     var failedInit = false
+    /// The classes whose methods are running, innermost last: what `super` looks above.
+    var owners: [ClassType] = []
+    /// Whether the initializer running has called `super.init`.
+    var calledSuperInit = false
     /// Asks the task to stop, from any thread.
     public let cancellation = Cancellation()
     /// What the host keeps for the task (the shell: its output, its status).

@@ -49,6 +49,17 @@ extension Interpreter {
             },
             documentation: Documentation(summary: "Exchanges the values of two variables.", parameters: [:])
         ), named: "swap")
+        // `a === b`: whether two class instances are the same one.
+        scopes[0].declare(Function(
+            name: "===",
+            parameters: [Parameter(label: nil, name: "a", type: .any), Parameter(label: nil, name: "b", type: .any)],
+            returnType: .bool,
+            body: .native { _, arguments in
+                guard case .object(let a)? = arguments["a"], case .object(let b)? = arguments["b"] else { return .bool(false) }
+                return .bool(a === b)
+            },
+            documentation: Documentation(summary: "Whether two references are to the same instance.", parameters: [:])
+        ), named: "===")
         // The functions of Foundation's math, on Doubles.
         let unary: [(String, @Sendable (Double) -> Double)] = [
             ("sqrt", { $0.squareRoot() }), ("floor", { $0.rounded(.down) }), ("ceil", { $0.rounded(.up) }), ("trunc", { $0.rounded(.towardZero) }),
@@ -191,6 +202,7 @@ extension Interpreter {
         case .record(let record):
             guard let typeName = record.typeName, let type = structType(named: typeName) else { return .nothing }
             return .object(type)
+        case .object(let instance as ClassInstance): return .object(instance.type)
         case .object(let box as SwiftValue): name = box.typeName
         default: return .nothing
         }

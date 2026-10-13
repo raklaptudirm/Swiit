@@ -53,6 +53,10 @@ public final class Interpreter {
     var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
     /// The operators and precedence groups declared at the prompt, by what they declare, as source.
     var declaredOperators: [String: String] = [:]
+    /// Instances released since a statement began, whose `deinit` runs at the next one.
+    var pendingDeinits: [ClassInstance] = []
+    nonisolated(unsafe) var hasPendingDeinits = false
+    let deinitLock = NSLock()
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.

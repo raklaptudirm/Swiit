@@ -40,6 +40,8 @@ extension TypeChecker {
             // wanted, nor an `async` one where a sync one is.
             return ap.count == bp.count && zip(bp, ap).allSatisfy { fits($0, $1) }
                 && (br == .void || fits(ar, br)) && (!athrows || bthrows) && (aeffect != .async || beffect == .async)
+        // A class is its superclass too.
+        case (.named(let a), .named(let b)) where isSubclass(a, of: b): return true
         // A struct's value is a record, as builtins that take any record see it.
         case (.named(let name), .record): return structInfo(named: name) != nil
         case (.tuple, .record): return true

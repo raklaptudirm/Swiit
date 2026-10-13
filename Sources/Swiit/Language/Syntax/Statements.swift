@@ -40,6 +40,8 @@ public struct Program: Equatable, Sendable {
     case typeExtension(ExtensionDecl)
     /// `protocol Shape { … }`: what conforming types have.
     case protocolDecl(ProtocolDecl)
+    /// `class` and `actor`: a reference type.
+    case classDecl(ClassDecl)
     /// `infix operator ** : MultiplicationPrecedence`, `precedencegroup …`: kept, so later
     /// programs read operators by it; `key` names what it declares.
     case operatorDeclaration(key: String, source: String)
@@ -71,7 +73,7 @@ extension Statement {
     /// A struct or enum declaration, which a block declares before it runs.
     @_spi(Layer) public var declaresType: Bool {
         switch self {
-        case .structDecl, .enumDecl, .typeExtension, .protocolDecl: true
+        case .structDecl, .enumDecl, .typeExtension, .protocolDecl, .classDecl: true
         default: false
         }
     }

@@ -23,7 +23,9 @@ extension TypeChecker {
             guard case .variable(let rootType, let mutable) = symbol else {
                 throw TypeError("cannot assign to '\(assignment.root)': it isn't a variable")
             }
-            guard mutable || dynamicType(of: rootType) != nil else {
+            // A class instance is a reference: a `let` of one still has its members assigned.
+            let isReference: Bool = { if case .named(let name) = rootType, structInfo(named: name)?.isClass == true { true } else { false } }()
+            guard mutable || dynamicType(of: rootType) != nil || (isReference && !assignment.path.isEmpty) else {
                 if assignment.root == "self" {
                     throw TypeError("cannot assign to self here: it's only changed by a mutating method")
                 }

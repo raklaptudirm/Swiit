@@ -166,6 +166,11 @@ extension Interpreter {
     public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
         case .named(let name):
+            // A class of the program's: an instance of it or of a subclass.
+            if let type = classType(named: name) {
+                guard case .object(let instance as ClassInstance) = value, instance.type.isSubclass(of: type) else { return nil }
+                return value
+            }
             // A protocol of the program's: any value whose type conforms.
             if protocolType(named: name) != nil { return self.value(value, conformsTo: name) ? value : nil }
             // A plain dynamic type (parsed JSON) is whatever it parsed as.

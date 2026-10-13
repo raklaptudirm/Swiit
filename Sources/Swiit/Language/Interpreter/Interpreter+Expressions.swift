@@ -62,6 +62,8 @@ extension Interpreter {
             guard case .caseLiteral(let name, let arguments) = literal else { preconditionFailure() }
             let equal = try makeCase(enumValue.type, name, arguments) == known
             return .bool(op == .equal ? equal : !equal)
+        case .member(.variable("super"), let name):
+            return try superProperty(name)
         case .member(let base, let name):
             return try member(name, of: try evaluate(base))
         case .closure(let literal):
@@ -177,9 +179,12 @@ extension Interpreter {
             if case .record(let record) = value, let type = structType(of: record), !type.subscriptGetters.isEmpty {
                 return try readSubscript(record, type, [Argument(value: index)])
             }
+            if case .object(let instance as ClassInstance) = value { return try readSubscript(instance, [Argument(value: index)]) }
             return try element(of: value, at: try evaluate(index))
         case .subscripted(let base, let arguments):
-            guard case .record(let record) = try evaluate(base), let type = structType(of: record), !type.subscriptGetters.isEmpty else {
+            let target = try evaluate(base)
+            if case .object(let instance as ClassInstance) = target { return try readSubscript(instance, arguments) }
+            guard case .record(let record) = target, let type = structType(of: record), !type.subscriptGetters.isEmpty else {
                 throw RuntimeError("this value has no subscript")
             }
             return try readSubscript(record, type, arguments)
@@ -206,7 +211,24 @@ extension Interpreter {
             return try evaluate(.call(.member(.literal(base), name), arguments))
         }
         if case .member(let baseExpr, let name) = callee {
+            // `super.describe()`, `super.init(…)`: above the class whose body this is.
+            if case .variable("super") = baseExpr { return try callSuperMethod(name, arguments, overload: overload) }
             let base = try evaluate(baseExpr)
+            // `self.init(…)` in a convenience initializer.
+            if name == "init", case .object(let instance as ClassInstance) = base {
+                try delegateInitializer(of: instance, in: task.owners.last ?? instance.type, arguments, isSuper: false)
+                return .nothing
+            }
+            // `obj.move(by: 1)`: the method of the instance's own class, or one it inherits.
+            if case .object(let instance as ClassInstance) = base, let result = try callClassMethod(instance, name, arguments, overload: overload) {
+                return result
+            }
+            // `Counter.make()`: a static or class method, inherited ones too.
+            if case .object(let type as ClassType) = base {
+                for next in type.chain {
+                    if let methods = next.staticMethods[name] { return try callStatic(narrowed(OverloadSet(name: name, candidates: methods), overload), arguments) }
+                }
+            }
             // `self.init(x: 1)`: another initializer makes the value.
             if name == "init", case .record(let record) = base, let type = structType(of: record) {
                 let made = try construct(type, arguments, overload: overload)
@@ -257,6 +279,10 @@ extension Interpreter {
         if case .object(let type as StructType) = value {
             return try construct(type, arguments, overload: overload)
         }
+        // `Dog(name: "Rex")`: a new instance.
+        if case .object(let type as ClassType) = value {
+            return try construct(type, arguments, overload: overload)
+        }
         // `Level(rawValue: 2)`: the case with that raw value, or nil.
         if case .object(let type as EnumType) = value {
             if !(arguments.count == 1 && arguments[0].label == "rawValue"), let initializers = enumMembers[ObjectIdentifier(type)]?.initializers {
@@ -300,6 +326,8 @@ extension Interpreter {
             return raw
         }
         if case .enumValue(let enumValue) = value, let found = try enumMember(name, of: enumValue) { return found }
+        if case .object(let instance as ClassInstance) = value, let found = try classMember(name, of: instance) { return found }
+        if case .object(let type as ClassType) = value, let found = try classStaticMember(name, of: type) { return found }
         // A struct's own members come before what extensions add.
         if case .record = value {} else if let found = try extensionMember(name, of: value) { return found }
         if case .object(let type as StructType) = value, let found = try extensionStaticMember(name, ofTypeNamed: type.name) { return found }

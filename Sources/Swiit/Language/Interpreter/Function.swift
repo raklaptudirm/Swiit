@@ -31,14 +31,19 @@ public final class Function: Callable, @unchecked Sendable {
     public let generics: [String: [String]]
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
+    /// `convenience init`: made through another of the class's initializers.
+    let isConvenience: Bool
+    /// The class whose body it is in, which `super` in it looks above.
+    public weak var owner: ClassType?
 
     public init(
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:],
-        isFailable: Bool = false
+        isFailable: Bool = false, isConvenience: Bool = false
     ) {
         self.isFailable = isFailable
+        self.isConvenience = isConvenience
         self.isRethrowing = isRethrowing
         self.effect = effect
         self.generics = generics

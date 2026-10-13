@@ -11,7 +11,7 @@ extension TypeChecker {
             case .structType(let info):
                 let candidates = info.initializers.isEmpty ? [info.memberwise] : info.initializers
                 let chosen = try resolve(candidates, &arguments, name: name)
-                if let chosen, !info.initializers.isEmpty { callee = .chosen(callee, overload: chosen.index) }
+                if let chosen, !info.initializers.isEmpty, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
                 if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
                 if let chosen { try effectSite(chosen.effect, "\(name).init") }
                 return chosen?.returns ?? .named(name)
@@ -135,14 +135,14 @@ extension TypeChecker {
            lookup("$initializing") != nil {
             let candidates = info.initializers.isEmpty ? [info.memberwise] : info.initializers
             guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
-            if candidates.count > 1, !info.initializers.isEmpty { callee = .chosen(callee, overload: chosen.index) }
+            if candidates.count > 1, !info.initializers.isEmpty, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
             if chosen.isThrowing { try throwingSite("init") }
             return .void
         }
         if case .named(let structName) = base, let info = structInfo(named: structName), let methods = info.methods[name] {
             guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-            if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
+            if methods.count > 1, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
+            if let baseExpr, chosen.isMutating, !info.isClass { try checkMutable(baseExpr, method: name) }
             if chosen.isThrowing { try throwingSite("'\(name)'") }
             try effectSite(chosen.effect, "'\(name)'")
             return chosen.returns

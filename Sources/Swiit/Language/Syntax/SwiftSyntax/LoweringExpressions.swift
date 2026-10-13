@@ -76,6 +76,7 @@ extension Lowering {
             }
             return .await(try expression(node.expression), throwing: tryDepth > 0)
         }
+        if expr.is(SuperExprSyntax.self) { return .variable("super") }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
         // `Box<Int>(…)`, `f<Int>(…)`: the types only say what a call would infer.
         if let node = expr.as(GenericSpecializationExprSyntax.self) { return try expression(node.expression) }
@@ -239,7 +240,7 @@ extension Lowering {
             return .variable(outer + "." + name)
         }
         // `String.init`: the initializer as a function, which takes one value.
-        if name == "init", !called, !base.is(DeclReferenceExprSyntax.self) || base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
+        if name == "init", !called, !base.is(SuperExprSyntax.self), !base.is(DeclReferenceExprSyntax.self) || base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
             let made = Expr.call(try expression(base), [Argument(label: nil, value: .variable("$0"))])
             return .closure(ClosureLiteral(
                 parameters: [Parameter(name: "$0")], returnType: nil,
@@ -298,7 +299,7 @@ extension Lowering {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.declName.baseName.text == "init",
-                      let base = member.base, base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
+                      let base = member.base, !base.is(SuperExprSyntax.self), base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
                 // `Point.init(x: 1)` is `Point(x: 1)`.
                 callee = try expression(base)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self) {
@@ -460,6 +461,11 @@ extension Lowering {
         }
         // An operator the program declares is a function of that name.
         guard let kind = binaryOperator(op.operator.text) else {
+            // Identity: a function, and `!==` is its negation.
+            if op.operator.text == "===" || op.operator.text == "!==" {
+                let identical = Expr.call(.variable("==="), [Argument(value: left), Argument(value: try expression(node.rightOperand))])
+                return op.operator.text == "===" ? identical : .unary(.not, identical)
+            }
             // Only one a program declares is a function it can call.
             guard names()[op.operator.text] != nil else { throw unsupported("the operator '\(op.operator.text)'", node.operator) }
             return .call(.variable(op.operator.text), [Argument(value: left), Argument(value: try expression(node.rightOperand))])

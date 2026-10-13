@@ -10,6 +10,7 @@ extension TypeChecker {
         // Declared first, so functions and types can be used before (and by)
         // their declarations, as in Swift.
         var structs: [StructDecl] = []
+        var classes: [ClassDecl] = []
         // What types are held to first.
         for statement in program.statements {
             if case .protocolDecl(let decl) = statement { scopes[scopes.count - 1][decl.name] = .protocolType(protocolInfo(decl)) }
@@ -18,6 +19,7 @@ extension TypeChecker {
             switch statement {
             case .function(let decl): declareFunction(decl)
             case .structDecl(let decl): structs.append(decl)
+            case .classDecl(let decl): classes.append(decl)
             case .enumDecl(let decl): scopes[scopes.count - 1][decl.name] = .enumType(enumInfo(decl))
             case .typeExtension(let decl): registerExtension(decl)
             default: break
@@ -38,6 +40,32 @@ extension TypeChecker {
             }
             if waiting.count == structs.count, let firstError { throw firstError }
             structs = waiting
+        }
+        // A class waits for the one it comes from.
+        while !classes.isEmpty {
+            var waiting: [ClassDecl] = []
+            for decl in classes {
+                var superclass: StructInfo?
+                var conformances = decl.inherited
+                if let first = decl.inherited.first, protocolInfo(named: first) == nil, enumInfo(named: first) == nil {
+                    if let parent = structInfo(named: first), parent.isClass {
+                        superclass = parent
+                        conformances.removeFirst()
+                    } else if classes.contains(where: { $0.name == first }) {
+                        waiting.append(decl)
+                        continue
+                    }
+                }
+                do {
+                    scopes[scopes.count - 1][decl.name] = .structType(try classInfo(decl, superclass: superclass, conformances: conformances))
+                } catch let error as TypeError {
+                    firstError = firstError ?? error
+                    waiting.append(decl)
+                }
+            }
+            if waiting.count == classes.count, let firstError { throw firstError }
+            if waiting.count == classes.count { break }
+            classes = waiting
         }
         for index in program.statements.indices {
             if index < program.lines.count { line = program.lines[index] }
@@ -131,6 +159,9 @@ extension TypeChecker {
         case .typeExtension(var decl):
             try checkExtension(&decl)
             statement = .typeExtension(decl)
+        case .classDecl(var decl):
+            try checkClass(&decl)
+            statement = .classDecl(decl)
         case .operatorDeclaration, .protocolDecl:
             break
         case .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl:

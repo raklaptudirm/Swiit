@@ -42,6 +42,10 @@ extension TypeChecker {
             names[parameter.name] = .variable(parameter.variadic ? .list(known) : known, mutable: parameter.isInout)
         }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
+        // `super` is the class above, as `self`.
+        if case .named(let className)? = selfType, let info = structInfo(named: className), let parent = info.superclass {
+            names["super"] = .variable(.named(parent), mutable: true)
+        }
         if initializing { names["$initializing"] = .variable(.void, mutable: false) }
         // `init?` may `return nil`.
         let result = decl.isFailable ? TypeAnnotation.optional(.void) : substitute(decl.returnType ?? .void, [:])
@@ -170,7 +174,7 @@ extension TypeChecker {
         return info
     }
 
-    func checkStruct(_ decl: inout StructDecl) throws {
+    func checkStruct(_ decl: inout StructDecl, isClass: Bool = false) throws {
         let selfType = TypeAnnotation.named(decl.name)
         // Equatable, Hashable and Encodable come from the fields, which must
         // have them too; Comparable would need a `<` of its own.
@@ -180,6 +184,8 @@ extension TypeChecker {
                 try checkConformance(of: decl.name, to: proto)
                 continue
             }
+            // What a class conforms to by saying so isn't made from its fields.
+            if isClass { continue }
             if proto == "Comparable", !decl.staticMethods.contains(where: { $0.name == "<" }) {
                 throw TypeError("\(decl.name) can't be Comparable without a '<' of its own: static func < (a: \(decl.name), b: \(decl.name)) -> Bool")
             }
@@ -228,7 +234,7 @@ extension TypeChecker {
             }
         }
         for index in decl.methods.indices {
-            try checkFunction(&decl.methods[index], self: selfType, mutating: decl.methods[index].isMutating)
+            try checkFunction(&decl.methods[index], self: selfType, mutating: isClass || decl.methods[index].isMutating)
         }
         for index in decl.subscripts.indices {
             let declared = decl.subscripts[index]

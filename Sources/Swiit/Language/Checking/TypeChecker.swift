@@ -74,6 +74,14 @@ import SwiitKit
         /// `static let` and `static var`, stored and computed: read on the type.
         var staticProperties: [PropertyDecl] = []
         var staticMethods: [String: [Signature]] = [:]
+        /// A class (or actor): shared, with a superclass, and no memberwise initializer.
+        var isClass = false
+        var isActor = false
+        var superclass: String?
+        /// Which of the initializers are `convenience`.
+        var convenienceInitializers: [Bool] = []
+        /// Which of the methods say `override`, by name and position.
+        var overrides: Set<String> = []
 
         func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
