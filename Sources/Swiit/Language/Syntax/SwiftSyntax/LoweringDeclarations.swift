@@ -259,7 +259,10 @@ extension Lowering {
             documentation: documentation(of: node),
             isMutating: mutating, isThrowing: isThrowing, isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing,
             generics: generics, names: NamesUsed(names: names(in: body))
-        ).withOverride(node.modifiers.contains { $0.name.tokenKind == .keyword(.override) })
+        ).withModifiers(
+            override: node.modifiers.contains { $0.name.tokenKind == .keyword(.override) },
+            nonisolated: node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
+        )
     }
 
     private mutating func initializer(_ node: InitializerDeclSyntax) throws -> FunctionDecl {
@@ -283,6 +286,7 @@ extension Lowering {
         declaration.isFailable = node.optionalMark != nil
         declaration.isConvenience = node.modifiers.contains { $0.name.tokenKind == .keyword(.convenience) }
         declaration.isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
+        declaration.isNonisolated = node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
         return declaration
     }
 
@@ -547,6 +551,7 @@ extension Lowering {
         for index in properties.indices {
             properties[index].isWeak = node.modifiers.contains { $0.name.tokenKind == .keyword(.weak) || $0.name.tokenKind == .keyword(.unowned) }
             properties[index].isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
+            properties[index].isNonisolated = node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
         }
         return properties
     }

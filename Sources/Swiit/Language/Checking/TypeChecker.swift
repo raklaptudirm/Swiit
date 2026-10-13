@@ -82,6 +82,8 @@ import SwiitKit
         var convenienceInitializers: [Bool] = []
         /// Which of the methods say `override`, by name and position.
         var overrides: Set<String> = []
+        /// The members an actor gives without `await`.
+        var nonisolated: Set<String> = []
 
         func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
         func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }

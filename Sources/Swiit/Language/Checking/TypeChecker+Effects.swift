@@ -29,6 +29,13 @@ extension TypeChecker {
         effectContexts[effectContexts.count - 1].effect = .async
     }
 
+    /// What an actor's state is reached through from outside: as an async call is, with `await`.
+    func actorSite(_ type: TypeAnnotation, _ receiver: Expr?, _ member: String) throws {
+        guard case .named(let name) = type, let info = structInfo(named: name), info.isActor, !info.nonisolated.contains(member) else { return }
+        if case .variable(let variable)? = receiver, variable == "self" || variable == "super" { return }
+        try effectSite(.async, "'\(member)' of the actor \(name)")
+    }
+
     /// A call to the function `name`, for the redefinition rule.
     func calledByName(_ name: String) {
         if awaitDepth == 0 { effectContexts[effectContexts.count - 1].unawaited.insert(name) }

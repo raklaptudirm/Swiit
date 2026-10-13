@@ -14,6 +14,7 @@ extension TypeChecker {
         info.isActor = decl.isActor
         info.superclass = parent?.name
         info.convenienceInitializers = members.initializers.map(\.isConvenience)
+        info.nonisolated = Set(members.methods.filter(\.isNonisolated).map(\.name) + members.properties.filter(\.isNonisolated).map(\.name))
         info.overrides = Set(members.methods.filter(\.isOverride).map(\.name))
         // Without a designated initializer of its own, a class has its superclass's.
         if !info.convenienceInitializers.contains(false), let parent {

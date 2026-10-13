@@ -92,6 +92,7 @@ extension TypeChecker {
             }
             let base = try typeOf(&baseExpr)
             callee = .member(baseExpr, name)
+            try actorSite(base, baseExpr, name)
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
         // In a type's body, a call to a name that isn't bound may be to the type's own method.

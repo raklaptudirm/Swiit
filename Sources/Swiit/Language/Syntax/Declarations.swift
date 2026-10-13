@@ -2,9 +2,10 @@ import Foundation
 import SwiitKit
 
 extension FunctionDecl {
-    func withOverride(_ override: Bool) -> FunctionDecl {
+    func withModifiers(override: Bool, nonisolated: Bool) -> FunctionDecl {
         var copy = self
         copy.isOverride = override
+        copy.isNonisolated = nonisolated
         return copy
     }
 }
@@ -29,6 +30,8 @@ extension FunctionDecl {
     var isFailable = false
     /// `override func`: replaces a superclass's.
     var isOverride = false
+    /// `nonisolated`: an actor's member reached without `await`.
+    var isNonisolated = false
     /// `convenience init`: makes the value through another initializer.
     var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
@@ -174,6 +177,7 @@ struct SubscriptDecl: Equatable, Sendable {
     var isWeak = false
     /// `override var`: replaces a superclass's property.
     var isOverride = false
+    var isNonisolated = false
     /// `willSet` and `didSet` of a stored property: run before and after it changes.
     var willSet: Program? = nil
     var willSetName = "newValue"

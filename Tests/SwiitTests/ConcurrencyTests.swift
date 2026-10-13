@@ -134,3 +134,11 @@ private func typeError(_ source: String) -> String? {
     #expect(Date().timeIntervalSince(start) < 5)
     #expect(typeError("func g() -> Int { 1 }; g()") == nil)
 }
+
+@Test func anActorsStateIsReachedWithAwait() throws {
+    let actor = "actor A { var n = 0; func inc() { n += 1 }; func twice() { inc(); inc() }; nonisolated func id() -> Int { 7 } }; let a = A(); "
+    #expect(try eval(actor + "await a.twice(); await a.n") == .int(2))
+    #expect(try eval(actor + "a.id()") == .int(7))
+    #expect(typeError(actor + "a.inc()") == "'inc' of the actor A is async, but isn't marked with 'await'")
+    #expect(typeError(actor + "a.n") == "'n' of the actor A is async, but isn't marked with 'await'")
+}

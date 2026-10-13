@@ -315,7 +315,7 @@
   "name": "actor",
   "source": "actor A { var n = 0; func inc() { n += 1 } }; let a = A(); await a.inc(); print(await a.n)",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "MainActor",
@@ -1743,6 +1743,36 @@
   "name": "class subscript",
   "source": "class A { var xs = [1, 2, 3]; subscript(i: Int) -> Int { get { xs[i] } set { xs[i] = newValue } } }; let a = A(); a[1] = 9; print(a[1])",
   "expected": "9\n",
+  "status": "ok"
+ },
+ {
+  "name": "actor self access",
+  "source": "actor C { var n = 0; func inc() -> Int { n += 1; return n }; func twice() -> Int { _ = inc(); return inc() } }; let c = C(); print(await c.twice())",
+  "expected": "2\n",
+  "status": "ok"
+ },
+ {
+  "name": "actor tasks",
+  "source": "actor Counter { var n = 0; func add() { n += 1 } }; let c = Counter(); let ts = (1...5).map { _ in Task { await c.add() } }; for t in ts { await t.value }; print(await c.n)",
+  "expected": "5\n",
+  "status": "ok"
+ },
+ {
+  "name": "actor protocol",
+  "source": "protocol P { func f() async -> Int }; actor A: P { func f() async -> Int { 3 } }; let a = A(); print(await a.f())",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "actor init",
+  "source": "actor A { let name: String; init(name: String) { self.name = name }; func hi() -> String { \"hi \\(name)\" } }; print(await A(name: \"x\").hi())",
+  "expected": "hi x\n",
+  "status": "ok"
+ },
+ {
+  "name": "actor nonisolated",
+  "source": "actor A { nonisolated func id() -> Int { 7 } }; print(A().id())",
+  "expected": "7\n",
   "status": "ok"
  }
 ]

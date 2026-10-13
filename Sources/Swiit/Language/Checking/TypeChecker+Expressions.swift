@@ -212,6 +212,7 @@ extension TypeChecker {
                     return type
                 }
                 lastMemberBase = nil
+                try actorSite(baseType, base, name)
                 let type = try memberType(of: baseType, name)
                 expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
                 return type
