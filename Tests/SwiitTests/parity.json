@@ -279,7 +279,7 @@
   "name": "typed throws",
   "source": "enum Er: Error { case bad }; func f() throws(Er) { throw .bad }; do { try f() } catch { print(\"c\") }",
   "expected": "c\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "async await",
@@ -1821,6 +1821,36 @@
   "name": "group result type",
   "source": "let words = await withTaskGroup(of: String.self) { g in for w in [\"a\", \"b\"] { g.addTask { w.uppercased() } }; var r: [String] = []; for await w in g { r.append(w) }; return r.sorted() }; print(words)",
   "expected": "[\"A\", \"B\"]\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws switch",
+  "source": "enum Er: Error { case a, b(Int) }; func f(_ n: Int) throws(Er) -> Int { if n == 0 { throw .a }; if n < 0 { throw .b(n) }; return n }; for n in [1, 0, -4] { do { print(try f(n)) } catch { switch error { case .a: print(\"a\"); case .b(let k): print(\"b\", k) } } }",
+  "expected": "1\na\nb -4\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws never",
+  "source": "func f() throws(Never) -> Int { 4 }; print(f())",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws method",
+  "source": "enum Er: Error { case bad }; struct S { func go(_ ok: Bool) throws(Er) { if !ok { throw .bad } } }; do { try S().go(false) } catch { print(error) }",
+  "expected": "bad\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws propagate",
+  "source": "enum Er: Error { case bad }; func a() throws(Er) { throw .bad }; func b() throws(Er) { try a() }; do { try b() } catch { print(\"caught\", error) }",
+  "expected": "caught bad\n",
+  "status": "ok"
+ },
+ {
+  "name": "typed throws try optional",
+  "source": "enum Er: Error { case bad }; func f() throws(Er) -> Int { throw .bad }; print((try? f()) as Int?)",
+  "expected": "nil\n",
   "status": "ok"
  }
 ]

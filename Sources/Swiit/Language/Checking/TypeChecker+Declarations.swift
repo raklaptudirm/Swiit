@@ -16,10 +16,12 @@ extension TypeChecker {
             overloads = set.candidates.map(signature)
         }
         overloads.removeAll { sameParameters($0.parameters, decl.parameters) }
-        overloads.append(Signature(
+        var declared = Signature(
             name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
             effect: decl.effect, generics: decl.generics
-        ))
+        )
+        declared.thrownType = decl.thrownType
+        overloads.append(declared)
         for index in overloads.indices { overloads[index].index = index }
         scopes[scopes.count - 1][decl.name] = .functions(overloads)
     }
@@ -52,7 +54,7 @@ extension TypeChecker {
         try checkBecomingAsync(decl)
         let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))
-        errorContexts.append(ErrorContext(handled: decl.isThrowing, boundary: .function(decl.name)))
+        errorContexts.append(ErrorContext(handled: decl.isThrowing, boundary: .function(decl.name), thrown: decl.thrownType))
         scopes.append(names)
         defer {
             returns.removeLast()
@@ -131,6 +133,7 @@ extension TypeChecker {
         for method in decl.methods {
             var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
                                       isMutating: method.isMutating, isThrowing: method.isThrowing)
+            signature.thrownType = method.thrownType
             signature.index = methods[method.name]?.count ?? 0
             methods[method.name, default: []].append(signature)
         }

@@ -2,6 +2,12 @@ import Foundation
 import SwiitKit
 
 extension FunctionDecl {
+    func withThrown(_ type: TypeAnnotation?) -> FunctionDecl {
+        var copy = self
+        copy.thrownType = type
+        return copy
+    }
+
     func withModifiers(override: Bool, nonisolated: Bool) -> FunctionDecl {
         var copy = self
         copy.isOverride = override
@@ -20,6 +26,8 @@ extension FunctionDecl {
     @_spi(Layer) public var isMutating = false
     /// `throws`: calling it needs `try`.
     @_spi(Layer) public var isThrowing = false
+    /// `throws(E)`: the one type of error it throws.
+    @_spi(Layer) public var thrownType: TypeAnnotation?
     /// Declared `async`.
     var isAsync = false
     /// `async` if declared so.

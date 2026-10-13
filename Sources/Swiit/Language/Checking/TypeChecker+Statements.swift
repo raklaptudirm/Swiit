@@ -99,15 +99,21 @@ extension TypeChecker {
             // It handles what its body throws if a clause catches anything.
             let catchesAll = clauses.contains { $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll)) }
             errorContexts.append(ErrorContext(handled: catchesAll || errorContexts.last!.handled,
-                                              boundary: errorContexts.last!.boundary))
+                                              boundary: errorContexts.last!.boundary, thrown: catchesAll ? nil : errorContexts.last!.thrown))
+            let seenBefore = thrownSeen.count
             try checkBlock(&body, newScope: true)
             errorContexts.removeLast()
+            // What the body throws is one type, if every call in it says so (`throws(E)`).
+            let seen = Array(thrownSeen[seenBefore...])
+            var errorType = TypeAnnotation.named("Error")
+            if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) { errorType = type }
+            if catchesAll { thrownSeen.removeSubrange(seenBefore...) }
             for index in clauses.indices {
                 var bound: [String: Symbol] = [:]
                 if clauses[index].patterns.isEmpty {
-                    bound["error"] = .variable(.named("Error"), mutable: false)
+                    bound["error"] = .variable(errorType, mutable: false)
                 } else {
-                    try checkPattern(&clauses[index].patterns[0], against: .named("Error"), binding: &bound)
+                    try checkPattern(&clauses[index].patterns[0], against: errorType, binding: &bound)
                 }
                 scopes.append(bound)
                 defer { scopes.removeLast() }
@@ -118,11 +124,21 @@ extension TypeChecker {
             }
             statement = .doCatch(body: body, clauses: clauses)
         case .throwStatement(var value):
+            // In a `throws(E)` function, what is thrown is an E (so `throw .bad` names its case).
+            if let thrown = errorContexts.last?.thrown {
+                try expect(&value, thrown, "what this function throws")
+                throwingSites += 1
+                thrownSeen.append(thrown)
+                try checkHandled("throw")
+                statement = .throwStatement(value)
+                return
+            }
             let type = try typeOf(&value)
             guard conforms(type, to: "Error") else {
                 throw TypeError("only an Error can be thrown, and \(type) isn't one: declare it ': Error'")
             }
             throwingSites += 1
+            thrownSeen.append(nil)
             try checkHandled("throw")
             statement = .throwStatement(value)
         case .enumDecl(var decl):
@@ -382,6 +398,12 @@ extension TypeChecker {
     /// needs a `try` covering it.
     @_spi(Layer) public func throwingSite(_ what: String) throws {
         throwingSites += 1
+        let thrown = lastThrown
+        lastThrown = nil
+        thrownSeen.append(thrown)
+        if let expected = errorContexts.last?.thrown, thrown != expected {
+            throw TypeError("\(what) throws \(thrown.map(\.description) ?? "any Error"), but this function throws only \(expected)")
+        }
         guard tryDepth > 0 else {
             throw TypeError("\(what) can throw, but isn't marked with 'try'")
         }

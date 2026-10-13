@@ -234,7 +234,11 @@ extension Lowering {
         var name = node.name.text
         if node.modifiers.contains(where: { $0.name.tokenKind == .keyword(.prefix) }) { name = "prefix " + name }
         else if node.modifiers.contains(where: { $0.name.tokenKind == .keyword(.postfix) }) { name = "postfix " + name }
+        var thrownType = try effects?.throwsClause?.type.map { try type($0) }
+        // `throws(Never)` throws nothing.
+        if thrownType == .named("Never") { thrownType = nil }
         let isThrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws)
+            && !(effects?.throwsClause?.type != nil && thrownType == nil)
         let isRethrowing = effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.rethrows)
         // Whether a call throws by what it's given needs generics, which come later; the prelude's use it.
         if isRethrowing && !prelude { throw unsupported("rethrows", node) }
@@ -259,7 +263,7 @@ extension Lowering {
             documentation: documentation(of: node),
             isMutating: mutating, isThrowing: isThrowing, isAsync: effects?.asyncSpecifier != nil, isRethrowing: isRethrowing,
             generics: generics, names: NamesUsed(names: names(in: body))
-        ).withModifiers(
+        ).withThrown(thrownType).withModifiers(
             override: node.modifiers.contains { $0.name.tokenKind == .keyword(.override) },
             nonisolated: node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
         )

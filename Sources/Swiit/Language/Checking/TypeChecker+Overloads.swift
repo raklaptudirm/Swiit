@@ -46,6 +46,7 @@ extension TypeChecker {
         }
         arguments = winners[0].arguments
         throwingSites = winners[0].sites
+        lastThrown = winners[0].signature.thrownType
         return winners[0].signature
     }
 

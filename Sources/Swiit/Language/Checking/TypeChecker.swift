@@ -35,6 +35,8 @@ import SwiitKit
         @_spi(Layer) public var returns: TypeAnnotation
         @_spi(Layer) public var isMutating = false
         @_spi(Layer) public var isThrowing = false
+        /// `throws(E)`: the type of error it throws.
+        var thrownType: TypeAnnotation?
         /// `rethrows`: a call throws if a closure passed to it does.
         var isRethrowing = false
         /// What it waits on: a call to an `async` one needs `await`.
@@ -172,6 +174,8 @@ import SwiitKit
         var handled: Bool
         /// What an error would have to leave, for messages.
         var boundary: Boundary = .topLevel
+        /// The one type a `throws(E)` function throws, which a `throw` is checked against.
+        var thrown: TypeAnnotation?
 
         enum Boundary {
             case topLevel, function(String), deferBlock
@@ -186,9 +190,10 @@ import SwiitKit
             }
         }
     
-        @_spi(Layer) public init(handled: Bool, boundary: Boundary = .topLevel) {
+        @_spi(Layer) public init(handled: Bool, boundary: Boundary = .topLevel, thrown: TypeAnnotation? = nil) {
             self.handled = handled
             self.boundary = boundary
+            self.thrown = thrown
         }
     }
 
@@ -201,6 +206,10 @@ import SwiitKit
     @_spi(Layer) public var scopes: [[String: Symbol]] = [[:]]
     @_spi(Layer) public var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]
+    /// The type of error the last call resolved throws, for the throwing site that follows it.
+    var lastThrown: TypeAnnotation?
+    /// What each throwing site seen throws: its type if the function it calls says (`throws(E)`), else nil (any Error).
+    var thrownSeen: [TypeAnnotation?] = []
     /// Above zero while checking what a `try` covers.
     @_spi(Layer) public var tryDepth = 0
     /// Places that can throw, so far: how a `try` or a closure knows it

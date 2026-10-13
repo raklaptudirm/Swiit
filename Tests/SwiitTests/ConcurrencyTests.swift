@@ -142,3 +142,10 @@ private func typeError(_ source: String) -> String? {
     #expect(typeError(actor + "a.inc()") == "'inc' of the actor A is async, but isn't marked with 'await'")
     #expect(typeError(actor + "a.n") == "'n' of the actor A is async, but isn't marked with 'await'")
 }
+
+@Test func aTypedThrowThrowsOnlyItsType() throws {
+    let head = "enum A: Error { case x }; enum B: Error { case y }; func fa() throws(A) { throw .x }; func fb() throws { throw B.y }; "
+    #expect(typeError(head + "func g() throws(A) { try fb() }")?.contains("throws any Error, but this function throws only A") == true)
+    #expect(typeError(head + "func g() throws(A) { throw B.y }") != nil)
+    #expect(try eval(head + "func g() throws(A) -> Int { try fa(); return 1 }; do { try g() } catch { switch error { case .x: print(1) } }; 2") == .int(2))
+}

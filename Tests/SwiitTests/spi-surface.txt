@@ -120,6 +120,7 @@ Language/Syntax/Declarations.swift	Layer var parameters
 Language/Syntax/Declarations.swift	Layer var parameters
 Language/Syntax/Declarations.swift	Layer var shortFlag
 Language/Syntax/Declarations.swift	Layer var summary
+Language/Syntax/Declarations.swift	Layer var thrownType
 Language/Syntax/Declarations.swift	Layer var type
 Language/Syntax/Declarations.swift	Layer var type
 Language/Syntax/Declarations.swift	Layer var value
