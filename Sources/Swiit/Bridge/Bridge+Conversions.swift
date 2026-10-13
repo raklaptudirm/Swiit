@@ -170,7 +170,9 @@ extension Interpreter {
     /// The items a value gives as they come, which can throw: a `Flow`'s,
     /// one at a time; nil for anything else.
     public static func flow(of value: Value) -> Flow<Value>? {
-        if case .object(let box as SwiftValue) = value { box.value as? Flow<Value> } else { nil }
+        guard case .object(let box as SwiftValue) = value else { return nil }
+        if let group = box.value as? TaskGroupBox { return Flow { try group.next() } }
+        return box.value as? Flow<Value>
     }
 
     /// The items of a list, an Output's lines, or a Swift sequence Swiit

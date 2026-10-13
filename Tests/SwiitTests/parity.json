@@ -303,13 +303,13 @@
   "name": "task group",
   "source": "print(await withTaskGroup(of: Int.self) { g in g.addTask { 1 }; g.addTask { 2 }; var s = 0; for await v in g { s += v }; return s })",
   "expected": "3\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "throwing task group",
   "source": "print(try await withThrowingTaskGroup(of: Int.self) { g in g.addTask { 1 }; var s = 0; for try await v in g { s += v }; return s })",
   "expected": "1\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "actor",
@@ -1773,6 +1773,54 @@
   "name": "actor nonisolated",
   "source": "actor A { nonisolated func id() -> Int { 7 } }; print(A().id())",
   "expected": "7\n",
+  "status": "ok"
+ },
+ {
+  "name": "group completion order",
+  "source": "let r = await withTaskGroup(of: Int.self) { g in for (i, ms) in [(1, 300_000_000), (2, 100_000_000), (3, 200_000_000)] as [(Int, UInt64)] { g.addTask { try? await Task.sleep(nanoseconds: ms); return i } }; var out: [Int] = []; for await v in g { out.append(v) }; return out }; print(r)",
+  "expected": "[2, 3, 1]\n",
+  "status": "todo"
+ },
+ {
+  "name": "group next",
+  "source": "let r = await withTaskGroup(of: Int.self) { g in g.addTask { 5 }; let a = await g.next(); let b = await g.next(); return (a, b) }; print(r.0 ?? -1, r.1 ?? -1)",
+  "expected": "5 -1\n",
+  "status": "ok"
+ },
+ {
+  "name": "group void children",
+  "source": "var n = 0; await withTaskGroup(of: Void.self) { g in for _ in 1...3 { g.addTask { } }; for await _ in g { n += 1 } }; print(n)",
+  "expected": "3\n",
+  "status": "ok"
+ },
+ {
+  "name": "group waitForAll",
+  "source": "actor C { var n = 0; func add() { n += 1 } }; let c = C(); await withTaskGroup(of: Void.self) { g in for _ in 1...4 { g.addTask { await c.add() } }; await g.waitForAll() }; print(await c.n)",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "group implicit wait",
+  "source": "actor C { var n = 0; func add() { n += 1 } }; let c = C(); await withTaskGroup(of: Void.self) { g in for _ in 1...4 { g.addTask { await c.add() } } }; print(await c.n)",
+  "expected": "4\n",
+  "status": "ok"
+ },
+ {
+  "name": "group throws",
+  "source": "enum E: Error { case bad }; do { _ = try await withThrowingTaskGroup(of: Int.self) { g in g.addTask { throw E.bad }; g.addTask { 1 }; var s = 0; for try await v in g { s += v }; return s }; print(\"no\") } catch { print(\"caught\", error) }",
+  "expected": "caught bad\n",
+  "status": "ok"
+ },
+ {
+  "name": "group isEmpty",
+  "source": "await withTaskGroup(of: Int.self) { g in print(g.isEmpty); g.addTask { 1 }; print(g.isEmpty); _ = await g.next(); print(g.isEmpty) }",
+  "expected": "true\nfalse\ntrue\n",
+  "status": "ok"
+ },
+ {
+  "name": "group result type",
+  "source": "let words = await withTaskGroup(of: String.self) { g in for w in [\"a\", \"b\"] { g.addTask { w.uppercased() } }; var r: [String] = []; for await w in g { r.append(w) }; return r.sorted() }; print(words)",
+  "expected": "[\"A\", \"B\"]\n",
   "status": "ok"
  }
 ]

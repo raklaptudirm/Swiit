@@ -23,16 +23,16 @@ func cancellationError() -> RuntimeError {
 extension Bridge {
     /// Conformances this module declares for bridged types, which the
     /// generator doesn't read (it reads the modules the types are from).
-    static let conformancesDeclaredHere: [String: [String]] = ["Flow": ["AsyncSequence"]]
+    static let conformancesDeclaredHere: [String: [String]] = ["Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"], "ThrowingTaskGroup": ["AsyncSequence"]]
 
     nonisolated(unsafe) static let concurrency: [BridgedType] = [
         BridgedType(
             name: "Task", genericParameters: ["Success", "Failure"], conformances: ["Hashable": [:], "Equatable": [:]],
             associatedTypes: [:], members: taskMembers
         ),
-    ]
+    ] + taskGroupTypes
 
-    private static func member(
+    static func member(
         _ kind: BridgedMember.Kind, _ name: String, isStatic: Bool = false, parameters: [Parameter] = [],
         returns: TypeAnnotation, generics: [String: [String]] = [:], throwing: Bool = false, effect: Effect = .sync,
         typedThrows: String? = nil, summary: String, _ body: @escaping (Interpreter, [String: Value]) throws -> Value

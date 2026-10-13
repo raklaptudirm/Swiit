@@ -49,6 +49,9 @@ extension Interpreter {
             },
             documentation: Documentation(summary: "Exchanges the values of two variables.", parameters: [:])
         ), named: "swap")
+        for (name, isThrowing) in [("withTaskGroup", false), ("withThrowingTaskGroup", true)] {
+            scopes[0].declare(Bridge.taskGroupFunction(name, isThrowing: isThrowing), named: name)
+        }
         // `a === b`: whether two class instances are the same one.
         scopes[0].declare(Function(
             name: "===",

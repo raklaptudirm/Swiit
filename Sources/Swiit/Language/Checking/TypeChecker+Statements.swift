@@ -206,6 +206,8 @@ extension TypeChecker {
                 throw TypeError("'for await' reads an AsyncSequence, and \(sequence) isn't one")
             }
         }
+        // A task group that can't throw is read without `try`.
+        if case .generic("TaskGroup", _) = sequence, !loop.isTry { return }
         guard loop.isTry else { throw TypeError("reading a \(sequence) can throw: write 'for try await'") }
         tryDepth += 1
         defer { tryDepth -= 1 }

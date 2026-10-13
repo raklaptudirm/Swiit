@@ -167,6 +167,11 @@ extension TypeChecker {
     func elementType(of type: TypeAnnotation) throws -> TypeAnnotation {
         if case .named(let name) = type, let element = Bridge.types[name]?.associatedTypes["Element"] { return element }
         if case .generic = type {
+            // What `for await` reads: an AsyncSequence of the bridged types (a task group).
+            if let (bridgedType, bindings) = bridged(type), bridgedType.conformances["AsyncSequence"] != nil,
+               let element = bridgedType.associatedTypes["Element"] {
+                return substitute(element, bindings)
+            }
             guard let element = bridgedElement(type) else { throw TypeError("can't iterate over \(type): it isn't a Sequence") }
             return element
         }

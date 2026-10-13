@@ -16,6 +16,9 @@ extension Interpreter {
     /// What has no values: a `Task<Int, Never>` can't fail.
     enum Never {}
 
+    /// The type of no value, for `Void.self` where a type is passed.
+    enum Void {}
+
     /// What a task that was asked to stop throws, from `Task.checkCancellation()`
     /// or `Task.sleep`.
     struct CancellationError: Error {
