@@ -32,7 +32,6 @@ public final class TaskGroupBox: @unchecked Sendable {
         pending += 1
         condition.unlock()
         let shell = shell
-        nonisolated(unsafe) let operation = operation
         do {
             let handle = try shell.startTask(host: shell.newTaskHost?(), structured: false) { [self] in
                 let result = Result { try shell.call(operation, with: []) }

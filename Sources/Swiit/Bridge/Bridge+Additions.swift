@@ -131,7 +131,7 @@ extension Bridge {
     private static func lazyMember(_ element: TypeAnnotation) -> BridgedMember {
         member(.property, "lazy", returns: .generic("Flow", [element]),
                summary: "The items read one at a time, mapped and filtered as they are read.") { _, arguments in
-            guard var items = Interpreter.items(of: arguments["self"] ?? .nothing) else { throw RuntimeError("lazy needs a sequence") }
+            guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else { throw RuntimeError("lazy needs a sequence") }
             return SwiftValue.make(Flow<Value> { items.next() }, as: "Flow")
         }
     }

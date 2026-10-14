@@ -67,7 +67,11 @@ func fromSwish(_ value: String, _ type: SType) -> String {
     case .optional(let wrapped):
         // A value that is a call (a closure's result) is made once, not once to
         // test and again to convert.
-        guard !value.contains("(") else { return "try bridgeOptional(\(value)) { \(fromSwish("$0", wrapped)) }" }
+        guard !value.contains("(") else {
+            // The `try` is for the closure; what is inside the parentheses has its own.
+            let converted = fromSwish("$0", wrapped)
+            return "\(converted.contains("try") ? "try " : "")bridgeOptional(\(value)) { \(converted) }"
+        }
         return "(\(value) == .nothing ? nil : \(fromSwish(value, wrapped)))"
     case .dictionary(let key, let value2):
         guard isLeaf(key) || isLeaf(value2) else { return "try bridgeDictionary(\(value))" }

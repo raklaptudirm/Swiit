@@ -102,7 +102,7 @@ extension Bridge {
         },
         member(.method, "yield", isStatic: true, returns: .void, effect: .async,
                summary: "Lets other tasks run before this one goes on.") { shell, _ in
-            shell.suspend { sched_yield() }
+            _ = shell.suspend { sched_yield() }
             return .nothing
         },
     ]
@@ -169,9 +169,9 @@ func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws ->
 func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
     nonisolated(unsafe) let shell = shell
     nonisolated(unsafe) let caller = shell.task
-    nonisolated(unsafe) let function = function
+    let function = function
     return { arguments in
-        nonisolated(unsafe) let arguments = arguments
+        let arguments = arguments
         return try await withCheckedThrowingContinuation { continuation in
             shell.host.startThread {
                 shell.lock.acquire()

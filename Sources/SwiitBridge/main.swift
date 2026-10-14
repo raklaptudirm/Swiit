@@ -399,9 +399,9 @@ if let list = module.functions {
     let prefix = String(list.dropLast("Functions".count))
     output += "    \(access) static let \(prefix)Types = #\"\"\"\n" + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
     output += "    /// How the module's structs say which columns a table starts with.\n"
-    output += "    \(access) nonisolated(unsafe) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"
+    output += "    \(access) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"
     output += "    /// How the module's enums say how a case is shown, by case name.\n"
-    output += "    \(access) nonisolated(unsafe) static let \(prefix)EnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [\(styleSources.isEmpty ? ":" : styleSources.joined(separator: ", "))]\n\n"
+    output += "    \(access) static let \(prefix)EnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [\(styleSources.isEmpty ? ":" : styleSources.joined(separator: ", "))]\n\n"
     var functions: [String] = []
     for symbol in graph.symbols where symbol.kind.identifier == "swift.func" && symbol.pathComponents.count == 1
         && symbol.accessLevel == "public" && available(symbol) {
