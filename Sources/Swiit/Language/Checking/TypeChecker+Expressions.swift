@@ -32,16 +32,35 @@ extension TypeChecker {
     }
 
     @_spi(Layer) public func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
+        let original = expr
         let type = try typeOf(&expr, expecting: expected)
         guard fits(type, expected) else {
-            throw TypeError("\(what) must be \(expected), not \(type)")
+            var error = TypeError("\(what) must be \(expected), not \(type)")
+            error.spot = spot(of: original)
+            throw error
         }
+    }
+
+    /// Where an expression of the statement being checked was written, if it can be told.
+    func spot(of expression: Expr) -> SourceRange? {
+        spots.first { $0.expression == expression }?.range
     }
 
     /// `expr`'s type, given what the context expects of it (which a literal,
     /// a closure or a `.case` takes its type from); `expr` gets what the
     /// checker decided.
     @_spi(Layer) public func typeOf(_ expr: inout Expr, expecting expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
+        let original = expr
+        do {
+            return try typeOfExpression(&expr, expecting: expected)
+        } catch var error as TypeError {
+            // The innermost expression that was being typed is where the error is.
+            if error.spot == nil { error.spot = spot(of: original) }
+            throw error
+        }
+    }
+
+    private func typeOfExpression(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
         switch expr {
         case .literal(let value):
             switch value {
@@ -309,8 +328,13 @@ extension TypeChecker {
             expr = .indexDefault(base, key, fallback)
             return valueType
         case .annotated(var inner, let type):
+            let written = inner
             let actual = try typeOf(&inner, expecting: type)
-            guard fits(actual, type) else { throw TypeError("the value must be \(type), not \(actual)") }
+            guard fits(actual, type) else {
+                var error = TypeError("the value must be \(type), not \(actual)")
+                error.spot = spot(of: written)
+                throw error
+            }
             expr = .annotated(inner, type)
             // `let s: Set = [1, 2]`: a generic type written without its arguments takes them from the value.
             if case .named(let name) = type, case .generic(name, _) = actual { return actual }

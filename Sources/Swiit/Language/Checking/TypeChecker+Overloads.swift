@@ -132,9 +132,12 @@ extension TypeChecker {
             let natural = TypeChecker.hasNaturalType(arguments[index].value) ? try typeOf(&arguments[index].value) : nil
             let isLiteral = if case .literal = arguments[index].value { true } else { false }
             let wanted = substitute(parameter.type, bindings)
+            let written = arguments[index].value
             let actual = try typeOf(&arguments[index].value, expecting: wanted)
             guard fits(actual, wanted) else {
-                throw TypeError("\(name): '\(parameter.name)' must be \(wanted), not \(actual)")
+                var error = TypeError("\(name): '\(parameter.name)' must be \(wanted), not \(actual)")
+                error.spot = spot(of: written)
+                throw error
             }
             unify(parameter.type, actual, &bindings)
             // `print(x)` shows an optional as Swift does, which the type says.

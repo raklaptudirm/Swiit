@@ -5,6 +5,13 @@ extension Lowering {
     // MARK: Expressions
 
     mutating func expression(_ expr: ExprSyntax) throws -> Expr {
+        let lowered = try expressionNode(expr)
+        // Where it was written, for an error in it to point at.
+        if recordsSpots { currentSpots.append(Spot(expression: lowered, range: range(of: expr))) }
+        return lowered
+    }
+
+    private mutating func expressionNode(_ expr: ExprSyntax) throws -> Expr {
         // `$(…)`, `$name` and `async …` are the layer's, not Swift's.
         if plugin != nil, isLayerExpression(expr),
            let lowered = try layerExpression(at: expr.positionAfterSkippingLeadingTrivia.utf8Offset) {

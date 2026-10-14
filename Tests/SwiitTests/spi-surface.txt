@@ -67,9 +67,12 @@ Language/Checking/TypeChecker.swift	Layer var name
 Language/Checking/TypeChecker.swift	Layer var name
 Language/Checking/TypeChecker.swift	Layer var name
 Language/Checking/TypeChecker.swift	Layer var parameters
+Language/Checking/TypeChecker.swift	Layer var range
+Language/Checking/TypeChecker.swift	Layer var range
 Language/Checking/TypeChecker.swift	Layer var returns
 Language/Checking/TypeChecker.swift	Layer var returns
 Language/Checking/TypeChecker.swift	Layer var scopes
+Language/Checking/TypeChecker.swift	Layer var spot
 Language/Checking/TypeChecker.swift	Layer var throwingSites
 Language/Checking/TypeChecker.swift	Layer var tryDepth
 Language/Interpreter/Interpreter+Calls.swift	Layer func bind
@@ -194,6 +197,9 @@ Language/Syntax/SourceCursor.swift	Layer var range
 Language/Syntax/SourceCursor.swift	Layer var scopes
 Language/Syntax/SourceCursor.swift	Layer var switchDepth
 Language/Syntax/SourceCursor.swift	Layer var tryDepth
+Language/Syntax/SourceRange.swift	Layer struct Spot
+Language/Syntax/SourceRange.swift	Layer var expression
+Language/Syntax/SourceRange.swift	Layer var range
 Language/Syntax/Statements.swift	Layer enum Condition
 Language/Syntax/Statements.swift	Layer enum Pattern
 Language/Syntax/Statements.swift	Layer enum Statement
@@ -212,6 +218,8 @@ Language/Syntax/Statements.swift	Layer var label
 Language/Syntax/Statements.swift	Layer var label
 Language/Syntax/Statements.swift	Layer var name
 Language/Syntax/Statements.swift	Layer var name
+Language/Syntax/Statements.swift	Layer var ranges
+Language/Syntax/Statements.swift	Layer var spots
 Language/Syntax/Statements.swift	Layer var statements
 Language/Syntax/Statements.swift	Layer var type
 Language/Syntax/SwiftSyntax/SwiftServices.swift	Layer func parseArguments

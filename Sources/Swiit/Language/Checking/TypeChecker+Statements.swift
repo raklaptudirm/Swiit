@@ -68,8 +68,13 @@ extension TypeChecker {
             classes = waiting
         }
         for index in program.statements.indices {
+            // A statement inside this one sets its own place; once it's checked, this one's is back (on an error, the innermost stays).
+            let outer = (line, range, spots)
             if index < program.lines.count { line = program.lines[index] }
+            if index < program.ranges.count { range = program.ranges[index] }
+            spots = index < program.spots.count ? program.spots[index] : []
             try checkStatement(&program.statements[index])
+            (line, range, spots) = outer
         }
     }
 

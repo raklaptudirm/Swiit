@@ -81,6 +81,9 @@ struct Lowering {
     /// `o?.a.b`: the name the chain's `o?` is read by inside the closure that runs the rest of it.
     var chainPlaceholders: [SyntaxIdentifier: String] = [:]
     var chainCount = 0
+    /// The expressions of the statement being lowered, and where each is.
+    var currentSpots: [Spot] = []
+    var recordsSpots = true
     /// Inside a type: its name with the types around it (`Outer.Inner`), what `Self` is,
     /// the types declared in it by the short name they go by there, and those
     /// lowered but not yet put in the program (they come before the type holding them).
@@ -120,11 +123,31 @@ struct Lowering {
     }
 
     func unsupported(_ what: String, _ node: some SyntaxProtocol) -> SyntaxError {
-        SyntaxError("\(what) isn't supported by this front end yet (line \(line(of: node)))")
+        SyntaxError("\(what) isn't supported by this front end yet (line \(line(of: node)))", range: range(of: node))
     }
 
     func line(of node: some SyntaxProtocol) -> Int {
         line(atByte: node.positionAfterSkippingLeadingTrivia.utf8Offset)
+    }
+
+    /// Where a node is, from the start of its text to the end of it.
+    func range(of node: some SyntaxProtocol) -> SourceRange {
+        range(fromByte: node.positionAfterSkippingLeadingTrivia.utf8Offset, toByte: node.endPositionBeforeTrailingTrivia.utf8Offset)
+    }
+
+    /// Where bytes are: lines and columns in characters.
+    func range(fromByte start: Int, toByte end: Int) -> SourceRange {
+        func place(_ byte: Int) -> (line: Int, column: Int) {
+            let character = characterOf[max(0, min(byte, characterOf.count - 1))]
+            var low = 0, high = lineStarts.count
+            while low + 1 < high {
+                let middle = (low + high) / 2
+                if lineStarts[middle] <= character { low = middle } else { high = middle }
+            }
+            return (low + 1 + lineOffset, character - lineStarts[low] + 1)
+        }
+        let from = place(start), to = place(max(start, end))
+        return SourceRange(startLine: from.line, startColumn: from.column, endLine: to.line, endColumn: to.column)
     }
 
     /// The line a byte offset is on, in the whole source: a lowering of part
@@ -154,7 +177,8 @@ struct Lowering {
         }
         if let (problem, _) = firstProblem(in: tree) { throw problem }
         if let problem = operatorProblems.first(where: { problem in !consumed.contains { $0.contains(problem.offset) } }) {
-            throw SyntaxError("\(problem.message) (line \(line(atByte: problem.offset)))")
+            throw SyntaxError("\(problem.message) (line \(line(atByte: problem.offset)))",
+                              range: range(fromByte: problem.offset, toByte: min(problem.offset + 1, bytes.count)))
         }
         return lowered
     }
@@ -210,6 +234,8 @@ struct Lowering {
         }
         var statements: [Statement] = []
         var lines: [Int] = []
+        var ranges: [SourceRange] = []
+        var spots: [[Spot]] = []
         var skipUntil = 0
         // Where the last statement the layer read ended, if the item it began swallowed more.
         // A block SwiftParser found no items in (`> out echo hi`, all of it unexpected
@@ -220,7 +246,7 @@ struct Lowering {
             if start < skipUntil { continue }
             if let end = islandEnd {
                 // What it reads may run past the item, which then reads on from there.
-                islandEnd = try drain(from: end, skipUntil: &skipUntil, until: start, into: &statements, lines: &lines) ? skipUntil : nil
+                islandEnd = try drain(from: end, skipUntil: &skipUntil, until: start, into: &statements, lines: &lines, ranges: &ranges, spots: &spots) ? skipUntil : nil
             }
             if start < skipUntil { continue }
             // A statement of the plug-in's (a command, `import`), read by it.
@@ -237,11 +263,16 @@ struct Lowering {
             if let island = read {
                 statements.append(island.statement)
                 lines.append(line(of: item))
+                ranges.append(range(fromByte: start, toByte: island.end))
+                spots.append([])
                 skipUntil = island.end
                 islandEnd = island.end
                 continue
             }
             let lowered: [Statement]
+            let outerSpots = currentSpots
+            currentSpots = []
+            defer { currentSpots = outerSpots }
             do {
                 lowered = try statement(item.item)
             } catch where recovering {
@@ -250,18 +281,22 @@ struct Lowering {
                 failedEnd = failedEnd ?? item.endPosition.utf8Offset
                 throw error
             }
+            let itemSpots = currentSpots
+            currentSpots = outerSpots
             // Whatever the layer read inside the item is the item's end too.
             if let last = consumed.last, last.lowerBound >= start { skipUntil = max(skipUntil, last.upperBound) }
             lines += [line(of: item)] + Array(repeating: line(of: item), count: max(lowered.count - 1, 0))
+            ranges += Array(repeating: range(of: item), count: lowered.count)
+            spots += Array(repeating: itemSpots, count: lowered.count)
             statements += lowered
         }
         if let end = islandEnd {
             // Up to what closes the block (`}`, or the end of the source), as
             // SwiftParser may have left the last of it out of every item.
             let limit = blockEnd(items)
-            _ = try drain(from: end, skipUntil: &skipUntil, until: limit, into: &statements, lines: &lines)
+            _ = try drain(from: end, skipUntil: &skipUntil, until: limit, into: &statements, lines: &lines, ranges: &ranges, spots: &spots)
         }
-        return Program(statements: statements, lines: lines)
+        return Program(statements: statements, lines: lines, ranges: ranges, spots: spots)
     }
 
     /// Where a block's statements start: after its `{`, or at the start of the source.
@@ -286,7 +321,7 @@ struct Lowering {
     }
 
     /// Whether it read any.
-    private mutating func drain(from end: Int, skipUntil: inout Int, until limit: Int, into statements: inout [Statement], lines: inout [Int]) throws -> Bool {
+    private mutating func drain(from end: Int, skipUntil: inout Int, until limit: Int, into statements: inout [Statement], lines: inout [Int], ranges: inout [SourceRange], spots: inout [[Spot]]) throws -> Bool {
         skipUntil = end
         var readAny = false
         while true {
@@ -309,6 +344,8 @@ struct Lowering {
             readAny = true
             statements.append(island.statement)
             lines.append(line(atByte: at))
+            ranges.append(range(fromByte: at, toByte: island.end))
+            spots.append([])
             skipUntil = island.end
         }
     }
@@ -409,7 +446,9 @@ struct Lowering {
         finder.walk(tree)
         guard let (message, position) = finder.found else { return nil }
         let text = "\(message) (line \(line(atByte: position.utf8Offset)))"
-        return (finder.incomplete ? .incomplete(text) : SyntaxError(text), position.utf8Offset)
+        // A problem is at a token: one character is what is known of it.
+        let place = range(fromByte: position.utf8Offset, toByte: min(position.utf8Offset + 1, bytes.count))
+        return (finder.incomplete ? SyntaxError(text, incomplete: true, range: place) : SyntaxError(text, range: place), position.utf8Offset)
     }
 }
 

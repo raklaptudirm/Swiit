@@ -18,7 +18,7 @@ import SwiitKit
     // MARK: Programs and statements
 
     @_spi(Layer) public func program(_ program: Program) -> Program {
-        Program(statements: program.statements.map(self.statementNode), lines: program.lines)
+        Program(statements: program.statements.map(self.statementNode), lines: program.lines, ranges: program.ranges, spots: program.spots)
     }
 
     private func block(_ program: Program?) -> Program? { program.map(self.program) }

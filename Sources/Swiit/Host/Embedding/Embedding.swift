@@ -5,7 +5,7 @@ import SwiitKit
 // functions and values, run source, and get a value or a diagnostic back.
 
 /// What went wrong in a run, as a value: its kind, the message the shell
-/// would print, and the line when the checker knows it.
+/// would print, and where in the source it is when that is known.
 public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public enum Kind: Sendable { case syntax, type, runtime, limit, cancelled }
 
@@ -13,14 +13,65 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var message: String
     /// 1-based, for a type error in a multi-line program.
     public var line: Int?
+    /// Where it is in the source: the statement a type or run-time error is in, the token a syntax error is at.
+    public var range: SourceRange?
+    /// For a run-time error: the calls it came out of, innermost first, with where each was made.
+    public var calls: [RuntimeError.Call] = []
 
-    public init(kind: Kind, message: String, line: Int? = nil) {
+    public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = []) {
         self.kind = kind
         self.message = message
-        self.line = line
+        self.line = line ?? range?.startLine
+        self.range = range
+        self.calls = calls
+    }
+
+    public static func == (lhs: Diagnostic, rhs: Diagnostic) -> Bool {
+        lhs.kind == rhs.kind && lhs.message == rhs.message && lhs.line == rhs.line && lhs.range == rhs.range
     }
 
     public var description: String { line.map { "line \($0): \(message)" } ?? message }
+
+    /// The diagnostic as a compiler shows one: what is wrong, then the line of the source it is in,
+    /// with the place marked. `source` is the text that was run; `path` names it, if it came from a file.
+    public func rendered(in source: String, path: String? = nil) -> String {
+        // A syntax error's own text says its line, which the excerpt shows.
+        var text = message
+        if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) { text.removeSubrange(match) }
+        let heading = (kind == .syntax ? "syntax error: " : "error: ") + text
+        let place = range ?? line.map { SourceRange(line: $0) }
+        guard let place, let first = Diagnostic.excerpt(of: place, in: source, path: path) else { return heading }
+        var result = heading + "\n" + first
+        // Where the functions it came out of were called from.
+        for call in calls {
+            guard let site = call.site, let shown = Diagnostic.excerpt(of: site, in: source, path: path) else { continue }
+            result += "\nnote: in '\(call.function)', called from here\n" + shown
+        }
+        return result
+    }
+
+    /// A line of the source with a range in it marked, and where it is.
+    static func excerpt(of place: SourceRange, in source: String, path: String?) -> String? {
+        let lines = source.replacingOccurrences(of: "\r\n", with: "\n").split(separator: "\n", omittingEmptySubsequences: false)
+        guard place.startLine >= 1, place.startLine <= lines.count else { return nil }
+        let shown = String(lines[place.startLine - 1])
+        let characters = Array(shown)
+        // From the start column to the end of the range, or of the line if it goes on; a whole-line mark is the line's text.
+        var from = max(place.startColumn - 1, 0)
+        var to = place.endLine == place.startLine ? place.endColumn - 1 : characters.count
+        if place.startColumn == 1, place.endColumn == 1, place.endLine == place.startLine {
+            from = characters.firstIndex { $0 != " " && $0 != "\t" } ?? 0
+            to = characters.count
+        }
+        from = min(from, characters.count)
+        to = min(max(to, from + 1), max(characters.count, from + 1))
+        let number = String(place.startLine)
+        let gutter = String(repeating: " ", count: number.count)
+        let indent = characters.prefix(from).map { $0 == "\t" ? "\t" : " " }.joined()
+        let marks = String(repeating: "^", count: max(to - from, 1))
+        let location = (path.map { "\($0):" } ?? "") + "\(place.startLine):\(from + 1)"
+        return "\(gutter)--> \(location)\n\(gutter) |\n\(number) | \(shown)\n\(gutter) | \(indent)\(marks)"
+    }
 }
 
 /// What bounds a run. Each is checked as the script runs; a script that hits
@@ -255,23 +306,36 @@ extension Interpreter {
         cancellation.clear()
         let program: Program
         switch parse(source) {
-        case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description)
+        case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
         case .success(let parsed): program = parsed
         }
         do {
             var checked = try TypeChecker(interpreter: self).check(program)
             var last: Expr?
+            var lastRange: SourceRange?
             if case .expression(let expr)? = checked.statements.last {
                 last = expr
+                lastRange = checked.ranges.last
                 checked.statements.removeLast()
                 if checked.lines.count > checked.statements.count { checked.lines.removeLast() }
+                if checked.ranges.count > checked.statements.count { checked.ranges.removeLast() }
+                if checked.spots.count > checked.statements.count { checked.spots.removeLast() }
             }
             try run(checked)
-            return try last.map { try evaluate($0) } ?? .nothing
+            do {
+                return try last.map { try evaluate($0) } ?? .nothing
+            } catch var error as RuntimeError {
+                if error.range == nil {
+                    error.range = lastRange
+                } else if let last = error.calls.indices.last, error.calls[last].site == nil {
+                    error.calls[last].site = lastRange
+                }
+                throw error
+            }
         } catch let error as TypeError {
-            throw Diagnostic(kind: .type, message: error.message, line: error.line)
+            throw Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
         } catch let error as RuntimeError {
-            throw Diagnostic(kind: .runtime, message: error.description)
+            throw Diagnostic(kind: .runtime, message: error.description, range: error.range, calls: error.calls)
         } catch let reported as AlreadyReported {
             throw Diagnostic(kind: .runtime, message: reported.error.description)
         } catch let fatal as FatalError {

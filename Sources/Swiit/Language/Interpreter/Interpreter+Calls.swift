@@ -74,6 +74,10 @@ extension Interpreter {
             } catch ControlFlow.returned(let value) {
                 result = value
                 if function.isFailable && value == .nothing { task.failedInit = true }
+            } catch var error as RuntimeError {
+                // Unwinding out of a function: the statement that called it will say where.
+                error.calls.append(RuntimeError.Call(function: function.name ?? "a closure", site: nil))
+                throw error
             }
         }
 

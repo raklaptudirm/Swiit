@@ -8,6 +8,15 @@ public struct RuntimeError: Error, CustomStringConvertible {
     /// What `catch` binds when the thrower has more to say than a message: the
     /// shell's failed command carries its status and text.
     public var thrown: Value?
+    /// The statement it happened in, once the run knows it.
+    public var range: SourceRange?
+    /// The functions it unwound out of, innermost first, and where each was called.
+    public var calls: [Call] = []
+
+    public struct Call: Sendable {
+        public var function: String
+        public var site: SourceRange?
+    }
 
     public init(_ description: String, status: Int32 = 1, thrown: Value? = nil) {
         self.description = description

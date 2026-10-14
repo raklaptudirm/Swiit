@@ -7,6 +7,10 @@ import SwiitKit
     @_spi(Layer) public let message: String
     /// The line of the statement it's in, when there's more than one.
     @_spi(Layer) public var line: Int?
+    /// Where the statement it's in is, as far as that is known.
+    @_spi(Layer) public var range: SourceRange?
+    /// Where the expression it's in is, when that is known: narrower than the statement.
+    @_spi(Layer) public var spot: SourceRange?
     /// A call's arguments don't line up with a signature's parameters, as
     /// opposed to lining up with a value of the wrong type.
     var isArity = false
@@ -228,6 +232,10 @@ import SwiitKit
     /// The functions the program being checked declares at its top level.
     var redeclaredHere: Set<String> = []
     @_spi(Layer) public var line: Int?
+    /// Where the statement being checked is, when the program knows.
+    @_spi(Layer) public var range: SourceRange?
+    /// The expressions of the statement being checked, and where each was written.
+    var spots: [Spot] = []
     /// What the extensions in the program being checked add, by type name.
     var localExtensions: [String: ExtensionInfo] = [:]
 
@@ -244,6 +252,7 @@ import SwiitKit
             recordUnawaitedCalls()
         } catch var error as TypeError {
             error.line = error.line ?? line
+            error.range = error.range ?? range
             throw error
         } catch {
             preconditionFailure("the checker only throws TypeError")

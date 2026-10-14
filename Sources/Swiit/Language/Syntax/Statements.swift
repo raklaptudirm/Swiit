@@ -7,15 +7,21 @@ public struct Program: Equatable, Sendable {
     @_spi(Layer) public var statements: [Statement]
     /// Each statement's line in the source, 1-based, for error messages.
     var lines: [Int] = []
+    /// Where each statement is, as far as it is known: for pointing at it in an error.
+    @_spi(Layer) public var ranges: [SourceRange] = []
+    /// The expressions each statement has, and where they are, for an error to point at one of them.
+    @_spi(Layer) public var spots: [[Spot]] = []
 
     /// Programs are equal by what they say, wherever it was written.
     public static func == (lhs: Program, rhs: Program) -> Bool {
         lhs.statements == rhs.statements
     }
 
-    @_spi(Layer) public init(statements: [Statement], lines: [Int] = []) {
+    @_spi(Layer) public init(statements: [Statement], lines: [Int] = [], ranges: [SourceRange] = [], spots: [[Spot]] = []) {
         self.statements = statements
         self.lines = lines
+        self.ranges = ranges
+        self.spots = spots
     }
 }
 

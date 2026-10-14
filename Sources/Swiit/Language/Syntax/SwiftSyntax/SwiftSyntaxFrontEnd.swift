@@ -23,7 +23,11 @@ import SwiftSyntax
         lowering.prelude = prelude
         do {
             return try lowering.program()
-        } catch let error as SyntaxError {
+        } catch var error as SyntaxError {
+            // Where the lowering stopped, if nothing says better.
+            if error.range == nil, let at = lowering.failedAt {
+                error.range = lowering.range(fromByte: at, toByte: min(at + 1, lowering.bytes.count))
+            }
             throw error
         } catch {
             throw SyntaxError("\(error)")

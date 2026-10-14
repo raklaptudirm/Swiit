@@ -14,17 +14,28 @@ extension Interpreter {
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
         defer { runDeferred(deferred) }
-        for statement in program.statements {
+        for (index, statement) in program.statements.enumerated() {
             if case .deferBlock(let body) = statement {
                 deferred.append(body)
                 continue
             }
             if statement.declaresType { continue } // Hoisted.
             try checkInterrupt()
-            if let observer, case .expression(let expression) = statement {
-                try runObserved(expression, observer)
-            } else {
-                try run(statement)
+            do {
+                if let observer, case .expression(let expression) = statement {
+                    try runObserved(expression, observer)
+                } else {
+                    try run(statement)
+                }
+            } catch var error as RuntimeError where index < program.ranges.count {
+                if error.range == nil {
+                    // The innermost statement is where it happened.
+                    error.range = program.ranges[index]
+                } else if let last = error.calls.indices.last, error.calls[last].site == nil {
+                    // The statement the function was called from.
+                    error.calls[last].site = program.ranges[index]
+                }
+                throw error
             }
         }
         // Whatever the last statement let go of.
