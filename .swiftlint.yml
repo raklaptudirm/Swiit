@@ -1,0 +1,45 @@
+# Style the compiler and formatter don't enforce is left alone; this keeps the
+# rules that catch real mistakes, plus one of our own for unchecked concurrency.
+excluded:
+  - .build
+  - Sources/Swiit/Bridge/Generated
+  - Tests
+disabled_rules:
+  - line_length
+  - identifier_name
+  - trailing_comma
+  - statement_position
+  - switch_case_alignment
+  - vertical_parameter_alignment
+  - trailing_whitespace
+  - vertical_whitespace
+  - trailing_newline
+  # `?? nil` flattens a double optional here, which the rule can't see.
+  - redundant_nil_coalescing
+  # `String(decoding:)` of bytes that are not optional.
+  - optional_data_string_conversion
+  - multiple_closures_with_trailing_closure
+  - unneeded_synthesized_initializer
+opt_in_rules:
+  - force_cast
+  - force_try
+  - empty_count
+  - fatal_error_message
+  - implicitly_unwrapped_optional
+  - legacy_multiple
+  - unavailable_function
+  - unowned_variable_capture
+  - private_over_fileprivate
+cyclomatic_complexity: { warning: 30, error: 60 }
+function_body_length: { warning: 100, error: 200 }
+file_length: { warning: 700, error: 1200 }
+custom_rules:
+  unchecked_concurrency_needs_a_reason:
+    name: "Unchecked concurrency needs a reason"
+    message: "End the line with `// safe: <why>`: what makes this safe is the compiler's check we switched off."
+    regex: '(@unchecked Sendable|nonisolated\(unsafe\))(?![^\n]*// safe: )'
+    match_kinds:
+      - attribute.builtin
+      - keyword
+      - typeidentifier
+    severity: error

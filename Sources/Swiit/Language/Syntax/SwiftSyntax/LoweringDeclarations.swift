@@ -168,7 +168,7 @@ extension Lowering {
                 }
             }
         }
-        declaredTypes.insert(name + "%")
+        facts.computedGlobals.insert(name)
         // `var x: T? { didSet { … } }`: a variable of its own, set through a function that runs the observers.
         if getter == nil, willSet != nil || didSet != nil {
             let held = "$stored_" + name
@@ -295,7 +295,7 @@ extension Lowering {
                     shortFlag = character
                 case "input", "Input":
                     isInput = true
-                case let name where declaredTypes.contains(name + "@"):
+                case let name where facts.resultBuilders.contains(name):
                     resultBuilder = name
                 default:
                     throw SyntaxError("unknown attribute '@\(attribute.attributeName.trimmedDescription)' (line \(line(of: attribute)))")
@@ -381,7 +381,7 @@ extension Lowering {
         ).withBuilder(node.attributes.compactMap { attribute -> String? in
             guard case .attribute(let named) = attribute else { return nil }
             let name = named.attributeName.trimmedDescription
-            return declaredTypes.contains(name + "@") ? name : nil
+            return facts.resultBuilders.contains(name) ? name : nil
         }.first).withThrown(thrownType).withModifiers(
             override: node.modifiers.contains { $0.name.tokenKind == .keyword(.override) },
             nonisolated: node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
@@ -471,9 +471,8 @@ extension Lowering {
         var above = inherited.first
         var seen: Set<String> = []
         while let superclass = above, seen.insert(superclass).inserted {
-            let prefix = superclass + "#"
-            for marker in declaredTypes where marker.hasPrefix(prefix) { instanceMembers.insert(String(marker.dropFirst(prefix.count))) }
-            above = declaredTypes.first { $0.hasPrefix(superclass + "^") }.map { String($0.dropFirst(superclass.count + 1)) }
+            instanceMembers.formUnion(facts.instanceMembers[superclass] ?? [])
+            above = facts.superclass[superclass]
         }
         self.members.append(instanceMembers)
         let outer = enter(type: written, members: block)
@@ -866,7 +865,7 @@ extension Lowering {
             if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil, bound[name] == nil, !declaredTypes.contains(name) {
                 return .int
             }
-            let isGenericEnum = declaredTypes.contains((nestedNames[name] ?? name) + "<>") || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
+            let isGenericEnum = facts.genericEnums.contains(nestedNames[name] ?? name) || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
             if let clause = identifier.genericArgumentClause, isGenericEnum {
                 let arguments = try clause.arguments.map { argument -> TypeAnnotation in
                     guard case .type(let written) = argument.argument else { throw unsupported("this generic argument", argument) }

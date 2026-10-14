@@ -105,7 +105,7 @@ public struct LimitExceeded: Error, CustomStringConvertible {
 public struct Cancelled: Error {}
 
 /// Bytes written so far, for the output limit.
-public final class OutputCounter: @unchecked Sendable {
+public final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var count = 0
 
@@ -117,7 +117,7 @@ public final class OutputCounter: @unchecked Sendable {
 }
 
 /// A request to stop, from any thread.
-public final class Cancellation: @unchecked Sendable {
+public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var set = false
     /// What wakes the waits going on now, so a request ends them early.
@@ -176,7 +176,7 @@ extension Interpreter {
     /// by spaces, then a newline, to the host's output. The one way a script
     /// speaks, since a bare value gives nothing here.
     func installPrint() {
-        nonisolated(unsafe) let interpreter = self
+        nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         let print = hostFunction(ExportedFunction(
             name: "print", summary: "Writes its arguments to the output, separated by spaces, then a newline.",
             parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true),
@@ -288,7 +288,7 @@ extension Interpreter {
     /// Declarations and values stay for the next call.
     public func eval(_ source: String) throws -> Value {
         // Nothing else runs on this interpreter meanwhile.
-        nonisolated(unsafe) let interpreter = self
+        nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         do {
             // Swiit code runs holding the lock, which a task it starts waits for.
             return try onLargeStack { try interpreter.withMainTask { try interpreter.evaluate(source) } }

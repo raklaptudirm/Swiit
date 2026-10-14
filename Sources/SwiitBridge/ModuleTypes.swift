@@ -1,7 +1,7 @@
 import Foundation
 
 /// The module's types held as they are, from another module: a FilePath.
-nonisolated(unsafe) var externalTypes: Set<String> = []
+nonisolated(unsafe) var externalTypes: Set<String> = [] // safe: the generator runs on one thread
 
 /// A field's type as Swiit source, and what encoding leaves for the glue to
 /// fix (an enum or a path is text there); nil if Swiit can't hold it so.

@@ -5,7 +5,7 @@ extension Interpreter {
     /// Functions Swift's standard library has at the top level, which aren't
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {
-        nonisolated(unsafe) let interpreter = self
+        nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         func declare(_ export: ExportedFunction) {
             scopes[0].declare(hostFunction(export), named: export.name)
         }
@@ -153,8 +153,8 @@ extension Interpreter {
                     guard let items = Interpreter.items(of: value) else { throw RuntimeError("zip can't read a \(value.typeName)") }
                     return items
                 }
-                var first = try items(arguments["first"])
-                var second = try items(arguments["second"])
+                let first = try items(arguments["first"])
+                let second = try items(arguments["second"])
                 var pairs: [Value] = []
                 while let a = first.next(), let b = second.next() {
                     try interpreter.checkInterrupt()

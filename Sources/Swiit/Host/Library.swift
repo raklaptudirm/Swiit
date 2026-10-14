@@ -34,7 +34,7 @@ public struct Library {
     }
 
     /// The core's own: conversions (`from`, `to`, `table`, `list`) and styles.
-    public nonisolated(unsafe) static let standard = Library(
+    public nonisolated(unsafe) static let standard = Library( // safe: set once, before anything reads it
         types: Bridge.standardTypes, columns: Bridge.standardColumns,
         enumStyles: Bridge.standardEnumStyles, functions: Bridge.standardFunctions
     )

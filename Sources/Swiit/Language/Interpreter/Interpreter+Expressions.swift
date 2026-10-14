@@ -393,7 +393,7 @@ extension Interpreter {
         switch (value, name) {
         case (.record(let record), _) where record[name] != nil: return record[name]!
         case (.record(let record), "count"): return .int(record.count)
-        case (.record(let record), "isEmpty"): return .bool(record.count == 0)
+        case (.record(let record), "isEmpty"): return .bool(record.isEmpty)
         case (.record(let record), "keys"): return .list(record.keys.map(Value.string))
         case (.record(let record), "values"): return .list(record.map(\.value))
         case (.dictionary(let dictionary), "keys"): return .list(dictionary.keys)

@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
-final class WeakReference: SwiitObject, @unchecked Sendable {
+final class WeakReference: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     weak var target: ClassInstance?
     init(_ target: ClassInstance?) { self.target = target }
     var typeName: String { "weak" }

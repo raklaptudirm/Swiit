@@ -128,6 +128,7 @@ public struct Record: Sendable, Hashable, Sequence {
     }
 
     public var count: Int { keys.count }
+    public var isEmpty: Bool { keys.isEmpty }
 
     public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
         keys.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
@@ -186,6 +187,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     }
 
     public var count: Int { dictionary.count }
+    public var isEmpty: Bool { dictionary.isEmpty }
     public var keys: [Value] { Array(dictionary.keys) }
     public var values: [Value] { Array(dictionary.values) }
 
@@ -201,7 +203,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     }
 
     public var debugDescription: String {
-        guard count > 0 else { return "[:]" }
+        guard !isEmpty else { return "[:]" }
         return "[" + sortedForDisplay.map { "\($0.key.debugDescription): \($0.value.debugDescription)" }.joined(separator: ", ") + "]"
     }
 

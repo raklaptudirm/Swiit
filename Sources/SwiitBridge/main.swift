@@ -28,9 +28,9 @@ guard arguments.count >= 3 else {
 /// After the output: the graphs of other modules that add to this one's
 /// types; `--manifest <file>`, where to write what this platform has; and
 /// `--also <file>`, another platform's, so that only what both have is bridged.
-nonisolated(unsafe) var extraGraphs: [String] = []
-nonisolated(unsafe) var manifestPath: String?
-nonisolated(unsafe) var otherPlatformPaths: [String] = []
+nonisolated(unsafe) var extraGraphs: [String] = [] // safe: the generator runs on one thread
+nonisolated(unsafe) var manifestPath: String? // safe: the generator runs on one thread
+nonisolated(unsafe) var otherPlatformPaths: [String] = [] // safe: the generator runs on one thread
 do {
     let rest = Array(arguments.dropFirst(3))
     var i = 0
@@ -47,14 +47,14 @@ do {
 let otherPlatforms: [Set<String>] = try otherPlatformPaths.map { Set(try Manifest(contentsOf: $0).members) }
 /// What this platform declares, whatever the others have and whatever the
 /// generator can make of it.
-nonisolated(unsafe) var thisPlatform: Set<String> = []
+nonisolated(unsafe) var thisPlatform: Set<String> = [] // safe: the generator runs on one thread
 func readGraph(_ path: String) throws -> Graph {
     try JSONDecoder().decode(Graph.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
 }
 /// The module's graph, with what other modules add to its types and
 /// protocols (`_StringProcessing`'s `contains(_:)` on Collection).
-nonisolated(unsafe) var addedByOthers: Set<String> = []
-nonisolated(unsafe) var extraModules: [String] = []
+nonisolated(unsafe) var addedByOthers: Set<String> = [] // safe: the generator runs on one thread
+nonisolated(unsafe) var extraModules: [String] = [] // safe: the generator runs on one thread
 let graph: Graph = try {
     var graph = try readGraph(arguments[1])
     for path in extraGraphs {
@@ -116,8 +116,8 @@ for name in module.external where leaves[name] == nil {
 /// cases or fields (`standardTypes`, Swiit source read with the prelude).
 /// Results only: a struct is made a record by encoding it, an enum a case
 /// by name. Enums come first, for the structs that have them.
-nonisolated(unsafe) var resultOnly: Set<String> = []
-nonisolated(unsafe) var enumNames: Set<String> = []
+nonisolated(unsafe) var resultOnly: Set<String> = [] // safe: the generator runs on one thread
+nonisolated(unsafe) var enumNames: Set<String> = [] // safe: the generator runs on one thread
 var typeSources: [String] = []
 /// How the module's types say they're shown (`Tabular`, `DisplayStyled`):
 /// by type name, calling the Swift that says so.
@@ -205,7 +205,7 @@ let symbolsByID = Dictionary(graph.symbols.map { ($0.identifier.precise, $0) }, 
 /// The protocols the module declares: where their members are listed.
 let protocolNames = Set(graph.symbols.filter { $0.kind.identifier == "swift.protocol" }.map(\.pathComponents[0]))
 
-nonisolated(unsafe) var types: [String: BridgedType] = [:]
+nonisolated(unsafe) var types: [String: BridgedType] = [:] // safe: the generator runs on one thread
 for (name, parameters) in bridgedTypeNames {
     var type = BridgedType(name: name, parameters: parameters)
     let path = name.split(separator: ".").map(String.init)
@@ -269,7 +269,7 @@ var counts: [String: Int] = [:]
 /// Each member is a declaration of its own, not an element of one big
 /// array: Swift checks an expression at a time, and 80 closures in a literal
 /// take gigabytes to check together.
-nonisolated(unsafe) var declarations: [String] = []
+nonisolated(unsafe) var declarations: [String] = [] // safe: the generator runs on one thread
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append("    nonisolated(unsafe) private static let \(name): BridgedMember = \(expression)\n")

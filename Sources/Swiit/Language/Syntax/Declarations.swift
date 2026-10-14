@@ -192,13 +192,13 @@ struct SubscriptDecl: Equatable, Sendable {
 @_spi(Layer) public struct PropertyDecl: Equatable, Sendable {
     @_spi(Layer) public var name: String
     var mutable: Bool
-    @_spi(Layer) public var type: TypeAnnotation? = nil
-    @_spi(Layer) public var defaultValue: Expr? = nil
+    @_spi(Layer) public var type: TypeAnnotation?
+    @_spi(Layer) public var defaultValue: Expr?
     /// A computed property's body; nil for a stored one.
-    var getter: Program? = nil
+    var getter: Program?
     var getterNames = NamesUsed()
     /// `set { … }` of a computed property, with the name its value goes by.
-    var setter: Program? = nil
+    var setter: Program?
     var setterName = "newValue"
     var setterNames = NamesUsed()
     /// `weak var parent: Node?`: the value is held without keeping it alive.
@@ -209,10 +209,10 @@ struct SubscriptDecl: Equatable, Sendable {
     var isOverride = false
     var isNonisolated = false
     /// `willSet` and `didSet` of a stored property: run before and after it changes.
-    var willSet: Program? = nil
+    var willSet: Program?
     var willSetName = "newValue"
     var willSetNames = NamesUsed()
-    var didSet: Program? = nil
+    var didSet: Program?
     var didSetName = "oldValue"
     var didSetNames = NamesUsed()
 

@@ -3,7 +3,7 @@ import Foundation
 // MARK: Bridging
 
 /// Swiit's own values, and how Swift's are held in them.
-nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> String, to: (String) -> String)] = [
+nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> String, to: (String) -> String)] = [ // safe: the generator runs on one thread
     "Int": (".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     "Double": (".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     "Bool": (".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
@@ -16,7 +16,7 @@ nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> 
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which
 /// a signature may use.
-nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]
+nonisolated(unsafe) var topLevelAliases: [String: SType] = [:] // safe: the generator runs on one thread
 
 /// Generic types Swiit holds as they are, boxed (`SwiftValue`), with Swiit's
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.

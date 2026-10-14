@@ -135,7 +135,7 @@ extension Lowering {
             if let (target, _) = alias.swiftType { return .variable(target) }
         }
         // A computed variable is read by its getter.
-        if declaredTypes.contains(name + "%") { return .call(.variable("$get_" + name), []) }
+        if facts.computedGlobals.contains(name) { return .call(.variable("$get_" + name), []) }
         if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         // The fixed-width integers are Int here, without its overflow rules.
@@ -571,7 +571,7 @@ extension Lowering {
 
     /// `total = 5`, `total += 1` where `total` is a computed variable: its setter.
     mutating func computedAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
-        guard let target = node.leftOperand.as(DeclReferenceExprSyntax.self), declaredTypes.contains(target.baseName.text + "%"),
+        guard let target = node.leftOperand.as(DeclReferenceExprSyntax.self), facts.computedGlobals.contains(target.baseName.text),
               !locals.contains(where: { $0.contains(target.baseName.text) }) else { return nil }
         let name = target.baseName.text
         var op: BinaryOperator?

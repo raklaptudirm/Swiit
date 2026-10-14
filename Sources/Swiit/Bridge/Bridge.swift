@@ -10,7 +10,7 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 public enum Bridge {
     /// The bridged types, by the name Swiit writes them with.
-    public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map {
+    public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: set once, before anything reads it
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
@@ -54,7 +54,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-public final class BridgedTypeName: SwiitObject, @unchecked Sendable {
+public final class BridgedTypeName: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public init(_ name: String) { self.name = name }
     public var typeName: String { "type" }
@@ -77,13 +77,13 @@ public struct BridgedType {
     public let associatedTypes: [String: TypeAnnotation]
     /// Text as one, through the type's failable initializer from text
     /// (`Int("42")`); nil if the text isn't one.
-    public var parse: ((String) -> Value?)? = nil
+    public var parse: ((String) -> Value?)?
     /// Text as one by Swift's rules for text literals (`Character`,
     /// `FilePath`); nil if the text can't be that literal.
-    public var literal: ((String) -> Value?)? = nil
+    public var literal: ((String) -> Value?)?
     /// Items as one, for a collection an array literal can be (Array, Set):
     /// what a parameter given several words gets.
-    public var arrayLiteral: (([Value]) -> Value)? = nil
+    public var arrayLiteral: (([Value]) -> Value)?
     public let members: [BridgedMember]
 
 

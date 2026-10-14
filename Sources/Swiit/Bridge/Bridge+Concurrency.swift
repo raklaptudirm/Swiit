@@ -8,7 +8,7 @@ import SwiitStandardLibrary
 // Docs/async.md, step 7.
 
 /// A `Task`'s value: the interpreter's task it started.
-public final class TaskBox: @unchecked Sendable {
+public final class TaskBox: @unchecked Sendable { // safe: only immutable state
     public let handle: TaskHandle
     init(_ handle: TaskHandle) { self.handle = handle }
 }
@@ -25,7 +25,7 @@ extension Bridge {
     /// generator doesn't read (it reads the modules the types are from).
     static let conformancesDeclaredHere: [String: [String]] = ["Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"], "ThrowingTaskGroup": ["AsyncSequence"]]
 
-    nonisolated(unsafe) static let concurrency: [BridgedType] = [
+    nonisolated(unsafe) static let concurrency: [BridgedType] = [ // safe: set once, before anything reads it
         BridgedType(
             name: "Task", genericParameters: ["Success", "Failure"], conformances: ["Hashable": [:], "Equatable": [:]],
             associatedTypes: [:], members: taskMembers
@@ -56,7 +56,7 @@ extension Bridge {
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
 
-    nonisolated(unsafe) private static let taskMembers: [BridgedMember] = [
+    nonisolated(unsafe) private static let taskMembers: [BridgedMember] = [ // safe: set once, before anything reads it
         member(.initializer, "init", isStatic: true,
                parameters: [Parameter(label: "operation", name: "operation", type: .functionType([], .parameter("Success"), async: .async))],
                returns: .generic("Task", [.parameter("Success"), .named("Never")]), generics: ["Success": []],
@@ -135,7 +135,7 @@ extension Interpreter {
 /// cancelling the task cancels it.
 func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
     // Set by the operation's task, read by this thread once it's set.
-    final class Outcome: @unchecked Sendable {
+    final class Outcome: @unchecked Sendable { // safe: every access holds its own lock
         let operation: () async throws -> Value
         private let condition = NSCondition()
         private var stored: Result<Value, any Error>?
@@ -167,8 +167,8 @@ func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws ->
 /// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
 func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
-    nonisolated(unsafe) let shell = shell
-    nonisolated(unsafe) let caller = shell.task
+    nonisolated(unsafe) let shell = shell // safe: runs holding the interpreter lock
+    nonisolated(unsafe) let caller = shell.task // safe: runs holding the interpreter lock
     let function = function
     return { arguments in
         let arguments = arguments

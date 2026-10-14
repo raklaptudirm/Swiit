@@ -94,7 +94,7 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
 
 /// A host's function or method as a value, as `repo.log` gives it. The
 /// shell calls it like any other function.
-public final class NativeFunction: Callable, @unchecked Sendable {
+public final class NativeFunction: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let function: ExportedFunction
 
     public init(_ function: ExportedFunction) {
@@ -356,7 +356,7 @@ extension SwiitEnum {
 }
 
 /// Each `SwiitEnum`'s `EnumType`, made once.
-final class EnumRegistry: @unchecked Sendable {
+final class EnumRegistry: @unchecked Sendable { // safe: every access holds its own lock
     static let shared = EnumRegistry()
     private let lock = NSLock()
     private var types: [ObjectIdentifier: EnumType] = [:]

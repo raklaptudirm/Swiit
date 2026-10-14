@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// A class a program declares.
-public final class ClassType: SwiitObject, @unchecked Sendable {
+public final class ClassType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public let superclass: ClassType?
     let isActor: Bool
@@ -92,7 +92,7 @@ public final class ClassType: SwiitObject, @unchecked Sendable {
 }
 
 /// A value of a class: shared by every variable that holds it.
-public final class ClassInstance: SwiitObject, @unchecked Sendable {
+public final class ClassInstance: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     let type: ClassType
     var storage: [String: Value]
     /// What runs when the last reference goes (the class's `deinit`s), if any.

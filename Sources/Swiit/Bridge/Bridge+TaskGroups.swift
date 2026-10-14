@@ -6,8 +6,8 @@ import SwiitStandardLibrary
 // the interpreter's, and the group gives their results in the order they end.
 
 /// A task group's state: the children's results as they end, and how many are still going.
-public final class TaskGroupBox: @unchecked Sendable {
-    nonisolated(unsafe) let shell: Interpreter
+public final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its own lock
+    nonisolated(unsafe) let shell: Interpreter // safe: an interpreter is touched only holding its lock
     let isThrowing: Bool
     private let condition = NSCondition()
     private var finished: [Result<Value, any Error>] = []
@@ -134,7 +134,7 @@ extension Bridge {
         )
     }
 
-    nonisolated(unsafe) static let taskGroupTypes: [BridgedType] = [
+    nonisolated(unsafe) static let taskGroupTypes: [BridgedType] = [ // safe: set once, before anything reads it
         groupType("TaskGroup", isThrowing: false), groupType("ThrowingTaskGroup", isThrowing: true),
     ]
 

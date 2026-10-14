@@ -13,6 +13,8 @@ struct Lowering {
     /// Struct, enum and typealias names declared by the program, which a type
     /// may name before they are declared.
     var declaredTypes: Set<String> = []
+    /// What the declarations say about those types and the variables around them.
+    var facts = DeclarationFacts()
     /// The names bound by the blocks around the code being lowered, innermost
     /// last: a parameter, a `let`, a loop variable, a pattern's binding.
     var locals: [Set<String>] = [[]]
@@ -412,14 +414,14 @@ struct Lowering {
         declaredTypes.insert(name)
         // A class's members, and its superclass, for a subclass's bodies to name what it inherits.
         if let node = decl.as(ClassDeclSyntax.self) {
-            if let first = node.inheritanceClause?.inheritedTypes.first { declaredTypes.insert(name + "^" + first.type.trimmedDescription) }
+            if let first = node.inheritanceClause?.inheritedTypes.first { facts.superclass[name] = first.type.trimmedDescription }
             for member in block.members {
                 if let variable = member.decl.as(VariableDeclSyntax.self), !isStatic(variable.modifiers) {
                     for binding in variable.bindings {
-                        if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { declaredTypes.insert(name + "#" + identifier.identifier.text) }
+                        if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { facts.instanceMembers[name, default: []].insert(identifier.identifier.text) }
                     }
                 }
-                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) { declaredTypes.insert(name + "#" + method.name.text) }
+                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) { facts.instanceMembers[name, default: []].insert(method.name.text) }
             }
         }
         // A result builder: its name, and the functions it has.
@@ -429,13 +431,10 @@ struct Lowering {
             if case .attribute(let named) = attribute { return named.attributeName.trimmedDescription == "resultBuilder" }
             return false
         }) == true {
-            declaredTypes.insert(name + "@")
-            for member in block.members {
-                if let function = member.decl.as(FunctionDeclSyntax.self) { declaredTypes.insert(name + "@" + function.name.text) }
-            }
+            facts.resultBuilders.insert(name)
         }
         // A generic enum keeps its type arguments, which say what its cases hold.
-        if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil { declaredTypes.insert(name + "<>") }
+        if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil { facts.genericEnums.insert(name) }
         for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
     }
 

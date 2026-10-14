@@ -6,8 +6,8 @@ import Foundation
 /// This is the one place the core makes threads.
 public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
     // The caller waits for the thread, so nothing runs at the same time.
-    nonisolated(unsafe) var result: Result<T, any Error>?
-    nonisolated(unsafe) let body = body
+    nonisolated(unsafe) var result: Result<T, any Error>? // safe: written by one thread, read after it is joined
+    nonisolated(unsafe) let body = body // safe: written by one thread, read after it is joined
     let done = DispatchSemaphore(value: 0)
     let thread = Thread {
         result = Result { try body() }

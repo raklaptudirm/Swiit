@@ -2,7 +2,7 @@ import Foundation
 import SwiitKit
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-public final class ProtocolType: SwiitObject, @unchecked Sendable {
+public final class ProtocolType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]

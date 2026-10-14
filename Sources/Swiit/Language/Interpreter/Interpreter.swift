@@ -58,7 +58,7 @@ public final class Interpreter {
     var declaredOperators: [String: String] = [:]
     /// Instances released since a statement began, whose `deinit` runs at the next one.
     var pendingDeinits: [ClassInstance] = []
-    nonisolated(unsafe) var hasPendingDeinits = false
+    nonisolated(unsafe) var hasPendingDeinits = false // safe: a hint, set holding `deinitLock`; a stale read only delays a `deinit` by a statement
     let deinitLock = NSLock()
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]

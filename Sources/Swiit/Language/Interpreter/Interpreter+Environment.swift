@@ -40,7 +40,7 @@ extension Interpreter {
             }
         case .dictionary(let keyType, let valueType)?:
             if case .dictionary(let dictionary) = value {
-                guard dictionary.count > 0 else { return "[:]" }
+                guard !dictionary.isEmpty else { return "[:]" }
                 return "[" + (try dictionary.sortedForDisplay.map {
                     "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: valueType))"
                 }).joined(separator: ", ") + "]"
@@ -83,7 +83,7 @@ extension Interpreter {
         case .list(let items):
             return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ") + "]"
         case .dictionary(let dictionary):
-            guard dictionary.count > 0 else { return "[:]" }
+            guard !dictionary.isEmpty else { return "[:]" }
             return "[" + (try dictionary.sortedForDisplay.map {
                 "\(try describing($0.key, debug: true)): \(try describing($0.value, debug: true))"
             }).joined(separator: ", ") + "]"

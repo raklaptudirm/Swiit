@@ -6,7 +6,7 @@ import SwiitStandardLibrary
 
 extension Bridge {
     /// `reduce(into:)`, which changes its accumulator in place, for each of the sequences.
-    nonisolated(unsafe) private static let reduceInto = member(
+    nonisolated(unsafe) private static let reduceInto = member( // safe: set once, before anything reads it
         .method, "reduce",
         parameters: [Parameter(label: "into", name: "initialResult", type: .parameter("R")),
                      Parameter(label: nil, name: "updateAccumulatingResult",
@@ -20,7 +20,7 @@ extension Bridge {
     }
 
     /// `String.Index`: a position in a String, as Swift holds it.
-    nonisolated(unsafe) static let stringIndex = BridgedType(
+    nonisolated(unsafe) static let stringIndex = BridgedType( // safe: set once, before anything reads it
         name: "String.Index", genericParameters: [], conformances: ["Comparable": [:], "Equatable": [:], "Hashable": [:]],
         associatedTypes: [:], members: [])
 
@@ -45,7 +45,7 @@ extension Bridge {
         return index
     }
 
-    nonisolated(unsafe) private static let stringIndexMembers: [BridgedMember] = [
+    nonisolated(unsafe) private static let stringIndexMembers: [BridgedMember] = [ // safe: set once, before anything reads it
         member(.property, "startIndex", returns: indexType, summary: "The position of the first character.") { _, arguments in
             box(try text(arguments).startIndex)
         },
@@ -136,7 +136,7 @@ extension Bridge {
         }
     }
 
-    nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [
+    nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [ // safe: set once, before anything reads it
         "Array": [reduceInto, lazyMember(.parameter("Element"))], "Set": [reduceInto, lazyMember(.parameter("Element"))],
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))], "Range": [reduceInto, lazyMember(.parameter("Bound"))],
         "Flow": [

@@ -136,7 +136,7 @@ extension Interpreter {
 /// interpreter that starts often should pay, and the tree is a value, so
 /// interpreters with the same libraries share one reading.
 private enum PreludeCache {
-    nonisolated(unsafe) private static var programs: [String: Program] = [:]
+    nonisolated(unsafe) private static var programs: [String: Program] = [:] // safe: guarded by `lock`
     private static let lock = NSLock()
 
     static func program(for source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {

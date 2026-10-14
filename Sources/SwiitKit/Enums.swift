@@ -1,7 +1,7 @@
 /// An enum's definition: its name and cases, in order. Declared in Swiit
 /// (`enum FileType { case file, directory }`) or by the host.
 /// Types compare by identity, so two enums with the same name are distinct.
-public final class EnumType: SwiitObject, @unchecked Sendable {
+public final class EnumType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public struct Case: Sendable, Equatable {
         public let name: String
         /// For an enum with raw values (`enum Level: Int`).
