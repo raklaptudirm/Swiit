@@ -2,7 +2,7 @@
 // Don't edit: the bridge generator (swiit-bridge) remakes it.
 import Foundation
 import SwiitKit
-import _StringProcessing
+import Swift
 import SwiitStandardLibrary
 
 extension Bridge {
@@ -14,7 +14,7 @@ extension Bridge {
             associatedTypes: ["CharacterView": .string, "Element": .named("Character"), "ExtendedGraphemeClusterLiteralType": .string, "IndexDistance": .int, "StringLiteralType": .string, "SubSequence": .named("Substring"), "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(String.self, $0).map { $0.swiitValue } }, arrayLiteral: nil,
             members: [
-                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84
+                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85
             ]
         ),
         BridgedType(
@@ -23,7 +23,7 @@ extension Bridge {
             associatedTypes: ["CharacterView": .named("Substring"), "Element": .named("Character"), "ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "SubSequence": .named("Substring"), "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(Substring.self, $0).map { SwiftValue.make($0, as: "Substring") } }, arrayLiteral: nil,
             members: [
-                member85, member86, member87, member88, member89, member90, member91, member92, member93, member94, member95, member96, member97, member98, member99, member100, member101, member102, member103, member104, member105, member106, member107, member108, member109, member110, member111, member112, member113, member114, member115, member116, member117, member118, member119, member120, member121, member122, member123, member124, member125, member126, member127, member128, member129, member130, member131, member132, member133, member134, member135, member136, member137, member138, member139, member140, member141, member142, member143, member144, member145, member146, member147, member148, member149, member150, member151, member152, member153, member154, member155, member156, member157, member158, member159, member160
+                member86, member87, member88, member89, member90, member91, member92, member93, member94, member95, member96, member97, member98, member99, member100, member101, member102, member103, member104, member105, member106, member107, member108, member109, member110, member111, member112, member113, member114, member115, member116, member117, member118, member119, member120, member121, member122, member123, member124, member125, member126, member127, member128, member129, member130, member131, member132, member133, member134, member135, member136, member137, member138, member139, member140, member141, member142, member143, member144, member145, member146, member147, member148, member149, member150, member151, member152, member153, member154, member155, member156, member157, member158, member159, member160, member161
             ]
         ),
         BridgedType(
@@ -32,7 +32,16 @@ extension Bridge {
             associatedTypes: ["ExtendedGraphemeClusterLiteralType": .named("Character"), "UnicodeScalarLiteralType": .named("Character")],
             parse: nil, literal: { textLiteral(Character.self, $0).map { SwiftValue.make($0, as: "Character") } }, arrayLiteral: nil,
             members: [
-                member161, member162, member163, member164, member165, member166, member167, member168, member169, member170, member171, member172, member173, member174, member175, member176, member177, member178, member179, member180, member181, member182, member183
+                member162, member163, member164, member165, member166, member167, member168, member169, member170, member171, member172, member173, member174, member175, member176, member177, member178, member179, member180, member181, member182, member183, member184, member185
+            ]
+        ),
+        BridgedType(
+            name: "Unicode.Scalar", genericParameters: [],
+            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Equatable": [:], "Hashable": [:]],
+            associatedTypes: ["UnicodeScalarLiteralType": .named("Unicode.Scalar")],
+            parse: { Unicode.Scalar($0).map { SwiftValue.make($0, as: "Unicode.Scalar") } }, literal: { textLiteral(Unicode.Scalar.self, $0).map { SwiftValue.make($0, as: "Unicode.Scalar") } }, arrayLiteral: nil,
+            members: [
+                
             ]
         ),
         BridgedType(
@@ -41,7 +50,7 @@ extension Bridge {
             associatedTypes: ["IntegerLiteralType": .int, "SIMDMaskScalar": .int, "Stride": .int],
             parse: { Int($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
             members: [
-                member184, member185, member186, member187, member188, member189, member190, member191, member192, member193, member194, member195, member196, member197, member198, member199, member200, member201, member202, member203, member204, member205, member206, member207, member208, member209, member210, member211, member212, member213, member214, member215, member216
+                member186, member187, member188, member189, member190, member191, member192, member193, member194, member195, member196, member197, member198, member199, member200, member201, member202, member203, member204, member205, member206, member207, member208, member209, member210, member211, member212, member213, member214, member215, member216, member217, member218
             ]
         ),
         BridgedType(
@@ -50,7 +59,7 @@ extension Bridge {
             associatedTypes: ["Exponent": .int, "FloatLiteralType": .double, "Magnitude": .double, "Stride": .double],
             parse: { Double($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
             members: [
-                member217, member218, member219, member220, member221, member222, member223, member224, member225, member226, member227, member228, member229, member230, member231, member232, member233, member234, member235, member236, member237, member238, member239, member240, member241, member242, member243, member244, member245, member246, member247, member248, member249, member250, member251, member252, member253, member254, member255, member256, member257, member258, member259, member260, member261, member262, member263, member264, member265, member266, member267, member268, member269, member270, member271, member272, member273, member274, member275
+                member219, member220, member221, member222, member223, member224, member225, member226, member227, member228, member229, member230, member231, member232, member233, member234, member235, member236, member237, member238, member239, member240, member241, member242, member243, member244, member245, member246, member247, member248, member249, member250, member251, member252, member253, member254, member255, member256, member257, member258, member259, member260, member261, member262, member263, member264, member265, member266, member267, member268, member269, member270, member271, member272, member273, member274, member275, member276, member277
             ]
         ),
         BridgedType(
@@ -59,7 +68,7 @@ extension Bridge {
             associatedTypes: ["BooleanLiteralType": .bool],
             parse: { Bool($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
             members: [
-                member276, member277, member278, member279, member280, member281, member282, member283
+                member278, member279, member280, member281, member282, member283, member284, member285
             ]
         ),
         BridgedType(
@@ -68,7 +77,7 @@ extension Bridge {
             associatedTypes: ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .generic("Range", [.int]), "SubSequence": .generic("ArraySlice", [.parameter("Element")])],
             parse: nil, literal: nil, arrayLiteral: { .list([Value]($0)) },
             members: [
-                member284, member285, member286, member287, member288, member289, member290, member291, member292, member293, member294, member295, member296, member297, member298, member299, member300, member301, member302, member303, member304, member305, member306, member307, member308, member309, member310, member311, member312, member313, member314, member315, member316, member317, member318, member319, member320, member321, member322, member323, member324, member325, member326, member327, member328, member329, member330, member331, member332, member333, member334, member335, member336, member337, member338, member339, member340, member341, member342, member343, member344, member345, member346, member347, member348, member349, member350, member351, member352, member353, member354, member355, member356, member357, member358, member359, member360, member361, member362, member363, member364, member365, member366, member367, member368, member369, member370, member371
+                member286, member287, member288, member289, member290, member291, member292, member293, member294, member295, member296, member297, member298, member299, member300, member301, member302, member303, member304, member305, member306, member307, member308, member309, member310, member311, member312, member313, member314, member315, member316, member317, member318, member319, member320, member321, member322, member323, member324, member325, member326, member327, member328, member329, member330, member331, member332, member333, member334, member335, member336, member337, member338, member339, member340, member341, member342, member343, member344, member345, member346, member347, member348, member349, member350, member351, member352, member353, member354, member355, member356, member357, member358, member359, member360, member361, member362, member363, member364, member365, member366, member367, member368, member369, member370, member371, member372, member373
             ]
         ),
         BridgedType(
@@ -77,7 +86,7 @@ extension Bridge {
             associatedTypes: ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .generic("Range", [.int]), "SubSequence": .generic("ArraySlice", [.parameter("Element")])],
             parse: nil, literal: nil, arrayLiteral: { SwiftValue.make(ArraySlice<Value>($0), as: "ArraySlice") },
             members: [
-                member372, member373, member374, member375, member376, member377, member378, member379, member380, member381, member382, member383, member384, member385, member386, member387, member388, member389, member390, member391, member392, member393, member394, member395, member396, member397, member398, member399, member400, member401, member402, member403, member404, member405, member406, member407, member408, member409, member410, member411, member412, member413, member414, member415, member416, member417, member418, member419, member420, member421, member422, member423, member424, member425, member426, member427, member428, member429, member430, member431, member432, member433, member434, member435, member436, member437, member438, member439, member440, member441, member442, member443, member444, member445, member446, member447, member448, member449, member450, member451, member452, member453, member454, member455, member456, member457, member458, member459, member460, member461
+                member374, member375, member376, member377, member378, member379, member380, member381, member382, member383, member384, member385, member386, member387, member388, member389, member390, member391, member392, member393, member394, member395, member396, member397, member398, member399, member400, member401, member402, member403, member404, member405, member406, member407, member408, member409, member410, member411, member412, member413, member414, member415, member416, member417, member418, member419, member420, member421, member422, member423, member424, member425, member426, member427, member428, member429, member430, member431, member432, member433, member434, member435, member436, member437, member438, member439, member440, member441, member442, member443, member444, member445, member446, member447, member448, member449, member450, member451, member452, member453, member454, member455, member456, member457, member458, member459, member460, member461, member462, member463
             ]
         ),
         BridgedType(
@@ -86,7 +95,7 @@ extension Bridge {
             associatedTypes: ["ArrayLiteralElement": .parameter("Element")],
             parse: nil, literal: nil, arrayLiteral: { SwiftValue.make(Set<Value>($0), as: "Set") },
             members: [
-                member462, member463, member464, member465, member466, member467, member468, member469, member470, member471, member472, member473, member474, member475, member476, member477, member478, member479, member480, member481, member482, member483, member484, member485, member486, member487, member488, member489, member490, member491, member492, member493, member494, member495, member496, member497, member498, member499, member500, member501, member502, member503, member504, member505, member506, member507, member508, member509, member510, member511, member512, member513, member514, member515, member516, member517, member518, member519, member520, member521, member522, member523, member524, member525, member526, member527, member528, member529, member530, member531, member532, member533, member534, member535, member536
+                member464, member465, member466, member467, member468, member469, member470, member471, member472, member473, member474, member475, member476, member477, member478, member479, member480, member481, member482, member483, member484, member485, member486, member487, member488, member489, member490, member491, member492, member493, member494, member495, member496, member497, member498, member499, member500, member501, member502, member503, member504, member505, member506, member507, member508, member509, member510, member511, member512, member513, member514, member515, member516, member517, member518, member519, member520, member521, member522, member523, member524, member525, member526, member527, member528, member529, member530, member531, member532, member533, member534, member535, member536, member537, member538
             ]
         ),
         BridgedType(
@@ -95,7 +104,7 @@ extension Bridge {
             associatedTypes: ["Element": .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member537, member538, member539, member540, member541, member542, member543, member544, member545, member546, member547, member548, member549, member550, member551, member552, member553, member554, member555, member556, member557, member558, member559, member560, member561, member562, member563, member564, member565, member566, member567, member568, member569, member570, member571, member572, member573, member574, member575, member576, member577, member578, member579, member580
+                member539, member540, member541, member542, member543, member544, member545, member546, member547, member548, member549, member550, member551, member552, member553, member554, member555, member556, member557, member558, member559, member560, member561, member562, member563, member564, member565, member566, member567, member568, member569, member570, member571, member572, member573, member574, member575, member576, member577, member578, member579, member580, member581, member582
             ]
         ),
         BridgedType(
@@ -104,7 +113,7 @@ extension Bridge {
             associatedTypes: [:],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member581, member582, member583, member584, member585, member586
+                member583, member584, member585, member586, member587, member588
             ]
         ),
         BridgedType(
@@ -113,7 +122,7 @@ extension Bridge {
             associatedTypes: ["Element": .parameter("Bound"), "Index": .parameter("Bound"), "Indices": .generic("Range", [.parameter("Bound")]), "SubSequence": .generic("Range", [.parameter("Bound")])],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member587, member588, member589, member590, member591, member592, member593, member594, member595, member596, member597, member598, member599, member600, member601, member602, member603, member604, member605, member606, member607, member608, member609, member610, member611, member612, member613, member614, member615, member616, member617, member618, member619, member620, member621, member622, member623, member624, member625, member626, member627, member628, member629, member630, member631, member632, member633, member634, member635, member636, member637, member638, member639, member640, member641, member642, member643, member644, member645, member646, member647, member648, member649, member650, member651, member652, member653, member654, member655, member656, member657
+                member589, member590, member591, member592, member593, member594, member595, member596, member597, member598, member599, member600, member601, member602, member603, member604, member605, member606, member607, member608, member609, member610, member611, member612, member613, member614, member615, member616, member617, member618, member619, member620, member621, member622, member623, member624, member625, member626, member627, member628, member629, member630, member631, member632, member633, member634, member635, member636, member637, member638, member639, member640, member641, member642, member643, member644, member645, member646, member647, member648, member649, member650, member651, member652, member653, member654, member655, member656, member657, member658, member659
             ]
         ),
         BridgedType(
@@ -122,7 +131,7 @@ extension Bridge {
             associatedTypes: ["Element": .parameter("Bound")],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member658, member659, member660, member661, member662, member663, member664, member665, member666, member667, member668, member669, member670, member671, member672, member673, member674, member675, member676, member677, member678, member679, member680, member681, member682, member683, member684, member685, member686, member687, member688, member689, member690, member691, member692, member693, member694, member695, member696, member697, member698, member699, member700, member701, member702, member703, member704, member705, member706, member707, member708
+                member660, member661, member662, member663, member664, member665, member666, member667, member668, member669, member670, member671, member672, member673, member674, member675, member676, member677, member678, member679, member680, member681, member682, member683, member684, member685, member686, member687, member688, member689, member690, member691, member692, member693, member694, member695, member696, member697, member698, member699, member700, member701, member702, member703, member704, member705, member706, member707, member708, member709, member710
             ]
         ),
         BridgedType(
@@ -131,7 +140,7 @@ extension Bridge {
             associatedTypes: [:],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member709, member710, member711, member712, member713, member714
+                member711, member712, member713, member714, member715, member716
             ]
         ),
     ]
@@ -497,20 +506,6 @@ extension Bridge {
                 )
 
     nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
-                    }
-                )
-
-    nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
@@ -521,6 +516,20 @@ extension Bridge {
                         var receiver: String = try String(swiitValue: args["self"]!)
                 try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list([.nothing, receiver.swiitValue])
+                    }
+                )
+
+    nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
+                    returns: .list(.named("Character")), generics: [:],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: String = try String(swiitValue: args["self"]!)
+                let result: [Character] = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
                 )
 
@@ -875,6 +884,19 @@ extension Bridge {
 
     nonisolated(unsafe) private static let member53: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
+                    parameters: [Parameter(label: nil, name: "scalar", type: .named("Unicode.Scalar"))],
+                    returns: .string, generics: [:],
+                    isThrowing: false, isRethrowing: false, isMutating: false,
+                    discardableResult: false, summary: "",
+                    body: .native { shell, args in
+                        _ = shell
+                        let result = String(try SwiftValue.unbox(Unicode.Scalar.self, args["scalar"]!))
+                return result.swiitValue
+                    }
+                )
+
+    nonisolated(unsafe) private static let member54: BridgedMember =                 BridgedMember(
+                    kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
@@ -886,7 +908,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member54: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member55: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -900,7 +922,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member55: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member56: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -914,7 +936,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member56: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member57: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -928,7 +950,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member57: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member58: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -942,7 +964,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member58: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member59: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -956,7 +978,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member59: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member60: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isContiguousUTF8", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -970,7 +992,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member60: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member61: BridgedMember =                 BridgedMember(
                     kind: .method, name: "makeContiguousUTF8", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -984,7 +1006,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member61: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member62: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .string), Parameter(label: "count", name: "count", type: .int)],
                     returns: .string, generics: [:],
@@ -997,7 +1019,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member62: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member63: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -1011,7 +1033,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member63: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member64: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
                     returns: .bool, generics: [:],
@@ -1025,7 +1047,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member64: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member65: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasSuffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
                     returns: .bool, generics: [:],
@@ -1039,7 +1061,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member65: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member66: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .void, generics: [:],
@@ -1053,7 +1075,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member66: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member67: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .string)],
                     returns: .void, generics: [:],
@@ -1067,7 +1089,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member67: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member68: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .named("Substring"))],
                     returns: .void, generics: [:],
@@ -1081,7 +1103,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member68: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member69: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
                     returns: .parameter("T"), generics: ["T": ["Comparable"]],
@@ -1095,7 +1117,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member69: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member70: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
                     returns: .parameter("T"), generics: ["T": ["Comparable"]],
@@ -1109,7 +1131,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member70: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member71: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "substring", type: .named("Substring"))],
                     returns: .string, generics: [:],
@@ -1122,7 +1144,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member71: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member72: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "describing", name: "instance", type: .parameter("Subject"))],
                     returns: .string, generics: ["Subject": []],
@@ -1135,7 +1157,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member72: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member73: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "reflecting", name: "subject", type: .parameter("Subject"))],
                     returns: .string, generics: ["Subject": []],
@@ -1148,7 +1170,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member73: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member74: BridgedMember =                 BridgedMember(
                     kind: .method, name: "replacingOccurrences", isStatic: false,
                     parameters: [Parameter(label: "of", name: "target", type: .string), Parameter(label: "with", name: "replacement", type: .string)],
                     returns: .string, generics: [:],
@@ -1162,7 +1184,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member74: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member75: BridgedMember =                 BridgedMember(
                     kind: .method, name: "components", isStatic: false,
                     parameters: [Parameter(label: "separatedBy", name: "separator", type: .string)],
                     returns: .list(.string), generics: [:],
@@ -1176,7 +1198,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member75: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member76: BridgedMember =                 BridgedMember(
                     kind: .method, name: "styled", isStatic: false,
                     parameters: [Parameter(label: nil, name: "styles", type: .named("TextStyle"), variadic: true)],
                     returns: .string, generics: [:],
@@ -1190,7 +1212,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member76: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member77: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -1204,7 +1226,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member77: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member78: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .bool, generics: [:],
@@ -1218,7 +1240,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member78: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member79: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
                     returns: .bool, generics: [:],
@@ -1232,7 +1254,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member79: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member80: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
@@ -1246,7 +1268,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member80: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member81: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
@@ -1260,7 +1282,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member81: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member82: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
@@ -1274,7 +1296,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member82: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member83: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
@@ -1288,7 +1310,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member83: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member84: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -1302,7 +1324,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member84: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member85: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named("Character"))])), generics: [:],
@@ -1316,7 +1338,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member85: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member86: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isContiguousUTF8", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -1330,7 +1352,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member86: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member87: BridgedMember =                 BridgedMember(
                     kind: .method, name: "makeContiguousUTF8", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -1344,7 +1366,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member87: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member88: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .named("Substring"), generics: [:],
@@ -1358,7 +1380,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member88: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member89: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
@@ -1372,7 +1394,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member89: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member90: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["T": []],
@@ -1386,7 +1408,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member90: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member91: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .named("Substring"), generics: [:],
@@ -1400,7 +1422,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member91: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member92: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
@@ -1414,7 +1436,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member92: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member93: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
@@ -1428,7 +1450,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member93: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member94: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
@@ -1442,7 +1464,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member94: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member95: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .list(.named("Substring")), generics: [:],
@@ -1456,7 +1478,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member95: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member96: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .named("Character")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.named("Substring")), generics: [:],
@@ -1470,7 +1492,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member96: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member97: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1484,7 +1506,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member97: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member98: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1498,7 +1520,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member98: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member99: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -1512,7 +1534,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member99: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member100: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("Character")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .named("Substring"), generics: [:],
@@ -1525,7 +1547,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member100: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member101: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
@@ -1538,7 +1560,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member101: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member102: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("Character"))],
                     returns: .void, generics: [:],
@@ -1552,7 +1574,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member102: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member103: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
@@ -1566,7 +1588,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member103: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member104: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
@@ -1580,7 +1602,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member104: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member105: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
                     returns: .named("Character"), generics: [:],
@@ -1594,7 +1616,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member105: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member106: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: [:],
@@ -1608,7 +1630,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member106: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member107: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: [:],
@@ -1622,7 +1644,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member107: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member108: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1636,7 +1658,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member108: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member109: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
                     returns: .named("Character"), generics: [:],
@@ -1650,7 +1672,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member109: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member110: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
@@ -1664,7 +1686,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member110: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member111: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
@@ -1678,7 +1700,21 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member111: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member112: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
+                    returns: .list(.named("Character")), generics: [:],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                let result: [Character] = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return .list(result.map { SwiftValue.make($0, as: "Character") })
+                    }
+                )
+
+    nonisolated(unsafe) private static let member113: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("Character")], .void, throws: true))],
                     returns: .void, generics: [:],
@@ -1692,7 +1728,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member112: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member114: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1706,7 +1742,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member113: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member115: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1720,7 +1756,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member114: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member116: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1734,7 +1770,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member115: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member117: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1748,7 +1784,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member116: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member118: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1762,7 +1798,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member117: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member119: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["PossiblePrefix.Element": []],
@@ -1776,7 +1812,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member118: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member120: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
@@ -1790,7 +1826,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member119: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member121: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["OtherSequence.Element": []],
@@ -1804,7 +1840,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member120: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member122: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
@@ -1818,7 +1854,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member121: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member123: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
@@ -1832,7 +1868,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member122: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member124: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
@@ -1846,7 +1882,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member123: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member125: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
@@ -1860,7 +1896,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member124: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member126: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
@@ -1874,7 +1910,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member125: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member127: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .named("Character"))],
                     returns: .bool, generics: [:],
@@ -1888,7 +1924,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member126: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member128: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .int, generics: [:],
@@ -1902,7 +1938,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member127: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member129: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("Character")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Result": []],
@@ -1916,7 +1952,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member128: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member130: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
@@ -1930,7 +1966,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member129: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member131: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
@@ -1944,7 +1980,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member130: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member132: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -1958,7 +1994,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member131: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member133: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .list(.named("Character")), generics: [:],
@@ -1972,7 +2008,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member132: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member134: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -1986,7 +2022,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member133: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member135: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2000,7 +2036,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member134: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member136: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
@@ -2014,7 +2050,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member135: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member137: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2028,7 +2064,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member136: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member138: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2042,7 +2078,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member137: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member139: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .named("Substring"), generics: [:],
@@ -2055,7 +2091,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member138: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member140: BridgedMember =                 BridgedMember(
                     kind: .property, name: "base", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2069,7 +2105,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member139: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member141: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2083,7 +2119,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member140: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member142: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2097,7 +2133,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member141: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member143: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2111,7 +2147,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member142: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member144: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "content", type: .string)],
                     returns: .named("Substring"), generics: [:],
@@ -2124,7 +2160,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member143: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member145: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2138,7 +2174,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member144: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member146: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2152,21 +2188,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member145: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
-                    }
-                )
-
-    nonisolated(unsafe) private static let member146: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member147: BridgedMember =                 BridgedMember(
                     kind: .method, name: "write", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .void, generics: [:],
@@ -2180,7 +2202,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member147: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member148: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "unicodeScalarLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
@@ -2193,7 +2215,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member148: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member149: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
@@ -2206,7 +2228,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member149: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member150: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
@@ -2219,7 +2241,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member150: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member151: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -2233,7 +2255,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member151: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member152: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
                     returns: .bool, generics: [:],
@@ -2247,7 +2269,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member152: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member153: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasSuffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
                     returns: .bool, generics: [:],
@@ -2261,7 +2283,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member153: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member154: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .bool, generics: [:],
@@ -2275,7 +2297,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member154: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member155: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
                     returns: .bool, generics: [:],
@@ -2289,7 +2311,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member155: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member156: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
@@ -2303,7 +2325,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member156: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member157: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
@@ -2317,7 +2339,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member157: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member158: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
@@ -2331,7 +2353,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member158: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member159: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
@@ -2345,7 +2367,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member159: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member160: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
@@ -2359,7 +2381,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member160: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member161: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named("Character"))])), generics: [:],
@@ -2373,7 +2395,20 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member161: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member162: BridgedMember =                 BridgedMember(
+                    kind: .initializer, name: "init", isStatic: true,
+                    parameters: [Parameter(label: nil, name: "content", type: .named("Unicode.Scalar"))],
+                    returns: .named("Character"), generics: [:],
+                    isThrowing: false, isRethrowing: false, isMutating: false,
+                    discardableResult: false, summary: "Creates a character containing the given Unicode scalar value.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let result = Character(try SwiftValue.unbox(Unicode.Scalar.self, args["content"]!))
+                return SwiftValue.make(result, as: "Character")
+                    }
+                )
+
+    nonisolated(unsafe) private static let member163: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .named("Character"))],
                     returns: .named("Character"), generics: [:],
@@ -2386,7 +2421,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member162: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member164: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "s", type: .string)],
                     returns: .named("Character"), generics: [:],
@@ -2399,7 +2434,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member163: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member165: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2413,7 +2448,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member164: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member166: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2427,7 +2462,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member165: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member167: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2441,7 +2476,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member166: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member168: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isASCII", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2455,7 +2490,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member167: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member169: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isWhitespace", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2469,7 +2504,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member168: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member170: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNewline", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2483,7 +2518,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member169: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member171: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNumber", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2497,7 +2532,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member170: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member172: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isWholeNumber", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2511,7 +2546,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member171: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member173: BridgedMember =                 BridgedMember(
                     kind: .property, name: "wholeNumberValue", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: [:],
@@ -2525,7 +2560,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member172: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member174: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isHexDigit", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2539,7 +2574,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member173: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member175: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hexDigitValue", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: [:],
@@ -2553,7 +2588,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member174: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member176: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isLetter", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2567,7 +2602,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member175: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member177: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2581,7 +2616,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member176: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member178: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2595,7 +2630,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member177: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member179: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isUppercase", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2609,7 +2644,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member178: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member180: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isLowercase", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2623,7 +2658,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member179: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member181: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCased", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2637,7 +2672,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member180: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member182: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSymbol", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2651,7 +2686,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member181: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member183: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isMathSymbol", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2665,7 +2700,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member182: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member184: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCurrencySymbol", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2679,7 +2714,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member183: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member185: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isPunctuation", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2693,7 +2728,33 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member184: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member186: BridgedMember =                 BridgedMember(
+                    kind: .initializer, name: "init", isStatic: true,
+                    parameters: [Parameter(label: nil, name: "description", type: .string)],
+                    returns: .optional(.int), generics: [:],
+                    isThrowing: false, isRethrowing: false, isMutating: false,
+                    discardableResult: false, summary: "Creates a new integer value from the given string.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let result = Int(try String(swiitValue: args["description"]!))
+                return (result.map { $0.swiitValue } ?? .nothing)
+                    }
+                )
+
+    nonisolated(unsafe) private static let member187: BridgedMember =                 BridgedMember(
+                    kind: .property, name: "zero", isStatic: true,
+                    parameters: [],
+                    returns: .int, generics: [:],
+                    isThrowing: false, isRethrowing: false, isMutating: false,
+                    discardableResult: false, summary: "The zero value.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let result = Int.zero
+                return result.swiitValue
+                    }
+                )
+
+    nonisolated(unsafe) private static let member188: BridgedMember =                 BridgedMember(
                     kind: .method, name: "negate", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -2707,34 +2768,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member185: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [],
-                    returns: .int, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new value equal to zero.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let result = Int()
-                return result.swiitValue
-                    }
-                )
-
-    nonisolated(unsafe) private static let member186: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "quotientAndRemainder", isStatic: false,
-                    parameters: [Parameter(label: "dividingBy", name: "rhs", type: .int)],
-                    returns: .tuple([.init(label: "quotient", type: .int), .init(label: "remainder", type: .int)]), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the quotient and remainder of this value divided by the given value.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.quotientAndRemainder(dividingBy: try Int(swiitValue: args["rhs"]!))
-                return bridgeTuple(result) { t in [("quotient", t.0.swiitValue), ("remainder", t.1.swiitValue)] }
-                    }
-                )
-
-    nonisolated(unsafe) private static let member187: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member189: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -2748,33 +2782,34 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member188: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member190: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "description", type: .string)],
-                    returns: .optional(.int), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new integer value from the given string.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let result = Int(try String(swiitValue: args["description"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member189: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "zero", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The zero value.",
+                    discardableResult: false, summary: "Creates a new value equal to zero.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int.zero
+                        let result = Int()
                 return result.swiitValue
                     }
                 )
 
-    nonisolated(unsafe) private static let member190: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member191: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "quotientAndRemainder", isStatic: false,
+                    parameters: [Parameter(label: "dividingBy", name: "rhs", type: .int)],
+                    returns: .tuple([.init(label: "quotient", type: .int), .init(label: "remainder", type: .int)]), generics: [:],
+                    isThrowing: false, isRethrowing: false, isMutating: false,
+                    discardableResult: false, summary: "Returns the quotient and remainder of this value divided by the given value.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                let result = receiver.quotientAndRemainder(dividingBy: try Int(swiitValue: args["rhs"]!))
+                return bridgeTuple(result) { t in [("quotient", t.0.swiitValue), ("remainder", t.1.swiitValue)] }
+                    }
+                )
+
+    nonisolated(unsafe) private static let member192: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bitWidth", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2788,7 +2823,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member191: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member193: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "littleEndian", name: "value", type: .int)],
                     returns: .int, generics: [:],
@@ -2801,7 +2836,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member192: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member194: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "bigEndian", name: "value", type: .int)],
                     returns: .int, generics: [:],
@@ -2814,7 +2849,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member193: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member195: BridgedMember =                 BridgedMember(
                     kind: .property, name: "littleEndian", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2828,7 +2863,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member194: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member196: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bigEndian", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2842,7 +2877,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member195: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member197: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [Parameter(label: "in", name: "range", type: .generic("Range", [.int]))],
                     returns: .int, generics: [:],
@@ -2855,7 +2890,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member196: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member198: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [Parameter(label: "in", name: "range", type: .generic("ClosedRange", [.int]))],
                     returns: .int, generics: [:],
@@ -2868,7 +2903,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member197: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member199: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSigned", isStatic: true,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -2881,7 +2916,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member198: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member200: BridgedMember =                 BridgedMember(
                     kind: .property, name: "max", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2894,7 +2929,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member199: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member201: BridgedMember =                 BridgedMember(
                     kind: .property, name: "min", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -2907,7 +2942,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member200: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member202: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isMultiple", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .int)],
                     returns: .bool, generics: [:],
@@ -2921,7 +2956,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member201: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member203: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "source", type: .double)],
                     returns: .int, generics: [:],
@@ -2934,7 +2969,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member202: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member204: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "exactly", name: "source", type: .double)],
                     returns: .optional(.int), generics: [:],
@@ -2947,7 +2982,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member203: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member205: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addingReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
@@ -2961,7 +2996,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member204: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member206: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtractingReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
@@ -2975,7 +3010,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member205: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member207: BridgedMember =                 BridgedMember(
                     kind: .method, name: "multipliedReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
@@ -2989,7 +3024,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member206: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member208: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dividedReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
@@ -3003,7 +3038,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member207: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member209: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remainderReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
@@ -3017,7 +3052,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member208: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member210: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bitWidth", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3030,7 +3065,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member209: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member211: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leadingZeroBitCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3044,7 +3079,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member210: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member212: BridgedMember =                 BridgedMember(
                     kind: .property, name: "trailingZeroBitCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3058,7 +3093,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member211: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member213: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nonzeroBitCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3072,7 +3107,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member212: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member214: BridgedMember =                 BridgedMember(
                     kind: .property, name: "byteSwapped", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3086,7 +3121,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member213: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member215: BridgedMember =                 BridgedMember(
                     kind: .method, name: "signum", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3100,7 +3135,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member214: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member216: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3114,7 +3149,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member215: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member217: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .int)],
                     returns: .int, generics: [:],
@@ -3128,7 +3163,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member216: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member218: BridgedMember =                 BridgedMember(
                     kind: .method, name: "advanced", isStatic: false,
                     parameters: [Parameter(label: "by", name: "n", type: .int)],
                     returns: .int, generics: [:],
@@ -3142,7 +3177,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member217: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member219: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "text", type: .named("Substring"))],
                     returns: .optional(.double), generics: [:],
@@ -3155,7 +3190,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member218: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member220: BridgedMember =                 BridgedMember(
                     kind: .property, name: "ulpOfOne", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3168,7 +3203,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member219: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member221: BridgedMember =                 BridgedMember(
                     kind: .method, name: "rounded", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3182,7 +3217,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member220: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member222: BridgedMember =                 BridgedMember(
                     kind: .method, name: "round", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -3196,7 +3231,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member221: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member223: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nextDown", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3210,7 +3245,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member222: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member224: BridgedMember =                 BridgedMember(
                     kind: .method, name: "truncatingRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .double, generics: [:],
@@ -3224,7 +3259,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member223: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member225: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .double, generics: [:],
@@ -3238,7 +3273,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member224: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member226: BridgedMember =                 BridgedMember(
                     kind: .method, name: "squareRoot", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3252,7 +3287,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member225: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member227: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addingProduct", isStatic: false,
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
                     returns: .double, generics: [:],
@@ -3266,7 +3301,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member226: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member228: BridgedMember =                 BridgedMember(
                     kind: .method, name: "minimum", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
@@ -3279,7 +3314,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member227: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member229: BridgedMember =                 BridgedMember(
                     kind: .method, name: "maximum", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
@@ -3292,7 +3327,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member228: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member230: BridgedMember =                 BridgedMember(
                     kind: .method, name: "minimumMagnitude", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
@@ -3305,7 +3340,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member229: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member231: BridgedMember =                 BridgedMember(
                     kind: .method, name: "maximumMagnitude", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
@@ -3318,7 +3353,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member230: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member232: BridgedMember =                 BridgedMember(
                     kind: .property, name: "radix", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3331,7 +3366,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member231: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member233: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "signOf", name: "signOf", type: .double), Parameter(label: "magnitudeOf", name: "magnitudeOf", type: .double)],
                     returns: .double, generics: [:],
@@ -3344,7 +3379,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member232: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member234: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isTotallyOrdered", isStatic: false,
                     parameters: [Parameter(label: "belowOrEqualTo", name: "other", type: .double)],
                     returns: .bool, generics: [:],
@@ -3358,7 +3393,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member233: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member235: BridgedMember =                 BridgedMember(
                     kind: .property, name: "zero", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3371,7 +3406,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member234: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member236: BridgedMember =                 BridgedMember(
                     kind: .method, name: "negate", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -3385,7 +3420,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member235: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member237: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3398,7 +3433,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member236: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member238: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -3412,7 +3447,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member237: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member239: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -3426,7 +3461,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member238: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member240: BridgedMember =                 BridgedMember(
                     kind: .property, name: "exponentBitCount", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3439,7 +3474,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member239: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member241: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significandBitCount", isStatic: true,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3452,7 +3487,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member240: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member242: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCanonical", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3466,7 +3501,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member241: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member243: BridgedMember =                 BridgedMember(
                     kind: .property, name: "infinity", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3479,7 +3514,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member242: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member244: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nan", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3492,7 +3527,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member243: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member245: BridgedMember =                 BridgedMember(
                     kind: .property, name: "signalingNaN", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3505,7 +3540,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member244: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member246: BridgedMember =                 BridgedMember(
                     kind: .property, name: "greatestFiniteMagnitude", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3518,7 +3553,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member245: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member247: BridgedMember =                 BridgedMember(
                     kind: .property, name: "pi", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3531,7 +3566,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member246: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member248: BridgedMember =                 BridgedMember(
                     kind: .property, name: "ulp", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3545,7 +3580,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member247: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member249: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leastNormalMagnitude", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3558,7 +3593,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member248: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member250: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leastNonzeroMagnitude", isStatic: true,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3571,7 +3606,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member249: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member251: BridgedMember =                 BridgedMember(
                     kind: .property, name: "exponent", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3585,7 +3620,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member250: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member252: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significand", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3599,7 +3634,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member251: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member253: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nextUp", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3613,7 +3648,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member252: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member254: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .void, generics: [:],
@@ -3627,7 +3662,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member253: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member255: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formTruncatingRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .void, generics: [:],
@@ -3641,7 +3676,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member254: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member256: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSquareRoot", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -3655,7 +3690,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member255: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member257: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addProduct", isStatic: false,
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
                     returns: .void, generics: [:],
@@ -3669,7 +3704,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member256: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member258: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isEqual", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
                     returns: .bool, generics: [:],
@@ -3683,7 +3718,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member257: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member259: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isLess", isStatic: false,
                     parameters: [Parameter(label: "than", name: "other", type: .double)],
                     returns: .bool, generics: [:],
@@ -3697,7 +3732,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member258: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member260: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isLessThanOrEqualTo", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
                     returns: .bool, generics: [:],
@@ -3711,7 +3746,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member259: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member261: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNormal", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3725,7 +3760,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member260: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member262: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isFinite", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3739,7 +3774,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member261: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member263: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isZero", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3753,7 +3788,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member262: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member264: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSubnormal", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3767,7 +3802,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member263: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member265: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isInfinite", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3781,7 +3816,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member264: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member266: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNaN", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3795,7 +3830,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member265: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member267: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSignalingNaN", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3809,7 +3844,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member266: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member268: BridgedMember =                 BridgedMember(
                     kind: .property, name: "binade", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3823,7 +3858,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member267: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member269: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significandWidth", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3837,7 +3872,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member268: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member270: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "floatLiteral", name: "value", type: .double)],
                     returns: .double, generics: [:],
@@ -3850,7 +3885,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member269: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member271: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -3864,7 +3899,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member270: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member272: BridgedMember =                 BridgedMember(
                     kind: .property, name: "magnitude", isStatic: false,
                     parameters: [],
                     returns: .double, generics: [:],
@@ -3878,7 +3913,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member271: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member273: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "v", type: .int)],
                     returns: .double, generics: [:],
@@ -3891,7 +3926,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member272: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member274: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
                     returns: .double, generics: [:],
@@ -3904,7 +3939,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member273: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member275: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "exactly", name: "other", type: .double)],
                     returns: .optional(.double), generics: [:],
@@ -3917,7 +3952,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member274: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member276: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
                     returns: .double, generics: [:],
@@ -3931,7 +3966,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member275: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member277: BridgedMember =                 BridgedMember(
                     kind: .method, name: "advanced", isStatic: false,
                     parameters: [Parameter(label: "by", name: "amount", type: .double)],
                     returns: .double, generics: [:],
@@ -3945,7 +3980,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member276: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member278: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3958,7 +3993,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member277: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member279: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "value", type: .bool)],
                     returns: .bool, generics: [:],
@@ -3971,7 +4006,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member278: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member280: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [],
                     returns: .bool, generics: [:],
@@ -3984,7 +4019,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member279: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member281: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "booleanLiteral", name: "value", type: .bool)],
                     returns: .bool, generics: [:],
@@ -3997,7 +4032,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member280: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member282: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -4011,7 +4046,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member281: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member283: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: [:],
@@ -4025,7 +4060,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member282: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member284: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
                     returns: .optional(.bool), generics: [:],
@@ -4038,7 +4073,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member283: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member285: BridgedMember =                 BridgedMember(
                     kind: .method, name: "toggle", isStatic: false,
                     parameters: [],
                     returns: .void, generics: [:],
@@ -4052,21 +4087,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member284: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
-                return .list(result)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member285: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member286: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4080,7 +4101,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member286: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member287: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4094,7 +4115,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member287: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member288: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
@@ -4108,7 +4129,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member288: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member289: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4122,7 +4143,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member289: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member290: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4136,7 +4157,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member290: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member291: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4150,7 +4171,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member291: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member292: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4164,7 +4185,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member292: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member293: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4178,7 +4199,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member293: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member294: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4192,7 +4213,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member294: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member295: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -4206,7 +4227,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member295: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member296: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
@@ -4220,7 +4241,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member296: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member297: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4234,7 +4255,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member297: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member298: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
@@ -4248,7 +4269,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member298: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member299: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4262,7 +4283,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member299: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member300: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
@@ -4276,7 +4297,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member300: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member301: BridgedMember =                 BridgedMember(
                     kind: .method, name: "partition", isStatic: false,
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
@@ -4290,7 +4311,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member301: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member302: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -4304,7 +4325,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member302: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member303: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffle", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": []],
@@ -4318,7 +4339,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member303: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member304: BridgedMember =                 BridgedMember(
                     kind: .method, name: "swapAt", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -4332,7 +4353,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member304: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member305: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -4345,7 +4366,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member305: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member306: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -4358,7 +4379,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member306: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member307: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
                     returns: .void, generics: ["Element": []],
@@ -4372,7 +4393,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member307: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member308: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": []],
@@ -4386,7 +4407,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member308: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member309: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -4400,7 +4421,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member309: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member310: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -4414,7 +4435,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member310: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member311: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeSubrange", isStatic: false,
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
                     returns: .void, generics: ["Element": []],
@@ -4428,7 +4449,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member311: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member312: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -4442,7 +4463,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member312: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member313: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -4456,7 +4477,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member313: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member314: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": []],
@@ -4470,7 +4491,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member314: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member315: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -4484,7 +4505,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member315: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member316: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4498,7 +4519,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member316: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member317: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -4512,7 +4533,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member317: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member318: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -4526,7 +4547,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member318: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member319: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -4540,7 +4561,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member319: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member320: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reverse", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": []],
@@ -4554,7 +4575,21 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member320: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member321: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
+                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: [Value] = try bridgeList(args["self"]!)
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                return .list(result)
+                    }
+                )
+
+    nonisolated(unsafe) private static let member322: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -4568,7 +4603,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member321: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member323: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4582,7 +4617,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member322: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member324: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4596,7 +4631,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member323: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member325: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4610,7 +4645,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member324: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member326: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
@@ -4624,7 +4659,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member325: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member327: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
@@ -4638,7 +4673,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member326: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member328: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -4652,7 +4687,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member327: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member329: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -4666,7 +4701,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member328: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member330: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -4680,7 +4715,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member329: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member331: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
@@ -4694,7 +4729,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member330: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member332: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
@@ -4708,7 +4743,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member331: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member333: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
@@ -4722,7 +4757,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member332: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member334: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
@@ -4736,7 +4771,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member333: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member335: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -4750,7 +4785,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member334: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member336: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -4764,7 +4799,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member335: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member337: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4778,7 +4813,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member336: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member338: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Element": []],
@@ -4792,7 +4827,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member337: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member339: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -4806,7 +4841,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member338: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member340: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -4820,7 +4855,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member339: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member341: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -4834,7 +4869,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member340: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member342: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -4848,7 +4883,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member341: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member343: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
@@ -4862,7 +4897,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member342: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member344: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -4876,7 +4911,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member343: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member345: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": ["Comparable"]],
@@ -4890,7 +4925,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member344: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member346: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
@@ -4904,7 +4939,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member345: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member347: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
@@ -4918,7 +4953,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member346: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member348: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
@@ -4932,7 +4967,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member347: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member349: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -4946,7 +4981,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member348: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member350: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -4960,7 +4995,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member349: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member351: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -4974,7 +5009,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member350: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member352: BridgedMember =                 BridgedMember(
                     kind: .method, name: "joined", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
                     returns: .string, generics: ["Element": ["=String"]],
@@ -4988,7 +5023,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member351: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member353: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -5002,7 +5037,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member352: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member354: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -5016,7 +5051,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member353: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member355: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -5030,7 +5065,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member354: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member356: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -5044,7 +5079,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member355: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member357: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -5058,7 +5093,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member356: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member358: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -5072,7 +5107,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member357: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member359: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Element": []],
@@ -5086,7 +5121,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member358: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member360: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -5100,7 +5135,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member359: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member361: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -5114,7 +5149,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member360: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member362: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -5127,7 +5162,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member361: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member363: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
@@ -5141,7 +5176,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member362: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member364: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Element": []],
@@ -5155,7 +5190,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member363: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member365: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -5169,7 +5204,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member364: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member366: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5183,7 +5218,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member365: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member367: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -5197,7 +5232,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member366: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member368: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
@@ -5211,7 +5246,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member367: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member369: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Equatable"]],
@@ -5225,7 +5260,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member368: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member370: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -5239,7 +5274,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member369: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member371: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .parameter("Element"))])), generics: ["Element": []],
@@ -5253,7 +5288,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member370: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member372: BridgedMember =                 BridgedMember(
                     kind: .method, name: "get", isStatic: false,
                     parameters: [Parameter(label: nil, name: "key", type: .keyPath(.parameter("Element"), .parameter("V")))],
                     returns: .list(.parameter("V")), generics: ["Element": [], "V": []],
@@ -5269,7 +5304,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member371: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member373: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "key", type: .keyPath(.parameter("Element"), .parameter("V")), shortFlag: "b")],
                     returns: .list(.parameter("Element")), generics: ["Element": [], "V": ["Comparable"]],
@@ -5285,21 +5320,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member372: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
-                return .list(result)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member373: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member374: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5313,7 +5334,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member374: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member375: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5327,7 +5348,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member375: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member376: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
@@ -5341,7 +5362,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member376: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member377: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5355,7 +5376,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member377: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member378: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5369,7 +5390,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member378: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member379: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5383,7 +5404,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member379: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member380: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5397,7 +5418,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member380: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member381: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5411,7 +5432,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member381: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member382: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5425,7 +5446,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member382: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member383: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5439,7 +5460,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member383: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member384: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
@@ -5453,7 +5474,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member384: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member385: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5467,7 +5488,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member385: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member386: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
@@ -5481,7 +5502,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member386: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member387: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5495,7 +5516,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member387: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member388: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
@@ -5509,7 +5530,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member388: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member389: BridgedMember =                 BridgedMember(
                     kind: .method, name: "partition", isStatic: false,
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
@@ -5523,7 +5544,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member389: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member390: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -5537,7 +5558,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member390: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member391: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffle", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": []],
@@ -5551,7 +5572,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member391: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member392: BridgedMember =                 BridgedMember(
                     kind: .method, name: "swapAt", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -5565,7 +5586,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member392: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member393: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5578,7 +5599,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member393: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member394: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -5591,7 +5612,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member394: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member395: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
                     returns: .void, generics: ["Element": []],
@@ -5605,7 +5626,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member395: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member396: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": []],
@@ -5619,7 +5640,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member396: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member397: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -5633,7 +5654,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member397: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member398: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -5647,7 +5668,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member398: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member399: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeSubrange", isStatic: false,
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
                     returns: .void, generics: ["Element": []],
@@ -5661,7 +5682,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member399: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member400: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -5675,7 +5696,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member400: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member401: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -5689,7 +5710,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member401: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member402: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": []],
@@ -5703,7 +5724,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member402: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member403: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -5717,7 +5738,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member403: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member404: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5731,7 +5752,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member404: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member405: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
@@ -5745,7 +5766,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member405: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member406: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
@@ -5759,7 +5780,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member406: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member407: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -5773,7 +5794,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member407: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member408: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reverse", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": []],
@@ -5787,7 +5808,21 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member408: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member409: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
+                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                return .list(result)
+                    }
+                )
+
+    nonisolated(unsafe) private static let member410: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -5801,7 +5836,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member409: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member411: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5815,7 +5850,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member410: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member412: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5829,7 +5864,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member411: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member413: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -5843,7 +5878,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member412: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member414: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
@@ -5857,7 +5892,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member413: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member415: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
@@ -5871,7 +5906,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member414: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member416: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -5885,7 +5920,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member415: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member417: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -5899,7 +5934,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member416: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member418: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -5913,7 +5948,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member417: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member419: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
@@ -5927,7 +5962,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member418: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member420: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
@@ -5941,7 +5976,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member419: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member421: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
@@ -5955,7 +5990,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member420: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member422: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
@@ -5969,7 +6004,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member421: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member423: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -5983,7 +6018,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member422: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member424: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -5997,7 +6032,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member423: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member425: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6011,7 +6046,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member424: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member426: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Element": []],
@@ -6025,7 +6060,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member425: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member427: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6039,7 +6074,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member426: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member428: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6053,7 +6088,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member427: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member429: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6067,7 +6102,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member428: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member430: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6081,7 +6116,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member429: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member431: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
@@ -6095,7 +6130,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member430: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member432: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6109,7 +6144,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member431: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member433: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [],
                     returns: .void, generics: ["Element": ["Comparable"]],
@@ -6123,7 +6158,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member432: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member434: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
@@ -6137,7 +6172,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member433: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member435: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
@@ -6151,7 +6186,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member434: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member436: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
@@ -6165,7 +6200,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member435: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member437: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -6179,7 +6214,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member436: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member438: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -6193,7 +6228,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member437: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member439: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -6207,7 +6242,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member438: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member440: BridgedMember =                 BridgedMember(
                     kind: .method, name: "joined", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
                     returns: .string, generics: ["Element": ["=String"]],
@@ -6221,7 +6256,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member439: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member441: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6235,7 +6270,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member440: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member442: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6249,7 +6284,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member441: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member443: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6263,7 +6298,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member442: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member444: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -6277,7 +6312,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member443: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member445: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -6291,7 +6326,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member444: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member446: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -6305,7 +6340,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member445: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member447: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Element": []],
@@ -6319,7 +6354,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member446: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member448: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Element": []],
@@ -6333,7 +6368,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member447: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member449: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6347,7 +6382,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member448: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member450: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -6360,7 +6395,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member449: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member451: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Element": []],
@@ -6374,7 +6409,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member450: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member452: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Element": []],
@@ -6388,7 +6423,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member451: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member453: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
@@ -6402,7 +6437,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member452: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member454: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Element": []],
@@ -6416,7 +6451,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member453: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member455: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -6430,7 +6465,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member454: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member456: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
@@ -6444,7 +6479,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member455: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member457: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -6458,7 +6493,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member456: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member458: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
@@ -6472,7 +6507,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member457: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member459: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Equatable"]],
@@ -6486,7 +6521,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member458: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member460: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -6500,7 +6535,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member459: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member461: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .parameter("Element"))])), generics: ["Element": []],
@@ -6514,7 +6549,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member460: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member462: BridgedMember =                 BridgedMember(
                     kind: .method, name: "get", isStatic: false,
                     parameters: [Parameter(label: nil, name: "key", type: .keyPath(.parameter("Element"), .parameter("V")))],
                     returns: .list(.parameter("V")), generics: ["Element": [], "V": []],
@@ -6530,7 +6565,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member461: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member463: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "key", type: .keyPath(.parameter("Element"), .parameter("V")), shortFlag: "b")],
                     returns: .list(.parameter("Element")), generics: ["Element": [], "V": ["Comparable"]],
@@ -6546,7 +6581,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member462: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member464: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
@@ -6560,7 +6595,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member463: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member465: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -6574,7 +6609,21 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member464: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member466: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
+                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                return .list(result)
+                    }
+                )
+
+    nonisolated(unsafe) private static let member467: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
@@ -6588,7 +6637,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member465: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member468: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6602,7 +6651,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member466: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member469: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6616,7 +6665,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member467: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member470: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6630,7 +6679,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member468: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member471: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
@@ -6644,7 +6693,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member469: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member472: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -6658,7 +6707,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member470: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member473: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
@@ -6672,7 +6721,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member471: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member474: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
@@ -6686,7 +6735,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member472: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member475: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -6700,7 +6749,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member473: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member476: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -6714,7 +6763,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member474: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member477: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
@@ -6728,7 +6777,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member475: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member478: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
@@ -6742,7 +6791,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member476: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member479: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
@@ -6756,7 +6805,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member477: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member480: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -6770,7 +6819,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member478: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member481: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
@@ -6784,7 +6833,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member479: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member482: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
@@ -6798,7 +6847,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member480: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member483: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -6812,7 +6861,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member481: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member484: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6826,7 +6875,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member482: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member485: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
@@ -6840,7 +6889,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member483: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member486: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": []],
@@ -6854,7 +6903,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member484: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member487: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "sequence", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": []],
@@ -6867,7 +6916,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member485: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member488: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtract", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .void, generics: ["Element": []],
@@ -6881,7 +6930,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member486: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member489: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6895,7 +6944,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member487: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member490: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6909,7 +6958,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member488: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member491: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
@@ -6923,7 +6972,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member489: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member492: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
@@ -6937,7 +6986,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member490: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member493: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -6950,7 +6999,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member491: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member494: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -6964,21 +7013,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member492: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set containing the elements of the set that satisfy the given predicate.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
-                return SwiftValue.make(result, as: "Set")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member493: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member495: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
@@ -6992,7 +7027,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member494: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member496: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7006,7 +7041,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member495: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member497: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
@@ -7020,7 +7055,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member496: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member498: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newMember", type: .parameter("Element"))],
                     returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), generics: ["Element": ["Hashable"]],
@@ -7034,7 +7069,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member497: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member499: BridgedMember =                 BridgedMember(
                     kind: .method, name: "update", isStatic: false,
                     parameters: [Parameter(label: "with", name: "newMember", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -7048,7 +7083,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member498: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member500: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -7062,7 +7097,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member499: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member501: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7076,7 +7111,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member500: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member502: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": ["Hashable"]],
@@ -7090,7 +7125,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member501: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member503: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7103,7 +7138,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member502: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member504: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleSuperset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7117,7 +7152,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member503: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member505: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleStrictSuperset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7131,7 +7166,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member504: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member506: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleSubset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7145,7 +7180,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member505: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member507: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleStrictSubset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7159,7 +7194,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member506: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member508: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isDisjoint", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7173,7 +7208,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member507: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member509: BridgedMember =                 BridgedMember(
                     kind: .method, name: "union", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7187,7 +7222,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member508: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member510: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formUnion", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7201,7 +7236,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member509: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member511: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtracting", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7215,7 +7250,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member510: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member512: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtract", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7229,7 +7264,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member511: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member513: BridgedMember =                 BridgedMember(
                     kind: .method, name: "intersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7243,7 +7278,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member512: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member514: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formIntersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7257,7 +7292,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member513: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member515: BridgedMember =                 BridgedMember(
                     kind: .method, name: "symmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7271,7 +7306,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member514: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member516: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSymmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7285,7 +7320,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member515: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member517: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Element": ["Hashable"]],
@@ -7299,7 +7334,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member516: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member518: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Element": ["Hashable"]],
@@ -7313,7 +7348,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member517: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member519: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7327,7 +7362,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member518: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member520: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7341,7 +7376,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member519: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member521: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isDisjoint", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7355,7 +7390,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member520: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member522: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtracting", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7369,7 +7404,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member521: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member523: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7383,7 +7418,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member522: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member524: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
@@ -7397,7 +7432,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member523: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member525: BridgedMember =                 BridgedMember(
                     kind: .method, name: "intersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
@@ -7411,7 +7446,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member524: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member526: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSymmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7425,7 +7460,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member525: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member527: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popFirst", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -7439,7 +7474,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member526: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member528: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
@@ -7453,7 +7488,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member527: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member529: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
                     returns: .void, generics: ["Element": ["Hashable"]],
@@ -7467,7 +7502,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member528: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member530: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
@@ -7481,7 +7516,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member529: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member531: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
@@ -7495,7 +7530,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member530: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member532: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -7509,7 +7544,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member531: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member533: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -7523,7 +7558,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member532: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member534: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
@@ -7537,7 +7572,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member533: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member535: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Hashable"]],
@@ -7551,7 +7586,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member534: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member536: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .parameter("Element"))])), generics: ["Element": []],
@@ -7565,7 +7600,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     }
                 )
 
-    nonisolated(unsafe) private static let member535: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member537: BridgedMember =                 BridgedMember(
                     kind: .method, name: "get", isStatic: false,
                     parameters: [Parameter(label: nil, name: "key", type: .keyPath(.parameter("Element"), .parameter("V")))],
                     returns: .list(.parameter("V")), generics: ["Element": [], "V": []],
@@ -7581,7 +7616,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member536: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member538: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "key", type: .keyPath(.parameter("Element"), .parameter("V")), shortFlag: "b")],
                     returns: .list(.parameter("Element")), generics: ["Element": [], "V": ["Comparable"]],
@@ -7597,7 +7632,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member537: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member539: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Key": [], "T": [], "Value": []],
@@ -7611,7 +7646,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member538: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member540: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7625,7 +7660,21 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member539: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member541: BridgedMember =                 BridgedMember(
+                    kind: .method, name: "filter", isStatic: false,
+                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    isThrowing: false, isRethrowing: true, isMutating: false,
+                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    body: .native { shell, args in
+                        _ = shell
+                        let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                let result: [(key: Value, value: Value)] = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                return .list(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } })
+                    }
+                )
+
+    nonisolated(unsafe) private static let member542: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .void, throws: true))],
                     returns: .void, generics: ["Key": [], "Value": []],
@@ -7639,7 +7688,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member540: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member543: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7653,7 +7702,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member541: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member544: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7667,7 +7716,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member542: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member545: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7681,7 +7730,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member543: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member546: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "PossiblePrefix.Element": [], "Value": []],
@@ -7695,7 +7744,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member544: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member547: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "OtherSequence.Element": [], "Value": []],
@@ -7709,7 +7758,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member545: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member548: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
@@ -7723,7 +7772,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member546: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member549: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
@@ -7737,7 +7786,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member547: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member550: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
@@ -7751,7 +7800,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member548: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member551: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .int, generics: ["Key": [], "Value": []],
@@ -7765,7 +7814,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member549: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member552: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Key": [], "Result": [], "Value": []],
@@ -7779,7 +7828,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member550: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member553: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7793,7 +7842,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member551: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member554: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Key": [], "SegmentOfResult.Element": [], "Value": []],
@@ -7807,7 +7856,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member552: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member555: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": [], "Key": [], "Value": []],
@@ -7821,7 +7870,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member553: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member556: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7835,7 +7884,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member554: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member557: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7849,7 +7898,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member555: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member558: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -7863,7 +7912,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member556: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member559: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Key": [], "Value": []],
@@ -7877,7 +7926,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member557: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member560: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -7890,7 +7939,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member558: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member561: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -7903,7 +7952,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member559: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member562: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -7916,7 +7965,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member560: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member563: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -7929,21 +7978,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member561: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
-                return bridgeDictionary(result)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member562: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member564: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": []],
@@ -7957,7 +7992,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member563: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member565: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Key": ["Hashable"], "Value": []],
@@ -7971,7 +8006,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member564: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member566: BridgedMember =                 BridgedMember(
                     kind: .method, name: "mapValues", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .parameter("T"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
@@ -7985,7 +8020,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member565: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member567: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMapValues", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .optional(.parameter("T")), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
@@ -7999,7 +8034,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member566: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member568: BridgedMember =                 BridgedMember(
                     kind: .method, name: "updateValue", isStatic: false,
                     parameters: [Parameter(label: nil, name: "value", type: .parameter("Value")), Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -8013,7 +8048,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member567: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member569: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merge", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
@@ -8027,7 +8062,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member568: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member570: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merge", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
@@ -8041,7 +8076,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member569: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member571: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merging", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -8055,7 +8090,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member570: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member572: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merging", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -8069,7 +8104,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member571: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member573: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeValue", isStatic: false,
                     parameters: [Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
@@ -8083,7 +8118,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member572: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member574: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
@@ -8097,7 +8132,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member573: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member575: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": ["Hashable"]],
@@ -8111,7 +8146,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member574: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member576: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popFirst", isStatic: false,
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": ["Hashable"], "Value": []],
@@ -8125,7 +8160,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member575: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member577: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": []],
@@ -8139,7 +8174,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member576: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member578: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
@@ -8153,7 +8188,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member577: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member579: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -8167,7 +8202,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member578: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member580: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -8181,7 +8216,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member579: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member581: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
@@ -8195,7 +8230,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member580: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member582: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))])), generics: ["Key": [], "Value": []],
@@ -8209,7 +8244,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member581: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member583: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "nilLiteral", name: "nilLiteral", type: .void)],
                     returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
@@ -8222,7 +8257,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member582: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member584: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .parameter("U"), throws: true))],
                     returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
@@ -8236,7 +8271,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member583: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member585: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .optional(.parameter("U")), throws: true))],
                     returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
@@ -8250,7 +8285,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member584: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member586: BridgedMember =                 BridgedMember(
                     kind: .property, name: "unsafelyUnwrapped", isStatic: false,
                     parameters: [],
                     returns: .parameter("Wrapped"), generics: ["Wrapped": []],
@@ -8264,7 +8299,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member585: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member587: BridgedMember =                 BridgedMember(
                     kind: .method, name: "take", isStatic: false,
                     parameters: [],
                     returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
@@ -8278,7 +8313,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member586: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member588: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Wrapped": ["Hashable"]],
@@ -8292,7 +8327,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member587: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member589: BridgedMember =                 BridgedMember(
                     kind: .property, name: "lowerBound", isStatic: false,
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
@@ -8306,7 +8341,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member588: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member590: BridgedMember =                 BridgedMember(
                     kind: .property, name: "upperBound", isStatic: false,
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
@@ -8320,7 +8355,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member589: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member591: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
                     returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
@@ -8333,7 +8368,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member590: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member592: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -8347,7 +8382,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member591: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member593: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Bound": []],
@@ -8361,7 +8396,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member592: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member594: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8375,7 +8410,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member593: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member595: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8389,7 +8424,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member594: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member596: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8403,7 +8438,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member595: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member597: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8417,7 +8452,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member596: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member598: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "n", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8431,7 +8466,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member597: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member599: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8445,7 +8480,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member598: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member600: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8459,7 +8494,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member599: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member601: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.int]))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8472,7 +8507,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member600: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member602: BridgedMember =                 BridgedMember(
                     kind: .method, name: "clamped", isStatic: false,
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
@@ -8486,7 +8521,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member601: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member603: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
@@ -8500,7 +8535,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member602: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member604: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
@@ -8514,7 +8549,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member603: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member605: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
@@ -8528,7 +8563,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member604: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member606: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -8542,7 +8577,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member605: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member607: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -8556,7 +8591,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member606: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member608: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -8570,7 +8605,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member607: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member609: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -8584,7 +8619,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member608: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member610: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8598,7 +8633,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member609: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member611: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8612,7 +8647,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member610: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member612: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8626,7 +8661,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member611: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member613: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8640,7 +8675,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member612: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member614: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8654,7 +8689,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member613: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member615: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8668,7 +8703,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member614: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member616: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -8682,7 +8717,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member615: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member617: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
@@ -8696,7 +8731,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member616: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member618: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8710,7 +8745,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member617: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member619: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8724,7 +8759,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member618: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member620: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8738,7 +8773,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member619: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member621: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8752,7 +8787,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member620: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member622: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8766,7 +8801,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member621: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member623: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8780,7 +8815,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member622: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member624: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -8794,7 +8829,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member623: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member625: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
@@ -8808,7 +8843,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member624: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member626: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
@@ -8822,7 +8857,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member625: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member627: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8836,7 +8871,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member626: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member628: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8850,7 +8885,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member627: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member629: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8864,7 +8899,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member628: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member630: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8878,7 +8913,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member629: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member631: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8892,7 +8927,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member630: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member632: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8906,7 +8941,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member631: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member633: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -8920,7 +8955,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member632: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member634: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -8934,7 +8969,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member633: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member635: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
                     returns: .void, generics: ["Bound": ["=Int"]],
@@ -8948,7 +8983,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member634: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member636: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8962,7 +8997,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member635: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member637: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8976,7 +9011,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member636: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member638: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -8990,7 +9025,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member637: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member639: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9004,7 +9039,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member638: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member640: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9018,7 +9053,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member639: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member641: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
@@ -9032,7 +9067,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member640: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member642: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9046,7 +9081,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member641: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member643: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
@@ -9060,7 +9095,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member642: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member644: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9074,7 +9109,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member643: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member645: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9088,7 +9123,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member644: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member646: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9102,7 +9137,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member645: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member647: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9116,7 +9151,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member646: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member648: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9130,7 +9165,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member647: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member649: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -9144,7 +9179,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member648: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member650: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
@@ -9158,7 +9193,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member649: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member651: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9172,7 +9207,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member650: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member652: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
@@ -9186,7 +9221,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member651: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member653: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
@@ -9200,7 +9235,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member652: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member654: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9214,7 +9249,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member653: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member655: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9228,7 +9263,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member654: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member656: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -9242,7 +9277,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member655: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member657: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.int))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
@@ -9256,7 +9291,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member656: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member658: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9270,7 +9305,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member657: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member659: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), generics: ["Bound": ["=Int"]],
@@ -9284,7 +9319,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member658: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member660: BridgedMember =                 BridgedMember(
                     kind: .property, name: "lowerBound", isStatic: false,
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
@@ -9298,7 +9333,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member659: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member661: BridgedMember =                 BridgedMember(
                     kind: .property, name: "upperBound", isStatic: false,
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
@@ -9312,7 +9347,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member660: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member662: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
                     returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
@@ -9325,7 +9360,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member661: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member663: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -9339,7 +9374,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member662: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member664: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -9353,7 +9388,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member663: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member665: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9367,7 +9402,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member664: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member666: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -9381,7 +9416,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member665: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member667: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
@@ -9395,7 +9430,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member666: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member668: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
@@ -9409,7 +9444,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member667: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member669: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
@@ -9423,7 +9458,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member668: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member670: BridgedMember =                 BridgedMember(
                     kind: .method, name: "clamped", isStatic: false,
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
@@ -9437,7 +9472,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member669: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member671: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
                     returns: .generic("ClosedRange", [.int]), generics: ["Bound": ["=Int"]],
@@ -9450,7 +9485,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member670: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member672: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -9464,7 +9499,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member671: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member673: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
@@ -9478,7 +9513,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member672: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member674: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -9492,7 +9527,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member673: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member675: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9506,7 +9541,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member674: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member676: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9520,7 +9555,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member675: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member677: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -9534,7 +9569,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member676: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member678: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
@@ -9548,7 +9583,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member677: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member679: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9562,7 +9597,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member678: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member680: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9576,7 +9611,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member679: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member681: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9590,7 +9625,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member680: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member682: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9604,7 +9639,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member681: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member683: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
                     returns: .void, generics: ["Bound": ["=Int"]],
@@ -9618,7 +9653,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member682: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member684: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9632,7 +9667,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member683: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member685: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
@@ -9646,7 +9681,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member684: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member686: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
@@ -9660,7 +9695,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member685: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member687: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9674,7 +9709,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member686: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member688: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9688,7 +9723,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member687: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member689: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9702,7 +9737,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member688: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member690: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9716,7 +9751,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member689: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member691: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9730,7 +9765,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member690: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member692: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9744,7 +9779,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member691: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member693: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
@@ -9758,7 +9793,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member692: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member694: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
@@ -9772,7 +9807,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member693: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member695: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9786,7 +9821,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member694: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member696: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
@@ -9800,7 +9835,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member695: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member697: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9814,7 +9849,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member696: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member698: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9828,7 +9863,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member697: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member699: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9842,7 +9877,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member698: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member700: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9856,7 +9891,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member699: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member701: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
@@ -9870,7 +9905,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member700: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member702: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .int, generics: ["Bound": ["=Int"]],
@@ -9884,7 +9919,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member701: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member703: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
@@ -9898,7 +9933,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member702: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member704: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9912,7 +9947,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member703: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member705: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
@@ -9926,7 +9961,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member704: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member706: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
@@ -9940,7 +9975,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member705: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member707: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9954,7 +9989,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member706: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member708: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9968,7 +10003,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member707: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member709: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uniqued", isStatic: false,
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
@@ -9982,7 +10017,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member708: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member710: BridgedMember =                 BridgedMember(
                     kind: .method, name: "enumerated", isStatic: false,
                     parameters: [],
                     returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), generics: ["Bound": ["=Int"]],
@@ -9996,7 +10031,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member709: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member711: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "read", type: .functionType([], .optional(.parameter("Element")), throws: true))],
                     returns: .generic("Flow", [.parameter("Element")]), generics: ["Element": []],
@@ -10009,7 +10044,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member710: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member712: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "items", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Flow", [.parameter("Element")]), generics: ["Element": []],
@@ -10022,7 +10057,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member711: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member713: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("Flow", [.parameter("Element")]), generics: ["Element": []],
@@ -10036,7 +10071,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member712: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member714: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .generic("Flow", [.parameter("T")]), generics: ["Element": [], "T": []],
@@ -10050,7 +10085,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member713: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member715: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("T")), throws: true))],
                     returns: .generic("Flow", [.parameter("T")]), generics: ["Element": [], "T": []],
@@ -10064,7 +10099,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     }
                 )
 
-    nonisolated(unsafe) private static let member714: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member716: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("Flow", [.parameter("Element")]), generics: ["Element": []],

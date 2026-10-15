@@ -140,6 +140,7 @@ extension Lowering {
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         // The fixed-width integers are Int here, without its overflow rules.
         if Lowering.fixedWidthIntegers.contains(name), bound[name] == nil, !declaredTypes.contains(name) { return .variable("Int") }
+        if let target = Lowering.swiftAliases[name], bound[name] == nil, !declaredTypes.contains(name) { return .variable(target) }
         return .variable(name)
     }
 
@@ -257,6 +258,8 @@ extension Lowering {
         if let reference = base.as(DeclReferenceExprSyntax.self) {
             let outer = reference.baseName.text == "Self" ? currentType : (nestedNames[reference.baseName.text] ?? reference.baseName.text)
             if let outer, declaredTypes.contains(outer + "." + name) { return .variable(outer + "." + name) }
+            // A type of Swift's inside a namespace: `Unicode.Scalar`.
+            if bound[reference.baseName.text] == nil, bound[reference.baseName.text + "." + name] == .type { return .variable(reference.baseName.text + "." + name) }
         }
         if let nested = base.as(MemberAccessExprSyntax.self), case .variable(let outer)? = try? member(nested), declaredTypes.contains(outer + "." + name) {
             return .variable(outer + "." + name)

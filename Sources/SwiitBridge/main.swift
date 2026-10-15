@@ -70,7 +70,7 @@ let graph: Graph = try {
 /// parameters, and the name of the list the output declares.
 let modules: [String: (list: String, types: [(String, [String])], functions: String?, external: [String], records: [String], outsideCore: Bool)] = [
     "Swift": ("standardLibrary", [
-        ("String", []), ("Substring", []), ("Character", []), ("Int", []), ("Double", []), ("Bool", []),
+        ("String", []), ("Substring", []), ("Character", []), ("Unicode.Scalar", []), ("Int", []), ("Double", []), ("Bool", []),
         ("Array", ["Element"]), ("ArraySlice", ["Element"]), ("Set", ["Element"]), ("Dictionary", ["Key", "Value"]),
         ("Optional", ["Wrapped"]), ("Range", ["Bound"]), ("ClosedRange", ["Bound"]),
         // The interpreter's own, which a pipeline reads lazily (SwiitStandardLibrary).

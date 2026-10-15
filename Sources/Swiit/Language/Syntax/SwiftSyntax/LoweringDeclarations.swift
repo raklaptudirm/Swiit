@@ -64,6 +64,8 @@ extension Lowering {
     /// The modules whose declarations are always there.
     /// Swift's other integer types, which Swiit reads as Int.
     static let fixedWidthIntegers: Set<String> = ["Int8", "Int16", "Int32", "Int64", "UInt", "UInt8", "UInt16", "UInt32", "UInt64"]
+    /// Types Swift's standard library spells two ways: the old name, and the type it is.
+    static let swiftAliases = ["UnicodeScalar": "Unicode.Scalar"]
     static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "SwiitKit", "_StringProcessing"]
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
@@ -865,6 +867,7 @@ extension Lowering {
             if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil, bound[name] == nil, !declaredTypes.contains(name) {
                 return .int
             }
+            if let target = Lowering.swiftAliases[name], bound[name] == nil, !declaredTypes.contains(name) { return .named(target) }
             let isGenericEnum = facts.genericEnums.contains(nestedNames[name] ?? name) || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
             if let clause = identifier.genericArgumentClause, isGenericEnum {
                 let arguments = try clause.arguments.map { argument -> TypeAnnotation in
