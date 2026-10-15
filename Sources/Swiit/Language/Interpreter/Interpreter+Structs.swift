@@ -536,10 +536,12 @@ extension Interpreter {
         case (.member(let name), .record(var record)):
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.
-                if let setter = structType.setters[name] ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first, rest.isEmpty {
-                    let current = task.assigningPlainly ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
+                if let setter = structType.setters[name] ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first {
+                    // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set back.
+                    let current = task.assigningPlainly && rest.isEmpty ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
                     let receiver = Receiver(.record(record), mutable: true)
-                    let newValue = try change(current, structType.computed[name]?.returnType)
+                    let returnType = structType.computed[name]?.returnType
+                    let newValue = try rest.isEmpty ? change(current, returnType) : updated(current, rest, type: returnType, change)
                     let parameter = setter.parameters[0]
                     _ = try invoke(setter, with: [parameter.name: try checked(newValue, for: parameter, of: name)], receiver: receiver)
                     return receiver.value

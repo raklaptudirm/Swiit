@@ -1127,7 +1127,21 @@
     "Substring\tswift.property\tunderestimatedCount",
     "Substring\tswift.property\tunicodeScalars",
     "Substring\tswift.property\tutf16",
-    "Substring\tswift.property\tutf8"
+    "Substring\tswift.property\tutf8",
+    "Unicode.Scalar\tswift.init\tinit(_:)",
+    "Unicode.Scalar\tswift.init\tinit(unicodeScalarLiteral:)",
+    "Unicode.Scalar\tswift.method\tescaped(asASCII:)",
+    "Unicode.Scalar\tswift.method\thash(into:)",
+    "Unicode.Scalar\tswift.method\twrite(to:)",
+    "Unicode.Scalar\tswift.property\tcustomMirror",
+    "Unicode.Scalar\tswift.property\tdebugDescription",
+    "Unicode.Scalar\tswift.property\tdescription",
+    "Unicode.Scalar\tswift.property\thashValue",
+    "Unicode.Scalar\tswift.property\tisASCII",
+    "Unicode.Scalar\tswift.property\tproperties",
+    "Unicode.Scalar\tswift.property\tutf16",
+    "Unicode.Scalar\tswift.property\tutf8",
+    "Unicode.Scalar\tswift.property\tvalue"
   ],
   "module" : "Swift",
   "platform" : "linux"

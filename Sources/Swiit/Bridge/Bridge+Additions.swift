@@ -139,6 +139,11 @@ extension Bridge {
     nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [ // safe: set once, before anything reads it
         "Array": [reduceInto, lazyMember(.parameter("Element"))], "Set": [reduceInto, lazyMember(.parameter("Element"))],
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))], "Range": [reduceInto, lazyMember(.parameter("Bound"))],
+        "Unicode.Scalar": [
+            member(.property, "value", returns: .int, summary: "The scalar's number, as Unicode gives it.") { _, arguments in
+                .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, arguments["self"] ?? .nothing).value))
+            },
+        ],
         "Flow": [
             member(.method, "reversed", returns: .generic("Flow", [.parameter("Element")]), summary: "The items in the opposite order.") { _, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing, let flow = box.value as? Flow<Value> else { return .nothing }

@@ -2373,7 +2373,7 @@
   "name": "swift-test/simple",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\n// CHECK: 123ABCD\n// CHECK: Hello ☃\n// CHECK: Hello ☃\n\nif (true) {\n  print(123, terminator: \"\")\n  print(UnicodeScalar(65)!, terminator: \"\")\n  print(UnicodeScalar(66)!, terminator: \"\")\n  print(UnicodeScalar(67)!, terminator: \"\")\n  print(UnicodeScalar(0o104)!, terminator: \"\")\n  print(UnicodeScalar(10)!, terminator: \"\")\n  print(\"Hello \\u{2603}\\n\", terminator: \"\")  // Hi Snowman!\n  print(\"Hello ☃\\n\", terminator: \"\")\n}\n",
   "expected": "123ABCD\nHello ☃\nHello ☃\n",
-  "status": "todo"
+  "status": "ok"
  },
  {
   "name": "swift-test/slices",
@@ -2427,6 +2427,6 @@
   "name": "swift-test/writeback",
   "source": "// RUN: %target-run-simple-swift | %FileCheck %s\n// REQUIRES: executable_test\n\nstruct Foo {\n  var _x : (Int, UnicodeScalar, String)\n\n  var x : (Int, String, UnicodeScalar) {\n    get {\n      var (a, b, c) = _x\n      return (a, c, b)\n    }\n\n    mutating\n    set {\n      var (a, b, c) = newValue\n      _x = (a, c, b)\n    }\n  }\n\n  init(a:Int, b:String, c:UnicodeScalar) {\n    _x = (a, c, b)\n  }\n}\n\nvar foo = Foo(a: 1, b: \"two\", c: \"3\")\n\nfoo.x.0 = 4\nfoo.x.1 = \"five\"\nfoo.x.2 = \"6\"\n\n// CHECK: 4\n// CHECK: five\n// CHECK: 6\nprint(foo.x.0)\nprint(foo.x.1)\nprint(foo.x.2)\n\nstruct Bar {\n  var _foo : Foo\n\n  var foo : Foo {\n    get {\n      return _foo\n    }\n\n    mutating\n    set {\n      _foo = newValue\n    }\n  }\n}\n\nvar bar = Bar(_foo: Foo(a: 1, b: \"two\", c: \"3\"))\n\nbar.foo.x.0 = 7\nbar.foo.x.1 = \"eight\"\nbar.foo.x.2 = \"9\"\n\n// CHECK: 7\n// CHECK: eight\n// CHECK: 9\nprint(bar.foo.x.0)\nprint(bar.foo.x.1)\nprint(bar.foo.x.2)\n\n(foo, bar.foo) = (bar.foo, foo)\n\n// CHECK: 4\n// CHECK: five\n// CHECK: 6\nprint(bar.foo.x.0)\nprint(bar.foo.x.1)\nprint(bar.foo.x.2)\n\n(foo.x, bar.foo.x) = (bar.foo.x, foo.x)\n\n// CHECK: 7\n// CHECK: eight\n// CHECK: 9\nprint(bar.foo.x.0)\nprint(bar.foo.x.1)\nprint(bar.foo.x.2)\n\n(foo.x.0, bar.foo.x.0) = (bar.foo.x.0, foo.x.0)\n\n// CHECK: 4\n// CHECK: eight\n// CHECK: 9\nprint(bar.foo.x.0)\nprint(bar.foo.x.1)\nprint(bar.foo.x.2)\n\n",
   "expected": "4\nfive\n6\n7\neight\n9\n4\nfive\n6\n7\neight\n9\n4\neight\n9\n",
-  "status": "todo"
+  "status": "ok"
  }
 ]
