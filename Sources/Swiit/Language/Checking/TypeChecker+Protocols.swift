@@ -96,7 +96,7 @@ extension TypeChecker {
             }
             for initializer in required.initializers {
                 let labels = initializer.parameters.map(\.label)
-                let provided = (info?.initializers ?? []) + (info.map { $0.initializers.isEmpty ? [$0.memberwise] : [] } ?? [])
+                let provided = (info?.initializers ?? []) + (info.map { $0.initializers.isEmpty ? [$0.memberwise] : [] } ?? []) + (ext?.initializers ?? [])
                 guard provided.contains(where: { $0.parameters.map(\.label) == labels }) else {
                     throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs init(\(labels.map { ($0 ?? "_") + ":" }.joined()))")
                 }

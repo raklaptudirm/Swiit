@@ -329,7 +329,7 @@ struct SwiftPrinter {
         case .forceUnwrap(let inner): return "\(operand(inner))!"
         case .optionalMember(let base, let name): return "\(operand(base))?.\(name)"
         case .optionalIndex(let base, let index): return "\(operand(base))?[\(expression(index))]"
-        case .chosen(let inner, _): return expression(inner)
+        case .chosen(let inner, _), .specialized(let inner, _): return expression(inner)
         // A Swift member the checker chose: the call it is.
         case .bridged(let type, let index, let receiver, let args):
             guard let members = Bridge.types[type]?.members, members.indices.contains(index) else {

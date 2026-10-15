@@ -135,7 +135,7 @@ extension Interpreter {
             let function = Function(
                 name: decl.name, parameters: decl.parameters, returnType: decl.returnType,
                 body: .swiit(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
-                isThrowing: decl.isThrowing, effect: decl.effect
+                isThrowing: decl.isThrowing, effect: decl.effect, typeParameters: decl.runtimeTypeParameters
             )
             // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_ items: Any...)`.
             let current = scopes[scopes.count - 1]

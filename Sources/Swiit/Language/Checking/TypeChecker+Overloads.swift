@@ -21,8 +21,9 @@ extension TypeChecker {
             var attempt = arguments
             throwingSites = sitesBefore
             do {
-                let (cost, uncertain, returns, throwing) = try match(&attempt, to: candidate, bindings: bindings)
+                let (cost, uncertain, returns, throwing, solved) = try match(&attempt, to: candidate, bindings: bindings)
                 var resolved = candidate
+                resolved.solved = solved
                 resolved.returns = returns
                 resolved.isThrowing = throwing
                 fitting.append((resolved, cost, uncertain, attempt, throwingSites))
@@ -100,7 +101,7 @@ extension TypeChecker {
     /// Output as its text) and untyped parameters, which match anything.
     func match(
         _ arguments: inout [Argument], to signature: Signature, bindings initial: [String: TypeAnnotation]
-    ) throws -> (cost: Int, uncertain: Bool, returns: TypeAnnotation, throws: Bool) {
+    ) throws -> (cost: Int, uncertain: Bool, returns: TypeAnnotation, throws: Bool, solved: [String: TypeAnnotation]) {
         let name = signature.name
         var cost = 0
         var uncertain = false
@@ -161,6 +162,8 @@ extension TypeChecker {
                 // parameter doesn't either, as Swift ranks them: `Task { 1 }`
                 // is a `Task<Int, Never>`.
                 if case .functionType(_, _, false, _) = actual, case .functionType(_, _, true, _) = wanted { cost += 1 }
+                // A closure that gives a value takes the overload that wants one over the one that drops it.
+                if case .functionType(_, let given, _, _) = actual, case .functionType(_, .void, _, _) = wanted, given != .void, given != .unknown { cost += 1 }
             }
             index += 1
         }
@@ -197,7 +200,7 @@ extension TypeChecker {
             }
         }
         let throwing = signature.isThrowing || signature.isRethrowing && argumentsThrow
-        return (cost, uncertain, substitute(signature.returns, bindings), throwing)
+        return (cost, uncertain, substitute(signature.returns, bindings), throwing, bindings)
     }
 
     /// Whether an argument has a type of its own, apart from context: not a

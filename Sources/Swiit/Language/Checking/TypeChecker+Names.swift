@@ -36,9 +36,11 @@ extension TypeChecker {
         // A builtin that hasn't declared its result isn't known; a Swiit
         // function without `->` returns nothing.
         let returns = function.returnType ?? (function.isBuiltin ? .unknown : .void)
-        return Signature(name: function.name ?? "closure", parameters: function.parameters, returns: returns,
-                         isMutating: function.isMutating, isThrowing: function.isThrowing,
-                         isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)
+        var made = Signature(name: function.name ?? "closure", parameters: function.parameters, returns: returns,
+                             isMutating: function.isMutating, isThrowing: function.isThrowing,
+                             isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)
+        made.typeParameters = function.typeParameters
+        return made
     }
 
     @_spi(Layer) public func structInfo(named name: String) -> StructInfo? {

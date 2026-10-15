@@ -102,7 +102,7 @@ public final class NativeFunction: Callable, @unchecked Sendable { // safe: its 
     }
 
     public var description: String {
-        "<func \(function.name)(\(function.parameters.map { ($0.label ?? "_") + ":" }.joined()))>"
+        "(Function)"
     }
 }
 

@@ -80,6 +80,9 @@ import SwiitKit
     /// A function, method or initializer, with the overload the checker
     /// chose: the candidate at that position. Only the checker makes these.
     case chosen(Expr, overload: Int)
+    /// A generic function as called here, with the types its type parameters
+    /// are in this call, for a body that names them (`T()`, `x as? T`). Only the checker makes these.
+    case specialized(Expr, [TypeArgument])
     /// A member of a Swift type, bridged (Bridge.swift): the member the
     /// checker chose, by its position among its type's, with `self` if it
     /// isn't static. Only the checker makes these.
@@ -148,4 +151,11 @@ import SwiitKit
     case wrapAdd = "&+", wrapSubtract = "&-", wrapMultiply = "&*"
     /// Shifts by the amount's low bits: `1 &<< 65` is `1 << 1`.
     case maskShiftLeft = "&<<", maskShiftRight = "&>>"
+}
+
+/// What a type parameter is in one call: `T` is `Int`.
+public struct TypeArgument: Hashable, Sendable {
+    @_spi(Layer) public var name: String
+    @_spi(Layer) public var type: TypeAnnotation
+    @_spi(Layer) public init(name: String, type: TypeAnnotation) { self.name = name; self.type = type }
 }

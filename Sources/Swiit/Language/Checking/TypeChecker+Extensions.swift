@@ -65,6 +65,10 @@ extension TypeChecker {
             guard let defaults = ownExtensionInfo(forKey: proto) else { continue }
             if var existing = info { existing.merge(defaults); info = existing } else { info = defaults }
         }
+        // A subclass has what the extensions of its superclasses add, and the defaults of the protocols they conform to.
+        if let parent = structInfo(named: key)?.superclass, parent != key, let inherited = extensionInfo(forKey: parent) {
+            if var existing = info { existing.merge(inherited); info = existing } else { info = inherited }
+        }
         return info
     }
 

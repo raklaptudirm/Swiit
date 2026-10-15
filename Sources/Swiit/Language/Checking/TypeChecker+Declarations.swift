@@ -25,6 +25,7 @@ extension TypeChecker {
             isRethrowing: decl.isRethrowing, effect: decl.effect, generics: decl.generics
         )
         declared.thrownType = decl.thrownType
+        declared.typeParameters = decl.runtimeTypeParameters
         overloads.append(declared)
         for index in overloads.indices { overloads[index].index = index }
         scopes[scopes.count - 1][decl.name] = .functions(overloads)
@@ -58,6 +59,8 @@ extension TypeChecker {
             let known = substitute(parameter.type, [:])
             names[parameter.name] = .variable(parameter.variadic ? .list(known) : known, mutable: parameter.isInout)
         }
+        // A type parameter is a value in the body too (`T()`, `T.self`), of a type that isn't known there.
+        for parameter in decl.generics.keys where names[parameter] == nil { names[parameter] = .variable(.unknown, mutable: false) }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
         // `super` is the class above, as `self`.
         if case .named(let className)? = selfType, let info = structInfo(named: className), let parent = info.superclass {

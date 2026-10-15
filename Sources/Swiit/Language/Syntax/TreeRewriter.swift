@@ -241,6 +241,8 @@ import SwiitKit
             rewritten = .optionalIndex(expression(base), expression(index))
         case .chosen(let inner, let overload):
             rewritten = .chosen(expression(inner), overload: overload)
+        case .specialized(let inner, let arguments):
+            rewritten = .specialized(expression(inner), arguments)
         case .bridged(let type, let member, let receiver, let args):
             rewritten = .bridged(type: type, member: member, receiver: receiver.map(expression), arguments: arguments(args))
         case .cast(let inner, let type, let kind):

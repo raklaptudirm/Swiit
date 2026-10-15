@@ -206,6 +206,21 @@ extension Interpreter {
         case .someSequence:
             // Any sequence; the glue takes its items.
             return value
+        case .metatype(let wrapped):
+            // A type, of the kind the type parameter or class says (a subclass's type is its superclass's too).
+            guard let held = annotation(ofTypeValue: value) else { return nil }
+            switch wrapped {
+            case .any, .parameter, .unknown: return value
+            case .named(let name):
+                if case .object(let object as ClassType) = value, let above = classType(named: name) { return object.isSubclass(of: above) ? value : nil }
+                if protocolType(named: name) != nil || name == "Error" { return typeValue(value, conformsTo: name) ? value : nil }
+                return held == wrapped ? value : nil
+            default: return held == wrapped ? value : nil
+            }
+        case .parameter(let name):
+            // A type parameter is what the call bound it to, if the body names it; otherwise any type.
+            guard let bound = lookup(Interpreter.typeArgumentPrefix + name)?.value, let annotation = annotation(ofTypeValue: bound) else { return value }
+            return conform(value, to: annotation)
         case .optional(let wrapped):
             return value == .nothing ? value : conform(value, to: wrapped)
         case .list(let element):
@@ -328,6 +343,8 @@ extension Interpreter {
             return name == "Error" || structType(named: name)?.conformances.contains("Error") == true
         case .enumValue(let enumValue):
             return enumConformances[ObjectIdentifier(enumValue.type)]?.contains("Error") == true
+        case .object(let instance as ClassInstance):
+            return instance.type.allConformances.contains("Error")
         default:
             return false
         }

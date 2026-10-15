@@ -29,6 +29,8 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
     public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
     public let generics: [String: [String]]
+    /// Of those, the ones its body names: a call binds them (`specialized`).
+    public let typeParameters: Set<String>
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
     /// `convenience init`: made through another of the class's initializers.
@@ -40,8 +42,9 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:],
-        isFailable: Bool = false, isConvenience: Bool = false
+        isFailable: Bool = false, isConvenience: Bool = false, typeParameters: Set<String> = []
     ) {
+        self.typeParameters = typeParameters
         self.isFailable = isFailable
         self.isConvenience = isConvenience
         self.isRethrowing = isRethrowing
@@ -57,6 +60,16 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         self.documentation = documentation
     }
 
+    /// It, with `scope` among what it captured: the types of its type parameters, for one call.
+    func capturing(_ scope: Scope) -> Function {
+        let copy = Function(
+            name: name, parameters: parameters, returnType: returnType, body: body, captured: captured + [scope],
+            documentation: documentation, isMutating: isMutating, isThrowing: isThrowing, isRethrowing: isRethrowing,
+            effect: effect, generics: generics, isFailable: isFailable, isConvenience: isConvenience, typeParameters: typeParameters)
+        copy.owner = owner
+        return copy
+    }
+
     public var inputParameter: Parameter? {
         parameters.first(where: \.isInput)
     }
@@ -67,11 +80,8 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         return parameters.map(signature) == other.parameters.map(signature) && generics == other.generics
     }
 
-    public var description: String {
-        guard let name else { return "<closure>" }
-        let labels = parameters.map { ($0.label ?? "_") + ":" }.joined()
-        return "<func \(name)(\(labels))>"
-    }
+    /// As Swift shows any function: by what it is, not its name.
+    public var description: String { "(Function)" }
 
     public var isBuiltin: Bool {
         if case .swiit = body { false } else { true }

@@ -32,7 +32,7 @@ extension TypeChecker {
                 try expect(&arguments[0].value, rawType, "the raw value")
                 return .optional(.named(name))
             case .functions(let overloads):
-                return try call(overloads, callee: &callee, &arguments, name: name)
+                return try call(overloads, callee: &callee, &arguments, name: name, expected: expected)
             case .swiftType(let typeName):
                 // `String(sub)`: an initializer.
                 let (type, bridgedExpr) = try bridgedCall(typeName, kind: .initializer, isStatic: true, receiver: nil, bindings: [:], name: "init", &arguments)
@@ -121,18 +121,30 @@ extension TypeChecker {
     }
 
     /// A call to a named function: the overload is chosen here.
-    func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
+    func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String, expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
             // Which one isn't known until it runs (an argument isn't typed yet).
             return commonReturn(overloads)
         }
         if overloads.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+        // A body that names its type parameters is told what they are here.
+        // What the call is used as says the rest (`let a: A = make()`).
+        var solved = chosen.solved
+        var returns = chosen.returns
+        if let expected, let declared = overloads.first(where: { $0.index == chosen.index }), chosen.typeParameters.contains(where: { solved[$0] == nil }) {
+            unify(declared.returns, expected, &solved)
+            returns = substitute(declared.returns, solved)
+        }
+        let types = chosen.typeParameters.sorted().compactMap { parameter in
+            solved[parameter].flatMap { $0 == .unknown ? nil : TypeArgument(name: parameter, type: $0) }
+        }
+        if !types.isEmpty { callee = .specialized(callee, types) }
         if chosen.isThrowing { try throwingSite("'\(name)'") }
         try effectSite(chosen.effect, "'\(name)'")
         // An optional chain's result is an optional, whatever the last link gives (`o?.a` of an `Int?` is an `Int?`).
         if name == "$chain", case .optional(.optional(let inner)) = chosen.returns { return .optional(inner) }
-        return chosen.returns
+        return returns
     }
 
     @_spi(Layer) public func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
@@ -145,6 +157,11 @@ extension TypeChecker {
         _ written: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
         let base = erased(written)
+        // `t.init()`, `t.make()` for a type held in a value (`T.Type`): what it is isn't known here, so not what it makes.
+        if case .metatype(let made) = base {
+            for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
+            return name == "init" ? made : .unknown
+        }
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
         if name == "init", case .named(let structName) = base, let info = structInfo(named: structName),
            lookup("$initializing") != nil {
@@ -230,6 +247,11 @@ extension TypeChecker {
             try effectSite(effect, name)
             return result
         case .function, .unknown:
+            for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
+            return .unknown
+        case .metatype:
+            // `t(…)` for a type `t`: an initializer. What it makes isn't worked out here (a call checked again, once its
+            // overload is chosen, comes this way too, and the initializer's own type was decided the first time).
             for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
             return .unknown
         case .any:

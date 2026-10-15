@@ -913,7 +913,7 @@ extension Lowering {
         // `Foo!`: an optional that is taken to hold a value.
         if let optional = node.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) { return .optional(try type(optional.wrappedType)) }
         // `T.Type`, `Any.Type`: the type itself as a value.
-        if let metatype = node.as(MetatypeTypeSyntax.self) { _ = try type(metatype.baseType); return .any }
+        if let metatype = node.as(MetatypeTypeSyntax.self) { return .metatype(try type(metatype.baseType)) }
         if let tuple = node.as(TupleTypeSyntax.self) {
             if tuple.elements.isEmpty { return .void }
             if tuple.elements.count == 1, let only = tuple.elements.first, only.firstName == nil { return try type(only.type) }
@@ -968,6 +968,11 @@ private final class NameCollector: SyntaxVisitor {
     init() { super.init(viewMode: .sourceAccurate) }
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
         names.insert(node.baseName.text)
+        return .visitChildren
+    }
+    /// A type named in the body (`x as? T`) counts as a name used, for a type parameter's sake.
+    override func visit(_ node: IdentifierTypeSyntax) -> SyntaxVisitorContinueKind {
+        names.insert(node.name.text)
         return .visitChildren
     }
 }

@@ -36,6 +36,15 @@ extension Interpreter {
         let argumentScope = Scope(arguments.reduce(into: [:]) { bindings, argument in
             bindings[argument.key] = Binding(value: argument.value, mutable: inouts.contains(argument.key))
         })
+        // A type parameter the call left to what was passed (a protocol's type) is the type of that value, as Swift opens an existential.
+        for name in function.typeParameters {
+            if case .object(let bound)? = function.captured.last?.bindings[Interpreter.typeArgumentPrefix + name]?.value, !(bound is ProtocolType) { continue }
+            guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }), let argument = arguments[parameter.name] else { continue }
+            let actual = typeObject(of: argument)
+            guard actual != .nothing else { continue }
+            argumentScope.bindings[name] = Binding(value: actual, mutable: false)
+            argumentScope.bindings[Interpreter.typeArgumentPrefix + name] = Binding(value: actual, mutable: false)
+        }
         if let receiver {
             argumentScope.bindings["self"] = Binding(
                 value: receiver.value, mutable: receiver.mutable, special: receiver.initializing ? .initializing : nil

@@ -32,6 +32,7 @@ extension TypeChecker {
         }
         switch (actual, expected) {
         case (.optional(let a), .optional(let b)): return fits(a, b)
+        case (.metatype(let a), .metatype(let b)): return fits(a, b)
         case (_, .optional(let wrapped)): return fits(actual, wrapped)
         case (.list(let a), .list(let b)): return fits(a, b)
         case (.dictionary(let ak, let av), .dictionary(let bk, let bv)): return fits(ak, bk) && fits(av, bv)
@@ -111,10 +112,13 @@ extension TypeChecker {
         // step 4 makes them so, and these rules go).
         switch type {
         case .unknown, .parameter, .record: return true
-        case .keyPath: return proto == "Equatable" || proto == "Hashable"
+        case .keyPath, .metatype: return proto == "Equatable" || proto == "Hashable"
         // Tuples compare with `==`, but aren't Hashable or Encodable, as in Swift.
         case .tuple(let elements): return proto == "Equatable" && elements.allSatisfy { conforms($0.type, to: proto) }
         case .named("Error") where proto == "Error":
+            return true
+        case .named(let name) where isSubclass(name, of: proto):
+            // A class is its superclass too (`T: Base`).
             return true
         case .named(let name):
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
@@ -150,6 +154,7 @@ extension TypeChecker {
         case .generic(let name, let arguments): return .generic(name, arguments.map { substitute($0, bindings) })
         case .someSequence(let element): return .someSequence(substitute(element, bindings))
         case .inOut(let wrapped): return .inOut(substitute(wrapped, bindings))
+        case .metatype(let wrapped): return .metatype(substitute(wrapped, bindings))
         case .tuple(let elements): return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
         case .keyPath(let root, let value): return .keyPath(substitute(root, bindings), substitute(value, bindings))
         case .functionType(let parameters, let result, let throwing, let effect):
@@ -166,7 +171,7 @@ extension TypeChecker {
             return
         case (.parameter(let name), _):
             if bindings[name] == nil || bindings[name] == .unknown { bindings[name] = actual }
-        case (.list(let p), .list(let a)), (.optional(let p), .optional(let a)):
+        case (.list(let p), .list(let a)), (.optional(let p), .optional(let a)), (.metatype(let p), .metatype(let a)):
             unify(p, a, &bindings)
         case (.optional(let p), _):
             unify(p, actual, &bindings)

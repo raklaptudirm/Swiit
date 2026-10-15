@@ -51,7 +51,11 @@ extension Interpreter {
         if case .object(let instance as ClassInstance) = value {
             for type in instance.type.chain { declared += typeExtensions[type.name]?.conformances ?? [] }
         } else if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
-        // What each takes in.
+        return conformances(taking: declared)
+    }
+
+    /// What each of `declared` takes in, with them.
+    private func conformances(taking declared: [String]) -> [String] {
         var result: [String] = []
         var queue = declared
         while !queue.isEmpty {
@@ -61,6 +65,26 @@ extension Interpreter {
             if let proto = protocolType(named: name) { queue += proto.inherited }
         }
         return result
+    }
+
+    /// Whether the type a type value stands for conforms to the protocol named.
+    func typeValue(_ type: Value, conformsTo name: String) -> Bool {
+        guard case .object(let object) = type else { return false }
+        var declared: [String] = []
+        switch object {
+        case let structType as StructType:
+            declared = structType.conformances + (typeExtensions[structType.name]?.conformances ?? [])
+        case let enumType as EnumType:
+            declared = (enumConformances[ObjectIdentifier(enumType)] ?? []) + (typeExtensions[enumType.name]?.conformances ?? [])
+        case let classType as ClassType:
+            declared = classType.allConformances
+            for above in classType.chain { declared += typeExtensions[above.name]?.conformances ?? [] }
+        case let named as BridgedTypeName:
+            declared = typeExtensions[named.name]?.conformances ?? []
+        default:
+            return false
+        }
+        return conformances(taking: declared).contains(name)
     }
 
     /// Whether a value's type conforms to the protocol named.

@@ -35,11 +35,11 @@ extension Interpreter {
             ))
         }
         // `type(of: x)`: the type of a value, as the value that stands for the type.
-        declare(ExportedFunction(
-            name: "type", summary: "The type of a value.",
-            parameters: [ExportedParameter(label: "of", name: "value", type: .any)], returnType: .any, isThrowing: false,
-            call: { arguments in interpreter.typeObject(of: arguments["value"] ?? .nothing) }
-        ))
+        scopes[0].declare(Function(
+            name: "type", parameters: [Parameter(label: "of", name: "value", type: .parameter("T"))], returnType: .metatype(.parameter("T")),
+            body: .native { interpreter, arguments in interpreter.typeObject(of: arguments["value"] ?? .nothing) },
+            documentation: Documentation(summary: "The type of a value.", parameters: [:]), generics: ["T": []]
+        ), named: "type")
         // `swap(&a, &b)`: each takes what the other held, through the call's `inout` write-back.
         scopes[0].declare(Function(
             name: "swap",
@@ -258,10 +258,18 @@ extension Interpreter {
         case .dictionary: name = "Dictionary"
         case .enumValue(let enumValue): return .object(enumValue.type)
         case .record(let record):
-            guard let typeName = record.typeName, let type = structType(named: typeName) else { return .nothing }
+            // A tuple is of the type its elements make: `(x: Int, Double)`.
+            guard let typeName = record.typeName, let type = structType(named: typeName) else {
+                return .object(BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description))
+            }
             return .object(type)
         case .object(let instance as ClassInstance): return .object(instance.type)
         case .object(let box as SwiftValue): name = box.typeName
+        // The type of a type: `Int.Type`.
+        case .object(let type as ClassType): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as StructType): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as EnumType): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as BridgedTypeName): return .object(BridgedTypeName(type.name + ".Type"))
         default: return .nothing
         }
         return lookup(name)?.value ?? .nothing

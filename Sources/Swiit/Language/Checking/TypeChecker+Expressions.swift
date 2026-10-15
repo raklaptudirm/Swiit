@@ -97,8 +97,14 @@ extension TypeChecker {
                 return type
             case .functions(let overloads):
                 return functionValue(name, overloads, expected: expected, expr: &expr)
-            case .structType, .enumType, .swiftType, .protocolType:
-                return .unknown
+            case .structType(let info):
+                return .metatype(.named(info.name))
+            case .enumType(let info):
+                return .metatype(.named(info.name))
+            case .protocolType(let info):
+                return .metatype(.named(info.name))
+            case .swiftType(let typeName):
+                return .metatype(TypeAnnotation.spelled(typeName) ?? .named(typeName))
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).
                 let value = Bridge.types["Task"]!.members.firstIndex { $0.kind == .property && !$0.isStatic && $0.name == "value" }!
@@ -231,7 +237,7 @@ extension TypeChecker {
             if member.kind != .property {
                 let signature = Signature(name: member.name, parameters: member.parameters, returns: member.returns,
                                           isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, generics: member.generics)
-                (_, _, type, throwing) = try match(&arguments, to: signature, bindings: bindings)
+                (_, _, type, throwing, _) = try match(&arguments, to: signature, bindings: bindings)
             }
             try bridgedEffects(member, bindings: bindings, throwing: throwing, "'\(member.name)'")
             expr = .bridged(type: typeName, member: index, receiver: receiver, arguments: arguments)
@@ -372,6 +378,10 @@ extension TypeChecker {
         case .chosen(var inner, let overload):
             let type = try typeOf(&inner, expecting: expected)
             expr = .chosen(inner, overload: overload)
+            return type
+        case .specialized(var inner, let arguments):
+            let type = try typeOf(&inner, expecting: expected)
+            expr = .specialized(inner, arguments)
             return type
         case .voidValue(var inner):
             _ = try typeOf(&inner)

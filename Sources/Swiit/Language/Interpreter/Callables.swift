@@ -13,7 +13,7 @@ public final class OverloadSet: Callable, @unchecked Sendable { // safe: its sta
     }
 
     public var description: String {
-        candidates.count == 1 ? candidates[0].description : "<func \(name) (\(candidates.count) overloads)>"
+        "(Function)"
     }
 }
 

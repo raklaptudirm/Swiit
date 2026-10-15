@@ -61,6 +61,8 @@ extension FunctionDecl {
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
     @_spi(Layer) public var generics: [String: [String]] = [:]
+    /// The type parameters the body names, which a call has to say the types of.
+    @_spi(Layer) public var runtimeTypeParameters: Set<String> { Set(generics.keys).intersection(names.names) }
     var names = NamesUsed()
 
     init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {

@@ -31,6 +31,8 @@ public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible
     /// What a Swift parameter `S: Sequence` with `S.Element == E` takes:
     /// any sequence of E, as `some Sequence<E>` says.
     case someSequence(TypeAnnotation)
+    /// `T.Type`: the type itself, as a value (`Int.self`, `type(of: x)`, a type parameter's).
+    case metatype(TypeAnnotation)
     /// `inout T`, a parameter of a function type that the function changes: `(inout Int) -> Void`.
     case inOut(TypeAnnotation)
     /// Not known yet: what a program prints, or a builtin that hasn't
@@ -88,6 +90,7 @@ public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible
             if case .functionType = wrapped { return [punctuation("(")] + wrapped.styled + [punctuation(")?")] }
             return wrapped.styled + [punctuation("?")]
         case .inOut(let wrapped): return [punctuation("inout " + wrapped.description)]
+        case .metatype(let wrapped): return [name(wrapped.description), punctuation(".Type")]
         case .unknown: return [punctuation("_")]
         }
     }

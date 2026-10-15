@@ -50,6 +50,10 @@ import SwiitKit
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
         @_spi(Layer) public var generics: [String: [String]] = [:]
+        /// Of those, the ones its body names (`T()`, `x as? T`), which a call tells it the types of.
+        var typeParameters: Set<String> = []
+        /// What the type parameters were in the call this was matched to.
+        var solved: [String: TypeAnnotation] = [:]
     
         @_spi(Layer) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
             self.effect = effect

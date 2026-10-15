@@ -236,7 +236,7 @@ extension TypeChecker {
             return substitute(property.returns, bindings)
         }
         switch base {
-        case .unknown, .record:
+        case .unknown, .record, .metatype:
             return .unknown
         case .any:
             throw TypeError("an Any has no members: cast it first, as in (value as? T)?.\(name)")
