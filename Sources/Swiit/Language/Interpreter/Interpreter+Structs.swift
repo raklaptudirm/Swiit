@@ -284,7 +284,7 @@ extension Interpreter {
         return try checked(value, as: property, of: type)
     }
 
-    private func checked(_ value: Value, as property: PropertyDecl, of type: StructType) throws -> Value {
+    func checked(_ value: Value, as property: PropertyDecl, of type: StructType) throws -> Value {
         guard let expected = property.type else { return value }
         guard let conforming = conform(value, to: expected) else {
             throw RuntimeError("\(type.name).\(property.name) must be \(expected), not \(value.typeName)")
@@ -416,7 +416,7 @@ extension Interpreter {
     }
 
     /// `p`, `p.a`, `xs[0].b`: somewhere a value can be put back.
-    private func lvalue(_ expr: Expr) -> (String, [Assignment.Step])? {
+    func lvalue(_ expr: Expr) -> (String, [Assignment.Step])? {
         switch expr {
         case .variable(let name):
             return (name, [])
@@ -424,6 +424,8 @@ extension Interpreter {
             return lvalue(base).map { ($0.0, $0.1 + [.member(name)]) }
         case .index(let base, let index):
             return lvalue(base).map { ($0.0, $0.1 + [.index(index)]) }
+        case .indexDefault(let base, let key, let fallback):
+            return lvalue(base).map { ($0.0, $0.1 + [.indexDefault(key, fallback)]) }
         case .forceUnwrap(let base):
             return lvalue(base).map { ($0.0, $0.1 + [.unwrap]) }
         default:
@@ -446,6 +448,21 @@ extension Interpreter {
         }
         if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false), !holdsInstance {
             try checkAssignable(assignment.root, what: "assign to")
+        }
+        // Where it can be, the change is made where the value is, not on a copy of it (see Interpreter+InPlace.swift).
+        if let place = try plainPlace(assignment.root, assignment.path, op: assignment.op) {
+            var value = try evaluate(assignment.value, expecting: place.type)
+            // A property's type is checked for what is put in it; a collection changed in it keeps its type, and isn't walked again.
+            if assignment.op == nil, let validate = place.validate { value = try validate(value) }
+            try withPlace(assignment.root, place) { slot in
+                guard let op = assignment.op else { slot = value; return }
+                try applyInPlace(op, &slot, value)
+                switch slot {
+                case .int, .double, .bool: if let validate = place.validate { slot = try validate(slot) }
+                default: break
+                }
+            }
+            return
         }
         task.assigningPlainly = assignment.op == nil
         defer { task.assigningPlainly = false }
@@ -493,7 +510,7 @@ extension Interpreter {
         }
     }
 
-    private func checkAssignable(_ root: String, what: String) throws {
+    func checkAssignable(_ root: String, what: String) throws {
         guard let binding = lookup(root) else { throw RuntimeError("no variable named '\(root)'") }
         guard binding.mutable else {
             if root == "self" {

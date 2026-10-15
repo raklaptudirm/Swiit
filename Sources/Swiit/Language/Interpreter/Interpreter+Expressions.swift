@@ -192,23 +192,10 @@ extension Interpreter {
                 throw RuntimeError("expected \(type), not \(value.typeName)")
             }
             return conforming
-        case .binary(let op, let lhs, let rhs) where (op == .equal || op == .notEqual)
-            && (Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs)):
-            // `$0.type == .directory`: the case comes from the other side's enum.
-            let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
-            guard case .enumValue(let enumValue) = known else {
-                throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
-            }
-            let literal = Interpreter.isCaseLiteral(lhs) ? lhs : rhs
-            guard case .caseLiteral(let name, let arguments) = literal else { preconditionFailure() }
-            let equal = try makeCase(enumValue.type, name, arguments) == known
-            return .bool(op == .equal ? equal : !equal)
+        case .binary(let op, let lhs, let rhs):
+            return try evaluateBinary(op, lhs, rhs)
         case .unary(let op, let operand):
             return try apply(op, try evaluate(operand))
-        case .binary(.and, let lhs, let rhs):
-            return .bool(try truth(lhs, for: .and) && truth(rhs, for: .and))
-        case .binary(.or, let lhs, let rhs):
-            return .bool(try truth(lhs, for: .or) || truth(rhs, for: .or))
         case .cast(let inner, let type, let kind):
             let value = try evaluate(inner)
             let converted = conform(value, to: type)
@@ -220,27 +207,6 @@ extension Interpreter {
                 guard let converted else { throw RuntimeError("'as!' failed: a \(value.typeName) isn't a \(type)") }
                 return converted
             }
-        case .binary(.coalesce, let lhs, let rhs):
-            let value = try evaluate(lhs)
-            if value == .nothing { return try evaluate(rhs) }
-            // `(try? $(git config x)) ?? "vi"` is a String: the checker types
-            // it so, so the Output gives its text.
-            if case .object = value, let text = value.text, rhs.isStringExpression { return .string(text) }
-            return value
-        case .binary(let op, let lhs, let rhs) where [.less, .lessEqual, .greater, .greaterEqual].contains(op)
-            && (Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs)):
-            // `level < .high`: the case comes from the other side's enum.
-            let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
-            guard case .enumValue(let enumValue) = known else {
-                throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
-            }
-            guard case .caseLiteral(let name, let arguments) = Interpreter.isCaseLiteral(lhs) ? lhs : rhs else { preconditionFailure() }
-            let literal = try makeCase(enumValue.type, name, arguments)
-            return Interpreter.isCaseLiteral(lhs) ? try apply(op, literal, known) : try apply(op, known, literal)
-        case .binary(let op, let lhs, let rhs) where op == .closedRange || op == .halfOpenRange:
-            return try makeRange(op, try evaluate(lhs), try evaluate(rhs))
-        case .binary(let op, let lhs, let rhs):
-            return try apply(op, try evaluate(lhs), try evaluate(rhs))
         case .index(let base, let index):
             let value = try evaluate(base)
             if case .record(let record) = value, let type = structType(of: record), !type.subscriptGetters.isEmpty {
@@ -261,6 +227,51 @@ extension Interpreter {
         default:
             preconditionFailure("this was sent to the wrong group")
         }
+    }
+
+    /// `lhs op rhs`: a few operators look at their operands first (`&&`, `??`, a `.case` on one side); the rest evaluate both and apply.
+    private func evaluateBinary(_ op: BinaryOperator, _ lhs: Expr, _ rhs: Expr) throws -> Value {
+        switch op {
+        case .and:
+            return .bool(try truth(lhs, for: .and) && truth(rhs, for: .and))
+        case .or:
+            return .bool(try truth(lhs, for: .or) || truth(rhs, for: .or))
+        case .coalesce:
+            let value = try evaluate(lhs)
+            if value == .nothing { return try evaluate(rhs) }
+            // `(try? $(git config x)) ?? "vi"` is a String: the checker types
+            // it so, so the Output gives its text.
+            if case .object = value, let text = value.text, rhs.isStringExpression { return .string(text) }
+            return value
+        case .closedRange, .halfOpenRange:
+            return try makeRange(op, try evaluate(lhs), try evaluate(rhs))
+        case .equal, .notEqual:
+            if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs) {
+                // `$0.type == .directory`: the case comes from the other side's enum.
+                let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
+                guard case .enumValue(let enumValue) = known else {
+                    throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
+                }
+                let literal = Interpreter.isCaseLiteral(lhs) ? lhs : rhs
+                guard case .caseLiteral(let name, let arguments) = literal else { preconditionFailure() }
+                let equal = try makeCase(enumValue.type, name, arguments) == known
+                return .bool(op == .equal ? equal : !equal)
+            }
+        case .less, .lessEqual, .greater, .greaterEqual:
+            if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs) {
+                // `level < .high`: the case comes from the other side's enum.
+                let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
+                guard case .enumValue(let enumValue) = known else {
+                    throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
+                }
+                guard case .caseLiteral(let name, let arguments) = Interpreter.isCaseLiteral(lhs) ? lhs : rhs else { preconditionFailure() }
+                let literal = try makeCase(enumValue.type, name, arguments)
+                return Interpreter.isCaseLiteral(lhs) ? try apply(op, literal, known) : try apply(op, known, literal)
+            }
+        default:
+            break
+        }
+        return try apply(op, try evaluate(lhs), try evaluate(rhs))
     }
 
     /// A call: the callee's overload, a struct or enum made, or a function run.

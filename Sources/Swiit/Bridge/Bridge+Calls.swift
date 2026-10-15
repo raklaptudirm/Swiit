@@ -9,6 +9,7 @@ extension Interpreter {
         guard let member = Bridge.types[typeName]?.members[index] else { throw RuntimeError("no bridged member #\(index) of \(typeName)") }
         let function = Function(name: member.name, parameters: member.parameters, returnType: nil, body: member.body)
         var bindings = try bind(arguments, to: function).bindings
+        if member.isMutating, let receiver, let result = try runMutatingInPlace(member, function, bindings, receiver) { return result }
         if let receiver {
             let value = try evaluate(receiver)
             // Through `?.`: nil stays nil. (Optional's own members take nil.)
@@ -26,6 +27,36 @@ extension Interpreter {
 }
 
 extension Interpreter {
+    /// `xs.append(1)` on a variable holding a collection: the value is moved into a box the glue takes it from, so
+    /// that it changes where it is. (Copied, it would cost the whole collection on every call.) Nil if this isn't
+    /// that case, which then goes the long way round.
+    func runMutatingInPlace(_ member: BridgedMember, _ function: Function, _ bindings: [String: Value], _ receiver: Expr) throws -> Value? {
+        // A member that calls back into the program could see the variable while it is out.
+        guard !member.parameters.contains(where: { $0.type.acceptsFunction }), let (root, path) = lvalue(receiver),
+              scopeHolding(root)?.bindings[root].map({ $0.mutable }) == true,
+              let place = try plainPlace(root, path, op: nil) else { return nil }
+        // Only a collection (or a string) gains by it; anything else has no copy to save.
+        let isCollection: Bool = try withPlace(root, place) { slot in
+            switch slot {
+            case .list, .dictionary, .string, .object(is SwiftValue): true
+            default: false
+            }
+        }
+        guard isCollection else { return nil }
+        try checkAssignable(root, what: "use mutating method '\(member.name)' on")
+        return try withPlace(root, place) { slot in
+            let box = ReceiverBox(slot)
+            slot = .nothing
+            var arguments = bindings
+            arguments["self"] = .object(box)
+            defer { slot = box.value }
+            guard case .list(let parts) = try invoke(function, with: arguments), parts.count == 2 else {
+                throw RuntimeError("\(member.name) gave back no receiver")
+            }
+            return parts[0]
+        }
+    }
+
     /// A Swift property of a value, looked up when it runs, as a key path
     /// does; nil if its type has none of that name.
     func bridgedProperty(_ name: String, of value: Value) throws -> Value? {

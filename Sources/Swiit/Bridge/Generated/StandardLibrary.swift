@@ -165,9 +165,12 @@ extension Bridge {
                     discardableResult: false, summary: "Appends the given string to this string.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.write(try String(swiitValue: args["other"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -387,9 +390,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds an element to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.append(try SwiftValue.unbox(Character.self, args["newElement"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -401,9 +407,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -415,9 +424,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -429,9 +441,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 let result = receiver.removeFirst()
-                return .list([SwiftValue.make(result, as: "Character"), receiver.swiitValue])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -443,9 +458,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all elements from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -457,9 +475,12 @@ extension Bridge {
                     discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -471,9 +492,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 let result = receiver.popLast()
-                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), receiver.swiitValue])
+                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -485,9 +509,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 let result = receiver.removeLast()
-                return .list([SwiftValue.make(result, as: "Character"), receiver.swiitValue])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -499,9 +526,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -527,9 +557,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1000,9 +1033,12 @@ extension Bridge {
                     discardableResult: false, summary: "If this string is not contiguous, make it so. If this mutates the string, it will invalidate any pre-existing indices.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.makeContiguousUTF8()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1069,9 +1105,12 @@ extension Bridge {
                     discardableResult: false, summary: "Appends the given string to this string.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.append(try String(swiitValue: args["other"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1083,9 +1122,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.append(contentsOf: try String(swiitValue: args["newElements"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1097,9 +1139,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.append(contentsOf: try SwiftValue.unbox(Substring.self, args["newElements"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1276,9 +1321,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1304,9 +1352,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: String = try String(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: String = try String(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -1360,9 +1411,12 @@ extension Bridge {
                     discardableResult: false, summary: "If this string is not contiguous, make it so. If this mutates the substring, it will invalidate any pre-existing indices.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.makeContiguousUTF8()
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1568,9 +1622,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds an element to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.append(try SwiftValue.unbox(Character.self, args["newElement"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1582,9 +1639,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1596,9 +1656,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1610,9 +1673,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 let result = receiver.removeFirst()
-                return .list([SwiftValue.make(result, as: "Character"), SwiftValue.make(receiver, as: "Substring")])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1624,9 +1690,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all elements from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1638,9 +1707,12 @@ extension Bridge {
                     discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1652,9 +1724,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 let result = receiver.popLast()
-                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), SwiftValue.make(receiver, as: "Substring")])
+                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1666,9 +1741,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 let result = receiver.removeLast()
-                return .list([SwiftValue.make(result, as: "Character"), SwiftValue.make(receiver, as: "Substring")])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1680,9 +1758,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -1694,9 +1775,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -2196,9 +2280,12 @@ extension Bridge {
                     discardableResult: false, summary: "Appends the given string to the stream.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.write(try String(swiitValue: args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -2333,9 +2420,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -2361,9 +2451,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "Substring")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
 
@@ -2858,9 +2951,12 @@ extension Bridge {
                     discardableResult: false, summary: "Replaces this value with its additive inverse.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Int = try Int(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Int = try Int(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.negate()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3347,9 +3443,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.round()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3536,9 +3635,12 @@ extension Bridge {
                     discardableResult: false, summary: "Replaces this value with its additive inverse.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.negate()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3778,9 +3880,12 @@ extension Bridge {
                     discardableResult: false, summary: "Replaces this value with the remainder of itself divided by the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.formRemainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3792,9 +3897,12 @@ extension Bridge {
                     discardableResult: false, summary: "Replaces this value with the remainder of itself divided by the given value using truncating division.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.formTruncatingRemainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3806,9 +3914,12 @@ extension Bridge {
                     discardableResult: false, summary: "Replaces this value with its square root, rounded to a representable value.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.formSquareRoot()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -3820,9 +3931,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds the product of the two given values to this value in place, computed without intermediate rounding.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Double = try Double(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Double = try Double(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.addProduct(try Double(swiitValue: args["lhs"]!), try Double(swiitValue: args["rhs"]!))
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -4203,9 +4317,12 @@ extension Bridge {
                     discardableResult: false, summary: "Toggles the Boolean variable's value.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Bool = try Bool(swiitValue: args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Bool = try Bool(swiitValue: consume taken)
+                defer { mover?.put(receiver.swiitValue) }
                 receiver.toggle()
-                return .list([.nothing, receiver.swiitValue])
+                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
                     }
                 )
 
@@ -4441,9 +4558,12 @@ extension Bridge {
                     discardableResult: false, summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
-                return .list([result.swiitValue, .list(receiver)])
+                return .list([result.swiitValue, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4469,9 +4589,12 @@ extension Bridge {
                     discardableResult: false, summary: "Shuffles the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.shuffle()
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4483,9 +4606,12 @@ extension Bridge {
                     discardableResult: false, summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.swapAt(try Int(swiitValue: args["i"]!), try Int(swiitValue: args["j"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4523,9 +4649,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds an element to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.append(args["newElement"]!)
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4537,9 +4666,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4551,9 +4683,12 @@ extension Bridge {
                     discardableResult: false, summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.insert(args["newElement"]!, at: try Int(swiitValue: args["i"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4565,9 +4700,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the element at the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 let result = receiver.remove(at: try Int(swiitValue: args["position"]!))
-                return .list([result, .list(receiver)])
+                return .list([result, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4579,9 +4717,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int(swiitValue: $0) })
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4593,9 +4734,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4607,9 +4751,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 let result = receiver.removeFirst()
-                return .list([result, .list(receiver)])
+                return .list([result, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4621,9 +4768,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all elements from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4635,9 +4785,12 @@ extension Bridge {
                     discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4649,9 +4802,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 let result = receiver.popLast()
-                return .list([(result.map { $0 } ?? .nothing), .list(receiver)])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4663,9 +4819,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 let result = receiver.removeLast()
-                return .list([result, .list(receiver)])
+                return .list([result, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4677,9 +4836,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4691,9 +4853,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4705,9 +4870,12 @@ extension Bridge {
                     discardableResult: false, summary: "Reverses the elements of the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.reverse()
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4915,9 +5083,12 @@ extension Bridge {
                     discardableResult: false, summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -5041,9 +5212,12 @@ extension Bridge {
                     discardableResult: false, summary: "Sorts the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.sort()
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -5348,9 +5522,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -5376,9 +5553,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value] = try bridgeList(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value] = try bridgeList(consume taken)
+                defer { mover?.put(.list(receiver)) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!))
-                return .list([.nothing, .list(receiver)])
+                return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -5674,9 +5854,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
-                return .list([result.swiitValue, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([result.swiitValue, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5702,9 +5885,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Shuffles the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.shuffle()
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5716,9 +5902,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.swapAt(try Int(swiitValue: args["i"]!), try Int(swiitValue: args["j"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5756,9 +5945,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Adds an element to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.append(args["newElement"]!)
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5770,9 +5962,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5784,9 +5979,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.insert(args["newElement"]!, at: try Int(swiitValue: args["i"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5798,9 +5996,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: true, summary: "Removes and returns the element at the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 let result = receiver.remove(at: try Int(swiitValue: args["position"]!))
-                return .list([result, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([result, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5812,9 +6013,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int(swiitValue: $0) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5826,9 +6030,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5840,9 +6047,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: true, summary: "Removes and returns the first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 let result = receiver.removeFirst()
-                return .list([result, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([result, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5854,9 +6064,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes all elements from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5868,9 +6081,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5882,9 +6098,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 let result = receiver.popLast()
-                return .list([(result.map { $0 } ?? .nothing), SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5896,9 +6115,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: true, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 let result = receiver.removeLast()
-                return .list([result, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([result, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5910,9 +6132,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5924,9 +6149,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5938,9 +6166,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Reverses the elements of the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.reverse()
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -6148,9 +6379,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -6274,9 +6508,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Sorts the collection in place.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.sort()
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -6609,9 +6846,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -6637,9 +6877,12 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "ArraySlice")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -7032,9 +7275,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes the elements of the given set from this set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.subtract(try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7185,9 +7431,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: true, summary: "Inserts the given element in the set if it is not already present.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.insert(args["newMember"]!)
-                return .list([bridgeTuple(result) { t in [("inserted", t.0.swiitValue), ("memberAfterInsert", t.1)] }, SwiftValue.make(receiver, as: "Set")])
+                return .list([bridgeTuple(result) { t in [("inserted", t.0.swiitValue), ("memberAfterInsert", t.1)] }, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7199,9 +7448,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: true, summary: "Inserts the given element into the set unconditionally.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.update(with: args["newMember"]!)
-                return .list([(result.map { $0 } ?? .nothing), SwiftValue.make(receiver, as: "Set")])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7213,9 +7465,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: true, summary: "Removes the specified element from the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.remove(args["member"]!)
-                return .list([(result.map { $0 } ?? .nothing), SwiftValue.make(receiver, as: "Set")])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7227,9 +7482,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes all members from the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7241,9 +7499,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: true, summary: "Removes the first element of the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.removeFirst()
-                return .list([result, SwiftValue.make(receiver, as: "Set")])
+                return .list([result, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7352,9 +7613,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Inserts the elements of the given sequence into the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.formUnion(try bridgeSequence(args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7380,9 +7644,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes the elements of the given sequence from the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.subtract(try bridgeSequence(args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7408,9 +7675,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes the elements of the set that aren't also in the given sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.formIntersection(try bridgeSequence(args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7436,9 +7706,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Replace this set with the elements contained in this set or the given set, but not both.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.formSymmetricDifference(try bridgeSequence(args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7576,9 +7849,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.formSymmetricDifference(try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7590,9 +7866,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Removes and returns the first element of the set.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.popFirst()
-                return .list([(result.map { $0 } ?? .nothing), SwiftValue.make(receiver, as: "Set")])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7618,9 +7897,12 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Reserves enough space to store the specified number of elements.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 receiver.reserveCapacity(try Int(swiitValue: args["minimumCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Set")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -8164,9 +8446,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: true, summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 let result = receiver.updateValue(args["value"]!, forKey: args["key"]!)
-                return .list([(result.map { $0 } ?? .nothing), bridgeDictionary(receiver)])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8178,9 +8463,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 try receiver.merge(try bridgeSequence(args["other"]!).map { try bridgeTuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try bridgeClosure(shell, args["combine"]!)([a0, a1]) })
-                return .list([.nothing, bridgeDictionary(receiver)])
+                return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8192,9 +8480,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 try receiver.merge(try bridgeDictionary(args["other"]!), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try bridgeClosure(shell, args["combine"]!)([a0, a1]) })
-                return .list([.nothing, bridgeDictionary(receiver)])
+                return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8234,9 +8525,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: true, summary: "Removes the given key and its associated value from the dictionary.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 let result = receiver.removeValue(forKey: args["key"]!)
-                return .list([(result.map { $0 } ?? .nothing), bridgeDictionary(receiver)])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8248,9 +8542,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Removes all key-value pairs from the dictionary.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, bridgeDictionary(receiver)])
+                return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8276,9 +8573,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 let result = receiver.popFirst()
-                return .list([(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing), bridgeDictionary(receiver)])
+                return .list([(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing), mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8304,9 +8604,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Reserves enough space to store the specified number of key-value pairs.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: [Value: Value] = try bridgeDictionary(consume taken)
+                defer { mover?.put(bridgeDictionary(receiver)) }
                 receiver.reserveCapacity(try Int(swiitValue: args["minimumCapacity"]!))
-                return .list([.nothing, bridgeDictionary(receiver)])
+                return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
 
@@ -8429,9 +8732,12 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Takes the wrapped value being stored in this instance and returns it while also setting the instance to `nil`. If there is no value being stored in this instance, this returns `nil` instead.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Value? = (taken == .nothing ? nil : taken)
+                defer { mover?.put((receiver.map { $0 } ?? .nothing)) }
                 let result = receiver.take()
-                return .list([(result.map { $0 } ?? .nothing), (receiver.map { $0 } ?? .nothing)])
+                return .list([(result.map { $0 } ?? .nothing), mover == nil ? (receiver.map { $0 } ?? .nothing) : .nothing])
                     }
                 )
 

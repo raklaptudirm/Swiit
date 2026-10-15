@@ -301,9 +301,12 @@ extension Bridge {
                     discardableResult: false, summary: "Add a `TimeInterval` to this `Date`.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: Date = try SwiftValue.unbox(Date.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "Date")) }
                 receiver.addTimeInterval(try Double(swiitValue: args["timeInterval"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "Date")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Date") : .nothing])
                     }
                 )
 

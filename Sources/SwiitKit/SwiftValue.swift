@@ -9,24 +9,13 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
     public let value: Any
     /// Its Swift type, as Swiit writes it: `Substring`.
     public let typeName: String
-    private let hashable: AnyHashable?
-    private let lessThan: ((Any) -> Bool)?
-    private let encode: (() throws -> String)?
 
-    private init(_ value: Any, typeName: String, hashable: AnyHashable?, lessThan: ((Any) -> Bool)?) {
+    // What it can do as a Swift value (hash, sort, encode) is found out when asked, not kept: anything
+    // kept would be another reference to a collection inside it, and a collection with two can't be
+    // changed in place (a Set would be copied whole by every `insert`).
+    private init(_ value: Any, typeName: String) {
         self.value = value
         self.typeName = typeName
-        self.hashable = hashable
-        self.lessThan = lessThan
-        // As Swift encodes it, if it can: a FileSize is its byte count.
-        encode = (value as? any Encodable).map { encodable in
-            {
-                // A date as ISO 8601 text, not Swift's number of seconds.
-                let encoder = JSONEncoder()
-                encoder.dateEncodingStrategy = .iso8601
-                return String(decoding: try encoder.encode(AnyEncodable(value: encodable)), as: UTF8.self)
-            }
-        }
     }
 
     private struct AnyEncodable: Encodable {
@@ -40,29 +29,23 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
 
     /// Its JSON, if its Swift type is Encodable.
     public func json() throws -> String? {
-        try encode?()
+        // As Swift encodes it, if it can: a FileSize is its byte count.
+        guard let encodable = value as? any Encodable else { return nil }
+        // A date as ISO 8601 text, not Swift's number of seconds.
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return String(decoding: try encoder.encode(AnyEncodable(value: encodable)), as: UTF8.self)
     }
 
     /// Hashes and sorts as the Swift value does whenever it can, found out
     /// when it's boxed, so a value boxed from generic code (a sequence's
     /// elements) compares as one boxed where its type is known.
     public static func make<T>(_ value: T, as typeName: String) -> Value {
-        .object(SwiftValue(value, typeName: typeName, hashable: (value as? any Hashable).map { AnyHashable($0) },
-                           lessThan: (value as? any Comparable).map { lessThan($0) }))
+        .object(SwiftValue(value, typeName: typeName))
     }
 
-    private static func lessThan<C: Comparable>(_ value: C) -> (Any) -> Bool {
-        { other in (other as? C).map { value < $0 } ?? false }
-    }
-
-    public static func make<T: Hashable>(_ value: T, as typeName: String) -> Value {
-        .object(SwiftValue(value, typeName: typeName, hashable: AnyHashable(value), lessThan: nil))
-    }
-
-    public static func make<T: Hashable & Comparable>(_ value: T, as typeName: String) -> Value {
-        .object(SwiftValue(value, typeName: typeName, hashable: AnyHashable(value), lessThan: { other in
-            (other as? T).map { value < $0 } ?? false
-        }))
+    private static func lessThan<C: Comparable>(_ value: C, _ other: Any) -> Bool {
+        (other as? C).map { value < $0 } ?? false
     }
 
     /// The Swift value in `value`, which must be one of type `T`.
@@ -75,10 +58,11 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
 
     /// Whether it sorts before `other`, if its type is Comparable.
     public func isLess(than other: SwiftValue) -> Bool? {
-        lessThan.map { $0(other.value) }
+        guard let comparable = value as? any Comparable else { return nil }
+        return SwiftValue.lessThan(comparable, other.value)
     }
 
-    public var identity: AnyHashable { hashable ?? AnyHashable(ObjectIdentifier(self)) }
+    public var identity: AnyHashable { (value as? any Hashable).map { AnyHashable($0) } ?? AnyHashable(ObjectIdentifier(self)) }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: Record? { nil }

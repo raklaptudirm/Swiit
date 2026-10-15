@@ -3,7 +3,12 @@ import SwiitKit
 
 extension Interpreter {
     public func lookup(_ name: String) -> Binding? {
-        scopeHolding(name)?.bindings[name]
+        var index = scopes.count - 1
+        while index >= 0 {
+            if let found = scopes[index].binding(named: name) { return found }
+            index -= 1
+        }
+        return nil
     }
 
     /// The innermost scope binding `name`.

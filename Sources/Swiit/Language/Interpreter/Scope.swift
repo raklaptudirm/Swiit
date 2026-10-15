@@ -96,6 +96,16 @@ public final class Scope {
         bindings[name] = Binding(value: .function(OverloadSet(name: name, candidates: candidates)), mutable: false, isFunction: true)
     }
 
+    /// What `name` is bound to here, or where this scope was made.
+    func binding(named name: String) -> Binding? {
+        if let found = bindings[name] { return found }
+        if fallbacks.isEmpty { return nil }
+        for fallback in fallbacks.reversed() {
+            if let found = fallback.scope?.bindings[name] { return found }
+        }
+        return nil
+    }
+
     /// The scope binding `name`: this one, or where it was made.
     public func holding(_ name: String) -> Scope? {
         if bindings[name] != nil { return self }

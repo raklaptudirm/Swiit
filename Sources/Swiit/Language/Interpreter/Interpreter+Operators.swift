@@ -95,17 +95,25 @@ extension Interpreter {
     }
 
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
+        // Two integers, the common case: nothing below applies to them but the arithmetic.
+        if case .int(let a) = lhs, case .int(let b) = rhs {
+            switch op {
+            case .equal: return .bool(a == b)
+            case .notEqual: return .bool(a != b)
+            default: return try integerArithmetic(op, a, b)
+            }
+        }
         if isDeclaredValue(lhs) || isDeclaredValue(rhs) {
             if let result = try userOperator(op.rawValue, [lhs, rhs]) { return result }
             if let result = try derivedOperator(op, lhs, rhs) { return result }
         }
         // What stands for text (a command's output) compares as its text;
         // other String operations go through `.text`.
-        let comparisons: [BinaryOperator] = [.equal, .notEqual, .less, .lessEqual, .greater, .greaterEqual]
-        if case .object = lhs, let text = lhs.text, comparisons.contains(op) {
+        let isComparison = op.isComparison
+        if case .object = lhs, let text = lhs.text, isComparison {
             return try apply(op, .string(text), rhs)
         }
-        if case .object = rhs, let text = rhs.text, comparisons.contains(op) {
+        if case .object = rhs, let text = rhs.text, isComparison {
             return try apply(op, lhs, .string(text))
         }
         if case .object = lhs, lhs.text != nil, op == .add {

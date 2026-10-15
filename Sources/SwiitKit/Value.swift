@@ -127,6 +127,13 @@ public struct Record: Sendable, Hashable, Sequence {
         }
     }
 
+    /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only reference to it.
+    public mutating func takeValue(_ key: String) -> Value? {
+        guard let current = storage[key] else { return nil }
+        storage[key] = .nothing
+        return current
+    }
+
     public var count: Int { keys.count }
     public var isEmpty: Bool { keys.isEmpty }
 
@@ -349,4 +356,33 @@ extension Value {
     public var date: Date? {
         if case .object(let box as SwiftValue) = self { box.value as? Date } else { nil }
     }
+}
+
+
+/// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
+/// while the member changes it, so a collection is changed where it is, not copied whole each time.
+/// The member's glue takes it out, and puts it back, changed, however the call ends.
+public final class ReceiverBox: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+    public var value: Value
+    public init(_ value: Value) { self.value = value }
+
+    /// The box, if `value` is one.
+    public static func of(_ value: Value) -> ReceiverBox? {
+        if case .object(let box as ReceiverBox) = value { box } else { nil }
+    }
+
+    /// What it holds, leaving it empty: the caller then holds the only reference.
+    public func take() -> Value {
+        let taken = value
+        value = .nothing
+        return taken
+    }
+
+    public func put(_ changed: Value) { value = changed }
+
+    public var typeName: String { "receiver" }
+    public var memberNames: [String] { [] }
+    public func member(_ name: String) -> Value? { nil }
+    public var fields: Record? { nil }
+    public var description: String { "\(value)" }
 }

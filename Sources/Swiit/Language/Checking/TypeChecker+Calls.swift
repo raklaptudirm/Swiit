@@ -268,7 +268,7 @@ extension TypeChecker {
         while true {
             switch root {
             case .member(let inner, _): root = inner; throughMember = true
-            case .index(let inner, _), .forceUnwrap(let inner): root = inner
+            case .index(let inner, _), .indexDefault(let inner, _, _), .forceUnwrap(let inner): root = inner
             case .variable(let name):
                 // A member of a class instance is changed on the instance, whatever holds it.
                 if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }
@@ -290,7 +290,7 @@ extension TypeChecker {
         while true {
             switch root {
             case .member(let inner, _): root = inner; throughMember = true
-            case .index(let inner, _): root = inner
+            case .index(let inner, _), .indexDefault(let inner, _, _): root = inner
             case .forceUnwrap(let inner), .optionalMember(let inner, _): root = inner
             case .variable(let name):
                 if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }

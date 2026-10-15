@@ -228,8 +228,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let tryPrefix = (declaration.throwing || declaration.rethrowing ? "try " : "") + (declaration.isAsync ? "await " : "")
     var body = ""
     if !declaration.isStatic && declaration.kind != .initializer && !free {
-        let binding = declaration.isMutating ? "var" : "let"
-        body += "\(binding) receiver: \(swiftType) = \(fromSwish("args[\"self\"]!", receiverType))\n                "
+        body += receiverBinding(swiftType, receiverType, mutating: declaration.isMutating)
     }
     let isVoid = if case .tuple(let elements) = returns, elements.isEmpty { true } else { false }
     // A result that's an array is typed, so Swift picks the overload the
@@ -241,7 +240,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         // The result, and the receiver as the call left it, for the shell to
         // put back where it came from (see `Shell.runBridged`).
         body += isVoid ? "\(tryPrefix)\(target)\n                " : "let result\(resultType) = \(tryPrefix)\(target)\n                "
-        body += "return .list([\(isVoid ? ".nothing" : toSwish("result", returns)), \(toSwish("receiver", receiverType))])"
+        body += "return .list([\(isVoid ? ".nothing" : toSwish("result", returns)), mover == nil ? \(toSwish("receiver", receiverType)) : .nothing])"
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
     } else if partial {
@@ -299,3 +298,18 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
 """
     return (key, shape, [member] + (setter.map { [$0] } ?? []))
 }
+
+/// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating member's may come in a
+/// box, moved out of its variable so nothing else holds it while it changes (a collection would be copied whole on every
+/// call), and the box gets it back, however the call ends.
+func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
+    guard mutating else { return "let receiver: \(swiftType) = \(fromSwish("args[\"self\"]!", receiverType))\n                " }
+    var body = "let mover = ReceiverBox.of(args[\"self\"]!)\n                let taken = mover?.take() ?? args[\"self\"]!\n                "
+    // Used once, `taken` ends there, so the receiver holds the only reference to a collection.
+    var conversion = fromSwish("taken", receiverType)
+    if conversion.components(separatedBy: "taken").count == 2 { conversion = conversion.replacingOccurrences(of: "taken", with: "consume taken") }
+    body += "var receiver: \(swiftType) = \(conversion)\n                "
+    body += "defer { mover?.put(\(toSwish("receiver", receiverType))) }\n                "
+    return body
+}
+

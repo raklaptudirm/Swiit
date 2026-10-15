@@ -136,6 +136,16 @@ import SwiitKit
     case bitNot = "~"
 }
 
+extension BinaryOperator {
+    /// `==`, `!=`, `<`, `<=`, `>` and `>=`.
+    var isComparison: Bool {
+        switch self {
+        case .equal, .notEqual, .less, .lessEqual, .greater, .greaterEqual: true
+        default: false
+        }
+    }
+}
+
 @_spi(Layer) public enum BinaryOperator: String, Sendable {
     case or = "||", and = "&&"
     case coalesce = "??"

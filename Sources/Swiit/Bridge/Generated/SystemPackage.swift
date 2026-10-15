@@ -291,9 +291,12 @@ extension Bridge {
                     discardableResult: true, summary: "In-place mutating variant of `removingLastComponent`.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 let result = receiver.removeLastComponent()
-                return .list([result.swiitValue, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([result.swiitValue, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -361,9 +364,12 @@ extension Bridge {
                     discardableResult: false, summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.lexicallyNormalize()
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -403,9 +409,12 @@ extension Bridge {
                     discardableResult: false, summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 let result = receiver.removePrefix(try SwiftValue.unbox(FilePath.self, args["prefix"]!))
-                return .list([result.swiitValue, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([result.swiitValue, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -417,9 +426,12 @@ extension Bridge {
                     discardableResult: false, summary: "Append a `component` on to the end of this path.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.append(try SwiftValue.unbox(FilePath.Component.self, args["component"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -431,9 +443,12 @@ extension Bridge {
                     discardableResult: false, summary: "Append the contents of `other`, ignoring any spurious leading separators.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.append(try String(swiitValue: args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -473,9 +488,12 @@ extension Bridge {
                     discardableResult: false, summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.push(try SwiftValue.unbox(FilePath.self, args["other"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -501,9 +519,12 @@ extension Bridge {
                     discardableResult: false, summary: "Remove the contents of the path, keeping the null terminator.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepingCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -515,9 +536,12 @@ extension Bridge {
                     discardableResult: false, summary: "Reserve enough storage space to store `minimumCapacity` platform characters.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
                 receiver.reserveCapacity(try Int(swiitValue: args["minimumCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
                     }
                 )
 
@@ -746,9 +770,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds an element to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.append(try SwiftValue.unbox(FilePath.Component.self, args["newElement"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -760,9 +787,12 @@ extension Bridge {
                     discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -774,9 +804,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -788,9 +821,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 let result = receiver.removeFirst()
-                return .list([SwiftValue.make(result, as: "FilePath.Component"), SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([SwiftValue.make(result, as: "FilePath.Component"), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -802,9 +838,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all elements from the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -816,9 +855,12 @@ extension Bridge {
                     discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -830,9 +872,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 let result = receiver.popLast()
-                return .list([(result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing), SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([(result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -844,9 +889,12 @@ extension Bridge {
                     discardableResult: true, summary: "Removes and returns the last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 let result = receiver.removeLast()
-                return .list([SwiftValue.make(result, as: "FilePath.Component"), SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([SwiftValue.make(result, as: "FilePath.Component"), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -858,9 +906,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -886,9 +937,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 try receiver.removeAll(where: { (a0: FilePath.Component) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -1124,9 +1178,12 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 try receiver.trimPrefix(while: { (a0: FilePath.Component) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
@@ -1138,9 +1195,12 @@ extension Bridge {
                     discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+                        let mover = ReceiverBox.of(args["self"]!)
+                let taken = mover?.take() ?? args["self"]!
+                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
+                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
-                return .list([.nothing, SwiftValue.make(receiver, as: "FilePath.ComponentView")])
+                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
                     }
                 )
 
