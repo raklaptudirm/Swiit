@@ -62,6 +62,24 @@ extension TypeChecker {
 
     private func typeOfExpression(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
         switch expr {
+        case .literal, .string, .variable, .extended, .filePath, .keyPath, .ifExpression:
+            return try typeOfName(&expr, expecting: expected)
+        case .attempt, .await, .childTask, .closure:
+            return try typeOfEffect(&expr, expecting: expected)
+        case .list, .record, .tuple:
+            return try typeOfCollection(&expr, expecting: expected)
+        case .call, .bridged, .member, .caseLiteral:
+            return try typeOfCall(&expr, expecting: expected)
+        case .unary, .binary, .index, .subscripted, .indexDefault:
+            return try typeOfOperation(&expr, expecting: expected)
+        case .annotated, .forceUnwrap, .optionalMember, .optionalIndex, .chosen, .specialized, .voidValue, .described, .inoutArgument, .cast:
+            return try typeOfWrapper(&expr, expecting: expected)
+        }
+    }
+
+    /// Literals, names, and what stands for a value by itself.
+    private func typeOfName(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .literal(let value):
             switch value {
             case .int where expected == .double || expected == .optional(.double):
@@ -115,6 +133,22 @@ extension TypeChecker {
             let type = try box.node.check(in: self, expecting: expected)
             expr = .extended(box)
             return type
+        case .filePath:
+            return .string
+        case .keyPath(let rootName, let path):
+            return try keyPathType(root: rootName, path, expected: expected)
+        case .ifExpression(var node):
+            let type = try ifExpressionType(&node, expected: expected)
+            expr = .ifExpression(node)
+            return type
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
+        }
+    }
+
+    /// What changes how the rest is run: `try`, `await`, a child task, a closure.
+    private func typeOfEffect(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .attempt(var inner, let kind):
             let sitesBefore = throwingSites
             tryDepth += 1
@@ -164,6 +198,22 @@ extension TypeChecker {
             if throwing { try throwingSite("awaiting a job") }
             expr = .await(operand, throwing: throwing)
             return handleType.flatMap(awaiting.resultOf) ?? awaiting.result
+        case .childTask(var closure):
+            let (result, throwing) = try childTaskType(&closure)
+            expr = .childTask(closure)
+            return .generic("Task", [result, .named(throwing ? "Error" : "Never")])
+        case .closure(var closure):
+            let type = try closureType(&closure, expecting: expected)
+            expr = .closure(closure)
+            return type
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
+        }
+    }
+
+    /// Lists, records and tuples.
+    private func typeOfCollection(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .list(var items):
             // `let s: Set<Int> = [1, 2]`: a Swift collection written as a literal is made from its items.
             if var wanted = expected {
@@ -205,14 +255,14 @@ extension TypeChecker {
             }
             expr = .tuple(elements)
             return .tuple(types)
-        case .childTask(var closure):
-            let (result, throwing) = try childTaskType(&closure)
-            expr = .childTask(closure)
-            return .generic("Task", [result, .named(throwing ? "Error" : "Never")])
-        case .closure(var closure):
-            let type = try closureType(&closure, expecting: expected)
-            expr = .closure(closure)
-            return type
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
+        }
+    }
+
+    /// Calls, bridged members, and member access.
+    private func typeOfCall(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .call(var callee, var arguments):
             let type = try callType(&callee, &arguments, expected: expected)
             // A bridged member stands for the whole call.
@@ -295,6 +345,14 @@ extension TypeChecker {
                 expr = .caseLiteral(name, arguments)
             }
             return type
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
+        }
+    }
+
+    /// Operators and indexing.
+    private func typeOfOperation(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .unary(let op, var operand):
             let type = try typeOf(&operand, expecting: op == .not ? .bool : expected)
             expr = .unary(op, operand)
@@ -333,6 +391,14 @@ extension TypeChecker {
             try expect(&fallback, valueType, "the default")
             expr = .indexDefault(base, key, fallback)
             return valueType
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
+        }
+    }
+
+    /// An expression around another: an annotation, an unwrap, a cast, what the checker added.
+    private func typeOfWrapper(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
+        switch expr {
         case .annotated(var inner, let type):
             let written = inner
             let actual = try typeOf(&inner, expecting: type)
@@ -413,14 +479,8 @@ extension TypeChecker {
             case .check:
                 return .bool
             }
-        case .filePath:
-            return .string
-        case .ifExpression(var node):
-            let type = try ifExpressionType(&node, expected: expected)
-            expr = .ifExpression(node)
-            return type
-        case .keyPath(let rootName, let path):
-            return try keyPathType(root: rootName, path, expected: expected)
+        default:
+            preconditionFailure("typeOfExpression sent this to the wrong group")
         }
     }
 

@@ -6,6 +6,22 @@ extension Interpreter {
 
     func evaluate(_ expr: Expr) throws -> Value {
         switch expr {
+        case .literal, .string, .variable, .extended, .filePath, .keyPath, .ifExpression:
+            return try evaluateName(expr)
+        case .list, .record, .tuple:
+            return try evaluateCollection(expr)
+        case .forceUnwrap, .optionalMember, .optionalIndex, .attempt, .await:
+            return try evaluateOptional(expr)
+        case .caseLiteral, .member, .call, .bridged, .closure, .childTask, .inoutArgument, .described, .voidValue, .specialized, .chosen:
+            return try evaluateCallLike(expr)
+        case .annotated, .unary, .binary, .index, .subscripted, .indexDefault, .cast:
+            return try evaluateOperation(expr)
+        }
+    }
+
+    /// Literals and names.
+    private func evaluateName(_ expr: Expr) throws -> Value {
+        switch expr {
         case .literal(let value):
             return value
         case .string(let parts):
@@ -18,6 +34,24 @@ extension Interpreter {
             return value
         case .extended:
             throw RuntimeError.unrewritten
+        case .filePath:
+            return .string(file ?? "<prompt>")
+        case .ifExpression(let node):
+            let (branch, bindings) = try chooseBranch(node)
+            guard let branch, let expr = IfStatement.branchExpression(branch) else { return .nothing }
+            scopes.append(Scope(bindings))
+            defer { scopes.removeLast() }
+            return try evaluate(expr)
+        case .keyPath(_, let path):
+            return .function(KeyPathValue(path: path))
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// Lists, records and tuples.
+    private func evaluateCollection(_ expr: Expr) throws -> Value {
+        switch expr {
         case .list(let elements):
             return .list(try elements.map(evaluate))
         case .record(let entries):
@@ -27,6 +61,21 @@ extension Interpreter {
                 dictionary[try evaluate(entry.key)] = try evaluate(entry.value)
             }
             return .dictionary(dictionary)
+        case .tuple(let elements):
+            // `(name: "x", 2)`: unlabeled elements are keyed by position.
+            var record = Record()
+            for (index, element) in elements.enumerated() {
+                record[element.label ?? String(index)] = try evaluate(element.value)
+            }
+            return .record(record)
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// Optionals, `try`, and `await`.
+    private func evaluateOptional(_ expr: Expr) throws -> Value {
+        switch expr {
         case .forceUnwrap(let inner):
             let value = try evaluate(inner)
             guard value != .nothing else {
@@ -39,32 +88,38 @@ extension Interpreter {
         case .optionalIndex(let base, let index):
             let value = try evaluate(base)
             return value == .nothing ? .nothing : try element(of: value, at: try evaluate(index))
-        case .annotated(let inner, let type):
-            let value = try evaluate(inner, expecting: type)
-            guard let conforming = conform(value, to: type) else {
-                throw RuntimeError("expected \(type), not \(value.typeName)")
+        case .attempt(let operand, .plain):
+            return try evaluate(operand)
+        case .attempt(let operand, .optional):
+            do {
+                return try evaluate(operand)
+            } catch is RuntimeError {
+                return .nothing
+            } catch is AlreadyReported {
+                return .nothing
             }
-            return conforming
-        case .tuple(let elements):
-            // `(name: "x", 2)`: unlabeled elements are keyed by position.
-            var record = Record()
-            for (index, element) in elements.enumerated() {
-                record[element.label ?? String(index)] = try evaluate(element.value)
+        case .attempt(let operand, .forced):
+            do {
+                return try evaluate(operand)
+            } catch let error as RuntimeError {
+                throw FatalError(error: error)
             }
-            return .record(record)
+        case .await(let target, let throwing):
+            let value = try target.map { try evaluate($0) }
+            // `await f()`: what the call gave. (The interpreter waits at every wait anyway.)
+            if let value, awaiting?.isHandle(value) != true { return value }
+            guard let awaiting else { throw RuntimeError("there is nothing to await here") }
+            return try awaiting.perform(value, throwing)
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// Calls, members, closures, and what the checker wrote around them.
+    private func evaluateCallLike(_ expr: Expr) throws -> Value {
+        switch expr {
         case .caseLiteral(let name, _):
             throw RuntimeError(".\(name) needs a type here; write the enum's name too, as in Kind.\(name)")
-        case .binary(let op, let lhs, let rhs) where (op == .equal || op == .notEqual)
-            && (Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs)):
-            // `$0.type == .directory`: the case comes from the other side's enum.
-            let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
-            guard case .enumValue(let enumValue) = known else {
-                throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
-            }
-            let literal = Interpreter.isCaseLiteral(lhs) ? lhs : rhs
-            guard case .caseLiteral(let name, let arguments) = literal else { preconditionFailure() }
-            let equal = try makeCase(enumValue.type, name, arguments) == known
-            return .bool(op == .equal ? equal : !equal)
         case .member(.variable("super"), let name):
             return try superProperty(name)
         case .member(let base, let name):
@@ -110,37 +165,8 @@ extension Interpreter {
             return plain
         case .call(let callee, let arguments):
             return try evaluateCall(callee, arguments)
-        case .unary(let op, let operand):
-            return try apply(op, try evaluate(operand))
-        case .binary(.and, let lhs, let rhs):
-            return .bool(try truth(lhs, for: .and) && truth(rhs, for: .and))
-        case .binary(.or, let lhs, let rhs):
-            return .bool(try truth(lhs, for: .or) || truth(rhs, for: .or))
-        case .attempt(let operand, .plain):
-            return try evaluate(operand)
         case .bridged(let typeName, let member, let receiver, let arguments):
             return try runBridged(typeName, member, receiver: receiver, arguments)
-        case .filePath:
-            return .string(file ?? "<prompt>")
-        case .ifExpression(let node):
-            let (branch, bindings) = try chooseBranch(node)
-            guard let branch, let expr = IfStatement.branchExpression(branch) else { return .nothing }
-            scopes.append(Scope(bindings))
-            defer { scopes.removeLast() }
-            return try evaluate(expr)
-        case .cast(let inner, let type, let kind):
-            let value = try evaluate(inner)
-            let converted = conform(value, to: type)
-            switch kind {
-            case .conditional: return converted ?? .nothing
-            case .check: return .bool(converted != nil)
-            case .upcast: return converted ?? value
-            case .forced:
-                guard let converted else { throw RuntimeError("'as!' failed: a \(value.typeName) isn't a \(type)") }
-                return converted
-            }
-        case .keyPath(_, let path):
-            return .function(KeyPathValue(path: path))
         case .voidValue(let operand):
             _ = try evaluate(operand)
             return .record(Record())
@@ -152,26 +178,48 @@ extension Interpreter {
                 return .function(narrowed(set, overload))
             }
             return try evaluate(inner)
-        case .attempt(let operand, .optional):
-            do {
-                return try evaluate(operand)
-            } catch is RuntimeError {
-                return .nothing
-            } catch is AlreadyReported {
-                return .nothing
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// Operators, indexing and casts.
+    private func evaluateOperation(_ expr: Expr) throws -> Value {
+        switch expr {
+        case .annotated(let inner, let type):
+            let value = try evaluate(inner, expecting: type)
+            guard let conforming = conform(value, to: type) else {
+                throw RuntimeError("expected \(type), not \(value.typeName)")
             }
-        case .attempt(let operand, .forced):
-            do {
-                return try evaluate(operand)
-            } catch let error as RuntimeError {
-                throw FatalError(error: error)
+            return conforming
+        case .binary(let op, let lhs, let rhs) where (op == .equal || op == .notEqual)
+            && (Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs)):
+            // `$0.type == .directory`: the case comes from the other side's enum.
+            let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
+            guard case .enumValue(let enumValue) = known else {
+                throw RuntimeError("\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)")
             }
-        case .await(let target, let throwing):
-            let value = try target.map { try evaluate($0) }
-            // `await f()`: what the call gave. (The interpreter waits at every wait anyway.)
-            if let value, awaiting?.isHandle(value) != true { return value }
-            guard let awaiting else { throw RuntimeError("there is nothing to await here") }
-            return try awaiting.perform(value, throwing)
+            let literal = Interpreter.isCaseLiteral(lhs) ? lhs : rhs
+            guard case .caseLiteral(let name, let arguments) = literal else { preconditionFailure() }
+            let equal = try makeCase(enumValue.type, name, arguments) == known
+            return .bool(op == .equal ? equal : !equal)
+        case .unary(let op, let operand):
+            return try apply(op, try evaluate(operand))
+        case .binary(.and, let lhs, let rhs):
+            return .bool(try truth(lhs, for: .and) && truth(rhs, for: .and))
+        case .binary(.or, let lhs, let rhs):
+            return .bool(try truth(lhs, for: .or) || truth(rhs, for: .or))
+        case .cast(let inner, let type, let kind):
+            let value = try evaluate(inner)
+            let converted = conform(value, to: type)
+            switch kind {
+            case .conditional: return converted ?? .nothing
+            case .check: return .bool(converted != nil)
+            case .upcast: return converted ?? value
+            case .forced:
+                guard let converted else { throw RuntimeError("'as!' failed: a \(value.typeName) isn't a \(type)") }
+                return converted
+            }
         case .binary(.coalesce, let lhs, let rhs):
             let value = try evaluate(lhs)
             if value == .nothing { return try evaluate(rhs) }
@@ -210,6 +258,8 @@ extension Interpreter {
         case .indexDefault(let base, let key, let fallback):
             guard case .dictionary(let dictionary) = try evaluate(base) else { throw RuntimeError("'default:' goes with a dictionary") }
             return try dictionary[try evaluate(key)] ?? evaluate(fallback)
+        default:
+            preconditionFailure("this was sent to the wrong group")
         }
     }
 

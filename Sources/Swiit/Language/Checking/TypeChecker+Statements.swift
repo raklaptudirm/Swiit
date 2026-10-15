@@ -80,6 +80,16 @@ extension TypeChecker {
 
     func checkStatement(_ statement: inout Statement) throws {
         switch statement {
+        case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl, .operatorDeclaration, .protocolDecl:
+            return try checkDeclaration(&statement)
+        case .doCatch, .throwStatement, .guardStatement, .returnStatement, .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl, .deferBlock, .expression, .ifStatement, .switchStatement, .forLoop, .whileLoop:
+            return try checkControl(&statement)
+        }
+    }
+
+    /// What a statement declares or assigns.
+    private func checkDeclaration(_ statement: inout Statement) throws {
+        switch statement {
         case .declare(let name, let mutable, var value):
             var type = try typeOf(&value)
             if type == .optional(.unknown), case .literal(.nothing) = value {
@@ -100,6 +110,28 @@ extension TypeChecker {
         case .function(var decl):
             try checkFunction(&decl)
             statement = .function(decl)
+        case .enumDecl(var decl):
+            try checkEnum(&decl)
+            statement = .enumDecl(decl)
+        case .structDecl(var decl):
+            try checkStruct(&decl)
+            statement = .structDecl(decl)
+        case .typeExtension(var decl):
+            try checkExtension(&decl)
+            statement = .typeExtension(decl)
+        case .classDecl(var decl):
+            try checkClass(&decl)
+            statement = .classDecl(decl)
+        case .operatorDeclaration, .protocolDecl:
+            break
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// What a statement does: control flow, errors, expressions.
+    private func checkControl(_ statement: inout Statement) throws {
+        switch statement {
         case .doCatch(var body, var clauses):
             // It handles what its body throws if a clause catches anything.
             let catchesAll = clauses.contains { $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll)) }
@@ -146,12 +178,6 @@ extension TypeChecker {
             thrownSeen.append(nil)
             try checkHandled("throw")
             statement = .throwStatement(value)
-        case .enumDecl(var decl):
-            try checkEnum(&decl)
-            statement = .enumDecl(decl)
-        case .structDecl(var decl):
-            try checkStruct(&decl)
-            statement = .structDecl(decl)
         case .guardStatement(let condition, var otherwise):
             var node = IfStatement(condition: condition, then: Program(statements: []))
             let bound = try checkCondition(&node)
@@ -177,14 +203,6 @@ extension TypeChecker {
                 throw TypeError("this function must return \(declared)")
             }
             statement = .returnStatement(value)
-        case .typeExtension(var decl):
-            try checkExtension(&decl)
-            statement = .typeExtension(decl)
-        case .classDecl(var decl):
-            try checkClass(&decl)
-            statement = .classDecl(decl)
-        case .operatorDeclaration, .protocolDecl:
-            break
         case .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl:
             break
         case .deferBlock(var body):
@@ -214,6 +232,8 @@ extension TypeChecker {
             try checkCondition(&loop.condition)
             try checkBlock(&loop.body, newScope: true)
             statement = .whileLoop(loop)
+        default:
+            preconditionFailure("this was sent to the wrong group")
         }
     }
 

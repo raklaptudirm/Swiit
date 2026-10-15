@@ -167,6 +167,16 @@ extension Interpreter {
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
     public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
+        case .named, .generic, .someSequence:
+            return conformNamed(value, to: type)
+        default:
+            return conformStructured(value, to: type)
+        }
+    }
+
+    /// A value of a named type: a class, a protocol, a struct, an enum, a Swift value.
+    private func conformNamed(_ value: Value, to type: TypeAnnotation) -> Value? {
+        switch type {
         case .named(let name) where name.contains(" & "):
             // `A & B`: a value that is each.
             var held = value
@@ -206,6 +216,14 @@ extension Interpreter {
         case .someSequence:
             // Any sequence; the glue takes its items.
             return value
+        default:
+            preconditionFailure("this was sent to the wrong group")
+        }
+    }
+
+    /// A value of a type made of others: a collection, a tuple, an optional, a type parameter.
+    private func conformStructured(_ value: Value, to type: TypeAnnotation) -> Value? {
+        switch type {
         case .metatype(let wrapped):
             // A type, of the kind the type parameter or class says (a subclass's type is its superclass's too).
             guard let held = annotation(ofTypeValue: value) else { return nil }
