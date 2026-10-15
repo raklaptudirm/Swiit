@@ -32,26 +32,49 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
 
     public var description: String { line.map { "line \($0): \(message)" } ?? message }
 
+    /// How a diagnostic is styled, for a host that shows it on a terminal: the escape for each
+    /// character of a source text, what the frame of the excerpt and the marks are written in,
+    /// and what ends a style.
+    public struct Style: Sendable {
+        public var source: @Sendable (String) -> [String?]
+        public var frame: @Sendable (String) -> String
+        public var mark: @Sendable (String) -> String
+        public var reset: String
+
+        public init(source: @escaping @Sendable (String) -> [String?], frame: @escaping @Sendable (String) -> String,
+                    mark: @escaping @Sendable (String) -> String, reset: String) {
+            self.source = source
+            self.frame = frame
+            self.mark = mark
+            self.reset = reset
+        }
+    }
+
     /// The diagnostic as a compiler shows one: what is wrong, then the line of the source it is in,
     /// with the place marked. `source` is the text that was run; `path` names it, if it came from a file.
-    public func rendered(in source: String, path: String? = nil) -> String {
+    /// `style`, if given, makes the result styled: the source in the colors it has where it is written,
+    /// the marks and places in their own.
+    public func rendered(in source: String, path: String? = nil, style: Style? = nil) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
         if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) { text.removeSubrange(match) }
         let heading = (kind == .syntax ? "syntax error: " : "error: ") + text
         let place = range ?? line.map { SourceRange(line: $0) }
-        guard let place, let first = Diagnostic.excerpt(of: place, in: source, path: path) else { return heading }
+        let normalized = source.replacingOccurrences(of: "\r\n", with: "\n")
+        let styles = style?.source(normalized)
+        guard let place, let first = Diagnostic.excerpt(of: place, in: normalized, path: path, styles: styles, style: style) else { return heading }
         var result = heading + "\n" + first
         // Where the functions it came out of were called from.
         for call in calls {
-            guard let site = call.site, let shown = Diagnostic.excerpt(of: site, in: source, path: path) else { continue }
-            result += "\nnote: in '\(call.function)', called from here\n" + shown
+            guard let site = call.site, let shown = Diagnostic.excerpt(of: site, in: normalized, path: path, styles: styles, style: style) else { continue }
+            let label = style?.frame("note:") ?? "note:"
+            result += "\n\(label) in '\(call.function)', called from here\n" + shown
         }
         return result
     }
 
     /// A line of the source with a range in it marked, and where it is.
-    static func excerpt(of place: SourceRange, in source: String, path: String?) -> String? {
+    static func excerpt(of place: SourceRange, in source: String, path: String?, styles: [String?]? = nil, style: Style? = nil) -> String? {
         let lines = source.replacingOccurrences(of: "\r\n", with: "\n").split(separator: "\n", omittingEmptySubsequences: false)
         guard place.startLine >= 1, place.startLine <= lines.count else { return nil }
         let shown = String(lines[place.startLine - 1])
@@ -70,7 +93,25 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         let indent = characters.prefix(from).map { $0 == "\t" ? "\t" : " " }.joined()
         let marks = String(repeating: "^", count: max(to - from, 1))
         let location = (path.map { "\($0):" } ?? "") + "\(place.startLine):\(from + 1)"
-        return "\(gutter)--> \(location)\n\(gutter) |\n\(number) | \(shown)\n\(gutter) | \(indent)\(marks)"
+        func frame(_ text: String) -> String { style?.frame(text) ?? text }
+        // The line in the colors it has where it is written: the styles are by character of the whole source.
+        var body = shown
+        if let styles {
+            let before = lines[..<(place.startLine - 1)].reduce(0) { $0 + $1.count + 1 }
+            body = ""
+            var current: String?
+            for (index, character) in characters.enumerated() {
+                let escape = before + index < styles.count ? styles[before + index] : nil
+                if escape != current {
+                    if current != nil { body += style?.reset ?? "" }
+                    if let escape { body += escape }
+                    current = escape
+                }
+                body.append(character)
+            }
+            if current != nil { body += style?.reset ?? "" }
+        }
+        return "\(gutter)\(frame("-->")) \(location)\n\(gutter) \(frame("|"))\n\(frame(number + " |")) \(body)\n\(gutter) \(frame("|")) \(indent)\((style?.mark(marks) ?? marks))"
     }
 }
 

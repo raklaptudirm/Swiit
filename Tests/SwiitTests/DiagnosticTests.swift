@@ -53,3 +53,16 @@ private func diagnostic(_ source: String) -> Diagnostic? {
     let found = try #require(diagnostic(source))
     #expect(found.rendered(in: source, path: "main.swift").contains("--> main.swift:2:5"))
 }
+
+@Test func aHostCanStyleWhatItShows() throws {
+    let source = "let x: Int = \"hi\""
+    let found = try #require(diagnostic(source))
+    // The host says the escape of each character, and what frames and marks.
+    let style = Diagnostic.Style(
+        source: { text in text.map { $0 == "x" ? "<x>" : nil } },
+        frame: { "[\($0)]" }, mark: { "{\($0)}" }, reset: "</>")
+    let shown = found.rendered(in: source, style: style)
+    #expect(shown.contains("let <x>x</>: Int"))
+    #expect(shown.contains("[-->] 1:14"))
+    #expect(shown.contains("{^^^^}"))
+}
