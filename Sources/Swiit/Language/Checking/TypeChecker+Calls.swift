@@ -88,7 +88,7 @@ extension TypeChecker {
         }
         let type = try typeOf(&callee)
         // `f(x)` where f's type has `callAsFunction`: that method is called.
-        if case .named(let typeName) = type, let info = structInfo(named: typeName), info.methods["callAsFunction"] != nil {
+        if case .named(let typeName) = type, let info = structInfo(named: typeName), info.declared.methods["callAsFunction"] != nil {
             var method = Expr.member(callee, "callAsFunction")
             let result = try callType(&method, &arguments, expected: expected)
             callee = method

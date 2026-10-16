@@ -45,7 +45,7 @@ extension TypeChecker {
         while !classes.isEmpty {
             var waiting: [ClassDecl] = []
             for decl in classes {
-                var superclass: StructInfo?
+                var superclass: TypeProfile?
                 var conformances = decl.inherited
                 if let first = decl.inherited.first, protocolInfo(named: first) == nil, enumInfo(named: first) == nil {
                     if let parent = structInfo(named: first), parent.isClass {

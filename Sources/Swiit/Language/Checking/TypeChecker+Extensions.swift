@@ -1,26 +1,15 @@
 import Foundation
 import SwiitKit
 
-/// What extensions add to a type, as the checker knows it.
-struct ExtensionInfo {
-    var computed: [String: TypeAnnotation] = [:]
-    var settable: Set<String> = []
-    var methods: [String: [Signature]] = [:]
-    var staticProperties: [PropertyDecl] = []
-    var staticMethods: [String: [Signature]] = [:]
+/// What extensions add to a type: members, and the protocols it conforms to by them.
+struct ExtensionLayer {
+    var members = MemberSet()
     var conformances: [String] = []
-    var initializers: [Signature] = []
 
-    typealias Signature = TypeChecker.Signature
-
-    mutating func merge(_ other: ExtensionInfo) {
-        computed.merge(other.computed) { $1 }
-        settable.formUnion(other.settable)
-        for (name, signatures) in other.methods { methods[name, default: []] += signatures.map { var s = $0; s.index = methods[name]?.count ?? 0; return s } }
-        staticProperties += other.staticProperties
-        for (name, signatures) in other.staticMethods { staticMethods[name, default: []] += signatures.map { var s = $0; s.index = staticMethods[name]?.count ?? 0; return s } }
+    /// Adds what `other` adds, after this: methods of one name go on as further overloads.
+    mutating func merge(_ other: ExtensionLayer) {
+        members.merge(other.members)
         conformances += other.conformances
-        initializers += other.initializers
     }
 }
 
@@ -53,29 +42,29 @@ extension TypeChecker {
     }
 
     /// What extensions (in this program, and in what ran before) add to `type`.
-    func extensionInfo(for type: TypeAnnotation) -> ExtensionInfo? {
-        extensionKey(of: type).flatMap(extensionInfo(forKey:))
+    func extensionLayer(for type: TypeAnnotation) -> ExtensionLayer? {
+        extensionKey(of: type).flatMap(extensionLayer(forKey:))
     }
 
     /// What extensions add to a type, and what the extensions of the protocols it conforms to give as defaults.
-    func extensionInfo(forKey key: String) -> ExtensionInfo? {
-        var info = ownExtensionInfo(forKey: key)
+    func extensionLayer(forKey key: String) -> ExtensionLayer? {
+        var info = ownExtensionLayer(forKey: key)
         let declared = (structInfo(named: key)?.conformances ?? enumInfo(named: key)?.conformances ?? []) + (info?.conformances ?? [])
         for proto in declared.flatMap(protocolClosure) where proto != key {
-            guard let defaults = ownExtensionInfo(forKey: proto) else { continue }
+            guard let defaults = ownExtensionLayer(forKey: proto) else { continue }
             if var existing = info { existing.merge(defaults); info = existing } else { info = defaults }
         }
         // A subclass has what the extensions of its superclasses add, and the defaults of the protocols they conform to.
-        if let parent = structInfo(named: key)?.superclass, parent != key, let inherited = extensionInfo(forKey: parent) {
+        if let parent = structInfo(named: key)?.superclass, parent != key, let inherited = extensionLayer(forKey: parent) {
             if var existing = info { existing.merge(inherited); info = existing } else { info = inherited }
         }
         return info
     }
 
-    func ownExtensionInfo(forKey key: String) -> ExtensionInfo? {
+    func ownExtensionLayer(forKey key: String) -> ExtensionLayer? {
         var info = localExtensions[key]
         if let members = interpreter.typeExtensions[key] {
-            var runtime = ExtensionInfo()
+            var runtime = ExtensionLayer()
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in
                     set.candidates.enumerated().map { index, method in
@@ -85,11 +74,12 @@ extension TypeChecker {
                     }
                 }
             }
-            runtime.computed = members.computed.mapValues { $0.returnType ?? .unknown }
-            runtime.settable = Set(members.setters.keys)
-            runtime.methods = signatures(members.methods)
-            runtime.staticProperties = members.staticProperties
-            runtime.staticMethods = signatures(members.staticMethods)
+            for (name, function) in members.computed {
+                runtime.members.properties[name] = MemberProperty(type: function.returnType ?? .unknown, isSettable: members.setters[name] != nil, stored: nil)
+            }
+            runtime.members.methods = signatures(members.methods)
+            for property in members.staticProperties { runtime.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+            runtime.members.staticMethods = signatures(members.staticMethods)
             runtime.conformances = members.conformances
             if var existing = info { existing.merge(runtime); info = existing } else { info = runtime }
         }
@@ -98,7 +88,7 @@ extension TypeChecker {
 
     /// Notes what an extension adds, so what is checked before its body can use it.
     func registerExtension(_ decl: ExtensionDecl) {
-        var info = ExtensionInfo()
+        var info = ExtensionLayer()
         let members = decl.members
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {
             var result: [String: [Signature]] = [:]
@@ -111,14 +101,13 @@ extension TypeChecker {
             return result
         }
         for property in members.properties where property.getter != nil {
-            info.computed[property.name] = property.type ?? .unknown
-            if property.setter != nil { info.settable.insert(property.name) }
+            info.members.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.setter != nil, stored: nil)
         }
-        info.methods = signatures(members.methods)
-        info.staticProperties = members.staticProperties
-        info.staticMethods = signatures(members.staticMethods)
+        info.members.methods = signatures(members.methods)
+        for property in members.staticProperties { info.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        info.members.staticMethods = signatures(members.staticMethods)
         info.conformances = decl.conformances
-        info.initializers = members.initializers.map { initializer in
+        info.members.initializers = members.initializers.map { initializer in
             Signature(name: "\(decl.typeName).init", parameters: initializer.parameters,
                       returns: initializer.isFailable ? .optional(.named(decl.typeName)) : .named(decl.typeName),
                       isMutating: true, isThrowing: initializer.isThrowing)

@@ -38,7 +38,7 @@ extension TypeChecker {
     /// A body written for the result builder `name`, as the plain code it stands for.
     func resultBuilt(_ body: Program, by name: String) throws -> Program {
         guard let info = structInfo(named: name) else { throw TypeError("@\(name) is not a result builder") }
-        var transform = ResultBuilderTransform(builder: name, methods: Set(info.staticMethods.keys))
+        var transform = ResultBuilderTransform(builder: name, methods: Set(info.declared.staticMethods.keys))
         do { return try transform.transform(body) } catch let error as SyntaxError { throw TypeError(error.description) }
     }
 
@@ -147,9 +147,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Layer) public func structInfo(_ decl: StructDecl) throws -> StructInfo {
-        var computed: [String: TypeAnnotation] = [:]
-        for property in decl.properties where property.getter != nil { computed[property.name] = property.type ?? .unknown }
+    @_spi(Layer) public func structInfo(_ decl: StructDecl) throws -> TypeProfile {
         var methods: [String: [Signature]] = [:]
         for method in decl.methods {
             var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
@@ -188,15 +186,22 @@ extension TypeChecker {
             signature.index = staticMethods[method.name]?.count ?? 0
             staticMethods[method.name, default: []].append(signature)
         }
-        var info = StructInfo(name: decl.name, stored: stored, computed: computed, methods: methods,
-                              initializers: initializers, memberwise: memberwise, conformances: decl.conformances,
-                              staticProperties: decl.staticProperties, staticMethods: staticMethods)
-        info.settable = Set(decl.properties.filter { $0.getter != nil && $0.setter != nil }.map(\.name))
-        for (index, declared) in decl.subscripts.enumerated() {
-            info.subscripts.append(Signature(name: "subscript", parameters: declared.parameters, returns: declared.returnType, index: index))
-            info.subscriptSettable.append(declared.setter != nil)
+        var profile = TypeProfile(name: decl.name, kind: .structure)
+        profile.conformances = decl.conformances
+        profile.memberwise = memberwise
+        for property in decl.properties where property.getter != nil {
+            profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.setter != nil, stored: nil)
         }
-        return info
+        for property in stored { profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.mutable, stored: property) }
+        profile.declared.methods = methods
+        profile.declared.initializers = initializers
+        for property in decl.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        profile.declared.staticMethods = staticMethods
+        for (index, declared) in decl.subscripts.enumerated() {
+            profile.subscripts.append(Signature(name: "subscript", parameters: declared.parameters, returns: declared.returnType, index: index))
+            profile.subscriptSettable.append(declared.setter != nil)
+        }
+        return profile
     }
 
     func checkStruct(_ decl: inout StructDecl, isClass: Bool = false) throws {
@@ -290,7 +295,7 @@ extension TypeChecker {
                     // checks can now use.
                     decl.staticProperties[index].type = try typeOf(&value)
                     if case .structType(var info)? = scopes[scopes.count - 1][decl.name] {
-                        info.staticProperties[index].type = decl.staticProperties[index].type
+                        info.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: decl.staticProperties[index])
                         scopes[scopes.count - 1][decl.name] = .structType(info)
                     }
                 }
@@ -321,7 +326,7 @@ extension TypeChecker {
         "ExpressibleByArrayLiteral", "ExpressibleByStringLiteral", "ExpressibleByIntegerLiteral",
     ]
 
-    func enumInfo(_ decl: EnumDecl) -> EnumInfo {
+    func enumInfo(_ decl: EnumDecl) -> TypeProfile {
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {
             var result: [String: [Signature]] = [:]
             for method in declared {
@@ -332,18 +337,24 @@ extension TypeChecker {
             }
             return result
         }
-        var computed: [String: TypeAnnotation] = [:]
-        for property in decl.properties where property.getter != nil { computed[property.name] = property.type ?? .unknown }
-        var info = EnumInfo(name: decl.name, cases: decl.cases.map { ($0.name, $0.associated) }, rawType: decl.rawType,
-                            conformances: decl.conformances, computed: computed, methods: signatures(decl.methods),
-                            staticProperties: decl.staticProperties, staticMethods: signatures(decl.staticMethods))
-        info.initializers = decl.initializers.enumerated().map { index, initializer in
+        var profile = TypeProfile(name: decl.name, kind: .enumeration)
+        profile.cases = decl.cases.map { ($0.name, $0.associated) }
+        profile.rawType = decl.rawType
+        profile.conformances = decl.conformances
+        profile.typeParameters = decl.typeParameters
+        for property in decl.properties where property.getter != nil {
+            profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: false, stored: nil)
+        }
+        profile.declared.methods = signatures(decl.methods)
+        for property in decl.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        profile.declared.staticMethods = signatures(decl.staticMethods)
+        profile.declared.initializers = decl.initializers.enumerated().map { index, initializer in
             Signature(name: "\(decl.name).init", parameters: initializer.parameters,
                       returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
                       isMutating: true, isThrowing: initializer.isThrowing, index: index)
         }
-        info.typeParameters = decl.typeParameters
-        return info
+        profile.addSynthesizedEnumMembers()
+        return profile
     }
 
     func checkEnum(_ decl: inout EnumDecl) throws {

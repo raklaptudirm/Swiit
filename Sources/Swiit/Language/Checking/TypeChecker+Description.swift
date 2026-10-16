@@ -7,7 +7,7 @@ import SwiitKit
 // turn. A `TypeProfile` gathers them: ask it once.
 
 /// A property of a type: stored or computed.
-struct MemberProperty {
+@_spi(Layer) public struct MemberProperty {
     var type: TypeAnnotation
     /// A `var` or a computed property with a setter; a protocol's `{ get set }`.
     var isSettable: Bool
@@ -16,10 +16,10 @@ struct MemberProperty {
 }
 
 /// MemberSet of one kind of place: what the type declares, or what extensions add.
-struct MemberSet {
+@_spi(Layer) public struct MemberSet {
     var properties: [String: MemberProperty] = [:]
-    var methods: [String: [TypeChecker.Signature]] = [:]
-    var staticProperties: [String: TypeAnnotation] = [:]
+    @_spi(Layer) public var methods: [String: [TypeChecker.Signature]] = [:]
+    var staticProperties: [String: MemberProperty] = [:]
     var staticMethods: [String: [TypeChecker.Signature]] = [:]
     var initializers: [TypeChecker.Signature] = []
 }
@@ -36,24 +36,68 @@ enum FoundMember {
     case enumCase
 }
 
-struct TypeProfile {
-    enum Kind { case structure, classType, actor, enumeration, protocolType, other }
+extension MemberProperty {
+    /// A `static let` or `static var`, stored or computed.
+    init(staticDeclaration property: PropertyDecl) {
+        self.init(type: property.type ?? .unknown, isSettable: property.mutable && (property.getter == nil || property.setter != nil), stored: property)
+    }
+}
+
+extension MemberSet {
+    /// Adds what `other` has, after this: the methods of a name go on as further overloads, numbered on from this one's.
+    mutating func merge(_ other: MemberSet) {
+        properties.merge(other.properties) { $1 }
+        for (name, signatures) in other.methods {
+            methods[name, default: []] += signatures.map { var copy = $0; copy.index = methods[name]?.count ?? 0; return copy }
+        }
+        staticProperties.merge(other.staticProperties) { first, _ in first }
+        for (name, signatures) in other.staticMethods {
+            staticMethods[name, default: []] += signatures.map { var copy = $0; copy.index = staticMethods[name]?.count ?? 0; return copy }
+        }
+        initializers += other.initializers
+    }
+}
+
+@_spi(Layer) public struct TypeProfile {
+    @_spi(Layer) public enum Kind { case structure, classType, actor, enumeration, protocolType, other }
 
     var name: String
     var kind: Kind
     var superclass: String?
     var conformances: [String] = []
+    /// The protocols a protocol takes in.
+    var inherited: [String] = []
     /// An enum's cases, and the type of its raw values.
     var cases: [(name: String, payload: [AssociatedValue])] = []
     var rawType: TypeAnnotation?
     var typeParameters: [String] = []
     /// What the type declares itself (for a class, with what its superclass gives), and what extensions add: those of
     /// the type, of the protocols it conforms to, and of its superclasses.
-    var declared = MemberSet()
+    @_spi(Layer) public var declared = MemberSet()
     var extended = MemberSet()
     /// A struct with no initializer of its own is made by its memberwise one.
     var memberwise: TypeChecker.Signature?
+    /// What `value[…]` reads, with whether each can also be written.
+    var subscripts: [TypeChecker.Signature] = []
+    var subscriptSettable: [Bool] = []
+    /// Of a class: which of its initializers are `convenience`, and which of its methods say `override`, by name.
+    var convenienceInitializers: [Bool] = []
+    var overrides: Set<String> = []
+    /// The members an actor gives without `await`.
+    var nonisolated: Set<String> = []
 
+    func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
+
+    /// What Swift synthesizes for an enum: `rawValue` where it has raw values, `allCases` where no case has associated values.
+    /// (A Swiit enum isn't a Swift type the bridge could describe, so they are made here.)
+    mutating func addSynthesizedEnumMembers() {
+        if let rawType { declared.properties["rawValue"] = MemberProperty(type: rawType, isSettable: false, stored: nil) }
+        if cases.allSatisfy({ $0.payload.isEmpty }) {
+            declared.staticProperties["allCases"] = MemberProperty(type: .list(.named(name)), isSettable: false, stored: nil)
+        }
+    }
+
+    var isActor: Bool { kind == .actor }
     var isClass: Bool { kind == .classType || kind == .actor }
 
     /// The initializers a call chooses among: the type's own (or its memberwise one), and those extensions add.
@@ -78,9 +122,7 @@ struct TypeProfile {
 
     /// What `name` is on the type itself: a static property or method, or a case of an enum.
     func staticMember(_ name: String) -> FoundMember? {
-        if let type = declared.staticProperties[name] ?? extended.staticProperties[name] {
-            return .property(MemberProperty(type: type, isSettable: true, stored: nil))
-        }
+        if let property = declared.staticProperties[name] ?? extended.staticProperties[name] { return .property(property) }
         if let methods = declared.staticMethods[name] { return .methods(methods, from: .declaration) }
         if let methods = extended.staticMethods[name] { return .methods(methods, from: .extensions) }
         if cases.contains(where: { $0.name == name }) { return .enumCase }
@@ -99,84 +141,36 @@ extension TypeChecker {
     func describe(named key: String) -> TypeProfile? {
         var description: TypeProfile
         switch lookup(key) {
-        case .structType(let info)?:
-            description = TypeProfile(name: info.name, kind: info.isActor ? .actor : info.isClass ? .classType : .structure)
-            description.superclass = info.superclass
-            description.conformances = info.conformances
-            description.declared = members(of: info)
-            description.memberwise = info.memberwise
-        case .enumType(let info)?:
-            description = TypeProfile(name: info.name, kind: .enumeration)
-            description.conformances = info.conformances
-            description.cases = info.cases
-            description.rawType = info.rawType
-            description.typeParameters = info.typeParameters
-            description.declared = members(of: info)
-            // What Swift synthesizes for an enum: `rawValue` where it has raw values, `allCases` where no case has associated values.
-            // (A Swiit enum isn't a Swift type the bridge could describe, so they are made here.)
-            if let raw = info.rawType { description.declared.properties["rawValue"] = MemberProperty(type: raw, isSettable: false, stored: nil) }
-            if info.cases.allSatisfy({ $0.payload.isEmpty }) { description.declared.staticProperties["allCases"] = .list(.named(info.name)) }
-        case .protocolType?:
-            description = TypeProfile(name: key, kind: .protocolType)
+        case .structType(let profile)?:
+            description = profile
+        case .enumType(let profile)?:
+            description = profile
+        case .protocolType(let profile)?:
+            description = profile
             description.declared = requirementMembers(of: key)
         default:
-            guard let ext = extensionInfo(forKey: key) else { return nil }
+            guard let ext = extensionLayer(forKey: key) else { return nil }
             description = TypeProfile(name: key, kind: .other)
-            description.extended = members(of: ext)
+            description.extended = ext.members
             description.conformances = ext.conformances
             return description
         }
-        if let ext = extensionInfo(forKey: key) {
-            description.extended = members(of: ext)
+        if let ext = extensionLayer(forKey: key) {
+            description.extended = ext.members
             description.conformances += ext.conformances
         }
         return description
-    }
-
-    private func members(of info: StructInfo) -> MemberSet {
-        var members = MemberSet()
-        for property in info.stored { members.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.mutable, stored: property) }
-        for (name, type) in info.computed where members.properties[name] == nil {
-            members.properties[name] = MemberProperty(type: type, isSettable: info.settable.contains(name), stored: nil)
-        }
-        members.methods = info.methods
-        for property in info.staticProperties { members.staticProperties[property.name] = property.type ?? .unknown }
-        members.staticMethods = info.staticMethods
-        members.initializers = info.initializers
-        return members
-    }
-
-    private func members(of info: EnumInfo) -> MemberSet {
-        var members = MemberSet()
-        for (name, type) in info.computed { members.properties[name] = MemberProperty(type: type, isSettable: false, stored: nil) }
-        members.methods = info.methods
-        for property in info.staticProperties { members.staticProperties[property.name] = property.type ?? .unknown }
-        members.staticMethods = info.staticMethods
-        members.initializers = info.initializers
-        return members
-    }
-
-    private func members(of info: ExtensionInfo) -> MemberSet {
-        var members = MemberSet()
-        for (name, type) in info.computed { members.properties[name] = MemberProperty(type: type, isSettable: info.settable.contains(name), stored: nil) }
-        members.methods = info.methods
-        for property in info.staticProperties { members.staticProperties[property.name] = property.type ?? .unknown }
-        members.staticMethods = info.staticMethods
-        members.initializers = info.initializers
-        return members
     }
 
     /// What a protocol asks, with what each protocol it takes in asks.
     private func requirementMembers(of name: String) -> MemberSet {
         var members = MemberSet()
         for required in protocolClosure(name).compactMap({ protocolInfo(named: $0) }) {
-            for (property, requirement) in required.properties where members.properties[property] == nil {
-                members.properties[property] = MemberProperty(type: requirement.type, isSettable: requirement.settable, stored: nil)
-            }
-            for (method, signatures) in required.methods { members.methods[method, default: []] += signatures }
-            for (property, type) in required.staticProperties where members.staticProperties[property] == nil { members.staticProperties[property] = type }
-            for (method, signatures) in required.staticMethods { members.staticMethods[method, default: []] += signatures }
-            members.initializers += required.initializers
+            for (property, requirement) in required.declared.properties where members.properties[property] == nil { members.properties[property] = requirement }
+            for (method, signatures) in required.declared.methods { members.methods[method, default: []] += signatures }
+            for (property, requirement) in required.declared.staticProperties where members.staticProperties[property] == nil { members.staticProperties[property] = requirement }
+            for (method, signatures) in required.declared.staticMethods { members.staticMethods[method, default: []] += signatures }
+            members.initializers += required.declared.initializers
         }
         for (method, signatures) in members.methods {
             members.methods[method] = signatures.enumerated().map { index, signature in var copy = signature; copy.index = index; return copy }

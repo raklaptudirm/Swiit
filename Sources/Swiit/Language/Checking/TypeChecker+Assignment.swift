@@ -10,14 +10,14 @@ extension TypeChecker {
         // `Point.count += 1`: a static var is assigned through its type.
         var start = 0
         if case .structType(let info) = symbol {
-            guard case .member(let name)? = assignment.path.first, let property = info.staticProperty(name) else {
+            guard case .member(let name)? = assignment.path.first, let property = info.declared.staticProperties[name] else {
                 throw TypeError("cannot assign to '\(assignment.root)': it isn't a variable")
             }
-            guard property.mutable, property.getter == nil || property.setter != nil else {
-                let why = property.getter != nil ? "it's a computed property" : "it's a 'let' constant"
+            guard property.isSettable else {
+                let why = property.stored?.getter != nil ? "it's a computed property" : "it's a 'let' constant"
                 throw TypeError("cannot assign to '\(info.name).\(name)': \(why)")
             }
-            type = property.type ?? .unknown
+            type = property.type
             start = 1
         } else {
             guard case .variable(let rootType, let mutable) = symbol else {

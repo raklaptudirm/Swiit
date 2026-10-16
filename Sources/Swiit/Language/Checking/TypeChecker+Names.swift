@@ -44,68 +44,63 @@ extension TypeChecker {
         return made
     }
 
-    @_spi(Layer) public func structInfo(named name: String) -> StructInfo? {
+    @_spi(Layer) public func structInfo(named name: String) -> TypeProfile? {
         if case .structType(let info)? = lookup(name) { return info }
         return nil
     }
 
-    func enumInfo(named name: String) -> EnumInfo? {
+    func enumInfo(named name: String) -> TypeProfile? {
         if case .enumType(let info)? = lookup(name) { return info }
         return nil
     }
 
-    @_spi(Layer) public func structInfo(_ type: StructType) -> StructInfo {
-        var methods: [String: [Signature]] = [:]
-        for (name, set) in type.methods {
-            methods[name] = set.candidates.enumerated().map { index, method in
-                var signature = signature(method)
-                signature.index = index
-                return signature
-            }
-        }
-        var info = StructInfo(
-            name: type.name, stored: type.stored,
-            computed: type.computed.mapValues { $0.returnType ?? .unknown },
-            methods: methods,
-            initializers: type.initializers?.candidates.enumerated().map { index, initializer in
-                Signature(name: initializer.name ?? type.name, parameters: initializer.parameters,
-                          returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
-                          isMutating: true, isThrowing: initializer.isThrowing, index: index)
-            } ?? [],
-            memberwise: Signature(name: type.name, parameters: type.memberwise.parameters, returns: .named(type.name)),
-            conformances: type.conformances,
-            staticProperties: type.staticProperties,
-            staticMethods: type.staticMethods.mapValues { set in
+    @_spi(Layer) public func structInfo(_ type: StructType) -> TypeProfile {
+        func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
+            sets.mapValues { set in
                 set.candidates.enumerated().map { index, method in
                     var signature = signature(method)
                     signature.index = index
                     return signature
                 }
             }
-        )
-        info.settable = Set(type.setters.keys)
-        for (index, getter) in type.subscriptGetters.enumerated() {
-            info.subscripts.append(Signature(name: "subscript", parameters: getter.parameters, returns: getter.returnType ?? .unknown, index: index))
-            info.subscriptSettable.append(type.subscriptSetters[index] != nil)
         }
-        return info
+        var profile = TypeProfile(name: type.name, kind: .structure)
+        profile.conformances = type.conformances
+        profile.memberwise = Signature(name: type.name, parameters: type.memberwise.parameters, returns: .named(type.name))
+        for property in type.stored { profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.mutable, stored: property) }
+        for (name, getter) in type.computed where profile.declared.properties[name] == nil {
+            profile.declared.properties[name] = MemberProperty(type: getter.returnType ?? .unknown, isSettable: type.setters[name] != nil, stored: nil)
+        }
+        profile.declared.methods = signatures(type.methods)
+        profile.declared.initializers = type.initializers?.candidates.enumerated().map { index, initializer in
+            Signature(name: initializer.name ?? type.name, parameters: initializer.parameters,
+                      returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
+                      isMutating: true, isThrowing: initializer.isThrowing, index: index)
+        } ?? []
+        for property in type.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        profile.declared.staticMethods = signatures(type.staticMethods)
+        for (index, getter) in type.subscriptGetters.enumerated() {
+            profile.subscripts.append(Signature(name: "subscript", parameters: getter.parameters, returns: getter.returnType ?? .unknown, index: index))
+            profile.subscriptSettable.append(type.subscriptSetters[index] != nil)
+        }
+        return profile
     }
 
-    func enumInfo(_ type: EnumType) -> EnumInfo {
+    func enumInfo(_ type: EnumType) -> TypeProfile {
         let payloads = interpreter.enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
-        let cases = type.cases.map { enumCase in
+        var profile = TypeProfile(name: type.name, kind: .enumeration)
+        profile.cases = type.cases.map { enumCase in
             (enumCase.name, zip(enumCase.labels, payloads[enumCase.name] ?? enumCase.labels.map { _ in .unknown })
                 .map { AssociatedValue(label: $0, type: $1) })
         }
-        let rawType: TypeAnnotation? = switch type.cases.first?.rawValue {
+        profile.rawType = switch type.cases.first?.rawValue {
         case .int?: .int
         case .string?: .string
         case .double?: .double
         default: nil
         }
-        var info = EnumInfo(name: type.name, cases: cases, rawType: rawType,
-                            conformances: interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
-        info.typeParameters = interpreter.enumTypeParameters[ObjectIdentifier(type)] ?? []
+        profile.conformances = interpreter.enumConformances[ObjectIdentifier(type)] ?? []
+        profile.typeParameters = interpreter.enumTypeParameters[ObjectIdentifier(type)] ?? []
         if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in
@@ -116,16 +111,19 @@ extension TypeChecker {
                     }
                 }
             }
-            info.computed = members.computed.mapValues { $0.returnType ?? .unknown }
-            info.methods = signatures(members.methods)
-            info.staticProperties = members.staticProperties
-            info.staticMethods = signatures(members.staticMethods)
-            info.initializers = members.initializers?.candidates.enumerated().map { index, initializer in
+            for (name, function) in members.computed {
+                profile.declared.properties[name] = MemberProperty(type: function.returnType ?? .unknown, isSettable: false, stored: nil)
+            }
+            profile.declared.methods = signatures(members.methods)
+            for property in members.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+            profile.declared.staticMethods = signatures(members.staticMethods)
+            profile.declared.initializers = members.initializers?.candidates.enumerated().map { index, initializer in
                 Signature(name: initializer.name ?? type.name, parameters: initializer.parameters,
                           returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
                           isMutating: true, isThrowing: initializer.isThrowing, index: index)
             } ?? []
         }
-        return info
+        profile.addSynthesizedEnumMembers()
+        return profile
     }
 }

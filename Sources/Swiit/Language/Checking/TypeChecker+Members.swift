@@ -325,7 +325,7 @@ extension TypeChecker {
     }
 
     /// What a struct's `subscript` gives for `arguments`, and whether it can be set.
-    func structSubscript(_ info: StructInfo, _ arguments: inout [Argument]) throws -> (type: TypeAnnotation, settable: Bool) {
+    func structSubscript(_ info: TypeProfile, _ arguments: inout [Argument]) throws -> (type: TypeAnnotation, settable: Bool) {
         guard !info.subscripts.isEmpty else { throw TypeError("\(info.name) can't be indexed: it has no subscript") }
         guard let chosen = try resolve(info.subscripts, &arguments, name: "\(info.name)'s subscript") else {
             return (commonReturn(info.subscripts), info.subscriptSettable.contains(true))

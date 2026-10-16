@@ -70,97 +70,12 @@ import SwiitKit
         }
     }
 
-    @_spi(Layer) public struct StructInfo {
-        @_spi(Layer) public var name: String
-        var stored: [PropertyDecl]
-        var computed: [String: TypeAnnotation]
-        /// The computed properties that can be set.
-        var settable: Set<String> = []
-        /// What `value[…]` reads, with whether each can also be written.
-        var subscripts: [Signature] = []
-        var subscriptSettable: [Bool] = []
-        @_spi(Layer) public var methods: [String: [Signature]]
-        var initializers: [Signature]
-        var memberwise: Signature
-        var conformances: [String] = []
-        /// `static let` and `static var`, stored and computed: read on the type.
-        var staticProperties: [PropertyDecl] = []
-        var staticMethods: [String: [Signature]] = [:]
-        /// A class (or actor): shared, with a superclass, and no memberwise initializer.
-        var isClass = false
-        var isActor = false
-        var superclass: String?
-        /// Which of the initializers are `convenience`.
-        var convenienceInitializers: [Bool] = []
-        /// Which of the methods say `override`, by name and position.
-        var overrides: Set<String> = []
-        /// The members an actor gives without `await`.
-        var nonisolated: Set<String> = []
-
-        func property(_ name: String) -> PropertyDecl? { stored.first { $0.name == name } }
-        func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
-    
-        @_spi(Layer) public init(name: String, stored: [PropertyDecl], computed: [String: TypeAnnotation], methods: [String: [Signature]], initializers: [Signature], memberwise: Signature, conformances: [String] = [], staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
-            self.name = name
-            self.stored = stored
-            self.computed = computed
-            self.methods = methods
-            self.initializers = initializers
-            self.memberwise = memberwise
-            self.conformances = conformances
-            self.staticProperties = staticProperties
-            self.staticMethods = staticMethods
-        }
-    }
-
-    @_spi(Layer) public struct EnumInfo {
-        @_spi(Layer) public var name: String
-        /// Each case's associated values, in declaration order.
-        var cases: [(name: String, payload: [AssociatedValue])]
-        var rawType: TypeAnnotation?
-        var conformances: [String] = []
-        /// Computed properties' types, and methods.
-        var computed: [String: TypeAnnotation] = [:]
-        var methods: [String: [Signature]] = [:]
-        var staticProperties: [PropertyDecl] = []
-        var staticMethods: [String: [Signature]] = [:]
-        var initializers: [Signature] = []
-        var typeParameters: [String] = []
-
-        func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
-        func staticProperty(_ name: String) -> PropertyDecl? { staticProperties.first { $0.name == name } }
-    
-        @_spi(Layer) public init(name: String, cases: [(name: String, payload: [AssociatedValue])], rawType: TypeAnnotation? = nil, conformances: [String] = [],
-                                 computed: [String: TypeAnnotation] = [:], methods: [String: [Signature]] = [:],
-                                 staticProperties: [PropertyDecl] = [], staticMethods: [String: [Signature]] = [:]) {
-            self.name = name
-            self.cases = cases
-            self.rawType = rawType
-            self.conformances = conformances
-            self.computed = computed
-            self.methods = methods
-            self.staticProperties = staticProperties
-            self.staticMethods = staticMethods
-        }
-    }
-
-    /// What a protocol asks of a conforming type.
-    @_spi(Layer) public struct ProtocolInfo {
-        var name: String
-        var inherited: [String] = []
-        var methods: [String: [Signature]] = [:]
-        var properties: [String: (type: TypeAnnotation, settable: Bool)] = [:]
-        var staticMethods: [String: [Signature]] = [:]
-        var staticProperties: [String: TypeAnnotation] = [:]
-        var initializers: [Signature] = []
-    }
-
     @_spi(Layer) public enum Symbol {
-        case protocolType(ProtocolInfo)
+        case protocolType(TypeProfile)
         case variable(TypeAnnotation, mutable: Bool)
         case functions([Signature])
-        case structType(StructInfo)
-        case enumType(EnumInfo)
+        case structType(TypeProfile)
+        case enumType(TypeProfile)
         /// A Swift type by name, bridged: `String`, `Int`.
         case swiftType(String)
         /// `async let x = …`: a `Task` the scope owns, whose value reading
@@ -243,7 +158,7 @@ import SwiitKit
     /// The expressions of the statement being checked, and where each was written.
     var spots: [Spot] = []
     /// What the extensions in the program being checked add, by type name.
-    var localExtensions: [String: ExtensionInfo] = [:]
+    var localExtensions: [String: ExtensionLayer] = [:]
 
     @_spi(Layer) public init(interpreter: Interpreter) {
         self.interpreter = interpreter
