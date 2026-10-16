@@ -62,6 +62,8 @@ struct Lowering {
     /// Where readings ended that SwiftParser's own text doesn't show: a raw
     /// string `'a b'` is its quotes missing, set aside as unexpected.
     var extentHints: [Int] = []
+    /// The byte ranges inside `$(…)` that the tree was given blanked (see `SwiftSyntaxFrontEnd.parse`).
+    var blanked: [Range<Int>] = []
     /// What the layer found wrong with what it read: when it reads a command
     /// at all, what is wrong in it is its own to say.
     var layerError: SyntaxError?

@@ -4,6 +4,15 @@ import SwiitKit
 extension Interpreter {
     // MARK: Calls
 
+    /// Whether two values are of the same kind: a plain one is told by its case, without building the name of its type.
+    static func sameKind(_ a: Value, _ b: Value) -> Bool {
+        switch (a, b) {
+        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.list, .list), (.dictionary, .dictionary): true
+        case (.int, _), (.double, _), (.string, _), (.bool, _), (.list, _), (.dictionary, _): false
+        default: a.typeName == b.typeName
+        }
+    }
+
     /// Runs `function` with its parameters bound to `arguments`.
     /// Calls `function`. A method gets `receiver` as `self`, and leaves it
     /// there as the method changed it.
@@ -33,9 +42,9 @@ extension Interpreter {
 
         let savedScopes = scopes
         let inouts = Set(function.parameters.filter(\.isInout).map(\.name))
-        let argumentScope = Scope(arguments.reduce(into: [:]) { bindings, argument in
-            bindings[argument.key] = Binding(value: argument.value, mutable: inouts.contains(argument.key))
-        })
+        var made = [String: Binding](minimumCapacity: arguments.count + 1)
+        for argument in arguments { made[argument.key] = Binding(value: argument.value, mutable: inouts.contains(argument.key)) }
+        let argumentScope = Scope(made)
         // A type parameter the call left to what was passed (a protocol's type) is the type of that value, as Swift opens an existential.
         for name in function.typeParameters {
             if case .object(let bound)? = function.captured.last?.bindings[Interpreter.typeArgumentPrefix + name]?.value, !(bound is ProtocolType) { continue }
@@ -58,7 +67,11 @@ extension Interpreter {
                 value: .function(OverloadSet(name: name, candidates: [function])), mutable: false, isFunction: true
             )
         }
-        scopes = function.captured + [argumentScope]
+        var inside = [Scope]()
+        inside.reserveCapacity(function.captured.count + 1)
+        inside.append(contentsOf: function.captured)
+        inside.append(argumentScope)
+        scopes = inside
         if let owner = function.owner { task.owners.append(owner) }
         callDepth += 1
         returnTypes.append(function.returnType)
@@ -148,7 +161,7 @@ extension Interpreter {
         var penalty = 0
         func checked(_ value: Value, for parameter: Parameter) throws -> Value {
             let result = try self.checked(value, for: parameter, of: name)
-            if parameter.type == .any || !result.isEqual(to: value) || result.typeName != value.typeName { penalty += 1 }
+            if parameter.type == .any || !Interpreter.sameKind(result, value) || !result.isEqual(to: value) { penalty += 1 }
             return result
         }
         var index = 0

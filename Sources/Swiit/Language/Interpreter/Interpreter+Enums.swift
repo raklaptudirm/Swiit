@@ -166,6 +166,11 @@ extension Interpreter {
 
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
     public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
+        // A value already of a plain type, which is nearly every argument and result.
+        switch (type, value) {
+        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _): return value
+        default: break
+        }
         switch type {
         case .named, .generic, .someSequence:
             return conformNamed(value, to: type)

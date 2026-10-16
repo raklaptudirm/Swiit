@@ -959,7 +959,19 @@ extension Lowering {
     func names(in node: some SyntaxProtocol) -> Set<String> {
         let collector = NameCollector()
         collector.walk(node)
-        return collector.names
+        var names = collector.names
+        // The words in a `$(…)` are the layer's, and a closure that has one needs what they name (a function, a variable).
+        let start = node.positionAfterSkippingLeadingTrivia.utf8Offset, end = node.endPositionBeforeTrailingTrivia.utf8Offset
+        for range in blanked where range.lowerBound >= start && range.upperBound <= end {
+            var word = ""
+            for byte in bytes[range] + [0x20] {
+                let character = Character(UnicodeScalar(byte))
+                if character.isLetter || character.isNumber || character == "_" { word.append(character) } else {
+                    if !word.isEmpty { names.insert(word); word = "" }
+                }
+            }
+        }
+        return names
     }
 }
 

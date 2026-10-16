@@ -283,9 +283,11 @@ extension Interpreter {
 
     public func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
-        if cancellation.isSet { throw Cancelled() }
-        if task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
         steps += 1
+        // A task that is cancelled stops at its next step, even before it has begun: that is every step's.
+        if cancellation.isSet { throw Cancelled() }
+        // The host's interrupt is asked every few steps, not every one.
+        if steps & 15 == 0, task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
         if let maximum = limits.steps, steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
         if let deadline, ContinuousClock.now > deadline { throw LimitExceeded("time limit exceeded") }
         if let maximum = limits.output, outputCounter.written > maximum {

@@ -90,9 +90,9 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
     /// A body that is a single expression returns its value, as in Swift:
     /// a closure's, or a function's that says what it returns. A function
     /// without `->` returns nothing.
-    var implicitReturn: Expr? {
+    private(set) lazy var implicitReturn: Expr? = {
         guard name == nil || returnType != nil, case .swiit(let body) = body, body.statements.count == 1,
               case .expression(let expr) = body.statements[0] else { return nil }
         return expr
-    }
+    }()
 }
