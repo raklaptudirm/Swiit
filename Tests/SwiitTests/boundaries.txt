@@ -26,7 +26,7 @@ allow	Language/Checking/TypeChecker+Members.swift	commandline	1
 allow	Language/Interpreter/Callables.swift	commandline	5
 allow	Language/Interpreter/Callables.swift	display	2
 allow	Language/Interpreter/Function.swift	commandline	3
-allow	Language/Interpreter/Interpreter+Calls.swift	commandline	5
+allow	Language/Interpreter/Interpreter+Calls.swift	commandline	6
 allow	Language/Interpreter/Interpreter+Calls.swift	results	1
 allow	Language/Interpreter/Interpreter+SequenceMethods.swift	commandline	1
 allow	Language/Interpreter/Interpreter.swift	display	8

@@ -375,6 +375,7 @@ extension Interpreter {
             }
             return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue) ?? .nothing
         }
+        if let result = try callPlainly(value, arguments) { return result }
         // `.case` arguments wait for their parameter's type.
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
@@ -395,6 +396,17 @@ extension Interpreter {
         default:
             throw RuntimeError("\(value.typeName) isn't a function")
         }
+    }
+
+    /// A call to the one function there is, with each argument for the parameter in its place: no overload to choose and
+    /// nothing to match, so the arguments become its scope directly. Nil for any other call.
+    private func callPlainly(_ value: Value, _ arguments: [Argument]) throws -> Value? {
+        guard case .function(let target) = value else { return nil }
+        let only = (target as? OverloadSet).flatMap { $0.candidates.count == 1 ? $0.candidates[0] : nil } ?? (target as? Function)
+        guard let only, let scope = try bindPlainly(arguments, to: only) else { return nil }
+        guard callDepth < limits.depth else { throw RuntimeError("maximum call depth (\(limits.depth)) exceeded") }
+        try checkInterrupt()
+        return try runSwiit(only, in: scope)
     }
 
     static func isCaseLiteral(_ expr: Expr) -> Bool {

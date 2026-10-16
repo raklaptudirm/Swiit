@@ -31,6 +31,8 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
     public let generics: [String: [String]]
     /// Of those, the ones its body names: a call binds them (`specialized`).
     public let typeParameters: Set<String>
+    /// The names of its `inout` parameters, which a call hands back.
+    let inoutNames: Set<String>
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
     /// `convenience init`: made through another of the class's initializers.
@@ -45,6 +47,7 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         isFailable: Bool = false, isConvenience: Bool = false, typeParameters: Set<String> = []
     ) {
         self.typeParameters = typeParameters
+        inoutNames = Set(parameters.filter(\.isInout).map(\.name))
         self.isFailable = isFailable
         self.isConvenience = isConvenience
         self.isRethrowing = isRethrowing

@@ -40,15 +40,21 @@ extension Interpreter {
             break
         }
 
+        var made = BindingTable(capacity: arguments.count + 1)
+        for argument in arguments {
+            made[argument.key] = Binding(value: argument.value, mutable: !function.inoutNames.isEmpty && function.inoutNames.contains(argument.key))
+        }
+        return try runSwiit(function, in: Scope(table: made), receiver: receiver)
+    }
+
+    /// Runs a Swiit function whose parameters are bound in `argumentScope`.
+    func runSwiit(_ function: Function, in argumentScope: Scope, receiver: Receiver? = nil) throws -> Value {
         let savedScopes = scopes
-        let inouts = Set(function.parameters.filter(\.isInout).map(\.name))
-        var made = [String: Binding](minimumCapacity: arguments.count + 1)
-        for argument in arguments { made[argument.key] = Binding(value: argument.value, mutable: inouts.contains(argument.key)) }
-        let argumentScope = Scope(made)
         // A type parameter the call left to what was passed (a protocol's type) is the type of that value, as Swift opens an existential.
         for name in function.typeParameters {
             if case .object(let bound)? = function.captured.last?.bindings[Interpreter.typeArgumentPrefix + name]?.value, !(bound is ProtocolType) { continue }
-            guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }), let argument = arguments[parameter.name] else { continue }
+            guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }),
+                  let argument = argumentScope.bindings[parameter.name]?.value else { continue }
             let actual = typeObject(of: argument)
             guard actual != .nothing else { continue }
             argumentScope.bindings[name] = Binding(value: actual, mutable: false)
@@ -104,7 +110,7 @@ extension Interpreter {
         }
 
         // What the `inout` parameters hold now goes back to where the call took them from.
-        if !inouts.isEmpty {
+        if !function.inoutNames.isEmpty {
             task.inoutOutputs = function.parameters.filter(\.isInout).map { argumentScope.bindings[$0.name]?.value ?? .nothing }
         }
         guard let returnType = function.returnType else { return result }
@@ -113,6 +119,23 @@ extension Interpreter {
             throw RuntimeError("\(function.name ?? "closure") must return \(returnType), but returned \(what)")
         }
         return conforming
+    }
+
+    /// The scope of a call to a Swiit function whose arguments are one for each parameter, in order and with the labels
+    /// the parameters have; nil for any other call, which `bind` works out.
+    func bindPlainly(_ arguments: [Argument], to function: Function) throws -> Scope? {
+        guard case .swiit = function.body, function.parameters.count == arguments.count else { return nil }
+        for (parameter, argument) in zip(function.parameters, arguments) {
+            if parameter.variadic || parameter.isInout || parameter.isInput || argument.label != parameter.label { return nil }
+            if case .inoutArgument = argument.value { return nil }
+        }
+        var table = BindingTable(capacity: arguments.count + 1)
+        let name = function.name ?? "closure"
+        for (parameter, argument) in zip(function.parameters, arguments) {
+            let value = try evaluate(argument.value, expecting: parameter.type)
+            table[parameter.name] = Binding(value: try checked(value, for: parameter, of: name), mutable: false)
+        }
+        return Scope(table: table)
     }
 
     /// Calls a function value with positional arguments, as builtins like
