@@ -8,12 +8,11 @@ extension TypeChecker {
         // `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`.
         if case .variable(let name) = callee, let symbol = lookup(name) {
             switch symbol {
-            case .structType(let info):
+            case .structType:
                 // What an extension adds goes after the type's own.
-                let added = extensionInfo(forKey: name)?.initializers ?? []
-                let candidates = (info.initializers.isEmpty ? [info.memberwise] : info.initializers) + added
-                let chosen = try resolve(candidates, &arguments, name: name)
-                if let chosen, !info.initializers.isEmpty, !info.isClass, added.isEmpty { callee = .chosen(callee, overload: chosen.index) }
+                guard let description = describe(named: name) else { break }
+                let chosen = try resolve(description.initializers, &arguments, name: name)
+                if let chosen, description.namesItsInitializers { callee = .chosen(callee, overload: chosen.index) }
                 if let chosen, chosen.isThrowing { try throwingSite("\(name).init") }
                 if let chosen { try effectSite(chosen.effect, "\(name).init") }
                 return chosen?.returns ?? .named(name)
@@ -47,24 +46,11 @@ extension TypeChecker {
             callee = bridgedExpr
             return type
         }
-        // `Point.make(1)` where an extension adds the static method.
+        // `Point.make(1)`, `Level.make()`: a static method of a struct or an enum, its own or one an extension adds.
         if case .member(.variable(let typeName), let name) = callee, let symbol = lookup(typeName),
            { if case .structType = symbol { true } else if case .enumType = symbol { true } else { false } }(),
-           let methods = extensionInfo(forKey: typeName)?.staticMethods[name] {
-            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return chosen.returns
-        }
-        // `Point.make(1)`: a static method.
-        if case .member(.variable(let typeName), let name) = callee, case .structType(let info)? = lookup(typeName),
-           let methods = info.staticMethods[name] {
-            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return chosen.returns
+           case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name) {
+            return try callMember(methods, name, callee: &callee, &arguments)
         }
         // `x?.f()`: the method's result, or nil.
         if case .optionalMember(var baseExpr, let name) = callee {
@@ -77,14 +63,6 @@ extension TypeChecker {
             return result == .unknown || result == .void ? result : .optional(result)
         }
         if case .member(var baseExpr, let name) = callee {
-            // `Level.make()`: a static method of an enum.
-            if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName), let methods = info.staticMethods[name] {
-                guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-                if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-                if chosen.isThrowing { try throwingSite("'\(name)'") }
-                try effectSite(chosen.effect, "'\(name)'")
-                return chosen.returns
-            }
             // `Result.failed(code: 2)`: a case with associated values.
             if case .variable(let typeName) = baseExpr, case .enumType(let info)? = lookup(typeName) {
                 var payload: [Argument]? = arguments
@@ -143,8 +121,22 @@ extension TypeChecker {
         if chosen.isThrowing { try throwingSite("'\(name)'") }
         try effectSite(chosen.effect, "'\(name)'")
         // An optional chain's result is an optional, whatever the last link gives (`o?.a` of an `Int?` is an `Int?`).
-        if name == "$chain", case .optional(.optional(let inner)) = chosen.returns { return .optional(inner) }
+        if chosen.flattensResult, case .optional(.optional(let inner)) = chosen.returns { return .optional(inner) }
         return returns
+    }
+
+    /// A call to one of a member's overloads: the one the arguments fit, what choosing it asks of the call (naming it to the
+    /// interpreter when it has several, a change of the receiver, a `try`, an `await`), and what it gives back.
+    func callMember(
+        _ methods: [Signature], _ name: String, bindings: [String: TypeAnnotation] = [:], callee: inout Expr, _ arguments: inout [Argument],
+        narrowing: Bool = true, mutating receiver: Expr? = nil
+    ) throws -> TypeAnnotation {
+        guard let chosen = try resolve(methods, &arguments, name: name, bindings: bindings) else { return commonReturn(methods) }
+        if narrowing, methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
+        if let receiver, chosen.isMutating { try checkMutable(receiver, method: name) }
+        if chosen.isThrowing { try throwingSite("'\(name)'") }
+        try effectSite(chosen.effect, "'\(name)'")
+        return chosen.returns
     }
 
     @_spi(Layer) public func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
@@ -163,48 +155,23 @@ extension TypeChecker {
             return name == "init" ? made : .unknown
         }
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
-        if name == "init", case .named(let structName) = base, let info = structInfo(named: structName),
+        if name == "init", case .named(let structName) = base, structInfo(named: structName) != nil, let description = describe(base),
            lookup("$initializing") != nil {
-            let added = extensionInfo(forKey: structName)?.initializers ?? []
-            let candidates = (info.initializers.isEmpty ? [info.memberwise] : info.initializers) + added
+            let candidates = description.initializers
             guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
-            if candidates.count > 1, !info.initializers.isEmpty, !info.isClass, added.isEmpty { callee = .chosen(callee, overload: chosen.index) }
+            if candidates.count > 1, description.namesItsInitializers { callee = .chosen(callee, overload: chosen.index) }
             if chosen.isThrowing { try throwingSite("init") }
             return .void
         }
-        if case .named(let structName) = base, let info = structInfo(named: structName), let methods = info.methods[name] {
-            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if methods.count > 1, !info.isClass { callee = .chosen(callee, overload: chosen.index) }
-            if let baseExpr, chosen.isMutating, !info.isClass { try checkMutable(baseExpr, method: name) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return chosen.returns
-        }
-        // A protocol's requirement, or a default an extension of it gives, on a value of its type.
-        if case .named(let protocolName) = base, protocolInfo(named: protocolName) != nil, !protocolMethods(protocolName, name).isEmpty {
-            let methods = protocolMethods(protocolName, name)
-            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return substitute(chosen.returns, [:])
-        }
-        // An enum's own methods, with the case as `self`.
-        if case .named(let enumName) = base, let info = enumInfo(named: enumName), let methods = info.methods[name] {
-            guard let chosen = try resolve(methods, &arguments, name: name) else { return commonReturn(methods) }
-            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-            if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return chosen.returns
-        }
-        // A method an extension adds, to any type: `self` is the receiver, and a collection's items are known.
-        if let ext = extensionInfo(for: base), let methods = ext.methods[name] {
-            guard let chosen = try resolve(methods, &arguments, name: name, bindings: elementBindings(for: base)) else { return commonReturn(methods) }
-            if methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
-            if let baseExpr, chosen.isMutating { try checkMutable(baseExpr, method: name) }
-            if chosen.isThrowing { try throwingSite("'\(name)'") }
-            try effectSite(chosen.effect, "'\(name)'")
-            return chosen.returns
+        // A method the type declares, a requirement of a protocol or the default an extension of it gives, or one an extension
+        // adds to any type (`self` is the receiver, and a collection's items are known).
+        if let description = describe(base), case .methods(let methods, let origin)? = description.instanceMember(name) {
+            // A class's method is shared by every reference and a protocol's is any type's: no overload set of a value type's
+            // own to name one of, and no value to change.
+            let ofAValue = !(description.kind == .protocolType || origin == .declaration && description.isClass)
+            let result = try callMember(methods, name, bindings: origin == .extensions ? elementBindings(for: base) : [:], callee: &callee, &arguments,
+                                        narrowing: ofAValue, mutating: ofAValue ? baseExpr : nil)
+            return description.kind == .protocolType ? substitute(result, [:]) : result
         }
         // Swift's own methods first; then what the prelude adds for shells,
         // like `sorted(by: \.size)`.

@@ -220,7 +220,7 @@ extension Interpreter {
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         let print = hostFunction(ExportedFunction(
             name: "print", summary: "Writes its arguments to the output, separated by spaces, then a newline.",
-            parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true),
+            parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true, showsByType: true),
                          ExportedParameter(label: "separator", name: "separator", type: .string, defaultValue: .string(" ")),
                          ExportedParameter(label: "terminator", name: "terminator", type: .string, defaultValue: .string("\n"))],
             returnType: nil,

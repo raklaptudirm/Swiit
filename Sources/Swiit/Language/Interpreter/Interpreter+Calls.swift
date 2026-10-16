@@ -286,12 +286,14 @@ extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
     public func hostFunction(_ export: ExportedFunction) -> Function {
-        let parameters = export.parameters.map { parameter in
-            Parameter(
+        let parameters = export.parameters.map { parameter -> Parameter in
+            var made = Parameter(
                 label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
                 variadic: parameter.variadic, defaultValue: parameter.defaultValue.map(Expr.literal),
                 isInput: parameter.isInput, shortFlag: parameter.shortFlag, externalDefault: parameter.defaultSource
             )
+            made.showsByType = parameter.showsByType
+            return made
         }
         var docs: [String: String] = [:]
         for parameter in export.parameters {

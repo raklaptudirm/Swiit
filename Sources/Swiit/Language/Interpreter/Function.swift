@@ -33,6 +33,8 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
     public let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
     let inoutNames: Set<String>
+    /// Its result is an optional of what it gives, flattened: an optional it gives back is not made one more (`flatMap`'s).
+    public let flattensResult: Bool
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
     /// `convenience init`: made through another of the class's initializers.
@@ -44,8 +46,9 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
         captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
         isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:],
-        isFailable: Bool = false, isConvenience: Bool = false, typeParameters: Set<String> = []
+        isFailable: Bool = false, isConvenience: Bool = false, typeParameters: Set<String> = [], flattensResult: Bool = false
     ) {
+        self.flattensResult = flattensResult
         self.typeParameters = typeParameters
         inoutNames = Set(parameters.filter(\.isInout).map(\.name))
         self.isFailable = isFailable
@@ -68,7 +71,8 @@ public final class Function: Callable, @unchecked Sendable { // safe: its state 
         let copy = Function(
             name: name, parameters: parameters, returnType: returnType, body: body, captured: captured + [scope],
             documentation: documentation, isMutating: isMutating, isThrowing: isThrowing, isRethrowing: isRethrowing,
-            effect: effect, generics: generics, isFailable: isFailable, isConvenience: isConvenience, typeParameters: typeParameters)
+            effect: effect, generics: generics, isFailable: isFailable, isConvenience: isConvenience, typeParameters: typeParameters,
+            flattensResult: flattensResult)
         copy.owner = owner
         return copy
     }

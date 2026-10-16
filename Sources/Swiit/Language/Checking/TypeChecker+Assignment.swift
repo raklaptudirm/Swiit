@@ -39,24 +39,22 @@ extension TypeChecker {
             case .member:
                 if let dynamic = dynamicType(of: type) {
                     type = dynamic.write
-                } else if case .member(let name) = assignment.path[index], case .named(let structName) = type, let info = structInfo(named: structName) {
-                    if info.property(name) == nil, info.settable.contains(name), let computed = info.computed[name] {
-                        type = computed
-                        continue
+                } else if case .member(let name) = assignment.path[index], case .named(let structName) = type,
+                          let description = describe(type), [.structure, .classType, .actor].contains(description.kind) {
+                    guard case .property(let property)? = description.instanceMember(name) else {
+                        throw TypeError("cannot assign to '\(name)': \(structName) has no property '\(name)'")
                     }
-                    if info.property(name) == nil, let ext = extensionInfo(forKey: structName), ext.settable.contains(name), let computed = ext.computed[name] {
-                        type = computed
+                    // A computed property is assigned through its setter.
+                    guard let stored = property.stored else {
+                        guard property.isSettable else { throw TypeError("cannot assign to '\(name)': it's a computed property") }
+                        type = property.type
                         continue
-                    }
-                    guard let property = info.property(name) else {
-                        let why = info.computed[name] != nil ? "it's a computed property" : "\(structName) has no property '\(name)'"
-                        throw TypeError("cannot assign to '\(name)': \(why)")
                     }
                     let initializing = assignment.root == "self" && index == 0 && lookup("$initializing") != nil
-                    guard property.mutable || (initializing && last) else {
+                    guard stored.mutable || (initializing && last) else {
                         throw TypeError("cannot assign to '\(name)': it's a 'let' property of \(structName)")
                     }
-                    type = property.type ?? .unknown
+                    type = property.type
                 } else if case .member(let name) = assignment.path[index], case .tuple(let elements) = type {
                     guard let element = tupleElement(name, of: elements) else { throw TypeError("\(type) has no element '\(name)'") }
                     type = element
@@ -126,8 +124,7 @@ extension TypeChecker {
         if let op = assignment.op {
             let valueType = try typeOf(&assignment.value, expecting: type)
             // `a += b` through a `+=` the type defines.
-            if case .named(let typeName) = type,
-               (structInfo(named: typeName)?.staticMethods["\(op.rawValue)="] ?? extensionInfo(forKey: typeName)?.staticMethods["\(op.rawValue)="]) != nil {
+            if case .named(let typeName) = type, describe(named: typeName)?.staticMethods(named: "\(op.rawValue)=").isEmpty == false {
                 return
             }
             let result = try binaryType(op, type, valueType)

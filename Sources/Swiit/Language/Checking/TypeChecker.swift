@@ -54,6 +54,8 @@ import SwiitKit
         var typeParameters: Set<String> = []
         /// What the type parameters were in the call this was matched to.
         var solved: [String: TypeAnnotation] = [:]
+        /// Its result is flattened if it is an optional of an optional (see `Function.flattensResult`).
+        var flattensResult = false
     
         @_spi(Layer) public init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
             self.effect = effect

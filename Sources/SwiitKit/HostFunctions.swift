@@ -47,11 +47,15 @@ public struct ExportedParameter: Sendable {
     /// A default only Swift can compute, like `Date()`: the argument is
     /// left out and the function uses its own. Its source, for `--help`.
     public let defaultSource: String?
+    /// What is given is shown as interpolation shows a value (see `Parameter.showsByType`).
+    public let showsByType: Bool
 
     public init(
         label: String?, name: String, type: SwiitType, enums: [EnumType] = [], variadic: Bool = false, isInput: Bool = false,
-        shortFlag: Character? = nil, documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil
+        shortFlag: Character? = nil, documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil,
+        showsByType: Bool = false
     ) {
+        self.showsByType = showsByType
         self.label = label
         self.name = name
         self.type = type

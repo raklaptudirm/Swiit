@@ -40,6 +40,7 @@ extension TypeChecker {
                              isMutating: function.isMutating, isThrowing: function.isThrowing,
                              isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics)
         made.typeParameters = function.typeParameters
+        made.flattensResult = function.flattensResult
         return made
     }
 

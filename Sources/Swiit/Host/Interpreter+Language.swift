@@ -99,7 +99,8 @@ extension Interpreter {
                 guard let base = arguments["base"], base != .nothing else { return .nothing }
                 return try shell.call(arguments["rest"]!, with: [base])
             },
-            documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]), isRethrowing: true, generics: ["T": [], "R": []]
+            documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]), isRethrowing: true, generics: ["T": [], "R": []],
+            flattensResult: true
         ), named: "$chain")
         // `Optional(x)`: x, as an optional.
         scopes[0].declare(Function(

@@ -202,18 +202,9 @@ extension TypeChecker {
 
     /// Whether the type has a member by that name, for a bare name inside it to mean `self`'s.
     func hasMember(_ type: TypeAnnotation, named name: String) -> Bool {
-        if let ext = extensionInfo(for: type), ext.computed[name] != nil || ext.methods[name] != nil { return true }
-        switch type {
-        case .named(let typeName):
-            if protocolMemberType(typeName, name) != nil { return true }
-            if let info = structInfo(named: typeName) {
-                return info.property(name) != nil || info.computed[name] != nil || info.methods[name] != nil
-            }
-            if let info = enumInfo(named: typeName) { return info.computed[name] != nil || info.methods[name] != nil || name == "rawValue" }
-            return false
-        default:
-            if let (bridgedType, _) = bridged(type) { return bridgedType.members.contains { !$0.isStatic && $0.name == name } }
-            return false
-        }
+        if describe(type)?.instanceMember(name) != nil { return true }
+        if case .named = type { return false }
+        if let (bridgedType, _) = bridged(type) { return bridgedType.members.contains { !$0.isStatic && $0.name == name } }
+        return false
     }
 }

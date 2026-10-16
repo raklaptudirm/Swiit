@@ -133,6 +133,7 @@ Language/Syntax/Declarations.swift	Layer var resultBuilder
 Language/Syntax/Declarations.swift	Layer var resultBuilder
 Language/Syntax/Declarations.swift	Layer var runtimeTypeParameters
 Language/Syntax/Declarations.swift	Layer var shortFlag
+Language/Syntax/Declarations.swift	Layer var showsByType
 Language/Syntax/Declarations.swift	Layer var summary
 Language/Syntax/Declarations.swift	Layer var thrownType
 Language/Syntax/Declarations.swift	Layer var type

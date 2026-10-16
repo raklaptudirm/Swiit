@@ -177,30 +177,17 @@ extension TypeChecker {
     func memberType(_ baseExpr: inout Expr, _ name: String) throws -> TypeAnnotation {
         if case .variable(let typeName) = baseExpr, let symbol = lookup(typeName) {
             switch symbol {
-            case .enumType(let info):
-                if let property = info.staticProperty(name) ?? extensionInfo(forKey: typeName)?.staticProperties.first(where: { $0.name == name }) {
-                    return property.type ?? .unknown
+            case .enumType, .structType:
+                guard let description = describe(named: typeName) else { break }
+                switch description.staticMember(name) {
+                case .property(let property)?: return property.type
+                case .methods(let methods, _)?: return methods.count == 1 ? functionType(methods[0]) : .function
+                case .enumCase?, nil: break
                 }
-                if let methods = extensionInfo(forKey: typeName)?.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
-                if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
-                // What Swift synthesizes for an enum: `allCases` and
-                // `rawValue`. A Swiit enum isn't a Swift type the bridge
-                // could describe, so they're made here.
-                if name == "allCases" {
-                    guard info.cases.allSatisfy({ $0.payload.isEmpty }) else {
-                        throw TypeError("\(info.name) has no allCases: some cases have associated values")
-                    }
-                    return .list(.named(info.name))
-                }
+                guard description.kind == .enumeration else { throw TypeError("\(description.name) has no static member '\(name)'") }
+                if name == "allCases" { throw TypeError("\(description.name) has no allCases: some cases have associated values") }
                 var none: [Argument]?
-                return try caseType(name, &none, expected: .named(info.name))
-            case .structType(let info):
-                if let property = info.staticProperty(name) ?? extensionInfo(forKey: typeName)?.staticProperties.first(where: { $0.name == name }) {
-                    return property.type ?? .unknown
-                }
-                if let methods = extensionInfo(forKey: typeName)?.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
-                if let methods = info.staticMethods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
-                throw TypeError("\(info.name) has no static member '\(name)'")
+                return try caseType(name, &none, expected: .named(description.name))
             default:
                 break
             }
@@ -215,21 +202,17 @@ extension TypeChecker {
         if let (dynamic, plain) = plainType(of: base) {
             return plain.views[name] ?? dynamic.read
         }
-        // What an extension adds.
-        if let ext = extensionInfo(for: base) {
-            let bindings = elementBindings(for: base)
-            if let computed = ext.computed[name] { return substitute(computed, bindings) }
-            if let methods = ext.methods[name] {
-                return methods.count == 1 ? substitute(functionType(methods[0]), bindings) : .function
-            }
+        // What the type declares, or an extension (or a protocol's default) adds.
+        let description = describe(base)
+        let bindings = elementBindings(for: base)
+        switch description?.instanceMember(name) {
+        case .property(let property)?: return substitute(property.type, bindings)
+        case .methods(let methods, _)?: return methods.count == 1 ? substitute(functionType(methods[0]), bindings) : .function
+        case .enumCase?, nil: break
         }
         // Every value has its textual form, as interpolation shows it; a
         // struct's own property of that name comes first.
-        if name == "description" || name == "debugDescription" {
-            if case .named(let structName) = base, let info = structInfo(named: structName),
-               let property = info.property(name) { return property.type ?? .unknown }
-            return .string
-        }
+        if name == "description" || name == "debugDescription" { return .string }
         // Swift's own properties, as in `\.count`.
         if let (bridgedType, bindings) = bridged(base),
            let property = bridgedType.members.first(where: { $0.kind == .property && !$0.isStatic && $0.name == name }) {
@@ -243,25 +226,13 @@ extension TypeChecker {
         case .optional:
             throw TypeError("\(base) might be nil: unwrap it (if let, ??, ?. or !) before using .\(name)")
         case .named(let typeName):
-            if protocolInfo(named: typeName) != nil {
-                guard let type = protocolMemberType(typeName, name) else { throw TypeError("\(typeName) has no member '\(name)'") }
-                return substitute(type, [:])
-            }
-            if let info = structInfo(named: typeName) {
-                // A generic type's parameters aren't known from the name alone.
-                if let property = info.property(name) { return substitute(property.type ?? .unknown, [:]) }
-                if let computed = info.computed[name] { return substitute(computed, [:]) }
-                if let methods = info.methods[name] { return methods.count == 1 ? substitute(functionType(methods[0]), [:]) : .function }
+            switch description?.kind {
+            case .protocolType?, .structure?, .classType?, .actor?:
                 throw TypeError("\(typeName) has no member '\(name)'")
-            }
-            if let info = enumInfo(named: typeName) {
-                if name == "rawValue" {
-                    guard let raw = info.rawType else { throw TypeError("\(typeName) has no raw values") }
-                    return raw
-                }
-                if let computed = info.computed[name] { return computed }
-                if let methods = info.methods[name] { return methods.count == 1 ? functionType(methods[0]) : .function }
-                throw TypeError("\(typeName) has no member '\(name)'")
+            case .enumeration?:
+                throw TypeError(name == "rawValue" ? "\(typeName) has no raw values" : "\(typeName) has no member '\(name)'")
+            default:
+                break
             }
             if let members = interpreter.objectMembers[typeName] {
                 guard let type = members[name] else { throw TypeError("\(typeName) has no member '\(name)'") }

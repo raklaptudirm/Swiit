@@ -88,8 +88,7 @@ extension TypeChecker {
     func userOperatorType(_ name: String, _ operands: [TypeAnnotation]) -> TypeAnnotation? {
         var candidates: [Signature] = []
         for case .named(let typeName) in operands {
-            candidates += structInfo(named: typeName)?.staticMethods[name] ?? enumInfo(named: typeName)?.staticMethods[name] ?? []
-            candidates += extensionInfo(forKey: typeName)?.staticMethods[name] ?? []
+            candidates += describe(named: typeName)?.staticMethods(named: name) ?? []
         }
         if case .functions(let overloads)? = lookup(name) { candidates += overloads }
         let fitting = candidates.filter { candidate in

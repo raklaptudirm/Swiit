@@ -102,7 +102,7 @@ extension TypeChecker {
         if let (bridgedType, bindings) = bridged(type) {
             if bridgedConforms(bridgedType, bindings, to: proto) { return true }
             // Or an extension says so: `extension Int: Fooable {}`.
-            if let key = extensionKey(of: type), let declared = extensionInfo(forKey: key)?.conformances {
+            if let declared = describe(type)?.conformances {
                 return declared.flatMap(protocolClosure).contains(proto)
             }
             return false
@@ -124,16 +124,15 @@ extension TypeChecker {
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
             // A protocol is its own and what it takes in.
             if protocolInfo(named: name) != nil, protocolClosure(name).contains(proto) { return true }
-            let declared = ((structInfo(named: name)?.conformances ?? enumInfo(named: name)?.conformances ?? [])
-                + (ownExtensionInfo(forKey: name)?.conformances ?? [])).flatMap(protocolClosure)
+            let description = describe(named: name)
+            let declared = (description?.conformances ?? []).flatMap(protocolClosure)
+            let withoutPayloads = description?.kind == .enumeration && description?.cases.allSatisfy { $0.payload.isEmpty } == true
             if declared.contains(proto) || proto == "Equatable" && declared.contains("Hashable") {
                 // Swift only makes a Comparable enum's `<` without associated values.
-                guard proto == "Comparable", let info = enumInfo(named: name) else { return true }
-                return info.cases.allSatisfy { $0.payload.isEmpty }
+                return proto == "Comparable" && description?.kind == .enumeration ? withoutPayloads : true
             }
             // Without associated values, an enum is Equatable and Hashable already.
-            guard let info = enumInfo(named: name), proto == "Equatable" || proto == "Hashable" else { return false }
-            return info.cases.allSatisfy { $0.payload.isEmpty }
+            return withoutPayloads && (proto == "Equatable" || proto == "Hashable")
         default:
             return false
         }

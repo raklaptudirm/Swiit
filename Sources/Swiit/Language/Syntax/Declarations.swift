@@ -301,6 +301,9 @@ public struct Parameter: Equatable, Sendable {
     var isInout = false
     /// `@autoclosure () -> T`: the argument is written as a T, and made a closure.
     @_spi(Layer) public var isAutoclosure = false
+    /// The function shows what it is given as interpolation does, which tells an optional's `nil` from a value
+    /// (`print`): so an argument whose type holds an optional is given its type, to be shown by.
+    @_spi(Layer) public var showsByType = false
     /// A default only Swift can compute, like `Date()`: the
     /// argument is left out for the Swift function to fill in. Its source, for help.
     @_spi(Layer) public var externalDefault: String?
