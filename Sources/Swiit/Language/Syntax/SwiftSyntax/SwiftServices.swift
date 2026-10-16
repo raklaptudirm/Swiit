@@ -139,7 +139,12 @@ extension SourceCursor {
                 cut = lowering.characterOf[min(end.offset, lowering.characterOf.count - 1)]
                 continue
             } catch let error as SyntaxError {
-                if error.incomplete, limit < chars.count, cut == nil {
+                // An error on the window's last line may be the window's doing (it was cut after a `|`, or in the middle of a
+                // `$(`), and a longer one is read again; one on an earlier line is real.
+                let onLastLine = lowering.failedAt.map { offset in
+                    lowering.bytes[..<min(offset, lowering.bytes.count)].filter { $0 == 0x0A }.count + 1 >= lines
+                } ?? false
+                if error.incomplete || lowering.unclosedSubstitution || onLastLine, limit < chars.count, cut == nil {
                     lines *= 2
                     continue
                 }
@@ -199,6 +204,9 @@ extension Lowering {
             }
             return (value, extent(of: node))
         case .failure(let error):
+            // The layer ran out of text inside what it was reading: more of the source may finish it, and what SwiftParser
+            // finds wrong earlier is only its view of the layer's unfinished text.
+            if let cut = error as? SyntaxError, cut.incomplete { throw error }
             // What was wrong first is the error, and where the reading stopped.
             if let problem, failedAt.map({ problem.offset < $0 }) ?? true {
                 failedAt = problem.offset

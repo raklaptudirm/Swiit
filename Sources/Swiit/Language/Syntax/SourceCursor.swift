@@ -80,7 +80,7 @@ public struct SyntaxError: Error, Equatable, CustomStringConvertible {
         "async", "await", "enum", "switch", "case", "default", "fallthrough", "import", "struct", "throws",
         "as", "is", "defer", "guard", "throw",
     ]
-    @_spi(Layer) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard", "throw"]
+    @_spi(Layer) public static let statementKeywords: Set = ["let", "var", "func", "return", "break", "continue", "do", "catch", "enum", "fallthrough", "import", "struct", "defer", "guard", "throw", "repeat"]
     /// The keywords a line can begin with: a statement's, a unit's
     /// (`if make { … }`), or an expression's (`await job`). Completion
     /// offers them where a command could go.

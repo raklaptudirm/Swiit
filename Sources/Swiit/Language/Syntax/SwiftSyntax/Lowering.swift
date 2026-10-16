@@ -64,6 +64,8 @@ struct Lowering {
     var extentHints: [Int] = []
     /// The byte ranges inside `$(…)` that the tree was given blanked (see `SwiftSyntaxFrontEnd.parse`).
     var blanked: [Range<Int>] = []
+    /// A `$(` was left open at the end of the text, which more of the source may close.
+    var unclosedSubstitution = false
     /// What the layer found wrong with what it read: when it reads a command
     /// at all, what is wrong in it is its own to say.
     var layerError: SyntaxError?
@@ -531,7 +533,11 @@ private final class ProblemFinder: SyntaxVisitor {
     override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
         if found == nil, token.presence == .missing, !isInLayer(token) {
             found = (describeMissing(token), token.position)
-            if token.position >= end { incomplete = true }
+            // At the end of the text, or with only blanks and comments after it (a window cut after a blank line):
+            // the construct isn't finished, and a longer window may finish it.
+            if token.position >= end || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile }) ?? true {
+                incomplete = true
+            }
         }
         return .skipChildren
     }

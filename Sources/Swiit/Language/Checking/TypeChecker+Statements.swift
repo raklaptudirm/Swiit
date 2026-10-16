@@ -138,8 +138,11 @@ extension TypeChecker {
             errorContexts.append(ErrorContext(handled: catchesAll || errorContexts.last!.handled,
                                               boundary: errorContexts.last!.boundary, thrown: catchesAll ? nil : errorContexts.last!.thrown))
             let seenBefore = thrownSeen.count
+            let sitesBefore = throwingSites
             try checkBlock(&body, newScope: true)
             errorContexts.removeLast()
+            // What a `catch` that catches everything handles doesn't make the closure around it throw.
+            if catchesAll { throwingSites = sitesBefore }
             // What the body throws is one type, if every call in it says so (`throws(E)`).
             let seen = Array(thrownSeen[seenBefore...])
             var errorType = TypeAnnotation.named("Error")

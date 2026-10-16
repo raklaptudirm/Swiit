@@ -20,6 +20,8 @@ extension Lowering {
         if parser.peek() == "$", let next = parser.peek(1), SourceCursor.isDigit(next) { return nil }
         let word = parser.identifier()
         if let word, word != "try", Lowering.keywords.contains(word) { return nil }
+        // `outer: for …` is Swift's: a label is no command.
+        if case .stmt(let stmt)? = item, stmt.is(LabeledStmtSyntax.self) { return nil }
         // `_ = f()` is Swift's, and so is `async let x = f()`.
         if word == "_", let item, isAssignment(item) { return nil }
         if word == "async", case .decl(let decl)? = item, decl.is(VariableDeclSyntax.self) { return nil }

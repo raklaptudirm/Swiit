@@ -39,7 +39,8 @@ import SwiftSyntax
     /// is its names and its layer. What operators don't fold is kept in it, as
     /// a problem only outside what the layer reads.
     func lowering(of source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) throws(SyntaxError) -> Lowering {
-        let (parsed, blanked) = SwiftSyntaxFrontEnd.parse(source)
+        let read = SwiftSyntaxFrontEnd.parse(source)
+        let parsed = read.tree
         var problems: [(message: String, offset: Int)] = []
         var other: Error?
         let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { error in
@@ -57,17 +58,19 @@ import SwiftSyntax
         guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
         var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
         lowering.operatorProblems = problems
-        lowering.blanked = blanked
+        lowering.blanked = read.blanked
+        lowering.unclosedSubstitution = read.unclosed
         return lowering
     }
 
     @_spi(Layer) public func highlight(_ source: String, bound: [String: NameKind], plugin: (any SyntaxPlugin)?) -> [Span] {
-        let (parsed, blanked) = SwiftSyntaxFrontEnd.parse(source)
+        let read = SwiftSyntaxFrontEnd.parse(source)
+        let parsed = read.tree
         // Operators that don't fold (`a < b < c`) leave their sequence as it is.
         let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { _ in }
         guard let tree = folded.as(SourceFileSyntax.self) else { return [] }
         var lowering = Lowering(source: source, tree: tree, bound: bound, plugin: plugin)
-        lowering.blanked = blanked
+        lowering.blanked = read.blanked
         lowering.recovering = true
         _ = try? lowering.program()
         return lowering.highlightSpans()
@@ -77,17 +80,27 @@ import SwiftSyntax
     /// text, which SwiftParser takes for Swift and recovers from in its own way: a closure in it (`$(ls | map { … })`) makes
     /// it end the call early, and the rest of the line is left out of every statement or turns up as errors. The layer reads
     /// the original source, by byte offset, so only the tree's view of that text changes, not its length.
-    static func parse(_ source: String) -> (tree: SourceFileSyntax, blanked: [Range<Int>]) {
-        let parsed = SwiftParser.Parser.parse(source: source)
-        guard source.contains("$("), let (text, ranges) = blankingSubstitutions(of: source, in: parsed) else { return (parsed, []) }
-        return (SwiftParser.Parser.parse(source: text), ranges)
+    struct Parsed {
+        var tree: SourceFileSyntax
+        /// The byte ranges blanked, and whether a `$(` was left open at the end.
+        var blanked: [Range<Int>] = []
+        var unclosed = false
     }
 
-    /// The source with the text inside each `$(…)` replaced by spaces (newlines stay), and where, or nil if there is none to blank.
-    private static func blankingSubstitutions(of source: String, in tree: SourceFileSyntax) -> (String, [Range<Int>])? {
+    static func parse(_ source: String) -> Parsed {
+        let parsed = SwiftParser.Parser.parse(source: source)
+        guard source.contains("$(") else { return Parsed(tree: parsed) }
+        let found = blankingSubstitutions(of: source, in: parsed)
+        return Parsed(tree: found.ranges.isEmpty ? parsed : SwiftParser.Parser.parse(source: found.text), blanked: found.ranges, unclosed: found.unclosed)
+    }
+
+    /// The source with the text inside each `$(…)` replaced by spaces (newlines stay), and where; and whether a `$(` is left open
+    /// at the end (the source is cut short, and more of it may close that).
+    private static func blankingSubstitutions(of source: String, in tree: SourceFileSyntax) -> (text: String, ranges: [Range<Int>], unclosed: Bool) {
         let tokens = tree.tokens(viewMode: .sourceAccurate).filter { $0.presence == .present }
         var bytes = Array(source.utf8)
         var ranges: [Range<Int>] = []
+        var unclosed = false
         var index = 0
         while index + 1 < tokens.count {
             let token = tokens[index]
@@ -106,14 +119,14 @@ import SwiftSyntax
                 }
                 if close != nil { break }
             }
-            guard let close else { index += 1; continue }
+            guard let close else { unclosed = true; index += 1; continue }
             let from = tokens[index + 1].endPositionBeforeTrailingTrivia.utf8Offset
             let to = tokens[close].positionAfterSkippingLeadingTrivia.utf8Offset
             for offset in from..<to where bytes[offset] != 0x0A { bytes[offset] = 0x20 }
             if to > from { ranges.append(from..<to) }
             index = close + 1
         }
-        return ranges.isEmpty ? nil : (String(decoding: bytes, as: UTF8.self), ranges)
+        return (String(decoding: bytes, as: UTF8.self), ranges, unclosed)
     }
 
     /// Swift's operators, with those declared before and those in this program.
