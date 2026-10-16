@@ -36,7 +36,7 @@ extension TypeChecker {
         guard let best = fitting.map(\.cost).min() else {
             if candidates.count == 1, let firstError { throw firstError }
             if typeErrors.count == 1 { throw typeErrors[0] }
-            let list = candidates.map { "  " + describe($0) }
+            let list = candidates.map { "  " + signatureText($0) }
             throw TypeError("\(name): no overload accepts these arguments; candidates:\n" + list.joined(separator: "\n"))
         }
         let winners = fitting.filter { $0.cost == best }
@@ -50,7 +50,7 @@ extension TypeChecker {
         if winners.count > 1 {
             if winners.contains(where: \.uncertain) { return nil }
             throw TypeError("\(name): ambiguous call; these overloads all match:\n"
-                            + winners.map { "  " + describe($0.signature) }.joined(separator: "\n"))
+                            + winners.map { "  " + signatureText($0.signature) }.joined(separator: "\n"))
         }
         arguments = winners[0].arguments
         throwingSites = winners[0].sites
@@ -91,7 +91,7 @@ extension TypeChecker {
         return best[0]
     }
 
-    func describe(_ signature: Signature) -> String {
+    func signatureText(_ signature: Signature) -> String {
         "\(signature.name)(" + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ") + ")"
     }
 
