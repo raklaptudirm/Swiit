@@ -187,7 +187,9 @@ extension Lowering {
                     raw = lines.joined(separator: "\n")
                 }
                 if multiline { atLineStart = raw.hasSuffix("\n") }
-                guard let unescaped = unescape(raw, pounds: pounds) else { throw unsupported("this escape", literal) }
+                guard let unescaped = unescape(raw, pounds: pounds) else {
+                    throw SyntaxError("invalid escape in string: write \\\\ for a backslash, or use single quotes ('…') to keep every backslash (line \(line(of: literal)))")
+                }
                 text += unescaped
             case .expressionSegment(let interpolation):
                 guard interpolation.expressions.count == 1, let inner = interpolation.expressions.first else {
