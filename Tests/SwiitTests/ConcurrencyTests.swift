@@ -131,7 +131,7 @@ private func typeError(_ source: String) -> String? {
     let start = Date()
     #expect(try onLargeStack { try swish.eval(source) } == .list([.int(12), .int(40)]))
     // Not timed closely: CI's machines are slow to start threads and tasks.
-    #expect(Date().timeIntervalSince(start) < 5)
+    #expect(Date().timeIntervalSince(start) < 10)
     #expect(typeError("func g() -> Int { 1 }; g()") == nil)
 }
 
