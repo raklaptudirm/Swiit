@@ -81,8 +81,12 @@ struct BridgedModule {
     let records: [String]
     /// Generated into the shell's target, not the core's.
     let outsideCore: Bool
+    /// Types of other modules that this one adds members to, with extensions (`String.styled`): only the added members are made.
+    let extending: [String]
 
-    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String], _ records: [String], _ outsideCore: Bool) {
+    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String], _ records: [String], _ outsideCore: Bool,
+         extending: [String] = []) {
+        self.extending = extending
         self.list = list
         self.types = types
         self.functions = functions
@@ -114,7 +118,7 @@ let modules: [String: BridgedModule] = [
     "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
     // The shell's: the part of the library that reaches the process, the file
     // system and the session. It is generated into the shell's target.
-    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", []), ("Output", [])], "shellFunctions", ["FilePath", "Date"], ["Status"], true),
+    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", []), ("Output", [])], "shellFunctions", ["FilePath", "Date"], ["Status"], true, extending: ["String"]),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
@@ -290,7 +294,7 @@ import Foundation
 import SwiitKit
 \(module.outsideCore ? "@_spi(Layer) import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
 extension Bridge {
-\(module.types.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
+\(module.types.isEmpty && module.extending.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
 
 """
 var skipped: [String: Int] = [:]
@@ -305,8 +309,9 @@ func declare(_ expression: String) -> String {
     return name
 }
 
-for (name, _) in bridgedTypeNames {
-    let owner = types[name]!
+for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
+    // A type of another module is known to the generator as it is: what is made is only what this module adds to it.
+    let owner = types[name] ?? BridgedType(name: name, parameters: [])
     var seen: Set<String> = []
     var members: [String] = []
     let kinds = ["swift.method", "swift.property", "swift.init", "swift.type.method", "swift.type.property", "swift.func.op"]
@@ -421,7 +426,7 @@ for (name, _) in bridgedTypeNames {
 
 """
 }
-if !module.types.isEmpty { output += "    ]\n" }
+if !module.types.isEmpty || !module.extending.isEmpty { output += "    ]\n" }
 if let list = module.functions {
     output += "    /// The module's structs, as Swiit source: declared with the prelude.\n"
     // What the module is called in the names of its tables: `standard` for

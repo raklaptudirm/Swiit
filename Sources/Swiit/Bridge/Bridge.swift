@@ -18,11 +18,17 @@ public enum Bridge {
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
-    /// Adds the types a library bridges (the shell's `FileSize`), which the core does not know. Registering one again is no change.
+    /// Adds the types a library bridges (the shell's `FileSize`), which the core does not know, and the members it adds to types the
+    /// core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
         lock.withLock {
-            for type in more where table[type.name] == nil {
-                table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+            for type in more {
+                if let existing = table[type.name] {
+                    // A library adds members to a type the core has (`String.styled`), as an extension does.
+                    table[type.name] = existing.adding(type.members)
+                } else {
+                    table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+                }
             }
         }
     }
@@ -102,6 +108,11 @@ public struct BridgedType {
 
     /// It, with members written by hand too, where the generator can't make them.
     func adding(_ extra: [BridgedMember]) -> BridgedType {
+        // A member already there (a library registered twice) is not added again.
+        let extra = extra.filter { new in
+            !members.contains { $0.kind == new.kind && $0.name == new.name && $0.isStatic == new.isStatic
+                && $0.parameters.map(\.label) == new.parameters.map(\.label) && $0.parameters.map(\.type) == new.parameters.map(\.type) }
+        }
         guard !extra.isEmpty else { return self }
         return BridgedType(name: name, genericParameters: genericParameters, conformances: conformances, associatedTypes: associatedTypes,
                            parse: parse, literal: literal, arrayLiteral: arrayLiteral, members: members + extra)
