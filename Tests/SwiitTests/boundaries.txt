@@ -16,7 +16,6 @@
 # when it moves to the shell (the agenda's "command-line vocabulary" item).
 allow	Language/Syntax/Declarations.swift	commandline	8
 allow	Language/Syntax/SwiftPrinter.swift	commandline	4
-allow	Language/Syntax/TypeAnnotation.swift	results	2
 allow	Language/Syntax/TypeAnnotation.swift	display	14
 allow	Language/Syntax/SwiftSyntax/LoweringDeclarations.swift	commandline	16
 allow	Language/Checking/TypeChecker+Members.swift	commandline	1
@@ -26,7 +25,6 @@ allow	Language/Interpreter/Function.swift	commandline	3
 allow	Language/Interpreter/Interpreter+Calls.swift	commandline	6
 allow	Language/Interpreter/Interpreter+SequenceMethods.swift	commandline	1
 allow	Language/Interpreter/Interpreter.swift	display	6
-allow	Bridge/Bridge+Conversions.swift	results	1
 allow	Bridge/Bridge+Conversions.swift	display	2
 allow	Language/Reflection/TypeMembers.swift	commandline	1
 allow	Language/Reflection/TypeMembers.swift	display	4

@@ -9,6 +9,8 @@
 # their line.
 Bridge/Bridge+Conversions.swift	Layer func bridgeBox
 Bridge/Bridge+Conversions.swift	Layer func bridgeBox
+Bridge/Bridge+Conversions.swift	Layer func bridgeOptional
+Bridge/Bridge+Conversions.swift	Layer func bridgeSequence
 Bridge/Bridge.swift	Layer func textLiteral
 Bridge/Bridge.swift	Layer func textLiteral
 Bridge/Bridge.swift	Layer func textLiteral
@@ -264,6 +266,5 @@ Language/Syntax/TreeRewriter.swift	Layer func program
 Language/Syntax/TreeRewriter.swift	Layer init init
 Language/Syntax/TreeRewriter.swift	Layer struct TreeRewriter
 Language/Syntax/TreeRewriter.swift	Layer var expr
-Language/Syntax/TypeAnnotation.swift	Layer let output
 Language/Syntax/TypeAnnotation.swift	Layer var label
 Language/Syntax/TypeAnnotation.swift	Layer var type

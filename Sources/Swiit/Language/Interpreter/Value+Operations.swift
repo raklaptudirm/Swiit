@@ -55,11 +55,11 @@ extension Value {
     public func conforming(to type: TypeAnnotation) -> Value? {
         switch (type, self) {
         // What stands for text is the text where a String is wanted, and a
-        // command's output is its lines where a list of them is.
+        // Swift sequence of Strings (a command's output) is the list of them where a list is.
         case (.string, .object) where text != nil:
             return .string(text!)
-        case (.list(.string), .object) where commandOutput != nil:
-            return .list(commandOutput!.lines.map(Value.string))
+        case (.list(.string), .object(let box as SwiftValue)) where box.value is any Sequence && Interpreter.items(of: self).map({ $0.allSatisfy { if case .string = $0 { true } else { false } } }) == true:
+            return .list(Array(Interpreter.items(of: self)!))
         // A key path is a function of one value, as in Swift, and no other kind.
         case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
             return parameters.count == 1 ? self : nil
@@ -103,11 +103,11 @@ extension Value {
 }
 
 extension SwiitKit.Value {
-    /// A list's items, or an Output's lines: what sequence methods work on.
+    /// A list's items, or a Swift sequence's (a command's output is its lines): what sequence methods work on.
     var sequenceItems: [Value]? {
         switch self {
         case .list(let items): items
-        default: commandOutput?.lines.map(Value.string)
+        default: Interpreter.items(of: self).map { Array($0) }
         }
     }
 

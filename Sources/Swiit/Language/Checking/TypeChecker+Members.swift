@@ -378,9 +378,10 @@ extension TypeChecker {
             }
             if written == .unknown { return .unknown }
             throw TypeError("a String is indexed by String.Index, not \(written): write s.index(s.startIndex, offsetBy: n)")
-        case .output:
-            try expect(&index, .int, "a line's index")
-            return .string
+        case .named(let name) where Bridge.types[name]?.conformances["Sequence"] != nil && Bridge.types[name]?.associatedTypes["Element"] != nil:
+            // A Swift sequence Swiit holds is indexed by position (a command's output, by line).
+            try expect(&index, .int, "an element's index")
+            return Bridge.types[name]!.associatedTypes["Element"]!
         case .dictionary(let key, let value):
             try expect(&index, key, "the key")
             return .optional(value)

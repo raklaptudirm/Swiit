@@ -71,7 +71,7 @@ public struct ExportedParameter: Sendable {
 
 /// The type of a parameter or result, as Swiit's type annotations name it.
 public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
-    case any, bool, int, double, string, record, date, output, function
+    case any, bool, int, double, string, record, date, function
     /// An enum its function uses, like `Level`.
     case named(String)
     case list(SwiitType)
@@ -87,7 +87,6 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
         case .string: "String"
         case .record: "Record"
         case .date: "Date"
-        case .output: "Output"
         case .function: "Function"
         case .named(let name): name
         case .list(let element): "[\(element)]"
@@ -196,23 +195,15 @@ extension Date: SwiitConvertible {
     public var swiitValue: Value { .date(self) }
 }
 
-extension Output: SwiitConvertible {
-    public static var swiitType: SwiitType { .output }
-    public init(swiitValue: Value) throws {
-        guard let value = swiitValue.commandOutput else { throw SwiitError.expected("Output", swiitValue) }
-        self = value
-    }
-    public var swiitValue: Value { .output(self) }
-}
-
 extension Array: SwiitConvertible where Element: SwiitConvertible {
     public static var swiitType: SwiitType { .list(Element.swiitType) }
     public static var swiitEnums: [EnumType] { Element.swiitEnums }
     public init(swiitValue: Value) throws {
         switch swiitValue {
         case .list(let items): self = try items.map(Element.init(swiitValue:))
-        case _ where swiitValue.commandOutput != nil:
-            self = try swiitValue.commandOutput!.lines.map { try Element(swiitValue: .string($0)) }
+        // A Swift sequence Swiit holds (a command's output is its lines).
+        case .object(let box as SwiftValue) where box.value is any Sequence:
+            self = try SwiftValue.elements(of: box.value).map { try Element(swiitValue: SwiitKit.Value(reflecting: $0)) }
         default: throw SwiitError.expected("[\(Element.swiitType)]", swiitValue)
         }
     }

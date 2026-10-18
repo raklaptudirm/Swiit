@@ -85,13 +85,13 @@ extension Interpreter {
     }
 }
 
-/// A list's items, or an Output's lines.
+/// A list's items, or a Swift sequence's (a command's output is its lines).
 public func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
     default:
-        guard let output = value.commandOutput else { throw SwiitError("expected a list, not \(value.typeName)") }
-        return output.lines.map(Value.string)
+        guard let items = Interpreter.items(of: value) else { throw SwiitError("expected a list, not \(value.typeName)") }
+        return Array(items)
     }
 }
 
@@ -126,7 +126,7 @@ func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value 
 /// The items of any sequence, for a Swift parameter that takes one: a
 /// String's Characters, a dictionary's (key, value) pairs, or what
 /// `Shell.items(of:)` gives.
-func bridgeSequence(_ value: Value) throws -> [Value] {
+@_spi(Layer) public func bridgeSequence(_ value: Value) throws -> [Value] {
     switch value {
     case .string(let text):
         return Array(Interpreter.iterator(text))
@@ -175,17 +175,14 @@ extension Interpreter {
         return box.value as? Flow<Value>
     }
 
-    /// The items of a list, an Output's lines, or a Swift sequence Swiit
-    /// holds (a Set, a range of Ints, a dictionary's keys), one at a time,
+    /// The items of a list, or a Swift sequence Swiit
+    /// holds (a command's output) (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
     public static func items(of value: Value) -> AnyIterator<Value>? {
         switch value {
         case .list(let items):
             return AnyIterator(items.makeIterator())
         case .object(let box as SwiftValue):
-            if let output = box.value as? Output {
-                return AnyIterator(output.lines.lazy.map(Value.string).makeIterator())
-            }
             if let flow = box.value as? Flow<Value> { return AnyIterator { (try? flow.read()) ?? nil } }
             if let range = box.value as? ClosedRange<Value> {
                 guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else { return nil }
@@ -208,6 +205,8 @@ extension Interpreter {
         return AnyIterator {
             guard let next = iterator.next() else { return nil }
             if let value = next as? Value { return value }
+            // What Swiit has a value of its own for is that, not a box (a command's lines are Strings).
+            if next is String || next is Int || next is Double || next is Bool { return Value(reflecting: next) }
             // By the name Swiit writes it with, without its module:
             // FilePath.Component, not SystemPackage.FilePath.Component.
             let name = String(reflecting: type(of: next))
@@ -219,7 +218,7 @@ extension Interpreter {
 
 /// A Swiit function as a Swift closure.
 /// A Swiit value as a Swift optional: nil for nothing, else converted.
-func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
+@_spi(Layer) public func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
     value == .nothing ? nil : try convert(value)
 }
 

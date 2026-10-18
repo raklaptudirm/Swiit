@@ -14,7 +14,7 @@ private struct Entry: Encodable {
     #expect(try [Int](swiitValue: .list([.int(1), .int(2)])) == [1, 2])
     #expect(try Int?(swiitValue: .nothing) == nil)
     #expect(try Double(swiitValue: .int(3)) == 3)
-    #expect(try String(swiitValue: .output(Output(text: "hi", code: 0))) == "hi")
+    #expect(try [String](swiitValue: SwiftValue.make(["a", "b"] as ArraySlice<String>, as: "ArraySlice")) == ["a", "b"])
     #expect([String].swiitType == .list(.string))
     #expect(throws: SwiitError.self) { try Int(swiitValue: .string("x")) }
 }

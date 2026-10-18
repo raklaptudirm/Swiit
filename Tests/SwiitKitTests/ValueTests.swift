@@ -24,12 +24,16 @@ private final class Stub: Callable {
     #expect(Value.function(stub).description == "stub")
 }
 
-@Test func commandOutputIsLines() {
-    let output = Output(text: "a\nb", code: 0)
-    #expect(output.lines == ["a", "b"])
-    #expect(Output(text: "", code: 0).lines.isEmpty)
-    #expect(Value.output(output).description == "a\nb")
-    #expect(!Output(text: "", code: nil, signal: 15).succeeded)
+/// Text that stands for a String where one is wanted, as a command's output does in the shell.
+private struct Shout: StandsForText, Sendable {
+    var text: String
+}
+
+@Test func whatStandsForTextIsItsText() {
+    let value = SwiftValue.make(Shout(text: "hi"), as: "Shout")
+    #expect(value.text == "hi")
+    #expect(Value.string("x").text == "x")
+    #expect(Value.int(1).text == nil)
 }
 
 private final class Thing: SwiitObject {

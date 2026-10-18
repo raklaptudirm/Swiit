@@ -108,13 +108,13 @@ let modules: [String: BridgedModule] = [
     // SwiitKit's own types, which Swiit holds as Swift's: a command's output. `Status` is a struct Swiit declares itself (the
     // prelude), made from the Swift value as a record.
     // A column of a table, which a struct of Swiit's lists for `Tabular`.
-    "SwiitKit": BridgedModule("swiitKit", [("Output", [])], nil, [], ["Status"], false),
+    "SwiitKit": BridgedModule("swiitKit", [], nil, [], [], false),
     // The shell's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
     "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
     // The shell's: the part of the library that reaches the process, the file
     // system and the session. It is generated into the shell's target.
-    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", [])], "shellFunctions", ["FilePath", "Date"], [], true),
+    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", []), ("Output", [])], "shellFunctions", ["FilePath", "Date"], ["Status"], true),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
@@ -180,8 +180,8 @@ do {
     }
     for symbol in publicTypes where symbol.kind.identifier == "swift.struct" {
         let name = symbol.pathComponents[0]
-        // A type the module holds as Swift's and bridges the members of (`FileSize`) is no record.
-        if module.types.contains(where: { $0.0 == name }) { continue }
+        // A type the module holds as Swift's and bridges the members of (`FileSize`) is no record, nor is one Swiit declares itself (`Status`).
+        if module.types.contains(where: { $0.0 == name }) || module.records.contains(name) { continue }
         // A value held as it is: given as the value, taken from it.
         if !conformances(of: symbol, among: ["WrapsValue"]).isEmpty {
             leaves[name] = Leaf(".named(\(quoted(name)))", { "\(name)(\($0))" }, { "\($0).value" })

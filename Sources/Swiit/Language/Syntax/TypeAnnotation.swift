@@ -101,15 +101,10 @@ extension TypeAnnotation {
     /// name: one table for the parser (`Int` is `.int`) and for finding the
     /// Swift type an annotation is (`.int` is `Int`). The generic ones are
     /// sugar: `[T]`, `T?`, `[K: V]`.
-    /// What `$(…)` gives: a command's output, which is a Swift type like any
-    /// other, held as it is.
-    @_spi(Layer) public static let output = TypeAnnotation.named("Output")
-
     private static let spelled: [(name: String, make: @Sendable ([TypeAnnotation]) -> TypeAnnotation?)] = [
         ("Int", { $0.isEmpty ? .int : nil }), ("Double", { $0.isEmpty ? .double : nil }),
         ("String", { $0.isEmpty ? .string : nil }), ("Bool", { $0.isEmpty ? .bool : nil }),
         ("Record", { $0.isEmpty ? .record : nil }),
-        ("Output", { $0.isEmpty ? .output : nil }),
         ("Any", { $0.isEmpty ? .any : nil }), ("Value", { $0.isEmpty ? .any : nil }), ("Void", { $0.isEmpty ? .void : nil }),
         ("Array", { $0.count == 1 ? .list($0[0]) : nil }),
         ("Optional", { $0.count == 1 ? .optional($0[0]) : nil }),

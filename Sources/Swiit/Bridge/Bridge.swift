@@ -14,7 +14,7 @@ public enum Bridge {
     public static var types: [String: BridgedType] { lock.withLock { table } }
 
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: read and changed only holding the lock
+    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex]).map { // safe: read and changed only holding the lock
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 

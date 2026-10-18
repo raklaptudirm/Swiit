@@ -500,9 +500,9 @@ extension Interpreter {
         if case .record(let record) = base, case .string(let key) = index {
             return record[key] ?? .nothing
         }
-        // A command's output is indexed by line (subscripts aren't bridged yet).
-        if let output = base.commandOutput {
-            return try element(of: .list(output.lines.map(Value.string)), at: index)
+        // A Swift sequence Swiit holds is indexed by position (a command's output, by line); subscripts aren't bridged yet.
+        if case .object = base, let items = Interpreter.items(of: base) {
+            return try element(of: .list(Array(items)), at: index)
         }
         guard case .list(let elements) = base else {
             throw RuntimeError("\(base.typeName) can't be indexed")

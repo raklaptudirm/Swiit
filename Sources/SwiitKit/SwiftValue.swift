@@ -37,6 +37,13 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
         return String(decoding: try encoder.encode(AnyEncodable(value: encodable)), as: UTF8.self)
     }
 
+    /// The elements of a Swift sequence a value holds, in order; none if it is not one.
+    public static func elements(of value: Any) -> [Any] {
+        func all<S: Sequence>(_ sequence: S) -> [Any] { sequence.map { $0 as Any } }
+        guard let sequence = value as? any Sequence else { return [] }
+        return all(sequence)
+    }
+
     /// Hashes and sorts as the Swift value does whenever it can, found out
     /// when it's boxed, so a value boxed from generic code (a sequence's
     /// elements) compares as one boxed where its type is known.
