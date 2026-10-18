@@ -101,6 +101,9 @@ extension Interpreter {
             case .enumDecl(let decl):
                 do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
+            case .protocolDecl(let decl):
+                do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
+                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
             case .function(let decl):
                 guard let native = natives[decl.name] else { preconditionFailure("no body for \(decl.name)") }
                 let function = builtinFunction(decl, native.body, input: nil)

@@ -43,18 +43,26 @@ public struct DynamicType {
 public struct PlainDynamic {
     /// A function in scope, `field(value, key)`: the member or element, or nil.
     public var field: String
-    /// A function in scope, `view(value, "int")`: the value as that type, or nil.
-    public var view: String
-    /// The types of the views by name: `int` gives `Int?`.
-    public var views: [String: TypeAnnotation]
+    /// The views of a value by name (`json.port?.int`): a function in scope that gives the value as that type, or nil.
+    public var views: [String: View]
     /// What a sequence's items are, when it is read as one.
     public var element: TypeAnnotation
     /// It fits wherever a type is wanted, being whatever it parsed as.
     var standsForAnything: Bool
 
-    public init(field: String, view: String, views: [String: TypeAnnotation], element: TypeAnnotation, standsForAnything: Bool = true) {
+    /// A view: `int` is `function(value)`, which gives an `Int?`.
+    public struct View {
+        public var function: String
+        public var type: TypeAnnotation
+
+        public init(function: String, type: TypeAnnotation) {
+            self.function = function
+            self.type = type
+        }
+    }
+
+    public init(field: String, views: [String: View], element: TypeAnnotation, standsForAnything: Bool = true) {
         self.field = field
-        self.view = view
         self.views = views
         self.element = element
         self.standsForAnything = standsForAnything
@@ -87,8 +95,8 @@ extension TypeChecker {
     /// for a missing member, or the value as one of the views' types.
     func plainAccess(_ type: TypeAnnotation?, _ base: Expr, _ name: String) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
-        let function = plain.views[name] != nil ? plain.view : plain.field
-        return .call(.variable(function), [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))])
+        if let view = plain.views[name] { return .call(.variable(view.function), [Argument(label: nil, value: base)]) }
+        return .call(.variable(plain.field), [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))])
     }
 
     /// `value[key]` on a plain dynamic type as it runs.

@@ -207,7 +207,7 @@ extension TypeChecker {
         if let dynamic = dynamicType(of: base), !describesMember(name, of: base) { return dynamic.read }
         lastMemberBase = base
         if let (dynamic, plain) = plainType(of: base) {
-            return plain.views[name] ?? dynamic.read
+            return plain.views[name]?.type ?? dynamic.read
         }
         // What the type declares, or an extension (or a protocol's default) adds.
         let description = describe(base)
