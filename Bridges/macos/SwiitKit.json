@@ -1,12 +1,5 @@
 {
   "members" : [
-    "DisplayColumn\tswift.init\tinit(_:styledBy:style:)",
-    "DisplayColumn\tswift.init\tinit(extendedGraphemeClusterLiteral:)",
-    "DisplayColumn\tswift.init\tinit(stringLiteral:)",
-    "DisplayColumn\tswift.init\tinit(unicodeScalarLiteral:)",
-    "DisplayColumn\tswift.property\tname",
-    "DisplayColumn\tswift.property\tstyle",
-    "DisplayColumn\tswift.property\tstyledBy",
     "Output\tswift.func.op\t!=(_:_:)",
     "Output\tswift.init\tinit(swiitValue:)",
     "Output\tswift.init\tinit(text:code:signal:)",

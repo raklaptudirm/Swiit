@@ -15,11 +15,5 @@ enum TextStyle: Equatable, Hashable {
 }
 """#
 
-    /// How the module's structs say which columns a table starts with.
-    internal static let standardColumns: [String: [DisplayColumn]] = [:]
-
-    /// How the module's enums say how a case is shown, by case name.
-    internal static let standardEnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [:]
-
     internal nonisolated(unsafe) static let standardFunctions: [BridgedMember] = []
 }

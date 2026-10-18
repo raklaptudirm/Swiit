@@ -8,13 +8,14 @@ public struct HostContext: Sendable {
     /// Whether output to the terminal may be colored.
     public let colorOutput: Bool
 
-    /// How types show in a table.
-    public let display: DisplayRegistry
+    /// What else the host lends, by name, for a library's functions to read through a typed property of their own
+    /// (the shell's `display`: how its types show in a table).
+    public var extras: [String: any Sendable]
 
-    public init(history: [String], colorOutput: Bool, display: DisplayRegistry = DisplayRegistry()) {
+    public init(history: [String], colorOutput: Bool, extras: [String: any Sendable] = [:]) {
         self.history = history
         self.colorOutput = colorOutput
-        self.display = display
+        self.extras = extras
     }
 }
 

@@ -9,15 +9,21 @@ import SystemPackage
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 public enum Bridge {
-    /// The bridged types, by the name Swiit writes them with.
-    public nonisolated(unsafe) static var types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: changed only by `register`, as a library is installed, before anything reads the type
+    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A snapshot, as
+    /// libraries register while other interpreters read.
+    public static var types: [String: BridgedType] { lock.withLock { table } }
+
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: read and changed only holding the lock
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
     /// Adds the types a library bridges (the shell's `FileSize`), which the core does not know. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
-        for type in more where types[type.name] == nil {
-            types[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+        lock.withLock {
+            for type in more where table[type.name] == nil {
+                table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+            }
         }
     }
 
@@ -44,17 +50,17 @@ public enum Bridge {
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
-func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
+@_spi(Layer) public func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
     T(stringLiteral: text)
 }
 
-func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
+@_spi(Layer) public func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
 where T.ExtendedGraphemeClusterLiteralType == Character {
     guard let character = text.first, text.dropFirst().isEmpty else { return nil }
     return T(extendedGraphemeClusterLiteral: character)
 }
 
-func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
+@_spi(Layer) public func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
 where T.UnicodeScalarLiteralType == Unicode.Scalar {
     guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else { return nil }
     return T(unicodeScalarLiteral: scalar)

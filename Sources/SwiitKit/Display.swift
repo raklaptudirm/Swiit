@@ -1,7 +1,6 @@
 import Foundation
 
-/// How a type says it's shown, so the shell has no table of its types' names:
-/// which columns a table starts with, and what stands out in them.
+/// How a type says it's shown: the styles and shapes the printers read.
 
 /// A style for text: bold, dim, or a color, and the roles the shell gives
 /// them, so a string or a type looks the same typed, shown and in help. Its
@@ -55,52 +54,6 @@ extension String {
         guard enabled, let style, !isEmpty else { return self }
         return style.escape + self + DisplayStyle.reset
     }
-}
-
-/// A column a table shows, and what styles it: the value of another field
-/// (or of itself), if that is a `DisplayStyled` enum, as a file's name is
-/// styled by its type: `DisplayColumn("name", styledBy: "type")`; or one
-/// style for all of it: `DisplayColumn("name", style: .green)`.
-public struct DisplayColumn: Sendable, ExpressibleByStringLiteral {
-    public let name: String
-    public let styledBy: String?
-    public let style: DisplayStyle?
-
-    public init(_ name: String, styledBy: String? = nil, style: DisplayStyle? = nil) {
-        self.name = name
-        self.styledBy = styledBy
-        self.style = style
-    }
-
-    public init(stringLiteral name: String) {
-        self.init(name)
-    }
-}
-
-/// How the shell's types show in a table, by the name of the type: the
-/// columns of the structs that say so (`Tabular`), and how an enum's cases
-/// are styled (`DisplayStyled`). A function that lays values out is lent it
-/// in the `HostContext`.
-public struct DisplayRegistry: Sendable {
-    public var columns: [String: [DisplayColumn]]
-    public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
-
-    public init(columns: [String: [DisplayColumn]] = [:], enumStyles: [String: @Sendable (String) -> DisplayStyle?] = [:]) {
-        self.columns = columns
-        self.enumStyles = enumStyles
-    }
-}
-
-/// A struct that says which of its fields a table shows by default, in
-/// order. The rest are still there for `filter`, `select` and `get`, and
-/// `table` shows every one.
-public protocol Tabular {
-    static var columns: [DisplayColumn] { get }
-}
-
-/// An enum whose cases stand out, by being shown in a style.
-public protocol DisplayStyled {
-    var displayStyle: DisplayStyle? { get }
 }
 
 /// A Swift type that shows in Swiit other than as its `description`: a date

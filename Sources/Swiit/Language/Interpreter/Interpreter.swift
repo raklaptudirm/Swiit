@@ -20,9 +20,6 @@ public final class Interpreter {
     public var libraries: [Library] = []
     /// The types of dynamic objects' members (`DynamicObject`), by type name.
     public var dynamicTypes: [String: DynamicType] = [:]
-    /// How values lay out as tables, which only a host that shows them has
-    /// (the shell installs it). Library functions that format are lent this.
-    public var displayRegistryProvider: () -> DisplayRegistry = { DisplayRegistry() }
     /// What `await` waits for, if the host has anything to wait for.
     public var awaiting: Awaiting?
 

@@ -9,6 +9,9 @@
 # their line.
 Bridge/Bridge+Conversions.swift	Layer func bridgeBox
 Bridge/Bridge+Conversions.swift	Layer func bridgeBox
+Bridge/Bridge.swift	Layer func textLiteral
+Bridge/Bridge.swift	Layer func textLiteral
+Bridge/Bridge.swift	Layer func textLiteral
 Language/Checking/TypeChecker+Calls.swift	Layer func commonReturn
 Language/Checking/TypeChecker+Calls.swift	Layer func preferred
 Language/Checking/TypeChecker+Closures.swift	Layer func closureType

@@ -81,7 +81,7 @@ extension Interpreter {
     /// if it lends one (the shell's carries what was entered before), else
     /// the output's traits and how values display.
     public var context: HostContext {
-        contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled, display: displayRegistryProvider())
+        contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled)
     }
 }
 

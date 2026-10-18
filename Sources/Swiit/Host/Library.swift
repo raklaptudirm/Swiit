@@ -7,10 +7,6 @@ import SwiitKit
 public struct Library {
     /// Its structs and enums, as Swiit source, declared with the prelude.
     public var types: String
-    /// The columns a table starts with, for its types that say so.
-    public var columns: [String: [DisplayColumn]]
-    /// How its enums' cases are styled, by case name.
-    public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
     public var functions: [BridgedMember]
     /// The Swift types it holds as they are and bridges the members of (`FileSize`), which the core's table does not have.
     public var bridged: [BridgedType]
@@ -23,13 +19,10 @@ public struct Library {
     public var bodies: [String: (body: FunctionBody, input: Parameter?)]
 
     public init(
-        types: String, columns: [String: [DisplayColumn]],
-        enumStyles: [String: @Sendable (String) -> DisplayStyle?], functions: [BridgedMember],
+        types: String, functions: [BridgedMember],
         bridged: [BridgedType] = [], declarations: String = "", bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
     ) {
         self.types = types
-        self.columns = columns
-        self.enumStyles = enumStyles
         self.functions = functions
         self.bridged = bridged
         self.declarations = declarations
@@ -38,7 +31,6 @@ public struct Library {
 
     /// The core's own: conversions (`from`, `to`, `table`, `list`) and styles.
     public nonisolated(unsafe) static let standard = Library( // safe: set once, before anything reads it
-        types: Bridge.standardTypes, columns: Bridge.standardColumns,
-        enumStyles: Bridge.standardEnumStyles, functions: Bridge.standardFunctions
+        types: Bridge.standardTypes, functions: Bridge.standardFunctions
     )
 }

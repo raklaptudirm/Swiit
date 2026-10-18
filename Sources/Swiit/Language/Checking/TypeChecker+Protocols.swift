@@ -92,6 +92,11 @@ extension TypeChecker {
                     throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs static \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))")
                 }
             }
+            for (name, property) in required.declared.staticProperties.sorted(by: { $0.key < $1.key }) {
+                guard case .property(let found)? = description.staticMember(name), found.type == property.type else {
+                    throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs a static '\(name)' of \(property.type): static let \(name): \(property.type) = …")
+                }
+            }
             for initializer in required.declared.initializers {
                 let labels = initializer.parameters.map(\.label)
                 guard description.initializers.contains(where: { $0.parameters.map(\.label) == labels }) else {

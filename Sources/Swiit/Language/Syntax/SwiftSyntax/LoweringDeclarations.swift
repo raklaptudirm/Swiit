@@ -689,7 +689,7 @@ extension Lowering {
     /// The first group has a meaning here (the checker checks what they ask
     /// for); the second are markers Swift's own code writes, with nothing to
     /// check or do yet.
-    static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Tabular", "Error",
+    static let protocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Error",
                                  "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject", "CustomDebugStringConvertible",
                                  "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection", "RangeReplaceableCollection",
                                  "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger",

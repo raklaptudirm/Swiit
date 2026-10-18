@@ -108,13 +108,13 @@ let modules: [String: BridgedModule] = [
     // SwiitKit's own types, which Swiit holds as Swift's: a command's output. `Status` is a struct Swiit declares itself (the
     // prelude), made from the Swift value as a record.
     // A column of a table, which a struct of Swiit's lists for `Tabular`.
-    "SwiitKit": BridgedModule("swiitKit", [("Output", []), ("DisplayColumn", [])], nil, [], ["Status"], false),
+    "SwiitKit": BridgedModule("swiitKit", [("Output", [])], nil, [], ["Status"], false),
     // The shell's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
     "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
     // The shell's: the part of the library that reaches the process, the file
     // system and the session. It is generated into the shell's target.
-    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", [])], "shellFunctions", ["FilePath", "Date"], [], true),
+    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", [])], "shellFunctions", ["FilePath", "Date"], [], true),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
@@ -428,10 +428,13 @@ if let list = module.functions {
     // `standardFunctions`, `shell` for `shellFunctions`.
     let prefix = String(list.dropLast("Functions".count))
     output += "    \(access) static let \(prefix)Types = #\"\"\"\n" + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
-    output += "    /// How the module's structs say which columns a table starts with.\n"
-    output += "    \(access) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"
-    output += "    /// How the module's enums say how a case is shown, by case name.\n"
-    output += "    \(access) static let \(prefix)EnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [\(styleSources.isEmpty ? ":" : styleSources.joined(separator: ", "))]\n\n"
+    // Tables are the shell's: a module generated into the shell's target says how its types show in one.
+    if module.outsideCore {
+        output += "    /// How the module's structs say which columns a table starts with.\n"
+        output += "    \(access) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"
+        output += "    /// How the module's enums say how a case is shown, by case name.\n"
+        output += "    \(access) static let \(prefix)EnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [\(styleSources.isEmpty ? ":" : styleSources.joined(separator: ", "))]\n\n"
+    }
     var functions: [String] = []
     for symbol in graph.symbols where symbol.kind.identifier == "swift.func" && symbol.pathComponents.count == 1
         && symbol.accessLevel == "public" && available(symbol) {

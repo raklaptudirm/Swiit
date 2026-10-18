@@ -16,15 +16,6 @@ extension Bridge {
                 member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45, member46, member47
             ]
         ),
-        BridgedType(
-            name: "DisplayColumn", genericParameters: [],
-            conformances: ["ExpressibleByStringLiteral": [:]],
-            associatedTypes: [:],
-            parse: nil, literal: { textLiteral(DisplayColumn.self, $0).map { SwiftValue.make($0, as: "DisplayColumn") } }, arrayLiteral: nil,
-            members: [
-                member48, member49, member50
-            ]
-        ),
     ]
     nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
@@ -693,47 +684,6 @@ extension Bridge {
                         let receiver: Output = try SwiftValue.unbox(Output.self, args["self"]!)
                 let result = receiver.debugDescription
                 return result.swiitValue
-                    }
-                )
-
-    nonisolated(unsafe) private static let member48: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "name", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: DisplayColumn = try SwiftValue.unbox(DisplayColumn.self, args["self"]!)
-                let result = receiver.name
-                return result.swiitValue
-                    }
-                )
-
-    nonisolated(unsafe) private static let member49: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "styledBy", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.string), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
-                        let receiver: DisplayColumn = try SwiftValue.unbox(DisplayColumn.self, args["self"]!)
-                let result = receiver.styledBy
-                return (result.map { $0.swiitValue } ?? .nothing)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member50: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "stringLiteral", name: "name", type: .string)],
-                    returns: .named("DisplayColumn"), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the given string value.",
-                    body: .native { shell, args in
-                        _ = shell
-                        let result = DisplayColumn(stringLiteral: try String(swiitValue: args["name"]!))
-                return SwiftValue.make(result, as: "DisplayColumn")
                     }
                 )
 }

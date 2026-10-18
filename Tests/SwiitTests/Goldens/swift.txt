@@ -1478,28 +1478,7 @@ Point(x: 1) == Point(x: 1, y: 0)#669#filePath#670struct Point {
 var a = Point(x: 1)
 var b = a
 b.x = 9
-a.x#671struct Entry: Tabular {
-    static let columns: [DisplayColumn] = ["size", "name"]
-    var name: String
-    var size: Int
-    var path: String
-}
-let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
-es#672struct Entry: Tabular {
-    static let columns: [DisplayColumn] = ["size", "name"]
-    var name: String
-    var size: Int
-    var path: String
-}
-let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
-es | table#675[3, 1, 3, 2].uniqued().sorted()#676struct P: Tabular {
-    var x: Int
-}#677struct P: Tabular {
-    static let columns = 1
-    var x: Int
-}#678enum E: Tabular {
-    case a
-}#682jobs.count#686try check(1)#688config.volume * 2#689counter#690let x: Int = "a"#691greet(name: "Rak")#692try check(-1)#693counter + counter#694twice([1, 2]).count#695ls()#696func down(_ n: Int) -> Int {
+a.x#675[3, 1, 3, 2].uniqued().sorted()#682jobs.count#686try check(1)#688config.volume * 2#689counter#690let x: Int = "a"#691greet(name: "Rak")#692try check(-1)#693counter + counter#694twice([1, 2]).count#695ls()#696func down(_ n: Int) -> Int {
     down(n + 1)
 }
 down(0)#697clamp("a", 0, 10)#698let a = 1
