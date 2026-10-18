@@ -68,8 +68,8 @@ extension MemberSet {
     /// The protocols a protocol takes in.
     var inherited: [String] = []
     /// An enum's cases, and the type of its raw values.
-    var cases: [(name: String, payload: [AssociatedValue])] = []
-    var rawType: TypeAnnotation?
+    @_spi(Layer) public var cases: [(name: String, payload: [AssociatedValue])] = []
+    @_spi(Layer) public var rawType: TypeAnnotation?
     var typeParameters: [String] = []
     /// What the type declares itself (for a class, with what its superclass gives), and what extensions add: those of
     /// the type, of the protocols it conforms to, and of its superclasses.

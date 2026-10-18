@@ -124,9 +124,10 @@ import SwiitKit
     }
 
     @_spi(Layer) public unowned let interpreter: Interpreter
-    /// Spike: how a layer's node is rewritten into the core's tree right after it is checked.
+    /// How a layer's node is rewritten into the core's own tree as soon as it is checked, while the checker still has the scopes it
+    /// was checked in. Without it the nodes stay, for a layer that only checks.
     @_spi(Layer) public var rewriteExtension: ((Expr) -> Expr)?
-    /// Spike: what the rewritten nodes that end the program became, for a guard's `else`.
+    /// What the rewritten nodes that end the program (`exit`) became, which a guard's `else` must end in.
     var exitingExpressions: [Expr] = []
     /// The type whose member was last looked up, so a JSON field can be
     /// written into a lookup that runs.

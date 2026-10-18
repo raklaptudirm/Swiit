@@ -58,7 +58,7 @@ extension TypeChecker {
         return nil
     }
 
-    func enumInfo(named name: String) -> TypeProfile? {
+    @_spi(Layer) public func enumInfo(named name: String) -> TypeProfile? {
         if case .enumType(let info)? = lookup(name) { return info }
         return nil
     }

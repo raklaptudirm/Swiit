@@ -17,9 +17,11 @@ Language/Checking/TypeChecker+Description.swift	Layer func describe
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberProperty
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberSet
 Language/Checking/TypeChecker+Description.swift	Layer struct TypeProfile
+Language/Checking/TypeChecker+Description.swift	Layer var cases
 Language/Checking/TypeChecker+Description.swift	Layer var declared
 Language/Checking/TypeChecker+Description.swift	Layer var kind
 Language/Checking/TypeChecker+Description.swift	Layer var methods
+Language/Checking/TypeChecker+Description.swift	Layer var rawType
 Language/Checking/TypeChecker+Effects.swift	Layer func withEffects
 Language/Checking/TypeChecker+Effects.swift	Layer struct EffectContext
 Language/Checking/TypeChecker+Expressions.swift	Layer func expect
@@ -31,6 +33,7 @@ Language/Checking/TypeChecker+Members.swift	Layer func memberType
 Language/Checking/TypeChecker+Members.swift	Layer func selectType
 Language/Checking/TypeChecker+Members.swift	Layer func sequenceMethodType
 Language/Checking/TypeChecker+Members.swift	Layer func sequenceSignatures
+Language/Checking/TypeChecker+Names.swift	Layer func enumInfo
 Language/Checking/TypeChecker+Names.swift	Layer func lookup
 Language/Checking/TypeChecker+Names.swift	Layer func structInfo
 Language/Checking/TypeChecker+Names.swift	Layer func structInfo
@@ -71,6 +74,7 @@ Language/Checking/TypeChecker.swift	Layer var range
 Language/Checking/TypeChecker.swift	Layer var range
 Language/Checking/TypeChecker.swift	Layer var returns
 Language/Checking/TypeChecker.swift	Layer var returns
+Language/Checking/TypeChecker.swift	Layer var rewriteExtension
 Language/Checking/TypeChecker.swift	Layer var scopes
 Language/Checking/TypeChecker.swift	Layer var spot
 Language/Checking/TypeChecker.swift	Layer var throwingSites
