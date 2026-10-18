@@ -62,7 +62,7 @@ extension MemberSet {
     @_spi(Layer) public enum Kind { case structure, classType, actor, enumeration, protocolType, other }
 
     var name: String
-    var kind: Kind
+    @_spi(Layer) public var kind: Kind
     var superclass: String?
     var conformances: [String] = []
     /// The protocols a protocol takes in.
@@ -133,12 +133,12 @@ extension MemberSet {
 
 extension TypeChecker {
     /// What is known of `type`, if it names a type with members of its own or ones an extension adds.
-    func describe(_ type: TypeAnnotation) -> TypeProfile? {
+    @_spi(Layer) public func describe(_ type: TypeAnnotation) -> TypeProfile? {
         guard let key = extensionKey(of: type) else { return nil }
         return describe(named: key)
     }
 
-    func describe(named key: String) -> TypeProfile? {
+    @_spi(Layer) public func describe(named key: String) -> TypeProfile? {
         var description: TypeProfile
         switch lookup(key) {
         case .structType(let profile)?:

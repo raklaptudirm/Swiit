@@ -36,6 +36,11 @@ extension TypeChecker {
         }
     }
 
+    /// Whether `name` is a protocol, which is how a host describes the type of its objects.
+    func isProtocolType(_ name: String) -> Bool {
+        if case .protocolType? = lookup(name) { true } else { false }
+    }
+
     func signature(_ function: Function) -> Signature {
         // A builtin that hasn't declared its result isn't known; a Swiit
         // function without `->` returns nothing.

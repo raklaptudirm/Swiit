@@ -186,11 +186,4 @@ import SwiitKit
     @_spi(Layer) public var declaredGlobals: [String: TypeAnnotation] {
         scopes[0].compactMapValues { if case .variable(let type, _) = $0 { type } else { nil } }
     }
-
-}
-
-/// A host object the checker types without knowing its class: `Job`. Its
-/// members' types come from `Interpreter.objectMembers`.
-@_spi(Layer) public protocol CheckedObject: SwiitObject {
-    var checkedType: TypeAnnotation { get }
 }

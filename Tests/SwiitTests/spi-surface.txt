@@ -12,10 +12,13 @@ Language/Checking/TypeChecker+Calls.swift	Layer func preferred
 Language/Checking/TypeChecker+Closures.swift	Layer func closureType
 Language/Checking/TypeChecker+Declarations.swift	Layer func structInfo
 Language/Checking/TypeChecker+Description.swift	Layer enum Kind
+Language/Checking/TypeChecker+Description.swift	Layer func describe
+Language/Checking/TypeChecker+Description.swift	Layer func describe
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberProperty
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberSet
 Language/Checking/TypeChecker+Description.swift	Layer struct TypeProfile
 Language/Checking/TypeChecker+Description.swift	Layer var declared
+Language/Checking/TypeChecker+Description.swift	Layer var kind
 Language/Checking/TypeChecker+Description.swift	Layer var methods
 Language/Checking/TypeChecker+Effects.swift	Layer func withEffects
 Language/Checking/TypeChecker+Effects.swift	Layer struct EffectContext
@@ -52,7 +55,6 @@ Language/Checking/TypeChecker.swift	Layer init init
 Language/Checking/TypeChecker.swift	Layer init init
 Language/Checking/TypeChecker.swift	Layer let interpreter
 Language/Checking/TypeChecker.swift	Layer let message
-Language/Checking/TypeChecker.swift	Layer protocol CheckedObject
 Language/Checking/TypeChecker.swift	Layer struct Signature
 Language/Checking/TypeChecker.swift	Layer struct TypeError
 Language/Checking/TypeChecker.swift	Layer var declaredGlobals

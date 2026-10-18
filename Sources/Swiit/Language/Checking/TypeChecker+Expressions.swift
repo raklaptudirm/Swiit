@@ -556,7 +556,6 @@ extension TypeChecker {
             } else {
                 .named(box.typeName)
             }
-        case .object(let object as CheckedObject): object.checkedType
         case .object(let object):
             // The host described it by declaring a protocol of its type's name.
             if interpreter.isHostObject(object), case .protocolType? = lookup(object.typeName) { .named(object.typeName) } else { .unknown }

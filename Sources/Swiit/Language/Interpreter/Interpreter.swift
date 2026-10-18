@@ -25,7 +25,6 @@ public final class Interpreter {
     public var displayRegistryProvider: () -> DisplayRegistry = { DisplayRegistry() }
     /// What `await` waits for, if the host has anything to wait for.
     public var awaiting: Awaiting?
-    public var objectMembers: [String: [String: TypeAnnotation]] = [:]
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
     public var task: TaskContext

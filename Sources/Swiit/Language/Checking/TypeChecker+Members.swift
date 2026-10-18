@@ -234,14 +234,10 @@ extension TypeChecker {
             default:
                 break
             }
-            if let members = interpreter.objectMembers[typeName] {
-                guard let type = members[name] else { throw TypeError("\(typeName) has no member '\(name)'") }
-                return type
-            }
             if Bridge.types[typeName] != nil { throw TypeError("\(typeName) has no member '\(name)'") }
             return .unknown
-        // A host type's instance with what it holds (`Job<Int>`): the host type's members.
-        case .generic(let typeName, _) where interpreter.objectMembers[typeName] != nil:
+        // A host type's instance with what it holds (`Job<Int>`): the members the host described.
+        case .generic(let typeName, _) where isProtocolType(typeName):
             return try memberType(of: .named(typeName), name)
         case .tuple(let elements):
             guard let element = tupleElement(name, of: elements) else { throw TypeError("\(base) has no element '\(name)'") }

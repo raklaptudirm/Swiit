@@ -26,6 +26,8 @@ extension TypeChecker {
         // A protocol's type is any type that conforms to it.
         if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil {
             switch actual {
+            // A host type with what it holds is that type (`Job<Int>` is a `Job`).
+            case .generic(let name, _) where name == protocolName: return true
             case .named, .int, .double, .string, .bool, .list, .dictionary, .generic: return conforms(actual, to: protocolName)
             default: break
             }
@@ -40,8 +42,8 @@ extension TypeChecker {
             return a == b && aa.count == ba.count && zip(aa, ba).allSatisfy { fits($0, $1) }
         // An Error is any of the types that conform to it, as a protocol's type is.
         case (.named(let a), .named("Error")) where conforms(.named(a), to: "Error"): return true
-        // A host type with what it holds is one of that type: a `Job<Int>` is a `Job`.
-        case (.generic(let a, _), .named(let b)) where a == b && interpreter.objectMembers[a] != nil: return true
+        // A host type with what it holds is one of that type, which the host described as a protocol: a `Job<Int>` is a `Job`.
+        case (.generic(let a, _), .named(let b)) where a == b && isProtocolType(a): return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
         case (_, .someSequence(let element)):
             guard let actualElement = anySequenceElement(actual) else { return false }
