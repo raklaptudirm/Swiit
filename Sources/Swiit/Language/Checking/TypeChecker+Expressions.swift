@@ -322,7 +322,9 @@ extension TypeChecker {
             expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
             return type
         case .caseLiteral(let name, var arguments):
-            // `.none` and `.some(x)`, where an optional is wanted.
+            // `.none` and `.some(x)`, where an optional is wanted. An optional is not an enum at run time: nil is
+            // `.nothing` and a present value is itself, so these two cases are rewritten here to that
+            // representation (and in `checkPattern`, for patterns), not declared like an enum's.
             if case .optional(let wrapped)? = expected {
                 if name == "none", arguments == nil {
                     expr = .literal(.nothing)

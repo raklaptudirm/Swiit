@@ -195,9 +195,16 @@ extension TypeChecker {
         return try memberType(of: try typeOf(&baseExpr), name)
     }
 
+    /// Whether the host described the type `base` with a member `name` (`describeHostType`).
+    private func describesMember(_ name: String, of base: TypeAnnotation) -> Bool {
+        guard case .named(let typeName) = base, isProtocolType(typeName) else { return false }
+        return describe(named: typeName)?.instanceMember(name) != nil
+    }
+
     @_spi(Layer) public func memberType(of written: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
         let base = erased(written)
-        if let dynamic = dynamicType(of: base) { return dynamic.read }
+        // A dynamic object's members have the one type it says, but those the host also described have their own.
+        if let dynamic = dynamicType(of: base), !describesMember(name, of: base) { return dynamic.read }
         lastMemberBase = base
         if let (dynamic, plain) = plainType(of: base) {
             return plain.views[name] ?? dynamic.read

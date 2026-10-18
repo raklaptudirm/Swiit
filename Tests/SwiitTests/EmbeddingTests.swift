@@ -390,3 +390,26 @@ private final class HostNode: SwiitObject, @unchecked Sendable {
     #expect(try swish.eval("node.shout()") == .string("A"))
     #expect(throws: (any Error).self) { try swish.eval("node.nosuch") }
 }
+
+private final class Preferences: DynamicObject, @unchecked Sendable {
+    var values: [String: Value] = ["count": .int(2), "theme": .string("dark")]
+    var typeName: String { "Preferences" }
+    var memberNames: [String] { values.keys.sorted() }
+    func member(_ name: String) -> Value? { values[name] }
+    var description: String { "Preferences" }
+    var readType: TypeAnnotation { .string }
+    var writeType: TypeAnnotation { .string }
+    func read(_ name: String) throws -> Value { values[name] ?? .nothing }
+    func write(_ name: String, _ value: Value) throws { values[name] = value }
+}
+
+@Test func aDynamicObjectHasTheMembersTheHostDescribedTyped() throws {
+    let swish = interpreter()
+    swish.bind("settings", to: Preferences())
+    // Every member has the one type, until some are described.
+    #expect(try swish.eval("settings.theme") == .string("dark"))
+    #expect(throws: (any Error).self) { try swish.eval("settings.count + 1") }
+    try swish.describeHostType("Preferences", as: "var count: Int { get }")
+    #expect(try swish.eval("settings.count + 1") == .int(3))
+    #expect(try swish.eval("settings.theme") == .string("dark"))
+}

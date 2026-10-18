@@ -345,7 +345,8 @@ extension TypeChecker {
             bound[name] = .variable(type, mutable: mutable)
         case .enumCase(let typeName, let name, var arguments):
             var subject = type
-            // `.none` and `.some(let x)` against an optional.
+            // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two cases are not an enum's
+            // at run time, so they are matched as nil and as the value, unless the held type has cases of those names.
             if case .optional(let held) = subject, typeName == nil || typeName == "Optional", name == "none" || name == "some",
                !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil) {
                 if name == "none", arguments == nil || arguments?.isEmpty == true {
