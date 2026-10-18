@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// Every function declared under one name. A name declared with `func` is
 /// always bound to one of these, even with a single candidate.

@@ -1,4 +1,3 @@
-import SwiitKit
 
 // What a host can ask of the functions a script can call: to list the commands it registered, say, or to show
 // their parameters in a help screen. The interpreter's own types stay private to it; these describe a function the

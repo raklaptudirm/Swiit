@@ -1,4 +1,3 @@
-import SwiitKit
 
 extension Interpreter {
     /// `xs.sorted(by: "size")`: a method the prelude gives every sequence,

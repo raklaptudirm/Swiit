@@ -1,6 +1,5 @@
 import Foundation
 @_spi(Layer) import Swiit
-import SwiitKit
 import Testing
 
 // A function built by hand (a layer's, which has a description of the command at run time) and bound with `set`.

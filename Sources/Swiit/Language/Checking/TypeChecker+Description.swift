@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 // What the checker knows of a type, in one place. A type's members are declared in one of several places (a struct,
 // class or actor; an enum; a protocol; the extensions on any of them, and on Swift's own types) and each kept its own

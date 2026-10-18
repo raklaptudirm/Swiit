@@ -1,5 +1,4 @@
 import Foundation
-@_spi(Layer) import SwiitKit
 import SystemPackage
 
 /// Swift's own types and members, as Swiit sees them: read from the

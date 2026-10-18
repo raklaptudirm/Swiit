@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 import SwiitStandardLibrary
 
 extension Interpreter {

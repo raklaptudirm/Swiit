@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 public struct Binding {
     enum Special {

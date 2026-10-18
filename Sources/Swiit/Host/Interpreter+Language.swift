@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension Interpreter {
     /// Functions Swift's standard library has at the top level, which aren't

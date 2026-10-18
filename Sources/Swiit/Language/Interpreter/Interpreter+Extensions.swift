@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// What a type has beyond what it was declared with: an enum's computed
 /// properties and methods, or what extensions add to any type.

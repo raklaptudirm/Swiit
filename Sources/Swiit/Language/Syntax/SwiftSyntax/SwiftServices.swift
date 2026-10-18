@@ -2,7 +2,6 @@ import Foundation
 import SwiftOperators
 import SwiftParser
 import SwiftSyntax
-import SwiitKit
 
 /// The Swift inside a layer's forms, read for it. A layer's syntax holds Swift
 /// in a few places (a `(…)` or `{ … }` word, `\(…)` in a string, the program in

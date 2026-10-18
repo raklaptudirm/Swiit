@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 import SystemPackage
 
 extension Interpreter {

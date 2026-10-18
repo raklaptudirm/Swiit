@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 public enum FunctionBody {
     case swiit(Program)

@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension TypeChecker {
     /// A generic enum's type arguments say what its cases hold, and nothing else: its values are its name.

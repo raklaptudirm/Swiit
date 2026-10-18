@@ -957,6 +957,7 @@
     "String\tswift.method\tsplit(separator:maxSplits:omittingEmptySubsequences:)",
     "String\tswift.method\tstarts(with:)",
     "String\tswift.method\tstarts(with:by:)",
+    "String\tswift.method\tstyled(_:_:)",
     "String\tswift.method\tsuffix(_:)",
     "String\tswift.method\tsuffix(from:)",
     "String\tswift.method\ttrimPrefix(_:)",

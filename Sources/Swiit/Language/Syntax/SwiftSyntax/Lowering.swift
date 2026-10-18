@@ -1,7 +1,6 @@
 import Foundation
 import SwiftOperators
 import SwiftSyntax
-import SwiitKit
 
 /// Lowers SwiftParser's tree to the core's. A construct it doesn't lower is a
 /// `SyntaxError` that names it, so the supported subset is the set of nodes

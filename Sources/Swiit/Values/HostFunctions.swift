@@ -203,7 +203,7 @@ extension Array: SwiitConvertible where Element: SwiitConvertible {
         case .list(let items): self = try items.map(Element.init(swiitValue:))
         // A Swift sequence Swiit holds (a command's output is its lines).
         case .object(let box as SwiftValue) where box.value is any Sequence:
-            self = try SwiftValue.elements(of: box.value).map { try Element(swiitValue: SwiitKit.Value(reflecting: $0)) }
+            self = try SwiftValue.elements(of: box.value).map { try Element(swiitValue: Value(reflecting: $0)) }
         default: throw SwiitError.expected("[\(Element.swiitType)]", swiitValue)
         }
     }
@@ -213,11 +213,11 @@ extension Array: SwiitConvertible where Element: SwiitConvertible {
 extension Dictionary: SwiitConvertible where Key: SwiitConvertible, Value: SwiitConvertible {
     public static var swiitType: SwiitType { .dictionary(Key.swiitType, Value.swiitType) }
     public static var swiitEnums: [EnumType] { Key.swiitEnums + Value.swiitEnums }
-    public init(swiitValue: SwiitKit.Value) throws {
+    public init(swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue else { throw SwiitError.expected("[\(Key.swiitType): \(Value.swiitType)]", swiitValue) }
         self.init(uniqueKeysWithValues: try entries.map { (try Key(swiitValue: $0.key), try Value(swiitValue: $0.value)) })
     }
-    public var swiitValue: SwiitKit.Value {
+    public var swiitValue: Swiit.Value {
         .dictionary(ValueDictionary(map { ($0.key.swiitValue, $0.value.swiitValue) }))
     }
 }
@@ -233,13 +233,13 @@ extension Optional: SwiitConvertible where Wrapped: SwiitConvertible {
 
 extension SwiitError {
     static func expected(_ type: String, _ value: Value) -> SwiitError {
-        SwiitError("expected \(type), not \(value.typeName)")
+        SwiitError("expected \(type), not \(value.bridgeTypeName)")
     }
 }
 
 extension Value {
-    /// The type name error messages use.
-    var typeName: String {
+    /// The type name a conversion error uses.
+    var bridgeTypeName: String {
         switch self {
         case .nothing: "nil"
         case .bool: "Bool"
@@ -287,7 +287,7 @@ public func swiitArgument<T: SwiitObject>(
     _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
 ) throws -> T {
     guard case .object(let object as T) = arguments[name] ?? .nothing else {
-        throw SwiitError("\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).typeName)")
+        throw SwiitError("\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).bridgeTypeName)")
     }
     return object
 }
@@ -364,35 +364,3 @@ final class EnumRegistry: @unchecked Sendable { // safe: every access holds its 
         return type
     }
 }
-
-// MARK: Markers
-
-/// `@Flag("n") times: Int = 1`: a short flag on the command line. It only
-/// marks the parameter for the bridge generator; the value passes through.
-/// `@Flag all: Bool = false` alone makes the parameter's first letter the
-/// flag (`-a`), which is the form a symbol graph can read: it keeps the
-/// attribute's name but not its arguments.
-@propertyWrapper
-public struct Flag<T> {
-    public var wrappedValue: T
-    public init(wrappedValue: T, _ short: Character) { self.wrappedValue = wrappedValue }
-    public init(wrappedValue: T) { self.wrappedValue = wrappedValue }
-}
-
-/// `@Rest _ paths: [FilePath] = []`: takes any number of arguments, as
-/// `FilePath...` does in Swift, which can't pass the array on to another
-/// variadic: so it's declared as the array, and marked.
-@propertyWrapper
-public struct Rest<T> {
-    public var wrappedValue: T
-    public init(wrappedValue: T) { self.wrappedValue = wrappedValue }
-}
-
-/// `@Input _ lines: [String]`: receives what's piped in, per item, or the
-/// whole stream for a list. Only a marker for the bridge generator.
-@propertyWrapper
-public struct Input<T> {
-    public var wrappedValue: T
-    public init(wrappedValue: T) { self.wrappedValue = wrappedValue }
-}
-

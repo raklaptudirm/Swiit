@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// Builtins written in Swift. They're ordinary functions to the rest of
 /// the shell: the same flags, help, overloads and streaming as Swiit ones.

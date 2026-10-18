@@ -1,5 +1,4 @@
 import SwiftSyntax
-import SwiitKit
 
 extension Lowering {
     // MARK: Declarations
@@ -67,7 +66,7 @@ extension Lowering {
     static let fixedWidthIntegers: Set<String> = ["Int8", "Int16", "Int32", "Int64", "UInt", "UInt8", "UInt16", "UInt32", "UInt64"]
     /// Types Swift's standard library spells two ways: the old name, and the type it is.
     static let swiftAliases = ["UnicodeScalar": "Unicode.Scalar"]
-    static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "SwiitKit", "_StringProcessing"]
+    static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "Swiit", "SwiitStandardLibrary", "_StringProcessing"]
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.

@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension Parameter {
     func withBuilder(_ builder: String?) -> Parameter {

@@ -1,5 +1,4 @@
 import SwiftSyntax
-import SwiitKit
 
 extension Lowering {
     // MARK: Expressions

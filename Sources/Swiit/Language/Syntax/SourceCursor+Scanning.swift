@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension SourceCursor {
     // MARK: Scanning

@@ -1,4 +1,3 @@
-import SwiitKit
 
 /// Syntax a layer over the core adds to the grammar: the shell's commands,
 /// pipelines, `$(…)` and the like. The front end asks it at the few places where

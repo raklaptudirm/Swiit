@@ -1,5 +1,4 @@
 @_spi(Layer) @testable import Swiit
-import SwiitKit
 import Testing
 
 // Errors of your own, as Swift has them: `throw`, types that are `Error`, and

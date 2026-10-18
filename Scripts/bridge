@@ -36,7 +36,7 @@ graph() {
 extensions() {
     case "$1" in
         Swift) echo "_StringProcessing SwiitStandardLibrary" ;;
-        Foundation) echo "SwiitStandardLibrary SwiitKit" ;;
+        Foundation) echo "SwiitStandardLibrary" ;;
     esac
 }
 # A module's types can be defined in a module it re-exports, which some
@@ -53,7 +53,7 @@ output() {
     esac
 }
 
-for module in Swift SystemPackage SwiitKit Foundation SwiitStandardLibrary; do
+for module in Swift SystemPackage Foundation SwiitStandardLibrary; do
     graph "$module"
     extra=()
     hosts=("$module")

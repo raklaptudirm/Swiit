@@ -1,5 +1,4 @@
 @_spi(Layer) @testable import Swiit
-import SwiitKit
 import Testing
 
 // `async` and `await` as Swift has them (Docs/async.md, step 3): only

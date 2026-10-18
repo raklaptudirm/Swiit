@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 public struct RuntimeError: Error, CustomStringConvertible {
     public let description: String

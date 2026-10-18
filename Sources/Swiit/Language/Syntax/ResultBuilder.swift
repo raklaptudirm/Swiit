@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// A function or closure body written for a `@resultBuilder`, as plain code: each
 /// expression is a component, and the components are given to the builder's

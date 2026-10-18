@@ -1,3 +1,4 @@
+@testable import Swiit
 import Testing
 
 private let reset = "\u{1B}[0m"

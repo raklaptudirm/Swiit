@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension Expr {
     /// A string literal, interpolated or not.
@@ -102,7 +101,7 @@ extension Value {
     }
 }
 
-extension SwiitKit.Value {
+extension Value {
     /// A list's items, or a Swift sequence's (a command's output is its lines): what sequence methods work on.
     var sequenceItems: [Value]? {
         switch self {
@@ -113,7 +112,7 @@ extension SwiitKit.Value {
 
     /// A total order for sorting: numbers numerically (Int and Double
     /// together), then by kind for values of different kinds.
-    public func order(comparedTo other: SwiitKit.Value) -> ComparisonResult {
+    public func order(comparedTo other: Value) -> ComparisonResult {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }

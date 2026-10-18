@@ -1,4 +1,4 @@
-import SwiitKit
+@testable import Swiit
 import Testing
 
 @Test func rendersScalars() {

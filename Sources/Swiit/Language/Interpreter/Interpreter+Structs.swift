@@ -1,5 +1,4 @@
 import Foundation
-@_spi(Layer) import SwiitKit
 
 /// A struct's definition. Its values are records with its name as their
 /// type, so they're values like Swift's structs, and tables, `where`,

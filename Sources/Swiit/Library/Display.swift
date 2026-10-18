@@ -79,24 +79,11 @@ public struct DisplayShape: Sendable {
     public var isNumeric: Bool
     /// It has nothing to show: a command that printed nothing.
     public var isEmpty: Bool
-    /// It's shown as a struct's fields in a debug form, `Output(text: …)`.
-    public var fields: Record?
 
-    public init(role: DisplayStyle? = nil, isNumeric: Bool = false, isEmpty: Bool = false, fields: Record? = nil) {
+    public init(role: DisplayStyle? = nil, isNumeric: Bool = false, isEmpty: Bool = false) {
         self.role = role
         self.isNumeric = isNumeric
         self.isEmpty = isEmpty
-        self.fields = fields
-    }
-}
-
-extension Value {
-    /// How it looks, beyond its text: plain for anything that doesn't say.
-    public var displayShape: DisplayShape {
-        if case .object(let box as SwiftValue) = self, let displayed = box.value as? any SwiitDisplayed {
-            return displayed.swiitShape
-        }
-        return DisplayShape()
     }
 }
 

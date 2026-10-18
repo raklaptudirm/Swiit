@@ -1,5 +1,4 @@
 import Foundation
-@_spi(Layer) import SwiitKit
 
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
 final class WeakReference: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock

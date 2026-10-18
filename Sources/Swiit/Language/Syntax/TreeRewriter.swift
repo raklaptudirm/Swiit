@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// Rewrites a tree bottom-up: every child is rewritten before its parent is
 /// offered to `expr`, which returns what stands in its place (the same node,

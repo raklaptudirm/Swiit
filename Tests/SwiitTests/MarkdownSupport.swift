@@ -1,5 +1,5 @@
 import Foundation
-@testable import SwiitKit
+@testable import Swiit
 
 // Foundation's AttributedString for the Markdown tests, in a file of its own:
 // Foundation can't be imported next to Testing here.

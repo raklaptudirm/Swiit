@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 import SwiitStandardLibrary
 
 // Members of Swift's types that the generator can't bridge, written by hand.

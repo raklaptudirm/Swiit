@@ -60,7 +60,7 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
         if case .object(let box as SwiftValue) = value, let unboxed = box.value as? T { return unboxed }
         // A Character is held as the one-letter String it is, where Swiit makes it (iterating a String).
         if case .string(let text) = value, text.count == 1, let character = text.first as? T { return character }
-        throw SwiitError("expected \(T.self), not \(value.typeName)")
+        throw SwiitError("expected \(T.self), not \(value.bridgeTypeName)")
     }
 
     /// Whether it sorts before `other`, if its type is Comparable.

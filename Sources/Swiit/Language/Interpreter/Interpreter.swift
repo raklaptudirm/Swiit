@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the

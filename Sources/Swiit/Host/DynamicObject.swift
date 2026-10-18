@@ -1,4 +1,3 @@
-import SwiitKit
 
 /// A host object whose members aren't declared one by one: `env`, whose
 /// members are the process's variables. Reading a member or indexing by a

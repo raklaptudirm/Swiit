@@ -1,6 +1,5 @@
 @_spi(Layer) @testable import Swiit
 import Foundation
-import SwiitKit
 import Testing
 
 // The front end over Swift alone. What the hand-written parser read, which it

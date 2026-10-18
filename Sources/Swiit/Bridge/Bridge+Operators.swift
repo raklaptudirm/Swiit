@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// Operators a bridged Swift type declares (`static func + (lhs: FileSize, rhs:
 /// FileSize)`), used for operands of that type, as Swift does. Swiit's own

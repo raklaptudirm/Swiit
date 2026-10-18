@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 // The embedding API (Docs/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.

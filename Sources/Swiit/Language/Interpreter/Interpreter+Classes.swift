@@ -1,5 +1,4 @@
 import Foundation
-@_spi(Layer) import SwiitKit
 
 /// A class a program declares.
 public final class ClassType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock

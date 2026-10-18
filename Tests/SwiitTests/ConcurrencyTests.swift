@@ -1,6 +1,5 @@
 @_spi(Layer) @testable import Swiit
 import Foundation
-import SwiitKit
 import Testing
 
 // Swift's concurrency, from Swish (Docs/async.md, step 7): `Task`,

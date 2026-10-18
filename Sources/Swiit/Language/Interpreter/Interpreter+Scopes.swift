@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 extension Interpreter {
     public func lookup(_ name: String) -> Binding? {

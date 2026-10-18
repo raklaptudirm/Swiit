@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// What a type has, for `help Type` and `members`: a Swift type's members
 /// from the bridge (with Swiit's own extensions, and for a sequence the

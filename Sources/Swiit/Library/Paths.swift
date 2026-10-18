@@ -1,4 +1,3 @@
-import SwiitKit
 import SystemPackage
 
 // How a path shows in Swiit: its text, unquoted, in the path color, unlike

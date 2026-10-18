@@ -1,4 +1,4 @@
-import SwiitKit
+@testable import Swiit
 import Testing
 
 private struct FileEntry: Encodable {

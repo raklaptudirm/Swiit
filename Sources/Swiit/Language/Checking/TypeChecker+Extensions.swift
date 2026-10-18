@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// What extensions add to a type: members, and the protocols it conforms to by them.
 struct ExtensionLayer {

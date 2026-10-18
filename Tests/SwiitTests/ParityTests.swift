@@ -1,6 +1,5 @@
 @_spi(Layer) @testable import Swiit
 import Foundation
-import SwiitKit
 import Testing
 
 // Swift programs and what the compiler printed for each (parity.json). A case

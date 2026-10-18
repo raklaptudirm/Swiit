@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// A mistake in types, found before anything runs: the statement (or, in a
 /// script, the whole script) doesn't run. See Docs/types.md.

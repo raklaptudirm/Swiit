@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// The builtins' types and signatures, written in Swiit and read when the
 /// shell starts. The checker works from these; the bodies are in Swift

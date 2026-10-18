@@ -1,6 +1,5 @@
 import Foundation
 import SwiftSyntax
-import SwiitKit
 
 /// What a layer over the core adds to Swift's grammar (the shell's), read by
 /// its plug-in from the source: SwiftParser's tree for those places is what it

@@ -268,3 +268,4 @@ Language/Syntax/TreeRewriter.swift	Layer struct TreeRewriter
 Language/Syntax/TreeRewriter.swift	Layer var expr
 Language/Syntax/TypeAnnotation.swift	Layer var label
 Language/Syntax/TypeAnnotation.swift	Layer var type
+Values/Value.swift	Layer protocol LanguageObject

@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// The one lock Swiit code runs under (Docs/async.md, "B"). Tasks
 /// run on threads of their own, and only the thread holding the lock runs

@@ -1,6 +1,5 @@
 import Foundation
 import Swiit
-import SwiitKit
 import Testing
 
 // The embedding API: what a host does with an `Interpreter` and nothing else.

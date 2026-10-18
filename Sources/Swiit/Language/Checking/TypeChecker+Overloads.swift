@@ -1,5 +1,4 @@
 import Foundation
-import SwiitKit
 
 /// How well a call's arguments fit one overload, and what the call is then: what fitting cost (conversions made),
 /// whether a type left unknown makes the fit uncertain, its result and whether it throws, and the type parameters
