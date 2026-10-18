@@ -161,24 +161,39 @@ public final class OutputCounter: @unchecked Sendable { // safe: every access ho
 public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var set = false
+    /// What `isSet` reads without the lock, which every step of every script asks. It is a word written under the lock and
+    /// read by whoever is running: a stale read only delays the stop by a step, and a load of a word is atomic where this
+    /// runs (arm64 and x86-64), as the SIGINT flag in the shell's spawn code is.
+    nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
+        let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+        pointer.initialize(to: 0)
+        return pointer
+    }()
+
+    deinit { flag.deallocate() }
     /// What wakes the waits going on now, so a request ends them early.
     private var wakers: [Int: () -> Void] = [:]
     private var nextWaker = 0
 
     public init() {}
 
-    public var isSet: Bool { lock.withLock { set } }
+    public var isSet: Bool { readFlag() != 0 }
+
+    /// Not inlined, so that a loop asking again reads the word again.
+    @inline(never)
+    private func readFlag() -> Int32 { flag.pointee }
 
     /// Asks for the stop, and wakes what is waiting.
     func request() {
         let wake = lock.withLock { () -> [() -> Void] in
             set = true
+            flag.pointee = 1
             return Array(wakers.values)
         }
         wake.forEach { $0() }
     }
 
-    public func clear() { lock.withLock { set = false } }
+    public func clear() { lock.withLock { set = false; flag.pointee = 0 } }
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
