@@ -309,3 +309,34 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     #expect(try swish.eval("Code.Size.bigger()") == .int(2))
     #expect(try swish.eval("Code.Kind.a == .a") == .bool(true))
 }
+
+private final class HostNode: SwiitObject, @unchecked Sendable {
+    let label: String
+    init(_ label: String) { self.label = label }
+    var typeName: String { "Node" }
+    var memberNames: [String] { ["label", "shout"] }
+    func member(_ name: String) -> Value? {
+        switch name {
+        case "label": .string(label)
+        case "shout": .function(Function(name: "shout", parameters: [], returnType: .string, body: .native { [label] _, _ in .string(label.uppercased()) }))
+        default: nil
+        }
+    }
+    var description: String { "Node(\(label))" }
+}
+
+@Test func aHostObjectIsTypedByTheProtocolThatDescribesIt() throws {
+    let log = Log()
+    let swish = interpreter(log: log)
+    swish.set("nodes", .list([.object(HostNode("a")), .object(HostNode("b"))]))
+    _ = try swish.eval("protocol Node { var label: String { get }; func shout() -> String }")
+    // It is used as the protocol says, and passes where one is asked for.
+    #expect(try swish.eval("nodes.map { $0.shout() }") == .list([.string("A"), .string("B")]))
+    #expect(try swish.eval("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == .string("a"))
+    #expect(try swish.eval("let kept: [Node] = nodes; kept.count") == .int(2))
+    // A mistake is found before anything runs.
+    #expect(throws: (any Error).self) { try swish.eval(#"print("ran"); nodes.map { $0.nosuch }"#) }
+    #expect(throws: (any Error).self) { try swish.eval(#"print("ran"); nodes.map { $0.label + 1 }"#) }
+    #expect(throws: (any Error).self) { try swish.eval(#"print("ran"); nodes[0].shout(1)"#) }
+    #expect(log.text == "")
+}

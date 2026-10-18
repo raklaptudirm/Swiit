@@ -48,10 +48,19 @@ extension Interpreter {
         default:
             break
         }
+        // A host's object conforms to the protocol the program declares under its type's name: that is how the host
+        // describes it (`protocol Node { var label: String { get } }`).
+        if case .object(let object) = value, isHostObject(object), protocolType(named: object.typeName) != nil { declared.append(object.typeName) }
         if case .object(let instance as ClassInstance) = value {
             for type in instance.type.chain { declared += typeExtensions[type.name]?.conformances ?? [] }
         } else if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
         return conformances(taking: declared)
+    }
+
+    /// Whether `object` is a value the host made, not one of the language's own (an instance, or a type).
+    func isHostObject(_ object: any SwiitObject) -> Bool {
+        !(object is ClassInstance || object is StructType || object is EnumType || object is ClassType || object is ProtocolType
+            || object is BridgedTypeName || object is SwiftValue)
     }
 
     /// What each of `declared` takes in, with them.
