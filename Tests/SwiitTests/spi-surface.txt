@@ -13,6 +13,7 @@ Language/Checking/TypeChecker+Closures.swift	Layer func closureType
 Language/Checking/TypeChecker+Declarations.swift	Layer func structInfo
 Language/Checking/TypeChecker+Description.swift	Layer enum Kind
 Language/Checking/TypeChecker+Description.swift	Layer func describe
+Language/Checking/TypeChecker+Description.swift	Layer func describe
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberProperty
 Language/Checking/TypeChecker+Description.swift	Layer struct MemberSet
 Language/Checking/TypeChecker+Description.swift	Layer struct TypeProfile
@@ -35,6 +36,7 @@ Language/Checking/TypeChecker+Members.swift	Layer func sequenceSignatures
 Language/Checking/TypeChecker+Names.swift	Layer func enumInfo
 Language/Checking/TypeChecker+Names.swift	Layer func lookup
 Language/Checking/TypeChecker+Names.swift	Layer func structInfo
+Language/Checking/TypeChecker+Names.swift	Layer func structInfo
 Language/Checking/TypeChecker+Overloads.swift	Layer func resolve
 Language/Checking/TypeChecker+Statements.swift	Layer func checkBlock
 Language/Checking/TypeChecker+Statements.swift	Layer func checkHandled
@@ -50,6 +52,10 @@ Language/Checking/TypeChecker.swift	Layer class TypeChecker
 Language/Checking/TypeChecker.swift	Layer enum Symbol
 Language/Checking/TypeChecker.swift	Layer func check
 Language/Checking/TypeChecker.swift	Layer init init
+Language/Checking/TypeChecker.swift	Layer init init
+Language/Checking/TypeChecker.swift	Layer init init
+Language/Checking/TypeChecker.swift	Layer init init
+Language/Checking/TypeChecker.swift	Layer init init
 Language/Checking/TypeChecker.swift	Layer let interpreter
 Language/Checking/TypeChecker.swift	Layer let message
 Language/Checking/TypeChecker.swift	Layer struct Signature
@@ -61,9 +67,12 @@ Language/Checking/TypeChecker.swift	Layer var index
 Language/Checking/TypeChecker.swift	Layer var isMutating
 Language/Checking/TypeChecker.swift	Layer var isThrowing
 Language/Checking/TypeChecker.swift	Layer var line
+Language/Checking/TypeChecker.swift	Layer var line
 Language/Checking/TypeChecker.swift	Layer var name
 Language/Checking/TypeChecker.swift	Layer var parameters
 Language/Checking/TypeChecker.swift	Layer var range
+Language/Checking/TypeChecker.swift	Layer var range
+Language/Checking/TypeChecker.swift	Layer var returns
 Language/Checking/TypeChecker.swift	Layer var returns
 Language/Checking/TypeChecker.swift	Layer var rewriteExtension
 Language/Checking/TypeChecker.swift	Layer var scopes
@@ -72,6 +81,7 @@ Language/Checking/TypeChecker.swift	Layer var throwingSites
 Language/Checking/TypeChecker.swift	Layer var tryDepth
 Language/Interpreter/Interpreter+Calls.swift	Layer func bind
 Language/Interpreter/Interpreter+Calls.swift	Layer func defaultArgument
+Language/Interpreter/Interpreter+Statements.swift	Layer func run
 Language/Interpreter/Interpreter+Statements.swift	Layer func run
 Language/Interpreter/Interpreter+Statements.swift	Layer typealias StatementObserver
 Language/Interpreter/Interpreter+Statements.swift	Layer typealias ValueObserver
@@ -83,7 +93,11 @@ Language/Interpreter/Interpreter.swift	Layer var statementFinished
 Language/Interpreter/Interpreter.swift	Layer var staticTypes
 Language/Interpreter/Interpreter.swift	Layer var syntax
 Language/Interpreter/TaskContext.swift	Layer var scopes
+Language/Interpreter/TaskContext.swift	Layer var scopes
 Language/Syntax/Declarations.swift	Layer func ==
+Language/Syntax/Declarations.swift	Layer init init
+Language/Syntax/Declarations.swift	Layer init init
+Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer struct Assignment
 Language/Syntax/Declarations.swift	Layer struct Capture
@@ -96,6 +110,7 @@ Language/Syntax/Declarations.swift	Layer struct PropertyDecl
 Language/Syntax/Declarations.swift	Layer struct ProtocolDecl
 Language/Syntax/Declarations.swift	Layer struct StructDecl
 Language/Syntax/Declarations.swift	Layer var captures
+Language/Syntax/Declarations.swift	Layer var defaultValue
 Language/Syntax/Declarations.swift	Layer var defaultValue
 Language/Syntax/Declarations.swift	Layer var documentation
 Language/Syntax/Declarations.swift	Layer var externalDefault
@@ -110,7 +125,16 @@ Language/Syntax/Declarations.swift	Layer var isWeak
 Language/Syntax/Declarations.swift	Layer var label
 Language/Syntax/Declarations.swift	Layer var methods
 Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
+Language/Syntax/Declarations.swift	Layer var name
 Language/Syntax/Declarations.swift	Layer var parameters
+Language/Syntax/Declarations.swift	Layer var parameters
+Language/Syntax/Declarations.swift	Layer var parameters
+Language/Syntax/Declarations.swift	Layer var resultBuilder
 Language/Syntax/Declarations.swift	Layer var resultBuilder
 Language/Syntax/Declarations.swift	Layer var runtimeTypeParameters
 Language/Syntax/Declarations.swift	Layer var shortFlag
@@ -118,6 +142,8 @@ Language/Syntax/Declarations.swift	Layer var showsByType
 Language/Syntax/Declarations.swift	Layer var summary
 Language/Syntax/Declarations.swift	Layer var thrownType
 Language/Syntax/Declarations.swift	Layer var type
+Language/Syntax/Declarations.swift	Layer var type
+Language/Syntax/Declarations.swift	Layer var value
 Language/Syntax/Declarations.swift	Layer var value
 Language/Syntax/Declarations.swift	Layer var variadic
 Language/Syntax/Expressions.swift	Layer enum BinaryOperator
@@ -127,6 +153,8 @@ Language/Syntax/Expressions.swift	Layer enum StringPart
 Language/Syntax/Expressions.swift	Layer enum TryKind
 Language/Syntax/Expressions.swift	Layer enum UnaryOperator
 Language/Syntax/Expressions.swift	Layer init init
+Language/Syntax/Expressions.swift	Layer init init
+Language/Syntax/Expressions.swift	Layer init init
 Language/Syntax/Expressions.swift	Layer struct Argument
 Language/Syntax/Expressions.swift	Layer struct RecordEntry
 Language/Syntax/Expressions.swift	Layer var isAwait
@@ -134,11 +162,13 @@ Language/Syntax/Expressions.swift	Layer var label
 Language/Syntax/Expressions.swift	Layer var name
 Language/Syntax/Expressions.swift	Layer var type
 Language/Syntax/Expressions.swift	Layer var value
+Language/Syntax/Expressions.swift	Layer var value
 Language/Syntax/ResultBuilder.swift	Layer func transform
 Language/Syntax/ResultBuilder.swift	Layer init init
 Language/Syntax/ResultBuilder.swift	Layer struct ResultBuilderTransform
 Language/Syntax/SourceCursor+Scanning.swift	Layer func consume
 Language/Syntax/SourceCursor+Scanning.swift	Layer func expected
+Language/Syntax/SourceCursor+Scanning.swift	Layer func identifier
 Language/Syntax/SourceCursor+Scanning.swift	Layer func identifier
 Language/Syntax/SourceCursor+Scanning.swift	Layer func isDigit
 Language/Syntax/SourceCursor+Scanning.swift	Layer func isIdentifier
@@ -195,13 +225,15 @@ Language/Syntax/Statements.swift	Layer struct WhileLoop
 Language/Syntax/Statements.swift	Layer var declaresType
 Language/Syntax/Statements.swift	Layer var isAwait
 Language/Syntax/Statements.swift	Layer var label
+Language/Syntax/Statements.swift	Layer var label
+Language/Syntax/Statements.swift	Layer var name
 Language/Syntax/Statements.swift	Layer var name
 Language/Syntax/Statements.swift	Layer var ranges
 Language/Syntax/Statements.swift	Layer var spots
 Language/Syntax/Statements.swift	Layer var statements
 Language/Syntax/Statements.swift	Layer var type
 Language/Syntax/SwiftPrinter.swift	Layer func source
-Language/Syntax/SwiftPrinter.swift	Layer init
+Language/Syntax/SwiftPrinter.swift	Layer init init
 Language/Syntax/SwiftPrinter.swift	Layer struct SwiftPrinter
 Language/Syntax/SwiftSyntax/SwiftServices.swift	Layer func parseArguments
 Language/Syntax/SwiftSyntax/SwiftServices.swift	Layer func parseClosure

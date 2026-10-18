@@ -15,6 +15,7 @@
 # back and the files it lists, and how a terminal shows values. Each exits
 # when it moves to the shell (the agenda's "command-line vocabulary" item).
 allow	Language/Syntax/Declarations.swift	commandline	8
+allow	Language/Syntax/SwiftPrinter.swift	commandline	4
 allow	Language/Syntax/TypeAnnotation.swift	results	2
 allow	Language/Syntax/TypeAnnotation.swift	display	14
 allow	Language/Syntax/SwiftSyntax/Highlighting.swift	results	1

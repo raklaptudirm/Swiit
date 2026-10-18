@@ -237,14 +237,30 @@ let t = if n > 1 {
     }
     return total
 }
-let r = f(10)#3do {
+let r = f(10)#2enum Level: Int, Comparable {
+    case low
+    case mid
+    case high
+}
+Level.low < .high
+Level.high <= .mid
+[Level.high, .low] | sorted#3do {
     1 / 0
 } catch let e {
     print(e.localizedDescription)
-}#5let d = ["b": 2, "a": 1]
+}#4([1, 2, 3] | map { if $0 > 1 {
+    $0
+} else {
+    nil
+} }) | count
+([1, 2, 3] | compactMap { if $0 > 1 {
+    $0
+} else {
+    nil
+} }) | count#5let d = ["b": 2, "a": 1]
 d
 d.filter { $0.value > 1 }
-d.mapValues { $0 * 10 }#7let c = if true {
+d.mapValues { $0 * 10 }#6(prefix ^(true) && prefix ^(true)) || prefix ^(true)#7let c = if true {
     TextStyle.green
 } else {
     .red
@@ -252,14 +268,16 @@ d.mapValues { $0 * 10 }#7let c = if true {
 "y".styled(c) + "!"#8let d = ["b": 2, "a": 1]
 d.map { $0.key }.sorted()
 d.keys.sorted()
-d.values.sorted()#15let d = ["b": 2, "a": 1]
+d.values.sorted()#13Command("true").run().and { Command("true").run() }.or { Command("true").run() }#15let d = ["b": 2, "a": 1]
 d.count
 d.isEmpty
 d.sorted { $0.key < $1.key }.map { $0.value }
-d.first!.key == d.keys.first!#17do {
+d.first!.key == d.keys.first!#16mktemp#17do {
     let x = 1
     print(x)
-}#20do {
+}#18[3, 1, 2] | sorted
+[3, 1, 2] | sorted { $0 > $1 }
+([3, 1, 2] | sorted) | reversed#19(prefix ^(true) && prefix ^(true)) || prefix ^(false)#20do {
     1 / 0
 }#25func size(_ n: Int) -> String {
     switch n {
@@ -279,7 +297,7 @@ size(0)
 size(3)
 size(100)
 size(5000)
-size(500)#30Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])#31let prefixVariable = 1#33let o: Int? = 4
+size(500)#28Command("true").run().and { Command("true").run() }.or { Command("false").run() }#30Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])#31let prefixVariable = 1#33let o: Int? = 4
 o.map { $0 + 1 }
 let n: Int? = nil
 n.map { $0 + 1 } ?? 0#38"abc".reversed()
@@ -288,7 +306,7 @@ x ?? 3
 let s: String? = "ab"
 s?.count
 s!.count#41Set([1, 2]).union([9]).sorted()
-(1 ... 5).contains(3)#45(description: "mine", n: 1).description#47func f(_ x: Double) -> String {
+(1 ... 5).contains(3)#43Command("true").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }#45(description: "mine", n: 1).description#47func f(_ x: Double) -> String {
     "double"
 }
 func f(_ x: Int) -> String {
@@ -297,9 +315,15 @@ func f(_ x: Int) -> String {
 f(5)
 f(5.5)#51[1, 2, 3, 4].dropFirst()
 [1, 2, 3].split(separator: 2)
-Array([1, 2, 3].suffix(2))#56let x: Int? = nil
-x!#58[[1, 2], [3]].flatMap { $0 }
-[1, 2].elementsEqual([1, 2])#67enum Level: Int {
+Array([1, 2, 3].suffix(2))#52(prefix ^(true) && prefix ^(false)) || prefix ^(true)#55[[1, 2], [3]] | map(\.count)
+["ab"] | map(\.isEmpty)
+[1, 2].last#56let x: Int? = nil
+x!#57let o = Command("echo", "hi").output()
+print(o.text)
+print(o.status.succeeded)#58[[1, 2], [3]].flatMap { $0 }
+[1, 2].elementsEqual([1, 2])#64Command("true").run().and { Command("false").run() }.or { Command("true").run() }#65let o = Command("sh", "-c", "echo partial; exit 2").output()
+print(o.text)
+print(o.status.code)#67enum Level: Int {
     case low = 1
     case mid
     case high = 10
@@ -319,7 +343,7 @@ Code.bad.rawValue#73enum E {
     case b(code: Int, String)
 }
 E.b(code: 2, "no")
-"\(E.b(code: 2, "no"))"#76enum L: Int {
+"\(E.b(code: 2, "no"))"#74(prefix ^(true) && prefix ^(false)) || prefix ^(false)#75wait#76enum L: Int {
     case a = 1
     case b = 1
 }#79enum L {
@@ -327,10 +351,34 @@ E.b(code: 2, "no")
 }#82enum K {
     case a
 }
-K.a.rawValue#86var n = 0
+K.a.rawValue#83Command("true").run().and { Command("false").run() }.or { Command("false").run() }#86var n = 0
 while true {
     n += 1
-}#106func f(_ i: Int) -> () -> Int {
+}#89struct Point {
+    var x: Int
+    func describe() -> String {
+        "p\(self.x)"
+    }
+    func scaled(by k: Int) -> Point {
+        Point(x: self.x * k)
+    }
+    mutating func bump() {
+        self.x += 1
+    }
+}
+[Point(x: 1), Point(x: 2)] | describe#97struct Point {
+    var x: Int
+    func describe() -> String {
+        "p\(self.x)"
+    }
+    func scaled(by k: Int) -> Point {
+        Point(x: self.x * k)
+    }
+    mutating func bump() {
+        self.x += 1
+    }
+}
+Point(x: 1) | bump#106func f(_ i: Int) -> () -> Int {
     let g = { i + 1 }
     let unused = [1, 2]
     return g
@@ -342,7 +390,7 @@ p.extension
 p.stem
 p.removingLastComponent()
 p.appending("x")
-p.isAbsolute#113let n = 3
+p.isAbsolute#110Command("true").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }#113let n = 3
 (n * 2) + 1#114func g(a: Int) {}
 func g(b: Int) {}
 g(c: 1)#115let c: FilePath.Component = "a.b"
@@ -353,7 +401,10 @@ c.stem#117func g(_ x: Int, y: Int = 0) -> Int {
 func g(_ x: Int, z: Int = 0) -> Int {
     2
 }
-g(1)#118let n = 4#122var n = 0
+g(1)#118let n = 4#1197 / 2
+7 % 2
+7.0 / 2
+-n#122var n = 0
 while n < 3 {
     n = n + 1
 }
@@ -412,7 +463,8 @@ struct Line {
 }
 var l = Line(start: Point(x: 0), end: Point(x: 5))
 l.end.move(by: 2)
-l.end#149struct Point {
+l.end#145Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }#148pwd().isAbsolute
+ls().first!.path.isAbsolute#149struct Point {
     var x: Int
     var y: Int = 0
     var lengthSquared: Int {
@@ -431,24 +483,52 @@ l.end#149struct Point {
     }
 }
 let q = Point(x: 1)
-q.move(by: 1)#152func zzgreet() {}#153struct C {
+q.move(by: 1)#152/// Greets.
+func zzgreet() {}#153struct C {
     var n: Int
     func bump() {
         self.n += 1
     }
 }
 var c = C(n: 1)
-c.bump()#165try? [1][5] == nil
+c.bump()#154let d = pwd().removingLastComponent()
+ls(d).first!.path.starts(with: d)
+ls("/").count > 0#157Command("echo", "*.swift", "$HOME", "~").run()
+print(Command("echo", "a b").words.count)#165try? [1][5] == nil
 try? (1 / 0) == nil#169(try? [1][5]) == nil
 (try? 1 / 0) == nil#171func f() -> Int {
     [1][9]
 }
-(try? f()) ?? 0#184let r = 1 ... 5
+(try? f()) ?? 0#177Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#181func double(@input _ n: Int) -> Int {
+    n * 2
+}
+func total(@input _ xs: [Int]) -> Int {
+    var t = 0
+    for x in xs {
+        t = t + x
+    }
+    return t
+}
+func evens(@input _ n: Int) -> Int? {
+    if (n % 2) == 0 {
+        return n
+    }
+    return nil
+}
+var calls = 0
+func counted(@input _ n: Int) -> Int {
+    calls = calls + 1
+    return n
+}
+[1, 2, 3] | double#184let r = 1 ... 5
 r
 r.count
 r.contains(3)
 r.map { $0 * 2 }
-r.filter { ($0 % 2) == 0 }#196func counter() -> (Int) -> Int {
+r.filter { ($0 % 2) == 0 }#186(ps | filter { $0.pid == 16560 }) | count#187env.HOME == "/Users/raklaptudirm"#1910 ..< 3
+(0 ..< 3).lowerBound
+Array(0 ..< 3)
+(1 ... 3) | map { $0 * 10 }#194env.count == nil#196func counter() -> (Int) -> Int {
     var c = 0
     return {
     c = c + $0
@@ -457,7 +537,7 @@ r.filter { ($0 % 2) == 0 }#196func counter() -> (Int) -> Int {
 }
 let next = counter()
 next(1)
-next(5)#198for i in 0 ..< 2 {
+next(5)#197exit#198for i in 0 ..< 2 {
     print(i)
 }
 let r = 5 ... 6
@@ -468,7 +548,7 @@ for i in 1 ... 3 {
     fs = fs + [{ i * 10 }]
 }
 fs[0]()
-fs[2]()#202(1.0 ... 2.0).contains(1.5)
+fs[2]()#201make && exit#202(1.0 ... 2.0).contains(1.5)
 ("a" ... "f").contains("c")#206let r = (name: "x", size: 2.0 MB)
 r.name
 r.size * 2
@@ -482,11 +562,16 @@ let none: [Int]? = nil
 none?[0] == nil#221func f() {
     42
 }
-f()#231let s = Set([3, 1, 2, 3])
+f()#228Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }#231let s = Set([3, 1, 2, 3])
 s.count
 s.contains(2)
 s.sorted()
-s.union([9]).sorted()#236let s = Set([1, 2])
+s.union([9]).sorted()#232[1, 2, 3, 1] | prefix(while: { $0 < 3 })#234let j = try from(.json, ["{\"server\": {\"port\": 8080}, \"tags\": [\"a\", \"b\"], \"on\": true}"])
+j.server?.port?.int ?? 1
+j.missing?.port?.int ?? 1
+j["tags"]?[1]?.string
+j.tags?.array?.count
+j.on?.bool#236let s = Set([1, 2])
 s.isSubset(of: 1 ... 5)
 s.intersection(Set([2, 3]))
 Set("hello").count#237struct Counter: Equatable {
@@ -510,7 +595,9 @@ Counter.step
 Counter.make(3)
 Counter.next#239let s: Set<String> = Set(["a"])
 s.contains("a")
-Set([1]) == Set([1])#242struct Counter: Equatable {
+Set([1]) == Set([1])#240let j = try from(.json, ["{\"server\": {\"port\": 8080}, \"tags\": [\"a\", \"b\"], \"on\": true}"])
+j.server?.port?.string == nil
+j.nothing?.isNull#242struct Counter: Equatable {
     static let zero = Counter(n: 0)
     static let step = 2
     static var made = 0
@@ -528,7 +615,7 @@ Set([1]) == Set([1])#242struct Counter: Equatable {
 }
 Counter.zero.bumped()
 let f = Counter.make
-f(1)#244let s = "a  b"#247struct Counter: Equatable {
+f(1)#243Set([2, 1]) | sorted#244let s = "a  b"#247struct Counter: Equatable {
     static let zero = Counter(n: 0)
     static let step = 2
     static var made = 0
@@ -562,7 +649,10 @@ Counter.made#251struct Counter: Equatable {
         Counter(n: self.n + Counter.step)
     }
 }
-Counter.step = 3#2541
+Counter.step = 3#252[3, 1, 2] | max
+[3, 1, 2] | min()
+[1, 2] | contains(2)
+[1, 2, 3] | reduce(0) { $0 + $1 }#253(prefix ^(false) && prefix ^(true)) || prefix ^(true)#2541
 2
 "a"#255struct Counter: Equatable {
     static let zero = Counter(n: 0)
@@ -580,7 +670,7 @@ Counter.step = 3#2541
         Counter(n: self.n + Counter.step)
     }
 }
-Counter.made = "x"#258for i in 1 ... 3 {
+Counter.made = "x"#257Command("false").run().and { Command("true").run() }.or { Command("true").run() }#258for i in 1 ... 3 {
     i
 }#259struct Counter: Equatable {
     static let zero = Counter(n: 0)
@@ -618,30 +708,52 @@ Counter.next = 1#263if true {
     1
 } else {
     2
-}#266var p: FilePath = "/a/b.txt"
+}#265(prefix ^(false) && prefix ^(true)) || prefix ^(false)#266var p: FilePath = "/a/b.txt"
 p.extension = "md"
 p
 p.extension = nil
 p#267do {
     1
 }
-2#269let parts = "c,a,b".split(separator: ",")
+2#268([1, 2, 3] | dropFirst) | count#269let parts = "c,a,b".split(separator: ",")
 parts.sorted()
 parts.contains("a")#270func f() -> Int {
     1
 }
-f()#272struct W {
+f()#271["abc", "de"] | uppercased
+["abc"] | hasPrefix("a")#272struct W {
     var path: FilePath
 }
 var w = W(path: "/x/y.c")
 w.path.extension = "h"
-w.path#277let parts = "a,b,c".split(separator: ",")
+w.path#273Command("false").run().and { Command("true").run() }.or { Command("false").run() }#274let s = Command("echo", "hi").run()
+print(s.succeeded)#275("a b c" | split(separator: " ")) | count
+"abc" | count
+let p: FilePath = "/a/b.txt"
+p | lastComponent#277let parts = "a,b,c".split(separator: ",")
 parts
 parts.count
 parts[0] == "a"
-String(parts[1])#282"swish".first
+String(parts[1])#280let s = Command("sh", "-c", "exit 3").run()
+print(s.code)
+print(s.succeeded)#282"swish".first
 "swish".first?.isLetter
-"a b".contains(" ")#284[1, 2, 3].filter { $0 > 1 }.map { $0 * 10 }#286["a", "b"].joined(separator: "-")#313func makeCounter() -> () -> Int {
+"a b".contains(" ")#284[1, 2, 3].filter { $0 > 1 }.map { $0 * 10 }#286["a", "b"].joined(separator: "-")#287help#288let s = Command("sh", "-c", "kill -TERM $$").run()
+print(s.signal)
+print(s.code == nil)#289func sorted() -> String {
+    "mine"
+}
+[2, 1] | sorted
+sorted#291Command("false").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }#297sorted#300let c = counter("x")
+c.add()
+c.add(5)
+c.total
+c#301Tools.volume(.low)
+Tools#302do {
+    try fail("nope")
+} catch {
+    print(error.localizedDescription)
+}#303greet(5)#306(ls | surely) - nothing#308(prefix ^(false) && prefix ^(false)) || prefix ^(true)#311(help | filter { $0.name.hasPrefix("$") }) | count#313func makeCounter() -> () -> Int {
     var n = 0
     return {
     n += 1
@@ -650,7 +762,7 @@ String(parts[1])#282"swish".first
 }
 let c = makeCounter()
 c()
-c()#316struct P: Equatable {
+c()#314Command("false").run().and { Command("false").run() }.or { Command("true").run() }#316struct P: Equatable {
     var x: Int
 }
 P(x: 1) == P(x: 1)#318func f() -> Int {
@@ -669,16 +781,16 @@ f()#319let xs: [Int] = []#320func make() -> (Int) -> Int {
     }
     return fact
 }
-make()(5)#326let x: Any = 5
+make()(5)#321(prefix ^(false) && prefix ^(false)) || prefix ^(false)#326let x: Any = 5
 x as? Int
 x as? String
 x is Int
-(x as! Int) + 1#337let a: Any = "s"
+(x as! Int) + 1#327Command("false").run().and { Command("false").run() }.or { Command("false").run() }#330(help | filter { $0.name == "help" }) | count#337let a: Any = "s"
 a as! Int#340let a: Any = "s"
 (a as? Int) ?? 0#341func square(_ x: Int) -> Int {
     x * x
 }
-square(7)#345func fib(_ n: Int) -> Int {
+square(7)#343Command("false").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }#345func fib(_ n: Int) -> Int {
     if n < 2 {
         return n
     }
@@ -699,7 +811,7 @@ for x in ["a", "b"] {
         21
     }
 }
-outer()#356let name = "Swish"#362var i = 1
+outer()#356let name = "Swish"#360Command("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }#362var i = 1
 i = i + 1
 i#365let x = 1
 if true {
@@ -714,10 +826,14 @@ x#371func greet(_ name: String, times: Int = 1) -> String {
     "\(name)x\(times)"
 }
 greet("a")
-greet("b", times: 2)#375func half(_ x: Double) -> Double {
+greet("b", times: 2)#372enum K: Comparable {
+    case b
+    case a
+}
+[K.a, K.b] | sorted#375func half(_ x: Double) -> Double {
     x / 2
 }
-half(3)#378func sum(_ xs: Int...) -> Int {
+half(3)#376Command("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#378func sum(_ xs: Int...) -> Int {
     var t = 0
     for x in xs {
         t = t + x
@@ -725,7 +841,13 @@ half(3)#378func sum(_ xs: Int...) -> Int {
     return t
 }
 sum()
-sum(1, 2, 3)#382"costs $5 and $HOME"#391var xs = [1, 2, 3]
+sum(1, 2, 3)#380enum K {
+    case b
+    case a
+}
+[K.a, K.b] | sorted#381try? make#382"costs $5 and $HOME"#383([1, 2, 3, 4] | filter { ($0 % 2) == 0 }) | map { $0 * 10 }#387[1, 2, 3] | count
+[1, 2, 3] | count { $0 > 1 }
+[1, 2] | reversed#389[(a: 1, b: "x y"), (a: 22, b: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")] | cat#391var xs = [1, 2, 3]
 xs[1] = 20
 xs[0] += 5
 xs#393true
@@ -736,10 +858,17 @@ r["a"] = 3
 var t = (a: 1, b: 2)
 t.a *= 3
 r
-t#396false#398true#399var n = 10
+t#396false#397func f() {}
+[f] | cat#398true#399var n = 10
 n -= 3
 n /= 7
-n#403struct Point {
+n#400Command("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }#401struct Point {
+    var x: Int
+    func describe() -> String {
+        "p\(self.x)"
+    }
+}
+[Point(x: 1), Point(x: 2)] | describe#403struct Point {
     var x: Int
     var y: Int = 0
     var lengthSquared: Int {
@@ -783,7 +912,7 @@ xs.append(contentsOf: [5])
 xs.insert(0, at: 0)
 xs.sort()
 xs#408let xs = [1]
-xs[0] = 2#409func g(_ x) -> String {
+xs[0] = 2#409func g(_ x: Any) -> String {
     "any"
 }
 func g(_ x: Int) -> String {
@@ -814,7 +943,28 @@ s.remove(1)
 var t = "ab"
 t.append("c")
 s
-t#425struct S {
+t#419func double(@input _ n: Int) -> Int {
+    n * 2
+}
+func total(@input _ xs: [Int]) -> Int {
+    var t = 0
+    for x in xs {
+        t = t + x
+    }
+    return t
+}
+func evens(@input _ n: Int) -> Int? {
+    if (n % 2) == 0 {
+        return n
+    }
+    return nil
+}
+var calls = 0
+func counted(@input _ n: Int) -> Int {
+    calls = calls + 1
+    return n
+}
+[] | total#424jobs | table#425struct S {
     var xs: [Int]
 }
 var s = S(xs: [])
@@ -843,9 +993,10 @@ m#426struct Point {
 func far(_ p: Point) -> Int {
     p.x
 }
-far(Point(x: 7))#430var xs = [1, 2, 3]
+far(Point(x: 7))#427a#428FileType#429await a
+await b#430var xs = [1, 2, 3]
 xs.removeLast()
-xs.popLast()#432struct Point {
+xs.popLast()#431Command("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("true").run() }#432struct Point {
     var x: Int
     var y: Int = 0
     var lengthSquared: Int {
@@ -902,14 +1053,16 @@ t#442var d = ["a": 1]
 d["b"] = 2
 d["a"]
 d["a"]! + 1
-d.keys.sorted()#448let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]
+d.keys.sorted()#446Command("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("false").run() }#448let xs = [(n: 2, s: "b"), (n: 1, s: "a"), (n: 3, s: "c")]
 xs.sorted(by: \.s).map { $0.n }#450[3, 1, 2].sorted()
 [3, 1, 2].sorted { $0 > $1 }
 [3, 1, 2].prefix(2)#4511 + 2.5
 let d: Double = 1
 d#452[1, 2, 3].count(where: { $0 > 1 })
 [1, 2, 3].count#459let r = 1 ... 9000000000000
-r.count#461for i in 3 ... 1 {}#476await 5#487enum Result {
+r.count#461for i in 3 ... 1 {}#462umask#465let xs = [(a: 1, b: "x"), (a: 22, b: "y")]
+xs | list#469Command("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }#474false
+status#476await 5#487enum Result {
     case ok
     case failed(code: Int, String)
 }
@@ -942,7 +1095,7 @@ enum K {
         break
     }
     print(i)
-}#495struct Temp {
+}#494Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("true").run() }#495struct Temp {
     let celsius: Double
     var fahrenheit: Double {
         ((self.celsius * 9) / 5) + 32
@@ -971,7 +1124,7 @@ g()
 func h(kind: K = .b) -> K {
     kind
 }
-h#505struct S {
+h#504[(n: 5), (n: 100)] | filter { $0.n > 10 }#505struct S {
     var a: Int
     init() {}
 }
@@ -992,12 +1145,33 @@ let x = .a#508struct Temp {
     }
 }
 var t = Temp(celsius: 1)
-t.celsius = 2#510func f(times: Int = 1, color: Bool = true) {}#516let c = 1
-c = 2#517let zzvalue = 1#5211 / 0#525[1][5]#527enum Result {
+t.celsius = 2#510func f(@flag("n") times: Int = 1, color: Bool = true) {}#514func double(@input _ n: Int) -> Int {
+    n * 2
+}
+func total(@input _ xs: [Int]) -> Int {
+    var t = 0
+    for x in xs {
+        t = t + x
+    }
+    return t
+}
+func evens(@input _ n: Int) -> Int? {
+    if (n % 2) == 0 {
+        return n
+    }
+    return nil
+}
+var calls = 0
+func counted(@input _ n: Int) -> Int {
+    calls = calls + 1
+    return n
+}
+(double | cat) | double#516let c = 1
+c = 2#517let zzvalue = 1#519fg#5211 / 0#523bg#525[1][5]#526Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("false").run() }#527enum Result {
     case ok
     case failed(code: Int, String)
 }
-Result.failed(code: 2, "boom")#530enum Result {
+Result.failed(code: 2, "boom")#529undefined#530enum Result {
     case ok
     case failed(code: Int, String)
 }
@@ -1005,16 +1179,22 @@ Result.failed#532enum Result {
     case ok
     case failed(code: Int, String)
 }
-Result.failed(2, "boom")#537enum Result {
+Result.failed(2, "boom")#536Command("true").run()#537enum Result {
     case ok
     case failed(code: Int, String)
 }
-Result.failed(code: "x", "boom")#539enum Result {
+Result.failed(code: "x", "boom")#538let a = env.GREETING
+let b = env["MISSING"]
+a
+b
+env.NEW = "x"
+env.GREETING = nil
+env.NEW#539enum Result {
     case ok
     case failed(code: Int, String)
 }
 Result.allCases#541Date(timeIntervalSince1970: 0) < Date()
-Date(timeIntervalSince1970: 0).timeIntervalSince1970#544let d = Date(timeIntervalSince1970: 100)
+Date(timeIntervalSince1970: 0).timeIntervalSince1970#543Command("sh", "-c", "exit 4").run()#544let d = Date(timeIntervalSince1970: 100)
 (d + 60) - d
 (d - 60) < d#545do {
     1 / 0
@@ -1028,13 +1208,19 @@ Date(timeIntervalSince1970: 0).timeIntervalSince1970#544let d = Date(timeInter
     1 / 0
 } catch {
     error.message
-}#551await#553Date("someday") == nil#557struct S {
+}#551await#553Date("someday") == nil#554Command("nope-not-a-program").run()#555struct S {
+    static let k = 1
+    func f() -> Int {
+        k
+    }
+}
+S().f()#557struct S {
     static let k = 1
     func f() -> Int {
         S.k
     }
 }
-S().f()#562let n = 5
+S().f()#559Command("true").run().and { Command("echo", "yes").run() }#561Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("sh", "-c", "exit 3").run() }#562let n = 5
 if n > 3 {
     "big"
 } else {
@@ -1045,7 +1231,7 @@ let s = if n > 9 {
 } else {
     "small"
 }
-s#565if true {
+s#564Command("false").run().and { Command("echo", "no").run() }#565if true {
     if false {
     "a"
 } else {
@@ -1058,7 +1244,7 @@ s#565if true {
     "one"
 } else {
     "more"
-} }#573let n = 5
+} }#567Command("false").run().or { Command("echo", "fallback").run() }#573let n = 5
 let parity = if (n % 2) == 0 {
     "even"
 } else {
@@ -1086,7 +1272,7 @@ func sign(_ x: Int) -> String {
     }
 }
 sign(-2)
-sign(3)#576func f() -> Int {
+sign(3)#574Command("true").run().or { Command("echo", "never").run() }#576func f() -> Int {
     1
 }
 func f() -> Int {
@@ -1103,10 +1289,16 @@ let d: Double = if true {
 } else {
     2.5
 }
-d#583let n = 41#590func none() -> [Int] {
+d#583let n = 41#584n + 1#586func names() -> [String] {
+    ["a", "b"]
+}
+names
+names()
+names | cat#590func none() -> [Int] {
     []
 }
-none#594enum Kind {
+none#592let h = env.HOME
+h ?? "none"#593env.X = "1"#594enum Kind {
     case file
     case directory
 }
@@ -1119,7 +1311,7 @@ double(21)#599enum Kind {
     case file
     case directory
 }
-Kind.socket#603let add = { (a, b) in a + b }
+Kind.socket#600Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("true").run() }#603let add = { (a, b) in a + b }
 add(1, 2)#606enum Kind {
     case file
     case directory
@@ -1127,7 +1319,7 @@ add(1, 2)#606enum Kind {
 Kind.file == "file"#607func apply(_ f: (Int) -> Int, _ x: Int) -> Int {
     f(x)
 }
-apply({ $0 + 100 }, 1)#615"swish".uppercased()
+apply({ $0 + 100 }, 1)#611f(r: 1 ... 3)#615"swish".uppercased()
 "swish".hasPrefix("sw")
 "swish".count
 2.5.rounded()
@@ -1140,7 +1332,7 @@ nil ?? (nil ?? 3)#619[3, 1, 2].contains(2)
 [1, 2].map { $0 * 2 }#623Int.max#628func f(_ x: Int, label: String = "d") -> Int {
     x
 }
-f()#630func f(_ x: Int, label: String = "d") -> Int {
+f()#629Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#630func f(_ x: Int, label: String = "d") -> Int {
     x
 }
 f("s")#632func f(_ x: Int, label: String = "d") -> Int {
@@ -1210,7 +1402,26 @@ p.describe()#653func prompt(status: Int) -> String {
 }
 false#654func prompt(_ n: Int) -> Int {
     n
-}#659func double(_ x: Int) -> Int {
+}#655let xs = [(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")]
+xs | sorted#656struct Point {
+    var x: Int
+    var y: Int = 0
+    var lengthSquared: Int {
+        (self.x * self.x) + (self.y * self.y)
+    }
+    func describe() -> String {
+        "(\(self.x), \(self.y))"
+    }
+    mutating func move(by d: Int) {
+        self.x += d
+        self.y += d
+    }
+    mutating func reset() {
+        self.move(by: -self.x)
+        self.y = 0
+    }
+}
+[Point(x: 5), Point(x: 1)] | filter { $0.x > 1 }#659func double(_ x: Int) -> Int {
     x * 2
 }
 [1, 2].map(double).map { $0 + 1 }#662func conv(_ x: Int) -> String {
@@ -1220,7 +1431,7 @@ func conv(_ x: String) -> String {
     "string"
 }
 let f: (String) -> String = conv
-f("a")#665struct P: Equatable {
+f("a")#663Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("sh", "-c", "exit 3").run() }#664[3, 1.5, 2] | sorted#665struct P: Equatable {
     var x: Int
     var y = 0
 }
@@ -1274,18 +1485,27 @@ a.x#671struct Entry: Tabular {
     var path: String
 }
 let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
-es#675[3, 1, 3, 2].uniqued().sorted()#676struct P: Tabular {
+es#672struct Entry: Tabular {
+    static let columns: [DisplayColumn] = ["size", "name"]
+    var name: String
+    var size: Int
+    var path: String
+}
+let es = [Entry(name: "a", size: 1, path: "/x"), Entry(name: "b", size: 22, path: "/y")]
+es | table#675[3, 1, 3, 2].uniqued().sorted()#676struct P: Tabular {
     var x: Int
 }#677struct P: Tabular {
     static let columns = 1
     var x: Int
 }#678enum E: Tabular {
     case a
-}#690let x: Int = "a"#696func down(_ n: Int) -> Int {
+}#682jobs.count#686try check(1)#688config.volume * 2#689counter#690let x: Int = "a"#691greet(name: "Rak")#692try check(-1)#693counter + counter#694twice([1, 2]).count#695ls()#696func down(_ n: Int) -> Int {
     down(n + 1)
 }
-down(0)#699Int = "x"#700let shared = 1#7011 + 2#705let xs = [3, 1, 2]
-xs.sorted()#712[["a": 1]].select("a")#715[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }#716let answer = 42#722await 1#724await 21#728while true {}#732.HOME#734func sum(_ n: Int) -> Int {
+down(0)#697clamp("a", 0, 10)#698let a = 1
+leps()#699Int = "x"#700let shared = 1#7011 + 2#702pwd()#703shared#704settings.volume#705let xs = [3, 1, 2]
+xs.sorted()#706only(1)#707history()#708settings["volume"]#709only(shared)#710members([1])#711readLine()#712[["a": 1]].select("a")#713from()#714settings.missing#715[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }#716let answer = 42#717to()#719settings.brightness = 3
+settings.volume = settings.volume! + 1#720table()#721answer * 2#722await 1#723list()#724await 21#725help()#726settings["volume"] = nil#727settings.volume = "loud"#728while true {}#729let v: String = settings.volume#732.HOME#734func sum(_ n: Int) -> Int {
     if n == 0 {
     0
 } else {
@@ -1293,6 +1513,6 @@ xs.sorted()#712[["a": 1]].select("a")#715[(n: 3, s: "c"), (n: 1, s: "a"), (n
 }
 }
 sum(5000)#735print("hello", 1 + 1)
-print([1, 2])#7371 + 1#738for i in 1 ... 100000 {
+print([1, 2])#736env["HOME"]#7371 + 1#738for i in 1 ... 100000 {
     print("xxxxxxxxxx")
 }
