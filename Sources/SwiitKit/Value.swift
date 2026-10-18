@@ -47,6 +47,11 @@ public protocol SwiitObject: AnyObject, Sendable, CustomStringConvertible, Custo
 /// A piece of text and the style it's shown in.
 public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 
+/// An object the language makes itself (an instance, a type, a weak reference, a Swift value held as it is), as
+/// opposed to one a host hands in. The checker types the language's by what they are, and a host's by the protocol
+/// the host declares for them.
+@_spi(Layer) public protocol LanguageObject: SwiitObject {}
+
 extension SwiitObject {
     public var identity: AnyHashable { AnyHashable(ObjectIdentifier(self)) }
 
@@ -386,3 +391,5 @@ public final class ReceiverBox: SwiitObject, @unchecked Sendable { // safe: its 
     public var fields: Record? { nil }
     public var description: String { "\(value)" }
 }
+
+@_spi(Layer) extension ReceiverBox: LanguageObject {}

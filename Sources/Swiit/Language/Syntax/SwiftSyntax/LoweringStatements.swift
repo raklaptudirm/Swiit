@@ -216,8 +216,8 @@ extension Lowering {
         }
         // `for case let x? in xs`: the body runs for the items that match the pattern.
         if node.caseKeyword != nil {
-            body = Program(statements: [.ifStatement(IfStatement(condition: .pattern(pattern, .variable("$item")), then: body))], lines: [line(of: node)])
-            return ForLoop(pattern: .binding(name: "$item", mutable: false), sequence: sequence, body: body,
+            body = Program(statements: [.ifStatement(IfStatement(condition: .pattern(pattern, .variable(InternalName.item)), then: body))], lines: [line(of: node)])
+            return ForLoop(pattern: .binding(name: InternalName.item, mutable: false), sequence: sequence, body: body,
                            isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil, label: label)
         }
         return ForLoop(pattern: pattern, sequence: sequence, body: body,

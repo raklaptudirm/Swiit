@@ -1,5 +1,5 @@
 import Foundation
-import SwiitKit
+@_spi(Layer) import SwiitKit
 
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
 final class WeakReference: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
@@ -351,3 +351,5 @@ extension Interpreter {
         instance.storage[name] = wrapped(stored, property)
     }
 }
+
+@_spi(Layer) extension WeakReference: LanguageObject {}

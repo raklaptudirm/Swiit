@@ -75,6 +75,7 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
     /// An enum its function uses, like `Level`.
     case named(String)
     case list(SwiitType)
+    case dictionary(SwiitType, SwiitType)
     case optional(SwiitType)
 
     public var description: String {
@@ -91,6 +92,7 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
         case .function: "Function"
         case .named(let name): name
         case .list(let element): "[\(element)]"
+        case .dictionary(let key, let value): "[\(key): \(value)]"
         case .optional(let wrapped): "\(wrapped)?"
         }
     }
@@ -230,6 +232,18 @@ extension Array: SwiitConvertible where Element: SwiitConvertible {
         }
     }
     public var swiitValue: Value { .list(map(\.swiitValue)) }
+}
+
+extension Dictionary: SwiitConvertible where Key: SwiitConvertible, Value: SwiitConvertible {
+    public static var swiitType: SwiitType { .dictionary(Key.swiitType, Value.swiitType) }
+    public static var swiitEnums: [EnumType] { Key.swiitEnums + Value.swiitEnums }
+    public init(swiitValue: SwiitKit.Value) throws {
+        guard case .dictionary(let entries) = swiitValue else { throw SwiitError.expected("[\(Key.swiitType): \(Value.swiitType)]", swiitValue) }
+        self.init(uniqueKeysWithValues: try entries.map { (try Key(swiitValue: $0.key), try Value(swiitValue: $0.value)) })
+    }
+    public var swiitValue: SwiitKit.Value {
+        .dictionary(ValueDictionary(map { ($0.key.swiitValue, $0.value.swiitValue) }))
+    }
 }
 
 extension Optional: SwiitConvertible where Wrapped: SwiitConvertible {

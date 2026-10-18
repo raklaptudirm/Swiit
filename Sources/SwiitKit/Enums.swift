@@ -122,3 +122,5 @@ public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebu
         return "\(written)(\(parts.joined(separator: ", ")))"
     }
 }
+
+@_spi(Layer) extension EnumType: LanguageObject {}

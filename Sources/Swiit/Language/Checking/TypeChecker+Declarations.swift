@@ -66,7 +66,7 @@ extension TypeChecker {
         if case .named(let className)? = selfType, let info = structInfo(named: className), let parent = info.superclass {
             names["super"] = .variable(.named(parent), mutable: true)
         }
-        if initializing { names["$initializing"] = .variable(.void, mutable: false) }
+        if initializing { names[InternalName.initializing] = .variable(.void, mutable: false) }
         // `init?` may `return nil`.
         let result = decl.isFailable ? TypeAnnotation.optional(.void) : substitute(decl.returnType ?? .void, [:])
         try checkBecomingAsync(decl)

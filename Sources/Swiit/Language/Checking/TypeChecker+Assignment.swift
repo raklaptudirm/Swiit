@@ -50,7 +50,7 @@ extension TypeChecker {
                         type = property.type
                         continue
                     }
-                    let initializing = assignment.root == "self" && index == 0 && lookup("$initializing") != nil
+                    let initializing = assignment.root == "self" && index == 0 && lookup(InternalName.initializing) != nil
                     guard stored.mutable || (initializing && last) else {
                         throw TypeError("cannot assign to '\(name)': it's a 'let' property of \(structName)")
                     }

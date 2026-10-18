@@ -533,7 +533,7 @@ extension Interpreter {
 }
 
 extension Interpreter {
-    static let typeArgumentPrefix = "$type "
+    static let typeArgumentPrefix = InternalName.typeArgumentPrefix
 
     /// A generic function with its type parameters bound to the types of one call, as values the body can name.
     func specialized(_ function: Value, _ types: [TypeArgument]) -> Value {

@@ -287,7 +287,8 @@ extension TypeChecker {
             if member.kind != .property {
                 let signature = Signature(name: member.name, parameters: member.parameters, returns: member.returns,
                                           isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, generics: member.generics)
-                (_, _, type, throwing, _) = try match(&arguments, to: signature, bindings: bindings)
+                let matched = try match(&arguments, to: signature, bindings: bindings)
+                (type, throwing) = (matched.returns, matched.throwing)
             }
             try bridgedEffects(member, bindings: bindings, throwing: throwing, "'\(member.name)'")
             expr = .bridged(type: typeName, member: index, receiver: receiver, arguments: arguments)
@@ -329,7 +330,7 @@ extension TypeChecker {
                 }
                 if name == "some", var payload = arguments, payload.count == 1 {
                     try expect(&payload[0].value, wrapped, "the wrapped value")
-                    expr = .call(.variable("$some"), payload)
+                    expr = .call(.variable(InternalName.some), payload)
                     return .optional(wrapped)
                 }
             }

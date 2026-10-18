@@ -156,7 +156,7 @@ extension TypeChecker {
         }
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
         if name == "init", case .named(let structName) = base, structInfo(named: structName) != nil, let description = describe(base),
-           lookup("$initializing") != nil {
+           lookup(InternalName.initializing) != nil {
             let candidates = description.initializers
             guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
             if candidates.count > 1, description.namesItsInitializers { callee = .chosen(callee, overload: chosen.index) }

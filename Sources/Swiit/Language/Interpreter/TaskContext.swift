@@ -134,6 +134,10 @@ extension Interpreter: WaitingHost {
         suspend { body() }
     }
 
+    public func wait(wake: @escaping () -> Void, _ body: () -> Void) {
+        suspend(wake: wake) { body() }
+    }
+
     public func waitForInput(_ body: () -> Void) {
         if let inputTurn { inputTurn(body) } else { suspend { body() } }
     }

@@ -340,3 +340,53 @@ private final class HostNode: SwiitObject, @unchecked Sendable {
     #expect(throws: (any Error).self) { try swish.eval(#"print("ran"); nodes[0].shout(1)"#) }
     #expect(log.text == "")
 }
+
+@Test func aDictionaryIsAParameterAndAResult() throws {
+    let swish = interpreter()
+    swish.register("shout") { (words: [String: String]) in words.mapValues { $0.uppercased() } }
+    #expect(try swish.eval(#"shout(["a": "x"])["a"]"#) == .string("X"))
+    // The checker knows its type: a wrong one is found before the script runs.
+    #expect(throws: (any Error).self) { try swish.eval(#"shout(["a": 1])"#) }
+    #expect(throws: (any Error).self) { try swish.eval("shout([1, 2])") }
+}
+
+@Test func aHostCanListTheFunctionsAScriptCanCall() throws {
+    let swish = interpreter()
+    swish.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
+    swish.register("check", throwing: true) { (x: Int) throws -> Int in x }
+    _ = try swish.eval("func area(width: Int, height: Int = 1) -> Int { width * height }")
+    let names = swish.functions.map(\.name).sorted()
+    #expect(names == ["area", "check", "greet"])
+    let area = try #require(swish.functions(named: "area").first)
+    #expect(area.parameters.map(\.label) == ["width", "height"])
+    #expect(area.parameters.map(\.hasDefault) == [false, true])
+    #expect(area.returns == .int)
+    #expect(try #require(swish.functions(named: "check").first).isThrowing)
+    // The interpreter's own are found by name, not listed.
+    #expect(!swish.functions(named: "print").isEmpty)
+    #expect(swish.functions(named: "nosuch").isEmpty)
+}
+
+@Test func aWaitThatSaysHowToWakeEndsWhenTheScriptIsCancelled() throws {
+    let swish = interpreter()
+    swish.register("block") { () -> Int in
+        let gate = DispatchSemaphore(value: 0)
+        return Waiting.whileWaiting(wake: { gate.signal() }) { gate.wait(timeout: .now() + 10) == .timedOut ? 0 : 1 }
+    }
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { swish.cancel() }
+    let start = Date()
+    _ = try? swish.eval("block()")
+    #expect(Date().timeIntervalSince(start) < 5)
+}
+
+@Test func aHostTypeIsDescribedAndTheDescriptionChecked() throws {
+    let swish = interpreter()
+    let node = HostNode("a")
+    swish.set("node", .object(node))
+    // Until it is described, nothing is known of the object, so nothing is missing.
+    #expect(swish.missingMembers(of: node) == [])
+    try swish.describeHostType("Node", as: "var label: String { get }; func shout() -> String; func missing() -> Int")
+    #expect(swish.missingMembers(of: node) == ["missing"])
+    #expect(try swish.eval("node.shout()") == .string("A"))
+    #expect(throws: (any Error).self) { try swish.eval("node.nosuch") }
+}

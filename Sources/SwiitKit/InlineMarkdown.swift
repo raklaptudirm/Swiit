@@ -32,10 +32,10 @@ struct InlineMarkdown {
                 flush()
                 result.append(AttributedString(content, .variable))
                 i = next
-            } else if c == "*" || c == "_", let (inner, next, emphasis) = emphasis(at: i, in: range) {
+            } else if c == "*" || c == "_", let found = emphasis(at: i, in: range) {
                 flush()
-                result.append(parse(inner, style: emphasis == 2 ? .bold : .italic))
-                i = next
+                result.append(parse(found.inner, style: found.strength == 2 ? .bold : .italic))
+                i = found.next
             } else if c == "[", let (inner, next) = link(at: i, in: range) {
                 flush()
                 result.append(parse(inner, style: style ?? .underline))
@@ -82,7 +82,7 @@ struct InlineMarkdown {
     /// Strong (`**x**`, `__x__`) or emphasis (`*x*`, `_x_`): the opener
     /// runs into a word and the closer out of one; an underscore inside a
     /// word is just an underscore.
-    private func emphasis(at i: Int, in range: Range<Int>) -> (inner: Range<Int>, next: Int, strength: Int)? {
+    private func emphasis(at i: Int, in range: Range<Int>) -> Emphasis? {
         let c = chars[i]
         let n = run(of: c, at: i, before: range.upperBound)
         guard n <= 2, i + n < range.upperBound, !chars[i + n].isWhitespace else { return nil }
@@ -97,13 +97,20 @@ struct InlineMarkdown {
                 let m = run(of: c, at: j, before: range.upperBound)
                 let after = j + m
                 let intraword = c == "_" && after < range.upperBound && (chars[after].isLetter || chars[after].isNumber)
-                if m == n, !chars[j - 1].isWhitespace, !intraword, j > i + n { return ((i + n)..<j, after, n) }
+                if m == n, !chars[j - 1].isWhitespace, !intraword, j > i + n { return Emphasis(inner: (i + n)..<j, next: after, strength: n) }
                 j += m
             } else {
                 j += 1
             }
         }
         return nil
+    }
+
+    /// Emphasized text: where its words are, where reading goes on after its closer, and how many marks it has (1 italic, 2 bold).
+    private struct Emphasis {
+        var inner: Range<Int>
+        var next: Int
+        var strength: Int
     }
 
     /// A link: `[text](url)`, the text of it, with the address left out.

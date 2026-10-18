@@ -1,5 +1,5 @@
 import Foundation
-import SwiitKit
+@_spi(Layer) import SwiitKit
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
 public final class ProtocolType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
@@ -57,11 +57,8 @@ extension Interpreter {
         return conformances(taking: declared)
     }
 
-    /// Whether `object` is a value the host made, not one of the language's own (an instance, or a type).
-    func isHostObject(_ object: any SwiitObject) -> Bool {
-        !(object is ClassInstance || object is StructType || object is EnumType || object is ClassType || object is ProtocolType
-            || object is BridgedTypeName || object is SwiftValue)
-    }
+    /// Whether `object` is one a host handed in, not one the language made.
+    func isHostObject(_ object: any SwiitObject) -> Bool { !(object is LanguageObject) }
 
     /// What each of `declared` takes in, with them.
     private func conformances(taking declared: [String]) -> [String] {
@@ -115,3 +112,5 @@ extension Interpreter {
         return chain
     }
 }
+
+@_spi(Layer) extension ProtocolType: LanguageObject {}

@@ -27,6 +27,10 @@ extension TypeChecker {
                 signature.index = index
                 return signature
             })
+        // A function a host bound with `set`: it is called as the function it is, with its signature checked, as one a
+        // script declares. (A `var` holding a closure may be assigned another, so it stays a value.)
+        case .function(let function as Function) where !binding.mutable && interpreter.staticTypes[name] == nil && function.name == name:
+            return .functions([signature(function)])
         default:
             return .variable(interpreter.staticTypes[name] ?? type(of: binding.value), mutable: binding.mutable)
         }

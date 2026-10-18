@@ -135,7 +135,7 @@ extension Lowering {
             if let (target, _) = alias.swiftType { return .variable(target) }
         }
         // A computed variable is read by its getter.
-        if facts.computedGlobals.contains(name) { return .call(.variable("$get_" + name), []) }
+        if facts.computedGlobals.contains(name) { return .call(.variable(InternalName.getter(name)), []) }
         if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         // The fixed-width integers are Int here, without its overflow rules.
@@ -326,7 +326,7 @@ extension Lowering {
             if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), reference.baseName.text == "Optional",
                node.arguments.count == 1, node.arguments.first?.label == nil, names()["Optional"] == nil || names()["Optional"] == .type {
                 // `Optional(x)`: x, as an optional.
-                callee = .variable("$some")
+                callee = .variable(InternalName.some)
             } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
@@ -381,7 +381,7 @@ extension Lowering {
     /// `o?.i.v` as `$chain(o) { $chain1 in $chain1.i.v }`: nil if `o` is, else what the rest gives.
     private mutating func chain(_ expr: ExprSyntax, _ core: OptionalChainingExprSyntax) throws -> Expr {
         chainCount += 1
-        let name = "$chain\(chainCount)"
+        let name = InternalName.chainValue(chainCount)
         chainPlaceholders[core.id] = name
         defer { chainPlaceholders[core.id] = nil }
         locals.append([name])
@@ -390,7 +390,7 @@ extension Lowering {
         let base = try expression(core.expression)
         let closure = ClosureLiteral(parameters: [Parameter(name: name)], body: Program(statements: [.expression(rest)], lines: [line(of: expr)]),
                                      names: NamesUsed(names: names(in: expr)))
-        return .call(.variable("$chain"), [Argument(value: base), Argument(value: .closure(closure))])
+        return .call(.variable(InternalName.chain), [Argument(value: base), Argument(value: .closure(closure))])
     }
 
     private mutating func subscriptCall(_ node: SubscriptCallExprSyntax) throws -> Expr {
@@ -590,8 +590,8 @@ extension Lowering {
             return nil
         }
         var value = try expression(node.rightOperand)
-        if let op { value = .binary(op, .call(.variable("$get_" + name), []), value) }
-        return [.expression(.call(.variable("$set_" + name), [Argument(value: value)]))]
+        if let op { value = .binary(op, .call(.variable(InternalName.getter(name)), []), value) }
+        return [.expression(.call(.variable(InternalName.setter(name)), [Argument(value: value)]))]
     }
 
     /// `x <+>= y` where the program declares `func <+>= (lhs: inout T, rhs: T)`: a call, with `x` passed as `&x`.
@@ -607,7 +607,7 @@ extension Lowering {
     mutating func tupleAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
         guard node.operator.is(AssignmentExprSyntax.self), let tuple = node.leftOperand.as(TupleExprSyntax.self), tuple.elements.count > 1 else { return nil }
         destructurings += 1
-        let held = "$tuple\(destructurings)"
+        let held = InternalName.tuple(destructurings)
         var statements: [Statement] = [.declare(name: held, mutable: false, value: try expression(node.rightOperand))]
         for (index, element) in tuple.elements.enumerated() {
             if element.expression.is(DiscardAssignmentExprSyntax.self) { continue }

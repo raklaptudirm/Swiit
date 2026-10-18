@@ -87,6 +87,13 @@ import SwiftSyntax
         var unclosed = false
     }
 
+    /// Source with each `$(…)`'s inside blanked: the text, the byte ranges blanked, and whether a `$(` was left open.
+    private struct BlankedSource {
+        var text: String
+        var ranges: [Range<Int>]
+        var unclosed: Bool
+    }
+
     static func parse(_ source: String) -> Parsed {
         let parsed = SwiftParser.Parser.parse(source: source)
         guard source.contains("$(") else { return Parsed(tree: parsed) }
@@ -96,7 +103,7 @@ import SwiftSyntax
 
     /// The source with the text inside each `$(…)` replaced by spaces (newlines stay), and where; and whether a `$(` is left open
     /// at the end (the source is cut short, and more of it may close that).
-    private static func blankingSubstitutions(of source: String, in tree: SourceFileSyntax) -> (text: String, ranges: [Range<Int>], unclosed: Bool) {
+    private static func blankingSubstitutions(of source: String, in tree: SourceFileSyntax) -> BlankedSource {
         let tokens = tree.tokens(viewMode: .sourceAccurate).filter { $0.presence == .present }
         var bytes = Array(source.utf8)
         var ranges: [Range<Int>] = []
@@ -126,7 +133,7 @@ import SwiftSyntax
             if to > from { ranges.append(from..<to) }
             index = close + 1
         }
-        return (String(decoding: bytes, as: UTF8.self), ranges, unclosed)
+        return BlankedSource(text: String(decoding: bytes, as: UTF8.self), ranges: ranges, unclosed: unclosed)
     }
 
     /// Swift's operators, with those declared before and those in this program.

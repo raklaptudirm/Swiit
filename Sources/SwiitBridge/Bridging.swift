@@ -3,15 +3,29 @@ import Foundation
 // MARK: Bridging
 
 /// Swiit's own values, and how Swift's are held in them.
-nonisolated(unsafe) var leaves: [String: (annotation: String, from: (String) -> String, to: (String) -> String)] = [ // safe: the generator runs on one thread
-    "Int": (".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "Double": (".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "Bool": (".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "String": (".string", { "try String(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+struct Leaf {
+    /// The Swiit type, as the generated source spells it (`.int`, `.named("Date")`).
+    let annotation: String
+    /// The Swift to make the Swift value from a Swiit `Value`, and the reverse.
+    let from: (String) -> String
+    let to: (String) -> String
+
+    init(_ annotation: String, _ from: @escaping (String) -> String, _ to: @escaping (String) -> String) {
+        self.annotation = annotation
+        self.from = from
+        self.to = to
+    }
+}
+
+nonisolated(unsafe) var leaves: [String: Leaf] = [ // safe: the generator runs on one thread
+    "Int": Leaf(".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "Double": Leaf(".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "Bool": Leaf(".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "String": Leaf(".string", { "try String(swiitValue: \($0))" }, { "\($0).swiitValue" }),
     // Swiit's own value, passed as it is: what a function that lays values
     // out takes. Spelled `SwiitValue`, which a generic parameter called
     // `Value` (Dictionary's) can't be mistaken for.
-    "SwiitValue": (".any", { $0 }, { $0 }),
+    "SwiitValue": Leaf(".any", { $0 }, { $0 }),
 ]
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which

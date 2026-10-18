@@ -5,15 +5,26 @@ import Foundation
 public protocol WaitingHost: AnyObject {
     /// Runs `body`, a wait, letting other tasks run while it does.
     func wait(_ body: () -> Void)
+    /// As `wait`, and `wake` is called when the task is cancelled meanwhile, to end the wait early.
+    func wait(wake: @escaping () -> Void, _ body: () -> Void)
     /// Runs `body`, a read of the host's input, when it's this task's turn at
     /// the input; or not at all, if the task is cancelled before then.
     func waitForInput(_ body: () -> Void)
+}
+
+extension WaitingHost {
+    /// A host that can't end a wait early waits it out.
+    public func wait(wake: @escaping () -> Void, _ body: () -> Void) { wait(body) }
 }
 
 /// For a function that waits, as a host's or a library's may: a blocking
 /// read, a network call, a long computation that touches no Swiit values.
 /// Wrapped in `whileWaiting`, it lets other Swiit tasks run meanwhile, as
 /// the shell's own waits do; unwrapped, it holds every task up while it waits.
+///
+/// A wait that ends only when `body` returns runs to its end even if the task is cancelled. One that can be cut
+/// short (a sleep, a child process, a network call with a cancel handle) says how with `wake`, which is called when
+/// the task is cancelled: use `whileWaiting(wake:_:)` for it.
 /// The host belongs to the thread that runs the Swiit code calling it.
 public enum Waiting {
     private final class Box {
@@ -38,6 +49,15 @@ public enum Waiting {
         guard let host else { return body() }
         var result: T?
         host.wait { result = body() }
+        return result!
+    }
+
+    /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It runs on the thread
+    /// that cancels, so it may only do what is safe from there: close a handle, signal a process, resume a continuation.
+    public static func whileWaiting<T>(wake: @escaping () -> Void, _ body: () -> T) -> T {
+        guard let host else { return body() }
+        var result: T?
+        host.wait(wake: wake) { result = body() }
         return result!
     }
 

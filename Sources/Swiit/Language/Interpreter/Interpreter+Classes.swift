@@ -1,5 +1,5 @@
 import Foundation
-import SwiitKit
+@_spi(Layer) import SwiitKit
 
 /// A class a program declares.
 public final class ClassType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
@@ -112,3 +112,6 @@ public final class ClassInstance: SwiitObject, @unchecked Sendable { // safe: it
     public func member(_ name: String) -> Value? { storage[name] }
     public var description: String { type.name }
 }
+
+@_spi(Layer) extension ClassType: LanguageObject {}
+@_spi(Layer) extension ClassInstance: LanguageObject {}

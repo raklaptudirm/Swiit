@@ -1,0 +1,23 @@
+#!/bin/bash
+# Tags a release of Swiit once the commit at HEAD is pushed and its CI run has succeeded:
+#   Scripts/release 0.9.8
+# Then Swish builds on it: put the version in Swish's .swiit-version and push that.
+# The GitHub CLI is `gh`, or the program in $GH if that is set.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+version=${1:?usage: Scripts/release <version>}
+gh=${GH:-gh}
+
+[ -z "$(git status --porcelain)" ] || { echo "release: the working tree has changes" >&2; exit 1; }
+head=$(git rev-parse HEAD)
+git fetch --quiet origin
+[ "$(git rev-parse '@{upstream}')" = "$head" ] || { echo "release: HEAD isn't pushed" >&2; exit 1; }
+! git rev-parse --verify --quiet "refs/tags/$version" >/dev/null || { echo "release: $version already exists" >&2; exit 1; }
+
+result=$($gh run list --commit "$head" --limit 1 --json status,conclusion --jq '.[0] | "\(.status) \(.conclusion)"')
+[ "$result" = "completed success" ] || { echo "release: CI for ${head:0:7} is '$result', not completed success" >&2; exit 1; }
+
+git tag -m "Swiit $version" "$version"
+git push origin "$version"
+echo "tagged $version at ${head:0:7}"

@@ -6,6 +6,14 @@ import SwiitKit
 /// Lowers SwiftParser's tree to the core's. A construct it doesn't lower is a
 /// `SyntaxError` that names it, so the supported subset is the set of nodes
 /// handled here.
+/// How the type around a declaration names things, kept to restore when its body ends: the qualified name its
+/// members are declared under, the type that `Self` is, and the short names of the types declared inside it.
+struct EnclosingType {
+    var prefix: String
+    var current: String?
+    var nested: [String: String]
+}
+
 struct Lowering {
     let converter: SourceLocationConverter
     let tree: SourceFileSyntax

@@ -243,6 +243,13 @@ public func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
     return OverloadSet(name: set.name, candidates: [set.candidates[overload]])
 }
 
+/// An overload that accepts a call's arguments: what they were bound to, and the penalty for the conversions that took.
+private struct OverloadBinding {
+    var function: Function
+    var bindings: [String: Value]
+    var penalty: Int
+}
+
 extension Interpreter {
     // MARK: Overloads
 
@@ -254,11 +261,11 @@ extension Interpreter {
         if set.candidates.count == 1 {
             return (set.candidates[0], try bind(set.candidates[0]).bindings)
         }
-        var matches: [(function: Function, bindings: [String: Value], penalty: Int)] = []
+        var matches: [OverloadBinding] = []
         for candidate in set.candidates {
             do {
                 let (bindings, penalty) = try bind(candidate)
-                matches.append((candidate, bindings, penalty))
+                matches.append(OverloadBinding(function: candidate, bindings: bindings, penalty: penalty))
             } catch is RuntimeError {
                 continue
             }
@@ -333,6 +340,7 @@ extension TypeAnnotation {
         case .function: .function
         case .named(let name): .named(name)
         case .list(let element): .list(TypeAnnotation(element))
+        case .dictionary(let key, let value): .dictionary(TypeAnnotation(key), TypeAnnotation(value))
         case .optional(let wrapped): .optional(TypeAnnotation(wrapped))
         @unknown default: .any
         }

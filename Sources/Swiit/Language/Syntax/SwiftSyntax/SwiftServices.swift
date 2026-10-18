@@ -74,10 +74,10 @@ extension SourceCursor {
             if c == terminator { break }
             let line = line(at: pos) + lineOffset
             var lowered: [Statement] = []
-            var declared: (variables: Set<String>, functions: Set<String>, types: Set<String>) = ([], [], [])
+            var declared = DeclaredNames()
             lowered = try swift(strict: false) { lowering in
                 let (statements, end) = try lowering.readStatement(at: 0)
-                declared = (lowering.locals.first ?? [], lowering.functions, lowering.declaredTypes)
+                declared = DeclaredNames(variables: lowering.locals.first ?? [], functions: lowering.functions, types: lowering.declaredTypes)
                 return (statements, end)
             }
             for name in declared.variables { scopes[scopes.count - 1][name] = .variable }
@@ -281,4 +281,11 @@ extension Lowering {
     private func unchained(_ expr: ExprSyntax) -> ExprSyntax {
         expr.as(OptionalChainingExprSyntax.self)?.expression ?? expr
     }
+}
+
+/// The names a statement declared, by what they are, for the parser to know them in what follows.
+private struct DeclaredNames {
+    var variables: Set<String> = []
+    var functions: Set<String> = []
+    var types: Set<String> = []
 }

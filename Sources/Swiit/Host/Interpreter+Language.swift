@@ -76,22 +76,22 @@ extension Interpreter {
         ), named: "__mirrorChildren")
         // `weak var x = e`: what e is, held weakly if it is a class instance.
         scopes[0].declare(Function(
-            name: "$weak", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .parameter("T"),
+            name: InternalName.weak, parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .parameter("T"),
             body: .native { _, arguments in
                 if case .object(let instance as ClassInstance)? = arguments["x"] { return .object(WeakReference(instance)) }
                 if arguments["x"] == nil || arguments["x"] == .nothing { return .object(WeakReference(nil)) }
                 return arguments["x"] ?? .nothing
             },
             documentation: Documentation(summary: "A weak variable's initial value.", parameters: [:]), generics: ["T": []]
-        ), named: "$weak")
+        ), named: InternalName.weak)
         // `let x: Int`, given its value later.
         scopes[0].declare(Function(
-            name: "$uninitialized", parameters: [], returnType: nil, body: .native { _, _ in .nothing },
+            name: InternalName.uninitialized, parameters: [], returnType: nil, body: .native { _, _ in .nothing },
             documentation: Documentation(summary: "A variable declared without a value.", parameters: [:])
-        ), named: "$uninitialized")
+        ), named: InternalName.uninitialized)
         // `o?.a.b`: the rest of the chain, if `o` has a value, as an optional.
         scopes[0].declare(Function(
-            name: "$chain",
+            name: InternalName.chain,
             parameters: [Parameter(label: nil, name: "base", type: .optional(.parameter("T"))),
                          Parameter(label: nil, name: "rest", type: .functionType([.parameter("T")], .parameter("R"), throws: true))],
             returnType: .optional(.parameter("R")),
@@ -101,13 +101,13 @@ extension Interpreter {
             },
             documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]), isRethrowing: true, generics: ["T": [], "R": []],
             flattensResult: true
-        ), named: "$chain")
+        ), named: InternalName.chain)
         // `Optional(x)`: x, as an optional.
         scopes[0].declare(Function(
-            name: "$some", parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),
+            name: InternalName.some, parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))], returnType: .optional(.parameter("T")),
             body: .native { _, arguments in arguments["x"] ?? .nothing },
             documentation: Documentation(summary: "Optional(x).", parameters: [:]), generics: ["T": []]
-        ), named: "$some")
+        ), named: InternalName.some)
         // `a === b`: whether two class instances are the same one.
         scopes[0].declare(Function(
             name: "===",

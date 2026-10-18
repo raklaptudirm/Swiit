@@ -1,5 +1,5 @@
 import Foundation
-import SwiitKit
+@_spi(Layer) import SwiitKit
 import SystemPackage
 
 /// Swift's own types and members, as Swiit sees them: read from the
@@ -166,3 +166,5 @@ public struct BridgedMember {
 }
 
 // MARK: Conversions the glue uses
+
+@_spi(Layer) extension BridgedTypeName: LanguageObject {}

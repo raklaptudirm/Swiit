@@ -33,7 +33,12 @@ enum SPISurface {
     }
 
     /// What differs from the ledger, one line each; empty when they agree.
+    ///
+    /// With `SWIIT_SPI_SHRINK=1` in the environment, lines for declarations that are no longer SPI are removed from the
+    /// ledger first: the list only shrinks, so that is mechanical. A new declaration is never added this way; listing it
+    /// is a decision, made by writing its line.
     static func differences() throws -> [String] {
+        if ProcessInfo.processInfo.environment["SWIIT_SPI_SHRINK"] != nil { try dropStaleLines() }
         let listed = try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n")
             .filter { !$0.hasPrefix("#") && !$0.isEmpty }.map(String.init)
         var remaining = Dictionary(listed.map { ($0, 1) }, uniquingKeysWith: +)
@@ -49,5 +54,18 @@ enum SPISurface {
             problems.append("spi-surface.txt lists \(entry.replacingOccurrences(of: "\t", with: ": ")), which is no longer SPI: remove the line")
         }
         return problems
+    }
+
+    private static func dropStaleLines() throws {
+        var remaining = Dictionary(try current().map { ($0, 1) }, uniquingKeysWith: +)
+        var kept: [Substring] = []
+        for line in try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n", omittingEmptySubsequences: false) {
+            if line.hasPrefix("#") || line.isEmpty { kept.append(line); continue }
+            if let count = remaining[String(line)], count > 0 {
+                remaining[String(line)] = count - 1
+                kept.append(line)
+            }
+        }
+        try kept.joined(separator: "\n").write(to: ledger, atomically: true, encoding: .utf8)
     }
 }

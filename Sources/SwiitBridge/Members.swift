@@ -69,8 +69,16 @@ func sequenceParameter(_ type: SType, _ sequences: Set<String>) -> String? {
     return nil
 }
 
+/// The Swift for one member: the key that tells overloads apart, the shape of its signature (to tell a default from
+/// one another module adds), and the source of its declaration (a settable property gives a getter and a setter).
+struct BridgedMember {
+    var key: String
+    var shape: String
+    var codes: [String]
+}
+
 /// The Swift for one member: its signature and glue.
-func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Constraint] = [], free: Bool = false) throws -> (key: String, shape: String, codes: [String]) {
+func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Constraint] = [], free: Bool = false) throws -> BridgedMember {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     let declaration = try parseDeclaration(text)
     if declaration.isMutating && declaration.isStatic { throw Unsupported(reason: "mutating") }
@@ -296,7 +304,7 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
                     }\(parameterDocs)\(declaration.isAsync ? ",\n                    effect: .async" : "")
                 )
 """
-    return (key, shape, [member] + (setter.map { [$0] } ?? []))
+    return BridgedMember(key: key, shape: shape, codes: [member] + (setter.map { [$0] } ?? []))
 }
 
 /// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating member's may come in a

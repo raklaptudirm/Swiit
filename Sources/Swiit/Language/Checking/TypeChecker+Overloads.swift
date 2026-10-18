@@ -1,6 +1,27 @@
 import Foundation
 import SwiitKit
 
+/// How well a call's arguments fit one overload, and what the call is then: what fitting cost (conversions made),
+/// whether a type left unknown makes the fit uncertain, its result and whether it throws, and the type parameters
+/// the arguments bound.
+struct OverloadMatch {
+    var cost: Int
+    var uncertain: Bool
+    var returns: TypeAnnotation
+    var throwing: Bool
+    var solved: [String: TypeAnnotation]
+}
+
+/// An overload the arguments fit, with the arguments as checked against it and how many throwing calls that left
+/// pending, so the best of the overloads can be chosen and its checking kept.
+struct FittingOverload {
+    var signature: TypeChecker.Signature
+    var cost: Int
+    var uncertain: Bool
+    var arguments: [Argument]
+    var sites: Int
+}
+
 extension TypeChecker {
     // MARK: Overloads
 
@@ -11,7 +32,7 @@ extension TypeChecker {
     @_spi(Layer) public func resolve(
         _ candidates: [Signature], _ arguments: inout [Argument], name: String, bindings: [String: TypeAnnotation] = [:]
     ) throws -> Signature? {
-        var fitting: [(signature: Signature, cost: Int, uncertain: Bool, arguments: [Argument], sites: Int)] = []
+        var fitting: [FittingOverload] = []
         var firstError: TypeError?
         // Errors from the overloads the arguments line up with: if there's
         // one, it says what's wrong better than a list of candidates.
@@ -21,12 +42,12 @@ extension TypeChecker {
             var attempt = arguments
             throwingSites = sitesBefore
             do {
-                let (cost, uncertain, returns, throwing, solved) = try match(&attempt, to: candidate, bindings: bindings)
+                let matched = try match(&attempt, to: candidate, bindings: bindings)
                 var resolved = candidate
-                resolved.solved = solved
-                resolved.returns = returns
-                resolved.isThrowing = throwing
-                fitting.append((resolved, cost, uncertain, attempt, throwingSites))
+                resolved.solved = matched.solved
+                resolved.returns = matched.returns
+                resolved.isThrowing = matched.throwing
+                fitting.append(FittingOverload(signature: resolved, cost: matched.cost, uncertain: matched.uncertain, arguments: attempt, sites: throwingSites))
             } catch let error as TypeError {
                 firstError = firstError ?? error
                 if !error.isArity { typeErrors.append(error) }
@@ -101,7 +122,7 @@ extension TypeChecker {
     /// Output as its text) and untyped parameters, which match anything.
     func match(
         _ arguments: inout [Argument], to signature: Signature, bindings initial: [String: TypeAnnotation]
-    ) throws -> (cost: Int, uncertain: Bool, returns: TypeAnnotation, throws: Bool, solved: [String: TypeAnnotation]) {
+    ) throws -> OverloadMatch {
         let name = signature.name
         var cost = 0
         var uncertain = false
@@ -200,7 +221,7 @@ extension TypeChecker {
             }
         }
         let throwing = signature.isThrowing || signature.isRethrowing && argumentsThrow
-        return (cost, uncertain, substitute(signature.returns, bindings), throwing, bindings)
+        return OverloadMatch(cost: cost, uncertain: uncertain, returns: substitute(signature.returns, bindings), throwing: throwing, solved: bindings)
     }
 
     /// Whether an argument has a type of its own, apart from context: not a

@@ -71,3 +71,5 @@ public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its s
     public var cell: String { (value as? any SwiitDisplayed)?.swiitCell ?? description }
     public var debugDescription: String { (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value) }
 }
+
+@_spi(Layer) extension SwiftValue: LanguageObject {}
