@@ -7,6 +7,8 @@
 # is a decision; a line goes when its declaration becomes public API or
 # internal (Docs/extraction.md, stages 1 and 2). Overloads repeat
 # their line.
+Bridge/Bridge+Conversions.swift	Layer func bridgeBox
+Bridge/Bridge+Conversions.swift	Layer func bridgeBox
 Language/Checking/TypeChecker+Calls.swift	Layer func commonReturn
 Language/Checking/TypeChecker+Calls.swift	Layer func preferred
 Language/Checking/TypeChecker+Closures.swift	Layer func closureType

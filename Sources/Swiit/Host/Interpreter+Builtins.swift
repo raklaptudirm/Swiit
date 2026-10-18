@@ -9,8 +9,9 @@ extension Interpreter {
     /// (bridged functions and types, and declarations for the prelude).
     public func installBuiltinFunctions(libraries added: [Library] = []) {
         libraries = [.standard] + added
+        for library in added { Bridge.register(library.bridged) }
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)
-        installPrelude()
+        let extensions = installPrelude()
         installPrint()
         installLanguageFunctions()
         installStandardFunctions()
@@ -18,6 +19,7 @@ extension Interpreter {
         for name in Bridge.types.keys {
             scopes[0].bindings[name] = Binding(value: .object(BridgedTypeName(name)), mutable: false)
         }
+        declarePreludeExtensions(extensions)
     }
 
     /// The shell's own functions, written in Swift (SwiitStandardLibrary) and

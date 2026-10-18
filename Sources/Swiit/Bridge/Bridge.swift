@@ -10,9 +10,16 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 public enum Bridge {
     /// The bridged types, by the name Swiit writes them with.
-    public nonisolated(unsafe) static let types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: set once, before anything reads it
+    public nonisolated(unsafe) static var types: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + swiitKit + foundation + concurrency + [stringIndex]).map { // safe: changed only by `register`, as a library is installed, before anything reads the type
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
+
+    /// Adds the types a library bridges (the shell's `FileSize`), which the core does not know. Registering one again is no change.
+    public static func register(_ more: [BridgedType]) {
+        for type in more where types[type.name] == nil {
+            types[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+        }
+    }
 
     /// Text as a value of the type named, if the type can be text and the
     /// text is one: through its failable initializer from text (`Int`), or

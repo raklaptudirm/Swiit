@@ -8,14 +8,14 @@ private struct FileEntry: Encodable {
     }
 
     var name: String
-    var size: FileSize
+    var size: Int
     var tags: [String]
     var owner: Owner
     var note: String?
 }
 
 @Test func encodesStructsAsTypedRecords() throws {
-    let entry = FileEntry(name: "a.txt", size: FileSize(bytes: 1200), tags: ["x"], owner: .init(name: "rak", id: 501), note: nil)
+    let entry = FileEntry(name: "a.txt", size: 1200, tags: ["x"], owner: .init(name: "rak", id: 501), note: nil)
     guard case .record(let record) = try ValueEncoder().encode(entry) else {
         Issue.record("not a record")
         return
@@ -24,7 +24,7 @@ private struct FileEntry: Encodable {
     // Field order follows the declaration; a nil optional is left out, as
     // synthesized Encodable does.
     #expect(record.keys == ["name", "size", "tags", "owner"])
-    #expect(record["size"] == .fileSize(FileSize(bytes: 1200)))
+    #expect(record["size"] == .int(1200))
     #expect(record["tags"] == .list([.string("x")]))
     guard case .record(let owner)? = record["owner"] else {
         Issue.record("owner isn't a record")
@@ -66,31 +66,4 @@ private final class Node {
     record["b"] = nil
     #expect(record.keys == ["a"])
     #expect(Value.record(record).description == "(a: 1)")
-}
-
-@Test func formatsFileSizes() {
-    #expect(FileSize(bytes: 532).description == "532 B")
-    #expect(FileSize(bytes: 1234).description == "1.2 KB")
-    #expect(FileSize(bytes: 123_456_789).description == "123 MB")
-    #expect(FileSize(bytes: -2000).description == "-2.0 KB")
-    // As a value it shows the same.
-    #expect(Value.fileSize(FileSize(bytes: 1234)).description == "1.2 KB")
-}
-
-@Test func fileSizesParseAndDoArithmetic() throws {
-    #expect(FileSize("1024")?.bytes == 1024)
-    #expect(FileSize("1.5mb")?.bytes == 1_500_000)
-    #expect(FileSize("1.5 MB")?.bytes == 1_500_000)
-    #expect(FileSize("2kib")?.bytes == 2048)
-    #expect(FileSize("lots") == nil)
-    #expect(FileSize(1.5, unit: "gb")?.bytes == 1_500_000_000)
-    #expect(FileSize(1, unit: "parsecs") == nil)
-    let kb = FileSize(bytes: 1000)
-    #expect(try (kb + kb).bytes == 2000)
-    #expect(try (kb * 3).bytes == 3000)
-    #expect(try (kb / 4).bytes == 250)
-    #expect(kb / FileSize(bytes: 500) == 2.0)
-    #expect(kb < FileSize(bytes: 1001))
-    #expect(throws: SwiitError.self) { try kb / 0 }
-    #expect(throws: SwiitError.self) { try FileSize(bytes: .max) * 2 }
 }

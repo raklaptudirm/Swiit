@@ -223,16 +223,6 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
 }
 
 extension Value {
-    /// A file size, held as the Swift value it is.
-    public static func fileSize(_ size: FileSize) -> Value {
-        SwiftValue.make(size, as: "FileSize")
-    }
-
-    /// The file size it holds, if it's one.
-    public var fileSize: FileSize? {
-        if case .object(let box as SwiftValue) = self { box.value as? FileSize } else { nil }
-    }
-
     /// The order a dictionary's keys are shown in: only for showing, so it
     /// needn't mean anything beyond being the same every time.
     static func displaysBefore(_ a: Value, _ b: Value) -> Bool {

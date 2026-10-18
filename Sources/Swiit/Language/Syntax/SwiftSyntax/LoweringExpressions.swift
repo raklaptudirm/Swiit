@@ -275,29 +275,10 @@ extension Lowering {
                 body: Program(statements: [.expression(made)], lines: [line(of: node)]), names: NamesUsed(names: ["$0"])
             ))
         }
-        // `2.mb`: a file size, written as a number and its unit.
-        if FileSize.units[name] != nil {
-            if let integer = base.as(IntegerLiteralExprSyntax.self), let amount = Double(integer.literal.text.replacingOccurrences(of: "_", with: "")) {
-                return try fileSize(amount, name, node)
-            }
-            if let float = base.as(FloatLiteralExprSyntax.self), let amount = Double(float.literal.text.replacingOccurrences(of: "_", with: "")) {
-                return try fileSize(amount, name, node)
-            }
-        }
-        // `1.parsecs`: a number is followed by a unit, and this isn't one.
-        if !called, plugin != nil, base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
-            failedAt = node.declName.endPositionBeforeTrailingTrivia.utf8Offset
-            throw SyntaxError("unknown unit '\(name)'; file sizes use b, kb, mb, gb, tb, or kib, mib, gib, tib")
-        }
         if let chained = base.as(OptionalChainingExprSyntax.self), chainPlaceholders[chained.id] == nil {
             return .optionalMember(try expression(chained.expression), name)
         }
         return .member(try expression(base), name)
-    }
-
-    private func fileSize(_ amount: Double, _ unit: String, _ node: some SyntaxProtocol) throws -> Expr {
-        guard let size = FileSize(amount, unit: unit) else { throw SyntaxError("file size \(amount).\(unit) is too large") }
-        return .literal(.fileSize(size))
     }
 
     mutating func arguments(_ list: LabeledExprListSyntax) throws -> [Argument] {

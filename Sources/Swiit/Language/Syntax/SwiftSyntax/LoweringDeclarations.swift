@@ -37,7 +37,8 @@ extension Lowering {
                                                node.memberBlock, isActor: true, node: node)
             return takeNested() + [.classDecl(lowered)]
         }
-        if prelude, let node = decl.as(ExtensionDeclSyntax.self) { return [try sequenceExtension(node)] }
+        // The prelude's `Sequence` extension declares its methods; any other type's is an ordinary extension, its bodies in Swiit.
+        if prelude, let node = decl.as(ExtensionDeclSyntax.self), node.extendedType.trimmedDescription == "Sequence" { return [try sequenceExtension(node)] }
         if let node = decl.as(ExtensionDeclSyntax.self) { return try typeExtension(node) }
         if let node = decl.as(ImportDeclSyntax.self) { return try importDeclaration(node) }
         if let node = decl.as(IfConfigDeclSyntax.self) { return try conditional(node) }

@@ -12,6 +12,8 @@ public struct Library {
     /// How its enums' cases are styled, by case name.
     public var enumStyles: [String: @Sendable (String) -> DisplayStyle?]
     public var functions: [BridgedMember]
+    /// The Swift types it holds as they are and bridges the members of (`FileSize`), which the core's table does not have.
+    public var bridged: [BridgedType]
     /// Swiit source a host writes by hand: structs, function signatures and
     /// `Sequence` extensions, read after the core prelude. Their bodies are in
     /// `bodies`.
@@ -23,12 +25,13 @@ public struct Library {
     public init(
         types: String, columns: [String: [DisplayColumn]],
         enumStyles: [String: @Sendable (String) -> DisplayStyle?], functions: [BridgedMember],
-        declarations: String = "", bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
+        bridged: [BridgedType] = [], declarations: String = "", bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
     ) {
         self.types = types
         self.columns = columns
         self.enumStyles = enumStyles
         self.functions = functions
+        self.bridged = bridged
         self.declarations = declarations
         self.bodies = bodies
     }

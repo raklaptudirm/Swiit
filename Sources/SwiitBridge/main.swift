@@ -105,17 +105,16 @@ let modules: [String: BridgedModule] = [
     "SystemPackage": BridgedModule("system", [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])], nil, [], [], false),
     // Foundation's types Swiit holds as Swift's: a date.
     "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, [], [], false),
-    // SwiitKit's own types, which Swiit holds as Swift's: a file size, a
-    // command's output. `Status` is a struct Swiit declares itself (the
+    // SwiitKit's own types, which Swiit holds as Swift's: a command's output. `Status` is a struct Swiit declares itself (the
     // prelude), made from the Swift value as a record.
     // A column of a table, which a struct of Swiit's lists for `Tabular`.
-    "SwiitKit": BridgedModule("swiitKit", [("FileSize", []), ("Output", []), ("DisplayColumn", [])], nil, [], ["Status"], false),
+    "SwiitKit": BridgedModule("swiitKit", [("Output", []), ("DisplayColumn", [])], nil, [], ["Status"], false),
     // The shell's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
-    "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "FileSize", "Date"], [], false),
+    "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
     // The shell's: the part of the library that reaches the process, the file
     // system and the session. It is generated into the shell's target.
-    "SwishShellLibrary": BridgedModule("", [], "shellFunctions", ["FilePath", "FileSize", "Date"], [], true),
+    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", [])], "shellFunctions", ["FilePath", "Date"], [], true),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
@@ -131,7 +130,7 @@ for symbol in graph.symbols where symbol.kind.identifier == "swift.typealias" &&
     var reader = Reader(String(text[equals.upperBound...]))
     if let target = try? reader.type() { topLevelAliases[symbol.pathComponents[0]] = target }
 }
-externalTypes = Set(module.external)
+externalTypes = Set(module.external + module.types.map(\.0))
 for name in module.external where leaves[name] == nil {
     leaves[name] = Leaf(".named(\(quoted(name)))", { "try SwiftValue.unbox(\(name).self, \($0))" }, { "SwiftValue.make(\($0), as: \(quoted(name)))" })
 }
@@ -151,6 +150,10 @@ var styleSources: [String] = []
 for name in module.records {
     resultOnly.insert(name)
     leaves[name] = Leaf(".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") }, { "bridgeRecord(shell, \($0))" })
+}
+// A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read, which may be of it.
+for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
+    leaves[name] = Leaf(".named(\(quoted(name)))", { "try SwiftValue.unbox(\(name).self, \($0))" }, { "SwiftValue.make(\($0), as: \(quoted(name)))" })
 }
 do {
     // The module's own types, and when it's read as another module's
@@ -177,6 +180,8 @@ do {
     }
     for symbol in publicTypes where symbol.kind.identifier == "swift.struct" {
         let name = symbol.pathComponents[0]
+        // A type the module holds as Swift's and bridges the members of (`FileSize`) is no record.
+        if module.types.contains(where: { $0.0 == name }) { continue }
         // A value held as it is: given as the value, taken from it.
         if !conformances(of: symbol, among: ["WrapsValue"]).isEmpty {
             leaves[name] = Leaf(".named(\(quoted(name)))", { "\(name)(\($0))" }, { "\($0).value" })

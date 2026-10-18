@@ -151,11 +151,11 @@ func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throw
 
 /// A Swift value boxed as Swiit holds it, converted first (a `Set<Int>` to
 /// a `Set<Value>`).
-func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
+@_spi(Layer) public func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
     SwiftValue.make(convert(value), as: typeName)
 }
 
-func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
+@_spi(Layer) public func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
     SwiftValue.make(convert(value), as: typeName)
 }
 

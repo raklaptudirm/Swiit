@@ -82,7 +82,8 @@ extension Interpreter {
 
     /// Reads the prelude, binding its types, functions and sequence
     /// methods in the outermost scope with their Swift bodies.
-    func installPrelude() {
+    @discardableResult
+    func installPrelude() -> [ExtensionDecl] {
         // The Swift types the declarations may name.
         let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
         let program: Program
@@ -92,6 +93,7 @@ extension Interpreter {
             preconditionFailure("the prelude doesn't parse: \(error)")
         }
         let natives = builtinBodies()
+        var extensions: [ExtensionDecl] = []
         for statement in program.statements {
             switch statement {
             case .structDecl(let decl):
@@ -101,6 +103,10 @@ extension Interpreter {
             case .enumDecl(let decl):
                 do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
+            case .typeExtension(let decl):
+                // A host's addition to a type, with its body in Swiit (`extension Int { var mb: FileSize { … } }`): declared once the
+                // Swift types are bound by name, so that its body can be checked as a program's is.
+                extensions.append(decl)
             case .protocolDecl(let decl):
                 do { try declare(decl) } catch { preconditionFailure("the prelude's \(decl.name): \(error)") }
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
@@ -121,6 +127,7 @@ extension Interpreter {
                 preconditionFailure("the prelude only declares")
             }
         }
+        return extensions
     }
 
     /// A builtin as the shell's functions are: the prelude's signature, a
@@ -152,5 +159,17 @@ private enum PreludeCache {
         programs[source] = program
         lock.unlock()
         return program
+    }
+}
+
+extension Interpreter {
+    /// The prelude's additions to types, with their bodies checked so that what they call is resolved before they run.
+    func declarePreludeExtensions(_ extensions: [ExtensionDecl]) {
+        for decl in extensions {
+            do {
+                let checked = try TypeChecker(interpreter: self).check(Program(statements: [.typeExtension(decl)]))
+                for case .typeExtension(let resolved) in checked.statements { try declare(resolved) }
+            } catch { preconditionFailure("the prelude's extension of \(decl.typeName): \(error)") }
+        }
     }
 }

@@ -549,11 +549,11 @@ for i in 1 ... 3 {
 }
 fs[0]()
 fs[2]()#201make && exit#202(1.0 ... 2.0).contains(1.5)
-("a" ... "f").contains("c")#206let r = (name: "x", size: 2.0 MB)
+("a" ... "f").contains("c")#206let r = (name: "x", size: 2.mb)
 r.name
 r.size * 2
-r.1#208let r = (name: "x", size: 2.0 MB)
-r#211let r = 3 ... 1#212let r = (name: "x", size: 2.0 MB)
+r.1#208let r = (name: "x", size: 2.mb)
+r#211let r = 3 ... 1#212let r = (name: "x", size: 2.mb)
 r.nope#216"a\nb".lines.count
 [1, 2].last
 "abc".count#217let xs: [Int]? = [1, 2]
@@ -1350,12 +1350,12 @@ f()#641let sign = { (x: Int) in
     }
     return "neg"
 }
-sign(-1).count#6441.5 GB + 500 MB
-1.0 KB.bytes
-10.0 MB / 4
-1.0 MB > 999 KB
-4.0 MB / 2.0 MB
--1.0 KB#646struct Point {
+sign(-1).count#6441.5.gb + 500.mb
+1.kib.bytes
+10.mb / 4
+1.mb > 999.kb
+4.mb / 2.mb
+-1.kb#646struct Point {
     var x: Int
     var y: Int = 0
     var lengthSquared: Int {

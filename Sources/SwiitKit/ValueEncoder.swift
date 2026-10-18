@@ -1,7 +1,7 @@
 import Foundation
 
 /// Turns any `Encodable` Swift value into a `Value`: structs become records
-/// named after their type, arrays become lists, `Date` and `FileSize` keep
+/// named after their type, arrays become lists, `Date` and what converts itself (`FileSize`) keep
 /// their meaning. Most library model types already conform, so they show up
 /// in Swiit with no bridge code.
 public struct ValueEncoder {
@@ -29,7 +29,7 @@ extension Value {
         case let double as Double: return .double(double)
         case let string as String: return .string(string)
         case let date as Date: return .date(date)
-        case let size as FileSize: return .fileSize(size)
+        case let convertible as any SwiitConvertible: return convertible.swiitValue
         case let url as URL: return .string(url.isFileURL ? url.path : url.absoluteString)
         case let integer as any BinaryInteger: return Int(exactly: integer).map(Value.int) ?? .double(Double(integer))
         case let float as any BinaryFloatingPoint: return .double(Double(float))
@@ -88,7 +88,7 @@ private final class Slot {
     static func encode<T: Encodable>(_ value: T, into slot: Slot, codingPath: [any CodingKey]) throws {
         switch value {
         case let date as Date: slot.value = .date(date)
-        case let size as FileSize: slot.value = .fileSize(size)
+        case let convertible as any SwiitConvertible: slot.value = convertible.swiitValue
         case let url as URL: slot.value = .string(url.isFileURL ? url.path : url.absoluteString)
         case let decimal as Decimal: slot.value = .double(NSDecimalNumber(decimal: decimal).doubleValue)
         default:

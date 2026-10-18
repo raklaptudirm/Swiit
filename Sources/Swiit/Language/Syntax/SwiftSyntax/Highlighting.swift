@@ -90,13 +90,8 @@ private final class TokenClassifier: SyntaxVisitor {
         return .skipChildren
     }
 
-    // `.directory`: a case, dot and all; `2.mb`, a file size, is a number.
+    // `.directory`: a case, dot and all.
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
-        if let base = node.base, FileSize.units[node.declName.baseName.text] != nil,
-           base.is(IntegerLiteralExprSyntax.self) || base.is(FloatLiteralExprSyntax.self) {
-            add(.number, node)
-            return .skipChildren
-        }
         if node.base == nil {
             let start = node.period.positionAfterSkippingLeadingTrivia.utf8Offset
             if !isConsumed(start) {

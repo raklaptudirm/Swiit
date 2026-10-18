@@ -71,7 +71,7 @@ public struct ExportedParameter: Sendable {
 
 /// The type of a parameter or result, as Swiit's type annotations name it.
 public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
-    case any, bool, int, double, string, record, filesize, date, output, function
+    case any, bool, int, double, string, record, date, output, function
     /// An enum its function uses, like `Level`.
     case named(String)
     case list(SwiitType)
@@ -86,7 +86,6 @@ public indirect enum SwiitType: Sendable, Hashable, CustomStringConvertible {
         case .double: "Double"
         case .string: "String"
         case .record: "Record"
-        case .filesize: "FileSize"
         case .date: "Date"
         case .output: "Output"
         case .function: "Function"
@@ -195,20 +194,6 @@ extension Date: SwiitConvertible {
         self = value
     }
     public var swiitValue: Value { .date(self) }
-}
-
-extension FileSize: SwiitConvertible {
-    public static var swiitType: SwiitType { .filesize }
-    public init(swiitValue: Value) throws {
-        if let size = swiitValue.fileSize {
-            self = size
-        } else if case .int(let bytes) = swiitValue {
-            self.init(bytes: bytes)
-        } else {
-            throw SwiitError.expected("FileSize", swiitValue)
-        }
-    }
-    public var swiitValue: Value { .fileSize(self) }
 }
 
 extension Output: SwiitConvertible {
