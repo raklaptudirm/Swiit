@@ -260,10 +260,11 @@ extension Lowering {
         if let reference = base.as(DeclReferenceExprSyntax.self) {
             let outer = reference.baseName.text == "Self" ? currentType : (nestedNames[reference.baseName.text] ?? reference.baseName.text)
             if let outer, declaredTypes.contains(outer + "." + name) { return .variable(outer + "." + name) }
-            // A type of Swift's inside a namespace: `Unicode.Scalar`.
-            if bound[reference.baseName.text] == nil, bound[reference.baseName.text + "." + name] == .type { return .variable(reference.baseName.text + "." + name) }
+            // A type inside another that an earlier program declared, or one of Swift's inside a namespace: `Unicode.Scalar`.
+            let base = reference.baseName.text
+            if bound[base] == nil || bound[base] == .type, bound[base + "." + name] == .type { return .variable(base + "." + name) }
         }
-        if let nested = base.as(MemberAccessExprSyntax.self), case .variable(let outer)? = try? member(nested), declaredTypes.contains(outer + "." + name) {
+        if let nested = base.as(MemberAccessExprSyntax.self), case .variable(let outer)? = try? member(nested), declaredTypes.contains(outer + "." + name) || bound[outer + "." + name] == .type {
             return .variable(outer + "." + name)
         }
         // `String.init`: the initializer as a function, which takes one value.

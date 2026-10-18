@@ -321,16 +321,16 @@ extension Interpreter {
             if case .object(let type as EnumType) = base, let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name] {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
-            // `Result.failed(code: 2)`: a case with associated values.
-            if case .object(let type as EnumType) = base {
-                return try makeCase(type, name, arguments)
-            }
             // `P.make()`: a static method an extension adds to a struct or enum.
             if case .object(let type as StructType) = base, let methods = typeExtensions[type.name]?.staticMethods[name] {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             if case .object(let type as EnumType) = base, let methods = typeExtensions[type.name]?.staticMethods[name] {
                 return try callStatic(narrowed(methods, overload), arguments)
+            }
+            // `Result.failed(code: 2)`: a case with associated values.
+            if case .object(let type as EnumType) = base {
+                return try makeCase(type, name, arguments)
             }
             // `direction.opposite()`: an enum's method, with the case as `self`.
             if case .enumValue(let enumValue) = base, let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name] {

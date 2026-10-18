@@ -293,3 +293,19 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     Interpreter(host: SwiitHost(name: "tool", error: sink)).report("error: no")
     #expect(log.text == "swiit: error: no\ntool: error: no\n")
 }
+
+@Test func anExtensionAddsAStaticMethodToAnEnum() throws {
+    let swish = interpreter()
+    #expect(try swish.eval("enum Namespace {}; extension Namespace { static func answer() -> Int { 42 } }; Namespace.answer()") == .int(42))
+    // Declared by separate evaluations, and beside a case.
+    _ = try swish.eval("enum Level { case low }")
+    _ = try swish.eval("extension Level { static func make() -> Level { .low } }")
+    #expect(try swish.eval("Level.make() == .low") == .bool(true))
+}
+
+@Test func aNestedTypeIsReachedByALaterEvaluation() throws {
+    let swish = interpreter()
+    _ = try swish.eval("struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }")
+    #expect(try swish.eval("Code.Size.bigger()") == .int(2))
+    #expect(try swish.eval("Code.Kind.a == .a") == .bool(true))
+}
