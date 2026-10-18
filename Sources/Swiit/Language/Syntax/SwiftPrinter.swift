@@ -7,11 +7,11 @@ import SwiitKit
 /// compare with the interpreter. A construct a layer over the core adds, or
 /// that only the checker makes, prints as a comment saying so, so printing is
 /// total and the gap is visible.
-struct SwiftPrinter {
-    init() {}
+@_spi(Layer) public struct SwiftPrinter {
+    @_spi(Layer) public init() {}
 
     /// The program as source, one statement a line.
-    func source(_ program: Program) -> String {
+    @_spi(Layer) public func source(_ program: Program) -> String {
         lines(program, indent: 0).joined(separator: "\n")
     }
 
@@ -61,7 +61,7 @@ struct SwiftPrinter {
             let op = assignment.op.map { "\($0.rawValue)=" } ?? "="
             return ["\(p)\(target) \(op) \(expression(assignment.value))"]
         case .function(let decl):
-            return [p + function(decl, keyword: "func", indent: indent)]
+            return documentation(decl.documentation).map { "\(p)/// \($0)" } + [p + function(decl, keyword: "func", indent: indent)]
         case .doCatch(let body, let clauses):
             var text = "\(p)do \(block(body, indent: indent))"
             for clause in clauses {
@@ -163,10 +163,20 @@ struct SwiftPrinter {
             else if parameter.label == nil { text = "_ \(parameter.name)" }
             else if parameter.label == parameter.name { text = parameter.name }
             else { text = "\(parameter.label!) \(parameter.name)" }
-            if parameter.type != .any || parameter.variadic { text += ": \(parameter.type)" + (parameter.variadic ? "..." : "") }
+            // What a command line makes of a parameter is part of the declaration.
+            if parameter.isInput { text = "@input " + text }
+            if let flag = parameter.shortFlag { text = "@flag(\"\(flag)\") " + text }
+            if closure ? (parameter.type != .any || parameter.variadic) : true { text += ": \(parameter.type)" + (parameter.variadic ? "..." : "") }
             if let value = parameter.defaultValue { text += " = \(expression(value))" }
             return text
         }.joined(separator: ", ")
+    }
+
+    /// A declaration's `///` comment as lines: the summary, then each parameter's note.
+    private func documentation(_ documentation: Documentation?) -> [String] {
+        guard let documentation else { return [] }
+        return documentation.summary.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+            + documentation.parameters.sorted { $0.key < $1.key }.map { "- Parameter \($0.key): \($0.value)" }
     }
 
     private func function(_ decl: FunctionDecl, keyword: String, indent: Int) -> String {

@@ -127,6 +127,15 @@ extension Interpreter {
         }
     }
 
+    /// Spike: a program read as Swift alone, with no layer's syntax.
+    @_spi(Layer) public func parseSwift(_ source: String) -> Result<Program, SyntaxError> {
+        do {
+            return .success(try frontEnd.parse(source, bound: globalNames(), plugin: nil))
+        } catch {
+            return .failure(error)
+        }
+    }
+
     /// Names the parser should know: builtins and globals, as variables or functions.
     @_spi(Layer) public func globalNames() -> [String: NameKind] {
         scopes[0].bindings.merging(scopes[1].bindings) { $1 }.mapValues { binding in
