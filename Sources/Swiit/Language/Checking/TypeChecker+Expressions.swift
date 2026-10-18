@@ -132,6 +132,12 @@ extension TypeChecker {
         case .extended(var box):
             let type = try box.node.check(in: self, expecting: expected)
             expr = .extended(box)
+            // Spike: a layer's node is rewritten as soon as it is checked, while the checker still has the scopes it was checked in.
+            if let rewrite = rewriteExtension {
+                let leaves = box.node.leavesProgram
+                expr = rewrite(expr)
+                if leaves { exitingExpressions.append(expr) }
+            }
             return type
         case .filePath:
             return .string

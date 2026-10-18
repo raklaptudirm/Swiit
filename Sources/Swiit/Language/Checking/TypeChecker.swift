@@ -124,6 +124,10 @@ import SwiitKit
     }
 
     @_spi(Layer) public unowned let interpreter: Interpreter
+    /// Spike: how a layer's node is rewritten into the core's tree right after it is checked.
+    @_spi(Layer) public var rewriteExtension: ((Expr) -> Expr)?
+    /// Spike: what the rewritten nodes that end the program became, for a guard's `else`.
+    var exitingExpressions: [Expr] = []
     /// The type whose member was last looked up, so a JSON field can be
     /// written into a lookup that runs.
     var lastMemberBase: TypeAnnotation?

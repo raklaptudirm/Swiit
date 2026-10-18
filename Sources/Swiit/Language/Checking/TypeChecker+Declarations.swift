@@ -142,6 +142,8 @@ extension TypeChecker {
             return true
         case .expression(.extended(let box)) where orExits:
             return box.node.leavesProgram
+        case .expression(let expr) where orExits && exitingExpressions.contains(expr):
+            return true
         default:
             return false
         }
