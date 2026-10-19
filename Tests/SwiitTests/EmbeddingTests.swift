@@ -325,11 +325,11 @@ private final class HostNode: HostObject, @unchecked Sendable {
     let names = swish.symbols().map(\.name).sorted()
     #expect(names == ["area", "check", "greet"])
     let area = try #require(swish.symbols(named: "area").first)
-    #expect(area.kind == .function)
-    #expect(area.parameters.map(\.label) == ["width", "height"])
-    #expect(area.parameters.map(\.hasDefault) == [false, true])
-    #expect(area.returns == .int)
-    #expect(try #require(swish.symbols(named: "check").first).isThrowing)
+    let function = try #require(area.function)
+    #expect(function.parameters.map(\.label) == ["width", "height"])
+    #expect(function.parameters.map(\.hasDefault) == [false, true])
+    #expect(function.returns == .int)
+    #expect(try #require(swish.symbols(named: "check").first?.function).isThrowing)
     // The interpreter's own are found by name, not listed.
     #expect(!swish.symbols(named: "print").isEmpty)
     #expect(swish.symbols(named: "nosuch").isEmpty)
@@ -347,8 +347,8 @@ private final class HostNode: HostObject, @unchecked Sendable {
     #expect(try swish.valueType(of: "Point(x: 1)") == .named("Point"))
     #expect(try swish.valueType(of: "[1, 2].map { $0 + 1 }") == .list(.int))
     let overloads = swish.symbols(named: "f")
-    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .string)]).returns == .string)
-    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .int)]).parameters.first?.type == .int)
+    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .string)]).function?.returns == .string)
+    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .int)]).function?.parameters.first?.type == .int)
     #expect(throws: Diagnostic.self) { try swish.resolveOverload(among: overloads, arguments: [.init(type: .bool)]) }
     let sorted = swish.symbols(named: "sorted", of: .list(.int))
     #expect(!sorted.isEmpty)
@@ -477,9 +477,11 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     // An enum's case, and the declaration kind of a type.
     let high = try #require(try swish.evaluate("Level.high").enumCase)
     #expect(high.type == "Level" && high.name == "high")
-    #expect(swish.symbols(named: "Point").first?.kind == .structure)
-    #expect(swish.symbols(named: "Level").first?.kind == .enumeration)
-    #expect(swish.symbols(named: "twice").first?.kind == .function)
+    #expect(swish.symbols(named: "Point").first?.declaration == .type(.structure))
+    #expect(swish.symbols(named: "Level").first?.declaration == .type(.enumeration))
+    #expect(swish.symbols(named: "twice").first?.function != nil)
+    swish["limit"] = 3
+    #expect(swish.symbols(named: "limit").first?.declaration == .variable(.int, isSettable: false))
 }
 
 @Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
@@ -508,9 +510,24 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     #expect(try swish.evaluate("scale(3, by: 4)") == 12)
     #expect(throws: Diagnostic.self) { try swish.evaluate(#"scale("a", by: 4)"#) }
     let scale = try #require(swish.symbols(named: "scale").first)
-    #expect(scale.parameters.map(\.type) == [.int, .int] && scale.returns == .int)
+    #expect(scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int)
     #expect(!swish.symbols(named: "sorted", of: [Int].self).isEmpty)
     #expect(try swish.resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]).name == "scale")
     // A function symbol is also a function type, and a call's arguments are the elements of a tuple type.
     #expect(scale.type == .function(parameters: [.int, .int], returns: .int))
+}
+
+@Test func aRunCancelledBeforeItStartsDoesNotRun() async throws {
+    let swish = interpreter()
+    // Cancelled at once, whichever of the request and the start of the run comes first.
+    for _ in 0..<20 {
+        let running = Task { try await swish.evaluate("var n = 0; while true { n += 1 }") }
+        running.cancel()
+        do {
+            _ = try await running.value
+            Issue.record("expected the run to be cancelled")
+        } catch let error as Diagnostic {
+            #expect(error.kind == .cancelled)
+        }
+    }
 }

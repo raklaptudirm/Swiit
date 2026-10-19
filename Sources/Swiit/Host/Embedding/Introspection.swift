@@ -3,12 +3,44 @@ import Foundation
 // What a host can ask of the names a script can use: the functions, methods, properties, variables and types there are, which
 // overload a call means, and the type of an expression. One lookup for everything a name can mean.
 
-/// A function, method, property, variable or type a script can name.
+/// Something a script can name: a function or method, a variable or property, or a type. Only a function has parameters and
+/// effects, only a variable can be settable, only a type has a declaration kind: what a symbol is decides what it has.
 public struct Symbol: Sendable, Hashable {
-    /// What a name is. A type says what it was declared as.
-    public enum Kind: Sendable { case function, method, property, variable, structure, enumeration, `class`, actor, `protocol` }
+    public var name: String
+    /// The line `help` shows, when it has one.
+    public var summary: String?
+    public var declaration: Declaration
 
-    /// A parameter of a function or method.
+    public enum Declaration: Sendable, Hashable {
+        /// A function, or a method of a type.
+        case function(Function)
+        /// A global or a property: its type, and whether a script can assign to it.
+        case variable(ValueType, isSettable: Bool)
+        /// A type, and how it was declared.
+        case type(TypeKind)
+    }
+
+    public struct Function: Sendable, Hashable {
+        public var parameters: [Parameter]
+        /// What it gives back, nil when nothing.
+        public var returns: ValueType?
+        public var isThrowing: Bool
+        public var isAsync: Bool
+        /// A method that changes its value.
+        public var isMutating: Bool
+
+        public init(parameters: [Parameter] = [], returns: ValueType? = nil, isThrowing: Bool = false, isAsync: Bool = false, isMutating: Bool = false) {
+            self.parameters = parameters
+            self.returns = returns
+            self.isThrowing = isThrowing
+            self.isAsync = isAsync
+            self.isMutating = isMutating
+        }
+    }
+
+    public enum TypeKind: Sendable { case structure, enumeration, `class`, actor, `protocol` }
+
+    /// A parameter of a function.
     public struct Parameter: Sendable, Hashable {
         /// The argument label; nil when the argument is written without one.
         public var label: String?
@@ -18,58 +50,35 @@ public struct Symbol: Sendable, Hashable {
         /// Whether a call may leave it out.
         public var hasDefault: Bool
         public var isVariadic: Bool
-        /// Receives what is piped in, as a `@Input` parameter does.
-        public var isInput: Bool
 
-        public init(label: String? = nil, name: String, type: ValueType = .any, hasDefault: Bool = false, isVariadic: Bool = false, isInput: Bool = false) {
+        public init(label: String? = nil, name: String, type: ValueType = .any, hasDefault: Bool = false, isVariadic: Bool = false) {
             self.label = label
             self.name = name
             self.type = type
             self.hasDefault = hasDefault
             self.isVariadic = isVariadic
-            self.isInput = isInput
         }
     }
 
-    public var name: String
-    public var kind: Kind
-    /// The line `help` shows, when it has one.
-    public var summary: String?
-    public var parameters: [Parameter]
-    /// What it gives back, nil when nothing; for a variable, property or type, its type.
-    public var returns: ValueType?
-    public var isThrowing: Bool
-    public var isMutating: Bool
-    public var isAsync: Bool
-
-    public init(
-        name: String, kind: Kind, summary: String? = nil, parameters: [Parameter] = [], returns: ValueType? = nil,
-        isThrowing: Bool = false, isMutating: Bool = false, isAsync: Bool = false
-    ) {
+    public init(name: String, summary: String? = nil, declaration: Declaration) {
         self.name = name
-        self.kind = kind
         self.summary = summary
-        self.parameters = parameters
-        self.returns = returns
-        self.isThrowing = isThrowing
-        self.isMutating = isMutating
-        self.isAsync = isAsync
+        self.declaration = declaration
     }
 
-    /// Its type as a value: the function type of a function or method (parameter types in order, what it returns), or the type
-    /// of a variable, property or type.
+    /// The function this is, if it is one.
+    public var function: Function? {
+        if case .function(let function) = declaration { function } else { nil }
+    }
+
+    /// Its type as a value: a function's is a function type (parameter types in order, what it returns); a variable's is its
+    /// own; a type's is the type it names.
     public var type: ValueType {
-        switch kind {
-        case .function, .method: .function(parameters: parameters.map(\.type), returns: returns ?? .tuple([]))
-        default: returns ?? .any
+        switch declaration {
+        case .function(let function): .function(parameters: function.parameters.map(\.type), returns: function.returns ?? .tuple([]))
+        case .variable(let type, _): type
+        case .type: .named(name)
         }
-    }
-
-    /// As a pipeline stage sees it: the parameter that receives what is piped in removed.
-    public func droppingInput() -> Symbol {
-        var copy = self
-        copy.parameters.removeAll { $0.isInput }
-        return copy
     }
 }
 
@@ -122,63 +131,65 @@ extension Interpreter {
         switch binding.value {
         case .function(let callable):
             let candidates = (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
-            return candidates.map { symbol(of: $0, named: name, kind: .function) }
-        case .object(let type as StructType): _ = type; return [Symbol(name: name, kind: .structure, returns: .named(name))]
-        case .object(is EnumType): return [Symbol(name: name, kind: .enumeration, returns: .named(name))]
-        case .object(let type as ClassType): return [Symbol(name: name, kind: type.isActor ? .actor : .class, returns: .named(name))]
-        case .object(is ProtocolType): return [Symbol(name: name, kind: .protocol, returns: .named(name))]
+            return candidates.map { function in
+                Symbol(name: function.name ?? name, summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
+                       declaration: .function(Symbol.Function(
+                           parameters: function.parameters.map(parameter),
+                           returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
+                           isThrowing: function.isThrowing, isAsync: function.effect != .sync, isMutating: function.isMutating)))
+            }
+        case .object(is StructType): return [Symbol(name: name, declaration: .type(.structure))]
+        case .object(is EnumType): return [Symbol(name: name, declaration: .type(.enumeration))]
+        case .object(let type as ClassType): return [Symbol(name: name, declaration: .type(type.isActor ? .actor : .class))]
+        case .object(is ProtocolType): return [Symbol(name: name, declaration: .type(.protocol))]
         default:
             let checker = TypeChecker(interpreter: self)
-            return [Symbol(name: name, kind: .variable, returns: ValueType(checker.type(of: binding.value)))]
+            return [Symbol(name: name, declaration: .variable(ValueType(checker.type(of: binding.value)), isSettable: binding.mutable))]
         }
     }
 
-    private func symbol(of function: Function, named name: String, kind: Symbol.Kind) -> Symbol {
-        Symbol(
-            name: function.name ?? name, kind: kind, summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
-            parameters: function.parameters.map {
-                Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type), hasDefault: $0.defaultValue != nil || $0.externalDefault != nil,
-                                 isVariadic: $0.variadic, isInput: $0.isInput)
-            },
-            returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
-            isThrowing: function.isThrowing, isMutating: function.isMutating, isAsync: function.effect != .sync)
+    private func parameter(_ parameter: Parameter) -> Symbol.Parameter {
+        Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
+                         hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic)
     }
 
     private func memberSymbols(named name: String?, of type: TypeAnnotation) -> [Symbol] {
         let checker = TypeChecker(interpreter: self)
         var found: [Symbol] = []
-        func add(_ signature: TypeChecker.Signature, kind: Symbol.Kind, dropping receiver: Bool = false) {
+        func add(_ signature: TypeChecker.Signature, dropping receiver: Bool = false) {
             var parameters = signature.parameters
-            if receiver, parameters.first?.isInput == true || parameters.first?.name == "self" { parameters.removeFirst() }
-            found.append(Symbol(
-                name: signature.name, kind: kind,
-                parameters: parameters.map {
-                    Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type), hasDefault: $0.defaultValue != nil || $0.externalDefault != nil,
-                                     isVariadic: $0.variadic, isInput: $0.isInput)
-                },
-                returns: signature.returns == .void ? nil : ValueType(signature.returns),
-                isThrowing: signature.isThrowing, isMutating: signature.isMutating, isAsync: signature.effect != .sync))
+            if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
+            found.append(Symbol(name: signature.name, declaration: .function(Symbol.Function(
+                parameters: parameters.map(parameter), returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating))))
         }
         // A struct's, enum's or host object's own.
         if let profile = checker.describe(type) {
-            for (member, signatures) in profile.declared.methods where name == nil || name == member { signatures.forEach { add($0, kind: .method) } }
-            for (member, signatures) in profile.extended.methods where name == nil || name == member { signatures.forEach { add($0, kind: .method) } }
+            for (member, signatures) in profile.declared.methods where name == nil || name == member { signatures.forEach { add($0) } }
+            for (member, signatures) in profile.extended.methods where name == nil || name == member { signatures.forEach { add($0) } }
             for (member, property) in profile.declared.properties where name == nil || name == member {
-                found.append(Symbol(name: member, kind: .property, returns: ValueType(property.type)))
+                found.append(Symbol(name: member, declaration: .variable(ValueType(property.type), isSettable: property.isSettable)))
             }
         }
         // A bridged Swift type's.
         if let (bridgedType, bindings) = checker.bridged(type) {
+            let settable = Set(bridgedType.members.filter { $0.kind == .setter && !$0.isStatic }.map(\.name))
             for member in bridgedType.members where !member.isStatic && member.kind != .initializer && member.kind != .setter && (name == nil || name == member.name) {
-                let isMethod = member.kind == .method
-                found.append(Symbol(
-                    name: member.name, kind: isMethod ? .method : .property, summary: member.summary.isEmpty ? nil : member.summary,
-                    parameters: member.parameters.map {
-                        Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType(checker.substitute($0.type, bindings)),
-                                         hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic)
-                    },
-                    returns: member.returns == .void ? nil : ValueType(checker.substitute(member.returns, bindings)),
-                    isThrowing: member.isThrowing, isMutating: member.isMutating, isAsync: member.effect != .sync))
+                if member.kind == .method {
+                    found.append(Symbol(
+                        name: member.name, summary: member.summary.isEmpty ? nil : member.summary,
+                        declaration: .function(Symbol.Function(
+                            parameters: member.parameters.map {
+                                Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType(checker.substitute($0.type, bindings)),
+                                                 hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic)
+                            },
+                            returns: member.returns == .void ? nil : ValueType(checker.substitute(member.returns, bindings)),
+                            isThrowing: member.isThrowing, isAsync: member.effect != .sync, isMutating: member.isMutating))))
+                } else {
+                    found.append(Symbol(
+                        name: member.name, summary: member.summary.isEmpty ? nil : member.summary,
+                        declaration: .variable(ValueType(checker.substitute(member.returns, bindings)), isSettable: settable.contains(member.name))))
+                }
             }
         }
         // What every sequence has.
@@ -188,7 +199,7 @@ extension Interpreter {
                     var made = signature
                     made.parameters = made.parameters.map { var p = $0; p.type = checker.substitute(p.type, ["Element": element]); return p }
                     made.returns = checker.substitute(made.returns, ["Element": element])
-                    add(made, kind: .method, dropping: true)
+                    add(made, dropping: true)
                 }
             }
         }
@@ -201,7 +212,7 @@ extension Interpreter {
         guard !candidates.isEmpty else { throw Diagnostic(kind: .type, message: "there is nothing to call") }
         let checker = TypeChecker(interpreter: self)
         func penalty(_ candidate: Symbol) -> Int? {
-            let parameters = candidate.parameters.filter { !$0.isInput }
+            guard let parameters = candidate.function?.parameters else { return nil }
             var cost = 0
             var next = 0
             for argument in arguments {

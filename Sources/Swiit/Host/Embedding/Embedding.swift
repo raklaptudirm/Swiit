@@ -360,11 +360,16 @@ extension Interpreter {
     /// Declarations and values stay for the next call.
     @discardableResult
     public func evaluate(_ source: String) throws(Diagnostic) -> Value {
+        try evaluate(source, alreadyCancelled: { false })
+    }
+
+    /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that is not lost.
+    private func evaluate(_ source: String, alreadyCancelled: @escaping () -> Bool) throws(Diagnostic) -> Value {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         do {
             // Swiit code runs holding the lock, which a task it starts waits for.
-            return try onLargeStack { try interpreter.withMainTask { try interpreter.runSource(source) } }
+            return try onLargeStack { try interpreter.withMainTask { try interpreter.runSource(source, alreadyCancelled: alreadyCancelled) } }
         } catch let diagnostic as Diagnostic {
             throw diagnostic
         } catch {
@@ -375,24 +380,29 @@ extension Interpreter {
     /// As `evaluate`, on a thread of the interpreter's own, and cancelled when the calling task is.
     @discardableResult
     public func evaluate(_ source: String) async throws(Diagnostic) -> Value {
+        let cancelled = CancelFlag()
         let outcome: Result<Value, Diagnostic> = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
                 nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
                 startLargeStackThread {
-                    continuation.resume(returning: Result { () throws(Diagnostic) -> Value in try interpreter.evaluate(source) })
+                    continuation.resume(returning: Result { () throws(Diagnostic) -> Value in
+                        try interpreter.evaluate(source, alreadyCancelled: { cancelled.isSet })
+                    })
                 }
             }
         } onCancel: {
+            cancelled.set()
             cancel()
         }
         return try outcome.get()
     }
 
-    private func runSource(_ source: String) throws -> Value {
+    private func runSource(_ source: String, alreadyCancelled: () -> Bool) throws -> Value {
         steps = 0
         outputCounter.reset()
         deadline = limits.time.map { ContinuousClock.now + $0 }
         cancellation.clear()
+        if alreadyCancelled() { cancellation.request() }
         let program: Program
         switch parse(source) {
         case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
@@ -437,4 +447,12 @@ extension Interpreter {
             throw Diagnostic(kind: .cancelled, message: "interrupted")
         }
     }
+}
+
+/// Whether the task running an `async` evaluation has been cancelled, which the thread asks as it starts.
+private final class CancelFlag: @unchecked Sendable { // safe: every access holds the lock
+    private let lock = NSLock()
+    private var value = false
+    var isSet: Bool { lock.withLock { value } }
+    func set() { lock.withLock { value = true } }
 }
