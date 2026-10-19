@@ -531,3 +531,48 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
         }
     }
 }
+
+// MARK: Native types
+
+struct Bytes: Comparable, Hashable, Sendable {
+    var count: Int
+    static func < (a: Bytes, b: Bytes) -> Bool { a.count < b.count }
+}
+
+@Suite struct NativeTypeTests {
+    static func bytesType() -> NativeType {
+        @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b, as: "Bytes") }
+        return NativeType(
+            name: "Bytes", conformances: ["Equatable", "Hashable", "Comparable"],
+            members: [
+                .init(.initializer, HostFunction(name: "init", parameters: [.init(label: "count", name: "count", type: Int.self)], returns: ValueType.named("Bytes")) {
+                    box(Bytes(count: try Int($0[0])))
+                }),
+                .init(.property, HostFunction(name: "count", parameters: [.init(name: "self", type: .named("Bytes"))], returns: Int.self) {
+                    try $0[0].unboxed(Bytes.self).count.value
+                }),
+                .init(.method, isStatic: true, HostFunction(name: "<", parameters: [.init(name: "lhs", type: .named("Bytes")), .init(name: "rhs", type: .named("Bytes"))], returns: Bool.self) {
+                    (try $0[0].unboxed(Bytes.self) < $0[1].unboxed(Bytes.self)).value
+                }),
+            ]
+        )
+    }
+
+    @Test func aRegisteredTypeIsOneScriptsUse() throws {
+        let interpreter = Interpreter()
+        interpreter.register(Self.bytesType())
+        let value = try interpreter.evaluate("let a = Bytes(count: 3); let b = Bytes(count: 5); a.count + b.count")
+        #expect(try Int(value) == 8)
+        #expect(try Bool(interpreter.evaluate("a < b")) == true)
+        #expect(try Bool(interpreter.evaluate("a == Bytes(count: 3)")) == true)
+        let held = try interpreter.evaluate("a").unboxed(Bytes.self)
+        #expect(held == Bytes(count: 3))
+    }
+
+    @Test func aWrongUseIsCaughtBeforeItRuns() throws {
+        let interpreter = Interpreter()
+        interpreter.register(Self.bytesType())
+        #expect(throws: Diagnostic.self) { try interpreter.evaluate("Bytes(count: \"x\")") }
+        #expect(throws: Diagnostic.self) { try interpreter.evaluate("Bytes(count: 1).nope") }
+    }
+}
