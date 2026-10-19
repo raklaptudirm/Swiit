@@ -11,13 +11,13 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var kind: Kind
     public var message: String
     /// 1-based, for a type error in a multi-line program.
-    public var line: Int?
+    @_spi(Layer) public var line: Int?
     /// Where it is in the source: the statement a type or run-time error is in, the token a syntax error is at.
     public var range: SourceRange?
     /// For a run-time error: the calls it came out of, innermost first, with where each was made.
-    public var calls: [RuntimeError.Call] = []
+    @_spi(Layer) public var calls: [RuntimeError.Call] = []
 
-    public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = []) {
+    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = []) {
         self.kind = kind
         self.message = message
         self.line = line ?? range?.startLine
@@ -34,7 +34,11 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// How a diagnostic is styled, for a host that shows it on a terminal: the escape for each
     /// character of a source text, what the frame of the excerpt and the marks are written in,
     /// and what ends a style.
-    public struct Style: Sendable {
+    @_spi(Layer) public struct Style: Sendable {
+        /// Plain ANSI: the frame in bold blue, the marks in bold red, the source as it is.
+        public static let ansi = Style(source: { Array(repeating: nil, count: $0.count) }, frame: { "\u{1B}[1;34m\($0)\u{1B}[0m" },
+                                       mark: { "\u{1B}[1;31m\($0)\u{1B}[0m" }, reset: "\u{1B}[0m")
+
         public var source: @Sendable (String) -> [String?]
         public var frame: @Sendable (String) -> String
         public var mark: @Sendable (String) -> String
@@ -53,7 +57,12 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// with the place marked. `source` is the text that was run; `path` names it, if it came from a file.
     /// `style`, if given, makes the result styled: the source in the colors it has where it is written,
     /// the marks and places in their own.
-    public func rendered(in source: String, path: String? = nil, style: Style? = nil) -> String {
+    public func rendered(in source: String, path: String? = nil, color: Bool = false) -> String {
+        rendered(in: source, path: path, style: color ? .ansi : nil)
+    }
+
+    /// As above, styled as a host says (a shell's syntax highlighting).
+    @_spi(Layer) public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
         if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) { text.removeSubrange(match) }
@@ -114,38 +123,40 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 }
 
-/// What bounds a run. Each is checked as the script runs; a script that hits
-/// one stops with a `.limit` diagnostic, which it can't catch. Memory isn't
-/// limited: a script that builds a huge list is bounded only by steps and time.
-public struct Limits: Sendable {
-    /// Statements and calls. Nil is no limit.
-    public var steps: Int?
-    /// Nested Swiit function calls.
-    public var depth: Int
-    public var time: Duration?
-    /// Bytes written to the host's output and error.
-    public var output: Int?
-    /// Tasks running at once, each on a thread of its own.
-    public var tasks: Int
+extension Interpreter {
+    /// What bounds a run. Each is checked as the script runs; a script that hits
+    /// one stops with a `.limit` diagnostic, which it can't catch. Memory isn't
+    /// limited: a script that builds a huge list is bounded only by steps and time.
+    public struct Limits: Sendable {
+        /// Statements and calls. Nil is no limit.
+        public var steps: Int?
+        /// Nested Swiit function calls.
+        public var depth: Int
+        public var time: Duration?
+        /// Bytes written to the host's output and error.
+        public var output: Int?
+        /// Tasks running at once, each on a thread of its own.
+        public var tasks: Int
 
-    public init(steps: Int? = nil, depth: Int = 10_000, time: Duration? = nil, output: Int? = nil, tasks: Int = 256) {
-        self.steps = steps
-        self.depth = depth
-        self.time = time
-        self.output = output
-        self.tasks = tasks
+        public init(steps: Int? = nil, depth: Int = 10_000, time: Duration? = nil, output: Int? = nil, tasks: Int = 256) {
+            self.steps = steps
+            self.depth = depth
+            self.time = time
+            self.output = output
+            self.tasks = tasks
+        }
     }
 }
 
-public struct LimitExceeded: Error, CustomStringConvertible {
+@_spi(Layer) public struct LimitExceeded: Error, CustomStringConvertible {
     public let description: String
-    public init(_ description: String) { self.description = description }
+    @_spi(Layer) public init(_ description: String) { self.description = description }
 }
 
-public struct Cancelled: Error {}
+@_spi(Layer) public struct Cancelled: Error {}
 
 /// Bytes written so far, for the output limit.
-public final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock
+@_spi(Layer) public final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var count = 0
 
@@ -153,11 +164,11 @@ public final class OutputCounter: @unchecked Sendable { // safe: every access ho
 
     public var written: Int { lock.withLock { count } }
     public func add(_ bytes: Int) { lock.withLock { count += bytes } }
-    public func reset() { lock.withLock { count = 0 } }
+    @_spi(Layer) public func reset() { lock.withLock { count = 0 } }
 }
 
 /// A request to stop, from any thread.
-public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
+@_spi(Layer) public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var set = false
     /// What `isSet` reads without the lock, which every step of every script asks. It is a word written under the lock and
@@ -215,12 +226,12 @@ extension Interpreter {
     /// An interpreter with Swift's syntax, the standard library and nothing
     /// else: no commands, no environment, no files. What a script can name
     /// is what the host registers.
-    public convenience init(host: SwiitHost = SwiitHost(), limits: Limits = Limits()) {
+    public convenience init(host: Interpreter.Host = Interpreter.Host(), limits: Interpreter.Limits = Interpreter.Limits()) {
         let counter = OutputCounter()
         func counted(_ sink: OutputSink) -> OutputSink {
             OutputSink(write: { counter.add($0.utf8.count); return sink.write($0) }, traits: sink.traits)
         }
-        self.init(host: SwiitHost(name: host.name, output: counted(host.output), error: counted(host.error), interrupt: host.interrupt,
+        self.init(host: Interpreter.Host(name: host.name, output: counted(host.output), error: counted(host.error), interrupt: host.interrupt,
                                   startThread: host.startThread),
                   outputCounter: counter)
         self.limits = limits
@@ -232,11 +243,11 @@ extension Interpreter {
     /// speaks, since a bare value gives nothing here.
     func installPrint() {
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
-        let print = hostFunction(ExportedFunction(
+        let print = hostFunction(HostFunction(
             name: "print", summary: "Writes its arguments to the output, separated by spaces, then a newline.",
-            parameters: [ExportedParameter(label: nil, name: "items", type: .any, variadic: true, showsByType: true),
-                         ExportedParameter(label: "separator", name: "separator", type: .string, defaultValue: .string(" ")),
-                         ExportedParameter(label: "terminator", name: "terminator", type: .string, defaultValue: .string("\n"))],
+            parameters: [HostFunction.Parameter(label: nil, name: "items", type: .any, variadic: true, showsByType: true),
+                         HostFunction.Parameter(label: "separator", name: "separator", type: .string, defaultValue: .string(" ")),
+                         HostFunction.Parameter(label: "terminator", name: "terminator", type: .string, defaultValue: .string("\n"))],
             returnType: nil,
             call: { arguments in
                 guard case .list(let items)? = arguments["items"] else { return .nothing }
@@ -252,49 +263,55 @@ extension Interpreter {
     }
 
     /// Asks a run in progress to stop, from any thread. It ends with a
-    /// `.cancelled` diagnostic; the next `eval` starts afresh.
+    /// `.cancelled` diagnostic; the next `evaluate` starts afresh.
     public func cancel() { cancellation.request() }
 
     // MARK: Values
 
-    /// Binds `name` to a value, for scripts to read.
-    public func set(_ name: String, _ value: Value) {
-        scopes[1].bindings[name] = Binding(value: value, mutable: false)
-    }
-
-    /// Binds `name` to anything `Encodable`: a record, a list, a string.
-    public func set<T: Encodable>(_ name: String, _ value: T) throws {
-        set(name, try ValueEncoder().encode(value))
-    }
-
-    /// What `name` is bound to, if anything.
-    public func get(_ name: String) -> Value? {
-        lookup(name)?.value
+    /// A global of the script: what `name` is bound to, if anything. Setting one makes it a constant for scripts to read; a
+    /// `DynamicObject` is described to the checker as it is set.
+    public subscript(name: String) -> Value? {
+        get { withMainTask { lookup(name)?.value } }
+        set {
+            withMainTask {
+                guard let newValue else {
+                    scopes[1].bindings[name] = nil
+                    return
+                }
+                if case .object(let object as any DynamicObject) = newValue { bind(name, to: object) }
+                scopes[1].bindings[name] = Binding(value: newValue, mutable: false)
+            }
+        }
     }
 
     // MARK: Functions
 
+    /// Makes a described function one scripts can call, checked like any they declare.
+    public func register(_ function: HostFunction) {
+        withMainTask { scopes[1].declare(hostFunction(function), named: function.name) }
+    }
+
     /// Makes a Swift closure a function scripts can call. Its parameters and
-    /// result convert as SwiitKit's `SwiitConvertible` says, and a script
+    /// result convert as SwiitKit's `ValueConvertible` says, and a script
     /// sees an ordinary function: `labels` are its argument labels (`nil`
     /// or missing for none), and a wrong argument is the usual type error.
-    public func register<each Argument: SwiitConvertible, Result: SwiitConvertible>(
+    public func register<each Argument: ValueConvertible, Result: ValueConvertible>(
         _ name: String, labels: [String?] = [], throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Result
     ) {
-        install(name, labels: labels, throwing: throwing, returns: Result.swiitType, enums: Result.swiitEnums,
+        install(name, labels: labels, throwing: throwing, returns: Result.valueType, enums: Result.swiitEnums,
                 parameterTypes: Self.types(repeat (each Argument).self)) { arguments in
             var index = 0
             func next() -> Value {
                 defer { index += 1 }
                 return arguments[index]
             }
-            return try body(repeat try (each Argument)(swiitValue: next())).swiitValue
+            return try body(repeat try (each Argument)(next())).value
         }
     }
 
     /// As above, for a closure that returns nothing.
-    public func register<each Argument: SwiitConvertible>(
+    public func register<each Argument: ValueConvertible>(
         _ name: String, labels: [String?] = [], throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Void
     ) {
@@ -305,28 +322,28 @@ extension Interpreter {
                 defer { index += 1 }
                 return arguments[index]
             }
-            try body(repeat try (each Argument)(swiitValue: next()))
+            try body(repeat try (each Argument)(next()))
             return .nothing
         }
     }
 
-    private static func types<each Argument: SwiitConvertible>(_: repeat (each Argument).Type) -> [(SwiitType, [EnumType])] {
-        var types: [(SwiitType, [EnumType])] = []
-        func add<T: SwiitConvertible>(_: T.Type) { types.append((T.swiitType, T.swiitEnums)) }
+    private static func types<each Argument: ValueConvertible>(_: repeat (each Argument).Type) -> [(ValueType, [EnumType])] {
+        var types: [(ValueType, [EnumType])] = []
+        func add<T: ValueConvertible>(_: T.Type) { types.append((T.valueType, T.swiitEnums)) }
         repeat add((each Argument).self)
         return types
     }
 
     private func install(
-        _ name: String, labels: [String?], throwing: Bool, returns: SwiitType?, enums: [EnumType],
-        parameterTypes: [(SwiitType, [EnumType])], call: @escaping @Sendable ([Value]) throws -> Value
+        _ name: String, labels: [String?], throwing: Bool, returns: ValueType?, enums: [EnumType],
+        parameterTypes: [(ValueType, [EnumType])], call: @escaping @Sendable ([Value]) throws -> Value
     ) {
         let parameters = parameterTypes.enumerated().map { index, entry in
             let label = labels.indices.contains(index) ? labels[index] : nil
-            return ExportedParameter(label: label, name: label ?? "argument\(index)", type: entry.0, enums: entry.1)
+            return HostFunction.Parameter(label: label, name: label ?? "argument\(index)", type: entry.0, enums: entry.1)
         }
         let names = parameters.map(\.name)
-        let function = hostFunction(ExportedFunction(
+        let function = hostFunction(HostFunction(
             name: name, parameters: parameters, returnType: returns, isThrowing: throwing,
             call: { arguments in try call(names.map { arguments[$0] ?? .nothing }) }
         ))
@@ -341,12 +358,13 @@ extension Interpreter {
     /// Runs source and gives the value of its last statement if that is an
     /// expression (nothing otherwise). Runs on a thread with a large stack.
     /// Declarations and values stay for the next call.
-    public func eval(_ source: String) throws -> Value {
+    @discardableResult
+    public func evaluate(_ source: String) throws(Diagnostic) -> Value {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         do {
             // Swiit code runs holding the lock, which a task it starts waits for.
-            return try onLargeStack { try interpreter.withMainTask { try interpreter.evaluate(source) } }
+            return try onLargeStack { try interpreter.withMainTask { try interpreter.runSource(source) } }
         } catch let diagnostic as Diagnostic {
             throw diagnostic
         } catch {
@@ -354,7 +372,23 @@ extension Interpreter {
         }
     }
 
-    private func evaluate(_ source: String) throws -> Value {
+    /// As `evaluate`, on a thread of the interpreter's own, and cancelled when the calling task is.
+    @discardableResult
+    public func evaluate(_ source: String) async throws(Diagnostic) -> Value {
+        let outcome: Result<Value, Diagnostic> = await withTaskCancellationHandler {
+            await withCheckedContinuation { continuation in
+                nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
+                startLargeStackThread {
+                    continuation.resume(returning: Result { () throws(Diagnostic) -> Value in try interpreter.evaluate(source) })
+                }
+            }
+        } onCancel: {
+            cancel()
+        }
+        return try outcome.get()
+    }
+
+    private func runSource(_ source: String) throws -> Value {
         steps = 0
         outputCounter.reset()
         deadline = limits.time.map { ContinuousClock.now + $0 }

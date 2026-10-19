@@ -4,7 +4,7 @@ import Foundation
 /// recurses in the interpreter, so a run happens on such a thread: the
 /// embedder needs no stack setup, and the shell uses it for the same reason.
 /// This is the one place the core makes threads.
-public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
+@_spi(Layer) public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
     // The caller waits for the thread, so nothing runs at the same time.
     nonisolated(unsafe) var result: Result<T, any Error>? // safe: written by one thread, read after it is joined
     nonisolated(unsafe) let body = body // safe: written by one thread, read after it is joined
@@ -22,8 +22,8 @@ public func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
 }
 
 /// Starts `body` on a thread with a large stack, and doesn't wait: a task's
-/// thread, where the host doesn't make its own (`SwiitHost.startThread`).
-public func startLargeStackThread(_ body: @escaping @Sendable () -> Void) {
+/// thread, where the host doesn't make its own (`Interpreter.Host.startThread`).
+@_spi(Layer) public func startLargeStackThread(_ body: @escaping @Sendable () -> Void) {
     let thread = Thread { body() }
     thread.stackSize = 256 << 20
     thread.start()

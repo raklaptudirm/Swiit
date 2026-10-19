@@ -195,9 +195,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let parameterCode = parameters.map { parameter, type in
         // In the order `Parameter` declares them.
         // `@Rest` on an array: Swiit's variadic parameter, of the element's type.
-        var swiitType = type
-        if parameter.isRest, case .array(let element) = type { swiitType = element }
-        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(swiitType))"]
+        var valueType = type
+        if parameter.isRest, case .array(let element) = type { valueType = element }
+        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(valueType))"]
         if parameter.isRest { fields.append("variadic: true") }
         let literal = parameter.defaultText.flatMap(literalDefault)
         if let literal { fields.append("defaultValue: \(literal)") }

@@ -2,7 +2,7 @@ import Foundation
 
 /// Every function declared under one name. A name declared with `func` is
 /// always bound to one of these, even with a single candidate.
-public final class OverloadSet: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class OverloadSet: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public let candidates: [Function]
 
@@ -59,7 +59,7 @@ extension Function {
 
 /// `\.size` or `\.status.code`: reads the path of members from a value.
 /// Where a function is wanted it's one, as in Swift: `xs.map(\.name)`.
-public final class KeyPathValue: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class KeyPathValue: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let path: [String]
 
     public init(path: [String]) {

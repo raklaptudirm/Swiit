@@ -66,7 +66,7 @@ extension Bridge {
         member(.method, "index", parameters: [Parameter(label: nil, name: "i", type: indexType), Parameter(label: "offsetBy", name: "n", type: .int)],
                returns: indexType, summary: "The position a number of characters from the given one.") { _, arguments in
             let text = try text(arguments)
-            let offset = try Int(swiitValue: arguments["n"]!)
+            let offset = try Int(arguments["n"]!)
             let start = try checked(try stringIndexValue(arguments["i"]), in: text, allowingEnd: true)
             guard let moved = text.index(start, offsetBy: offset, limitedBy: offset >= 0 ? text.endIndex : text.startIndex) else {
                 throw RuntimeError("String index is out of bounds")

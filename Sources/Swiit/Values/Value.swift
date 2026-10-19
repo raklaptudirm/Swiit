@@ -20,19 +20,27 @@ public enum Value: Sendable {
     case enumValue(EnumValue)
     /// A live value with members of its own: a background job, an enum type,
     /// and later bridged Swift objects.
-    case object(any SwiitObject)
+    case object(any HostObject)
     case function(any Callable)
 }
 
 /// A live value that answers for its own members, properties and methods
 /// alike (a method is a function value). Objects compare by identity.
-public protocol SwiitObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
     /// The name `members` and error messages use, like `Job`.
     var typeName: String { get }
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
     /// The member called `name`, or nil if it has none.
     func member(_ name: String) -> Value?
+}
+
+/// A piece of text and the style it's shown in.
+@_spi(Layer) public typealias DisplaySegment = (text: String, style: DisplayStyle?)
+
+/// What an object can say of how it shows, beyond its members: the objects of the language and the shell's say it; a host's
+/// object has the defaults.
+@_spi(Layer) public protocol ObjectDetails: HostObject {
     /// Its data as a record, which tables, `select` and `to json` use; nil
     /// for an object that isn't data, like an enum type.
     var fields: Record? { get }
@@ -44,15 +52,12 @@ public protocol SwiitObject: AnyObject, Sendable, CustomStringConvertible, Custo
     var identity: AnyHashable { get }
 }
 
-/// A piece of text and the style it's shown in.
-public typealias DisplaySegment = (text: String, style: DisplayStyle?)
-
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held as it is), as
 /// opposed to one a host hands in. The checker types the language's by what they are, and a host's by the protocol
 /// the host declares for them.
-@_spi(Layer) public protocol LanguageObject: SwiitObject {}
+@_spi(Layer) public protocol LanguageObject: ObjectDetails {}
 
-extension SwiitObject {
+extension ObjectDetails {
     public var identity: AnyHashable { AnyHashable(ObjectIdentifier(self)) }
 
     public var displaySegments: [DisplaySegment]? { nil }
@@ -67,25 +72,49 @@ extension SwiitObject {
         }
         return record
     }
+}
+
+extension HostObject {
+    /// A host's object has no members to list unless it says.
+    public var memberNames: [String] { [] }
+
+    @_spi(Layer) public var objectFields: Record? {
+        if let details = self as? any ObjectDetails { return details.fields }
+        return ObjectFields.of(self)
+    }
+    @_spi(Layer) public var objectDisplaySegments: [DisplaySegment]? { (self as? any ObjectDetails)?.displaySegments }
+    @_spi(Layer) public var objectIdentity: AnyHashable { (self as? any ObjectDetails)?.identity ?? AnyHashable(ObjectIdentifier(self)) }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
     /// description, for an object that isn't data.
     public var debugDescription: String {
-        fields?.debugDescription ?? description
+        objectFields?.debugDescription ?? description
+    }
+}
+
+enum ObjectFields {
+    static func of(_ object: some HostObject) -> Record? {
+        var record = Record(typeName: object.typeName)
+        for name in object.memberNames {
+            guard let value = object.member(name) else { continue }
+            if case .function = value { continue }
+            record[name] = value
+        }
+        return record
     }
 }
 
 /// A Swiit value as a Swift function takes or gives one whole, whatever it
 /// is. The name tells a bridged function's parameter from a generic parameter
 /// called `Value`.
-public typealias SwiitValue = Value
+@_spi(Layer) public typealias SwiitValue = Value
 
 extension Value {
     /// A record, or an object's fields: what a table row is made from.
-    public var asRecord: Record? {
+    @_spi(Layer) public var asRecord: Record? {
         switch self {
         case .record(let record): record
-        case .object(let object): object.fields
+        case .object(let object): object.objectFields
         default: nil
         }
     }
@@ -94,7 +123,7 @@ extension Value {
 /// A type that holds a Swiit value as it is, whose type says how it's read:
 /// `JSON`, which is whatever it parsed as. A function that gives one gives
 /// the value it holds.
-public protocol WrapsValue {
+@_spi(Layer) public protocol WrapsValue {
     var value: Value { get }
     init(_ value: Value)
 }
@@ -116,7 +145,7 @@ public struct Record: Sendable, Hashable, Sequence {
         self.typeName = typeName
     }
 
-    public init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
+    @_spi(Layer) public init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
         self.typeName = typeName
         for (key, value) in fields { self[key] = value }
     }
@@ -133,7 +162,7 @@ public struct Record: Sendable, Hashable, Sequence {
     }
 
     /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only reference to it.
-    public mutating func takeValue(_ key: String) -> Value? {
+    @_spi(Layer) public mutating func takeValue(_ key: String) -> Value? {
         guard let current = storage[key] else { return nil }
         storage[key] = .nothing
         return current
@@ -173,7 +202,7 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     }
 
     /// `0`, `1`, …: the key of a tuple element without a label.
-    public static func isPosition(_ key: String) -> Bool {
+    @_spi(Layer) public static func isPosition(_ key: String) -> Bool {
         !key.isEmpty && key.allSatisfy(\.isNumber)
     }
 }
@@ -182,14 +211,14 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
 /// no particular one and changes from run to run. Shown, it's sorted by key
 /// (`sortedForDisplay`), so what's printed is the same every time.
 public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible, CustomDebugStringConvertible {
-    public var dictionary: [Value: Value]
+    @_spi(Layer) public var dictionary: [Value: Value]
 
     public init() { dictionary = [:] }
 
-    public init(_ dictionary: [Value: Value]) { self.dictionary = dictionary }
+    @_spi(Layer) public init(_ dictionary: [Value: Value]) { self.dictionary = dictionary }
 
     /// Later entries replace earlier ones with the same key.
-    public init(_ entries: [(Value, Value)]) {
+    @_spi(Layer) public init(_ entries: [(Value, Value)]) {
         dictionary = Dictionary(entries, uniquingKeysWith: { $1 })
     }
 
@@ -210,7 +239,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     /// The entries sorted by key: numbers by value, strings as Swift sorts
     /// them, an enum's cases in declared order, and anything else by how
     /// it's written.
-    public var sortedForDisplay: [(key: Value, value: Value)] {
+    @_spi(Layer) public var sortedForDisplay: [(key: Value, value: Value)] {
         dictionary.sorted { Value.displaysBefore($0.key, $1.key) }
     }
 
@@ -260,7 +289,7 @@ extension Value: Hashable {
         case (.record(let a), .record(let b)): a == b
         case (.dictionary(let a), .dictionary(let b)): a == b
         case (.enumValue(let a), .enumValue(let b)): a == b
-        case (.object(let a), .object(let b)): a === b || a.identity == b.identity
+        case (.object(let a), .object(let b)): a === b || a.objectIdentity == b.objectIdentity
         case (.function(let a), .function(let b)): a === b
         default: false
         }
@@ -277,7 +306,7 @@ extension Value: Hashable {
         case .record(let record): hasher.combine(record)
         case .dictionary(let dictionary): hasher.combine(dictionary)
         case .enumValue(let value): hasher.combine(value)
-        case .object(let object): hasher.combine(object.identity)
+        case .object(let object): hasher.combine(object.objectIdentity)
         case .function(let function): hasher.combine(ObjectIdentifier(function))
         }
     }
@@ -305,7 +334,7 @@ extension Value: CustomStringConvertible {
 extension Value {
     /// A string as a literal: quotes, backslashes and control characters
     /// escaped. Like Swift's `debugDescription`, but a `'` stays as it is.
-    public static func quoted(_ text: String) -> String {
+    @_spi(Layer) public static func quoted(_ text: String) -> String {
         var result = "\""
         for scalar in text.unicodeScalars {
             switch scalar {
@@ -343,12 +372,12 @@ extension Value: CustomDebugStringConvertible {
 
 extension Value {
     /// A date, held as the Swift value it is.
-    public static func date(_ date: Date) -> Value {
+    @_spi(Layer) public static func date(_ date: Date) -> Value {
         SwiftValue.make(date, as: "Date")
     }
 
     /// The date it holds, if it's one.
-    public var date: Date? {
+    @_spi(Layer) public var date: Date? {
         if case .object(let box as SwiftValue) = self { box.value as? Date } else { nil }
     }
 }
@@ -357,7 +386,7 @@ extension Value {
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
 /// while the member changes it, so a collection is changed where it is, not copied whole each time.
 /// The member's glue takes it out, and puts it back, changed, however the call ends.
-public final class ReceiverBox: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ReceiverBox: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public var value: Value
     public init(_ value: Value) { self.value = value }
 
@@ -378,8 +407,41 @@ public final class ReceiverBox: SwiitObject, @unchecked Sendable { // safe: its 
     public var typeName: String { "receiver" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: Record? { nil }
+    @_spi(Layer) public var fields: Record? { nil }
     public var description: String { "\(value)" }
 }
 
 @_spi(Layer) extension ReceiverBox: LanguageObject {}
+
+// MARK: Making and reading values
+
+extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByStringLiteral,
+                 ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+    public init(booleanLiteral value: Bool) { self = .bool(value) }
+    public init(integerLiteral value: Int) { self = .int(value) }
+    public init(floatLiteral value: Double) { self = .double(value) }
+    public init(stringLiteral value: String) { self = .string(value) }
+    public init(arrayLiteral elements: Value...) { self = .list(elements) }
+    public init(dictionaryLiteral elements: (Value, Value)...) { self = .dictionary(ValueDictionary(elements)) }
+}
+
+extension Value {
+    /// A described function as a value, for a host object's method to give: `.function(...)` of its own making.
+    public init(_ function: HostFunction) {
+        self = .function(NativeFunction(function))
+    }
+
+    /// Any `Encodable` as a value: a record, a list, a string.
+    public init(encoding value: some Encodable) throws {
+        self = try ValueEncoder().encode(value)
+    }
+
+    /// The value as a Swift type: `try value.converted(to: Int.self)`.
+    public func converted<T: ValueConvertible>(to type: T.Type = T.self) throws(Diagnostic) -> T {
+        do {
+            return try T(self)
+        } catch {
+            throw Diagnostic(kind: .runtime, message: "\(error)")
+        }
+    }
+}

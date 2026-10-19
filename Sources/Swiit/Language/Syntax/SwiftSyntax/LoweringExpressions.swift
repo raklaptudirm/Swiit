@@ -11,11 +11,6 @@ extension Lowering {
     }
 
     private mutating func expressionNode(_ expr: ExprSyntax) throws -> Expr {
-        // `$(…)`, `$name` and `async …` are the layer's, not Swift's.
-        if plugin != nil, isLayerExpression(expr),
-           let lowered = try layerExpression(at: expr.positionAfterSkippingLeadingTrivia.utf8Offset) {
-            return lowered
-        }
         // `o?.i.v`: what follows the `?` goes on only if `o` has a value.
         if let (core, depth) = optionalChainCore(expr) {
             if depth >= 2, chainPlaceholders[core.id] == nil { return try chain(expr, core) }
@@ -146,16 +141,6 @@ extension Lowering {
     // MARK: Literals
 
     private mutating func string(_ node: StringLiteralExprSyntax) throws -> Expr {
-        // `'a b'`: a raw string, which SwiftParser reads with its quotes missing.
-        if let open = node.unexpectedBetweenOpeningPoundsAndOpeningQuote?.first?.as(TokenSyntax.self), open.tokenKind == .singleQuote {
-            guard let close = node.unexpectedBetweenSegmentsAndClosingQuote?.first?.as(TokenSyntax.self), close.tokenKind == .singleQuote else {
-                throw SyntaxError.incomplete("unterminated string (line \(line(of: node)))")
-            }
-            accepted.insert(node.id)
-            extentHints.append(close.endPositionBeforeTrailingTrivia.utf8Offset)
-            let text = bytes[open.endPositionBeforeTrailingTrivia.utf8Offset..<close.positionAfterSkippingLeadingTrivia.utf8Offset]
-            return .literal(.string(String(decoding: text, as: UTF8.self)))
-        }
         // `"…"`, `"""…"""` and either with `#` delimiters, where an escape is `\#n`.
         let pounds = node.openingPounds?.text.count ?? 0
         let multiline = node.openingQuote.tokenKind == .multilineStringQuote
@@ -307,7 +292,7 @@ extension Lowering {
                node.arguments.count == 1, node.arguments.first?.label == nil, names()["Optional"] == nil || names()["Optional"] == .type {
                 // `Optional(x)`: x, as an optional.
                 callee = .variable(InternalName.some)
-            } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames, !isLayerExpression(ExprSyntax(reference)) {
+            } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames {
                 try checkKnown(reference, calling: true)
                 callee = self.reference(reference)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.declName.baseName.text == "init",

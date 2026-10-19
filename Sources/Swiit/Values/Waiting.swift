@@ -2,7 +2,7 @@ import Foundation
 
 /// What runs Swiit code, told when a function waits: the interpreter, which
 /// lets another task run meanwhile (Docs/async.md).
-public protocol WaitingHost: AnyObject {
+@_spi(Layer) public protocol WaitingHost: AnyObject {
     /// Runs `body`, a wait, letting other tasks run while it does.
     func wait(_ body: () -> Void)
     /// As `wait`, and `wake` is called when the task is cancelled meanwhile, to end the wait early.
@@ -26,7 +26,7 @@ extension WaitingHost {
 /// short (a sleep, a child process, a network call with a cancel handle) says how with `wake`, which is called when
 /// the task is cancelled: use `whileWaiting(wake:_:)` for it.
 /// The host belongs to the thread that runs the Swiit code calling it.
-public enum Waiting {
+@_spi(Layer) public enum Waiting {
     private final class Box {
         // Not weak: a weak reference gives the interpreter a side table, which slows every retain and release of
         // it (the whole evaluator) to the slow path. The host outlives the thread's use of it: it is set for
@@ -76,5 +76,17 @@ public enum Waiting {
         var result: T?
         host.waitForInput { result = body() }
         return result
+    }
+}
+
+extension Interpreter {
+    /// A host function that blocks says so, or it holds up every script task: the other tasks run while `wait` does.
+    public static func whileWaiting<T>(_ wait: () -> T) -> T {
+        Waiting.whileWaiting(wait)
+    }
+
+    /// As above, with how to cut the wait short when the run is cancelled.
+    public static func whileWaiting<T>(wake: @escaping () -> Void, _ wait: () -> T) -> T {
+        Waiting.whileWaiting(wake: wake, wait)
     }
 }

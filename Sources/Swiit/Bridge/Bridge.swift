@@ -7,7 +7,7 @@ import SystemPackage
 /// beside this file (see Scripts/bridge
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
-public enum Bridge {
+@_spi(Layer) public enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A snapshot, as
     /// libraries register while other interpreters read.
     public static var types: [String: BridgedType] { lock.withLock { table } }
@@ -72,17 +72,17 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-public final class BridgedTypeName: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class BridgedTypeName: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public init(_ name: String) { self.name = name }
     public var typeName: String { "type" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: Record? { nil }
-    public var description: String { name }
+    @_spi(Layer) public var description: String { name }
 }
 
-public struct BridgedType {
+@_spi(Layer) public struct BridgedType {
     /// `String`, `Substring`, `Array`.
     public let name: String
     /// A generic type's parameters: `Element` for Array.
@@ -138,7 +138,7 @@ public struct BridgedType {
     }
 }
 
-public struct BridgedMember {
+@_spi(Layer) public struct BridgedMember {
     /// A setter is a property's other half, for `p.extension = "md"`.
     public enum Kind { case method, property, initializer, setter }
 

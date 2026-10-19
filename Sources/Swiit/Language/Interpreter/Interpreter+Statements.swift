@@ -87,7 +87,7 @@ extension Interpreter {
     /// Deferred blocks, last first. One that fails is reported; the rest
     /// still run, as nothing can leave a `defer`. What they run isn't told to
     /// the host: cleaning up doesn't change how the block went.
-    public func runDeferred(_ blocks: [Program]) {
+    @_spi(Layer) public func runDeferred(_ blocks: [Program]) {
         let observer = statementFinished
         statementFinished = nil
         defer { statementFinished = observer }
@@ -102,7 +102,7 @@ extension Interpreter {
         }
     }
 
-    public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
+    @_spi(Layer) public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
         scopes.append(Scope(bindings))
         defer { scopes.removeLast() }
         try run(program)
@@ -280,7 +280,7 @@ extension Interpreter {
         }
     }
 
-    public func checkInterrupt() throws {
+    @_spi(Layer) public func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
         steps += 1
         // A task that is cancelled stops at its next step, even before it has begun: that is every step's.

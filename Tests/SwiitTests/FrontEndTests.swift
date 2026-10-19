@@ -82,13 +82,13 @@ private func isIncomplete(_ parse: () throws -> Program) -> Bool? {
 
 @Test func inputCutShortAsksForMore() {
     for source in incomplete {
-        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) } == true, Comment(rawValue: source))
+        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:]) } == true, Comment(rawValue: source))
     }
 }
 
 @Test func whatIsWrongIsRefused() {
     for source in wrong {
-        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil) } == false, Comment(rawValue: source))
+        #expect(isIncomplete { try SwiftSyntaxFrontEnd().parse(source, bound: [:]) } == false, Comment(rawValue: source))
     }
 }
 
@@ -116,13 +116,13 @@ private func goldenPrograms() throws -> [(name: String, source: String)] {
 }
 
 @Test func theFrontEndReadsAsTheHandWrittenParserDid() throws {
-    let interpreter = Interpreter(host: SwiitHost(), limits: Limits())
+    let interpreter = Interpreter(host: Interpreter.Host(), limits: Interpreter.Limits())
     let bound = interpreter.globalNames()
     // `UPDATE_GOLDENS=1` writes the file again from the front end as it is.
     if ProcessInfo.processInfo.environment["UPDATE_GOLDENS"] != nil {
         var records: [String] = []
         for (name, source) in try goldenPrograms() {
-            guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else { continue }
+            guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:]) else { continue }
             records.append("\(name)\u{1F}\(SwiftPrinter().source(lowered))")
         }
         try records.joined(separator: "\u{1E}").write(to: goldenURL(), atomically: true, encoding: .utf8)
@@ -133,7 +133,7 @@ private func goldenPrograms() throws -> [(name: String, source: String)] {
     var wrong: [String] = []
     for (name, tree) in golden {
         let source = try #require(sources[name])
-        guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:], plugin: nil) else {
+        guard let lowered = try? SwiftSyntaxFrontEnd().parse(source, bound: name.hasPrefix("#") ? bound : [:]) else {
             wrong.append("\(name): not read\n\(source.prefix(100))")
             continue
         }

@@ -8,11 +8,11 @@
 /// It is a reference: assigning through a `let` binding is allowed, as with a
 /// class in Swift. (A registered object is the Lua userdata with `__index` and
 /// `__newindex`; the same feature serves JSON as a real type.)
-public protocol DynamicObject: SwiitObject {
+public protocol DynamicObject: HostObject {
     /// What reading any member, or indexing by a String, gives.
-    var readType: TypeAnnotation { get }
+    var readType: ValueType { get }
     /// What assigning to a member takes; nil removes it, if that makes sense.
-    var writeType: TypeAnnotation { get }
+    var writeType: ValueType { get }
     /// The member called `name`; nothing when it has none.
     func read(_ name: String) throws -> Value
     func write(_ name: String, _ value: Value) throws
@@ -21,7 +21,7 @@ public protocol DynamicObject: SwiitObject {
 /// What the checker knows of a dynamic type, by its name: an object's members
 /// (`env`), or the members of plain values that a host types as one of its
 /// own (parsed JSON).
-public struct DynamicType {
+@_spi(Layer) public struct DynamicType {
     public var read: TypeAnnotation
     public var write: TypeAnnotation
     /// Set for values that aren't objects but plain values, read by name.
@@ -39,7 +39,7 @@ public struct DynamicType {
 /// into a call of the host's functions, so the values stay ordinary lists,
 /// records and scalars. Parsed JSON is one: `json.name`, `json[0]`,
 /// `json.port?.int`.
-public struct PlainDynamic {
+@_spi(Layer) public struct PlainDynamic {
     /// A function in scope, `field(value, key)`: the member or element, or nil.
     public var field: String
     /// The views of a value by name (`json.port?.int`): a function in scope that gives the value as that type, or nil.
@@ -71,8 +71,8 @@ public struct PlainDynamic {
 extension Interpreter {
     /// Binds `name` to a dynamic object in the outermost scope, and tells the
     /// checker the type of its members.
-    public func bind(_ name: String, to object: some DynamicObject) {
-        dynamicTypes[object.typeName] = DynamicType(read: object.readType, write: object.writeType)
+    @_spi(Layer) public func bind(_ name: String, to object: some DynamicObject) {
+        dynamicTypes[object.typeName] = DynamicType(read: TypeAnnotation(object.readType), write: TypeAnnotation(object.writeType))
         scopes[0].bindings[name] = Binding(value: .object(object), mutable: false)
     }
 }

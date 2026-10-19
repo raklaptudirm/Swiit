@@ -11,7 +11,7 @@ extension Expr {
 }
 
 extension Value {
-    public var typeName: String {
+    @_spi(Layer) public var typeName: String {
         switch self {
         case .nothing: "Nothing"
         case .bool: "Bool"
@@ -51,7 +51,7 @@ extension Value {
 
     /// This value as `type`, or nil if it doesn't fit. An Int passes as a
     /// Double, as an integer literal would in Swift.
-    public func conforming(to type: TypeAnnotation) -> Value? {
+    @_spi(Layer) public func conforming(to type: TypeAnnotation) -> Value? {
         switch (type, self) {
         // What stands for text is the text where a String is wanted, and a
         // Swift sequence of Strings (a command's output) is the list of them where a list is.
@@ -112,7 +112,7 @@ extension Value {
 
     /// A total order for sorting: numbers numerically (Int and Double
     /// together), then by kind for values of different kinds.
-    public func order(comparedTo other: Value) -> ComparisonResult {
+    @_spi(Layer) public func order(comparedTo other: Value) -> ComparisonResult {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }

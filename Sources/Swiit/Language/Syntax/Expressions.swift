@@ -39,9 +39,6 @@ import Foundation
     case literal(Value)
     case string([StringPart])
     case variable(String)
-    /// Syntax a layer over the core adds: the shell's `$name`, `$(…)` and
-    /// `async …` (Language/Syntax/SyntaxExtension.swift).
-    case extended(ExprExtensionBox)
     /// `try expr`, `try? expr` or `try! expr`.
     case attempt(Expr, TryKind)
     /// `await job`, or a bare `await` for the most recent job. Under `try`
@@ -163,7 +160,7 @@ extension BinaryOperator {
 }
 
 /// What a type parameter is in one call: `T` is `Int`.
-public struct TypeArgument: Hashable, Sendable {
+@_spi(Layer) public struct TypeArgument: Hashable, Sendable {
     @_spi(Layer) public var name: String
     @_spi(Layer) public var type: TypeAnnotation
     @_spi(Layer) public init(name: String, type: TypeAnnotation) { self.name = name; self.type = type }

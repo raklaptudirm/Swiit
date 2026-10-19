@@ -18,10 +18,10 @@ struct Leaf {
 }
 
 nonisolated(unsafe) var leaves: [String: Leaf] = [ // safe: the generator runs on one thread
-    "Int": Leaf(".int", { "try Int(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "Double": Leaf(".double", { "try Double(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "Bool": Leaf(".bool", { "try Bool(swiitValue: \($0))" }, { "\($0).swiitValue" }),
-    "String": Leaf(".string", { "try String(swiitValue: \($0))" }, { "\($0).swiitValue" }),
+    "Int": Leaf(".int", { "try Int(\($0))" }, { "\($0).value" }),
+    "Double": Leaf(".double", { "try Double(\($0))" }, { "\($0).value" }),
+    "Bool": Leaf(".bool", { "try Bool(\($0))" }, { "\($0).value" }),
+    "String": Leaf(".string", { "try String(\($0))" }, { "\($0).value" }),
     // Swiit's own value, passed as it is: what a function that lays values
     // out takes. Spelled `SwiitValue`, which a generic parameter called
     // `Value` (Dictionary's) can't be mistaken for.

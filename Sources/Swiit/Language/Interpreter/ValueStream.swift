@@ -3,7 +3,7 @@ import Foundation
 /// A pull-based stream of values between in-process pipeline stages. A
 /// stage only runs when downstream asks for its next item, so
 /// `… | first 5` stops upstream work early.
-public final class ValueStream {
+@_spi(Layer) public final class ValueStream {
     private let pull: () throws -> Value?
 
     public init(_ pull: @escaping () throws -> Value?) {

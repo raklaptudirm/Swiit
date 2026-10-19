@@ -75,4 +75,32 @@ extension Interpreter {
         let function = Function(name: member.name, parameters: [], returnType: nil, body: member.body)
         return try invoke(function, with: ["self": value])
     }
+
+    /// The Swift methods of a value named `name`, bound to it, looked up when it runs: what a call on a value whose type
+    /// the checker did not know (a closure's `$0` in a pipeline stage) finds. Nil if its type has none.
+    func bridgedMethods(_ name: String, of value: Value) -> Value? {
+        let typeName: String? = switch value {
+        case .string: "String"
+        case .int: "Int"
+        case .double: "Double"
+        case .bool: "Bool"
+        case .list: "Array"
+        case .dictionary: "Dictionary"
+        case .object(let box as SwiftValue): box.typeName
+        default: nil
+        }
+        guard let typeName else { return nil }
+        let candidates = (Bridge.types[typeName]?.members ?? []).filter {
+            $0.kind == .method && !$0.isStatic && !$0.isMutating && $0.name == name
+        }.compactMap { member -> Function? in
+            guard case .native(let call) = member.body else { return nil }
+            let body = FunctionBody.native { interpreter, arguments in
+                var arguments = arguments
+                arguments["self"] = value
+                return try call(interpreter, arguments)
+            }
+            return Function(name: member.name, parameters: member.parameters, returnType: nil, body: body)
+        }
+        return candidates.isEmpty ? nil : .function(OverloadSet(name: name, candidates: candidates))
+    }
 }

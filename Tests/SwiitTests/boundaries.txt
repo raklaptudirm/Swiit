@@ -14,6 +14,8 @@
 # What a command line is made of (flags, piped input), what a command gives
 # back and the files it lists, and how a terminal shows values. Each exits
 # when it moves to the shell (the agenda's "command-line vocabulary" item).
+# A symbol's parameter says whether it receives what is piped in (`isInput`): a host that has a pipeline asks.
+allow	Host/Embedding/Introspection.swift	commandline	11
 allow	Language/Syntax/Declarations.swift	commandline	8
 allow	Language/Syntax/SwiftPrinter.swift	commandline	4
 allow	Language/Syntax/TypeAnnotation.swift	display	14

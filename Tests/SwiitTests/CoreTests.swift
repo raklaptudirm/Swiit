@@ -6,10 +6,11 @@ import Testing
 /// What a script wrote and how it ended, run on an `Interpreter` alone: no
 /// `Shell`, no layer, only a host that collects output.
 private func runOnTheCore(_ source: String) -> (output: String, problem: String?) {
-    var output = ""
-    let host = SwiitHost(output: OutputSink(write: { output += $0; return true }),
-                         error: OutputSink(write: { output += "err: " + $0; return true }))
-    let interpreter = Interpreter(host: host, limits: Limits())
+    let captured = Capture()
+    var output: String { captured.text }
+    let host = Interpreter.Host(output: captured.sink,
+                         error: OutputSink({ captured.add("err: " + $0); return true }))
+    let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     switch interpreter.parse(source) {
     case .failure(let error):
         return (output, "syntax error: \(error)")
@@ -18,7 +19,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
             let checked = try TypeChecker(interpreter: interpreter).check(program)
             // As a prompt would: each top-level value statement is shown.
             _ = try interpreter.run(checked) { value, _, _ in
-                output += value.debugDescription + "\n"
+                captured.add(value.debugDescription + "\n")
             }
             return (output, nil)
         } catch let error as TypeError {
@@ -78,7 +79,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 @Test func closuresKeepOnlyWhatTheyUse() throws {
     let swish = Interpreter()
     let value = try onLargeStack {
-        try swish.eval("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
+        try swish.evaluate("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
     }
     #expect(value == .int(2))
     guard case .function(let closure as Function)? = swish.lookup("h")?.value else {
@@ -95,6 +96,6 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 /// a 1 matches whatever c is.
 @Test func aCasesGuardIsItsLastPatterns() throws {
     let source = "func kind(_ n: Int) -> String { switch n { case 1, 2 where false: return \"small\"; default: return \"other\" } }; [kind(1), kind(2)]"
-    let value = try onLargeStack { try Interpreter().eval(source) }
+    let value = try onLargeStack { try Interpreter().evaluate(source) }
     #expect(value == .list([.string("small"), .string("other")]))
 }

@@ -27,7 +27,7 @@ extension Interpreter {
         return declared ? moduleName + "." + name : name
     }
 
-    func describing(_ value: Value, debug: Bool = false, type: TypeAnnotation? = nil) throws -> String {
+    @_spi(Layer) public func describing(_ value: Value, debug: Bool = false, type: TypeAnnotation? = nil) throws -> String {
         // What the type knows: an optional is `Optional(…)` or `nil`, and so is one inside a collection.
         switch type {
         case .optional(let wrapped)?:

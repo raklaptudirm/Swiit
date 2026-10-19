@@ -194,7 +194,7 @@ import Foundation
     @_spi(Layer) public func expression(_ node: Expr) -> Expr {
         let rewritten: Expr
         switch node {
-        case .literal, .variable, .filePath, .extended:
+        case .literal, .variable, .filePath:
             rewritten = node
         case .string(let parts):
             rewritten = .string(parts.map { part in

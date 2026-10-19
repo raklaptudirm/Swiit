@@ -3,7 +3,7 @@
 /// `swiit-bridge`, with the Swiit declarations a host adds to the prelude: the
 /// core's own is `Library.standard`; a host has others (the shell's `ls` and
 /// `ps` are `SwishShellLibrary`).
-public struct Library {
+@_spi(Layer) public struct Library {
     /// Its structs and enums, as Swiit source, declared with the prelude.
     public var types: String
     public var functions: [BridgedMember]

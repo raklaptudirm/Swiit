@@ -1,7 +1,7 @@
-@testable import Swiit
+@testable @_spi(Layer) import Swiit
 import Testing
 
-private enum Level: String, CaseIterable, SwiitEnum {
+private enum Level: String, CaseIterable, ScriptEnum {
     case low, high
 }
 
@@ -11,12 +11,12 @@ private struct Entry: Encodable {
 }
 
 @Test func swiftValuesConvert() throws {
-    #expect(try [Int](swiitValue: .list([.int(1), .int(2)])) == [1, 2])
-    #expect(try Int?(swiitValue: .nothing) == nil)
-    #expect(try Double(swiitValue: .int(3)) == 3)
-    #expect(try [String](swiitValue: SwiftValue.make(["a", "b"] as ArraySlice<String>, as: "ArraySlice")) == ["a", "b"])
-    #expect([String].swiitType == .list(.string))
-    #expect(throws: SwiitError.self) { try Int(swiitValue: .string("x")) }
+    #expect(try [Int](.list([.int(1), .int(2)])) == [1, 2])
+    #expect(try Int?(.nothing) == nil)
+    #expect(try Double(.int(3)) == 3)
+    #expect(try [String](SwiftValue.make(["a", "b"] as ArraySlice<String>, as: "ArraySlice")) == ["a", "b"])
+    #expect([String].valueType == .list(.string))
+    #expect(throws: SwiitError.self) { try Int(.string("x")) }
 }
 
 @Test func swishEnumsBridgeTheirCases() throws {
@@ -25,8 +25,8 @@ private struct Entry: Encodable {
     #expect(type.name == "Level")
     #expect(type.cases.map(\.name) == ["low", "high"])
     #expect(type.cases.map(\.rawValue) == [.string("low"), .string("high")])
-    #expect(Level.high.swiitValue == .enumValue(EnumValue(type: type, name: "high")))
-    #expect(try Level(swiitValue: .enumValue(EnumValue(type: type, name: "low"))) == .low)
+    #expect(Level.high.value == .enumValue(EnumValue(type: type, name: "high")))
+    #expect(try Level(.enumValue(EnumValue(type: type, name: "low"))) == .low)
     #expect([Level].swiitEnums.map(\.name) == ["Level"])
 }
 
@@ -34,5 +34,5 @@ private struct Entry: Encodable {
     #expect(try Value(returning: ()) == .nothing)
     #expect(try Value(returning: [1, 2]) == .list([.int(1), .int(2)]))
     #expect(try Value(returning: Entry(name: "a", size: 2)) == .record(Record(["name": .string("a"), "size": .int(2)])))
-    #expect(try Value(returning: Level.low) == Level.low.swiitValue)
+    #expect(try Value(returning: Level.low) == Level.low.value)
 }

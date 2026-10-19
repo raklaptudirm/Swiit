@@ -1,7 +1,7 @@
 import Foundation
 
 /// A class a program declares.
-public final class ClassType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ClassType: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public let superclass: ClassType?
     let isActor: Bool
@@ -87,11 +87,11 @@ public final class ClassType: SwiitObject, @unchecked Sendable { // safe: its st
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: Record? { nil }
-    public var description: String { name }
+    @_spi(Layer) public var description: String { name }
 }
 
 /// A value of a class: shared by every variable that holds it.
-public final class ClassInstance: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ClassInstance: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     let type: ClassType
     var storage: [String: Value]
     /// What runs when the last reference goes (the class's `deinit`s), if any.

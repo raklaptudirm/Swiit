@@ -31,7 +31,7 @@ func withFieldReader<T>(_ shell: Interpreter, _ body: () throws -> T) throws -> 
 
 /// A case of a Swift enum from a Swiit value: the case of that name, among
 /// all the enum's.
-public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
+@_spi(Layer) public func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
         throw SwiitError("expected a \(T.self), not \(value.typeName)")
     }
@@ -45,7 +45,7 @@ func pathValue(_ path: String) -> Value {
 
 /// What a record's field is that encoding loses: an enum is encoded as its
 /// raw text and a path as an object, and Swiit holds them as what they are.
-public enum FieldKind {
+@_spi(Layer) public enum FieldKind {
     case enumeration(String)
     /// A Swift type held as it is, of this name: a `FilePath`, a `FileSize`.
     case boxed(String)
@@ -55,7 +55,7 @@ public enum FieldKind {
 /// them and all there: the encoder leaves out a nil, and the declaration says
 /// it's a field. A field of `patches` is read from the Swift value itself and
 /// made what it is declared as.
-public func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
+@_spi(Layer) public func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
     guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
     var record = Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
@@ -79,13 +79,13 @@ extension Interpreter {
     /// What a standard library function that asks for it is lent: the host's,
     /// if it lends one (the shell's carries what was entered before), else
     /// the output's traits and how values display.
-    public var context: HostContext {
+    @_spi(Layer) public var context: HostContext {
         contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled)
     }
 }
 
 /// A list's items, or a Swift sequence's (a command's output is its lines).
-public func bridgeList(_ value: Value) throws -> [Value] {
+@_spi(Layer) public func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
     default:
@@ -95,13 +95,13 @@ public func bridgeList(_ value: Value) throws -> [Value] {
 }
 
 /// A dictionary as Swift's, which is what it holds.
-public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
+@_spi(Layer) public func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
     guard case .dictionary(let dictionary) = value else { throw SwiitError("expected a dictionary, not \(value.typeName)") }
     return dictionary.dictionary
 }
 
 /// Swift's dictionary as Swiit's.
-public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
+@_spi(Layer) public func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
     .dictionary(ValueDictionary(dictionary))
 }
 
@@ -168,7 +168,7 @@ func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> V
 extension Interpreter {
     /// The items a value gives as they come, which can throw: a `Flow`'s,
     /// one at a time; nil for anything else.
-    public static func flow(of value: Value) -> Flow<Value>? {
+    @_spi(Layer) public static func flow(of value: Value) -> Flow<Value>? {
         guard case .object(let box as SwiftValue) = value else { return nil }
         if let group = box.value as? TaskGroupBox { return Flow { try group.next() } }
         return box.value as? Flow<Value>
@@ -177,7 +177,7 @@ extension Interpreter {
     /// The items of a list, or a Swift sequence Swiit
     /// holds (a command's output) (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
-    public static func items(of value: Value) -> AnyIterator<Value>? {
+    @_spi(Layer) public static func items(of value: Value) -> AnyIterator<Value>? {
         switch value {
         case .list(let items):
             return AnyIterator(items.makeIterator())
@@ -221,14 +221,14 @@ extension Interpreter {
     value == .nothing ? nil : try convert(value)
 }
 
-public func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
+@_spi(Layer) public func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
     { arguments in try interpreter.call(function, with: arguments) }
 }
 
 /// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic
 /// algorithms that need Comparable elements work on them.
 extension Value: Comparable {
-    public static func < (lhs: Value, rhs: Value) -> Bool {
+    @_spi(Layer) public static func < (lhs: Value, rhs: Value) -> Bool {
         // A type of the program's with its own `<` (Comparable) says which comes first.
         if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
            case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs]) { return less }

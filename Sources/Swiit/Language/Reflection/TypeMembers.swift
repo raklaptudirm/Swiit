@@ -4,7 +4,7 @@ import Foundation
 /// from the bridge (with Swiit's own extensions, and for a sequence the
 /// shell's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
-public struct TypeDescription {
+@_spi(Layer) public struct TypeDescription {
     /// What a member is; the order of the cases is the order `help` shows
     /// them in.
     public enum Kind: String, CaseIterable {
@@ -47,7 +47,7 @@ public struct TypeDescription {
 
 extension Interpreter {
     /// The type named `name`, if Swiit knows one by that name.
-    public func typeDescription(named name: String) -> TypeDescription? {
+    @_spi(Layer) public func typeDescription(named name: String) -> TypeDescription? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
         case .object(let type as StructType)?: return describe(type)
@@ -57,7 +57,7 @@ extension Interpreter {
     }
 
     /// The name `typeDescription` knows a value's type by.
-    public func describedTypeName(of value: Value) -> String? {
+    @_spi(Layer) public func describedTypeName(of value: Value) -> String? {
         if case .record(let record) = value { return record.typeName }
         return TypeChecker(interpreter: self).type(of: value).swiftType?.name
     }
@@ -143,7 +143,7 @@ extension Interpreter {
     /// What `help Type` shows: its members, grouped by kind, each with its
     /// signature (highlighted as Swift) and, on the line below, what its
     /// documentation says.
-    public func helpLines(for type: TypeDescription) -> [AttributedString] {
+    @_spi(Layer) public func helpLines(for type: TypeDescription) -> [AttributedString] {
         var lines = [AttributedString(joining: [.init(type.kind, DisplayStyle.keyword), .init(" "), .init(type.name, DisplayStyle.type)])]
         let groups = Dictionary(grouping: type.members, by: \.kind)
         for kind in TypeDescription.Kind.allCases {

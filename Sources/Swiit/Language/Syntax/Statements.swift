@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - AST
 
-public struct Program: Equatable, Sendable {
+@_spi(Layer) public struct Program: Equatable, Sendable {
     @_spi(Layer) public var statements: [Statement]
     /// Each statement's line in the source, 1-based, for error messages.
     var lines: [Int] = []
@@ -50,8 +50,6 @@ public struct Program: Equatable, Sendable {
     /// `infix operator ** : MultiplicationPrecedence`, `precedencegroup …`: kept, so later
     /// programs read operators by it; `key` names what it declares.
     case operatorDeclaration(key: String, source: String)
-    /// Syntax a layer over the core adds: the shell's `env.NAME = value` and
-    /// `import Tools from "./Tools"` (Language/Syntax/SyntaxExtension.swift).
     /// `defer { … }`: runs when the block it's in ends, however it ends,
     /// last deferred first. At a script's top level, when the script ends.
     case deferBlock(Program)

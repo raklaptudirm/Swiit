@@ -6,12 +6,12 @@ import Testing
 // `async let`, `for await`.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
 }
 
 private func eval(_ source: String) throws -> Value {
     let swish = interpreter()
-    return try onLargeStack { try swish.eval(source) }
+    return try onLargeStack { try swish.evaluate(source) }
 }
 
 private func typeError(_ source: String) -> String? {
@@ -119,8 +119,8 @@ private func typeError(_ source: String) -> String? {
             try bridgeAsync(shell) { () async throws -> Value in
                 let f = bridgeAsyncClosure(shell, args["f"]!)
                 try await Task.sleep(nanoseconds: 100_000_000)
-                let once = try Int(swiitValue: try await f([.int(10)]))
-                return .int(try Int(swiitValue: try await f([.int(once)])))
+                let once = try Int(try await f([.int(10)]))
+                return .int(try Int(try await f([.int(once)])))
             }
         },
         effect: .async
@@ -128,7 +128,7 @@ private func typeError(_ source: String) -> String? {
     swish.scopes[0].declare(twice, named: "twice")
     let source = "let t = Task { await twice { $0 + 1 } }; let u = Task { await twice { $0 * 2 } }; [await t.value, await u.value]"
     let start = Date()
-    #expect(try onLargeStack { try swish.eval(source) } == .list([.int(12), .int(40)]))
+    #expect(try onLargeStack { try swish.evaluate(source) } == .list([.int(12), .int(40)]))
     // Not timed closely: CI's machines are slow to start threads and tasks.
     #expect(Date().timeIntervalSince(start) < 10)
     #expect(typeError("func g() -> Int { 1 }; g()") == nil)

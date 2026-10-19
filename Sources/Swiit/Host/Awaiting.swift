@@ -2,7 +2,7 @@
 /// What `await` waits for, which a host registers: the type of the operand
 /// (a handle the host made), the type it gives, and how to wait. Without one,
 /// `await` is refused. (A handle protocol is the real exit; docs/Design/async.md.)
-public struct Awaiting {
+@_spi(Layer) public struct Awaiting {
     public var operand: TypeAnnotation
     public var result: TypeAnnotation
     /// Waits for the handle, or with no operand for the latest one; `throwing`
@@ -29,7 +29,7 @@ public struct Awaiting {
 extension Interpreter {
     /// Binds `name` in the outermost scope to a value worked out each time it
     /// is read, and tells the checker its type.
-    public func bind(computed name: String, type: TypeAnnotation, _ value: @escaping () -> Value) {
+    @_spi(Layer) public func bind(computed name: String, type: TypeAnnotation, _ value: @escaping () -> Value) {
         scopes[0].bindings[name] = Binding(computed: value)
         staticTypes[name] = type
     }

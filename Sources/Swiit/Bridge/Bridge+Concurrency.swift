@@ -7,7 +7,7 @@ import SwiitStandardLibrary
 // Docs/async.md, step 7.
 
 /// A `Task`'s value: the interpreter's task it started.
-public final class TaskBox: @unchecked Sendable { // safe: only immutable state
+@_spi(Layer) public final class TaskBox: @unchecked Sendable { // safe: only immutable state
     public let handle: TaskHandle
     init(_ handle: TaskHandle) { self.handle = handle }
 }
@@ -95,7 +95,7 @@ extension Bridge {
         member(.method, "sleep", isStatic: true, parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
                returns: .void, throwing: true, effect: .async,
                summary: "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.") { shell, arguments in
-            let nanoseconds = try Int(swiitValue: arguments["duration"]!)
+            let nanoseconds = try Int(arguments["duration"]!)
             try shell.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },
@@ -110,7 +110,7 @@ extension Bridge {
 extension Interpreter {
     /// Waits until `deadline`, letting other tasks run; a cancelled task
     /// stops waiting, with a CancellationError.
-    public func sleep(until deadline: Date) throws {
+    @_spi(Layer) public func sleep(until deadline: Date) throws {
         let cancellation = task.cancellation
         let condition = NSCondition()
         suspend(wake: {

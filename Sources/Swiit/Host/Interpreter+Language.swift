@@ -5,14 +5,14 @@ extension Interpreter {
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
-        func declare(_ export: ExportedFunction) {
+        func declare(_ export: HostFunction) {
             scopes[0].declare(hostFunction(export), named: export.name)
         }
-        let condition = ExportedParameter(label: nil, name: "condition", type: .bool)
-        let message = ExportedParameter(label: nil, name: "message", type: .string, defaultValue: .string(""))
+        let condition = HostFunction.Parameter(label: nil, name: "condition", type: .bool)
+        let message = HostFunction.Parameter(label: nil, name: "message", type: .string, defaultValue: .string(""))
         for (name, summary) in [("assert", "Stops with the message unless the condition holds."),
                                 ("precondition", "Stops with the message unless the condition holds.")] {
-            declare(ExportedFunction(
+            declare(HostFunction(
                 name: name, summary: summary, parameters: [condition, message], returnType: nil, isThrowing: false,
                 call: { arguments in
                     guard case .bool(true)? = arguments["condition"] else {
@@ -24,7 +24,7 @@ extension Interpreter {
             ))
         }
         for name in ["fatalError", "preconditionFailure"] {
-            declare(ExportedFunction(
+            declare(HostFunction(
                 name: name, summary: "Stops with the message.",
                 parameters: [message], returnType: nil, isThrowing: false,
                 call: { arguments in
@@ -125,26 +125,26 @@ extension Interpreter {
             ("atan", atan), ("exp", exp), ("log", log), ("log2", log2), ("log10", log10), ("fabs", { Swift.abs($0) }),
         ]
         for (name, function) in unary {
-            declare(ExportedFunction(
+            declare(HostFunction(
                 name: name, summary: "\(name) of a Double.",
-                parameters: [ExportedParameter(label: nil, name: "x", type: .double)], returnType: .double, isThrowing: false,
+                parameters: [HostFunction.Parameter(label: nil, name: "x", type: .double)], returnType: .double, isThrowing: false,
                 call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0)) }
             ))
         }
         let binary: [(String, @Sendable (Double, Double) -> Double)] = [("pow", pow), ("atan2", atan2), ("fmod", fmod), ("hypot", hypot)]
         for (name, function) in binary {
-            declare(ExportedFunction(
+            declare(HostFunction(
                 name: name, summary: "\(name) of two Doubles.",
-                parameters: [ExportedParameter(label: nil, name: "x", type: .double), ExportedParameter(label: nil, name: "y", type: .double)],
+                parameters: [HostFunction.Parameter(label: nil, name: "x", type: .double), HostFunction.Parameter(label: nil, name: "y", type: .double)],
                 returnType: .double, isThrowing: false,
                 call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0, arguments["y"]?.asDouble ?? 0)) }
             ))
         }
         // `zip(a, b)`: pairs of what two sequences hold, as far as the shorter goes. Swift's
         // lazy `Zip2Sequence` is held as the array it would give.
-        declare(ExportedFunction(
+        declare(HostFunction(
             name: "zip", summary: "Pairs of the items of two sequences, up to the end of the shorter.",
-            parameters: [ExportedParameter(label: nil, name: "first", type: .any), ExportedParameter(label: nil, name: "second", type: .any)],
+            parameters: [HostFunction.Parameter(label: nil, name: "first", type: .any), HostFunction.Parameter(label: nil, name: "second", type: .any)],
             returnType: .list(.any), isThrowing: false,
             call: { arguments in
                 func items(_ value: Value?) throws -> AnyIterator<Value> {
@@ -164,10 +164,10 @@ extension Interpreter {
             }
         ))
         // `abs`, `min` and `max`, for the numbers and strings there are.
-        for (type, name) in [(SwiitType.int, "Int"), (SwiitType.double, "Double")] {
-            declare(ExportedFunction(
+        for (type, name) in [(ValueType.int, "Int"), (ValueType.double, "Double")] {
+            declare(HostFunction(
                 name: "abs", summary: "The magnitude of an \(name).",
-                parameters: [ExportedParameter(label: nil, name: "x", type: type)], returnType: type, isThrowing: false,
+                parameters: [HostFunction.Parameter(label: nil, name: "x", type: type)], returnType: type, isThrowing: false,
                 call: { arguments in
                     switch arguments["x"] {
                     case .int(let n)?:
@@ -179,12 +179,12 @@ extension Interpreter {
                 }
             ))
         }
-        for type in [SwiitType.int, .double, .string] {
+        for type in [ValueType.int, .double, .string] {
             for (name, picksLess) in [("min", true), ("max", false)] {
-                declare(ExportedFunction(
+                declare(HostFunction(
                     name: name, summary: "The \(picksLess ? "smallest" : "largest") of its arguments.",
-                    parameters: [ExportedParameter(label: nil, name: "x", type: type), ExportedParameter(label: nil, name: "y", type: type),
-                                 ExportedParameter(label: nil, name: "rest", type: type, variadic: true)],
+                    parameters: [HostFunction.Parameter(label: nil, name: "x", type: type), HostFunction.Parameter(label: nil, name: "y", type: type),
+                                 HostFunction.Parameter(label: nil, name: "rest", type: type, variadic: true)],
                     returnType: type, isThrowing: false,
                     call: { arguments in
                         var values = [arguments["x"] ?? .nothing, arguments["y"] ?? .nothing]
@@ -206,12 +206,12 @@ extension Interpreter {
         }
         // `stride(from:to:by:)` and `stride(from:through:by:)`, for Int and Double.
         for (end, inclusive) in [("to", false), ("through", true)] {
-            for (type, name) in [(SwiitType.int, "Int"), (SwiitType.double, "Double")] {
-                declare(ExportedFunction(
+            for (type, name) in [(ValueType.int, "Int"), (ValueType.double, "Double")] {
+                declare(HostFunction(
                     name: "stride", summary: "The values from `from` to `\(end)` `\(end == "to" ? "(not including it)" : "")`, `by` apart, as \(name)s.",
-                    parameters: [ExportedParameter(label: "from", name: "from", type: type),
-                                 ExportedParameter(label: end, name: end, type: type),
-                                 ExportedParameter(label: "by", name: "by", type: type)],
+                    parameters: [HostFunction.Parameter(label: "from", name: "from", type: type),
+                                 HostFunction.Parameter(label: end, name: end, type: type),
+                                 HostFunction.Parameter(label: "by", name: "by", type: type)],
                     returnType: .list(type), isThrowing: false,
                     call: { arguments in
                         guard let start = arguments["from"], let stop = arguments[end], let step = arguments["by"] else { return .list([]) }

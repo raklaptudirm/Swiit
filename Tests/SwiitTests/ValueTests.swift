@@ -1,4 +1,4 @@
-@testable import Swiit
+@testable @_spi(Layer) import Swiit
 import Testing
 
 @Test func rendersScalars() {
@@ -36,7 +36,7 @@ private struct Shout: StandsForText, Sendable {
     #expect(Value.int(1).text == nil)
 }
 
-private final class Thing: SwiitObject {
+private final class Thing: HostObject {
     var typeName: String { "Thing" }
     var memberNames: [String] { ["size"] }
     var description: String { "a thing" }

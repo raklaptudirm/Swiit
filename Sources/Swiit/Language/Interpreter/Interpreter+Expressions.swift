@@ -5,7 +5,7 @@ extension Interpreter {
 
     func evaluate(_ expr: Expr) throws -> Value {
         switch expr {
-        case .literal, .string, .variable, .extended, .filePath, .keyPath, .ifExpression:
+        case .literal, .string, .variable, .filePath, .keyPath, .ifExpression:
             return try evaluateName(expr)
         case .list, .record, .tuple:
             return try evaluateCollection(expr)
@@ -31,8 +31,6 @@ extension Interpreter {
             let value = binding.value
             if case .object(let reference as WeakReference) = value { return reference.target.map { .object($0) } ?? .nothing }
             return value
-        case .extended:
-            throw RuntimeError.unrewritten
         case .filePath:
             return .string(file ?? "<prompt>")
         case .ifExpression(let node):
@@ -413,7 +411,7 @@ extension Interpreter {
     }
 
     /// Record fields first, then the few members values have.
-    public func member(_ name: String, of value: Value) throws -> Value {
+    @_spi(Layer) public func member(_ name: String, of value: Value) throws -> Value {
         if case .enumValue(let enumValue) = value, name == "rawValue" {
             guard let raw = enumValue.rawValue else { throw RuntimeError("\(enumValue.type.name) has no raw values") }
             return raw
@@ -434,6 +432,7 @@ extension Interpreter {
         if case .object(let object as DynamicObject) = value { return try object.read(name) }
         if case .object(let object) = value, name != "description" && name != "debugDescription" {
             if object is SwiftValue, let property = try bridgedProperty(name, of: value) { return property }
+            if object is SwiftValue, let method = bridgedMethods(name, of: value) { return method }
             guard let member = object.member(name) else {
                 throw RuntimeError("\(object.typeName) has no member '\(name)'")
             }
@@ -481,6 +480,7 @@ extension Interpreter {
         default:
             // Swift's own properties, as a key path like `\.count` reads them.
             if let property = try bridgedProperty(name, of: value) { return property }
+            if let method = bridgedMethods(name, of: value) { return method }
             throw RuntimeError("\(value.typeName) has no member '\(name)'")
         }
     }

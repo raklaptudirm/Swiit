@@ -6,7 +6,7 @@ import Foundation
 extension Interpreter {
     /// Installs the builtins: the core's own, and the host's `libraries`
     /// (bridged functions and types, and declarations for the prelude).
-    public func installBuiltinFunctions(libraries added: [Library] = []) {
+    @_spi(Layer) public func installBuiltinFunctions(libraries added: [Library] = []) {
         libraries = [.standard] + added
         for library in added { Bridge.register(library.bridged) }
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)

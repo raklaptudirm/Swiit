@@ -1,5 +1,5 @@
 import Foundation
-@testable import Swiit
+@testable @_spi(Layer) import Swiit
 
 // Foundation's AttributedString for the Markdown tests, in a file of its own:
 // Foundation can't be imported next to Testing here.

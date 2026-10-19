@@ -5,7 +5,7 @@ import Testing
 // programs are Swift, so what comes out is also what `swiftc` would accept.
 
 private func tree(_ source: String) throws -> Program {
-    try SwiftSyntaxFrontEnd().parse(source, bound: [:], plugin: nil)
+    try SwiftSyntaxFrontEnd().parse(source, bound: [:])
 }
 
 private func printed(_ source: String) throws -> String {

@@ -26,9 +26,6 @@ extension Lowering {
         if let node = expr.as(SwitchExprSyntax.self) {
             return .switchStatement(try switchStatement(node))
         }
-        if let node = expr.as(InfixOperatorExprSyntax.self), let pipeline = try valuePipeline(node) {
-            return .expression(pipeline)
-        }
         // `_ = f()`: the value, thrown away, as `let _ = f()` does.
         if let node = expr.as(InfixOperatorExprSyntax.self), node.operator.is(AssignmentExprSyntax.self),
            node.leftOperand.is(DiscardAssignmentExprSyntax.self) {
@@ -104,10 +101,6 @@ extension Lowering {
     mutating func condition(element: ConditionElementSyntax, isGuard: Bool = false) throws -> IfStatement.Condition {
         switch element.condition {
         case .expression(let expr):
-            // A command as a condition (`if grep -q x f { … }`), read by the layer.
-            if let island = try layerCondition(at: element.positionAfterSkippingLeadingTrivia.utf8Offset, isGuard: isGuard) {
-                return .expression(island.condition)
-            }
             return .expression(try expression(expr))
         case .optionalBinding(let binding):
             guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { throw unsupported("this binding", binding) }

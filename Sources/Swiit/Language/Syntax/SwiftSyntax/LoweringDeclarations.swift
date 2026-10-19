@@ -881,7 +881,7 @@ extension Lowering {
                 }
                 return .generic(nestedNames[name] ?? name, arguments)
             }
-            if identifier.genericArgumentClause != nil, declaredTypes.contains(nestedNames[name] ?? name) || bound[name] == .type && TypeAnnotation.spelled(name) == nil && Bridge.types[name] == nil {
+            if identifier.genericArgumentClause != nil, !facts.protocols.contains(name), declaredTypes.contains(nestedNames[name] ?? name) || bound[name] == .type && TypeAnnotation.spelled(name) == nil && Bridge.types[name] == nil {
                 // A generic type of the program's own: its arguments only say what it holds.
                 return .named(nestedNames[name] ?? name)
             }
@@ -965,17 +965,6 @@ extension Lowering {
         let collector = NameCollector()
         collector.walk(node)
         var names = collector.names
-        // The words in a `$(…)` are the layer's, and a closure that has one needs what they name (a function, a variable).
-        let start = node.positionAfterSkippingLeadingTrivia.utf8Offset, end = node.endPositionBeforeTrailingTrivia.utf8Offset
-        for range in blanked where range.lowerBound >= start && range.upperBound <= end {
-            var word = ""
-            for byte in bytes[range] + [0x20] {
-                let character = Character(UnicodeScalar(byte))
-                if character.isLetter || character.isNumber || character == "_" { word.append(character) } else {
-                    if !word.isEmpty { names.insert(word); word = "" }
-                }
-            }
-        }
         return names
     }
 }

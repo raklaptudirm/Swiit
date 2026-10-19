@@ -39,6 +39,8 @@ enum SPISurface {
     /// is a decision, made by writing its line.
     static func differences() throws -> [String] {
         if ProcessInfo.processInfo.environment["SWIIT_SPI_SHRINK"] != nil { try dropStaleLines() }
+        // For a deliberate change of what is SPI (a demotion from public API): the ledger is written from the source.
+        if ProcessInfo.processInfo.environment["SWIIT_SPI_WRITE"] != nil { try writeLedger() }
         let listed = try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n")
             .filter { !$0.hasPrefix("#") && !$0.isEmpty }.map(String.init)
         var remaining = Dictionary(listed.map { ($0, 1) }, uniquingKeysWith: +)
@@ -56,6 +58,11 @@ enum SPISurface {
         return problems
     }
 
+    private static func writeLedger() throws {
+        let header = try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n", omittingEmptySubsequences: false).prefix { $0.hasPrefix("#") }
+        try (header.map(String.init) + (try current())).joined(separator: "\n").appending("\n").write(to: ledger, atomically: true, encoding: .utf8)
+    }
+
     private static func dropStaleLines() throws {
         var remaining = Dictionary(try current().map { ($0, 1) }, uniquingKeysWith: +)
         var kept: [Substring] = []
@@ -67,5 +74,36 @@ enum SPISurface {
             }
         }
         try kept.joined(separator: "\n").write(to: ledger, atomically: true, encoding: .utf8)
+    }
+}
+
+/// The public API's top level: the types an embedder meets, and nothing else (Docs/Design/swiit-public-api.md, §3). Each is
+/// documented there; a new one is a decision, made by adding its name here and to the design.
+enum PublicSurface {
+    static let allowed: Set<String> = [
+        "Interpreter", "Value", "Record", "ValueDictionary", "EnumValue", "Callable", "ValueType", "HostObject", "DynamicObject",
+        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol",
+    ]
+
+    private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        .appendingPathComponent("Sources/Swiit")
+    private static let declaration = try! NSRegularExpression(pattern:
+        #"^(?:@\w+(?:\([^)]*\))?\s+)*public\s+(?:final\s+|indirect\s+)*(?:class|struct|enum|protocol|typealias|func|var|let)\s+([A-Za-z_]\w*)"#,
+        options: [.anchorsMatchLines])
+
+    /// The top-level `public` declarations (not `@_spi`), by name, outside the standard library's target and the generated glue.
+    static func current() throws -> Set<String> {
+        var names: Set<String> = []
+        let files = FileManager.default.enumerator(atPath: sources.path)!.compactMap { $0 as? String }
+            .filter { $0.hasSuffix(".swift") && !$0.hasPrefix("Library/") && !$0.contains("Generated/") }
+        for file in files {
+            let text = try String(contentsOf: sources.appendingPathComponent(file), encoding: .utf8)
+            for match in declaration.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
+                let line = text[Range(match.range, in: text)!]
+                if line.contains("@_spi") { continue }
+                names.insert(String(text[Range(match.range(at: 1), in: text)!]))
+            }
+        }
+        return names
     }
 }

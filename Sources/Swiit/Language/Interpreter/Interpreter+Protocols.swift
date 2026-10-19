@@ -1,7 +1,7 @@
 import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-public final class ProtocolType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ProtocolType: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]
@@ -57,7 +57,7 @@ extension Interpreter {
     }
 
     /// Whether `object` is one a host handed in, not one the language made.
-    func isHostObject(_ object: any SwiitObject) -> Bool { !(object is LanguageObject) }
+    func isHostObject(_ object: any HostObject) -> Bool { !(object is LanguageObject) }
 
     /// What each of `declared` takes in, with them.
     private func conformances(taking declared: [String]) -> [String] {

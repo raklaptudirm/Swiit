@@ -23,11 +23,11 @@ private let parityCases: [ParityCase] = {
 /// What the program printed, or why it didn't run.
 private func printed(_ source: String) -> (output: String, problem: String?) {
     nonisolated(unsafe) var output = ""
-    let host = SwiitHost(output: OutputSink(write: { output += $0; return true }),
+    let host = Interpreter.Host(output: OutputSink(write: { output += $0; return true }),
                          error: OutputSink(write: { output += "err: " + $0; return true }))
-    let interpreter = Interpreter(host: host, limits: Limits())
+    let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     do {
-        _ = try interpreter.eval(source)
+        _ = try interpreter.evaluate(source)
         return (output, nil)
     } catch let diagnostic as Diagnostic {
         return (output, "\(diagnostic.kind) error: \(diagnostic.message)")
@@ -70,6 +70,6 @@ func runTheGivenSource() {
     let source = ProcessInfo.processInfo.environment["PARITY_RUN"]!
     let result = printed(source)
     print("OUTPUT:", result.output, "PROBLEM:", result.problem ?? "none")
-    let interpreter = Interpreter(host: SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })), limits: Limits())
-    do { _ = try interpreter.eval(source) } catch let diagnostic as Diagnostic { print("RENDERED:\n" + diagnostic.rendered(in: source)) } catch {}
+    let interpreter = Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })), limits: Interpreter.Limits())
+    do { _ = try interpreter.evaluate(source) } catch let diagnostic as Diagnostic { print("RENDERED:\n" + diagnostic.rendered(in: source)) } catch {}
 }

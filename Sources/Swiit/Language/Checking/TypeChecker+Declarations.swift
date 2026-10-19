@@ -139,9 +139,7 @@ extension TypeChecker {
         // What never comes back.
         case .expression(.call(.variable("fatalError"), _)), .expression(.call(.variable("preconditionFailure"), _)):
             return true
-        case .expression(.extended(let box)) where orExits:
-            return box.node.leavesProgram
-        case .expression(let expr) where orExits && exitingExpressions.contains(expr):
+        case .expression(.call(.variable("exitShell"), _)) where orExits:
             return true
         default:
             return false

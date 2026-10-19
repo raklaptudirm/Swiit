@@ -1,4 +1,5 @@
 import Foundation
+import Swiit
 
 /// Checks the files headed for the embeddable core against the boundary
 /// rules (Docs/boundaries.md). A support file because it reads source
@@ -34,7 +35,7 @@ enum Boundaries {
         ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
     ]
 
-    /// The operating system, which the core reaches only through `SwiitHost`.
+    /// The operating system, which the core reaches only through `Interpreter.Host`.
     static let operatingSystem = #"\b(stdoutFD|stderrFD|STDIN_FILENO|STDOUT_FILENO|STDERR_FILENO|writeAll|getenv|setenv|unsetenv|isatty|ioctl|termios|waitpid|posix_spawn|fork|execv|execvp|kill|sigaction|ProcessInfo|FileManager|dlopen|dlsym|getpgrp|tcsetpgrp|chdir|getcwd|currentDirectoryPath|takeInterruptSignal|takeInterrupt|FileHandle|DispatchSemaphore|DispatchQueue|Thread)\b|\benv\(|\bsignal\(|\bpipe\(|\bProcess\("#
 
     private static let here = URL(fileURLWithPath: #filePath)
@@ -65,7 +66,7 @@ enum Boundaries {
 
                 let reached = matches(operatingSystem, in: source).filter { !(permitted[file]?.contains($0) ?? false) }
                 if !reached.isEmpty {
-                    problems.append("\(file): reaches the operating system directly (\(Set(reached).sorted().joined(separator: ", "))); go through SwiitHost")
+                    problems.append("\(file): reaches the operating system directly (\(Set(reached).sorted().joined(separator: ", "))); go through Interpreter.Host")
                 }
                 for (group, pattern) in groups {
                     let count = matches(pattern, in: source).count
@@ -98,4 +99,13 @@ enum Boundaries {
         let range = NSRange(text.startIndex..., in: text)
         return expression.matches(in: text, range: range).compactMap { Range($0.range, in: text).map { String(text[$0]) } }
     }
+}
+
+/// What a host's output sinks write to, in tests: the sinks are `Sendable`.
+final class Capture: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = ""
+    var text: String { lock.withLock { value } }
+    func add(_ more: String) { lock.withLock { value += more } }
+    var sink: OutputSink { OutputSink { [self] in add($0); return true } }
 }

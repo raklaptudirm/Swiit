@@ -5,7 +5,7 @@
 /// shell does its standard output. The prompt is the first task, and for now
 /// the only one (Docs/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
-public final class TaskContext {
+@_spi(Layer) public final class TaskContext {
     /// Variable scopes, innermost last. The outermost two are the global
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
@@ -72,7 +72,7 @@ extension Interpreter {
     }
 
     /// Asks the current task to stop, from any thread.
-    public var cancellation: Cancellation { task.cancellation }
+    @_spi(Layer) public var cancellation: Cancellation { task.cancellation }
 }
 
 extension Interpreter {
@@ -84,7 +84,7 @@ extension Interpreter {
     /// `wake` ends the wait early if the task is cancelled meanwhile (by
     /// stopping the programs it waits for, say); the task then stops at its
     /// next step.
-    public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
+    @_spi(Layer) public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
         let mine = task
         let token = wake.map { mine.cancellation.onRequest($0) }
         defer { token.map { mine.cancellation.remove($0) } }
@@ -96,7 +96,7 @@ extension Interpreter {
 
     /// Closes the scopes deeper than `depth` in the current task: the tasks
     /// they started are cancelled and waited for, as a scope closing does.
-    public func closeTasks(above depth: Int) {
+    @_spi(Layer) public func closeTasks(above depth: Int) {
         var closing: [TaskHandle] = []
         while let last = task.children.last, last.depth > depth {
             closing.append(task.children.removeLast().handle)
@@ -110,7 +110,7 @@ extension Interpreter {
     /// Runs `body` as the main task, holding the lock: how the host enters
     /// the interpreter (a background task may have run last, and left itself
     /// current).
-    public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
+    @_spi(Layer) public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
         lock.acquire()
         let previous = task
         let previousHost = Waiting.host
@@ -128,16 +128,16 @@ extension Interpreter {
 /// A function that waits (a host's, a library's) lets other tasks run: a
 /// plain wait is a `suspend`, and a read of the input waits first for the
 /// task's turn at it, which the host says (`inputTurn`).
-extension Interpreter: WaitingHost {
-    public func wait(_ body: () -> Void) {
+@_spi(Layer) extension Interpreter: WaitingHost {
+    @_spi(Layer) public func wait(_ body: () -> Void) {
         suspend { body() }
     }
 
-    public func wait(wake: @escaping () -> Void, _ body: () -> Void) {
+    @_spi(Layer) public func wait(wake: @escaping () -> Void, _ body: () -> Void) {
         suspend(wake: wake) { body() }
     }
 
-    public func waitForInput(_ body: () -> Void) {
+    @_spi(Layer) public func waitForInput(_ body: () -> Void) {
         if let inputTurn { inputTurn(body) } else { suspend { body() } }
     }
 }

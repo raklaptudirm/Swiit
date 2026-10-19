@@ -5,7 +5,7 @@ import Foundation
 /// the checker and to you; its members are bridged (see
 /// Docs/swift-interop.md). It compares, hashes and sorts as the Swift
 /// value does, when its type can.
-public final class SwiftValue: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class SwiftValue: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let value: Any
     /// Its Swift type, as Swiit writes it: `Substring`.
     public let typeName: String

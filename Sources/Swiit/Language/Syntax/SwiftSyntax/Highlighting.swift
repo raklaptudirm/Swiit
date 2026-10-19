@@ -7,34 +7,27 @@ import SwiftSyntax
 extension Lowering {
     /// The spans of the source, in characters, as the layer records them.
     func highlightSpans() -> [Span] {
-        let classifier = TokenClassifier(consumed: consumed)
+        let classifier = TokenClassifier()
         classifier.walk(tree)
         let swift = classifier.spans.compactMap { span -> Span? in
             let start = characterOf[min(span.range.lowerBound, characterOf.count - 1)]
             let end = characterOf[min(span.range.upperBound, characterOf.count - 1)]
             return start < end ? Span(range: start..<end, kind: span.kind) : nil
         }
-        return swift + layerSpans
+        return swift
     }
 }
 
 /// Spans in bytes, for the tokens outside what the plug-in read.
 private final class TokenClassifier: SyntaxVisitor {
     var spans: [Span] = []
-    let consumed: [Range<Int>]
 
-    init(consumed: [Range<Int>]) {
-        self.consumed = consumed
+    init() {
         super.init(viewMode: .sourceAccurate)
-    }
-
-    private func isConsumed(_ offset: Int) -> Bool {
-        consumed.contains { $0.contains(offset) }
     }
 
     private func add(_ kind: SpanKind, _ node: some SyntaxProtocol) {
         let start = node.positionAfterSkippingLeadingTrivia.utf8Offset
-        guard !isConsumed(start) else { return }
         spans.append(Span(range: start..<node.endPositionBeforeTrailingTrivia.utf8Offset, kind: kind))
     }
 
@@ -47,7 +40,7 @@ private final class TokenClassifier: SyntaxVisitor {
     // `@flag("n")`: the attribute is a keyword, its letter a string.
     override func visit(_ node: AttributeSyntax) -> SyntaxVisitorContinueKind {
         let start = node.atSign.positionAfterSkippingLeadingTrivia.utf8Offset
-        if !isConsumed(start) {
+        do {
             spans.append(Span(range: start..<node.attributeName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .keyword))
         }
         if let arguments = node.arguments { walk(arguments) }
@@ -69,7 +62,7 @@ private final class TokenClassifier: SyntaxVisitor {
     // `try?` and `try!`, mark and all.
     override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
         let start = node.tryKeyword.positionAfterSkippingLeadingTrivia.utf8Offset
-        if !isConsumed(start) {
+        do {
             let end = (node.questionOrExclamationMark ?? node.tryKeyword).endPositionBeforeTrailingTrivia.utf8Offset
             spans.append(Span(range: start..<end, kind: .keyword))
         }
@@ -80,7 +73,7 @@ private final class TokenClassifier: SyntaxVisitor {
     // `as?` and `as!`, mark and all.
     override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
         let start = node.asKeyword.positionAfterSkippingLeadingTrivia.utf8Offset
-        if !isConsumed(start) {
+        do {
             let end = (node.questionOrExclamationMark ?? node.asKeyword).endPositionBeforeTrailingTrivia.utf8Offset
             spans.append(Span(range: start..<end, kind: .keyword))
         }
@@ -93,7 +86,7 @@ private final class TokenClassifier: SyntaxVisitor {
     override func visit(_ node: MemberAccessExprSyntax) -> SyntaxVisitorContinueKind {
         if node.base == nil {
             let start = node.period.positionAfterSkippingLeadingTrivia.utf8Offset
-            if !isConsumed(start) {
+            do {
                 spans.append(Span(range: start..<node.declName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .constant))
             }
         }
@@ -115,7 +108,7 @@ private final class TokenClassifier: SyntaxVisitor {
             let length = piece.sourceLength.utf8Length
             switch piece {
             case .lineComment, .blockComment, .docLineComment, .docBlockComment:
-                if !isConsumed(offset) { found.append(Span(range: offset..<offset + length, kind: .comment)) }
+                found.append(Span(range: offset..<offset + length, kind: .comment))
             default: break
             }
             offset += length

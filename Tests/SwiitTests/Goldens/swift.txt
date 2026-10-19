@@ -566,12 +566,7 @@ f()#228Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { 
 s.count
 s.contains(2)
 s.sorted()
-s.union([9]).sorted()#232[1, 2, 3, 1] | prefix(while: { $0 < 3 })#234let j = try from(.json, ["{\"server\": {\"port\": 8080}, \"tags\": [\"a\", \"b\"], \"on\": true}"])
-j.server?.port?.int ?? 1
-j.missing?.port?.int ?? 1
-j["tags"]?[1]?.string
-j.tags?.array?.count
-j.on?.bool#236let s = Set([1, 2])
+s.union([9]).sorted()#232[1, 2, 3, 1] | prefix(while: { $0 < 3 })#236let s = Set([1, 2])
 s.isSubset(of: 1 ... 5)
 s.intersection(Set([2, 3]))
 Set("hello").count#237struct Counter: Equatable {
@@ -595,9 +590,7 @@ Counter.step
 Counter.make(3)
 Counter.next#239let s: Set<String> = Set(["a"])
 s.contains("a")
-Set([1]) == Set([1])#240let j = try from(.json, ["{\"server\": {\"port\": 8080}, \"tags\": [\"a\", \"b\"], \"on\": true}"])
-j.server?.port?.string == nil
-j.nothing?.isNull#242struct Counter: Equatable {
+Set([1]) == Set([1])#242struct Counter: Equatable {
     static let zero = Counter(n: 0)
     static let step = 2
     static var made = 0

@@ -1,7 +1,7 @@
 import Foundation
 
 /// A type, as written in a declaration and as the checker works it out.
-public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
+@_spi(Layer) public indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
     case any, bool, int, double, string
     /// A record whose fields aren't known: a builtin's row, until the
     /// builtins declare their types.
@@ -136,7 +136,7 @@ extension TypeAnnotation {
 /// Whether a function is `async`, as `throws` says whether it throws
 /// (Docs/async.md, "Types and effects"). Only Swift's own `async`: a
 /// layer's waits, like the shell's `$(…)`, are blocking calls, not effects.
-public enum Effect: Equatable, Sendable {
+@_spi(Layer) public enum Effect: Equatable, Sendable {
     case sync
     /// Declared `async`: a call to it is marked with `await`, in an async context.
     case async

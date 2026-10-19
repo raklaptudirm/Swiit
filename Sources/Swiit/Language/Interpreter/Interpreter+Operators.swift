@@ -159,7 +159,7 @@ extension Interpreter {
         // Swift values that order themselves (an index, a date).
         if case .object(let a as SwiftValue) = lhs, case .object(let b as SwiftValue) = rhs,
            [.less, .lessEqual, .greater, .greaterEqual].contains(op), let ordered = a.isLess(than: b) {
-            let equal = a.identity == b.identity
+            let equal = a.objectIdentity == b.objectIdentity
             switch op {
             case .less: return .bool(ordered)
             case .lessEqual: return .bool(ordered || equal)

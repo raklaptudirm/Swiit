@@ -31,16 +31,26 @@ struct Symbol: Decodable {
     struct Location: Decodable { struct Position: Decodable { let line: Int }; let position: Position }
     let location: Location?
 
+    /// The documentation's lines. A declaration that starts with an attribute (`@_spi(Layer)`) has the attribute's `@` in the
+    /// last line, which the compiler's range takes in.
+    private var docLines: [String] {
+        (docComment?.lines ?? []).map { line in
+            var text = line.text
+            if text.hasSuffix("\n@") { text.removeLast(2) }
+            return text.trimmingCharacters(in: .whitespaces)
+        }
+    }
+
     /// Its documentation's first paragraph, on one line: what `help` shows.
     var summary: String {
-        let lines = (docComment?.lines ?? []).map { $0.text.trimmingCharacters(in: .whitespaces) }
+        let lines = docLines
         return lines.drop { $0.isEmpty }.prefix { !$0.isEmpty && !$0.hasPrefix("- ") }.joined(separator: " ")
     }
 
     /// Its `- Parameter name: text` lines, for `help`'s flags.
     var parameterDocs: [String: String] {
         var docs: [String: String] = [:]
-        for line in (docComment?.lines ?? []).map({ $0.text.trimmingCharacters(in: .whitespaces) }) {
+        for line in docLines {
             guard line.hasPrefix("- Parameter "), let colon = line.firstIndex(of: ":") else { continue }
             let name = line[line.index(line.startIndex, offsetBy: 12)..<colon].trimmingCharacters(in: .whitespaces)
             docs[name] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)

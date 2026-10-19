@@ -2,7 +2,7 @@ import Foundation
 
 /// How `help` is colored: with the roles `DisplayStyle` names, the colors the
 /// highlighter gives the same things, so a signature reads as it would in code.
-public enum HelpStyle {
+@_spi(Layer) public enum HelpStyle {
     /// A section's title.
     public static func heading(_ title: String) -> AttributedString {
         AttributedString(joining: [.init(title, .label)])

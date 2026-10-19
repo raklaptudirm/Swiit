@@ -4,7 +4,7 @@ import Foundation
 /// named after their type, arrays become lists, `Date` and what converts itself (`FileSize`) keep
 /// their meaning. Most library model types already conform, so they show up
 /// in Swiit with no bridge code.
-public struct ValueEncoder {
+@_spi(Layer) public struct ValueEncoder {
     public init() {}
 
     public func encode<T: Encodable>(_ value: T) throws -> Value {
@@ -17,7 +17,7 @@ public struct ValueEncoder {
 extension Value {
     /// A best-effort `Value` for anything, from its `Mirror`: for types that
     /// aren't `Encodable`, enough to display them and pick fields out.
-    public init(reflecting subject: Any) {
+    @_spi(Layer) public init(reflecting subject: Any) {
         self = Value.reflect(subject, depth: 0)
     }
 
@@ -29,7 +29,7 @@ extension Value {
         case let double as Double: return .double(double)
         case let string as String: return .string(string)
         case let date as Date: return .date(date)
-        case let convertible as any SwiitConvertible: return convertible.swiitValue
+        case let convertible as any ValueConvertible: return convertible.value
         case let url as URL: return .string(url.isFileURL ? url.path : url.absoluteString)
         case let integer as any BinaryInteger: return Int(exactly: integer).map(Value.int) ?? .double(Double(integer))
         case let float as any BinaryFloatingPoint: return .double(Double(float))
@@ -88,7 +88,7 @@ private final class Slot {
     static func encode<T: Encodable>(_ value: T, into slot: Slot, codingPath: [any CodingKey]) throws {
         switch value {
         case let date as Date: slot.value = .date(date)
-        case let convertible as any SwiitConvertible: slot.value = convertible.swiitValue
+        case let convertible as any ValueConvertible: slot.value = convertible.value
         case let url as URL: slot.value = .string(url.isFileURL ? url.path : url.absoluteString)
         case let decimal as Decimal: slot.value = .double(NSDecimalNumber(decimal: decimal).doubleValue)
         default:

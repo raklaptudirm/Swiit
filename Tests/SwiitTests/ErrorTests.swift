@@ -5,12 +5,12 @@ import Testing
 // `catch` clauses with patterns.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
 }
 
 private func eval(_ source: String) throws -> Value {
     let swish = interpreter()
-    return try onLargeStack { try swish.eval(source) }
+    return try onLargeStack { try swish.evaluate(source) }
 }
 
 private func typeError(_ source: String) -> String? {

@@ -11,7 +11,7 @@ extension Bridge {
             name: "String", genericParameters: [],
             conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:], "Sequence": [:]],
             associatedTypes: ["CharacterView": .string, "Element": .named("Character"), "ExtendedGraphemeClusterLiteralType": .string, "IndexDistance": .int, "StringLiteralType": .string, "SubSequence": .named("Substring"), "UnicodeScalarLiteralType": .string],
-            parse: nil, literal: { textLiteral(String.self, $0).map { $0.swiitValue } }, arrayLiteral: nil,
+            parse: nil, literal: { textLiteral(String.self, $0).map { $0.value } }, arrayLiteral: nil,
             members: [
                 member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84
             ]
@@ -47,7 +47,7 @@ extension Bridge {
             name: "Int", genericParameters: [],
             conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
             associatedTypes: ["IntegerLiteralType": .int, "SIMDMaskScalar": .int, "Stride": .int],
-            parse: { Int($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
+            parse: { Int($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
                 member194, member195, member196, member197, member198, member199, member200, member201, member202, member203, member204, member205, member206, member207, member208, member209, member210, member211, member212, member213, member214, member215, member216, member217, member218, member219, member220, member221, member222, member223, member224, member225, member226
             ]
@@ -56,7 +56,7 @@ extension Bridge {
             name: "Double", genericParameters: [],
             conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
             associatedTypes: ["Exponent": .int, "FloatLiteralType": .double, "Magnitude": .double, "Stride": .double],
-            parse: { Double($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
+            parse: { Double($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
                 member227, member228, member229, member230, member231, member232, member233, member234, member235, member236, member237, member238, member239, member240, member241, member242, member243, member244, member245, member246, member247, member248, member249, member250, member251, member252, member253, member254, member255, member256, member257, member258, member259, member260, member261, member262, member263, member264, member265, member266, member267, member268, member269, member270, member271, member272, member273, member274, member275, member276, member277, member278, member279, member280, member281, member282, member283, member284, member285
             ]
@@ -65,7 +65,7 @@ extension Bridge {
             name: "Bool", genericParameters: [],
             conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
             associatedTypes: ["BooleanLiteralType": .bool],
-            parse: { Bool($0).map { $0.swiitValue } }, literal: nil, arrayLiteral: nil,
+            parse: { Bool($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
                 member286, member287, member288, member289, member290, member291, member292, member293
             ]
@@ -152,7 +152,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(try SwiftValue.unbox(Character.self, args["c"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -166,10 +166,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.write(try String(swiitValue: args["other"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.write(try String(args["other"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -181,9 +181,9 @@ extension Bridge {
                     discardableResult: false, summary: "The hash value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -195,8 +195,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.dropLast(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -209,8 +209,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.suffix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -223,7 +223,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")]) })
                 return .list(result)
                     }
@@ -237,8 +237,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.dropFirst(try Int(swiitValue: args["k"]!))
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.dropFirst(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -251,8 +251,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -265,8 +265,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.prefix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -279,8 +279,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -293,8 +293,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result: [Substring] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result: [Substring] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list(result.map { SwiftValue.make($0, as: "Substring") })
                     }
                 )
@@ -307,8 +307,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result: [Substring] = receiver.split(separator: try SwiftValue.unbox(Character.self, args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
+                        let receiver: String = try String(args["self"]!)
+                let result: [Substring] = receiver.split(separator: try SwiftValue.unbox(Character.self, args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
                 return .list(result.map { SwiftValue.make($0, as: "Substring") })
                     }
                 )
@@ -321,7 +321,7 @@ extension Bridge {
                     discardableResult: false, summary: "The last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.last
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
@@ -335,8 +335,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -349,7 +349,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Character] = receiver.shuffled()
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
@@ -363,8 +363,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = String(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(swiitValue: args["count"]!))
-                return result.swiitValue
+                        let result = String(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(args["count"]!))
+                return result.value
                     }
                 )
 
@@ -377,7 +377,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(try bridgeSequence(args["elements"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -391,10 +391,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.append(try SwiftValue.unbox(Character.self, args["newElement"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -408,10 +408,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.append(contentsOf: try bridgeSequence(args["newElements"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -425,10 +425,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.removeFirst(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.removeFirst(try Int(args["k"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -442,10 +442,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 let result = receiver.removeFirst()
-                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.swiitValue : .nothing])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -459,10 +459,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -476,10 +476,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.reserveCapacity(try Int(args["n"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -493,10 +493,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 let result = receiver.popLast()
-                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), mover == nil ? receiver.swiitValue : .nothing])
+                return .list([(result.map { SwiftValue.make($0, as: "Character") } ?? .nothing), mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -510,10 +510,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 let result = receiver.removeLast()
-                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.swiitValue : .nothing])
+                return .list([SwiftValue.make(result, as: "Character"), mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -527,10 +527,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.removeLast(try Int(swiitValue: args["k"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.removeLast(try Int(args["k"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -542,9 +542,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -558,10 +558,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -573,7 +573,7 @@ extension Bridge {
                     discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 try receiver.forEach({ (a0: Character) throws -> Void in _ = try bridgeClosure(shell, args["body"]!)([SwiftValue.make(a0, as: "Character")]) })
                 return .nothing
                     }
@@ -587,8 +587,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -601,8 +601,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -615,8 +615,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -629,7 +629,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the minimum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.min()
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
@@ -643,7 +643,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the maximum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.max()
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
@@ -657,9 +657,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
+                return result.value
                     }
                 )
 
@@ -671,9 +671,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -685,9 +685,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
+                return result.value
                     }
                 )
 
@@ -699,9 +699,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -713,9 +713,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -727,9 +727,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -741,9 +741,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -755,9 +755,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -769,9 +769,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(Character.self, args["element"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -783,9 +783,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -797,7 +797,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: Character) throws -> Value in try bridgeClosure(shell, args["nextPartialResult"]!)([a0, SwiftValue.make(a1, as: "Character")]) })
                 return result
                     }
@@ -811,7 +811,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try bridgeSequence(try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list(result)
                     }
@@ -825,7 +825,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in bridgeOptional(try bridgeClosure(shell, args["transform"]!)([SwiftValue.make(a0, as: "Character")])) { $0 } })
                 return .list(result)
                     }
@@ -839,7 +839,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Character] = receiver.sorted()
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
@@ -853,8 +853,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
                 )
@@ -867,7 +867,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a random element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.randomElement()
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
@@ -881,7 +881,7 @@ extension Bridge {
                     discardableResult: false, summary: "The first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.first
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
@@ -895,9 +895,9 @@ extension Bridge {
                     discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -910,7 +910,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -923,7 +923,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(try SwiftValue.unbox(Unicode.Scalar.self, args["scalar"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -935,8 +935,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the given string value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = String(stringLiteral: try String(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = String(stringLiteral: try String(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -948,9 +948,9 @@ extension Bridge {
                     discardableResult: false, summary: "A representation of the string that is suitable for debugging.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -962,9 +962,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a lowercase version of the string.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.lowercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -976,9 +976,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns an uppercase version of the string.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.uppercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -990,9 +990,9 @@ extension Bridge {
                     discardableResult: false, summary: "The value of this string.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1004,9 +1004,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of characters in a string.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1018,9 +1018,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.isContiguousUTF8
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1034,10 +1034,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.makeContiguousUTF8()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1049,8 +1049,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new string representing the given string repeated the specified number of times.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = String(repeating: try String(swiitValue: args["repeatedValue"]!), count: try Int(swiitValue: args["count"]!))
-                return result.swiitValue
+                        let result = String(repeating: try String(args["repeatedValue"]!), count: try Int(args["count"]!))
+                return result.value
                     }
                 )
 
@@ -1062,9 +1062,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether a string has no characters.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1076,9 +1076,9 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.hasPrefix(try String(swiitValue: args["prefix"]!))
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.hasPrefix(try String(args["prefix"]!))
+                return result.value
                     }
                 )
 
@@ -1090,9 +1090,9 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.hasSuffix(try String(swiitValue: args["suffix"]!))
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.hasSuffix(try String(args["suffix"]!))
+                return result.value
                     }
                 )
 
@@ -1106,10 +1106,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.append(try String(swiitValue: args["other"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.append(try String(args["other"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1123,10 +1123,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.append(contentsOf: try String(swiitValue: args["newElements"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.append(contentsOf: try String(args["newElements"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1140,10 +1140,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.append(contentsOf: try SwiftValue.unbox(Substring.self, args["newElements"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1155,7 +1155,7 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.max(args["x"]!, args["y"]!)
                 return result
                     }
@@ -1169,7 +1169,7 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.min(args["x"]!, args["y"]!)
                 return result
                     }
@@ -1184,7 +1184,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(try SwiftValue.unbox(Substring.self, args["substring"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1197,7 +1197,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(describing: args["instance"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1210,7 +1210,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = String(reflecting: args["subject"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1222,9 +1222,9 @@ extension Bridge {
                     discardableResult: false, summary: "The text with every `target` replaced by `replacement`.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.replacingOccurrences(of: try String(swiitValue: args["target"]!), with: try String(swiitValue: args["replacement"]!))
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.replacingOccurrences(of: try String(args["target"]!), with: try String(args["replacement"]!))
+                return result.value
                     }
                 )
 
@@ -1236,9 +1236,9 @@ extension Bridge {
                     discardableResult: false, summary: "The parts of the text between the `separator`s.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result: [String] = receiver.components(separatedBy: try String(swiitValue: args["separator"]!))
-                return .list(result.map { $0.swiitValue })
+                        let receiver: String = try String(args["self"]!)
+                let result: [String] = receiver.components(separatedBy: try String(args["separator"]!))
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -1250,7 +1250,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Character] = receiver.reversed()
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
@@ -1264,9 +1264,9 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = receiver.contains(try String(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: String = try String(args["self"]!)
+                let result = receiver.contains(try String(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -1278,9 +1278,9 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(Substring.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1292,8 +1292,8 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                        let receiver: String = try String(args["self"]!)
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1308,10 +1308,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1323,7 +1323,7 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result = receiver.trimmingPrefix(try bridgeSequence(args["prefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
                 return SwiftValue.make(result, as: "Substring")
                     }
@@ -1339,10 +1339,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: String = try String(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: String = try String(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.trimPrefix(try bridgeSequence(args["prefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -1354,7 +1354,7 @@ extension Bridge {
                     discardableResult: false, summary: "The items without repeats, first ones kept.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [Character] = receiver.uniqued()
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
@@ -1368,9 +1368,9 @@ extension Bridge {
                     discardableResult: false, summary: "Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the array it would give.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: String = try String(swiitValue: args["self"]!)
+                        let receiver: String = try String(args["self"]!)
                 let result: [(offset: Int, element: Character)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", SwiftValue.make(t.1, as: "Character"))] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", SwiftValue.make(t.1, as: "Character"))] } })
                     }
                 )
 
@@ -1384,7 +1384,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.isContiguousUTF8
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1414,7 +1414,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropLast(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1428,7 +1428,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.suffix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1456,7 +1456,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.dropFirst(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropFirst(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1470,7 +1470,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1484,7 +1484,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.prefix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1498,7 +1498,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1512,7 +1512,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result: [Substring] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result: [Substring] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list(result.map { SwiftValue.make($0, as: "Substring") })
                     }
                 )
@@ -1526,7 +1526,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result: [Substring] = receiver.split(separator: try SwiftValue.unbox(Character.self, args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
+                let result: [Substring] = receiver.split(separator: try SwiftValue.unbox(Character.self, args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
                 return .list(result.map { SwiftValue.make($0, as: "Substring") })
                     }
                 )
@@ -1554,7 +1554,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -1581,7 +1581,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Substring(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(swiitValue: args["count"]!))
+                        let result = Substring(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(args["count"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -1645,7 +1645,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                receiver.removeFirst(try Int(swiitValue: args["k"]!))
+                receiver.removeFirst(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -1679,7 +1679,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -1696,7 +1696,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
+                receiver.reserveCapacity(try Int(args["n"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -1747,7 +1747,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                receiver.removeLast(try Int(swiitValue: args["k"]!))
+                receiver.removeLast(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -1764,7 +1764,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -1792,7 +1792,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -1806,7 +1806,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -1820,7 +1820,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return (result.map { SwiftValue.make($0, as: "Character") } ?? .nothing)
                     }
                 )
@@ -1862,8 +1862,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
-                return result.swiitValue
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
+                return result.value
                     }
                 )
 
@@ -1877,7 +1877,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1890,8 +1890,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
-                return result.swiitValue
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([SwiftValue.make(a0, as: "Character"), a1])) })
+                return result.value
                     }
                 )
 
@@ -1905,7 +1905,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1918,8 +1918,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
-                return result.swiitValue
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -1933,7 +1933,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try SwiftValue.unbox(Character.self, $0) })
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1946,8 +1946,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -1960,8 +1960,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -1975,7 +1975,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(Character.self, args["element"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -1988,8 +1988,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -2058,7 +2058,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "Character"), SwiftValue.make(a1, as: "Character")])) })
                 return .list(result.map { SwiftValue.make($0, as: "Character") })
                     }
                 )
@@ -2087,7 +2087,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2115,7 +2115,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2129,7 +2129,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2156,7 +2156,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.base
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2170,7 +2170,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2184,7 +2184,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2198,7 +2198,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2210,7 +2210,7 @@ extension Bridge {
                     discardableResult: false, summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Substring(try String(swiitValue: args["content"]!))
+                        let result = Substring(try String(args["content"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -2225,7 +2225,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.lowercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2239,7 +2239,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.uppercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2252,8 +2252,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
-                return result.swiitValue
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([SwiftValue.make(a0, as: "Character")])) })
+                return result.value
                     }
                 )
 
@@ -2269,7 +2269,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                receiver.write(try String(swiitValue: args["other"]!))
+                receiver.write(try String(args["other"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -2282,7 +2282,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Substring(unicodeScalarLiteral: try String(swiitValue: args["value"]!))
+                        let result = Substring(unicodeScalarLiteral: try String(args["value"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -2295,7 +2295,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Substring(extendedGraphemeClusterLiteral: try String(swiitValue: args["value"]!))
+                        let result = Substring(extendedGraphemeClusterLiteral: try String(args["value"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -2308,7 +2308,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the given string value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Substring(stringLiteral: try String(swiitValue: args["value"]!))
+                        let result = Substring(stringLiteral: try String(args["value"]!))
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -2336,8 +2336,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.hasPrefix(try String(swiitValue: args["prefix"]!))
-                return result.swiitValue
+                let result = receiver.hasPrefix(try String(args["prefix"]!))
+                return result.value
                     }
                 )
 
@@ -2350,8 +2350,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.hasSuffix(try String(swiitValue: args["suffix"]!))
-                return result.swiitValue
+                let result = receiver.hasSuffix(try String(args["suffix"]!))
+                return result.value
                     }
                 )
 
@@ -2364,8 +2364,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = receiver.contains(try String(swiitValue: args["other"]!))
-                return result.swiitValue
+                let result = receiver.contains(try String(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -2379,7 +2379,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(Substring.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2392,7 +2392,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return SwiftValue.make(result, as: "Substring")
                     }
                 )
@@ -2409,7 +2409,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Substring = try SwiftValue.unbox(Substring.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Substring")) }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([SwiftValue.make(a0, as: "Character")])) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Substring") : .nothing])
                     }
                 )
@@ -2469,7 +2469,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
                 let result: [(offset: Int, element: Character)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", SwiftValue.make(t.1, as: "Character"))] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", SwiftValue.make(t.1, as: "Character"))] } })
                     }
                 )
 
@@ -2507,7 +2507,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a character from a single-character string.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Character(try String(swiitValue: args["s"]!))
+                        let result = Character(try String(args["s"]!))
                 return SwiftValue.make(result, as: "Character")
                     }
                 )
@@ -2522,7 +2522,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2536,7 +2536,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2550,7 +2550,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2564,7 +2564,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isASCII
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2578,7 +2578,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isWhitespace
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2592,7 +2592,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isNewline
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2606,7 +2606,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isNumber
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2620,7 +2620,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isWholeNumber
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2634,7 +2634,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.wholeNumberValue
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -2648,7 +2648,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isHexDigit
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2662,7 +2662,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.hexDigitValue
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -2676,7 +2676,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isLetter
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2690,7 +2690,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.uppercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2704,7 +2704,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.lowercased()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2718,7 +2718,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isUppercase
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2732,7 +2732,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isLowercase
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2746,7 +2746,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isCased
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2760,7 +2760,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isSymbol
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2774,7 +2774,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isMathSymbol
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2788,7 +2788,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isCurrencySymbol
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2802,7 +2802,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
                 let result = receiver.isPunctuation
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2841,8 +2841,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
-                let result = receiver.escaped(asASCII: try Bool(swiitValue: args["forceASCII"]!))
-                return result.swiitValue
+                let result = receiver.escaped(asASCII: try Bool(args["forceASCII"]!))
+                return result.value
                     }
                 )
 
@@ -2856,7 +2856,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
                 let result = receiver.isASCII
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2870,7 +2870,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2884,7 +2884,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2896,7 +2896,7 @@ extension Bridge {
                     discardableResult: false, summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Unicode.Scalar(try String(swiitValue: args["description"]!))
+                        let result = Unicode.Scalar(try String(args["description"]!))
                 return (result.map { SwiftValue.make($0, as: "Unicode.Scalar") } ?? .nothing)
                     }
                 )
@@ -2911,7 +2911,7 @@ extension Bridge {
                         _ = shell
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2923,7 +2923,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a Unicode scalar with the specified numeric value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Unicode.Scalar(try Int(swiitValue: args["v"]!))
+                        let result = Unicode.Scalar(try Int(args["v"]!))
                 return (result.map { SwiftValue.make($0, as: "Unicode.Scalar") } ?? .nothing)
                     }
                 )
@@ -2938,10 +2938,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Int = try Int(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: Int = try Int(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.negate()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -2954,7 +2954,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2966,9 +2966,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the quotient and remainder of this value divided by the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.quotientAndRemainder(dividingBy: try Int(swiitValue: args["rhs"]!))
-                return bridgeTuple(result) { t in [("quotient", t.0.swiitValue), ("remainder", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.quotientAndRemainder(dividingBy: try Int(args["rhs"]!))
+                return bridgeTuple(result) { t in [("quotient", t.0.value), ("remainder", t.1.value)] }
                     }
                 )
 
@@ -2980,9 +2980,9 @@ extension Bridge {
                     discardableResult: false, summary: "A textual representation of this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -2994,8 +2994,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new integer value from the given string.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int(try String(swiitValue: args["description"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let result = Int(try String(args["description"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -3008,7 +3008,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int.zero
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3020,9 +3020,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of bits in the current binary representation of this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.bitWidth
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3034,8 +3034,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an integer from its little-endian representation, changing the byte order if necessary.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int(littleEndian: try Int(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = Int(littleEndian: try Int(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -3047,8 +3047,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an integer from its big-endian representation, changing the byte order if necessary.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int(bigEndian: try Int(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = Int(bigEndian: try Int(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -3060,9 +3060,9 @@ extension Bridge {
                     discardableResult: false, summary: "The little-endian representation of this integer.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.littleEndian
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3074,9 +3074,9 @@ extension Bridge {
                     discardableResult: false, summary: "The big-endian representation of this integer.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.bigEndian
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3088,8 +3088,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a random value within the specified range.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int.random(in: try bridgeRange(args["range"]!) { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let result = Int.random(in: try bridgeRange(args["range"]!) { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -3101,8 +3101,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a random value within the specified range.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int.random(in: try bridgeClosedRange(args["range"]!) { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let result = Int.random(in: try bridgeClosedRange(args["range"]!) { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -3115,7 +3115,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int.isSigned
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3128,7 +3128,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int.max
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3141,7 +3141,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int.min
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3153,9 +3153,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns `true` if this value is a multiple of the given value, and `false` otherwise.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.isMultiple(of: try Int(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.isMultiple(of: try Int(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3167,8 +3167,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an integer from the given floating-point value, rounding toward zero.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int(try Double(swiitValue: args["source"]!))
-                return result.swiitValue
+                        let result = Int(try Double(args["source"]!))
+                return result.value
                     }
                 )
 
@@ -3180,8 +3180,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an integer from the given floating-point value, if it can be represented exactly.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Int(exactly: try Double(swiitValue: args["source"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let result = Int(exactly: try Double(args["source"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -3193,9 +3193,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the sum of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.addingReportingOverflow(try Int(swiitValue: args["other"]!))
-                return bridgeTuple(result) { t in [("partialValue", t.0.swiitValue), ("overflow", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.addingReportingOverflow(try Int(args["other"]!))
+                return bridgeTuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
                     }
                 )
 
@@ -3207,9 +3207,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the difference obtained by subtracting the given value from this value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.subtractingReportingOverflow(try Int(swiitValue: args["other"]!))
-                return bridgeTuple(result) { t in [("partialValue", t.0.swiitValue), ("overflow", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.subtractingReportingOverflow(try Int(args["other"]!))
+                return bridgeTuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
                     }
                 )
 
@@ -3221,9 +3221,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the product of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.multipliedReportingOverflow(by: try Int(swiitValue: args["other"]!))
-                return bridgeTuple(result) { t in [("partialValue", t.0.swiitValue), ("overflow", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.multipliedReportingOverflow(by: try Int(args["other"]!))
+                return bridgeTuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
                     }
                 )
 
@@ -3235,9 +3235,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the quotient obtained by dividing this value by the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.dividedReportingOverflow(by: try Int(swiitValue: args["other"]!))
-                return bridgeTuple(result) { t in [("partialValue", t.0.swiitValue), ("overflow", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.dividedReportingOverflow(by: try Int(args["other"]!))
+                return bridgeTuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
                     }
                 )
 
@@ -3249,9 +3249,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the remainder after dividing this value by the given value, along with a Boolean value indicating whether overflow occurred during division.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.remainderReportingOverflow(dividingBy: try Int(swiitValue: args["other"]!))
-                return bridgeTuple(result) { t in [("partialValue", t.0.swiitValue), ("overflow", t.1.swiitValue)] }
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.remainderReportingOverflow(dividingBy: try Int(args["other"]!))
+                return bridgeTuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
                     }
                 )
 
@@ -3264,7 +3264,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Int.bitWidth
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3276,9 +3276,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of leading zeros in this value's binary representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.leadingZeroBitCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3290,9 +3290,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of trailing zeros in this value's binary representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.trailingZeroBitCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3304,9 +3304,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of bits equal to 1 in this value's binary representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.nonzeroBitCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3318,9 +3318,9 @@ extension Bridge {
                     discardableResult: false, summary: "A representation of this integer with the byte order swapped.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.byteSwapped
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3332,9 +3332,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns `-1` if this value is negative and `1` if it's positive; otherwise, `0`.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.signum()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3346,9 +3346,9 @@ extension Bridge {
                     discardableResult: false, summary: "The hash value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
+                        let receiver: Int = try Int(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3360,9 +3360,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.distance(to: try Int(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.distance(to: try Int(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3374,9 +3374,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Int = try Int(swiitValue: args["self"]!)
-                let result = receiver.advanced(by: try Int(swiitValue: args["n"]!))
-                return result.swiitValue
+                        let receiver: Int = try Int(args["self"]!)
+                let result = receiver.advanced(by: try Int(args["n"]!))
+                return result.value
                     }
                 )
 
@@ -3389,7 +3389,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double(try SwiftValue.unbox(Substring.self, args["text"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -3402,7 +3402,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.ulpOfOne
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3414,9 +3414,9 @@ extension Bridge {
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.rounded()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3430,10 +3430,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.round()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3445,9 +3445,9 @@ extension Bridge {
                     discardableResult: false, summary: "The greatest representable value that compares less than this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.nextDown
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3459,9 +3459,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the remainder of this value divided by the given value using truncating division.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.truncatingRemainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.truncatingRemainder(dividingBy: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3473,9 +3473,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the remainder of this value divided by the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.remainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.remainder(dividingBy: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3487,9 +3487,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the square root of the value, rounded to a representable value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.squareRoot()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3501,9 +3501,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.addingProduct(try Double(swiitValue: args["lhs"]!), try Double(swiitValue: args["rhs"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.addingProduct(try Double(args["lhs"]!), try Double(args["rhs"]!))
+                return result.value
                     }
                 )
 
@@ -3515,8 +3515,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the lesser of the two given values.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double.minimum(try Double(swiitValue: args["x"]!), try Double(swiitValue: args["y"]!))
-                return result.swiitValue
+                        let result = Double.minimum(try Double(args["x"]!), try Double(args["y"]!))
+                return result.value
                     }
                 )
 
@@ -3528,8 +3528,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the greater of the two given values.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double.maximum(try Double(swiitValue: args["x"]!), try Double(swiitValue: args["y"]!))
-                return result.swiitValue
+                        let result = Double.maximum(try Double(args["x"]!), try Double(args["y"]!))
+                return result.value
                     }
                 )
 
@@ -3541,8 +3541,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the value with lesser magnitude.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double.minimumMagnitude(try Double(swiitValue: args["x"]!), try Double(swiitValue: args["y"]!))
-                return result.swiitValue
+                        let result = Double.minimumMagnitude(try Double(args["x"]!), try Double(args["y"]!))
+                return result.value
                     }
                 )
 
@@ -3554,8 +3554,8 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the value with greater magnitude.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double.maximumMagnitude(try Double(swiitValue: args["x"]!), try Double(swiitValue: args["y"]!))
-                return result.swiitValue
+                        let result = Double.maximumMagnitude(try Double(args["x"]!), try Double(args["y"]!))
+                return result.value
                     }
                 )
 
@@ -3568,7 +3568,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.radix
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3580,8 +3580,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new floating-point value using the sign of one value and the magnitude of another.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double(signOf: try Double(swiitValue: args["signOf"]!), magnitudeOf: try Double(swiitValue: args["magnitudeOf"]!))
-                return result.swiitValue
+                        let result = Double(signOf: try Double(args["signOf"]!), magnitudeOf: try Double(args["magnitudeOf"]!))
+                return result.value
                     }
                 )
 
@@ -3593,9 +3593,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.isTotallyOrdered(belowOrEqualTo: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.isTotallyOrdered(belowOrEqualTo: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3608,7 +3608,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.zero
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3622,10 +3622,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.negate()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3638,7 +3638,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3650,9 +3650,9 @@ extension Bridge {
                     discardableResult: false, summary: "A textual representation of the value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3664,9 +3664,9 @@ extension Bridge {
                     discardableResult: false, summary: "A textual representation of the value, suitable for debugging.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3679,7 +3679,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.exponentBitCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3692,7 +3692,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.significandBitCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3704,9 +3704,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance's representation is in its canonical form.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isCanonical
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3719,7 +3719,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.infinity
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3732,7 +3732,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.nan
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3745,7 +3745,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.signalingNaN
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3758,7 +3758,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.greatestFiniteMagnitude
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3771,7 +3771,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.pi
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3783,9 +3783,9 @@ extension Bridge {
                     discardableResult: false, summary: "The unit in the last place of this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.ulp
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3798,7 +3798,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.leastNormalMagnitude
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3811,7 +3811,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Double.leastNonzeroMagnitude
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3823,9 +3823,9 @@ extension Bridge {
                     discardableResult: false, summary: "The exponent of the floating-point value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.exponent
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3837,9 +3837,9 @@ extension Bridge {
                     discardableResult: false, summary: "The significand of the floating-point value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.significand
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3851,9 +3851,9 @@ extension Bridge {
                     discardableResult: false, summary: "The least representable value that compares greater than this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.nextUp
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3867,10 +3867,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.formRemainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.formRemainder(dividingBy: try Double(args["other"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3884,10 +3884,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.formTruncatingRemainder(dividingBy: try Double(swiitValue: args["other"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.formTruncatingRemainder(dividingBy: try Double(args["other"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3901,10 +3901,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.formSquareRoot()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3918,10 +3918,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Double = try Double(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
-                receiver.addProduct(try Double(swiitValue: args["lhs"]!), try Double(swiitValue: args["rhs"]!))
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                var receiver: Double = try Double(consume taken)
+                defer { mover?.put(receiver.value) }
+                receiver.addProduct(try Double(args["lhs"]!), try Double(args["rhs"]!))
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -3933,9 +3933,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is equal to the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.isEqual(to: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.isEqual(to: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3947,9 +3947,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is less than the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.isLess(than: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.isLess(than: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3961,9 +3961,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is less than or equal to the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.isLessThanOrEqualTo(try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.isLessThanOrEqualTo(try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -3975,9 +3975,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether this instance is normal.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isNormal
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -3989,9 +3989,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether this instance is finite.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isFinite
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4003,9 +4003,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance is equal to zero.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isZero
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4017,9 +4017,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance is subnormal.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isSubnormal
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4031,9 +4031,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance is infinite.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isInfinite
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4045,9 +4045,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance is NaN (\"not a number\").",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isNaN
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4059,9 +4059,9 @@ extension Bridge {
                     discardableResult: false, summary: "A Boolean value indicating whether the instance is a signaling NaN.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.isSignalingNaN
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4073,9 +4073,9 @@ extension Bridge {
                     discardableResult: false, summary: "The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.binade
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4087,9 +4087,9 @@ extension Bridge {
                     discardableResult: false, summary: "The number of bits required to represent the value's significand.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.significandWidth
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4101,8 +4101,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the specified floating-point value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double(floatLiteral: try Double(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = Double(floatLiteral: try Double(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -4114,9 +4114,9 @@ extension Bridge {
                     discardableResult: false, summary: "The hash value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4128,9 +4128,9 @@ extension Bridge {
                     discardableResult: false, summary: "The magnitude of this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
+                        let receiver: Double = try Double(args["self"]!)
                 let result = receiver.magnitude
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4142,8 +4142,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new value, rounded to the closest possible representation.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double(try Int(swiitValue: args["v"]!))
-                return result.swiitValue
+                        let result = Double(try Int(args["v"]!))
+                return result.value
                     }
                 )
 
@@ -4155,8 +4155,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new instance initialized to the given value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double(try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let result = Double(try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -4168,8 +4168,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new instance initialized to the given value, if it can be represented without rounding.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Double(exactly: try Double(swiitValue: args["other"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let result = Double(exactly: try Double(args["other"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -4181,9 +4181,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.distance(to: try Double(swiitValue: args["other"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.distance(to: try Double(args["other"]!))
+                return result.value
                     }
                 )
 
@@ -4195,9 +4195,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Double = try Double(swiitValue: args["self"]!)
-                let result = receiver.advanced(by: try Double(swiitValue: args["amount"]!))
-                return result.swiitValue
+                        let receiver: Double = try Double(args["self"]!)
+                let result = receiver.advanced(by: try Double(args["amount"]!))
+                return result.value
                     }
                 )
 
@@ -4210,7 +4210,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Bool()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4222,8 +4222,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance equal to the given Boolean value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Bool(try Bool(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = Bool(try Bool(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -4236,7 +4236,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let result = Bool.random()
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4248,8 +4248,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates an instance initialized to the specified Boolean literal.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Bool(booleanLiteral: try Bool(swiitValue: args["value"]!))
-                return result.swiitValue
+                        let result = Bool(booleanLiteral: try Bool(args["value"]!))
+                return result.value
                     }
                 )
 
@@ -4261,9 +4261,9 @@ extension Bridge {
                     discardableResult: false, summary: "A textual representation of the Boolean value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Bool = try Bool(swiitValue: args["self"]!)
+                        let receiver: Bool = try Bool(args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4275,9 +4275,9 @@ extension Bridge {
                     discardableResult: false, summary: "The hash value.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Bool = try Bool(swiitValue: args["self"]!)
+                        let receiver: Bool = try Bool(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -4289,8 +4289,8 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new Boolean value from the given string.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Bool(try String(swiitValue: args["description"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let result = Bool(try String(args["description"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -4304,10 +4304,10 @@ extension Bridge {
                         _ = shell
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
-                var receiver: Bool = try Bool(swiitValue: consume taken)
-                defer { mover?.put(receiver.swiitValue) }
+                var receiver: Bool = try Bool(consume taken)
+                defer { mover?.put(receiver.value) }
                 receiver.toggle()
-                return .list([.nothing, mover == nil ? receiver.swiitValue : .nothing])
+                return .list([.nothing, mover == nil ? receiver.value : .nothing])
                     }
                 )
 
@@ -4320,7 +4320,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
                 return .list(result)
                     }
                 )
@@ -4334,7 +4334,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropLast(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4348,7 +4348,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.suffix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4376,7 +4376,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.dropFirst(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropFirst(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4390,7 +4390,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4404,7 +4404,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.prefix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4418,7 +4418,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4432,7 +4432,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.prefix(upTo: try Int(swiitValue: args["end"]!))
+                let result = receiver.prefix(upTo: try Int(args["end"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4446,7 +4446,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.suffix(from: try Int(swiitValue: args["start"]!))
+                let result = receiver.suffix(from: try Int(args["start"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4460,7 +4460,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.prefix(through: try Int(swiitValue: args["position"]!))
+                let result = receiver.prefix(through: try Int(args["position"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -4474,7 +4474,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
+                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -4502,8 +4502,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -4516,7 +4516,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -4530,8 +4530,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -4547,8 +4547,8 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
-                return .list([result.swiitValue, mover == nil ? .list(receiver) : .nothing])
+                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
+                return .list([result.value, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
 
@@ -4595,7 +4595,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.swapAt(try Int(swiitValue: args["i"]!), try Int(swiitValue: args["j"]!))
+                receiver.swapAt(try Int(args["i"]!), try Int(args["j"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4608,7 +4608,7 @@ extension Bridge {
                     discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result: [Value] = [Value](repeating: args["repeatedValue"]!, count: try Int(swiitValue: args["count"]!))
+                        let result: [Value] = [Value](repeating: args["repeatedValue"]!, count: try Int(args["count"]!))
                 return .list(result)
                     }
                 )
@@ -4672,7 +4672,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.insert(args["newElement"]!, at: try Int(swiitValue: args["i"]!))
+                receiver.insert(args["newElement"]!, at: try Int(args["i"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4689,7 +4689,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                let result = receiver.remove(at: try Int(swiitValue: args["position"]!))
+                let result = receiver.remove(at: try Int(args["position"]!))
                 return .list([result, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4706,7 +4706,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int(swiitValue: $0) })
+                receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int($0) })
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4723,7 +4723,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.removeFirst(try Int(swiitValue: args["k"]!))
+                receiver.removeFirst(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4757,7 +4757,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4774,7 +4774,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
+                receiver.reserveCapacity(try Int(args["n"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4825,7 +4825,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                receiver.removeLast(try Int(swiitValue: args["k"]!))
+                receiver.removeLast(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4842,7 +4842,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
+                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -4887,7 +4887,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -4901,7 +4901,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -4915,7 +4915,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -4929,8 +4929,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -4943,8 +4943,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -4957,8 +4957,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -4971,8 +4971,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -4985,8 +4985,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -4999,8 +4999,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -5055,7 +5055,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return .list(result)
                     }
                 )
@@ -5072,7 +5072,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -5101,7 +5101,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5129,7 +5129,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5171,7 +5171,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5215,7 +5215,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
+                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -5230,7 +5230,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.firstIndex(of: args["element"]!)
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -5244,7 +5244,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.lastIndex(of: args["element"]!)
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -5258,7 +5258,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5272,7 +5272,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.elementsEqual(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5286,7 +5286,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.contains(args["element"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5298,9 +5298,9 @@ extension Bridge {
                     discardableResult: false, summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: [String] = try bridgeList(args["self"]!).map { try String(swiitValue: $0) }
-                let result = receiver.joined(separator: try String(swiitValue: args["separator"]!))
-                return result.swiitValue
+                        let receiver: [String] = try bridgeList(args["self"]!).map { try String($0) }
+                let result = receiver.joined(separator: try String(args["separator"]!))
+                return result.value
                     }
                 )
 
@@ -5314,7 +5314,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.capacity
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5328,7 +5328,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.startIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5342,7 +5342,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.endIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5355,8 +5355,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.index(after: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                let result = receiver.index(after: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -5369,8 +5369,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.index(before: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                let result = receiver.index(before: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -5383,8 +5383,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["distance"]!))
-                return result.swiitValue
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["distance"]!))
+                return result.value
                     }
                 )
 
@@ -5397,8 +5397,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["distance"]!), limitedBy: try Int(swiitValue: args["limit"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["distance"]!), limitedBy: try Int(args["limit"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -5411,8 +5411,8 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = receiver.distance(from: try Int(swiitValue: args["start"]!), to: try Int(swiitValue: args["end"]!))
-                return result.swiitValue
+                let result = receiver.distance(from: try Int(args["start"]!), to: try Int(args["end"]!))
+                return result.value
                     }
                 )
 
@@ -5426,7 +5426,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5453,7 +5453,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -5467,7 +5467,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result = receiver.indices
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -5494,7 +5494,7 @@ extension Bridge {
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
-                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5511,7 +5511,7 @@ extension Bridge {
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value] = try bridgeList(consume taken)
                 defer { mover?.put(.list(receiver)) }
-                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return .list([.nothing, mover == nil ? .list(receiver) : .nothing])
                     }
                 )
@@ -5571,7 +5571,7 @@ extension Bridge {
                         _ = shell
                         let receiver: [Value] = try bridgeList(args["self"]!)
                 let result: [(offset: Int, element: Value)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", t.1)] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", t.1)] } })
                     }
                 )
 
@@ -5616,7 +5616,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
                 return .list(result)
                     }
                 )
@@ -5630,7 +5630,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropLast(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5644,7 +5644,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.suffix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5672,7 +5672,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.dropFirst(try Int(swiitValue: args["k"]!))
+                let result = receiver.dropFirst(try Int(args["k"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5686,7 +5686,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5700,7 +5700,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.prefix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5714,7 +5714,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5728,7 +5728,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.prefix(upTo: try Int(swiitValue: args["end"]!))
+                let result = receiver.prefix(upTo: try Int(args["end"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5742,7 +5742,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.suffix(from: try Int(swiitValue: args["start"]!))
+                let result = receiver.suffix(from: try Int(args["start"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5756,7 +5756,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.prefix(through: try Int(swiitValue: args["position"]!))
+                let result = receiver.prefix(through: try Int(args["position"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5770,7 +5770,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
+                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -5798,8 +5798,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -5812,7 +5812,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -5826,8 +5826,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -5843,8 +5843,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
-                return .list([result.swiitValue, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
+                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["belongsInSecondPartition"]!)([a0])) })
+                return .list([result.value, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
 
@@ -5891,7 +5891,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.swapAt(try Int(swiitValue: args["i"]!), try Int(swiitValue: args["j"]!))
+                receiver.swapAt(try Int(args["i"]!), try Int(args["j"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -5904,7 +5904,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = ArraySlice<Value>(repeating: args["repeatedValue"]!, count: try Int(swiitValue: args["count"]!))
+                        let result = ArraySlice<Value>(repeating: args["repeatedValue"]!, count: try Int(args["count"]!))
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -5968,7 +5968,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.insert(args["newElement"]!, at: try Int(swiitValue: args["i"]!))
+                receiver.insert(args["newElement"]!, at: try Int(args["i"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -5985,7 +5985,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                let result = receiver.remove(at: try Int(swiitValue: args["position"]!))
+                let result = receiver.remove(at: try Int(args["position"]!))
                 return .list([result, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6002,7 +6002,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int(swiitValue: $0) })
+                receiver.removeSubrange(try bridgeRange(args["bounds"]!) { try Int($0) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6019,7 +6019,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.removeFirst(try Int(swiitValue: args["k"]!))
+                receiver.removeFirst(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6053,7 +6053,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6070,7 +6070,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.reserveCapacity(try Int(swiitValue: args["n"]!))
+                receiver.reserveCapacity(try Int(args["n"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6121,7 +6121,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                receiver.removeLast(try Int(swiitValue: args["k"]!))
+                receiver.removeLast(try Int(args["k"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6138,7 +6138,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
+                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["shouldBeRemoved"]!)([a0])) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6183,7 +6183,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -6197,7 +6197,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -6211,7 +6211,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -6225,8 +6225,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -6239,8 +6239,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -6253,8 +6253,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -6267,8 +6267,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -6281,8 +6281,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -6295,8 +6295,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -6351,7 +6351,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return .list(result)
                     }
                 )
@@ -6368,7 +6368,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6397,7 +6397,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6425,7 +6425,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6467,7 +6467,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6511,7 +6511,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
+                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -6526,7 +6526,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.firstIndex(of: args["element"]!)
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -6540,7 +6540,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.lastIndex(of: args["element"]!)
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -6554,7 +6554,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6568,7 +6568,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.elementsEqual(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6582,7 +6582,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.contains(args["element"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6594,9 +6594,9 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     discardableResult: false, summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ArraySlice<String> = ArraySlice<String>(try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!).map { try String(swiitValue: $0) })
-                let result = receiver.joined(separator: try String(swiitValue: args["separator"]!))
-                return result.swiitValue
+                        let receiver: ArraySlice<String> = ArraySlice<String>(try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!).map { try String($0) })
+                let result = receiver.joined(separator: try String(args["separator"]!))
+                return result.value
                     }
                 )
 
@@ -6610,7 +6610,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.capacity
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6624,7 +6624,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.startIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6638,7 +6638,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.endIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6651,8 +6651,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.index(after: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                let result = receiver.index(after: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -6665,8 +6665,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.index(before: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                let result = receiver.index(before: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -6679,8 +6679,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["distance"]!))
-                return result.swiitValue
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["distance"]!))
+                return result.value
                     }
                 )
 
@@ -6693,8 +6693,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["distance"]!), limitedBy: try Int(swiitValue: args["limit"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["distance"]!), limitedBy: try Int(args["limit"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -6707,8 +6707,8 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = receiver.distance(from: try Int(swiitValue: args["start"]!), to: try Int(swiitValue: args["end"]!))
-                return result.swiitValue
+                let result = receiver.distance(from: try Int(args["start"]!), to: try Int(args["end"]!))
+                return result.value
                     }
                 )
 
@@ -6722,7 +6722,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6749,7 +6749,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6763,7 +6763,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6777,7 +6777,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -6791,7 +6791,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result = receiver.indices
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -6818,7 +6818,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
-                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return SwiftValue.make(result, as: "ArraySlice")
                     }
                 )
@@ -6835,7 +6835,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "ArraySlice")) }
-                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "ArraySlice") : .nothing])
                     }
                 )
@@ -6895,7 +6895,7 @@ let receiver: [Value] = try bridgeList(args["self"]!)
                         _ = shell
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
                 let result: [(offset: Int, element: Value)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", t.1)] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", t.1)] } })
                     }
                 )
 
@@ -6982,7 +6982,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -6996,7 +6996,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -7010,7 +7010,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
                     }
                 )
@@ -7024,8 +7024,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -7039,7 +7039,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7052,8 +7052,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -7067,7 +7067,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.elementsEqual(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7080,8 +7080,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
-                return result.swiitValue
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                return result.value
                     }
                 )
 
@@ -7094,8 +7094,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -7108,8 +7108,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -7122,8 +7122,8 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
-                return result.swiitValue
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                return result.value
                     }
                 )
 
@@ -7192,7 +7192,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0, a1])) })
                 return .list(result)
                     }
                 )
@@ -7235,7 +7235,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7307,7 +7307,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7333,7 +7333,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     discardableResult: false, summary: "Creates an empty set with preallocated space for at least the specified number of elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Set<Value>(minimumCapacity: try Int(swiitValue: args["minimumCapacity"]!))
+                        let result = Set<Value>(minimumCapacity: try Int(args["minimumCapacity"]!))
                 return SwiftValue.make(result, as: "Set")
                     }
                 )
@@ -7348,7 +7348,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.contains(args["member"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7361,7 +7361,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
                 return SwiftValue.make(result, as: "Set")
                     }
                 )
@@ -7376,7 +7376,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7390,7 +7390,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7404,7 +7404,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7421,7 +7421,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                 var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
                 let result = receiver.insert(args["newMember"]!)
-                return .list([bridgeTuple(result) { t in [("inserted", t.0.swiitValue), ("memberAfterInsert", t.1)] }, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
+                return .list([bridgeTuple(result) { t in [("inserted", t.0.value), ("memberAfterInsert", t.1)] }, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
 
@@ -7471,7 +7471,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
@@ -7516,7 +7516,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isSubset(of: try bridgeSequence(args["possibleSuperset"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7530,7 +7530,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isStrictSubset(of: try bridgeSequence(args["possibleStrictSuperset"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7544,7 +7544,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isSuperset(of: try bridgeSequence(args["possibleSubset"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7558,7 +7558,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isStrictSuperset(of: try bridgeSequence(args["possibleStrictSubset"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7572,7 +7572,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isDisjoint(with: try bridgeSequence(args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7710,7 +7710,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7724,7 +7724,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7738,7 +7738,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isSubset(of: try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7752,7 +7752,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isSuperset(of: try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7766,7 +7766,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isDisjoint(with: try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7794,7 +7794,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isStrictSuperset(of: try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7808,7 +7808,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.isStrictSubset(of: try SwiftValue.unbox(Set<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7870,7 +7870,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result = receiver.capacity
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -7886,7 +7886,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, consume taken)
                 defer { mover?.put(SwiftValue.make(receiver, as: "Set")) }
-                receiver.reserveCapacity(try Int(swiitValue: args["minimumCapacity"]!))
+                receiver.reserveCapacity(try Int(args["minimumCapacity"]!))
                 return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Set") : .nothing])
                     }
                 )
@@ -7900,7 +7900,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
+                let result: [ArraySlice<Value>] = receiver.split(separator: args["separator"]!, maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -7914,7 +7914,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
+                let result: [ArraySlice<Value>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([a0])) })
                 return .list(result.map { SwiftValue.make($0, as: "ArraySlice") })
                     }
                 )
@@ -7928,7 +7928,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [Value] = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                let result: [Value] = receiver.suffix(try Int(args["maxLength"]!))
                 return .list(result)
                     }
                 )
@@ -7942,7 +7942,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [Value] = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                let result: [Value] = receiver.dropLast(try Int(args["k"]!))
                 return .list(result)
                     }
                 )
@@ -7956,7 +7956,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
-                let result: [Value] = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0])) })
+                let result: [Value] = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0])) })
                 return .list(result)
                     }
                 )
@@ -7985,7 +7985,7 @@ let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, a
                         _ = shell
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let result: [(offset: Int, element: Value)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", t.1)] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", t.1)] } })
                     }
                 )
 
@@ -8072,7 +8072,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.first(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.first(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
                     }
                 )
@@ -8086,7 +8086,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.min(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.min(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
                     }
                 )
@@ -8100,7 +8100,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.max(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.max(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
                     }
                 )
@@ -8114,8 +8114,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
-                return result.swiitValue
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
+                return result.value
                     }
                 )
 
@@ -8128,8 +8128,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
-                return result.swiitValue
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
+                return result.value
                     }
                 )
 
@@ -8142,8 +8142,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try bridgeTuple($0, ["key", "value"]) { t in (key: t[0], value: t[1]) } }, by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
-                return result.swiitValue
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try bridgeTuple($0, ["key", "value"]) { t in (key: t[0], value: t[1]) } }, by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                return result.value
                     }
                 )
 
@@ -8156,8 +8156,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.contains(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
-                return result.swiitValue
+                let result = try receiver.contains(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                return result.value
                     }
                 )
 
@@ -8170,8 +8170,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
-                return result.swiitValue
+                let result = try receiver.allSatisfy({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                return result.value
                     }
                 )
 
@@ -8184,8 +8184,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.count(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
-                return result.swiitValue
+                let result = try receiver.count(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                return result.value
                     }
                 )
 
@@ -8254,7 +8254,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result: [(key: Value, value: Value)] = try receiver.sorted(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result: [(key: Value, value: Value)] = try receiver.sorted(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }, bridgeTuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return .list(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } })
                     }
                 )
@@ -8297,7 +8297,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8322,7 +8322,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = [Value: Value](minimumCapacity: try Int(swiitValue: args["minimumCapacity"]!))
+                        let result = [Value: Value](minimumCapacity: try Int(args["minimumCapacity"]!))
                 return bridgeDictionary(result)
                     }
                 )
@@ -8362,7 +8362,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return bridgeDictionary(result)
                     }
                 )
@@ -8377,7 +8377,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8391,7 +8391,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8531,7 +8531,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value: Value] = try bridgeDictionary(consume taken)
                 defer { mover?.put(bridgeDictionary(receiver)) }
-                receiver.removeAll(keepingCapacity: try Bool(swiitValue: args["keepCapacity"]!))
+                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
                 return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
@@ -8546,7 +8546,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8577,7 +8577,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result = receiver.capacity
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8593,7 +8593,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: [Value: Value] = try bridgeDictionary(consume taken)
                 defer { mover?.put(bridgeDictionary(receiver)) }
-                receiver.reserveCapacity(try Int(swiitValue: args["minimumCapacity"]!))
+                receiver.reserveCapacity(try Int(args["minimumCapacity"]!))
                 return .list([.nothing, mover == nil ? bridgeDictionary(receiver) : .nothing])
                     }
                 )
@@ -8607,7 +8607,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result: [(key: Value, value: Value)] = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
+                let result: [(key: Value, value: Value)] = receiver.suffix(try Int(args["maxLength"]!))
                 return .list(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } })
                     }
                 )
@@ -8621,7 +8621,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result: [(key: Value, value: Value)] = receiver.dropLast(try Int(swiitValue: args["k"]!))
+                let result: [(key: Value, value: Value)] = receiver.dropLast(try Int(args["k"]!))
                 return .list(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } })
                     }
                 )
@@ -8635,7 +8635,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
-                let result: [(key: Value, value: Value)] = try receiver.prefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result: [(key: Value, value: Value)] = try receiver.prefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([bridgeTuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return .list(result.map { bridgeTuple($0) { t in [("key", t.0), ("value", t.1)] } })
                     }
                 )
@@ -8650,7 +8650,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
                 let result: [(offset: Int, element: (key: Value, value: Value))] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", bridgeTuple(t.1) { t in [("key", t.0), ("value", t.1)] })] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", bridgeTuple(t.1) { t in [("key", t.0), ("value", t.1)] })] } })
                     }
                 )
 
@@ -8736,7 +8736,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8791,7 +8791,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.contains(args["element"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8805,7 +8805,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8817,9 +8817,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The position of the first element in a nonempty collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.startIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8831,9 +8831,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.endIndex
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8845,9 +8845,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the position immediately after the given index.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.index(after: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.index(after: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -8859,9 +8859,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the position immediately before the given index.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.index(before: try Int(swiitValue: args["i"]!))
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.index(before: try Int(args["i"]!))
+                return result.value
                     }
                 )
 
@@ -8873,9 +8873,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["n"]!))
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["n"]!))
+                return result.value
                     }
                 )
 
@@ -8887,9 +8887,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the distance between two indices.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.distance(from: try Int(swiitValue: args["start"]!), to: try Int(swiitValue: args["end"]!))
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.distance(from: try Int(args["start"]!), to: try Int(args["end"]!))
+                return result.value
                     }
                 )
 
@@ -8901,9 +8901,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The indices that are valid for subscripting the range, in ascending order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.indices
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -8915,8 +8915,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Creates an instance equivalent to the given `ClosedRange`.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = Range<Int>(try bridgeClosedRange(args["other"]!) { try Int(swiitValue: $0) })
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let result = Range<Int>(try bridgeClosedRange(args["other"]!) { try Int($0) })
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -8944,7 +8944,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8958,7 +8958,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8972,7 +8972,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -8986,7 +8986,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.overlaps(try SwiftValue.unbox(Range<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9000,7 +9000,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.overlaps(try SwiftValue.unbox(ClosedRange<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9014,7 +9014,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(Range<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9028,7 +9028,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(ClosedRange<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9040,9 +9040,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.index(try Int(swiitValue: args["i"]!), offsetBy: try Int(swiitValue: args["distance"]!), limitedBy: try Int(swiitValue: args["limit"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.index(try Int(args["i"]!), offsetBy: try Int(args["distance"]!), limitedBy: try Int(args["limit"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9054,9 +9054,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.dropLast(try Int(swiitValue: args["k"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.dropLast(try Int(args["k"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9068,9 +9068,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.suffix(try Int(args["maxLength"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9082,9 +9082,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The number of elements in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9096,9 +9096,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a random element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.randomElement()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9110,9 +9110,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.first
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9124,9 +9124,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9138,8 +9138,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try bridgeClosure(shell, args["transform"]!)([a0.swiitValue]) })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try bridgeClosure(shell, args["transform"]!)([a0.value]) })
                 return .list(result)
                     }
                 )
@@ -9152,9 +9152,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.dropFirst(try Int(swiitValue: args["k"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.dropFirst(try Int(args["k"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9166,9 +9166,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9180,9 +9180,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.prefix(try Int(args["maxLength"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9194,9 +9194,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9208,9 +9208,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.prefix(upTo: try Int(swiitValue: args["end"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.prefix(upTo: try Int(args["end"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9222,9 +9222,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.suffix(from: try Int(swiitValue: args["start"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.suffix(from: try Int(args["start"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9236,9 +9236,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.prefix(through: try Int(swiitValue: args["position"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.prefix(through: try Int(args["position"]!))
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9250,9 +9250,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Range<Int>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([a0.swiitValue])) })
-                return .list(result.map { bridgeBox($0, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) } })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Range<Int>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([a0.value])) })
+                return .list(result.map { bridgeBox($0, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
                     }
                 )
 
@@ -9264,9 +9264,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Range<Int>] = receiver.split(separator: try Int(swiitValue: args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
-                return .list(result.map { bridgeBox($0, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) } })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Range<Int>] = receiver.split(separator: try Int(args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
+                return .list(result.map { bridgeBox($0, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
                     }
                 )
 
@@ -9278,9 +9278,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.last
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9292,9 +9292,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.firstIndex(of: try Int(swiitValue: args["element"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.firstIndex(of: try Int(args["element"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9306,9 +9306,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.firstIndex(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.firstIndex(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9320,9 +9320,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9334,9 +9334,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.lastIndex(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.lastIndex(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9348,9 +9348,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.lastIndex(of: try Int(swiitValue: args["element"]!))
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.lastIndex(of: try Int(args["element"]!))
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9362,9 +9362,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.shuffled()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9376,9 +9376,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0.swiitValue])) })
-                return .list(result.map { $0.swiitValue })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0.value])) })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9390,8 +9390,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                try receiver.forEach({ (a0: Int) throws -> Void in _ = try bridgeClosure(shell, args["body"]!)([a0.swiitValue]) })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                try receiver.forEach({ (a0: Int) throws -> Void in _ = try bridgeClosure(shell, args["body"]!)([a0.value]) })
                 return .nothing
                     }
                 )
@@ -9404,9 +9404,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9418,9 +9418,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9432,9 +9432,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9446,9 +9446,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the minimum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.min()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9460,9 +9460,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the maximum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result = receiver.max()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9474,9 +9474,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0.swiitValue, a1])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0.value, a1])) })
+                return result.value
                     }
                 )
 
@@ -9488,9 +9488,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -9502,9 +9502,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0.swiitValue, a1])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0.value, a1])) })
+                return result.value
                     }
                 )
 
@@ -9516,9 +9516,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -9530,9 +9530,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return result.value
                     }
                 )
 
@@ -9544,9 +9544,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -9558,9 +9558,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -9572,9 +9572,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -9586,9 +9586,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -9600,8 +9600,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: Int) throws -> Value in try bridgeClosure(shell, args["nextPartialResult"]!)([a0, a1.swiitValue]) })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: Int) throws -> Value in try bridgeClosure(shell, args["nextPartialResult"]!)([a0, a1.value]) })
                 return result
                     }
                 )
@@ -9614,9 +9614,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.reversed()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9628,8 +9628,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try bridgeSequence(try bridgeClosure(shell, args["transform"]!)([a0.swiitValue])) })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try bridgeSequence(try bridgeClosure(shell, args["transform"]!)([a0.value])) })
                 return .list(result)
                     }
                 )
@@ -9642,8 +9642,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.swiitValue])) { $0 } })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.value])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -9656,9 +9656,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.sorted()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9670,9 +9670,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return .list(result.map { $0.swiitValue })
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9684,9 +9684,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9698,9 +9698,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.trimmingPrefix(try bridgeSequence(args["prefix"]!).map { try Int(swiitValue: $0) })
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
+                let result = receiver.trimmingPrefix(try bridgeSequence(args["prefix"]!).map { try Int($0) })
+                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9712,9 +9712,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The items without repeats, first ones kept.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.uniqued()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -9726,9 +9726,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the array it would give.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
                 let result: [(offset: Int, element: Int)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", t.1.swiitValue)] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", t.1.value)] } })
                     }
                 )
 
@@ -9783,7 +9783,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.isEmpty
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9797,7 +9797,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.contains(args["element"]!)
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9809,9 +9809,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.contains(try bridgeRange(args["other"]!) { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = receiver.contains(try bridgeRange(args["other"]!) { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -9825,7 +9825,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.contains(try SwiftValue.unbox(ClosedRange<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9839,7 +9839,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.hashValue
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9853,7 +9853,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.description
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9867,7 +9867,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.debugDescription
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9893,8 +9893,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Creates an instance equivalent to the given `Range`.",
                     body: .native { shell, args in
                         _ = shell
-                        let result = ClosedRange<Int>(try bridgeRange(args["other"]!) { try Int(swiitValue: $0) })
-                return bridgeBox(result, as: "ClosedRange") { r in ClosedRange<Value>(uncheckedBounds: (lower: r.lowerBound.swiitValue, upper: r.upperBound.swiitValue)) }
+                        let result = ClosedRange<Int>(try bridgeRange(args["other"]!) { try Int($0) })
+                return bridgeBox(result, as: "ClosedRange") { r in ClosedRange<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
                     }
                 )
 
@@ -9908,7 +9908,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.overlaps(try SwiftValue.unbox(ClosedRange<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9922,7 +9922,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                         _ = shell
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
                 let result = receiver.overlaps(try SwiftValue.unbox(Range<Value>.self, args["other"]!))
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9934,9 +9934,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The number of elements in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.count
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9948,9 +9948,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a random element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.randomElement()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9962,9 +9962,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The first element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.first
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -9976,9 +9976,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.underestimatedCount
-                return result.swiitValue
+                return result.value
                     }
                 )
 
@@ -9990,8 +9990,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try bridgeClosure(shell, args["transform"]!)([a0.swiitValue]) })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try bridgeClosure(shell, args["transform"]!)([a0.value]) })
                 return .list(result)
                     }
                 )
@@ -10004,9 +10004,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The last element of the collection.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.last
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10018,9 +10018,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10032,9 +10032,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.shuffled()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10046,9 +10046,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0.swiitValue])) })
-                return .list(result.map { $0.swiitValue })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0.value])) })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10060,8 +10060,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                try receiver.forEach({ (a0: Int) throws -> Void in _ = try bridgeClosure(shell, args["body"]!)([a0.swiitValue]) })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                try receiver.forEach({ (a0: Int) throws -> Void in _ = try bridgeClosure(shell, args["body"]!)([a0.value]) })
                 return .nothing
                     }
                 )
@@ -10074,9 +10074,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10088,9 +10088,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [ArraySlice<Int>] = receiver.split(separator: try Int(swiitValue: args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!))
-                return .list(result.map { bridgeBox($0, as: "ArraySlice") { ArraySlice<Value>($0.map { $0.swiitValue }) } })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [ArraySlice<Int>] = receiver.split(separator: try Int(args["separator"]!), maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!))
+                return .list(result.map { bridgeBox($0, as: "ArraySlice") { ArraySlice<Value>($0.map { $0.value }) } })
                     }
                 )
 
@@ -10102,9 +10102,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [ArraySlice<Int>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(swiitValue: args["maxSplits"]!)), omittingEmptySubsequences: try Bool(swiitValue: args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isSeparator"]!)([a0.swiitValue])) })
-                return .list(result.map { bridgeBox($0, as: "ArraySlice") { ArraySlice<Value>($0.map { $0.swiitValue }) } })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [ArraySlice<Int>] = try receiver.split(maxSplits: (args["maxSplits"] == nil ? Int.max : try Int(args["maxSplits"]!)), omittingEmptySubsequences: try Bool(args["omittingEmptySubsequences"]!), whereSeparator: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["isSeparator"]!)([a0.value])) })
+                return .list(result.map { bridgeBox($0, as: "ArraySlice") { ArraySlice<Value>($0.map { $0.value }) } })
                     }
                 )
 
@@ -10116,9 +10116,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = receiver.suffix(try Int(swiitValue: args["maxLength"]!))
-                return .list(result.map { $0.swiitValue })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Int] = receiver.suffix(try Int(args["maxLength"]!))
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10130,9 +10130,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = receiver.dropLast(try Int(swiitValue: args["k"]!))
-                return .list(result.map { $0.swiitValue })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Int] = receiver.dropLast(try Int(args["k"]!))
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10144,9 +10144,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return .list(result.map { $0.swiitValue })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Int] = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10158,9 +10158,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10172,9 +10172,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return (result.map { $0.swiitValue } ?? .nothing)
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10186,9 +10186,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the minimum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.min()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10200,9 +10200,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the maximum element in the sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result = receiver.max()
-                return (result.map { $0.swiitValue } ?? .nothing)
+                return (result.map { $0.value } ?? .nothing)
                     }
                 )
 
@@ -10214,9 +10214,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0.swiitValue, a1])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0.value, a1])) })
+                return result.value
                     }
                 )
 
@@ -10228,9 +10228,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = receiver.starts(with: try bridgeSequence(args["possiblePrefix"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -10242,9 +10242,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areEquivalent"]!)([a0.swiitValue, a1])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.elementsEqual(try bridgeSequence(args["other"]!), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["areEquivalent"]!)([a0.value, a1])) })
+                return result.value
                     }
                 )
 
@@ -10256,9 +10256,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = receiver.elementsEqual(try bridgeSequence(args["other"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -10270,9 +10270,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return result.value
                     }
                 )
 
@@ -10284,9 +10284,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int(swiitValue: $0) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = receiver.lexicographicallyPrecedes(try bridgeSequence(args["other"]!).map { try Int($0) })
+                return result.value
                     }
                 )
 
@@ -10298,9 +10298,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -10312,9 +10312,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -10326,9 +10326,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["predicate"]!)([a0.swiitValue])) })
-                return result.swiitValue
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["predicate"]!)([a0.value])) })
+                return result.value
                     }
                 )
 
@@ -10340,8 +10340,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: Int) throws -> Value in try bridgeClosure(shell, args["nextPartialResult"]!)([a0, a1.swiitValue]) })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: Int) throws -> Value in try bridgeClosure(shell, args["nextPartialResult"]!)([a0, a1.value]) })
                 return result
                     }
                 )
@@ -10354,9 +10354,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.reversed()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10368,8 +10368,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try bridgeSequence(try bridgeClosure(shell, args["transform"]!)([a0.swiitValue])) })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try bridgeSequence(try bridgeClosure(shell, args["transform"]!)([a0.value])) })
                 return .list(result)
                     }
                 )
@@ -10382,8 +10382,8 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.swiitValue])) { $0 } })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in bridgeOptional(try bridgeClosure(shell, args["transform"]!)([a0.value])) { $0 } })
                 return .list(result)
                     }
                 )
@@ -10396,9 +10396,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.sorted()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10410,9 +10410,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
-                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.swiitValue, a1.swiitValue])) })
-                return .list(result.map { $0.swiitValue })
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
+                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try bridgeClosure(shell, args["areInIncreasingOrder"]!)([a0.value, a1.value])) })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10424,9 +10424,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "The items without repeats, first ones kept.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result: [Int] = receiver.uniqued()
-                return .list(result.map { $0.swiitValue })
+                return .list(result.map { $0.value })
                     }
                 )
 
@@ -10438,9 +10438,9 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     discardableResult: false, summary: "Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the array it would give.",
                     body: .native { shell, args in
                         _ = shell
-                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int(swiitValue: $0) }
+                        let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
                 let result: [(offset: Int, element: Int)] = receiver.enumerated()
-                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.swiitValue), ("element", t.1.swiitValue)] } })
+                return .list(result.map { bridgeTuple($0) { t in [("offset", t.0.value), ("element", t.1.value)] } })
                     }
                 )
 
@@ -10479,7 +10479,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Flow<Value> = try SwiftValue.unbox(Flow<Value>.self, args["self"]!)
-                let result = receiver.filter({ (a0: Value) throws -> Bool in try Bool(swiitValue: try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
+                let result = receiver.filter({ (a0: Value) throws -> Bool in try Bool(try bridgeClosure(shell, args["isIncluded"]!)([a0])) })
                 return SwiftValue.make(result, as: "Flow")
                     }
                 )
@@ -10521,7 +10521,7 @@ let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
                     body: .native { shell, args in
                         _ = shell
                         let receiver: Flow<Value> = try SwiftValue.unbox(Flow<Value>.self, args["self"]!)
-                let result = receiver.prefix(try Int(swiitValue: args["maxLength"]!))
+                let result = receiver.prefix(try Int(args["maxLength"]!))
                 return SwiftValue.make(result, as: "Flow")
                     }
                 )

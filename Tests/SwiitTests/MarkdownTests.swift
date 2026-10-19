@@ -1,4 +1,4 @@
-@testable import Swiit
+@testable @_spi(Layer) import Swiit
 import Testing
 
 private let reset = "\u{1B}[0m"

@@ -15,7 +15,7 @@ extension Interpreter {
     /// Runs `function` with its parameters bound to `arguments`.
     /// Calls `function`. A method gets `receiver` as `self`, and leaves it
     /// there as the method changed it.
-    public func invoke(_ function: Function, with arguments: [String: Value], receiver: Receiver? = nil) throws -> Value {
+    @_spi(Layer) public func invoke(_ function: Function, with arguments: [String: Value], receiver: Receiver? = nil) throws -> Value {
         guard callDepth < limits.depth else {
             throw RuntimeError("maximum call depth (\(limits.depth)) exceeded")
         }
@@ -227,7 +227,7 @@ extension Interpreter {
         return try checked(try evaluate(expr, expecting: parameter.type), for: parameter, of: function.name ?? "closure")
     }
 
-    public func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
+    @_spi(Layer) public func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
         let type = parameter.variadic ? TypeAnnotation.list(parameter.type) : parameter.type
         guard let conforming = conform(value, to: type) else {
             throw RuntimeError("\(function): '\(parameter.name)' must be \(type), not \(value.typeName)")
@@ -237,7 +237,7 @@ extension Interpreter {
 }
 
 /// `set` with only the overload the checker chose, when it did.
-public func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
+@_spi(Layer) public func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
     guard let overload, set.candidates.indices.contains(overload) else { return set }
     return OverloadSet(name: set.name, candidates: [set.candidates[overload]])
 }
@@ -254,7 +254,7 @@ extension Interpreter {
 
     /// Picks the overload that `bind` accepts with the lowest penalty, the
     /// most specific match. Ties are an error, never a guess.
-    public func resolve(
+    @_spi(Layer) public func resolve(
         _ set: OverloadSet, _ bind: (Function) throws -> (bindings: [String: Value], penalty: Int)
     ) throws -> (Function, [String: Value]) {
         if set.candidates.count == 1 {
@@ -291,7 +291,7 @@ extension Interpreter {
 extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
-    public func hostFunction(_ export: ExportedFunction) -> Function {
+    @_spi(Layer) public func hostFunction(_ export: HostFunction) -> Function {
         let parameters = export.parameters.map { parameter -> Parameter in
             var made = Parameter(
                 label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
@@ -325,7 +325,7 @@ extension Interpreter {
 }
 
 extension TypeAnnotation {
-    public init(_ type: SwiitType) {
+    @_spi(Layer) public init(_ type: ValueType) {
         self = switch type {
         case .any: .any
         case .bool: .bool
@@ -333,12 +333,12 @@ extension TypeAnnotation {
         case .double: .double
         case .string: .string
         case .record: .record
-        case .date: .named("Date")
         case .function: .function
         case .named(let name): .named(name)
         case .list(let element): .list(TypeAnnotation(element))
         case .dictionary(let key, let value): .dictionary(TypeAnnotation(key), TypeAnnotation(value))
         case .optional(let wrapped): .optional(TypeAnnotation(wrapped))
+        case .generic(let name, let arguments): .generic(name, arguments.map(TypeAnnotation.init))
         @unknown default: .any
         }
     }

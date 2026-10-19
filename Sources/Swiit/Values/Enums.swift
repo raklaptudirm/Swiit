@@ -1,7 +1,7 @@
 /// An enum's definition: its name and cases, in order. Declared in Swiit
 /// (`enum FileType { case file, directory }`) or by the host.
 /// Types compare by identity, so two enums with the same name are distinct.
-public final class EnumType: SwiitObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class EnumType: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public struct Case: Sendable, Equatable {
         public let name: String
         /// For an enum with raw values (`enum Level: Int`).
@@ -40,7 +40,7 @@ public final class EnumType: SwiitObject, @unchecked Sendable { // safe: its sta
         return cases.map { EnumValue(type: self, name: $0.name) }
     }
 
-    // MARK: SwiitObject
+    // MARK: HostObject
 
     public var typeName: String { "enum" }
 
@@ -64,27 +64,29 @@ public final class EnumType: SwiitObject, @unchecked Sendable { // safe: its sta
 
 /// One value of an enum: a case, and its associated values if it has any.
 public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
-    public let type: EnumType
+    @_spi(Layer) public let type: EnumType
     public let name: String
+    /// The enum it is a case of.
+    public var typeName: String { type.name }
     /// In the order the case declares them.
     public let values: [Value]
 
-    public init(type: EnumType, name: String, values: [Value] = []) {
+    @_spi(Layer) public init(type: EnumType, name: String, values: [Value] = []) {
         self.type = type
         self.name = name
         self.values = values
     }
 
-    public var definition: EnumType.Case? {
+    @_spi(Layer) public var definition: EnumType.Case? {
         type.case(named: name)
     }
 
-    public var rawValue: Value? {
+    @_spi(Layer) public var rawValue: Value? {
         definition?.rawValue
     }
 
     /// Where it comes in the declaration, for sorting.
-    public var index: Int {
+    @_spi(Layer) public var index: Int {
         type.cases.firstIndex { $0.name == name } ?? 0
     }
 

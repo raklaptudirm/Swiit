@@ -13,6 +13,8 @@ struct DeclarationFacts {
     var instanceMembers: [String: Set<String>] = [:]
     var resultBuilders: Set<String> = []
     var genericEnums: Set<String> = []
+    /// Protocols the program declares: a host's type that holds something (`Job<Int>`) keeps what it holds.
+    var protocols: Set<String> = []
     var computedGlobals: Set<String> = []
 }
 

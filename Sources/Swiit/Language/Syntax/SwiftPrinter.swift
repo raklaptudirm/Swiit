@@ -306,7 +306,6 @@ import Foundation
                 }
             }.joined() + "\""
         case .variable(let name): return name
-        case .extended: return "/* a construct from a layer over the core */"
         case .attempt(let inner, let kind):
             let mark = switch kind { case .plain: ""; case .optional: "?"; case .forced: "!" }
             return "try\(mark) \(expression(inner))"

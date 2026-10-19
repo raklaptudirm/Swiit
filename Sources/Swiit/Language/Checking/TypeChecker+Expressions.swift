@@ -61,7 +61,7 @@ extension TypeChecker {
 
     private func typeOfExpression(_ expr: inout Expr, expecting expected: TypeAnnotation?) throws -> TypeAnnotation {
         switch expr {
-        case .literal, .string, .variable, .extended, .filePath, .keyPath, .ifExpression:
+        case .literal, .string, .variable, .filePath, .keyPath, .ifExpression:
             return try typeOfName(&expr, expecting: expected)
         case .attempt, .await, .childTask, .closure:
             return try typeOfEffect(&expr, expecting: expected)
@@ -128,15 +128,6 @@ extension TypeChecker {
                 expr = .bridged(type: "Task", member: value, receiver: .variable(name), arguments: [])
                 return try typeOf(&expr)
             }
-        case .extended(var box):
-            let type = try box.node.check(in: self, expecting: expected)
-            expr = .extended(box)
-            if let rewrite = rewriteExtension {
-                let leaves = box.node.leavesProgram
-                expr = rewrite(expr)
-                if leaves { exitingExpressions.append(expr) }
-            }
-            return type
         case .filePath:
             return .string
         case .keyPath(let rootName, let path):
@@ -255,7 +246,7 @@ extension TypeChecker {
             }
             var types: [TypeAnnotation.TupleElement] = []
             for index in elements.indices {
-                types.append(.init(label: elements[index].label, type: try typeOf(&elements[index].value, expecting: wanted?[index].type)))
+                types.append(.init(label: elements[index].label, type: try typeOf(&elements[index].value, expecting: wanted?[index].type ?? (expected == .any || expected == .unknown ? .unknown : nil))))
             }
             expr = .tuple(elements)
             return .tuple(types)
@@ -510,7 +501,7 @@ extension TypeChecker {
             throw error
         }
         guard var type = root, type != .unknown else {
-            if expected == .unknown || root == .unknown { return .keyPath(.unknown, .unknown) }
+            if expected == .unknown || expected == .any || root == .unknown { return .keyPath(.unknown, .unknown) }
             throw TypeError("\\.\(path.joined(separator: ".")) needs a type here; write its root, as in \\Type.\(path[0])")
         }
         let start = type
@@ -588,7 +579,8 @@ extension TypeChecker {
             return .list(element)
         }
         if expected == .any {
-            for index in items.indices { _ = try typeOf(&items[index]) }
+            // Each by its own type, a `.case` taking its from the others, as in `[Level.high, .low]`.
+            _ = try elementTypes(&items)
             return .any
         }
         if expected == .unknown {

@@ -6,10 +6,10 @@ import Testing
 // quadratic. A copy of the whole collection on each call is what these catch; the limits are loose so only that fails.
 
 private func seconds(_ source: String) throws -> Double {
-    let host = SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
-    let interpreter = Interpreter(host: host, limits: Limits())
+    let host = Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
+    let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     let start = Date()
-    _ = try interpreter.eval(source)
+    _ = try interpreter.evaluate(source)
     return Date().timeIntervalSince(start)
 }
 
@@ -52,9 +52,9 @@ private func seconds(_ source: String) throws -> Double {
 
 @Test func changesInPlaceKeepTheValuesRight() throws {
     // What moving a value out and back must not break: the variable after an error, reads of it in the right side.
-    let host = SwiitHost(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
-    let interpreter = Interpreter(host: host, limits: Limits())
-    let value = try interpreter.eval("""
+    let host = Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
+    let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
+    let value = try interpreter.evaluate("""
     var xs = [1, 2, 3]
     xs[0] = xs[1] + xs[2]
     xs += [xs.count]
@@ -69,6 +69,6 @@ private func seconds(_ source: String) throws -> Double {
     """)
     #expect("\(value)" == "[[5, 2, 3, 3], [5, 5, 2, 3, 3], [1, 2]]")
     // An index out of range is an error, and leaves the list as it was.
-    #expect(throws: (any Error).self) { _ = try interpreter.eval("xs[9] = 1") }
-    #expect("\(try interpreter.eval("xs"))" == "[5, 2, 3, 3]")
+    #expect(throws: (any Error).self) { _ = try interpreter.evaluate("xs[9] = 1") }
+    #expect("\(try interpreter.evaluate("xs"))" == "[5, 2, 3, 3]")
 }
