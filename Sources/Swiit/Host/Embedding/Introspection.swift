@@ -76,14 +76,13 @@ public struct Symbol: Sendable, Hashable {
 
 extension ValueType {
     /// The type an annotation names, as far as a host can say it: what it cannot (tuples, closures with signatures) is
-    /// `.record` or `.function`, and what is unknown is `.any`.
+    /// `.any` or `.function`, and what is unknown is `.any`.
     @_spi(Layer) public init(_ annotation: TypeAnnotation) {
         self = switch annotation {
         case .bool: .bool
         case .int: .int
         case .double: .double
         case .string: .string
-        case .record, .tuple: .record
         case .function, .functionType: .function
         case .named(let name): .named(name)
         case .list(let element): .list(ValueType(element))

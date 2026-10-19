@@ -332,7 +332,6 @@ extension TypeAnnotation {
         case .int: .int
         case .double: .double
         case .string: .string
-        case .record: .record
         case .function: .function
         case .named(let name): .named(name)
         case .list(let element): .list(TypeAnnotation(element))

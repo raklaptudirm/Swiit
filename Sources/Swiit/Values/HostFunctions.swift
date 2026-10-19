@@ -98,7 +98,7 @@ public struct HostFunction: Sendable {
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`, `resolveOverload` and
 /// `valueType(of:)` speak.
 public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
-    case any, bool, int, double, string, record, function
+    case any, bool, int, double, string, function
     /// A type by name, like `Level` or `Date`.
     case named(String)
     case list(ValueType)
@@ -114,7 +114,6 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
         case .int: "Int"
         case .double: "Double"
         case .string: "String"
-        case .record: "Record"
         case .function: "Function"
         case .named(let name): name
         case .list(let element): "[\(element)]"
