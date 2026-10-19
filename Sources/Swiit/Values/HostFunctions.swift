@@ -96,30 +96,47 @@ public struct HostFunction: Sendable {
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`, `resolveOverload` and
-/// `valueType(of:)` speak.
+/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with the types it is generic over
+/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type. Whether a named type is a struct,
+/// an enum or a class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
-    case any, bool, int, double, string, function
-    /// A type by name, like `Level` or `Date`.
-    case named(String)
-    case list(ValueType)
-    case dictionary(ValueType, ValueType)
-    case optional(ValueType)
-    /// A generic type with what it is bound to: `Flow<String>`.
-    case generic(String, [ValueType])
+    case named(String, [ValueType] = [])
+    case function(parameters: [ValueType], returns: ValueType)
+    case tuple([Element])
+
+    /// An element of a tuple type, labeled or not.
+    public struct Element: Sendable, Hashable {
+        public var label: String?
+        public var type: ValueType
+        public init(label: String? = nil, type: ValueType) {
+            self.label = label
+            self.type = type
+        }
+    }
+
+    public static let any = ValueType.named("Any")
+    public static let bool = ValueType.named("Bool")
+    public static let int = ValueType.named("Int")
+    public static let double = ValueType.named("Double")
+    public static let string = ValueType.named("String")
+    /// A function whose signature is not said.
+    public static let callable = ValueType.named("Function")
+
+    /// `[Element]`, which is `Array<Element>`.
+    public static func list(_ element: ValueType) -> ValueType { .named("Array", [element]) }
+    /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
+    public static func dictionary(_ key: ValueType, _ value: ValueType) -> ValueType { .named("Dictionary", [key, value]) }
+    /// `Wrapped?`, which is `Optional<Wrapped>`.
+    public static func optional(_ wrapped: ValueType) -> ValueType { .named("Optional", [wrapped]) }
 
     public var description: String {
         switch self {
-        case .any: "Any"
-        case .bool: "Bool"
-        case .int: "Int"
-        case .double: "Double"
-        case .string: "String"
-        case .function: "Function"
-        case .named(let name): name
-        case .list(let element): "[\(element)]"
-        case .dictionary(let key, let value): "[\(key): \(value)]"
-        case .optional(let wrapped): "\(wrapped)?"
-        case .generic(let name, let arguments): "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+        case .named("Array", let arguments) where arguments.count == 1: "[\(arguments[0])]"
+        case .named("Dictionary", let arguments) where arguments.count == 2: "[\(arguments[0]): \(arguments[1])]"
+        case .named("Optional", let arguments) where arguments.count == 1: "\(arguments[0])?"
+        case .named(let name, let arguments): arguments.isEmpty ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+        case .function(let parameters, let returns): "(\(parameters.map(\.description).joined(separator: ", "))) -> \(returns)"
+        case .tuple(let elements): "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }.joined(separator: ", ") + ")"
         }
     }
 }

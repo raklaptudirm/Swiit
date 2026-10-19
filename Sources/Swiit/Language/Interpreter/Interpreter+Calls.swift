@@ -326,19 +326,20 @@ extension Interpreter {
 
 extension TypeAnnotation {
     @_spi(Layer) public init(_ type: ValueType) {
-        self = switch type {
-        case .any: .any
-        case .bool: .bool
-        case .int: .int
-        case .double: .double
-        case .string: .string
-        case .function: .function
-        case .named(let name): .named(name)
-        case .list(let element): .list(TypeAnnotation(element))
-        case .dictionary(let key, let value): .dictionary(TypeAnnotation(key), TypeAnnotation(value))
-        case .optional(let wrapped): .optional(TypeAnnotation(wrapped))
-        case .generic(let name, let arguments): .generic(name, arguments.map(TypeAnnotation.init))
-        @unknown default: .any
+        switch type {
+        case .named("Any", _): self = .any
+        case .named("Bool", _): self = .bool
+        case .named("Int", _): self = .int
+        case .named("Double", _): self = .double
+        case .named("String", _): self = .string
+        case .named("Function", _): self = .function
+        case .named("Array", let arguments) where arguments.count == 1: self = .list(TypeAnnotation(arguments[0]))
+        case .named("Optional", let arguments) where arguments.count == 1: self = .optional(TypeAnnotation(arguments[0]))
+        case .named("Dictionary", let arguments) where arguments.count == 2:
+            self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
+        case .named(let name, let arguments): self = arguments.isEmpty ? .named(name) : .generic(name, arguments.map(TypeAnnotation.init))
+        case .function(let parameters, let returns): self = .functionType(parameters.map(TypeAnnotation.init), TypeAnnotation(returns))
+        case .tuple(let elements): self = .tuple(elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) })
         }
     }
 }

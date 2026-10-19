@@ -63,7 +63,7 @@
 }
 
 /// One value of an enum: a case, and its associated values if it has any.
-public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
+@_spi(Layer) public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
     @_spi(Layer) public let type: EnumType
     public let name: String
     /// The enum it is a case of.

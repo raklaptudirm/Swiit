@@ -5,7 +5,8 @@ import Foundation
 
 /// A function, method, property, variable or type a script can name.
 public struct Symbol: Sendable, Hashable {
-    public enum Kind: Sendable { case function, method, property, variable, type }
+    /// What a name is. A type says what it was declared as.
+    public enum Kind: Sendable { case function, method, property, variable, structure, enumeration, `class`, actor, `protocol` }
 
     /// A parameter of a function or method.
     public struct Parameter: Sendable, Hashable {
@@ -75,20 +76,22 @@ public struct Symbol: Sendable, Hashable {
 }
 
 extension ValueType {
-    /// The type an annotation names, as far as a host can say it: what it cannot (tuples, closures with signatures) is
-    /// `.any` or `.function`, and what is unknown is `.any`.
+    /// The type an annotation names.
     @_spi(Layer) public init(_ annotation: TypeAnnotation) {
         self = switch annotation {
         case .bool: .bool
         case .int: .int
         case .double: .double
         case .string: .string
-        case .function, .functionType: .function
+        case .function: .callable
+        case .record: .named("Record")
         case .named(let name): .named(name)
         case .list(let element): .list(ValueType(element))
         case .dictionary(let key, let value): .dictionary(ValueType(key), ValueType(value))
         case .optional(let wrapped): .optional(ValueType(wrapped))
-        case .generic(let name, let arguments): .generic(name, arguments.map(ValueType.init))
+        case .generic(let name, let arguments): .named(name, arguments.map(ValueType.init))
+        case .tuple(let elements): .tuple(elements.map { ValueType.Element(label: $0.label, type: ValueType($0.type)) })
+        case .functionType(let parameters, let returns, _, _): .function(parameters: parameters.map(ValueType.init), returns: ValueType(returns))
         default: .any
         }
     }
@@ -117,8 +120,10 @@ extension Interpreter {
         case .function(let callable):
             let candidates = (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
             return candidates.map { symbol(of: $0, named: name, kind: .function) }
-        case .object(is StructType), .object(is EnumType), .object(is ClassType), .object(is ProtocolType):
-            return [Symbol(name: name, kind: .type, returns: .named(name))]
+        case .object(let type as StructType): _ = type; return [Symbol(name: name, kind: .structure, returns: .named(name))]
+        case .object(is EnumType): return [Symbol(name: name, kind: .enumeration, returns: .named(name))]
+        case .object(let type as ClassType): return [Symbol(name: name, kind: type.isActor ? .actor : .class, returns: .named(name))]
+        case .object(is ProtocolType): return [Symbol(name: name, kind: .protocol, returns: .named(name))]
         default:
             let checker = TypeChecker(interpreter: self)
             return [Symbol(name: name, kind: .variable, returns: ValueType(checker.type(of: binding.value)))]

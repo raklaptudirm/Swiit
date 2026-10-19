@@ -357,6 +357,7 @@ Values/Context.swift	Layer subscript subscript
 Values/Enums.swift	Layer class EnumType
 Values/Enums.swift	Layer init init
 Values/Enums.swift	Layer let type
+Values/Enums.swift	Layer struct EnumValue
 Values/Enums.swift	Layer var definition
 Values/Enums.swift	Layer var index
 Values/Enums.swift	Layer var rawValue

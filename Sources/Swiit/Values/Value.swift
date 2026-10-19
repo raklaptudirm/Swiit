@@ -5,23 +5,25 @@ import Foundation
 /// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
-    case nothing
-    case bool(Bool)
-    case int(Int)
-    case double(Double)
-    case string(String)
-    case list([Value])
+    // The representation is the interpreter's and the shell's (SPI). A host builds a value with its initializers and literals and
+    // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never breaks it.
+    @_spi(Layer) case nothing
+    @_spi(Layer) case bool(Bool)
+    @_spi(Layer) case int(Int)
+    @_spi(Layer) case double(Double)
+    @_spi(Layer) case string(String)
+    @_spi(Layer) case list([Value])
     /// Named fields in order, like a row of a table: a struct's value (with
     /// its type's name), or a tuple (without).
     @_spi(Layer) case record(Record)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
-    case dictionary(ValueDictionary)
+    @_spi(Layer) case dictionary(ValueDictionary)
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
-    case enumValue(EnumValue)
+    @_spi(Layer) case enumValue(EnumValue)
     /// A live value with members of its own: a background job, an enum type,
     /// and later bridged Swift objects.
-    case object(any HostObject)
-    case function(any Callable)
+    @_spi(Layer) case object(any HostObject)
+    @_spi(Layer) case function(any Callable)
 }
 
 /// A live value that answers for its own members, properties and methods
@@ -476,12 +478,95 @@ extension Value {
         self = try ValueEncoder().encode(value)
     }
 
-    /// The value as a Swift type: `try value.converted(to: Int.self)`.
-    public func converted<T: ValueConvertible>(to type: T.Type = T.self) throws(Diagnostic) -> T {
-        do {
-            return try T(self)
-        } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+}
+
+// MARK: What a host does with a value
+
+extension Value {
+    /// The absence of a value, a script's `nil`.
+    public static let null = Value.nothing
+    public init(_ value: Bool) { self = .bool(value) }
+    public init(_ value: Int) { self = .int(value) }
+    public init(_ value: Double) { self = .double(value) }
+    public init(_ value: String) { self = .string(value) }
+    public init(_ value: [Value]) { self = .list(value) }
+    public init(_ value: ValueDictionary) { self = .dictionary(value) }
+    public init(_ value: some HostObject) { self = .object(value) }
+
+    /// What a value is, as a script would say it. A tuple and a struct value are told apart by whether the type has a name.
+    public enum Kind: Sendable {
+        case nothing, bool, int, double, string, list, dictionary
+        case tuple, structure, enumeration, function, object
+    }
+
+    public var kind: Kind {
+        switch self {
+        case .nothing: .nothing
+        case .bool: .bool
+        case .int: .int
+        case .double: .double
+        case .string: .string
+        case .list: .list
+        case .dictionary: .dictionary
+        case .record(let record): record.typeName == nil ? .tuple : .structure
+        case .enumValue: .enumeration
+        case .function: .function
+        case .object: .object
         }
+    }
+
+    /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list casts only if every element does.
+    /// `try T(value)` is the throwing form, and converts as a script's call does.
+    public func cast<T: ValueConvertible>(to type: T.Type = T.self) -> T? {
+        guard let result = try? T(self), result.value == self else { return nil }
+        return result
+    }
+
+    /// The host's own object, if this is one of that class.
+    public func cast<T: HostObject>(to type: T.Type) -> T? {
+        guard case .object(let object) = self else { return nil }
+        return object as? T
+    }
+
+    /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an optional string), else nil.
+    public func cast(to type: ValueType) -> Value? {
+        matches(type) ? self : nil
+    }
+
+    private func matches(_ type: ValueType) -> Bool {
+        switch type {
+        case .named("Any", _): return true
+        case .named("Bool", _): return kind == .bool
+        case .named("Int", _): return kind == .int
+        case .named("Double", _): return kind == .double
+        case .named("String", _): return kind == .string
+        case .named("Function", _), .function: return kind == .function
+        case .named("Optional", let arguments):
+            return self == .nothing || arguments.first.map(matches) ?? true
+        case .named("Array", let arguments):
+            guard case .list(let items) = self else { return false }
+            return items.allSatisfy { arguments.first.map($0.matches) ?? true }
+        case .named("Dictionary", let arguments):
+            guard case .dictionary(let dictionary) = self, arguments.count == 2 else { return kind == .dictionary }
+            return dictionary.allSatisfy { $0.key.matches(arguments[0]) && $0.value.matches(arguments[1]) }
+        case .named(let name, _):
+            switch self {
+            case .record(let record): return record.typeName == name
+            case .enumValue(let value): return value.type.name == name
+            case .object(let object): return object.typeName == name
+            default: return false
+            }
+        case .tuple(let elements):
+            guard case .record(let record) = self, record.typeName == nil, record.count == elements.count else { return false }
+            return zip(record, elements).allSatisfy { field, element in
+                (element.label == nil || element.label == field.key) && field.value.matches(element.type)
+            }
+        }
+    }
+
+    /// The case of a script enum: its type's name, the case's name and its payload.
+    public var enumCase: (type: String, name: String, values: [Value])? {
+        guard case .enumValue(let value) = self else { return nil }
+        return (value.type.name, value.name, value.values)
     }
 }

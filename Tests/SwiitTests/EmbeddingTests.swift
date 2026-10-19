@@ -24,11 +24,11 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 
 @Test func evalGivesTheValueOfTheLastExpression() throws {
     let swish = interpreter()
-    #expect(try swish.evaluate("1 + 2") == .int(3))
-    #expect(try swish.evaluate("let xs = [3, 1, 2]; xs.sorted()") == .list([.int(1), .int(2), .int(3)]))
+    #expect(try swish.evaluate("1 + 2") == 3)
+    #expect(try swish.evaluate("let xs = [3, 1, 2]; xs.sorted()") == [1, 2, 3])
     // A declaration gives nothing, and stays for the next call.
-    #expect(try swish.evaluate("let answer = 42") == .nothing)
-    #expect(try swish.evaluate("answer * 2") == .int(84))
+    #expect(try swish.evaluate("let answer = 42") == .null)
+    #expect(try swish.evaluate("answer * 2") == 84)
     // A value statement shows nothing: values come back from eval.
     let log = Log()
     _ = try interpreter(log: log).evaluate("1; 2; 3")
@@ -53,9 +53,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     swish.register("clamp") { (x: Int, lo: Int, hi: Int) in min(max(x, lo), hi) }
     swish.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
     swish.register("twice") { (xs: [Int]) in xs + xs }
-    #expect(try swish.evaluate("clamp(15, 0, 10)") == .int(10))
-    #expect(try swish.evaluate(#"greet(name: "Rak")"#) == .string("hello, Rak"))
-    #expect(try swish.evaluate("twice([1, 2]).count") == .int(4))
+    #expect(try swish.evaluate("clamp(15, 0, 10)") == 10)
+    #expect(try swish.evaluate(#"greet(name: "Rak")"#) == "hello, Rak")
+    #expect(try swish.evaluate("twice([1, 2]).count") == 4)
     // A wrong argument is the usual type error.
     do {
         _ = try swish.evaluate(#"clamp("a", 0, 10)"#)
@@ -73,7 +73,7 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
         if x < 0 { throw Refused() }
         return x
     }
-    #expect(try swish.evaluate("try check(1)") == .int(1))
+    #expect(try swish.evaluate("try check(1)") == 1)
     do {
         _ = try swish.evaluate("try check(-1)")
         Issue.record("expected a diagnostic")
@@ -87,10 +87,10 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     struct Config: Encodable { var volume = 7; var name = "main" }
     let swish = interpreter()
     swish["config"] = try Value(encoding: Config())
-    swish["limit"] = .int(10)
-    #expect(try swish.evaluate("config.volume * 2") == .int(14))
-    #expect(try swish.evaluate("limit + 1") == .int(11))
-    #expect(swish["limit"] == .int(10))
+    swish["limit"] = 10
+    #expect(try swish.evaluate("config.volume * 2") == 14)
+    #expect(try swish.evaluate("limit + 1") == 11)
+    #expect(swish["limit"] == 10)
 }
 
 @Test func theSandboxRefusesWhatItWasNotGiven() {
@@ -119,7 +119,7 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
         Issue.record("\(error)")
     }
     // The interpreter is still usable afterward.
-    #expect((try? swish.evaluate("1 + 1")) == .int(2))
+    #expect((try? swish.evaluate("1 + 1")) == 2)
 }
 
 @Test func aScriptCannotCatchALimit() {
@@ -146,7 +146,7 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     }
     // The default depth fits the stack eval runs on.
     let deep = interpreter()
-    #expect((try? deep.evaluate("func sum(_ n: Int) -> Int { n == 0 ? 0 : n + sum(n - 1) }; sum(5000)")) == .int(12_502_500))
+    #expect((try? deep.evaluate("func sum(_ n: Int) -> Int { n == 0 ? 0 : n + sum(n - 1) }; sum(5000)")) == 12_502_500)
 }
 
 @Test func timeAndOutputAreLimitedToo() {
@@ -194,7 +194,7 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     _ = try a.evaluate("let shared = 1")
     #expect((try? b.evaluate("shared")) == nil)
     #expect((try? b.evaluate("only(1)")) == nil)
-    #expect(try a.evaluate("only(shared)") == .int(1))
+    #expect(try a.evaluate("only(shared)") == 1)
 }
 
 /// A bag of settings: every member is an Int, assigned through a `let`.
@@ -206,10 +206,10 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     var writeType: ValueType { .optional(.int) }
     var memberNames: [String] { values.keys.sorted() }
     var description: String { "Settings" }
-    func member(_ name: String) -> Value? { values[name].map(Value.int) }
-    func read(_ name: String) throws -> Value { values[name].map(Value.int) ?? .nothing }
+    func member(_ name: String) -> Value? { values[name].map { Value($0) } }
+    func read(_ name: String) throws -> Value { values[name].map { Value($0) } ?? .null }
     func write(_ name: String, _ value: Value) throws {
-        guard case .int(let number) = value else { values[name] = nil; return }
+        guard let number = value.cast(to: Int.self) else { values[name] = nil; return }
         values[name] = number
     }
 }
@@ -217,10 +217,10 @@ private final class Settings: DynamicObject, @unchecked Sendable {
 @Test func aDynamicObjectAnswersForItsOwnMembers() throws {
     let swish = interpreter()
     let settings = Settings()
-    swish["settings"] = .object(settings)
-    #expect(try swish.evaluate("settings.volume") == .int(7))
-    #expect(try swish.evaluate(#"settings["volume"]"#) == .int(7))
-    #expect(try swish.evaluate("settings.missing") == .nothing)
+    swish["settings"] = Value(settings)
+    #expect(try swish.evaluate("settings.volume") == 7)
+    #expect(try swish.evaluate(#"settings["volume"]"#) == 7)
+    #expect(try swish.evaluate("settings.missing") == .null)
     // Assigned through a `let`, as a class would be; nil removes.
     _ = try swish.evaluate("settings.brightness = 3; settings.volume = settings.volume! + 1")
     #expect(settings.values == ["volume": 8, "brightness": 3])
@@ -240,7 +240,7 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     // `sorted(by: \.n)` reads fields through a reader set for the length of
     // the call; two runs at once must each have their own.
     let program = #"[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }"#
-    let expected = Value.list([.string("a"), .string("b"), .string("c")])
+    let expected: Value = ["a", "b", "c"]
     nonisolated(unsafe) var wrong = 0
     let lock = NSLock()
     let group = DispatchGroup()
@@ -263,18 +263,18 @@ private final class Settings: DynamicObject, @unchecked Sendable {
 
 @Test func anExtensionAddsAStaticMethodToAnEnum() throws {
     let swish = interpreter()
-    #expect(try swish.evaluate("enum Namespace {}; extension Namespace { static func answer() -> Int { 42 } }; Namespace.answer()") == .int(42))
+    #expect(try swish.evaluate("enum Namespace {}; extension Namespace { static func answer() -> Int { 42 } }; Namespace.answer()") == 42)
     // Declared by separate evaluations, and beside a case.
     _ = try swish.evaluate("enum Level { case low }")
     _ = try swish.evaluate("extension Level { static func make() -> Level { .low } }")
-    #expect(try swish.evaluate("Level.make() == .low") == .bool(true))
+    #expect(try swish.evaluate("Level.make() == .low") == true)
 }
 
 @Test func aNestedTypeIsReachedByALaterEvaluation() throws {
     let swish = interpreter()
     _ = try swish.evaluate("struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }")
-    #expect(try swish.evaluate("Code.Size.bigger()") == .int(2))
-    #expect(try swish.evaluate("Code.Kind.a == .a") == .bool(true))
+    #expect(try swish.evaluate("Code.Size.bigger()") == 2)
+    #expect(try swish.evaluate("Code.Kind.a == .a") == true)
 }
 
 private final class HostNode: HostObject, @unchecked Sendable {
@@ -284,8 +284,8 @@ private final class HostNode: HostObject, @unchecked Sendable {
     var memberNames: [String] { ["label", "shout"] }
     func member(_ name: String) -> Value? {
         switch name {
-        case "label": .string(label)
-        case "shout": Value(HostFunction(name: "shout", returns: .string) { [label] _ in .string(label.uppercased()) })
+        case "label": Value(label)
+        case "shout": Value(HostFunction(name: "shout", returns: .string) { [label] _ in Value(label.uppercased()) })
         default: nil
         }
     }
@@ -295,12 +295,12 @@ private final class HostNode: HostObject, @unchecked Sendable {
 @Test func aHostObjectIsTypedByTheProtocolThatDescribesIt() throws {
     let log = Log()
     let swish = interpreter(log: log)
-    swish["nodes"] = .list([.object(HostNode("a")), .object(HostNode("b"))])
+    swish["nodes"] = [Value(HostNode("a")), Value(HostNode("b"))]
     _ = try swish.evaluate("protocol Node { var label: String { get }; func shout() -> String }")
     // It is used as the protocol says, and passes where one is asked for.
-    #expect(try swish.evaluate("nodes.map { $0.shout() }") == .list([.string("A"), .string("B")]))
-    #expect(try swish.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == .string("a"))
-    #expect(try swish.evaluate("let kept: [Node] = nodes; kept.count") == .int(2))
+    #expect(try swish.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
+    #expect(try swish.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == "a")
+    #expect(try swish.evaluate("let kept: [Node] = nodes; kept.count") == 2)
     // A mistake is found before anything runs.
     #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran"); nodes.map { $0.nosuch }"#) }
     #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran"); nodes.map { $0.label + 1 }"#) }
@@ -311,7 +311,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
 @Test func aDictionaryIsAParameterAndAResult() throws {
     let swish = interpreter()
     swish.register("shout") { (words: [String: String]) in words.mapValues { $0.uppercased() } }
-    #expect(try swish.evaluate(#"shout(["a": "x"])["a"]"#) == .string("X"))
+    #expect(try swish.evaluate(#"shout(["a": "x"])["a"]"#) == "X")
     // The checker knows its type: a wrong one is found before the script runs.
     #expect(throws: (any Error).self) { try swish.evaluate(#"shout(["a": 1])"#) }
     #expect(throws: (any Error).self) { try swish.evaluate("shout([1, 2])") }
@@ -369,41 +369,41 @@ private final class HostNode: HostObject, @unchecked Sendable {
 @Test func aHostTypeIsDescribedAndTheDescriptionChecked() throws {
     let swish = interpreter()
     let node = HostNode("a")
-    swish["node"] = .object(node)
+    swish["node"] = Value(node)
     // Until it is described, nothing is known of the object, so nothing is missing.
     #expect(swish.missingMembers(of: node) == [])
     try swish.describe(type: "Node", as: "var label: String { get }; func shout() -> String; func missing() -> Int")
     #expect(swish.missingMembers(of: node) == ["missing"])
-    #expect(try swish.evaluate("node.shout()") == .string("A"))
+    #expect(try swish.evaluate("node.shout()") == "A")
     #expect(throws: (any Error).self) { try swish.evaluate("node.nosuch") }
 }
 
 private final class Preferences: DynamicObject, @unchecked Sendable {
-    var values: [String: Value] = ["count": .int(2), "theme": .string("dark")]
+    var values: [String: Value] = ["count": 2, "theme": "dark"]
     var typeName: String { "Preferences" }
     var memberNames: [String] { values.keys.sorted() }
     func member(_ name: String) -> Value? { values[name] }
     var description: String { "Preferences" }
     var readType: ValueType { .string }
     var writeType: ValueType { .string }
-    func read(_ name: String) throws -> Value { values[name] ?? .nothing }
+    func read(_ name: String) throws -> Value { values[name] ?? .null }
     func write(_ name: String, _ value: Value) throws { values[name] = value }
 }
 
 @Test func aDynamicObjectHasTheMembersTheHostDescribedTyped() throws {
     let swish = interpreter()
-    swish["settings"] = .object(Preferences())
+    swish["settings"] = Value(Preferences())
     // Every member has the one type, until some are described.
-    #expect(try swish.evaluate("settings.theme") == .string("dark"))
+    #expect(try swish.evaluate("settings.theme") == "dark")
     #expect(throws: (any Error).self) { try swish.evaluate("settings.count + 1") }
     try swish.describe(type: "Preferences", as: "var count: Int { get }")
-    #expect(try swish.evaluate("settings.count + 1") == .int(3))
-    #expect(try swish.evaluate("settings.theme") == .string("dark"))
+    #expect(try swish.evaluate("settings.count + 1") == 3)
+    #expect(try swish.evaluate("settings.theme") == "dark")
 }
 
 @Test func evaluateCanBeAwaitedAndIsCancelledWithItsTask() async throws {
     let swish = interpreter()
-    #expect(try await swish.evaluate("1 + 2") == .int(3))
+    #expect(try await swish.evaluate("1 + 2") == 3)
     let running = Task { try await swish.evaluate("var n = 0; while true { n += 1 }") }
     try await Task.sleep(for: .milliseconds(150))
     running.cancel()
@@ -417,16 +417,16 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
 
 @Test func aDictionaryKeepsTheOrderItsEntriesWereAddedIn() throws {
     var dictionary = ValueDictionary()
-    dictionary[.string("z")] = .int(1)
-    dictionary[.string("a")] = .int(2)
-    dictionary[.string("z")] = .int(3)
-    #expect(dictionary.keys == [.string("z"), .string("a")])
-    #expect(dictionary.values == [.int(3), .int(2)])
-    dictionary[.string("z")] = nil
-    #expect(dictionary.keys == [.string("a")])
+    dictionary["z"] = 1
+    dictionary["a"] = 2
+    dictionary["z"] = 3
+    #expect(dictionary.keys == ["z", "a"])
+    #expect(dictionary.values == [3, 2])
+    dictionary["z"] = nil
+    #expect(dictionary.keys == ["a"])
     // Equal by what they hold, not the order they were made in.
     var other = ValueDictionary()
-    other[.string("a")] = .int(2)
+    other["a"] = 2
     #expect(other == dictionary)
 }
 
@@ -435,10 +435,61 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     let swish = interpreter()
     swish["row"] = try Value(encoding: Row())
     // A script reads the fields by name; a host reads them in order.
-    #expect(try swish.evaluate("row.size + 1") == .int(4))
+    #expect(try swish.evaluate("row.size + 1") == 4)
     let entries = try #require(try swish.evaluate("row").entries)
-    #expect(entries.keys == [.string("name"), .string("size"), .string("kind")])
-    #expect(try swish.evaluate("(a: 1, b: 2)").entries?.keys == [.string("a"), .string("b")])
+    #expect(entries.keys == ["name", "size", "kind"])
+    #expect(try swish.evaluate("(a: 1, b: 2)").entries?.keys == ["a", "b"])
     #expect(try swish.evaluate("[\"b\": 1, \"a\": 2]").entries?.keys.count == 2)
-    #expect(Value.int(1).entries == nil)
+    #expect(Value(1).entries == nil)
+}
+
+@Test func aHostReadsAValueByItsKindAndCastsItToATypeItExpects() throws {
+    let swish = interpreter()
+    _ = try swish.evaluate("""
+    struct Point { var x: Int; var y: Int }
+    enum Level: Int { case low = 1, high }
+    func twice(_ n: Int) -> Int { n * 2 }
+    """)
+    #expect(try swish.evaluate("3").kind == .int)
+    #expect(try swish.evaluate("[1, 2]").kind == .list)
+    #expect(try swish.evaluate("(a: 1, b: 2)").kind == .tuple)
+    #expect(try swish.evaluate("Point(x: 1, y: 2)").kind == .structure)
+    #expect(try swish.evaluate("Level.high").kind == .enumeration)
+    #expect(try swish.evaluate("twice").kind == .function)
+    #expect(Value.null.kind == .nothing)
+    // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
+    let three = try swish.evaluate("3")
+    #expect(three.cast(to: Int.self) == 3)
+    #expect(three.cast(to: Double.self) == nil)
+    #expect(three.cast(to: String.self) == nil)
+    #expect(try swish.evaluate("[1, 2]").cast(to: [Int].self) == [1, 2])
+    #expect(try swish.evaluate(#"let mixed: [Any] = [1, "a"]; mixed"#).cast(to: [Int].self) == nil)
+    // `try T(value)` is the throwing form, which converts as a call does.
+    #expect(try Double(three) == 3)
+    #expect(throws: (any Error).self) { try String(three) }
+    // A script type by name, and a structured type by shape.
+    let point = try swish.evaluate("Point(x: 1, y: 2)")
+    #expect(point.cast(to: .named("Point")) != nil)
+    #expect(point.cast(to: .named("Level")) == nil)
+    #expect(try swish.evaluate("[1, 2]").cast(to: .list(.int)) != nil)
+    #expect(try swish.evaluate("[1, 2]").cast(to: .list(.string)) == nil)
+    #expect(try swish.evaluate("(a: 1, b: 2)").cast(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)])) != nil)
+    // An enum's case, and the declaration kind of a type.
+    let high = try #require(try swish.evaluate("Level.high").enumCase)
+    #expect(high.type == "Level" && high.name == "high")
+    #expect(swish.symbols(named: "Point").first?.kind == .structure)
+    #expect(swish.symbols(named: "Level").first?.kind == .enumeration)
+    #expect(swish.symbols(named: "twice").first?.kind == .function)
+}
+
+@Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
+    let swish = interpreter()
+    #expect(ValueType.list(.int) == .named("Array", [.int]))
+    #expect(ValueType.optional(.string) == .named("Optional", [.string]))
+    #expect(ValueType.list(.optional(.int)).description == "[Int?]")
+    #expect(try swish.valueType(of: "[1, 2]") == .list(.int))
+    #expect(try swish.valueType(of: #"["a": 1]"#) == .dictionary(.string, .int))
+    #expect(try swish.valueType(of: "(a: 1, b: \"x\")") == .tuple([.init(label: "a", type: .int), .init(label: "b", type: .string)]))
+    _ = try swish.evaluate("func twice(_ n: Int) -> Int { n * 2 }")
+    #expect(try swish.valueType(of: "twice") == .function(parameters: [.int], returns: .int))
 }
