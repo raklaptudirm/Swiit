@@ -81,7 +81,7 @@ enum SPISurface {
 /// documented there; a new one is a decision, made by adding its name here and to the design.
 enum PublicSurface {
     static let allowed: Set<String> = [
-        "Interpreter", "Value", "Record", "ValueDictionary", "EnumValue", "Callable", "ValueType", "HostObject", "DynamicObject",
+        "Interpreter", "Value", "ValueDictionary", "EnumValue", "Callable", "ValueType", "HostObject", "DynamicObject",
         "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol",
     ]
 

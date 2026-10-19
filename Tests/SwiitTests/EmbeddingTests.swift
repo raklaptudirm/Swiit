@@ -414,3 +414,31 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
         #expect(error.kind == .cancelled)
     }
 }
+
+@Test func aDictionaryKeepsTheOrderItsEntriesWereAddedIn() throws {
+    var dictionary = ValueDictionary()
+    dictionary[.string("z")] = .int(1)
+    dictionary[.string("a")] = .int(2)
+    dictionary[.string("z")] = .int(3)
+    #expect(dictionary.keys == [.string("z"), .string("a")])
+    #expect(dictionary.values == [.int(3), .int(2)])
+    dictionary[.string("z")] = nil
+    #expect(dictionary.keys == [.string("a")])
+    // Equal by what they hold, not the order they were made in.
+    var other = ValueDictionary()
+    other[.string("a")] = .int(2)
+    #expect(other == dictionary)
+}
+
+@Test func aStructuredValueIsReadAsItsEntries() throws {
+    struct Row: Encodable { var name = "a"; var size = 3; var kind = "file" }
+    let swish = interpreter()
+    swish["row"] = try Value(encoding: Row())
+    // A script reads the fields by name; a host reads them in order.
+    #expect(try swish.evaluate("row.size + 1") == .int(4))
+    let entries = try #require(try swish.evaluate("row").entries)
+    #expect(entries.keys == [.string("name"), .string("size"), .string("kind")])
+    #expect(try swish.evaluate("(a: 1, b: 2)").entries?.keys == [.string("a"), .string("b")])
+    #expect(try swish.evaluate("[\"b\": 1, \"a\": 2]").entries?.keys.count == 2)
+    #expect(Value.int(1).entries == nil)
+}

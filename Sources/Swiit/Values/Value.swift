@@ -13,7 +13,7 @@ public enum Value: Sendable {
     case list([Value])
     /// Named fields in order, like a row of a table: a struct's value (with
     /// its type's name), or a tuple (without).
-    case record(Record)
+    @_spi(Layer) case record(Record)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
     case dictionary(ValueDictionary)
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
@@ -134,7 +134,7 @@ public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 /// Fields in insertion order. Two records are equal when they have the same
 /// fields, whatever their order or type name.
-public struct Record: Sendable, Hashable, Sequence {
+@_spi(Layer) public struct Record: Sendable, Hashable, Sequence {
     public private(set) var keys: [String] = []
     private var storage: [String: Value] = [:]
     /// The Swift type this record came from, like `FileEntry`, which picks
@@ -211,36 +211,66 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
 /// no particular one and changes from run to run. Shown, it's sorted by key
 /// (`sortedForDisplay`), so what's printed is the same every time.
 public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible, CustomDebugStringConvertible {
-    @_spi(Layer) public var dictionary: [Value: Value]
+    private var storage: [Value: Value]
+    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two dictionaries with the same
+    /// entries are equal whatever order they were made in.
+    private var order: [Value]
 
-    public init() { dictionary = [:] }
+    public init() {
+        storage = [:]
+        order = []
+    }
 
-    @_spi(Layer) public init(_ dictionary: [Value: Value]) { self.dictionary = dictionary }
+    @_spi(Layer) public var dictionary: [Value: Value] {
+        get { storage }
+        set {
+            // What stays keeps its place; what is new comes after, in a fixed order.
+            let added = newValue.keys.filter { storage[$0] == nil }.sorted { Value.displaysBefore($0, $1) }
+            order = order.filter { newValue[$0] != nil } + added
+            storage = newValue
+        }
+    }
 
-    /// Later entries replace earlier ones with the same key.
+    @_spi(Layer) public init(_ dictionary: [Value: Value]) {
+        storage = dictionary
+        order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
+    }
+
+    /// In the order given. A later entry with the same key replaces the value of the earlier one, which keeps its place.
     @_spi(Layer) public init(_ entries: [(Value, Value)]) {
-        dictionary = Dictionary(entries, uniquingKeysWith: { $1 })
+        storage = [:]
+        order = []
+        for (key, value) in entries { self[key] = value }
     }
 
     public subscript(key: Value) -> Value? {
-        get { dictionary[key] }
-        set { dictionary[key] = newValue }
+        get { storage[key] }
+        set {
+            if let newValue {
+                if storage.updateValue(newValue, forKey: key) == nil { order.append(key) }
+            } else if storage.removeValue(forKey: key) != nil {
+                order.removeAll { $0 == key }
+            }
+        }
     }
 
-    public var count: Int { dictionary.count }
-    public var isEmpty: Bool { dictionary.isEmpty }
-    public var keys: [Value] { Array(dictionary.keys) }
-    public var values: [Value] { Array(dictionary.values) }
+    public static func == (lhs: ValueDictionary, rhs: ValueDictionary) -> Bool { lhs.storage == rhs.storage }
+    public func hash(into hasher: inout Hasher) { hasher.combine(storage) }
+
+    public var count: Int { storage.count }
+    public var isEmpty: Bool { storage.isEmpty }
+    public var keys: [Value] { order }
+    public var values: [Value] { order.map { storage[$0]! } }
 
     public func makeIterator() -> some IteratorProtocol<(key: Value, value: Value)> {
-        dictionary.makeIterator()
+        order.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
     }
 
     /// The entries sorted by key: numbers by value, strings as Swift sorts
     /// them, an enum's cases in declared order, and anything else by how
     /// it's written.
     @_spi(Layer) public var sortedForDisplay: [(key: Value, value: Value)] {
-        dictionary.sorted { Value.displaysBefore($0.key, $1.key) }
+        storage.sorted { Value.displaysBefore($0.key, $1.key) }
     }
 
     public var debugDescription: String {
@@ -426,6 +456,16 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, Expre
 }
 
 extension Value {
+    /// The entries of a structured value in order: a dictionary's, or the fields of a tuple or a struct value by name (a
+    /// tuple's unlabeled ones by position, "0", "1"). Nil for any other value.
+    public var entries: ValueDictionary? {
+        switch self {
+        case .dictionary(let dictionary): dictionary
+        case .record(let record): ValueDictionary(record.map { (Value.string($0.key), $0.value) })
+        default: nil
+        }
+    }
+
     /// A described function as a value, for a host object's method to give: `.function(...)` of its own making.
     public init(_ function: HostFunction) {
         self = .function(NativeFunction(function))

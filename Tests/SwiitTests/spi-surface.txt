@@ -403,6 +403,7 @@ Values/Value.swift	Layer init init
 Values/Value.swift	Layer protocol LanguageObject
 Values/Value.swift	Layer protocol ObjectDetails
 Values/Value.swift	Layer protocol WrapsValue
+Values/Value.swift	Layer struct Record
 Values/Value.swift	Layer typealias DisplaySegment
 Values/Value.swift	Layer typealias SwiitValue
 Values/Value.swift	Layer var asRecord
