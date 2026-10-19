@@ -126,6 +126,11 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
             self.label = label
             self.type = type
         }
+
+        /// An element of a Swift type: `Element(label: "by", type: String.self)`.
+        public init<T: ValueConvertible>(label: String? = nil, type: T.Type) {
+            self.init(label: label, type: ValueType(type))
+        }
     }
 
     /// The type of a Swift type a script can use: `ValueType(Int.self)`, `ValueType([String].self)`; any `ValueConvertible`.

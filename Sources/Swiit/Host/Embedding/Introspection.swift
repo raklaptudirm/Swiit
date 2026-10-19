@@ -31,22 +31,6 @@ public struct Symbol: Sendable, Hashable {
         }
     }
 
-    /// What a call is given: a label and a type.
-    public struct Argument: Sendable, Hashable {
-        public var label: String?
-        public var type: ValueType
-
-        public init(label: String? = nil, type: ValueType) {
-            self.label = label
-            self.type = type
-        }
-
-        /// An argument of a Swift type: `Argument(label: "by", type: String.self)`.
-        public init<T: ValueConvertible>(label: String? = nil, type: T.Type) {
-            self.init(label: label, type: ValueType(type))
-        }
-    }
-
     public var name: String
     public var kind: Kind
     /// The line `help` shows, when it has one.
@@ -70,6 +54,15 @@ public struct Symbol: Sendable, Hashable {
         self.isThrowing = isThrowing
         self.isMutating = isMutating
         self.isAsync = isAsync
+    }
+
+    /// Its type as a value: the function type of a function or method (parameter types in order, what it returns), or the type
+    /// of a variable, property or type.
+    public var type: ValueType {
+        switch kind {
+        case .function, .method: .function(parameters: parameters.map(\.type), returns: returns ?? .tuple([]))
+        default: returns ?? .any
+        }
     }
 
     /// As a pipeline stage sees it: the parameter that receives what is piped in removed.
@@ -204,7 +197,7 @@ extension Interpreter {
 
     /// Which of the candidates a call with these arguments means: by their labels and types, the one that fits with the
     /// fewest conversions. Throws the checker's own complaint when none fits or several do.
-    public func resolveOverload(among candidates: [Symbol], arguments: [Symbol.Argument]) throws(Diagnostic) -> Symbol {
+    public func resolveOverload(among candidates: [Symbol], arguments: [ValueType.Element]) throws(Diagnostic) -> Symbol {
         guard !candidates.isEmpty else { throw Diagnostic(kind: .type, message: "there is nothing to call") }
         let checker = TypeChecker(interpreter: self)
         func penalty(_ candidate: Symbol) -> Int? {

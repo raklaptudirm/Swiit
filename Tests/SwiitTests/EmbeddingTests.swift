@@ -511,4 +511,6 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     #expect(scale.parameters.map(\.type) == [.int, .int] && scale.returns == .int)
     #expect(!swish.symbols(named: "sorted", of: [Int].self).isEmpty)
     #expect(try swish.resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]).name == "scale")
+    // A function symbol is also a function type, and a call's arguments are the elements of a tuple type.
+    #expect(scale.type == .function(parameters: [.int, .int], returns: .int))
 }
