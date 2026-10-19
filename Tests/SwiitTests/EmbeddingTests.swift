@@ -493,3 +493,22 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     _ = try swish.evaluate("func twice(_ n: Int) -> Int { n * 2 }")
     #expect(try swish.valueType(of: "twice") == .function(parameters: [.int], returns: .int))
 }
+
+@Test func aSwiftHostNamesTypesWithMetatypes() throws {
+    #expect(ValueType(Int.self) == .int)
+    #expect(ValueType([String].self) == .list(.string))
+    #expect(ValueType([String: Int].self) == .dictionary(.string, .int))
+    let swish = interpreter()
+    swish.register(HostFunction(
+        name: "scale", summary: "Multiplies.", parameters: [.init(name: "n", type: Int.self), .init(label: "by", name: "k", type: Int.self)],
+        returns: Int.self
+    ) { arguments in
+        Value((arguments[0].cast(to: Int.self) ?? 0) * (arguments[1].cast(to: Int.self) ?? 0))
+    })
+    #expect(try swish.evaluate("scale(3, by: 4)") == 12)
+    #expect(throws: Diagnostic.self) { try swish.evaluate(#"scale("a", by: 4)"#) }
+    let scale = try #require(swish.symbols(named: "scale").first)
+    #expect(scale.parameters.map(\.type) == [.int, .int] && scale.returns == .int)
+    #expect(!swish.symbols(named: "sorted", of: [Int].self).isEmpty)
+    #expect(try swish.resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]).name == "scale")
+}

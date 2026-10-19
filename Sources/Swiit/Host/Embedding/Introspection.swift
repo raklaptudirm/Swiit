@@ -40,6 +40,11 @@ public struct Symbol: Sendable, Hashable {
             self.label = label
             self.type = type
         }
+
+        /// An argument of a Swift type: `Argument(label: "by", type: String.self)`.
+        public init<T: ValueConvertible>(label: String? = nil, type: T.Type) {
+            self.init(label: label, type: ValueType(type))
+        }
     }
 
     public var name: String
@@ -106,6 +111,11 @@ extension Interpreter {
             guard let type else { return globalSymbols(named: name) }
             return memberSymbols(named: name, of: TypeAnnotation(type))
         }
+    }
+
+    /// The members a Swift type has for scripts: `symbols(named: "sorted", of: [Int].self)`.
+    public func symbols<T: ValueConvertible>(named name: String? = nil, of type: T.Type) -> [Symbol] {
+        symbols(named: name, of: ValueType(type))
     }
 
     private func globalSymbols(named name: String?) -> [Symbol] {

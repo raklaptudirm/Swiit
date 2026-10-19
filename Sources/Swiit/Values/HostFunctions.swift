@@ -21,6 +21,12 @@ public struct HostFunction: Sendable {
             self.enums = []
         }
 
+        /// A parameter of a Swift type: `Parameter(name: "count", type: Int.self)`.
+        public init<T: ValueConvertible>(label: String? = nil, name: String, type: T.Type, defaultValue: Value? = nil, isVariadic: Bool = false) {
+            self.init(label: label, name: name, type: ValueType(type), defaultValue: defaultValue, isVariadic: isVariadic)
+            self.enums = T.swiitEnums
+        }
+
         /// The enums its type uses, which the shell learns by name.
         @_spi(Layer) public var enums: [EnumType]
         /// `@Input`: receives what's piped in.
@@ -79,6 +85,14 @@ public struct HostFunction: Sendable {
         self.call = { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }
 
+    /// A function whose result is a Swift type: `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
+    public init<T: ValueConvertible>(
+        name: String, summary: String? = nil, parameters: [Parameter] = [], returns: T.Type, isThrowing: Bool = false,
+        body: @escaping @Sendable ([Value]) throws -> Value
+    ) {
+        self.init(name: name, summary: summary, parameters: parameters, returns: ValueType(returns), isThrowing: isThrowing, body: body)
+    }
+
     /// As the shell's commands are described: a body taking the arguments by name.
     @_spi(Layer) public init(
         name: String, summary: String? = nil, parameters: [Parameter], returnType: ValueType?, isThrowing: Bool = false,
@@ -112,6 +126,11 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
             self.label = label
             self.type = type
         }
+    }
+
+    /// The type of a Swift type a script can use: `ValueType(Int.self)`, `ValueType([String].self)`; any `ValueConvertible`.
+    public init<T: ValueConvertible>(_ type: T.Type) {
+        self = T.valueType
     }
 
     public static let any = ValueType.named("Any")
