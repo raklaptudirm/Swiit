@@ -41,6 +41,16 @@ extension Interpreter {
         }
     }
 
+    /// A value as a script's interpolation shows it, honoring the `description` a script's own type declares; `debug` for the
+    /// form `print` of a collection shows, with strings quoted.
+    public func text(of value: Value, debug: Bool = false) throws(Diagnostic) -> String {
+        do {
+            return try inCurrentTask { try describing(value, debug: debug) }
+        } catch {
+            throw Diagnostic.of(error)
+        }
+    }
+
     /// The type a value has in a script.
     public func valueType(of value: Value) -> ValueType {
         inCurrentTask { ValueType(TypeChecker(interpreter: self).type(of: value)) }
