@@ -64,29 +64,29 @@
 
 /// One value of an enum: a case, and its associated values if it has any.
 @_spi(Layer) public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
-    @_spi(Layer) public let type: EnumType
+    let type: EnumType
     public let name: String
     /// The enum it is a case of.
     public var typeName: String { type.name }
     /// In the order the case declares them.
     public let values: [Value]
 
-    @_spi(Layer) public init(type: EnumType, name: String, values: [Value] = []) {
+    init(type: EnumType, name: String, values: [Value] = []) {
         self.type = type
         self.name = name
         self.values = values
     }
 
-    @_spi(Layer) public var definition: EnumType.Case? {
+    var definition: EnumType.Case? {
         type.case(named: name)
     }
 
-    @_spi(Layer) public var rawValue: Value? {
+    var rawValue: Value? {
         definition?.rawValue
     }
 
     /// Where it comes in the declaration, for sorting.
-    @_spi(Layer) public var index: Int {
+    var index: Int {
         type.cases.firstIndex { $0.name == name } ?? 0
     }
 

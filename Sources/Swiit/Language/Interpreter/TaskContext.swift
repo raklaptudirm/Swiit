@@ -5,11 +5,11 @@
 /// shell does its standard output. The prompt is the first task, and for now
 /// the only one (Docs/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
-@_spi(Layer) public final class TaskContext {
+final class TaskContext {
     /// Variable scopes, innermost last. The outermost two are the global
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
-    @_spi(Layer) public var scopes: [Scope]
+    var scopes: [Scope]
     /// How many Swiit function calls are in progress.
     var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
@@ -57,7 +57,7 @@ extension Interpreter {
     public var cancellation: Cancellation { task.cancellation }
 
     /// The current task's scopes, innermost last.
-    @_spi(Layer) public var scopes: [Scope] {
+    var scopes: [Scope] {
         _read { yield task.scopes }
         _modify { yield &task.scopes }
     }
@@ -85,7 +85,7 @@ extension Interpreter {
     /// `wake` ends the wait early if the task is cancelled meanwhile (by
     /// stopping the programs it waits for, say); the task then stops at its
     /// next step.
-    @_spi(Layer) public func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
+    func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
         let mine = task
         let token = wake.map { mine.cancellation.onRequest($0) }
         defer { token.map { mine.cancellation.remove($0) } }
@@ -97,7 +97,7 @@ extension Interpreter {
 
     /// Closes the scopes deeper than `depth` in the current task: the tasks
     /// they started are cancelled and waited for, as a scope closing does.
-    @_spi(Layer) public func closeTasks(above depth: Int) {
+    func closeTasks(above depth: Int) {
         var closing: [TaskHandle] = []
         while let last = task.children.last, last.depth > depth {
             closing.append(task.children.removeLast().handle)
@@ -111,7 +111,7 @@ extension Interpreter {
     /// Runs `body` as the main task, holding the lock: how the host enters
     /// the interpreter (a background task may have run last, and left itself
     /// current).
-    @_spi(Layer) public func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
+    func withMainTask<T>(_ body: () throws -> T) rethrows -> T {
         lock.acquire()
         let previous = task
         let previousHost = Waiting.host
@@ -130,15 +130,15 @@ extension Interpreter {
 /// plain wait is a `suspend`, and a read of the input waits first for the
 /// task's turn at it, which the host says (`inputTurn`).
 @_spi(Layer) extension Interpreter: WaitingHost {
-    @_spi(Layer) public func wait(_ body: () -> Void) {
+    func wait(_ body: () -> Void) {
         suspend { body() }
     }
 
-    @_spi(Layer) public func wait(wake: @escaping () -> Void, _ body: () -> Void) {
+    func wait(wake: @escaping () -> Void, _ body: () -> Void) {
         suspend(wake: wake) { body() }
     }
 
-    @_spi(Layer) public func waitForInput(_ body: () -> Void) {
+    func waitForInput(_ body: () -> Void) {
         if let inputTurn = host.inputTurn { inputTurn(body) } else { suspend { body() } }
     }
 }

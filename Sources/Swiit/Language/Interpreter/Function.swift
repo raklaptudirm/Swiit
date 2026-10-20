@@ -1,6 +1,6 @@
 import Foundation
 
-@_spi(Layer) public enum FunctionBody {
+enum FunctionBody {
     case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
     case native((Interpreter, [String: Value]) throws -> Value)
@@ -11,7 +11,7 @@ import Foundation
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
-@_spi(Layer) public final class Function: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class Function: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String?
     public let parameters: [Parameter]
     public let returnType: TypeAnnotation?

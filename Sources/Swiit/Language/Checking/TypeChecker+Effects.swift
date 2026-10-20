@@ -7,7 +7,7 @@
 
 extension TypeChecker {
     /// A function's, a closure's, or the top level's effects so far.
-    @_spi(Layer) public struct EffectContext {
+    struct EffectContext {
         /// Whether `await` may be written here.
         var allowsAwait: Bool
         /// `async` once an `async` call is awaited here.
@@ -48,7 +48,7 @@ extension TypeChecker {
     }
 
     /// Checks `body` in a context of its own, giving what waited in it.
-    @_spi(Layer) public func withEffects<T>(allowsAwait: Bool, _ body: () throws -> T) rethrows -> (T, EffectContext) {
+    func withEffects<T>(allowsAwait: Bool, _ body: () throws -> T) rethrows -> (T, EffectContext) {
         effectContexts.append(EffectContext(allowsAwait: allowsAwait))
         let awaitBefore = awaitDepth
         awaitDepth = 0 // An `await` outside doesn't reach in.

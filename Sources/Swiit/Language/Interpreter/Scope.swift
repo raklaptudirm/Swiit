@@ -1,6 +1,6 @@
 import Foundation
 
-@_spi(Layer) public struct Binding {
+struct Binding {
     enum Special {
         /// `self` in a struct's `init`, which may set its `let` properties.
         case initializing
@@ -66,7 +66,7 @@ import Foundation
 
 /// A reference type so closures share variables with the scope they
 /// captured, as in Swift.
-@_spi(Layer) public final class Scope {
+final class Scope {
     public var bindings: BindingTable
     /// For a closure's scope: where it was made, held weakly so it can't
     /// keep them alive, for names bound there after it was made (a local
@@ -127,7 +127,7 @@ struct WeakScope {
 /// What a scope binds: names to bindings. A scope is nearly always a few names (a call's arguments and locals), for
 /// which hashing every name on every read costs more than comparing a handful of short strings, so those are kept in an
 /// array and searched; a scope that grows past `limit` (the global one) gets a dictionary of positions as well.
-@_spi(Layer) public struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
+struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     private struct Entry {
         let name: String
         var binding: Binding

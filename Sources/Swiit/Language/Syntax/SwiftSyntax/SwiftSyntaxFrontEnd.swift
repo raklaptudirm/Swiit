@@ -6,10 +6,10 @@ import SwiftSyntax
 /// A front end on SwiftSyntax: SwiftParser reads the source, and the tree it
 /// gives is lowered to the core's. What it doesn't lower yet is an error that
 /// names the construct, so the supported subset is the set of nodes lowered.
-@_spi(Layer) public struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
+struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
     init() {}
 
-    @_spi(Layer) public func parse(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+    func parse(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
         try lower(source, bound: bound, prelude: false)
     }
 
@@ -60,7 +60,7 @@ import SwiftSyntax
         return lowering
     }
 
-    @_spi(Layer) public func highlight(_ source: String, bound: [String: NameKind]) -> [Span] {
+    func highlight(_ source: String, bound: [String: NameKind]) -> [Span] {
         let parsed = SwiftSyntaxFrontEnd.parse(source)
         // Operators that don't fold (`a < b < c`) leave their sequence as it is.
         let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { _ in }

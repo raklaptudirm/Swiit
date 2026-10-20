@@ -1,6 +1,6 @@
 import Foundation
 
-@_spi(Layer) public struct RuntimeError: Error, CustomStringConvertible {
+struct RuntimeError: Error, CustomStringConvertible {
     public let description: String
     /// The status the failure gives: a failed command's own, for `$(…)`.
     public var status: Int32 = 1
@@ -22,13 +22,13 @@ import Foundation
 
     /// What `catch` binds. As in Swift it is an `Error`, which tells its
     /// `localizedDescription`; to get at more, cast it (`error as? T`).
-    @_spi(Layer) public var value: Value {
+    var value: Value {
         thrown ?? .record(Record(["localizedDescription": .string(description)], typeName: "Error"))
     }
 }
 
 /// A runtime error under `try!`: it stops a script, not just the line.
-@_spi(Layer) public struct FatalError: Error {
+struct FatalError: Error {
     public let error: RuntimeError
 
     public init(error: RuntimeError) {
@@ -38,7 +38,7 @@ import Foundation
 
 /// ^C while the shell itself was running code.
 /// ^C, or in a script SIGTERM or SIGHUP: stops what's running.
-@_spi(Layer) public struct Interrupted: Error, Unwinding {
+struct Interrupted: Error, Unwinding {
     public var reason: StopReason
 
     public init(reason: StopReason) {
@@ -57,7 +57,7 @@ enum ControlFlow: Error {
 }
 
 /// A runtime error that has been reported already; it still fails the input.
-@_spi(Layer) public struct AlreadyReported: Error {
+struct AlreadyReported: Error {
     public let error: RuntimeError
 
     public init(error: RuntimeError) { self.error = error }

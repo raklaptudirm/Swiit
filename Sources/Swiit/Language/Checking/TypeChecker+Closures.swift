@@ -22,7 +22,7 @@ extension TypeChecker {
     /// expects (`filter` expects `(Element) -> Bool`), or aren't known; its
     /// result is what the context expects, what it says, or what its
     /// `return`s give; it throws if its body can.
-    @_spi(Layer) public func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?,
+    func closureType(_ closure: inout ClosureLiteral, expecting expected: TypeAnnotation?,
                                          implicitTryAwait: Bool = false) throws -> TypeAnnotation {
         // `{ () }` where a function of one value is wanted: Swift takes the value and leaves it unused.
         if closure.parameters.isEmpty, case .functionType(let wanted, _, _, _)? = expected, !wanted.isEmpty {

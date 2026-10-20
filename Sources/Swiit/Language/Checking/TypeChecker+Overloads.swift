@@ -28,7 +28,7 @@ extension TypeChecker {
     /// defaults and types fit, the one whose parameters match the arguments
     /// most exactly. A tie is ambiguous, unless an argument's type isn't
     /// known yet, when nil leaves the choice to run time.
-    @_spi(Layer) public func resolve(
+    func resolve(
         _ candidates: [Signature], _ arguments: inout [Argument], name: String, bindings: [String: TypeAnnotation] = [:]
     ) throws -> Signature? {
         var fitting: [FittingOverload] = []

@@ -146,7 +146,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Layer) public func structInfo(_ decl: StructDecl) throws -> TypeProfile {
+    func structInfo(_ decl: StructDecl) throws -> TypeProfile {
         var methods: [String: [Signature]] = [:]
         for method in decl.methods {
             var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,

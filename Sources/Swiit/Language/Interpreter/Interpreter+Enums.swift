@@ -103,7 +103,7 @@ extension Interpreter {
     }
 
     /// The enum a type annotation names, looking through optionals.
-    @_spi(Layer) public func enumType(for type: TypeAnnotation?) -> EnumType? {
+    func enumType(for type: TypeAnnotation?) -> EnumType? {
         switch type {
         case .named(let name)?: enumType(named: name)
         case .generic(let name, _)?: enumType(named: name)
@@ -112,7 +112,7 @@ extension Interpreter {
         }
     }
 
-    @_spi(Layer) public func enumType(named name: String) -> EnumType? {
+    func enumType(named name: String) -> EnumType? {
         guard case .object(let type as EnumType)? = lookup(name)?.value else { return nil }
         return type
     }
@@ -164,7 +164,7 @@ extension Interpreter {
     }
 
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
-    @_spi(Layer) public func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
+    func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         // A value already of a plain type, which is nearly every argument and result.
         switch (type, value) {
         case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _): return value
@@ -281,7 +281,7 @@ extension Interpreter {
 
     /// A case from the command line: its name (`directory` or `.directory`),
     /// or its raw value.
-    @_spi(Layer) public func enumCase(fromText text: String, _ type: EnumType) -> Value? {
+    func enumCase(fromText text: String, _ type: EnumType) -> Value? {
         let name = text.hasPrefix(".") ? String(text.dropFirst()) : text
         if let definition = type.case(named: name), definition.labels.isEmpty {
             return .enumValue(EnumValue(type: type, name: name))
@@ -430,7 +430,7 @@ extension Interpreter {
 extension Interpreter {
     /// A case of an enum the prelude or the standard library module
     /// declares: `FileType.directory`.
-    @_spi(Layer) public func declaredCase(_ type: String, _ name: String) -> Value {
+    func declaredCase(_ type: String, _ name: String) -> Value {
         .enumValue(EnumValue(type: enumType(named: type)!, name: name))
     }
 }

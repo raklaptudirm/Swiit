@@ -3,7 +3,7 @@ import Foundation
 extension TypeChecker {
     // MARK: Names
 
-    @_spi(Layer) public func lookup(_ name: String) -> Symbol? {
+    func lookup(_ name: String) -> Symbol? {
         for scope in scopes.reversed() {
             if let symbol = scope[name] { return symbol }
         }
@@ -52,17 +52,17 @@ extension TypeChecker {
         return made
     }
 
-    @_spi(Layer) public func structInfo(named name: String) -> TypeProfile? {
+    func structInfo(named name: String) -> TypeProfile? {
         if case .structType(let info)? = lookup(name) { return info }
         return nil
     }
 
-    @_spi(Layer) public func enumInfo(named name: String) -> TypeProfile? {
+    func enumInfo(named name: String) -> TypeProfile? {
         if case .enumType(let info)? = lookup(name) { return info }
         return nil
     }
 
-    @_spi(Layer) public func structInfo(_ type: StructType) -> TypeProfile {
+    func structInfo(_ type: StructType) -> TypeProfile {
         func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
             sets.mapValues { set in
                 set.candidates.enumerated().map { index, method in

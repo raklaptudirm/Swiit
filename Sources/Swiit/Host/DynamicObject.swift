@@ -21,7 +21,7 @@ public protocol DynamicObject: HostObject {
 /// What the checker knows of a dynamic type, by its name: an object's members
 /// (`env`), or the members of plain values that a host types as one of its
 /// own (parsed JSON).
-@_spi(Layer) public struct DynamicType {
+struct DynamicType {
     public var read: TypeAnnotation
     public var write: TypeAnnotation
     /// Set for values that aren't objects but plain values, read by name.
@@ -39,7 +39,7 @@ public protocol DynamicObject: HostObject {
 /// into a call of the host's functions, so the values stay ordinary lists,
 /// records and scalars. Parsed JSON is one: `json.name`, `json[0]`,
 /// `json.port?.int`.
-@_spi(Layer) public struct PlainDynamic {
+struct PlainDynamic {
     /// A function in scope, `field(value, key)`: the member or element, or nil.
     public var field: String
     /// The views of a value by name (`json.port?.int`): a function in scope that gives the value as that type, or nil.
@@ -71,7 +71,7 @@ public protocol DynamicObject: HostObject {
 extension Interpreter {
     /// Binds `name` to a dynamic object in the outermost scope, and tells the
     /// checker the type of its members.
-    @_spi(Layer) public func bind(_ name: String, to object: some DynamicObject) {
+    func bind(_ name: String, to object: some DynamicObject) {
         dynamicTypes[object.typeName] = DynamicType(read: TypeAnnotation(object.readType), write: TypeAnnotation(object.writeType))
         scopes[0].bindings[name] = Binding(value: .object(object), mutable: false)
     }

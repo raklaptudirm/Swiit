@@ -4,7 +4,7 @@ import Foundation
 /// named after their type, arrays become lists, `Date` and what converts itself (`FileSize`) keep
 /// their meaning. Most library model types already conform, so they show up
 /// in Swiit with no bridge code.
-@_spi(Layer) public struct ValueEncoder {
+struct ValueEncoder {
     public init() {}
 
     public func encode<T: Encodable>(_ value: T) throws -> Value {
@@ -17,7 +17,7 @@ import Foundation
 extension Value {
     /// A best-effort `Value` for anything, from its `Mirror`: for types that
     /// aren't `Encodable`, enough to display them and pick fields out.
-    @_spi(Layer) public init(reflecting subject: Any) {
+    init(reflecting subject: Any) {
         self = Value.reflect(subject, depth: 0)
     }
 

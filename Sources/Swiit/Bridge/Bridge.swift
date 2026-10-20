@@ -7,7 +7,7 @@ import SystemPackage
 /// beside this file (see Scripts/bridge
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
-@_spi(Layer) public enum Bridge {
+enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A snapshot, as
     /// libraries register while other interpreters read.
     public static var types: [String: BridgedType] { lock.withLock { table } }
@@ -55,34 +55,34 @@ import SystemPackage
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
-@_spi(Layer) public func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
+func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
     T(stringLiteral: text)
 }
 
-@_spi(Layer) public func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
+func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
 where T.ExtendedGraphemeClusterLiteralType == Character {
     guard let character = text.first, text.dropFirst().isEmpty else { return nil }
     return T(extendedGraphemeClusterLiteral: character)
 }
 
-@_spi(Layer) public func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
+func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
 where T.UnicodeScalarLiteralType == Unicode.Scalar {
     guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else { return nil }
     return T(unicodeScalarLiteral: scalar)
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-@_spi(Layer) public final class BridgedTypeName: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class BridgedTypeName: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public init(_ name: String) { self.name = name }
     public var typeName: String { "type" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
-    @_spi(Layer) public var description: String { name }
+    var description: String { name }
 }
 
-@_spi(Layer) public struct BridgedType {
+struct BridgedType {
     /// `String`, `Substring`, `Array`.
     public let name: String
     /// A generic type's parameters: `Element` for Array.
@@ -138,7 +138,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     }
 }
 
-@_spi(Layer) public struct BridgedMember {
+struct BridgedMember {
     /// A setter is a property's other half, for `p.extension = "md"`.
     public enum Kind { case method, property, initializer, setter }
 

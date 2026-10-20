@@ -2,7 +2,7 @@ import Foundation
 
 /// What turns source into the core's tree: SwiftParser's, lowered, unless an
 /// embedder gives another (Docs/frontend.md).
-@_spi(Layer) public protocol SyntaxFrontEnd: Sendable {
+protocol SyntaxFrontEnd: Sendable {
     /// The program the source is, knowing the names already declared, and
     /// as Swift.
     func parse(_ source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program

@@ -24,7 +24,7 @@ public struct SourceRange: Equatable, Hashable, Sendable, CustomStringConvertibl
 }
 
 /// An expression of a statement and where it was written: what an error in it points at.
-@_spi(Layer) public struct Spot: Equatable, Sendable {
-    @_spi(Layer) public var expression: Expr
-    @_spi(Layer) public var range: SourceRange
+struct Spot: Equatable, Sendable {
+    var expression: Expr
+    var range: SourceRange
 }

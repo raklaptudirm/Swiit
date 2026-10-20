@@ -53,7 +53,7 @@ public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held as it is), as
 /// opposed to one a host hands in. The checker types the language's by what they are, and a host's by the protocol
 /// the host declares for them.
-@_spi(Layer) public protocol LanguageObject: HostObject {}
+protocol LanguageObject: HostObject {}
 
 extension HostObject {
     /// The registered members of its type, unless it says.
@@ -99,14 +99,14 @@ extension HostObject {
     }
 
     /// `fields` as the language's record of the object's type.
-    @_spi(Layer) public var objectFields: Record? {
+    var objectFields: Record? {
         guard let fields else { return nil }
         var record = Record(typeName: typeName)
         for (key, value) in fields { if case .string(let name) = key { record[name] = value } }
         return record
     }
-    @_spi(Layer) public var objectDisplaySegments: [DisplaySegment]? { displaySegments }
-    @_spi(Layer) public var objectIdentity: AnyHashable { identity }
+    var objectDisplaySegments: [DisplaySegment]? { displaySegments }
+    var objectIdentity: AnyHashable { identity }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
     /// description, for an object that isn't data.
@@ -118,11 +118,11 @@ extension HostObject {
 /// A Swiit value as a Swift function takes or gives one whole, whatever it
 /// is. The name tells a bridged function's parameter from a generic parameter
 /// called `Value`.
-@_spi(Layer) public typealias SwiitValue = Value
+typealias SwiitValue = Value
 
 extension Value {
     /// A record, or an object's fields: what a table row is made from.
-    @_spi(Layer) public var asRecord: Record? {
+    var asRecord: Record? {
         switch self {
         case .record(let record): record
         case .object(let object): object.objectFields
@@ -134,7 +134,7 @@ extension Value {
 /// A type that holds a Swiit value as it is, whose type says how it's read:
 /// `JSON`, which is whatever it parsed as. A function that gives one gives
 /// the value it holds.
-@_spi(Layer) public protocol WrapsValue {
+protocol WrapsValue {
     var value: Value { get }
     init(_ value: Value)
 }
@@ -156,7 +156,7 @@ public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
         self.typeName = typeName
     }
 
-    @_spi(Layer) public init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
+    init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
         self.typeName = typeName
         for (key, value) in fields { self[key] = value }
     }
@@ -173,7 +173,7 @@ public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
     }
 
     /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only reference to it.
-    @_spi(Layer) public mutating func takeValue(_ key: String) -> Value? {
+    mutating func takeValue(_ key: String) -> Value? {
         guard let current = storage[key] else { return nil }
         storage[key] = .nothing
         return current
@@ -213,7 +213,7 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     }
 
     /// `0`, `1`, …: the key of a tuple element without a label.
-    @_spi(Layer) public static func isPosition(_ key: String) -> Bool {
+    static func isPosition(_ key: String) -> Bool {
         !key.isEmpty && key.allSatisfy(\.isNumber)
     }
 }
@@ -232,7 +232,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         order = []
     }
 
-    @_spi(Layer) public var dictionary: [Value: Value] {
+    var dictionary: [Value: Value] {
         get { storage }
         set {
             // What stays keeps its place; what is new comes after, in a fixed order.
@@ -242,7 +242,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         }
     }
 
-    @_spi(Layer) public init(_ dictionary: [Value: Value]) {
+    init(_ dictionary: [Value: Value]) {
         storage = dictionary
         order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
     }
@@ -375,7 +375,7 @@ extension Value: CustomStringConvertible {
 extension Value {
     /// A string as a literal: quotes, backslashes and control characters
     /// escaped. Like Swift's `debugDescription`, but a `'` stays as it is.
-    @_spi(Layer) public static func quoted(_ text: String) -> String {
+    static func quoted(_ text: String) -> String {
         var result = "\""
         for scalar in text.unicodeScalars {
             switch scalar {
@@ -413,12 +413,12 @@ extension Value: CustomDebugStringConvertible {
 
 extension Value {
     /// A date, held as the Swift value it is.
-    @_spi(Layer) public static func date(_ date: Date) -> Value {
+    static func date(_ date: Date) -> Value {
         SwiftValue.make(date, as: "Date")
     }
 
     /// The date it holds, if it's one.
-    @_spi(Layer) public var date: Date? {
+    var date: Date? {
         if case .object(let box as SwiftValue) = self { box.value as? Date } else { nil }
     }
 }
@@ -427,7 +427,7 @@ extension Value {
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
 /// while the member changes it, so a collection is changed where it is, not copied whole each time.
 /// The member's glue takes it out, and puts it back, changed, however the call ends.
-@_spi(Layer) public final class ReceiverBox: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ReceiverBox: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public var value: Value
     public init(_ value: Value) { self.value = value }
 

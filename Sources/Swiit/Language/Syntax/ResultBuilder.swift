@@ -4,12 +4,12 @@ import Foundation
 /// expression is a component, and the components are given to the builder's
 /// `buildBlock` (with `buildExpression`, `buildOptional`, `buildEither`, `buildArray` and
 /// `buildFinalResult` where it has them), as Swift's compiler does.
-@_spi(Layer) public struct ResultBuilderTransform {
+struct ResultBuilderTransform {
     let builder: String
     let methods: Set<String>
     private var counter = 0
 
-    @_spi(Layer) public init(builder: String, methods: Set<String>) {
+    init(builder: String, methods: Set<String>) {
         self.builder = builder
         self.methods = methods
     }
@@ -27,7 +27,7 @@ import Foundation
         .call(.closure(ClosureLiteral(parameters: parameters, body: body)), arguments)
     }
 
-    @_spi(Layer) public mutating func transform(_ body: Program) throws -> Program {
+    mutating func transform(_ body: Program) throws -> Program {
         var statements: [Statement] = []
         var components: [Expr] = []
         func add(_ value: Expr, into statements: inout [Statement], _ name: String) {

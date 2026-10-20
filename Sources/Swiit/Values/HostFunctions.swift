@@ -28,19 +28,19 @@ public struct HostFunction: Sendable {
         }
 
         /// The enums its type uses, which the shell learns by name.
-        @_spi(Layer) public var enums: [EnumType]
+        var enums: [EnumType]
         /// `@Input`: receives what's piped in.
-        @_spi(Layer) public var isInput = false
+        var isInput = false
         /// `@Flag("n")`.
-        @_spi(Layer) public var shortFlag: Character?
-        @_spi(Layer) public var documentation: String?
+        var shortFlag: Character?
+        var documentation: String?
         /// A default only Swift can compute, like `Date()`: the argument is left out and the function uses its own.
         /// Its source, for `--help`.
-        @_spi(Layer) public var defaultSource: String?
+        var defaultSource: String?
         /// What is given is shown as interpolation shows a value.
-        @_spi(Layer) public var showsByType = false
+        var showsByType = false
 
-        @_spi(Layer) public init(
+        init(
             label: String?, name: String, type: ValueType, enums: [EnumType] = [], variadic: Bool = false, isInput: Bool = false,
             shortFlag: Character? = nil, documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil,
             showsByType: Bool = false
@@ -58,7 +58,7 @@ public struct HostFunction: Sendable {
             self.defaultSource = defaultSource
         }
 
-        @_spi(Layer) public var variadic: Bool { isVariadic }
+        var variadic: Bool { isVariadic }
     }
 
     public let name: String
@@ -69,7 +69,7 @@ public struct HostFunction: Sendable {
     /// Declared `throws`: a call to it needs `try`.
     public let isThrowing: Bool
     /// Called with every argument bound, by parameter name, except ones left to a Swift default.
-    @_spi(Layer) public let call: @Sendable ([String: Value]) throws -> Value
+    let call: @Sendable ([String: Value]) throws -> Value
 
     /// `body` is called with its arguments in declared order, defaults filled in.
     public init(
@@ -94,7 +94,7 @@ public struct HostFunction: Sendable {
     }
 
     /// As the shell's commands are described: a body taking the arguments by name.
-    @_spi(Layer) public init(
+    init(
         name: String, summary: String? = nil, parameters: [Parameter], returnType: ValueType?, isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
     ) {
@@ -106,7 +106,7 @@ public struct HostFunction: Sendable {
         self.call = call
     }
 
-    @_spi(Layer) public var returnType: ValueType? { returns }
+    var returnType: ValueType? { returns }
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`, `resolveOverload` and
@@ -167,7 +167,7 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
 
 /// A host's function or method as a value, as `repo.log` gives it. The
 /// shell calls it like any other function.
-@_spi(Layer) public final class NativeFunction: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class NativeFunction: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let function: HostFunction
 
     public init(_ function: HostFunction) {
@@ -181,7 +181,7 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
 
 /// A failure in converting between Swift and Swiit values, or one a host's function
 /// throws to report a problem the way the shell's own errors read.
-@_spi(Layer) public struct SwiitError: Error, CustomStringConvertible {
+struct SwiitError: Error, CustomStringConvertible {
     public let description: String
 
     public init(_ description: String) {
@@ -201,11 +201,11 @@ public protocol ValueConvertible {
 
 /// A type that names enums in its `valueType`, which scripts learn by name: containers hold their elements'. An SPI refinement,
 /// because a requirement only the module can see cannot be satisfied by a conformance outside it.
-@_spi(Layer) public protocol ValueEnums { static var enumTypes: [EnumType] { get } }
+protocol ValueEnums { static var enumTypes: [EnumType] { get } }
 
 extension ValueConvertible {
     /// The enums `valueType` names.
-    @_spi(Layer) public static var swiitEnums: [EnumType] {
+    static var swiitEnums: [EnumType] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
         if let script = self as? any ScriptEnum.Type { return [script.swiitEnumType] }
         return []
@@ -277,7 +277,7 @@ extension Date: ValueConvertible {
 
 extension Array: ValueConvertible where Element: ValueConvertible {
     public static var valueType: ValueType { .list(Element.valueType) }
-    @_spi(Layer) public static var enumTypes: [EnumType] { Element.swiitEnums }
+    static var enumTypes: [EnumType] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
         case .list(let items): self = try items.map(Element.init(_:))
@@ -292,7 +292,7 @@ extension Array: ValueConvertible where Element: ValueConvertible {
 
 extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: ValueConvertible {
     public static var valueType: ValueType { .dictionary(Key.valueType, Value.valueType) }
-    @_spi(Layer) public static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
+    static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue else { throw SwiitError.expected("[\(Key.valueType): \(Value.valueType)]", swiitValue) }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
@@ -304,7 +304,7 @@ extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: Value
 
 extension Optional: ValueConvertible where Wrapped: ValueConvertible {
     public static var valueType: ValueType { .optional(Wrapped.valueType) }
-    @_spi(Layer) public static var enumTypes: [EnumType] { Wrapped.swiitEnums }
+    static var enumTypes: [EnumType] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {
         self = swiitValue == .nothing ? nil : try Wrapped(swiitValue)
     }
@@ -337,7 +337,7 @@ extension Value {
 
     /// A function's result, whatever Swift type it has: a convertible
     /// value, an exported object, `Encodable` data as records, or nothing.
-    @_spi(Layer) public init(returning result: Any) throws {
+    init(returning result: Any) throws {
         switch result {
         case is Void: self = .nothing
         case let value as any ValueConvertible: self = value.value
@@ -350,20 +350,20 @@ extension Value {
 }
 
 /// What the shell checks a parameter's arguments against.
-@_spi(Layer) public func swiitParameterType<T: ValueConvertible>(_ type: T.Type) -> ValueType { T.valueType }
+func swiitParameterType<T: ValueConvertible>(_ type: T.Type) -> ValueType { T.valueType }
 /// An exported object: anything, checked when it's converted.
-@_spi(Layer) public func swiitParameterType<T: HostObject>(_ type: T.Type) -> ValueType { .any }
+func swiitParameterType<T: HostObject>(_ type: T.Type) -> ValueType { .any }
 
-@_spi(Layer) public func swiitParameterEnums<T: ValueConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
-@_spi(Layer) public func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [EnumType] { [] }
+func swiitParameterEnums<T: ValueConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
+func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [EnumType] { [] }
 
 /// What a function returns, for signatures and `--help`.
-@_spi(Layer) public func swiitReturnType(_ type: Any.Type) -> ValueType {
+func swiitReturnType(_ type: Any.Type) -> ValueType {
     (type as? any ValueConvertible.Type)?.valueType ?? .any
 }
 
 /// An object argument: one of the host's own classes, held as a live object.
-@_spi(Layer) public func swiitArgument<T: HostObject>(
+func swiitArgument<T: HostObject>(
     _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
 ) throws -> T {
     guard case .object(let object as T) = arguments[name] ?? .nothing else {
@@ -374,7 +374,7 @@ extension Value {
 
 /// An argument the macro-generated code converts: a clear message naming
 /// the function and parameter when it doesn't fit.
-@_spi(Layer) public func swiitArgument<T: ValueConvertible>(
+func swiitArgument<T: ValueConvertible>(
     _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
 ) throws -> T {
     do {
@@ -398,7 +398,7 @@ public protocol ScriptEnum: ValueConvertible, CaseIterable {
 }
 
 extension ScriptEnum {
-    @_spi(Layer) public static var swiitEnumType: EnumType {
+    static var swiitEnumType: EnumType {
         EnumRegistry.shared.type(for: Self.self) {
             EnumType(name: String(describing: Self.self), cases: allCases.map { value in
                 let raw = (value as? any RawRepresentable)?.rawValue

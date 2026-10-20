@@ -8,7 +8,7 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
-    @_spi(Layer) public func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil, finish: (() -> Void)? = nil) throws {
+    func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil, finish: (() -> Void)? = nil) throws {
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
@@ -94,7 +94,7 @@ extension Interpreter {
     /// Deferred blocks, last first. One that fails is reported; the rest
     /// still run, as nothing can leave a `defer`. What they run isn't told to
     /// the host: cleaning up doesn't change how the block went.
-    @_spi(Layer) public func runDeferred(_ blocks: [Program]) {
+    func runDeferred(_ blocks: [Program]) {
         let observing = observesStatements
         observesStatements = false
         defer { observesStatements = observing }
@@ -109,13 +109,13 @@ extension Interpreter {
         }
     }
 
-    @_spi(Layer) public func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
+    func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
         scopes.append(Scope(bindings))
         defer { scopes.removeLast() }
         try run(program)
     }
 
-    @_spi(Layer) public func run(_ statement: Statement) throws {
+    func run(_ statement: Statement) throws {
         switch statement {
         case .typeExtension(let decl):
             try declare(decl)
@@ -289,7 +289,7 @@ extension Interpreter {
     /// calls it between waits, so a stop is noticed while it does.
     public func checkForStop() throws { try checkInterrupt() }
 
-    @_spi(Layer) public func checkInterrupt() throws {
+    func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
         steps += 1
         // A task that is cancelled stops at its next step, even before it has begun: that is every step's.
@@ -312,7 +312,7 @@ extension Interpreter {
 /// An `if`, a loop, a `switch` and a `do` are told as they start, with no
 /// value; the statements in them are told as they run. The shell keeps the
 /// exit status from these.
-@_spi(Layer) public typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
+typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
 
 extension Interpreter {
     /// Tells the host a statement finished, if it is watching (`Interpreter.Host.statementFinished`).
@@ -325,4 +325,4 @@ extension Interpreter {
     }
 }
 
-@_spi(Layer) public typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void
+typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void

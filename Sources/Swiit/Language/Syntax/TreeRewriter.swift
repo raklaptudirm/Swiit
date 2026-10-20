@@ -7,16 +7,16 @@ import Foundation
 /// them here and rewrites what is inside them itself, with `program`,
 /// `expression` and the rest. This is how the shell's constructs become Swift
 /// (Swish's Docs/Design/desugaring.md).
-@_spi(Layer) public struct TreeRewriter {
-    @_spi(Layer) public var expr: (Expr) -> Expr
+struct TreeRewriter {
+    var expr: (Expr) -> Expr
 
-    @_spi(Layer) public init(expr: @escaping (Expr) -> Expr = { $0 }) {
+    init(expr: @escaping (Expr) -> Expr = { $0 }) {
         self.expr = expr
     }
 
     // MARK: Programs and statements
 
-    @_spi(Layer) public func program(_ program: Program) -> Program {
+    func program(_ program: Program) -> Program {
         Program(statements: program.statements.map(self.statementNode), lines: program.lines, ranges: program.ranges, spots: program.spots)
     }
 
@@ -179,11 +179,11 @@ import Foundation
 
     // MARK: Expressions
 
-    @_spi(Layer) public func arguments(_ arguments: [Argument]) -> [Argument] {
+    func arguments(_ arguments: [Argument]) -> [Argument] {
         arguments.map { Argument(label: $0.label, value: expression($0.value)) }
     }
 
-    @_spi(Layer) public func closure(_ closure: ClosureLiteral) -> ClosureLiteral {
+    func closure(_ closure: ClosureLiteral) -> ClosureLiteral {
         var copy = closure
         copy.parameters = closure.parameters.map(parameter)
         copy.body = program(closure.body)
@@ -191,7 +191,7 @@ import Foundation
         return copy
     }
 
-    @_spi(Layer) public func expression(_ node: Expr) -> Expr {
+    func expression(_ node: Expr) -> Expr {
         let rewritten: Expr
         switch node {
         case .literal, .variable, .filePath:

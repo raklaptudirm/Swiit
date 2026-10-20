@@ -53,7 +53,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 
     /// A diagnostic is `Sendable` and the error it carries is whatever the host threw.
-    @_spi(Layer) public init(runtime error: RuntimeError, isReported: Bool = false) {
+    init(runtime error: RuntimeError, isReported: Bool = false) {
         self.init(kind: .runtime, message: error.description, range: error.range, calls: error.calls, status: error.status, isReported: isReported)
     }
 
@@ -197,15 +197,15 @@ extension Interpreter {
     }
 }
 
-@_spi(Layer) public struct LimitExceeded: Error, Unwinding, CustomStringConvertible {
+struct LimitExceeded: Error, Unwinding, CustomStringConvertible {
     public let description: String
-    @_spi(Layer) public init(_ description: String) { self.description = description }
+    init(_ description: String) { self.description = description }
 }
 
-@_spi(Layer) public struct Cancelled: Error, Unwinding {}
+struct Cancelled: Error, Unwinding {}
 
 /// Bytes written so far, for the output limit.
-@_spi(Layer) public final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock
+final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var count = 0
 
@@ -213,7 +213,7 @@ extension Interpreter {
 
     public var written: Int { lock.withLock { count } }
     public func add(_ bytes: Int) { lock.withLock { count += bytes } }
-    @_spi(Layer) public func reset() { lock.withLock { count = 0 } }
+    func reset() { lock.withLock { count = 0 } }
 }
 
 /// A request to stop, from any thread.
@@ -235,7 +235,7 @@ public final class Cancellation: @unchecked Sendable { // safe: every access hol
     private var wakers: [Int: () -> Void] = [:]
     private var nextWaker = 0
 
-    @_spi(Layer) public init() {}
+    init() {}
 
     public var isSet: Bool { readFlag() != 0 }
 
@@ -253,7 +253,7 @@ public final class Cancellation: @unchecked Sendable { // safe: every access hol
         wake.forEach { $0() }
     }
 
-    @_spi(Layer) public func clear() { lock.withLock { set = false; flag.pointee = 0 } }
+    func clear() { lock.withLock { set = false; flag.pointee = 0 } }
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
@@ -267,7 +267,7 @@ public final class Cancellation: @unchecked Sendable { // safe: every access hol
         return token
     }
 
-    @_spi(Layer) public func remove(_ token: Int) {
+    func remove(_ token: Int) {
         lock.withLock { _ = wakers.removeValue(forKey: token) }
     }
 }

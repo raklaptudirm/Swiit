@@ -4,7 +4,7 @@ import Foundation
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// `select` and `to json` work on them as on any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-@_spi(Layer) public final class StructType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class StructType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
@@ -71,11 +71,11 @@ import Foundation
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
-    @_spi(Layer) public var description: String { "struct \(name)" }
+    var description: String { "struct \(name)" }
 }
 
 /// `self` for a method: its value going in, and as the method left it.
-@_spi(Layer) public final class Receiver {
+final class Receiver {
     public var value: Value
     public let mutable: Bool
     /// In an `init`, which may also set `let` properties.

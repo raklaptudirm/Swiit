@@ -1,7 +1,7 @@
 import Foundation
 
 extension Interpreter {
-    @_spi(Layer) public func lookup(_ name: String) -> Binding? {
+    func lookup(_ name: String) -> Binding? {
         var index = scopes.count - 1
         while index >= 0 {
             if let found = scopes[index].binding(named: name) { return found }

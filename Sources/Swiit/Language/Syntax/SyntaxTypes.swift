@@ -3,7 +3,7 @@ import Foundation
 /// What a name refers to, which decides the mode of a statement starting
 /// with it: a variable starts an expression, a function starts a command
 /// unless it's followed by `(`.
-@_spi(Layer) public enum NameKind: Equatable, Sendable {
+enum NameKind: Equatable, Sendable {
     /// `type`: an enum's or struct's name, as in `FileType.directory`.
     /// `member`: a property or method of the struct whose body this is,
     /// read through `self`. `staticMember`: a static one, read in a static
@@ -14,14 +14,14 @@ import Foundation
     case operatorDeclaration(String)
 }
 
-@_spi(Layer) public struct SyntaxError: Error, Equatable, CustomStringConvertible {
+struct SyntaxError: Error, Equatable, CustomStringConvertible {
     public let description: String
     /// The input ended in the middle of a construct, so more lines could complete it.
     public let incomplete: Bool
     /// Where in the source it is, when that is known.
     public var range: SourceRange?
 
-    @_spi(Layer) public init(_ description: String, incomplete: Bool = false, range: SourceRange? = nil) {
+    init(_ description: String, incomplete: Bool = false, range: SourceRange? = nil) {
         self.description = description
         self.incomplete = incomplete
         self.range = range
@@ -32,7 +32,7 @@ import Foundation
         lhs.description == rhs.description && lhs.incomplete == rhs.incomplete
     }
 
-    @_spi(Layer) public static func incomplete(_ description: String) -> SyntaxError {
+    static func incomplete(_ description: String) -> SyntaxError {
         SyntaxError(description, incomplete: true)
     }
 }
@@ -40,13 +40,13 @@ import Foundation
 /// What a stretch of source is, for syntax highlighting. The parser
 /// records these as it goes, so the colors always agree with how the line
 /// will actually be read.
-@_spi(Layer) public enum SpanKind: Equatable, Sendable {
+enum SpanKind: Equatable, Sendable {
     case keyword, command, flag, string, number, constant, variable, comment, type, punctuation
 }
 
-@_spi(Layer) public struct Span: Equatable, Sendable {
-    @_spi(Layer) public var range: Range<Int>
-    @_spi(Layer) public var kind: SpanKind
+struct Span: Equatable, Sendable {
+    var range: Range<Int>
+    var kind: SpanKind
 
     init(range: Range<Int>, kind: SpanKind) {
         self.range = range

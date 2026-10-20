@@ -6,7 +6,7 @@ import Foundation
 // turn. A `TypeProfile` gathers them: ask it once.
 
 /// A property of a type: stored or computed.
-@_spi(Layer) public struct MemberProperty {
+struct MemberProperty {
     var type: TypeAnnotation
     /// A `var` or a computed property with a setter; a protocol's `{ get set }`.
     var isSettable: Bool
@@ -15,9 +15,9 @@ import Foundation
 }
 
 /// MemberSet of one kind of place: what the type declares, or what extensions add.
-@_spi(Layer) public struct MemberSet {
+struct MemberSet {
     var properties: [String: MemberProperty] = [:]
-    @_spi(Layer) public var methods: [String: [TypeChecker.Signature]] = [:]
+    var methods: [String: [TypeChecker.Signature]] = [:]
     var staticProperties: [String: MemberProperty] = [:]
     var staticMethods: [String: [TypeChecker.Signature]] = [:]
     var initializers: [TypeChecker.Signature] = []
@@ -57,22 +57,22 @@ extension MemberSet {
     }
 }
 
-@_spi(Layer) public struct TypeProfile {
-    @_spi(Layer) public enum Kind { case structure, classType, actor, enumeration, protocolType, other }
+struct TypeProfile {
+    enum Kind { case structure, classType, actor, enumeration, protocolType, other }
 
     var name: String
-    @_spi(Layer) public var kind: Kind
+    var kind: Kind
     var superclass: String?
     var conformances: [String] = []
     /// The protocols a protocol takes in.
     var inherited: [String] = []
     /// An enum's cases, and the type of its raw values.
-    @_spi(Layer) public var cases: [(name: String, payload: [AssociatedValue])] = []
-    @_spi(Layer) public var rawType: TypeAnnotation?
+    var cases: [(name: String, payload: [AssociatedValue])] = []
+    var rawType: TypeAnnotation?
     var typeParameters: [String] = []
     /// What the type declares itself (for a class, with what its superclass gives), and what extensions add: those of
     /// the type, of the protocols it conforms to, and of its superclasses.
-    @_spi(Layer) public var declared = MemberSet()
+    var declared = MemberSet()
     var extended = MemberSet()
     /// A struct with no initializer of its own is made by its memberwise one.
     var memberwise: TypeChecker.Signature?
@@ -132,12 +132,12 @@ extension MemberSet {
 
 extension TypeChecker {
     /// What is known of `type`, if it names a type with members of its own or ones an extension adds.
-    @_spi(Layer) public func describe(_ type: TypeAnnotation) -> TypeProfile? {
+    func describe(_ type: TypeAnnotation) -> TypeProfile? {
         guard let key = extensionKey(of: type) else { return nil }
         return describe(named: key)
     }
 
-    @_spi(Layer) public func describe(named key: String) -> TypeProfile? {
+    func describe(named key: String) -> TypeProfile? {
         var description: TypeProfile
         switch lookup(key) {
         case .structType(let profile)?:

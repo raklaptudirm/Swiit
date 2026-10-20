@@ -6,7 +6,7 @@ import Foundation
 /// parallel and the language needs no locks of its own. A task lets go only
 /// to wait (`Interpreter.suspend`), so state changes under it only across a
 /// wait. The thread that holds it may take it again.
-@_spi(Layer) public final class InterpreterLock: @unchecked Sendable { // safe: every access holds its own lock
+final class InterpreterLock: @unchecked Sendable { // safe: every access holds its own lock
     private let condition = NSCondition()
     private var holder: pthread_t?
     private var depth = 0
@@ -78,7 +78,7 @@ import Foundation
 /// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
 public final class TaskHandle: @unchecked Sendable { // safe: every access holds its own lock
-    @_spi(Layer) public let context: TaskContext
+    let context: TaskContext
     private let condition = NSCondition()
     private var outcome: Result<Value, any Error>?
 
@@ -87,7 +87,7 @@ public final class TaskHandle: @unchecked Sendable { // safe: every access holds
     }
 
     /// How it ended, once it has.
-    @_spi(Layer) public var rawResult: Result<Value, any Error>? {
+    var rawResult: Result<Value, any Error>? {
         condition.lock()
         defer { condition.unlock() }
         return outcome

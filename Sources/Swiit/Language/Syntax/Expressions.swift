@@ -1,34 +1,34 @@
 import Foundation
 
-@_spi(Layer) public struct RecordEntry: Equatable, Sendable {
+struct RecordEntry: Equatable, Sendable {
     var key: Expr
-    @_spi(Layer) public var value: Expr
+    var value: Expr
 
-    @_spi(Layer) public init(key: Expr, value: Expr) {
+    init(key: Expr, value: Expr) {
         self.key = key
         self.value = value
     }
 }
 
 /// A piece of a string: text, or an interpolated expression.
-@_spi(Layer) public enum StringPart: Equatable, Sendable {
+enum StringPart: Equatable, Sendable {
     case literal(String)
     case expression(Expr)
 }
 
-@_spi(Layer) public struct Argument: Equatable, Sendable {
-    @_spi(Layer) public var label: String?
-    @_spi(Layer) public var value: Expr
+struct Argument: Equatable, Sendable {
+    var label: String?
+    var value: Expr
 
-    @_spi(Layer) public init(label: String? = nil, value: Expr) {
+    init(label: String? = nil, value: Expr) {
         self.label = label
         self.value = value
     }
 }
 
-@_spi(Layer) public indirect enum Expr: Equatable, Sendable {
+indirect enum Expr: Equatable, Sendable {
     /// `await j`, or `try await j`.
-    @_spi(Layer) public var isAwait: Bool {
+    var isAwait: Bool {
         switch self {
         case .await: true
         case .attempt(let inner, _): inner.isAwait
@@ -105,7 +105,7 @@ import Foundation
     case described(Expr, TypeAnnotation)
 }
 
-@_spi(Layer) public enum TryKind: Equatable, Sendable {
+enum TryKind: Equatable, Sendable {
     /// `try`: an error goes on to whatever handles it.
     case plain
     /// `try?`: nil instead of a runtime error.
@@ -114,7 +114,7 @@ import Foundation
     case forced
 }
 
-@_spi(Layer) public enum CastKind: Equatable, Sendable {
+enum CastKind: Equatable, Sendable {
     /// `as?`: the value as that type, or nil.
     case conditional
     /// `as!`: the value as that type, or an error.
@@ -125,7 +125,7 @@ import Foundation
     case upcast
 }
 
-@_spi(Layer) public enum UnaryOperator: String, Sendable {
+enum UnaryOperator: String, Sendable {
     case not = "!"
     case negate = "-"
     /// `~x`: an Int's bits, flipped.
@@ -142,7 +142,7 @@ extension BinaryOperator {
     }
 }
 
-@_spi(Layer) public enum BinaryOperator: String, Sendable {
+enum BinaryOperator: String, Sendable {
     case or = "||", and = "&&"
     case coalesce = "??"
     case equal = "==", notEqual = "!="
@@ -160,8 +160,8 @@ extension BinaryOperator {
 }
 
 /// What a type parameter is in one call: `T` is `Int`.
-@_spi(Layer) public struct TypeArgument: Hashable, Sendable {
-    @_spi(Layer) public var name: String
-    @_spi(Layer) public var type: TypeAnnotation
-    @_spi(Layer) public init(name: String, type: TypeAnnotation) { self.name = name; self.type = type }
+struct TypeArgument: Hashable, Sendable {
+    var name: String
+    var type: TypeAnnotation
+    init(name: String, type: TypeAnnotation) { self.name = name; self.type = type }
 }

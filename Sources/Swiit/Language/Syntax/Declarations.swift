@@ -29,18 +29,18 @@ extension FunctionDecl {
     }
 }
 
-@_spi(Layer) public struct FunctionDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
-    @_spi(Layer) public var parameters: [Parameter]
+struct FunctionDecl: Equatable, Sendable {
+    var name: String
+    var parameters: [Parameter]
     var returnType: TypeAnnotation?
     var body: Program
-    @_spi(Layer) public var documentation: Documentation?
+    var documentation: Documentation?
     /// A struct's `mutating func`, which may change `self`.
-    @_spi(Layer) public var isMutating = false
+    var isMutating = false
     /// `throws`: calling it needs `try`.
-    @_spi(Layer) public var isThrowing = false
+    var isThrowing = false
     /// `throws(E)`: the one type of error it throws.
-    @_spi(Layer) public var thrownType: TypeAnnotation?
+    var thrownType: TypeAnnotation?
     /// Declared `async`.
     var isAsync = false
     /// `async` if declared so.
@@ -52,16 +52,16 @@ extension FunctionDecl {
     /// `override func`: replaces a superclass's.
     var isOverride = false
     /// `@Builder func …`: its body is made by the result builder's `buildBlock`.
-    @_spi(Layer) public var resultBuilder: String?
+    var resultBuilder: String?
     /// `nonisolated`: an actor's member reached without `await`.
     var isNonisolated = false
     /// `convenience init`: makes the value through another initializer.
     var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and
     /// the protocols it must conform to. Only the prelude has these, for now.
-    @_spi(Layer) public var generics: [String: [String]] = [:]
+    var generics: [String: [String]] = [:]
     /// The type parameters the body names, which a call has to say the types of.
-    @_spi(Layer) public var runtimeTypeParameters: Set<String> { Set(generics.keys).intersection(names.names) }
+    var runtimeTypeParameters: Set<String> { Set(generics.keys).intersection(names.names) }
     var names = NamesUsed()
 
     init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
@@ -81,7 +81,7 @@ extension FunctionDecl {
 }
 
 /// Assigning to a variable, or to part of one: `p.x`, `xs[0]`, `r["k"]`.
-@_spi(Layer) public struct Assignment: Equatable, Sendable {
+struct Assignment: Equatable, Sendable {
     enum Step: Equatable, Sendable {
         case member(String)
         case index(Expr)
@@ -99,7 +99,7 @@ extension FunctionDecl {
     var path: [Step] = []
     /// `+=` and the like: the operator applied to the current value.
     var op: BinaryOperator?
-    @_spi(Layer) public var value: Expr
+    var value: Expr
 
     init(root: String, path: [Step] = [], op: BinaryOperator? = nil, value: Expr) {
         self.root = root
@@ -110,10 +110,10 @@ extension FunctionDecl {
 }
 
 /// `struct Name { var x: Int; func f() {…}; init(…) {…} }`.
-@_spi(Layer) public struct StructDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+struct StructDecl: Equatable, Sendable {
+    var name: String
     var properties: [PropertyDecl]
-    @_spi(Layer) public var methods: [FunctionDecl]
+    var methods: [FunctionDecl]
     var initializers: [FunctionDecl]
     /// `struct Point: Equatable, Hashable`.
     var conformances: [String] = []
@@ -135,8 +135,8 @@ extension FunctionDecl {
 
 /// `class Dog: Animal, Named { … }`, and `actor Counter { … }`: reference types, whose
 /// instances are shared, with inheritance.
-@_spi(Layer) public struct ClassDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+struct ClassDecl: Equatable, Sendable {
+    var name: String
     /// What follows the colon: the superclass first if there is one, then protocols.
     var inherited: [String]
     /// Its properties, methods, initializers, subscripts and static members, as a struct has them.
@@ -150,8 +150,8 @@ extension FunctionDecl {
 
 /// `protocol Shape { var area: Double { get }; func scaled(by k: Double) -> Self }`: what a
 /// type has to have to conform, and the protocols it takes in (`protocol A: B`).
-@_spi(Layer) public struct ProtocolDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+struct ProtocolDecl: Equatable, Sendable {
+    var name: String
     var inherited: [String] = []
     var methods: [FunctionDecl] = []
     var properties: [ProtocolProperty] = []
@@ -171,7 +171,7 @@ struct ProtocolProperty: Equatable, Sendable {
 
 /// `extension Int { var squared: Int { … } }`: members added to a type declared
 /// elsewhere (a struct, an enum, or one of Swift's), and protocols it conforms to.
-@_spi(Layer) public struct ExtensionDecl: Equatable, Sendable {
+struct ExtensionDecl: Equatable, Sendable {
     /// The type as written: `Int`, `Array`, `Outer.Inner`.
     var typeName: String
     /// Its members, in the shape a struct's are; the name is the type's.
@@ -190,11 +190,11 @@ struct SubscriptDecl: Equatable, Sendable {
     var setterNames = NamesUsed()
 }
 
-@_spi(Layer) public struct PropertyDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+struct PropertyDecl: Equatable, Sendable {
+    var name: String
     var mutable: Bool
-    @_spi(Layer) public var type: TypeAnnotation?
-    @_spi(Layer) public var defaultValue: Expr?
+    var type: TypeAnnotation?
+    var defaultValue: Expr?
     /// A computed property's body; nil for a stored one.
     var getter: Program?
     var getterNames = NamesUsed()
@@ -228,38 +228,38 @@ struct SubscriptDecl: Equatable, Sendable {
 }
 
 /// The `#` comment block directly above a `func`, for `--help`.
-@_spi(Layer) public struct Documentation: Equatable, Sendable {
-    @_spi(Layer) public var summary: String
+struct Documentation: Equatable, Sendable {
+    var summary: String
     /// From `- Parameter name: description` lines.
-    @_spi(Layer) public var parameters: [String: String]
+    var parameters: [String: String]
 
-    @_spi(Layer) public init(summary: String, parameters: [String: String]) {
+    init(summary: String, parameters: [String: String]) {
         self.summary = summary
         self.parameters = parameters
     }
 }
 
-@_spi(Layer) public struct ClosureLiteral: Equatable, Sendable {
+struct ClosureLiteral: Equatable, Sendable {
     /// For `{ $0 * 2 }`, the implicit `$0`, `$1`, … parameters.
-    @_spi(Layer) public var parameters: [Parameter]
+    var parameters: [Parameter]
     var returnType: TypeAnnotation?
     var body: Program
     var names = NamesUsed()
     /// The result builder whose `buildBlock` the body was made into, once it has been.
     var builtBy: String?
     /// `[weak self, count]`: values taken when the closure is made.
-    @_spi(Layer) public var captures: [Capture] = []
+    var captures: [Capture] = []
 
-    @_spi(Layer) public struct Capture: Equatable, Sendable {
-        @_spi(Layer) public var name: String
-        @_spi(Layer) public var value: Expr
+    struct Capture: Equatable, Sendable {
+        var name: String
+        var value: Expr
         /// `weak` makes it optional, nil once the instance is gone; `unowned` holds it as it is.
-        @_spi(Layer) public var isWeak: Bool
+        var isWeak: Bool
         /// `unowned`: not kept alive by the closure either, but not an optional.
-        @_spi(Layer) public var isUnowned = false
+        var isUnowned = false
     }
 
-    @_spi(Layer) public init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
+    init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
         self.parameters = parameters
         self.returnType = returnType
         self.body = body
@@ -271,45 +271,45 @@ struct SubscriptDecl: Equatable, Sendable {
 /// uses rather than every scope around it (which would keep the scope it's
 /// stored in, and leak). Not part of what the code says, so it doesn't
 /// count toward equality.
-@_spi(Layer) public struct NamesUsed: Equatable, Sendable {
+struct NamesUsed: Equatable, Sendable {
     var names: Set<String> = []
 
-    @_spi(Layer) public static func == (lhs: NamesUsed, rhs: NamesUsed) -> Bool { true }
+    static func == (lhs: NamesUsed, rhs: NamesUsed) -> Bool { true }
 
-    @_spi(Layer) public init(names: Set<String> = []) {
+    init(names: Set<String> = []) {
         self.names = names
     }
 }
 
-@_spi(Layer) public struct Parameter: Equatable, Sendable {
+struct Parameter: Equatable, Sendable {
     /// The argument label; nil for `_` (positional in command mode).
-    @_spi(Layer) public var label: String?
-    @_spi(Layer) public var name: String
-    @_spi(Layer) public var type: TypeAnnotation = .any
-    @_spi(Layer) public var variadic = false
-    @_spi(Layer) public var defaultValue: Expr?
+    var label: String?
+    var name: String
+    var type: TypeAnnotation = .any
+    var variadic = false
+    var defaultValue: Expr?
     /// `@input`: receives pipeline input; per item, or the whole stream
     /// if its type is a list.
-    @_spi(Layer) public var isInput = false
+    var isInput = false
     /// `@Builder content: () -> V`: a closure given for it is made by the result builder.
-    @_spi(Layer) public var resultBuilder: String?
+    var resultBuilder: String?
     /// `@flag("n")`: a short flag in command mode.
-    @_spi(Layer) public var shortFlag: Character?
+    var shortFlag: Character?
     /// `inout`: the argument is passed as `&place`, and the place gets the
     /// parameter's value back when the function ends.
     var isInout = false
     /// `@autoclosure () -> T`: the argument is written as a T, and made a closure.
-    @_spi(Layer) public var isAutoclosure = false
+    var isAutoclosure = false
     /// The function shows what it is given as interpolation does, which tells an optional's `nil` from a value
     /// (`print`): so an argument whose type holds an optional is given its type, to be shown by.
-    @_spi(Layer) public var showsByType = false
+    var showsByType = false
     /// A default only Swift can compute, like `Date()`: the
     /// argument is left out for the Swift function to fill in. Its source, for help.
-    @_spi(Layer) public var externalDefault: String?
+    var externalDefault: String?
 
-    @_spi(Layer) public var hasDefault: Bool { defaultValue != nil || externalDefault != nil }
+    var hasDefault: Bool { defaultValue != nil || externalDefault != nil }
 
-    @_spi(Layer) public init(
+    init(
         label: String? = nil, name: String, type: TypeAnnotation = .any, variadic: Bool = false,
         defaultValue: Expr? = nil, isInput: Bool = false, shortFlag: Character? = nil, externalDefault: String? = nil,
         isInout: Bool = false, isAutoclosure: Bool = false

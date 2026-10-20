@@ -6,11 +6,11 @@ import Foundation
 /// compare with the interpreter. A construct a layer over the core adds, or
 /// that only the checker makes, prints as a comment saying so, so printing is
 /// total and the gap is visible.
-@_spi(Layer) public struct SwiftPrinter {
-    @_spi(Layer) public init() {}
+struct SwiftPrinter {
+    init() {}
 
     /// The program as source, one statement a line.
-    @_spi(Layer) public func source(_ program: Program) -> String {
+    func source(_ program: Program) -> String {
         lines(program, indent: 0).joined(separator: "\n")
     }
 

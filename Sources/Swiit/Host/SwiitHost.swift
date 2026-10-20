@@ -52,7 +52,7 @@ public struct OutputSink: Sendable {
 /// Why the host asked the program to stop. The interpreter only carries it:
 /// whoever asked reads it back from the `Interrupted` error. (The shell's is
 /// the signal number, so it can end by that signal.)
-@_spi(Layer) public struct StopReason: Sendable {
+struct StopReason: Sendable {
     public var code: Int32
 
     public init(code: Int32) {
@@ -76,12 +76,12 @@ extension Interpreter {
 
         /// What it calls itself where it reports an error, as in
         /// `swiit: error: …`: the program's name, for one that has its own.
-        @_spi(Layer) public var name = "swiit"
+        var name = "swiit"
         /// Asked at each step: a reason to stop, if there is one.
-        @_spi(Layer) public var interrupt: @Sendable () -> StopReason? = { nil }
+        var interrupt: @Sendable () -> StopReason? = { nil }
         /// Runs a task's body on a thread of its own, with a stack large enough
         /// for the interpreter's recursion; by default, one the core makes.
-        @_spi(Layer) public var startThread: @Sendable (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
+        var startThread: @Sendable (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
 
         /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host keeps for it, as a shell keeps
         /// its output and status. Read back as `Interpreter.taskState` while that task runs.
@@ -105,7 +105,7 @@ extension Interpreter {
             self.shouldStop = shouldStop
         }
 
-        @_spi(Layer) public init(name: String = "swiit", output: OutputSink = .discard, error: OutputSink = .discard,
+        init(name: String = "swiit", output: OutputSink = .discard, error: OutputSink = .discard,
                                  interrupt: @escaping () -> StopReason? = { nil },
                                  startThread: @escaping (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread) {
             let interrupt = UncheckedSendable(interrupt), startThread = UncheckedSendable(startThread)

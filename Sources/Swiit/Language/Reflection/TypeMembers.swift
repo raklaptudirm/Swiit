@@ -147,7 +147,7 @@ extension Interpreter {
 
 extension TypeDescription {
     /// A bridged member as Swift declares it, in pieces by what each is.
-    @_spi(Layer) public static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
+    static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
         var pieces: [AttributedString] = []
         switch member.kind {
         case .initializer:
@@ -164,14 +164,14 @@ extension TypeDescription {
 
     /// A Swiit function as a member, under `name` if given: its input is
     /// what it's called on, so it isn't shown.
-    @_spi(Layer) public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
+    static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
                    + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.isInput })
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
-    @_spi(Layer) public static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
+    static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
         [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .command), .init(": ")] + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }

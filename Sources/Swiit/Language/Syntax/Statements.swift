@@ -2,21 +2,21 @@ import Foundation
 
 // MARK: - AST
 
-@_spi(Layer) public struct Program: Equatable, Sendable {
-    @_spi(Layer) public var statements: [Statement]
+struct Program: Equatable, Sendable {
+    var statements: [Statement]
     /// Each statement's line in the source, 1-based, for error messages.
     var lines: [Int] = []
     /// Where each statement is, as far as it is known: for pointing at it in an error.
-    @_spi(Layer) public var ranges: [SourceRange] = []
+    var ranges: [SourceRange] = []
     /// The expressions each statement has, and where they are, for an error to point at one of them.
-    @_spi(Layer) public var spots: [[Spot]] = []
+    var spots: [[Spot]] = []
 
     /// Programs are equal by what they say, wherever it was written.
     public static func == (lhs: Program, rhs: Program) -> Bool {
         lhs.statements == rhs.statements
     }
 
-    @_spi(Layer) public init(statements: [Statement], lines: [Int] = [], ranges: [SourceRange] = [], spots: [[Spot]] = []) {
+    init(statements: [Statement], lines: [Int] = [], ranges: [SourceRange] = [], spots: [[Spot]] = []) {
         self.statements = statements
         self.lines = lines
         self.ranges = ranges
@@ -24,7 +24,7 @@ import Foundation
     }
 }
 
-@_spi(Layer) public enum Statement: Equatable, Sendable {
+enum Statement: Equatable, Sendable {
     case declare(name: String, mutable: Bool, value: Expr)
     /// `x = v`, `p.x += 1`, `xs[0] = v`.
     case assign(Assignment)
@@ -74,7 +74,7 @@ import Foundation
 
 extension Statement {
     /// A struct or enum declaration, which a block declares before it runs.
-    @_spi(Layer) public var declaresType: Bool {
+    var declaresType: Bool {
         switch self {
         case .structDecl, .enumDecl, .typeExtension, .protocolDecl, .classDecl: true
         default: false
@@ -82,8 +82,8 @@ extension Statement {
     }
 }
 
-@_spi(Layer) public struct IfStatement: Equatable, Sendable {
-    @_spi(Layer) public enum Condition: Equatable, Sendable {
+struct IfStatement: Equatable, Sendable {
+    enum Condition: Equatable, Sendable {
         /// A Bool.
         case expression(Expr)
         /// `if let name = value`: runs the body with `name` bound when the
@@ -129,8 +129,8 @@ extension Statement {
 }
 
 /// `enum Name: RawType { case a, b(label: Type) = raw }`
-@_spi(Layer) public struct EnumDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+struct EnumDecl: Equatable, Sendable {
+    var name: String
     var rawType: TypeAnnotation?
     var cases: [EnumCaseDecl]
     /// `enum Level: Int, Comparable`: the protocols after any raw type.
@@ -154,7 +154,7 @@ extension Statement {
 }
 
 struct EnumCaseDecl: Equatable, Sendable {
-    @_spi(Layer) public var name: String
+    var name: String
     var rawValue: Expr?
     var associated: [AssociatedValue]
 
@@ -165,9 +165,9 @@ struct EnumCaseDecl: Equatable, Sendable {
     }
 }
 
-@_spi(Layer) public struct AssociatedValue: Equatable, Sendable {
-    @_spi(Layer) public var label: String?
-    @_spi(Layer) public var type: TypeAnnotation
+struct AssociatedValue: Equatable, Sendable {
+    var label: String?
+    var type: TypeAnnotation
 
     init(label: String? = nil, type: TypeAnnotation) {
         self.label = label
@@ -175,7 +175,7 @@ struct EnumCaseDecl: Equatable, Sendable {
     }
 }
 
-@_spi(Layer) public struct SwitchStatement: Equatable, Sendable {
+struct SwitchStatement: Equatable, Sendable {
     var subject: Expr
     var cases: [SwitchCase]
 
@@ -187,7 +187,7 @@ struct EnumCaseDecl: Equatable, Sendable {
 
 /// `case p1, p2 where guard: body`; no patterns is `default:`. The guard is
 /// the last pattern's, as a `where` is the case item's it follows in Swift.
-@_spi(Layer) public struct SwitchCase: Equatable, Sendable {
+struct SwitchCase: Equatable, Sendable {
     var patterns: [Pattern]
     var guardExpr: Expr?
     var body: Program
@@ -199,7 +199,7 @@ struct EnumCaseDecl: Equatable, Sendable {
     }
 }
 
-@_spi(Layer) public indirect enum Pattern: Equatable, Sendable {
+indirect enum Pattern: Equatable, Sendable {
     /// `_`
     case wildcard
     /// `let x`: matches anything, binding it.
@@ -231,8 +231,8 @@ extension Pattern {
     }
 }
 
-@_spi(Layer) public struct PatternArgument: Equatable, Sendable {
-    @_spi(Layer) public var label: String?
+struct PatternArgument: Equatable, Sendable {
+    var label: String?
     var pattern: Pattern
 
     init(label: String? = nil, pattern: Pattern) {
@@ -241,7 +241,7 @@ extension Pattern {
     }
 }
 
-@_spi(Layer) public struct ForLoop: Equatable, Sendable {
+struct ForLoop: Equatable, Sendable {
     /// What each element is matched with: a name, `_`, or a tuple of those
     /// (`for (i, x) in …`).
     var pattern: Pattern
@@ -249,7 +249,7 @@ extension Pattern {
     var body: Program
     /// `for try await x in s`: s is an AsyncSequence, whose reading waits
     /// (`await`) and may throw (`try`).
-    @_spi(Layer) public var isAwait = false
+    var isAwait = false
     var isTry = false
     /// `outer: for …`, which `break outer` and `continue outer` name.
     var label: String?
@@ -269,7 +269,7 @@ extension Pattern {
     }
 }
 
-@_spi(Layer) public struct WhileLoop: Equatable, Sendable {
+struct WhileLoop: Equatable, Sendable {
     /// A Bool.
     var condition: Expr
     var body: Program

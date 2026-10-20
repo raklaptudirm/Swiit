@@ -13,22 +13,22 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// What runs this interpreter, if it is more than an embedder's call: the
     /// shell, whose nodes reach it from here. Weak, as the owner holds the
     /// interpreter.
-    @_spi(Layer) public weak var owner: AnyObject?
+    weak var owner: AnyObject?
     /// The members, by name, of the host's object types that Swift doesn't
     /// declare (the shell's `Job`), for the checker.
     /// The bridged libraries installed: the core's, and the host's.
-    @_spi(Layer) public var libraries: [Library] = []
+    var libraries: [Library] = []
     /// The types of dynamic objects' members (`DynamicObject`), by type name.
-    @_spi(Layer) public var dynamicTypes: [String: DynamicType] = [:]
+    var dynamicTypes: [String: DynamicType] = [:]
     /// What `await` waits for, if the host has anything to wait for.
     var awaiting: Awaiting?
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
-    @_spi(Layer) public var task: TaskContext
+    var task: TaskContext
     /// The first task: the host's own (the shell's prompt, an embedder's `eval`).
-    @_spi(Layer) public let mainTask = TaskContext(globals: [Scope(), Scope()])
+    let mainTask = TaskContext(globals: [Scope(), Scope()])
     /// What Swiit code runs under, one task at a time (InterpreterLock.swift).
-    @_spi(Layer) public let lock = InterpreterLock()
+    let lock = InterpreterLock()
     /// Tasks started and not yet ended.
     var runningTasks = 0
     /// Each enum's associated value types, by case, for checking them.
@@ -36,7 +36,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
     /// The module a program's types are in, shown before their names where Swift shows it (`main.Point`).
-    @_spi(Layer) public var moduleName = "main"
+    var moduleName = "main"
     var enumTypeParameters: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
     var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
@@ -49,12 +49,12 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.
-    @_spi(Layer) public var sequenceMethods: [String: OverloadSet] = [:]
+    var sequenceMethods: [String: OverloadSet] = [:]
     /// The declared types of globals, from entries already checked, so a
     /// later one knows `let xs: [Int] = []` is an [Int].
-    @_spi(Layer) public var staticTypes: [String: TypeAnnotation] = [:]
+    var staticTypes: [String: TypeAnnotation] = [:]
     /// What reads source into the tree: SwiftParser's, lowered, unless given another.
-    @_spi(Layer) public var frontEnd: any SyntaxFrontEnd = SwiftSyntaxFrontEnd()
+    var frontEnd: any SyntaxFrontEnd = SwiftSyntaxFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     /// The script being run, as errors and `#filePath` name it.
     public var file: String?
@@ -67,17 +67,17 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     var observesStatements = true
     /// What library functions that ask for it are lent, if the host lends its
     /// own (`context` otherwise makes one from the output and the display).
-    @_spi(Layer) public var contextProvider: (() -> HostContext)?
+    var contextProvider: (() -> HostContext)?
 
     /// What bounds a run (steps, depth, time, output), counted from the start
     /// of each `eval`.
-    @_spi(Layer) public var limits = Interpreter.Limits()
+    var limits = Interpreter.Limits()
     var steps = 0
     var deadline: ContinuousClock.Instant?
     /// What a run has written, against `limits.output`.
-    @_spi(Layer) public let outputCounter: OutputCounter
+    let outputCounter: OutputCounter
 
-    @_spi(Layer) public init(host: Interpreter.Host, outputCounter: OutputCounter) {
+    init(host: Interpreter.Host, outputCounter: OutputCounter) {
         self.host = host
         self.outputCounter = outputCounter
         self.task = mainTask
@@ -86,7 +86,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
 
 extension Interpreter {
     /// Reports an error, to wherever standard error is redirected.
-    @_spi(Layer) public func report(_ message: String) {
+    func report(_ message: String) {
         let styled = host.error.traits().styled
         if message.hasPrefix("error: ") {
             host.error.write("\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6) + "\n")
@@ -98,7 +98,7 @@ extension Interpreter {
 
 extension Interpreter {
     /// Parses a program, knowing the names already declared.
-    @_spi(Layer) public func parse(_ source: String) -> Result<Program, SyntaxError> {
+    func parse(_ source: String) -> Result<Program, SyntaxError> {
         do {
             return .success(try frontEnd.parse(source, bound: globalNames()))
         } catch let error as SyntaxError {
@@ -109,7 +109,7 @@ extension Interpreter {
     }
 
     /// Names the parser should know: builtins and globals, as variables or functions.
-    @_spi(Layer) public func globalNames() -> [String: NameKind] {
+    func globalNames() -> [String: NameKind] {
         scopes[0].bindings.merging(scopes[1].bindings) { $1 }.mapValues { binding in
             if binding.isFunction { return .function }
             if binding.isComputed { return .variable }

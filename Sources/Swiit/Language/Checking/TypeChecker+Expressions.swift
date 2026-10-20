@@ -30,7 +30,7 @@ extension TypeChecker {
         }
     }
 
-    @_spi(Layer) public func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
+    func expect(_ expr: inout Expr, _ expected: TypeAnnotation, _ what: String) throws {
         let original = expr
         let type = try typeOf(&expr, expecting: expected)
         guard fits(type, expected) else {
@@ -48,7 +48,7 @@ extension TypeChecker {
     /// `expr`'s type, given what the context expects of it (which a literal,
     /// a closure or a `.case` takes its type from); `expr` gets what the
     /// checker decided.
-    @_spi(Layer) public func typeOf(_ expr: inout Expr, expecting expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
+    func typeOf(_ expr: inout Expr, expecting expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
         let original = expr
         do {
             return try typeOfExpression(&expr, expecting: expected)
@@ -529,7 +529,7 @@ extension TypeChecker {
         return functionType(matching[0])
     }
 
-    @_spi(Layer) public func type(of value: Value) -> TypeAnnotation {
+    func type(of value: Value) -> TypeAnnotation {
         switch value {
         case .nothing: .optional(.unknown)
         case .bool: .bool

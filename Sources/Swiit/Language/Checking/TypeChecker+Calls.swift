@@ -138,7 +138,7 @@ extension TypeChecker {
         return chosen.returns
     }
 
-    @_spi(Layer) public func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
+    func commonReturn(_ overloads: [Signature]) -> TypeAnnotation {
         overloads.allSatisfy { $0.returns == overloads[0].returns } ? overloads[0].returns : .unknown
     }
 
@@ -275,7 +275,7 @@ extension TypeChecker {
     /// When neither the prelude's method nor Swift's fits: the prelude's
     /// error, unless its overloads didn't even line up with the arguments
     /// (one was missing), when Swift's is the one that applies.
-    @_spi(Layer) public static func preferred(prelude: TypeError, swift: TypeError?) -> TypeError {
+    static func preferred(prelude: TypeError, swift: TypeError?) -> TypeError {
         guard let swift, prelude.message.contains("missing") else { return prelude }
         return swift
     }

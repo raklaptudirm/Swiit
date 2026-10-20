@@ -15,7 +15,7 @@ extension Interpreter {
     /// Runs `function` with its parameters bound to `arguments`.
     /// Calls `function`. A method gets `receiver` as `self`, and leaves it
     /// there as the method changed it.
-    @_spi(Layer) public func invoke(_ function: Function, with arguments: [String: Value], receiver: Receiver? = nil) throws -> Value {
+    func invoke(_ function: Function, with arguments: [String: Value], receiver: Receiver? = nil) throws -> Value {
         guard callDepth < limits.depth else {
             throw RuntimeError("maximum call depth (\(limits.depth)) exceeded")
         }
@@ -177,7 +177,7 @@ extension Interpreter {
     ///
     /// The penalty counts conversions and untyped parameters, so overload
     /// resolution can prefer the most specific match.
-    @_spi(Layer) public func bind(_ arguments: [Argument], to function: Function) throws -> (bindings: [String: Value], penalty: Int) {
+    func bind(_ arguments: [Argument], to function: Function) throws -> (bindings: [String: Value], penalty: Int) {
         let name = function.name ?? "closure"
         var bound: [String: Value] = [:]
         var penalty = 0
@@ -220,14 +220,14 @@ extension Interpreter {
     }
 
     /// Defaults are evaluated at call time, in the scope the function was defined in.
-    @_spi(Layer) public func defaultArgument(_ expr: Expr, for parameter: Parameter, of function: Function) throws -> Value {
+    func defaultArgument(_ expr: Expr, for parameter: Parameter, of function: Function) throws -> Value {
         let savedScopes = scopes
         scopes = function.captured
         defer { scopes = savedScopes }
         return try checked(try evaluate(expr, expecting: parameter.type), for: parameter, of: function.name ?? "closure")
     }
 
-    @_spi(Layer) public func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
+    func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
         let type = parameter.variadic ? TypeAnnotation.list(parameter.type) : parameter.type
         guard let conforming = conform(value, to: type) else {
             throw RuntimeError("\(function): '\(parameter.name)' must be \(type), not \(value.typeName)")
@@ -237,7 +237,7 @@ extension Interpreter {
 }
 
 /// `set` with only the overload the checker chose, when it did.
-@_spi(Layer) public func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
+func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
     guard let overload, set.candidates.indices.contains(overload) else { return set }
     return OverloadSet(name: set.name, candidates: [set.candidates[overload]])
 }
@@ -254,7 +254,7 @@ extension Interpreter {
 
     /// Picks the overload that `bind` accepts with the lowest penalty, the
     /// most specific match. Ties are an error, never a guess.
-    @_spi(Layer) public func resolve(
+    func resolve(
         _ set: OverloadSet, _ bind: (Function) throws -> (bindings: [String: Value], penalty: Int)
     ) throws -> (Function, [String: Value]) {
         if set.candidates.count == 1 {
@@ -291,7 +291,7 @@ extension Interpreter {
 extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
-    @_spi(Layer) public func hostFunction(_ export: HostFunction) -> Function {
+    func hostFunction(_ export: HostFunction) -> Function {
         let parameters = export.parameters.map { parameter -> Parameter in
             var made = Parameter(
                 label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
@@ -344,7 +344,7 @@ extension Interpreter {
 }
 
 extension TypeAnnotation {
-    @_spi(Layer) public init(_ type: ValueType) {
+    init(_ type: ValueType) {
         switch type {
         case .named("Any", _): self = .any
         case .named("Bool", _): self = .bool

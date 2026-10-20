@@ -1,7 +1,7 @@
 import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-@_spi(Layer) public final class ProtocolType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ProtocolType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]

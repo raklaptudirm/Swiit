@@ -103,7 +103,7 @@ public struct Symbol: Sendable, Hashable {
 
 extension ValueType {
     /// The type an annotation names.
-    @_spi(Layer) public init(_ annotation: TypeAnnotation) {
+    init(_ annotation: TypeAnnotation) {
         self = switch annotation {
         case .bool: .bool
         case .int: .int

@@ -2,9 +2,9 @@ import Foundation
 
 extension TypeChecker {
     /// A generic enum's type arguments say what its cases hold, and nothing else: its values are its name.
-    @_spi(Layer) public func erasedName(_ type: TypeAnnotation) -> String? { if case .named(let name) = erased(type) { name } else { nil } }
+    func erasedName(_ type: TypeAnnotation) -> String? { if case .named(let name) = erased(type) { name } else { nil } }
 
-    @_spi(Layer) public func erased(_ type: TypeAnnotation) -> TypeAnnotation {
+    func erased(_ type: TypeAnnotation) -> TypeAnnotation {
         switch type {
         case .generic(let name, _) where enumInfo(named: name) != nil: return .named(name)
         case .list(let element): return .list(erased(element))
@@ -17,7 +17,7 @@ extension TypeChecker {
     // MARK: Fitting
 
     /// Whether a value of type `actual` can be used where `expected` is.
-    @_spi(Layer) public func fits(_ actual: TypeAnnotation, _ expected: TypeAnnotation) -> Bool {
+    func fits(_ actual: TypeAnnotation, _ expected: TypeAnnotation) -> Bool {
         if case .inOut(let inner) = actual { return fits(inner, expected) }
         if case .inOut(let inner) = expected { return fits(actual, inner) }
         let actual = erased(actual), expected = erased(expected)
@@ -90,7 +90,7 @@ extension TypeChecker {
     /// Whether `type` conforms to `proto`: as in Swift for the builtin types;
     /// a struct or enum by declaring it (an enum without associated values
     /// is Equatable and Hashable anyway, as in Swift).
-    @_spi(Layer) public func conforms(_ type: TypeAnnotation, to proto: String) -> Bool {
+    func conforms(_ type: TypeAnnotation, to proto: String) -> Bool {
         // `=String`: a bridged member for one element type only
         // (`joined(separator:)` where Element == String).
         if TypeChecker.looseProtocols.contains(proto) { return true }
@@ -145,7 +145,7 @@ extension TypeChecker {
 
     /// `type` with its type parameters replaced by what they're bound to;
     /// one not bound yet isn't known.
-    @_spi(Layer) public func substitute(_ type: TypeAnnotation, _ bindings: [String: TypeAnnotation]) -> TypeAnnotation {
+    func substitute(_ type: TypeAnnotation, _ bindings: [String: TypeAnnotation]) -> TypeAnnotation {
         switch type {
         case .parameter(let name): return bindings[name] ?? .unknown
         case .list(let element): return .list(substitute(element, bindings))
@@ -165,7 +165,7 @@ extension TypeChecker {
 
     /// Binds the type parameters in `pattern` by matching it with `actual`,
     /// the type an argument turned out to have.
-    @_spi(Layer) public func unify(_ pattern: TypeAnnotation, _ actual: TypeAnnotation, _ bindings: inout [String: TypeAnnotation]) {
+    func unify(_ pattern: TypeAnnotation, _ actual: TypeAnnotation, _ bindings: inout [String: TypeAnnotation]) {
         switch (pattern, actual) {
         case (_, .unknown):
             return
