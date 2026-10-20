@@ -33,8 +33,13 @@ public struct Symbol: Sendable, Hashable {
         public var isAsync: Bool
         /// A method that changes its value.
         public var isMutating: Bool
+        /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for `sorted()`. A protocol written `=Int`
+        /// is a type it must be exactly.
+        public var generics: [String: [String]]
 
-        public init(parameters: [Parameter] = [], returns: ValueType? = nil, isThrowing: Bool = false, isAsync: Bool = false, isMutating: Bool = false) {
+        public init(parameters: [Parameter] = [], returns: ValueType? = nil, isThrowing: Bool = false, isAsync: Bool = false,
+                    isMutating: Bool = false, generics: [String: [String]] = [:]) {
+            self.generics = generics
             self.parameters = parameters
             self.returns = returns
             self.isThrowing = isThrowing
@@ -161,7 +166,8 @@ extension Interpreter {
                        declaration: .function(Symbol.Function(
                            parameters: function.parameters.map { parameter($0, documentation: function.documentation?.parameters[$0.name]) },
                            returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
-                           isThrowing: function.isThrowing, isAsync: function.effect != .sync, isMutating: function.isMutating)))
+                           isThrowing: function.isThrowing, isAsync: function.effect != .sync, isMutating: function.isMutating,
+                           generics: function.generics)))
                 symbol.isBuiltin = function.isBuiltin
                 return symbol
             }
@@ -191,7 +197,8 @@ extension Interpreter {
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
             found.append(Symbol(name: signature.name, declaration: .function(Symbol.Function(
                 parameters: parameters.map { parameter($0) }, returns: signature.returns == .void ? nil : ValueType(signature.returns),
-                isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating))))
+                isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating,
+                generics: signature.generics))))
         }
         // A struct's, enum's or host object's own.
         if let profile = checker.describe(type) {
@@ -215,7 +222,8 @@ extension Interpreter {
                                                  documentation: member.parameterDocs[$0.name])
                             },
                             returns: member.returns == .void ? nil : ValueType(checker.substitute(member.returns, bindings)),
-                            isThrowing: member.isThrowing, isAsync: member.effect != .sync, isMutating: member.isMutating))))
+                            isThrowing: member.isThrowing, isAsync: member.effect != .sync, isMutating: member.isMutating,
+                            generics: member.generics))))
                 } else {
                     found.append(Symbol(
                         name: member.name, summary: member.summary.isEmpty ? nil : member.summary,
@@ -342,9 +350,9 @@ extension Interpreter {
     /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found before any statement's effect
     /// happens. It says what the program declares at its top level (its functions, types and variables), which a host can
     /// check its own uses against, as a command line against the function it names.
-    public func check(_ source: String) throws(Diagnostic) -> [Symbol] {
+    public func check(_ source: String) throws(Diagnostic) -> Declarations {
         do {
-            return try inCurrentTask { () throws -> [Symbol] in
+            return try inCurrentTask { () throws -> Declarations in
                 switch parse(source) {
                 case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range, isIncomplete: error.incomplete)
                 case .success(let program):
@@ -354,11 +362,30 @@ extension Interpreter {
                     } catch let error as TypeError {
                         throw Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
                     }
-                    return checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) }
+                    var declarations = Declarations(symbols: checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) })
+                    for case (let name, .enumType(let profile)) in checker.scopes[0] {
+                        declarations.enumerations[name] = Declarations.Enumeration(
+                            cases: profile.cases.filter { $0.payload.isEmpty }.map(\.name), hasRawValues: profile.rawType != nil)
+                    }
+                    return declarations
                 }
             }
         } catch {
             throw Diagnostic.of(error)
+        }
+    }
+
+    /// What a checked program declares at its top level.
+    public struct Declarations: Sendable {
+        /// Its functions, types and variables.
+        public var symbols: [Symbol]
+        /// Its enums, by name, for reading a word against one before the enum exists.
+        public var enumerations: [String: Enumeration] = [:]
+
+        public struct Enumeration: Sendable {
+            /// The cases without associated values.
+            public var cases: [String]
+            public var hasRawValues: Bool
         }
     }
 

@@ -619,8 +619,9 @@ extension URL: ValueConvertible {}
     enum Kind { case a, b }
     """)
     #expect(log.text == "")
-    #expect(declared.map(\.name) == ["Kind", "f"])
-    let f = declared.first { $0.name == "f" }?.function
+    #expect(declared.symbols.map(\.name) == ["Kind", "f"])
+    #expect(declared.enumerations["Kind"]?.cases == ["a", "b"])
+    let f = declared.symbols.first { $0.name == "f" }?.function
     #expect(f?.parameters.map(\.label) == ["a", "b"])
     #expect(f?.parameters[1].defaultValue == false)
     #expect(throws: Diagnostic.self) { try swish.check(#"print("ran"); let x: Int = "s""#) }
