@@ -108,3 +108,116 @@ extension BridgedMember {
         )
     }
 }
+
+// MARK: Writing one
+
+extension NativeType {
+    /// A type written from the Swift type itself: members are key paths and method references, so each one's types are the
+    /// compiler's and none is spelled twice.
+    ///
+    ///     interpreter.register(NativeType.Builder<URL>()
+    ///         .property("host", \.host)
+    ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
+    public struct Builder<T: Sendable>: Sendable {
+        public private(set) var type: NativeType
+
+        public init(
+            _ name: String? = nil, conformances: [String] = [], associatedTypes: [String: ValueType] = [:],
+            parse: (@Sendable (String) -> T?)? = nil
+        ) {
+            let name = name ?? String(describing: T.self)
+            self.type = NativeType(name: name, conformances: conformances, associatedTypes: associatedTypes)
+            if let parse { type.parse = { text in parse(text).map { Self.box($0, as: name) } } }
+        }
+
+        private var name: String { type.name }
+
+        fileprivate static func box(_ value: T, as name: String) -> Value {
+            if let object = value as? any HostObject { return Value(object) }
+            return Value(boxing: value, as: name)
+        }
+
+        private var receiver: HostFunction.Parameter { .init(name: "self", type: .named(name)) }
+
+        private func adding(_ kind: MemberKind, isStatic: Bool = false, _ function: HostFunction) -> Builder {
+            var copy = self
+            copy.type.members.append(Member(kind, isStatic: isStatic, function))
+            return copy
+        }
+
+        private static func parameters<each Argument: ValueConvertible>(_: repeat (each Argument).Type, labels: [String?]) -> [HostFunction.Parameter] {
+            var made: [HostFunction.Parameter] = []
+            func add<A: ValueConvertible>(_: A.Type) {
+                let label = labels.indices.contains(made.count) ? labels[made.count] : nil
+                made.append(HostFunction.Parameter(label: label, name: label ?? "argument\(made.count)", type: A.self))
+            }
+            repeat add((each Argument).self)
+            return made
+        }
+
+        /// A property that reads a key path: `.property("host", \.host)`.
+        public func property<V: ValueConvertible>(_ name: String, _ keyPath: any KeyPath<T, V> & Sendable) -> Builder {
+            adding(.property, HostFunction(name: name, summary: nil, parameters: [receiver], returns: V.valueType) { arguments in
+                try arguments[0].unboxed(T.self)[keyPath: keyPath].value
+            })
+        }
+
+        /// A method, as a reference to it: `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
+        public func method<each Argument: ValueConvertible, Result: ValueConvertible>(
+            _ name: String, labels: [String?] = [], throwing: Bool = false,
+            _ function: @escaping @Sendable (T) -> (repeat each Argument) throws -> Result
+        ) -> Builder {
+            adding(.method, HostFunction(
+                name: name, parameters: [receiver] + Self.parameters(repeat (each Argument).self, labels: labels),
+                returns: Result.valueType, isThrowing: throwing
+            ) { arguments in
+                var index = 1
+                func next() -> Value { defer { index += 1 }; return arguments[index] }
+                return try function(arguments[0].unboxed(T.self))(repeat try (each Argument)(next())).value
+            })
+        }
+
+        /// A function of the type itself: `.static("now", Date.init)`.
+        public func `static`<each Argument: ValueConvertible, Result: ValueConvertible>(
+            _ name: String, labels: [String?] = [], throwing: Bool = false,
+            _ function: @escaping @Sendable (repeat each Argument) throws -> Result
+        ) -> Builder {
+            adding(.method, isStatic: true, HostFunction(
+                name: name, parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                returns: Result.valueType, isThrowing: throwing
+            ) { arguments in
+                var index = 0
+                func next() -> Value { defer { index += 1 }; return arguments[index] }
+                return try function(repeat try (each Argument)(next())).value
+            })
+        }
+
+        /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`. The make may fail with `nil`,
+        /// which a script sees as an optional.
+        public func initializer<each Argument: ValueConvertible>(
+            labels: [String?] = [], throwing: Bool = false, _ make: @escaping @Sendable (repeat each Argument) throws -> T
+        ) -> Builder {
+            let name = name
+            return adding(.initializer, HostFunction(
+                name: "init", parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                returns: .named(name), isThrowing: throwing
+            ) { arguments in
+                var index = 0
+                func next() -> Value { defer { index += 1 }; return arguments[index] }
+                return Self.box(try make(repeat try (each Argument)(next())), as: name)
+            })
+        }
+    }
+}
+
+extension Interpreter {
+    public func register<T>(_ builder: NativeType.Builder<T>) { register(builder.type) }
+}
+
+/// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function can take and give by
+/// saying so: `extension URL: ValueConvertible {}`. It is held as it is, under its Swift name.
+extension ValueConvertible where Self: Hashable & Sendable {
+    public static var valueType: ValueType { .named(String(describing: Self.self)) }
+    public init(_ swiitValue: Value) throws { self = try swiitValue.unboxed(Self.self) }
+    public var value: Value { Value(boxing: self, as: String(describing: Self.self)) }
+}

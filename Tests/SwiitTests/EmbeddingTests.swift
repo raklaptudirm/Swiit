@@ -576,3 +576,17 @@ struct Bytes: Comparable, Hashable, Sendable {
         #expect(throws: Diagnostic.self) { try interpreter.evaluate("Bytes(count: 1).nope") }
     }
 }
+
+extension URL: ValueConvertible {}
+
+@Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
+    let swish = interpreter()
+    swish.register(NativeType.Builder<URL>()
+        .property("host", \.host)
+        .property("path", \.path)
+        .method("appending", labels: [nil], URL.appendingPathComponent(_:))
+        .initializer(labels: ["string"]) { (text: String) in URL(string: text)! })
+    #expect(try swish.evaluate(#"URL(string: "https://example.com/a").appending("b").path"#) == "/a/b")
+    #expect(try swish.evaluate(#"URL(string: "https://example.com/a").host"#) == "example.com")
+    #expect(throws: Diagnostic.self) { try swish.evaluate(#"URL(string: "x").nosuch"#) }
+}

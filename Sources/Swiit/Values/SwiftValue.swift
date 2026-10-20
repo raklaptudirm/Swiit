@@ -58,6 +58,8 @@ import Foundation
     /// The Swift value in `value`, which must be one of type `T`.
     public static func unbox<T>(_ type: T.Type, _ value: Value) throws -> T {
         if case .object(let box as SwiftValue) = value, let unboxed = box.value as? T { return unboxed }
+        // A host's own object is held as it is.
+        if case .object(let object) = value, let held = object as? T { return held }
         // A Character is held as the one-letter String it is, where Swiit makes it (iterating a String).
         if case .string(let text) = value, text.count == 1, let character = text.first as? T { return character }
         throw SwiitError("expected \(T.self), not \(value.bridgeTypeName)")

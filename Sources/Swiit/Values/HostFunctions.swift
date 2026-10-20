@@ -195,14 +195,21 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
 /// it says what type the shell should check for.
 public protocol ValueConvertible {
     static var valueType: ValueType { get }
-    /// The enums `valueType` names, for the shell to register.
-    @_spi(Layer) static var swiitEnums: [EnumType] { get }
     init(_ swiitValue: Value) throws
     var value: Value { get }
 }
 
+/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their elements'. An SPI refinement,
+/// because a requirement only the module can see cannot be satisfied by a conformance outside it.
+@_spi(Layer) public protocol ValueEnums { static var enumTypes: [EnumType] { get } }
+
 extension ValueConvertible {
-    @_spi(Layer) public static var swiitEnums: [EnumType] { [] }
+    /// The enums `valueType` names.
+    @_spi(Layer) public static var swiitEnums: [EnumType] {
+        if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
+        if let script = self as? any ScriptEnum.Type { return [script.swiitEnumType] }
+        return []
+    }
 }
 
 extension Value: ValueConvertible {
@@ -264,9 +271,13 @@ extension Date: ValueConvertible {
     public var value: Value { .date(self) }
 }
 
+@_spi(Layer) extension Array: ValueEnums where Element: ValueConvertible {}
+@_spi(Layer) extension Dictionary: ValueEnums where Key: ValueConvertible, Value: ValueConvertible {}
+@_spi(Layer) extension Optional: ValueEnums where Wrapped: ValueConvertible {}
+
 extension Array: ValueConvertible where Element: ValueConvertible {
     public static var valueType: ValueType { .list(Element.valueType) }
-    @_spi(Layer) public static var swiitEnums: [EnumType] { Element.swiitEnums }
+    @_spi(Layer) public static var enumTypes: [EnumType] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
         case .list(let items): self = try items.map(Element.init(_:))
@@ -281,7 +292,7 @@ extension Array: ValueConvertible where Element: ValueConvertible {
 
 extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: ValueConvertible {
     public static var valueType: ValueType { .dictionary(Key.valueType, Value.valueType) }
-    @_spi(Layer) public static var swiitEnums: [EnumType] { Key.swiitEnums + Value.swiitEnums }
+    @_spi(Layer) public static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue else { throw SwiitError.expected("[\(Key.valueType): \(Value.valueType)]", swiitValue) }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
@@ -293,7 +304,7 @@ extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: Value
 
 extension Optional: ValueConvertible where Wrapped: ValueConvertible {
     public static var valueType: ValueType { .optional(Wrapped.valueType) }
-    @_spi(Layer) public static var swiitEnums: [EnumType] { Wrapped.swiitEnums }
+    @_spi(Layer) public static var enumTypes: [EnumType] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {
         self = swiitValue == .nothing ? nil : try Wrapped(swiitValue)
     }
@@ -403,7 +414,6 @@ extension ScriptEnum {
     }
 
     public static var valueType: ValueType { .named(swiitEnumType.name) }
-    @_spi(Layer) public static var swiitEnums: [EnumType] { [swiitEnumType] }
 
     public init(_ swiitValue: Value) throws {
         guard case .enumValue(let value) = swiitValue, value.type === Self.swiitEnumType,
