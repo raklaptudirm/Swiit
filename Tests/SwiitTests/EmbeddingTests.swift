@@ -685,3 +685,44 @@ private final class Mark: @unchecked Sendable {
     #expect(try swish.evaluate("await Task { who() }.value") == "task")
     #expect((swish.taskState as? Mark)?.label == "main")
 }
+
+@Test func aHostDeclaresWhatItAddsToTheLanguage() throws {
+    let swish = interpreter()
+    try swish.prelude("""
+    /// A counter the host runs.
+    struct Counter {
+        let start: Int
+        func next() -> Int
+    }
+
+    extension Sequence {
+        /// Keeps the first of each.
+        func firsts(_ count: Int) -> [Any]
+    }
+
+    extension Int {
+        var doubled: Int { self * 2 }
+    }
+
+    /// Says hello.
+    func hello(_ name: String) -> String
+    """, bodies: [
+        "Counter.next": HostFunction(name: "next", parameters: [.init(name: "self")], returns: .int) { arguments in
+            Value((arguments[0].entries?[Value("start")].flatMap { $0.cast(to: Int.self) } ?? 0) + 1)
+        },
+        "Sequence.firsts": HostFunction(name: "firsts", parameters: [.init(name: "self"), .init(name: "count", type: .int)]) { arguments in
+            Value(Array((arguments[0].items.map(Array.init) ?? []).prefix(arguments[1].cast(to: Int.self) ?? 0)))
+        },
+        "hello": HostFunction(name: "hello", parameters: [.init(name: "name", type: .string)], returns: .string) { arguments in
+            Value("hello, " + arguments[0].description)
+        },
+    ])
+    #expect(try swish.evaluate("Counter(start: 4).next()") == 5)
+    #expect(try swish.evaluate("[7, 8, 9].firsts(2)") == [7, 8])
+    #expect(try swish.evaluate("3.doubled") == 6)
+    #expect(try swish.evaluate(#"hello("you")"#) == "hello, you")
+    // What the host declared is the host's.
+    #expect(swish.symbols(named: "hello").first?.isBuiltin == true)
+    #expect(!swish.symbols(named: "firsts", of: .list(.int)).isEmpty)
+}
+

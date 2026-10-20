@@ -18,7 +18,7 @@ extension Interpreter {
         for name in Bridge.types.keys {
             scopes[0].bindings[name] = Binding(value: .object(BridgedTypeName(name)), mutable: false)
         }
-        declarePreludeExtensions(extensions)
+        do { try declarePreludeExtensions(extensions) } catch { preconditionFailure("the prelude: \(error)") }
     }
 
     /// The shell's own functions, written in Swift (SwiitStandardLibrary) and
