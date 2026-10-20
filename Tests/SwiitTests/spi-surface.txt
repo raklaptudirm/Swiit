@@ -55,10 +55,7 @@ Host/Embedding/LargeStack.swift	Layer func startLargeStackThread
 Host/Interpreter+Builtins.swift	Layer func installBuiltinFunctions
 Host/Library.swift	Layer struct Library
 Host/SwiitHost.swift	Layer init init
-Host/SwiitHost.swift	Layer init init
-Host/SwiitHost.swift	Layer let traits
 Host/SwiitHost.swift	Layer struct StopReason
-Host/SwiitHost.swift	Layer struct StreamTraits
 Host/SwiitHost.swift	Layer var interrupt
 Host/SwiitHost.swift	Layer var name
 Host/SwiitHost.swift	Layer var startThread
@@ -154,7 +151,6 @@ Language/Interpreter/Interpreter+Enums.swift	Layer func enumCase
 Language/Interpreter/Interpreter+Enums.swift	Layer func enumType
 Language/Interpreter/Interpreter+Enums.swift	Layer func enumType
 Language/Interpreter/Interpreter+Environment.swift	Layer func describing
-Language/Interpreter/Interpreter+Expressions.swift	Layer func member
 Language/Interpreter/Interpreter+Protocols.swift	Layer class ProtocolType
 Language/Interpreter/Interpreter+Scopes.swift	Layer func lookup
 Language/Interpreter/Interpreter+Statements.swift	Layer func checkInterrupt
@@ -181,7 +177,6 @@ Language/Interpreter/Interpreter.swift	Layer var contextProvider
 Language/Interpreter/Interpreter.swift	Layer var dynamicTypes
 Language/Interpreter/Interpreter.swift	Layer var file
 Language/Interpreter/Interpreter.swift	Layer var frontEnd
-Language/Interpreter/Interpreter.swift	Layer var host
 Language/Interpreter/Interpreter.swift	Layer var inputTurn
 Language/Interpreter/Interpreter.swift	Layer var libraries
 Language/Interpreter/Interpreter.swift	Layer var limits
@@ -410,7 +405,6 @@ Values/Value.swift	Layer var dictionary
 Values/Value.swift	Layer var objectDisplaySegments
 Values/Value.swift	Layer var objectFields
 Values/Value.swift	Layer var objectIdentity
-Values/Value.swift	Layer var sortedForDisplay
 Values/ValueDisplay.swift	Layer var displayShape
 Values/ValueEncoder.swift	Layer init init
 Values/ValueEncoder.swift	Layer struct ValueEncoder

@@ -23,8 +23,8 @@ private let parityCases: [ParityCase] = {
 /// What the program printed, or why it didn't run.
 private func printed(_ source: String) -> (output: String, problem: String?) {
     nonisolated(unsafe) var output = ""
-    let host = Interpreter.Host(output: OutputSink(write: { output += $0; return true }),
-                         error: OutputSink(write: { output += "err: " + $0; return true }))
+    let host = Interpreter.Host(output: OutputSink({ output += $0; return true }),
+                         error: OutputSink({ output += "err: " + $0; return true }))
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     do {
         _ = try interpreter.evaluate(source)
@@ -70,6 +70,6 @@ func runTheGivenSource() {
     let source = ProcessInfo.processInfo.environment["PARITY_RUN"]!
     let result = printed(source)
     print("OUTPUT:", result.output, "PROBLEM:", result.problem ?? "none")
-    let interpreter = Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })), limits: Interpreter.Limits())
+    let interpreter = Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })), limits: Interpreter.Limits())
     do { _ = try interpreter.evaluate(source) } catch let diagnostic as Diagnostic { print("RENDERED:\n" + diagnostic.rendered(in: source)) } catch {}
 }

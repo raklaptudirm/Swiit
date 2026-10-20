@@ -5,7 +5,7 @@ import Testing
 // the checker's answers are new; the interpreter waits at every wait anyway.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
 }
 
 /// The type error the source gives, or nil if it checks.

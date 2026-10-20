@@ -5,7 +5,7 @@ import Testing
 // `catch` clauses with patterns.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true })))
+    Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
 }
 
 private func eval(_ source: String) throws -> Value {

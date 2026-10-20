@@ -6,7 +6,7 @@ import Testing
 // quadratic. A copy of the whole collection on each call is what these catch; the limits are loose so only that fails.
 
 private func seconds(_ source: String) throws -> Double {
-    let host = Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
+    let host = Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     let start = Date()
     _ = try interpreter.evaluate(source)
@@ -52,7 +52,7 @@ private func seconds(_ source: String) throws -> Double {
 
 @Test func changesInPlaceKeepTheValuesRight() throws {
     // What moving a value out and back must not break: the variable after an error, reads of it in the right side.
-    let host = Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
+    let host = Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     let value = try interpreter.evaluate("""
     var xs = [1, 2, 3]

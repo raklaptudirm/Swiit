@@ -32,7 +32,7 @@ public struct OutputSink: Sendable {
 
     /// `traits` is asked each time, since where output goes can change while a script runs. The closures are called safely
     /// by the host: only holding the interpreter's lock, or from its own thread.
-    public init(write: @escaping (String) -> Bool, traits: @escaping () -> Traits = { .plain }) {
+    public init(write: @escaping (String) -> Bool, traits: @escaping () -> Traits) {
         // The shell's sinks write to the shell's own descriptors, from whichever thread holds the interpreter.
         let write = UncheckedSendable(write), traits = UncheckedSendable(traits)
         send = { write.value($0) }

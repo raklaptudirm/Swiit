@@ -5,7 +5,7 @@ import Testing
 // Where an error is: the diagnostic points at the source it came from, as a compiler does.
 
 private func diagnostic(_ source: String) -> Diagnostic? {
-    let host = Interpreter.Host(output: OutputSink(write: { _ in true }), error: OutputSink(write: { _ in true }))
+    let host = Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     do { _ = try interpreter.evaluate(source) } catch { return error }
     return nil

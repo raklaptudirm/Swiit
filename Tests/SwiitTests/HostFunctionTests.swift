@@ -10,8 +10,8 @@ private final class Log: @unchecked Sendable {
 
 @Test func aFunctionTheHostBoundIsCheckedBeforeTheScriptRuns() throws {
     let log = Log()
-    let swish = Interpreter(host: Interpreter.Host(output: OutputSink(write: { log.text += $0; return true }),
-                                            error: OutputSink(write: { log.text += "err: " + $0; return true })))
+    let swish = Interpreter(host: Interpreter.Host(output: OutputSink({ log.text += $0; return true }),
+                                            error: OutputSink({ log.text += "err: " + $0; return true })))
     swish["described"] = .function(Function(
         name: "described", parameters: [Parameter(label: nil, name: "x", type: .int)], returnType: .int,
         body: .native { _, arguments in arguments["x"] ?? .nothing }, isThrowing: true))
