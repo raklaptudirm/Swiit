@@ -145,7 +145,7 @@ extension Interpreter {
             try withMainTask {
                 // The names it may use are those declared already, and Swift's own types.
                 let names = globalNames()
-                let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: names)
+                let program = try PreludeCache.program(for: source, bound: names, keyed: true)
                 // A method every sequence has gets the sequence, as a list, in `self`.
                 let natives = Dictionary(uniqueKeysWithValues: bodies.map { name, call in
                     (name, (body: FunctionBody.native { interpreter, arguments in
@@ -181,14 +181,16 @@ private enum PreludeCache {
     nonisolated(unsafe) private static var programs: [String: Program] = [:] // safe: guarded by `lock`
     private static let lock = NSLock()
 
-    static func program(for source: String, bound: [String: NameKind]) throws(SyntaxError) -> Program {
+    /// `keyed`: what the names bound are is part of what is read, so part of the key.
+    static func program(for source: String, bound: [String: NameKind], keyed: Bool = false) throws(SyntaxError) -> Program {
         // The names a type may be spelled with come from the bridge, which doesn't change.
+        let key = keyed ? source + "\u{0}" + bound.keys.sorted().joined(separator: ",") : source
         lock.lock()
-        if let known = programs[source] { lock.unlock(); return known }
+        if let known = programs[key] { lock.unlock(); return known }
         lock.unlock()
         let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: bound)
         lock.lock()
-        programs[source] = program
+        programs[key] = program
         lock.unlock()
         return program
     }
