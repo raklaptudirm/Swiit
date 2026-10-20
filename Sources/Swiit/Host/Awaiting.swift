@@ -26,7 +26,13 @@ public struct Awaiting {
 extension Interpreter {
     /// Makes `await` wait for the host's own handles. A failure to wait is a `ScriptError`.
     public func register(_ awaiting: Awaiting) {
-        withMainTask { self.awaiting = awaiting }
+        var made = awaiting
+        let perform = awaiting.perform
+        // What fails while waiting is a failure a script can catch, as a host function's is.
+        made.perform = { [unowned self] handle, throwing in
+            do { return try perform(handle, throwing) } catch { throw hostFailure(error, in: "await") }
+        }
+        withMainTask { self.awaiting = made }
     }
 
     /// Makes `name` a global worked out each time it is read, of the type given: a shell's `jobs`.
