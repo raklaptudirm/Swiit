@@ -136,10 +136,6 @@ extension Interpreter {
             return lookup(name).map { symbols(of: name, binding: $0) } ?? []
         }
         return scopes[1].bindings.sorted { $0.key < $1.key }.flatMap { symbols(of: $0.key, binding: $0.value) }
-            + scopes[0].bindings.sorted { $0.key < $1.key }.compactMap { name, binding in
-                // Swift's own types, which the core bridges: `String`, `Array`, `Date`.
-                if case .object(is BridgedTypeName) = binding.value { Symbol(name: name, declaration: .type(.structure)) } else { nil }
-            }
     }
 
     private func symbols(of name: String, binding: Binding) -> [Symbol] {
@@ -223,6 +219,20 @@ extension Interpreter {
             }
         }
         return found
+    }
+
+    /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and the host declare, and Swift's
+    /// own that the core bridges (`String`, `Array`, `Date`).
+    public func types() -> [Symbol] {
+        withMainTask {
+            let declared = scopes[1].bindings.sorted { $0.key < $1.key }.flatMap { symbols(of: $0.key, binding: $0.value) }.filter {
+                if case .type = $0.declaration { true } else { false }
+            }
+            let bridged = scopes[0].bindings.sorted { $0.key < $1.key }.compactMap { name, binding -> Symbol? in
+                if case .object(is BridgedTypeName) = binding.value { Symbol(name: name, declaration: .type(.structure)) } else { nil }
+            }
+            return declared + bridged
+        }
     }
 
     /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`, `Sequence`, or one a script
