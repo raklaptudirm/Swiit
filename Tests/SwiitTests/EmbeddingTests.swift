@@ -638,6 +638,8 @@ extension URL: ValueConvertible {}
     #expect(swish.value(fromWord: "nope", as: .named("Kind")) == nil)
     #expect(swish.value(fromWord: "x", as: .optional(.string)) == "x")
     #expect(swish.value(fromWord: "x", as: .named("Element")) == "x")
+    #expect(swish.value(ofCase: "file", in: "Kind")?.enumCase?.name == "file")
+    #expect(swish.value(ofCase: "nope", in: "Kind") == nil)
     #expect(swish.convert(Value(3), to: .int) == 3)
     #expect(swish.convert(Value("3"), to: .int) == nil)
     #expect(swish.valueType(of: Value(3)) == .int)

@@ -32,6 +32,15 @@ extension Interpreter {
         }
     }
 
+    /// A case without associated values of an enum a script or the host declared: `value(ofCase: "directory", in: "FileType")`.
+    /// Nil if there is no such enum or case.
+    public func value(ofCase name: String, in enumName: String) -> Value? {
+        inCurrentTask {
+            guard let type = enumType(named: enumName), let definition = type.case(named: name), definition.labels.isEmpty else { return nil }
+            return .enumValue(EnumValue(type: type, name: name))
+        }
+    }
+
     /// The type a value has in a script.
     public func valueType(of value: Value) -> ValueType {
         inCurrentTask { ValueType(TypeChecker(interpreter: self).type(of: value)) }
