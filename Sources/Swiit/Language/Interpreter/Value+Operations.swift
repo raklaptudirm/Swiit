@@ -63,8 +63,11 @@ extension Value {
         // A key path is a function of one value, as in Swift, and no other kind.
         case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
             return parameters.count == 1 ? self : nil
+        // A closure is not a key path: only one is the path of fields it names.
+        case (.keyPath, .function(is KeyPathValue)):
+            return self
         case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double), (.string, .string),
-             (.function, .function), (.functionType, .function), (.keyPath, .function), (.parameter, _),
+             (.function, .function), (.functionType, .function), (.parameter, _),
              (.record, .record), (.void, .nothing):
             return self
         case (.tuple(let elements), .record(let record)):
