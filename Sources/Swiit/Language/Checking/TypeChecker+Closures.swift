@@ -37,8 +37,11 @@ extension TypeChecker {
         expecting expected: TypeAnnotation?,
         implicitTryAwait: Bool = false
     ) throws -> TypeAnnotation {
-        // `{ () }` where a function of one value is wanted: Swift takes the value and leaves it unused.
-        if closure.parameters.isEmpty, case .functionType(let wanted, _, _, _)? = expected, !wanted.isEmpty {
+        // `{ () }` where a function of one value is wanted: Swift takes the value and leaves it
+        // unused.
+        if closure.parameters.isEmpty, case .functionType(let wanted, _, _, _)? = expected,
+            !wanted.isEmpty
+        {
             closure.parameters = wanted.indices.map { Parameter(name: "$ignored\($0)") }
         }
         var expectedParameters: [TypeAnnotation]?
@@ -60,7 +63,8 @@ extension TypeChecker {
         }
         var parameterTypes: [TypeAnnotation] = []
         for (index, parameter) in closure.parameters.enumerated() {
-            var type = parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type
+            var type =
+                parameter.type == .any ? expectedParameters?[index] ?? .unknown : parameter.type
             // `(inout R, E) -> Void` is wanted: the closure changes its first.
             var changes = false
             if case .inOut(let inner) = type { changes = true; type = inner }
@@ -102,6 +106,11 @@ extension TypeChecker {
             try checkBlock(&closure.body)
             return declared ?? commonType(context.seen) ?? (context.seen.isEmpty ? .void : .unknown)
         }
-        return .functionType(parameterTypes, result, throws: throwingSites > sitesBefore, async: effects.effect)
+        return .functionType(
+            parameterTypes,
+            result,
+            throws: throwingSites > sitesBefore,
+            async: effects.effect
+        )
     }
 }

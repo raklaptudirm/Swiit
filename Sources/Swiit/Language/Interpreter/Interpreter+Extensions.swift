@@ -53,7 +53,10 @@ extension Interpreter {
         func add(_ functions: [Function], to table: inout [String: OverloadSet]) {
             for function in functions {
                 let existing = table[function.name!]?.candidates ?? []
-                table[function.name!] = OverloadSet(name: function.name!, candidates: existing + [function])
+                table[function.name!] = OverloadSet(
+                    name: function.name!,
+                    candidates: existing + [function]
+                )
             }
         }
         add(
@@ -145,11 +148,16 @@ extension Interpreter {
             var value = try evaluate(expr, expecting: property.type)
             if let expected = property.type {
                 guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError("\(name).\(property.name) must be \(expected), not \(value.typeName)")
+                    throw RuntimeError(
+                        "\(name).\(property.name) must be \(expected), not \(value.typeName)"
+                    )
                 }
                 value = conforming
             }
-            members.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
+            members.statics[property.name] = StructType.StaticValue(
+                value,
+                mutable: property.mutable
+            )
         }
     }
 
@@ -187,12 +195,14 @@ extension Interpreter {
         }
     }
 
-    /// The members extensions add to a value's type (and protocols it conforms to) with a method of that name.
+    /// The members extensions add to a value's type (and protocols it conforms to) with a method of
+    /// that name.
     func extensionMethods(_ name: String, of value: Value) -> OverloadSet? {
         extensionChain(of: value).lazy.compactMap { $0.methods[name] }.first
     }
 
-    /// A computed property an extension adds, or a method as a function value; nil if there isn't one.
+    /// A computed property an extension adds, or a method as a function value; nil if there isn't
+    /// one.
     func extensionMember(_ name: String, of value: Value) throws -> Value? {
         for members in extensionChain(of: value) {
             if let found = try extensionMember(name, of: value, in: members) { return found }
@@ -200,7 +210,11 @@ extension Interpreter {
         return nil
     }
 
-    private func extensionMember(_ name: String, of value: Value, in members: TypeMembers) throws -> Value? {
+    private func extensionMember(
+        _ name: String,
+        of value: Value,
+        in members: TypeMembers
+    ) throws -> Value? {
         if let getter = members.computed[name] {
             return try invoke(getter, with: [:], receiver: Receiver(value, mutable: false))
         }
@@ -216,7 +230,11 @@ extension Interpreter {
                             "mutating method '\(name)' must be called on a variable, as in value.\(name)(…)"
                         )
                     }
-                    return try interpreter.invoke(method, with: arguments, receiver: Receiver(value, mutable: false))
+                    return try interpreter.invoke(
+                        method,
+                        with: arguments,
+                        receiver: Receiver(value, mutable: false)
+                    )
                 },
                 documentation: method.documentation,
                 isMutating: method.isMutating

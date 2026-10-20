@@ -49,11 +49,13 @@ final class TypeChecker {
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
         var generics: [String: [String]] = [:]
-        /// Of those, the ones its body names (`T()`, `x as? T`), which a call tells it the types of.
+        /// Of those, the ones its body names (`T()`, `x as? T`), which a call tells it the types
+        /// of.
         var typeParameters: Set<String> = []
         /// What the type parameters were in the call this was matched to.
         var solved: [String: TypeAnnotation] = [:]
-        /// Its result is flattened if it is an optional of an optional (see `Function.flattensResult`).
+        /// Its result is flattened if it is an optional of an optional (see
+        /// `Function.flattensResult`).
         var flattensResult = false
 
         init(
@@ -119,7 +121,8 @@ final class TypeChecker {
             var unhandled: String {
                 switch self {
                 case .topLevel: "nothing catches it: use do/catch, try? or try!"
-                case .function(let name): "\(name) isn't 'throws': mark it 'throws', or use do/catch, try? or try!"
+                case .function(let name):
+                    "\(name) isn't 'throws': mark it 'throws', or use do/catch, try? or try!"
                 case .deferBlock: "nothing thrown can leave a defer: use do/catch, try? or try!"
                 }
             }
@@ -143,7 +146,8 @@ final class TypeChecker {
     var errorContexts = [ErrorContext(handled: true)]
     /// The type of error the last call resolved throws, for the throwing site that follows it.
     var lastThrown: TypeAnnotation?
-    /// What each throwing site seen throws: its type if the function it calls says (`throws(E)`), else nil (any Error).
+    /// What each throwing site seen throws: its type if the function it calls says (`throws(E)`),
+    /// else nil (any Error).
     var thrownSeen: [TypeAnnotation?] = []
     /// Above zero while checking what a `try` covers.
     var tryDepth = 0

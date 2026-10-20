@@ -5,8 +5,10 @@ import SwiftSyntax
 /// Lowers SwiftParser's tree to the core's. A construct it doesn't lower is a
 /// `SyntaxError` that names it, so the supported subset is the set of nodes
 /// handled here.
-/// How the type around a declaration names things, kept to restore when its body ends: the qualified name its
-/// members are declared under, the type that `Self` is, and the short names of the types declared inside it.
+/// How the type around a declaration names things, kept to restore when its body ends: the
+/// qualified name its
+/// members are declared under, the type that `Self` is, and the short names of the types declared
+/// inside it.
 struct EnclosingType {
     var prefix: String
     var current: String?
@@ -114,7 +116,10 @@ struct Lowering {
     }
 
     func unsupported(_ what: String, _ node: some SyntaxProtocol) -> SyntaxError {
-        SyntaxError("\(what) isn't supported by this front end yet (line \(line(of: node)))", range: range(of: node))
+        SyntaxError(
+            "\(what) isn't supported by this front end yet (line \(line(of: node)))",
+            range: range(of: node)
+        )
     }
 
     func line(of node: some SyntaxProtocol) -> Int {
@@ -141,7 +146,12 @@ struct Lowering {
             return (low + 1 + lineOffset, character - lineStarts[low] + 1)
         }
         let from = place(start), to = place(max(start, end))
-        return SourceRange(startLine: from.line, startColumn: from.column, endLine: to.line, endColumn: to.column)
+        return SourceRange(
+            startLine: from.line,
+            startColumn: from.column,
+            endLine: to.line,
+            endColumn: to.column
+        )
     }
 
     /// The line a byte offset is on, in the whole source.
@@ -162,7 +172,9 @@ struct Lowering {
         } catch {
             // A problem in or before the statement that couldn't be lowered
             // explains it; one further on is in code not yet read.
-            if let (problem, offset) = firstProblem(in: tree), offset <= failedEnd ?? Int.max { throw problem }
+            if let (problem, offset) = firstProblem(in: tree), offset <= failedEnd ?? Int.max {
+                throw problem
+            }
             throw error
         }
         if let (problem, _) = firstProblem(in: tree) { throw problem }
@@ -186,7 +198,9 @@ struct Lowering {
         for name in functions { names[name] = .function }
         if !members.isEmpty { names["self"] = .variable }
         for name in members.last ?? [] where names[name] == nil { names[name] = .member }
-        if let context = staticContext { for name in context.names { names[name] = .staticMember(of: context.owner) } }
+        if let context = staticContext {
+            for name in context.names { names[name] = .staticMember(of: context.owner) }
+        }
         return names
     }
 
@@ -218,7 +232,9 @@ struct Lowering {
             }
             let itemSpots = currentSpots
             currentSpots = outerSpots
-            lines += [line(of: item)] + Array(repeating: line(of: item), count: max(lowered.count - 1, 0))
+            lines +=
+                [line(of: item)]
+                + Array(repeating: line(of: item), count: max(lowered.count - 1, 0))
             ranges += Array(repeating: range(of: item), count: lowered.count)
             spots += Array(repeating: itemSpots, count: lowered.count)
             statements += lowered
@@ -247,7 +263,8 @@ struct Lowering {
     mutating func collectTypeNames(_ item: CodeBlockItemSyntax.Item) {
         guard case .decl(let decl) = item else { return }
         collectTypeNames(decl, prefix: "")
-        // An operator declared in the program can be used before its declaration, as any function can.
+        // An operator declared in the program can be used before its declaration, as any function
+        // can.
         if let node = decl.as(FunctionDeclSyntax.self), let first = node.name.text.first,
             !(first.isLetter || first == "_")
         {
@@ -280,14 +297,18 @@ struct Lowering {
                 facts.superclass[name] = first.type.trimmedDescription
             }
             for member in block.members {
-                if let variable = member.decl.as(VariableDeclSyntax.self), !isStatic(variable.modifiers) {
+                if let variable = member.decl.as(VariableDeclSyntax.self),
+                    !isStatic(variable.modifiers)
+                {
                     for binding in variable.bindings {
                         if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
-                            facts.instanceMembers[name, default: []].insert(identifier.identifier.text)
+                            facts.instanceMembers[name, default: []]
+                                .insert(identifier.identifier.text)
                         }
                     }
                 }
-                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) {
+                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers)
+                {
                     facts.instanceMembers[name, default: []].insert(method.name.text)
                 }
             }
@@ -315,15 +336,26 @@ struct Lowering {
 
     /// The first problem SwiftParser found, and where (in bytes). `end` is where
     /// the input ends, for telling a problem of what's missing from one of what's there.
-    func firstProblem(in tree: some SyntaxProtocol, end: AbsolutePosition? = nil) -> (SyntaxError, Int)? {
-        let finder = ProblemFinder(end: end ?? tree.endPositionBeforeTrailingTrivia, accepted: accepted)
+    func firstProblem(
+        in tree: some SyntaxProtocol,
+        end: AbsolutePosition? = nil
+    ) -> (SyntaxError, Int)? {
+        let finder = ProblemFinder(
+            end: end ?? tree.endPositionBeforeTrailingTrivia,
+            accepted: accepted
+        )
         finder.walk(tree)
         guard let (message, position) = finder.found else { return nil }
         let text = "\(message) (line \(line(atByte: position.utf8Offset)))"
         // A problem is at a token: one character is what is known of it.
-        let place = range(fromByte: position.utf8Offset, toByte: min(position.utf8Offset + 1, bytes.count))
+        let place = range(
+            fromByte: position.utf8Offset,
+            toByte: min(position.utf8Offset + 1, bytes.count)
+        )
         return (
-            finder.incomplete ? SyntaxError(text, incomplete: true, range: place) : SyntaxError(text, range: place),
+            finder.incomplete
+                ? SyntaxError(text, incomplete: true, range: place)
+                : SyntaxError(text, range: place),
             position.utf8Offset
         )
     }
@@ -390,7 +422,9 @@ private final class ProblemFinder: SyntaxVisitor {
         var node = token.parent
         while let current = node {
             if accepted.contains(current.id) { return true }
-            if current.is(CodeBlockItemSyntax.self) || current.is(MemberBlockItemSyntax.self) { return false }
+            if current.is(CodeBlockItemSyntax.self) || current.is(MemberBlockItemSyntax.self) {
+                return false
+            }
             node = current.parent
         }
         return false
@@ -398,10 +432,12 @@ private final class ProblemFinder: SyntaxVisitor {
     override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
         if found == nil, token.presence == .missing, !isAccepted(token) {
             found = (describeMissing(token), token.position)
-            // At the end of the text, or with only blanks and comments after it (a window cut after a blank line):
+            // At the end of the text, or with only blanks and comments after it (a window cut after
+            // a blank line):
             // the construct isn't finished, and a longer window may finish it.
             if token.position >= end
-                || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile }) ?? true
+                || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile })
+                    ?? true
             {
                 incomplete = true
             }

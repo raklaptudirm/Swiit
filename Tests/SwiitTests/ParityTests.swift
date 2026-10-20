@@ -17,7 +17,8 @@ private struct ParityCase: Decodable, Sendable, CustomTestStringConvertible {
 }
 
 private let parityCases: [ParityCase] = {
-    let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent().appendingPathComponent("parity.json")
+    let url = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        .appendingPathComponent("parity.json")
     return try! JSONDecoder().decode([ParityCase].self, from: Data(contentsOf: url))
 }()
 
@@ -70,13 +71,17 @@ func theGapsAndWhyTheyAreOpen() {
         let why =
             result.problem
             ?? (result.output == item.expected
-                ? "passes" : "prints \(result.output.debugDescription), not \(item.expected.debugDescription)")
-        lines.append("GAP \(item.name): \(why.split(separator: "\n").first.map(String.init) ?? why)")
+                ? "passes"
+                : "prints \(result.output.debugDescription), not \(item.expected.debugDescription)")
+        lines.append(
+            "GAP \(item.name): \(why.split(separator: "\n").first.map(String.init) ?? why)"
+        )
     }
     print(lines.joined(separator: "\n"))
 }
 
-/// `PARITY_RUN='print(1)' swift test --filter runTheGivenSource`: one program, for looking at what it does.
+/// `PARITY_RUN='print(1)' swift test --filter runTheGivenSource`: one program, for looking at what
+/// it does.
 @Test(.enabled(if: ProcessInfo.processInfo.environment["PARITY_RUN"] != nil))
 func runTheGivenSource() {
     let source = ProcessInfo.processInfo.environment["PARITY_RUN"]!

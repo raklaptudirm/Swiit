@@ -1,7 +1,9 @@
 import Foundation
 
-/// How well a call's arguments fit one overload, and what the call is then: what fitting cost (conversions made),
-/// whether a type left unknown makes the fit uncertain, its result and whether it throws, and the type parameters
+/// How well a call's arguments fit one overload, and what the call is then: what fitting cost
+/// (conversions made),
+/// whether a type left unknown makes the fit uncertain, its result and whether it throws, and the
+/// type parameters
 /// the arguments bound.
 struct OverloadMatch {
     var cost: Int
@@ -11,7 +13,8 @@ struct OverloadMatch {
     var solved: [String: TypeAnnotation]
 }
 
-/// An overload the arguments fit, with the arguments as checked against it and how many throwing calls that left
+/// An overload the arguments fit, with the arguments as checked against it and how many throwing
+/// calls that left
 /// pending, so the best of the overloads can be chosen and its checking kept.
 struct FittingOverload {
     var signature: TypeChecker.Signature
@@ -69,7 +72,8 @@ extension TypeChecker {
             if typeErrors.count == 1 { throw typeErrors[0] }
             let list = candidates.map { "  " + signatureText($0) }
             throw TypeError(
-                "\(name): no overload accepts these arguments; candidates:\n" + list.joined(separator: "\n")
+                "\(name): no overload accepts these arguments; candidates:\n"
+                    + list.joined(separator: "\n")
             )
         }
         let winners = fitting.filter { $0.cost == best }
@@ -95,7 +99,8 @@ extension TypeChecker {
         return winners[0].signature
     }
 
-    /// Of overloads that all fit, the one Swift prefers: with fewer generic parameters, or constraints that
+    /// Of overloads that all fit, the one Swift prefers: with fewer generic parameters, or
+    /// constraints that
     /// refine the others' (`T: P3` over `T: P1` when P3 takes in P1).
     func mostSpecific(_ candidates: [Signature]) -> Signature? {
         func genericCount(_ signature: Signature) -> Int {
@@ -105,7 +110,8 @@ extension TypeChecker {
                 case .list(let e), .optional(let e), .someSequence(let e), .inOut(let e): count(e)
                 case .dictionary(let k, let v): count(k) + count(v)
                 case .generic(_, let arguments): arguments.map(count).reduce(0, +)
-                case .functionType(let parameters, let result, _, _): parameters.map(count).reduce(0, +) + count(result)
+                case .functionType(let parameters, let result, _, _):
+                    parameters.map(count).reduce(0, +) + count(result)
                 case .tuple(let elements): elements.map { count($0.type) }.reduce(0, +)
                 default: 0
                 }
@@ -129,7 +135,8 @@ extension TypeChecker {
     }
 
     func signatureText(_ signature: Signature) -> String {
-        "\(signature.name)(" + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ")
+        "\(signature.name)("
+            + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ")
             + ")"
     }
 
@@ -152,13 +159,18 @@ extension TypeChecker {
         func take(_ parameter: Parameter) throws {
             let passed = if case .inoutArgument = arguments[index].value { true } else { false }
             if parameter.isInout && !passed {
-                throw TypeError("\(name): '\(parameter.name)' is inout: pass it as &\(parameter.name)")
+                throw TypeError(
+                    "\(name): '\(parameter.name)' is inout: pass it as &\(parameter.name)"
+                )
             }
             if !parameter.isInout && passed {
-                throw TypeError("\(name): '\(parameter.name)' isn't inout, so it can't be passed with &")
+                throw TypeError(
+                    "\(name): '\(parameter.name)' isn't inout, so it can't be passed with &"
+                )
             }
             // `@autoclosure`: the argument is the closure's result, and is made a closure.
-            if parameter.isAutoclosure, case .functionType(let closureParameters, _, _, _) = parameter.type,
+            if parameter.isAutoclosure,
+                case .functionType(let closureParameters, _, _, _) = parameter.type,
                 closureParameters.isEmpty
             {
                 if case .closure = arguments[index].value {
@@ -172,20 +184,25 @@ extension TypeChecker {
                 }
             }
             // `@Builder content: () -> V`: a closure given for it is made by the builder.
-            if let builder = parameter.resultBuilder, case .closure(var literal) = arguments[index].value,
+            if let builder = parameter.resultBuilder,
+                case .closure(var literal) = arguments[index].value,
                 literal.builtBy == nil
             {
                 literal.body = try resultBuilt(literal.body, by: builder)
                 literal.builtBy = builder
                 arguments[index].value = .closure(literal)
             }
-            let natural = TypeChecker.hasNaturalType(arguments[index].value) ? try typeOf(&arguments[index].value) : nil
+            let natural =
+                TypeChecker.hasNaturalType(arguments[index].value)
+                ? try typeOf(&arguments[index].value) : nil
             let isLiteral = if case .literal = arguments[index].value { true } else { false }
             let wanted = substitute(parameter.type, bindings)
             let written = arguments[index].value
             let actual = try typeOf(&arguments[index].value, expecting: wanted)
             guard fits(actual, wanted) else {
-                var error = TypeError("\(name): '\(parameter.name)' must be \(wanted), not \(actual)")
+                var error = TypeError(
+                    "\(name): '\(parameter.name)' must be \(wanted), not \(actual)"
+                )
                 error.spot = spot(of: written)
                 throw error
             }
@@ -210,9 +227,15 @@ extension TypeChecker {
                 // A closure that doesn't throw takes the overload whose
                 // parameter doesn't either, as Swift ranks them: `Task { 1 }`
                 // is a `Task<Int, Never>`.
-                if case .functionType(_, _, false, _) = actual, case .functionType(_, _, true, _) = wanted { cost += 1 }
-                // A closure that gives a value takes the overload that wants one over the one that drops it.
-                if case .functionType(_, let given, _, _) = actual, case .functionType(_, .void, _, _) = wanted,
+                if case .functionType(_, _, false, _) = actual,
+                    case .functionType(_, _, true, _) = wanted
+                {
+                    cost += 1
+                }
+                // A closure that gives a value takes the overload that wants one over the one that
+                // drops it.
+                if case .functionType(_, let given, _, _) = actual,
+                    case .functionType(_, .void, _, _) = wanted,
                     given != .void, given != .unknown
                 {
                     cost += 1
@@ -223,12 +246,15 @@ extension TypeChecker {
         for (position, parameter) in signature.parameters.enumerated() {
             let later = signature.parameters[(position + 1)...]
             let trailing =
-                index == arguments.count - 1 && arguments[index].label == nil && parameter.label != nil
+                index == arguments.count - 1 && arguments[index].label == nil
+                && parameter.label != nil
                 && later.allSatisfy { $0.label != nil } && parameter.type.acceptsFunction
                 && { if case .closure = arguments[index].value { true } else { false } }()
             if index < arguments.count, arguments[index].label == parameter.label || trailing {
                 if parameter.variadic {
-                    repeat { try take(parameter) } while index < arguments.count && arguments[index].label == nil
+                    repeat {
+                        try take(parameter)
+                    } while index < arguments.count && arguments[index].label == nil
                 } else {
                     try take(parameter)
                 }

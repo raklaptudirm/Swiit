@@ -13,7 +13,8 @@ extension Bridge {
             .flatMap { name in
                 (types[name]?.members ?? [])
                     .filter {
-                        $0.isStatic && $0.kind == .method && $0.name == symbol && $0.parameters.count == arity
+                        $0.isStatic && $0.kind == .method && $0.name == symbol
+                            && $0.parameters.count == arity
                     }
             }
     }
@@ -24,11 +25,17 @@ extension TypeChecker {
     /// operator they fit: the one whose parameters are exactly their types,
     /// else the first they fit.
     func bridgedOperatorType(_ symbol: String, _ operands: [TypeAnnotation]) -> TypeAnnotation? {
-        let candidates = Bridge.operators(symbol, arity: operands.count, of: operands.compactMap { $0.swiftType?.name })
+        let candidates = Bridge.operators(
+            symbol,
+            arity: operands.count,
+            of: operands.compactMap { $0.swiftType?.name }
+        )
         func fitting(_ member: BridgedMember) -> Bool {
             zip(operands, member.parameters).allSatisfy { fits($0, $1.type) }
         }
-        let exact = candidates.first { member in zip(operands, member.parameters).allSatisfy { $0 == $1.type } }
+        let exact = candidates.first { member in
+            zip(operands, member.parameters).allSatisfy { $0 == $1.type }
+        }
         return (exact ?? candidates.first(where: fitting))?.returns
     }
 }

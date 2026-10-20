@@ -53,7 +53,9 @@ extension Interpreter {
                 type.setters[property.name] = make(
                     Function(
                         name: property.name,
-                        parameters: [Parameter(name: property.setterName, type: property.type ?? .any)],
+                        parameters: [
+                            Parameter(name: property.setterName, type: property.type ?? .any)
+                        ],
                         returnType: nil,
                         body: .swiit(setter),
                         captured: captureScopes(property.setterNames),
@@ -62,12 +64,18 @@ extension Interpreter {
                 )
             }
             if property.willSet != nil || property.didSet != nil {
-                func observer(_ body: Program?, _ parameter: String, _ names: NamesUsed) -> Function? {
+                func observer(
+                    _ body: Program?,
+                    _ parameter: String,
+                    _ names: NamesUsed
+                ) -> Function? {
                     body.map {
                         make(
                             Function(
                                 name: property.name,
-                                parameters: [Parameter(name: parameter, type: property.type ?? .any)],
+                                parameters: [
+                                    Parameter(name: parameter, type: property.type ?? .any)
+                                ],
                                 returnType: nil,
                                 body: .swiit($0),
                                 captured: captureScopes(names),
@@ -194,7 +202,9 @@ extension Interpreter {
             var value = try evaluate(expr, expecting: property.type)
             if let expected = property.type {
                 guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError("\(decl.name).\(property.name) must be \(expected), not \(value.typeName)")
+                    throw RuntimeError(
+                        "\(decl.name).\(property.name) must be \(expected), not \(value.typeName)"
+                    )
                 }
                 value = conforming
             }
@@ -204,7 +214,8 @@ extension Interpreter {
 
     // MARK: Making instances
 
-    /// Every initializer an instance of the class may be made by: its own, or, if it declares no designated one, those
+    /// Every initializer an instance of the class may be made by: its own, or, if it declares no
+    /// designated one, those
     /// it inherits.
     func initializers(of type: ClassType) -> [Function] {
         if type.initializers.contains(where: { !$0.isConvenience }) { return type.initializers }
@@ -241,23 +252,30 @@ extension Interpreter {
     }
 
     /// `Dog(name: "Rex")`: an instance, made by the initializer the arguments choose.
-    func construct(_ type: ClassType, _ arguments: [Argument], overload: Int? = nil) throws -> Value {
+    func construct(_ type: ClassType, _ arguments: [Argument], overload: Int? = nil) throws -> Value
+    {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
         let instance = ClassInstance(type: type)
         for property in type.allStored {
-            if let value = try initialValue(of: property) { instance.storage[property.name] = value }
+            if let value = try initialValue(of: property) {
+                instance.storage[property.name] = value
+            }
         }
         if type.chain.contains(where: { $0.deinitializer != nil }) {
             instance.onRelease = { [weak self] released in self?.release(released) }
         }
         let candidates = initializers(of: type)
         if candidates.isEmpty {
-            guard values.isEmpty else { throw RuntimeError("\(type.name) has no initializer that takes arguments") }
+            guard values.isEmpty else {
+                throw RuntimeError("\(type.name) has no initializer that takes arguments")
+            }
         } else {
-            let (initializer, bindings) = try resolve(OverloadSet(name: "\(type.name).init", candidates: candidates)) {
+            let (initializer, bindings) = try resolve(
+                OverloadSet(name: "\(type.name).init", candidates: candidates)
+            ) {
                 try self.bind(values, to: $0)
             }
             task.failedInit = false
@@ -267,14 +285,20 @@ extension Interpreter {
                 return .nothing
             }
         }
-        for property in type.allStored where instance.storage[property.name] == nil && !property.isLazy {
+        for property in type.allStored
+        where instance.storage[property.name] == nil && !property.isLazy {
             throw RuntimeError("\(type.name).init must set '\(property.name)'")
         }
         return .object(instance)
     }
 
-    /// Runs one initializer on an instance; a designated one then makes sure the superclass is initialized.
-    private func initialize(_ instance: ClassInstance, with initializer: Function, _ bindings: [String: Value]) throws {
+    /// Runs one initializer on an instance; a designated one then makes sure the superclass is
+    /// initialized.
+    private func initialize(
+        _ instance: ClassInstance,
+        with initializer: Function,
+        _ bindings: [String: Value]
+    ) throws {
         let saved = task.calledSuperInit
         task.calledSuperInit = false
         defer { task.calledSuperInit = saved }
@@ -285,7 +309,9 @@ extension Interpreter {
             let parent = owner.superclass, !task.failedInit
         {
             let inherited = self.initializers(of: parent)
-            if let zero = inherited.first(where: { $0.parameters.allSatisfy { $0.hasDefault || $0.variadic } }) {
+            if let zero = inherited.first(where: {
+                $0.parameters.allSatisfy { $0.hasDefault || $0.variadic }
+            }) {
                 try initialize(instance, with: zero, try bind([], to: zero).bindings)
             } else if !inherited.isEmpty {
                 throw RuntimeError("\(owner.name).init must call super.init")
@@ -300,14 +326,20 @@ extension Interpreter {
         _ arguments: [Argument],
         isSuper: Bool
     ) throws {
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
         let candidates = initializers(of: type)
         guard !candidates.isEmpty else {
-            guard values.isEmpty else { throw RuntimeError("\(type.name) has no initializer that takes arguments") }
+            guard values.isEmpty else {
+                throw RuntimeError("\(type.name) has no initializer that takes arguments")
+            }
             if isSuper { task.calledSuperInit = true }
             return
         }
-        let (initializer, bindings) = try resolve(OverloadSet(name: "\(type.name).init", candidates: candidates)) {
+        let (initializer, bindings) = try resolve(
+            OverloadSet(name: "\(type.name).init", candidates: candidates)
+        ) {
             try self.bind(values, to: $0)
         }
         if isSuper { task.calledSuperInit = true }
@@ -336,7 +368,11 @@ extension Interpreter {
             for type in instance.type.chain {
                 guard let deinitializer = type.deinitializer else { continue }
                 do {
-                    _ = try invoke(deinitializer, with: [:], receiver: Receiver(.object(instance), mutable: true))
+                    _ = try invoke(
+                        deinitializer,
+                        with: [:],
+                        receiver: Receiver(.object(instance), mutable: true)
+                    )
                 } catch {
                     report("error: \(error)")
                 }
@@ -346,7 +382,8 @@ extension Interpreter {
 
     // MARK: Members
 
-    /// A property, a computed property or a method of an instance, as a value; nil if it has none by that name.
+    /// A property, a computed property or a method of an instance, as a value; nil if it has none
+    /// by that name.
     func classMember(_ name: String, of instance: ClassInstance) throws -> Value? {
         if let stored = instance.storage[name] { return read(stored) }
         // A `lazy var`, read for the first time: worked out now, with `self`.
@@ -360,12 +397,20 @@ extension Interpreter {
                 body: .swiit(Program(statements: [.returnStatement(expr)])),
                 captured: captureScopes(NamesUsed())
             )
-            let value = try invoke(function, with: [:], receiver: Receiver(.object(instance), mutable: true))
+            let value = try invoke(
+                function,
+                with: [:],
+                receiver: Receiver(.object(instance), mutable: true)
+            )
             instance.storage[name] = wrapped(value, lazy)
             return value
         }
         if let getter = instance.type.computedProperty(name) {
-            return try invoke(getter, with: [:], receiver: Receiver(.object(instance), mutable: true))
+            return try invoke(
+                getter,
+                with: [:],
+                receiver: Receiver(.object(instance), mutable: true)
+            )
         }
         let methods = instance.type.allMethods(name)
         guard !methods.isEmpty else { return nil }
@@ -388,12 +433,15 @@ extension Interpreter {
         return .function(OverloadSet(name: name, candidates: bound))
     }
 
-    /// `Counter.shared`, `Counter.make`: what a class has as static members, its superclasses' included.
+    /// `Counter.shared`, `Counter.make`: what a class has as static members, its superclasses'
+    /// included.
     func classStaticMember(_ name: String, of type: ClassType) throws -> Value? {
         for next in type.chain {
             if let getter = next.staticComputed[name] { return try invoke(getter, with: [:]) }
             if let slot = next.statics[name] { return slot.value }
-            if let methods = next.staticMethods[name] { return .function(OverloadSet(name: name, candidates: methods)) }
+            if let methods = next.staticMethods[name] {
+                return .function(OverloadSet(name: name, candidates: methods))
+            }
         }
         return nil
     }
@@ -413,10 +461,15 @@ extension Interpreter {
         }
         let set = narrowed(OverloadSet(name: name, candidates: methods), overload)
         let (method, bindings) = try resolve(set) { try self.bind(values, to: $0) }
-        return try invoke(method, with: bindings, receiver: Receiver(.object(instance), mutable: true))
+        return try invoke(
+            method,
+            with: bindings,
+            receiver: Receiver(.object(instance), mutable: true)
+        )
     }
 
-    /// `super.name(…)`: the method the class above the one whose body this is gives, on the same instance.
+    /// `super.name(…)`: the method the class above the one whose body this is gives, on the same
+    /// instance.
     func callSuperMethod(_ name: String, _ arguments: [Argument], overload: Int?) throws -> Value {
         guard let owner = task.owners.last, let parent = owner.superclass else {
             throw RuntimeError("'super' needs a superclass")
@@ -430,11 +483,19 @@ extension Interpreter {
         }
         let methods = parent.allMethods(name)
         guard !methods.isEmpty else { throw RuntimeError("\(parent.name) has no method '\(name)'") }
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
-        let (method, bindings) = try resolve(narrowed(OverloadSet(name: name, candidates: methods), overload)) {
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (method, bindings) = try resolve(
+            narrowed(OverloadSet(name: name, candidates: methods), overload)
+        ) {
             try self.bind(values, to: $0)
         }
-        return try invoke(method, with: bindings, receiver: Receiver(.object(instance), mutable: true))
+        return try invoke(
+            method,
+            with: bindings,
+            receiver: Receiver(.object(instance), mutable: true)
+        )
     }
 
     /// `super.name`: a property of the class above.
@@ -447,7 +508,11 @@ extension Interpreter {
         }
         if let stored = instance.storage[name] { return read(stored) }
         if let getter = parent.computedProperty(name) {
-            return try invoke(getter, with: [:], receiver: Receiver(.object(instance), mutable: true))
+            return try invoke(
+                getter,
+                with: [:],
+                receiver: Receiver(.object(instance), mutable: true)
+            )
         }
         throw RuntimeError("\(parent.name) has no property '\(name)'")
     }
@@ -481,26 +546,40 @@ extension Interpreter {
             throw RuntimeError("cannot assign to '\(name)': \(what)")
         }
         guard property.mutable || initializing else {
-            throw RuntimeError("cannot assign to '\(name)': it's a 'let' property of \(instance.type.name)")
+            throw RuntimeError(
+                "cannot assign to '\(name)': it's a 'let' property of \(instance.type.name)"
+            )
         }
         let current = read(instance.storage[name] ?? .nothing)
-        let value = rest.isEmpty ? try change(current, property.type) : try deeper(current, rest, property.type)
+        let value =
+            rest.isEmpty
+            ? try change(current, property.type) : try deeper(current, rest, property.type)
         var stored = value
         if let expected = property.type {
             guard let conforming = conform(value, to: expected) else {
-                throw RuntimeError("\(instance.type.name).\(name) must be \(expected), not \(value.typeName)")
+                throw RuntimeError(
+                    "\(instance.type.name).\(name) must be \(expected), not \(value.typeName)"
+                )
             }
             stored = conforming
         }
         if let observers = instance.type.observer(name), !initializing {
             let receiver = Receiver(.object(instance), mutable: true)
             if let willSet = observers.willSet {
-                _ = try invoke(willSet, with: [willSet.parameters[0].name: stored], receiver: receiver)
+                _ = try invoke(
+                    willSet,
+                    with: [willSet.parameters[0].name: stored],
+                    receiver: receiver
+                )
             }
             let old = instance.storage[name] ?? .nothing
             instance.storage[name] = wrapped(stored, property)
             if let didSet = observers.didSet {
-                _ = try invoke(didSet, with: [didSet.parameters[0].name: read(old)], receiver: receiver)
+                _ = try invoke(
+                    didSet,
+                    with: [didSet.parameters[0].name: read(old)],
+                    receiver: receiver
+                )
             }
             return
         }

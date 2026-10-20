@@ -27,7 +27,9 @@ private final class TokenClassifier: SyntaxVisitor {
 
     private func add(_ kind: SpanKind, _ node: some SyntaxProtocol) {
         let start = node.positionAfterSkippingLeadingTrivia.utf8Offset
-        spans.append(Span(range: start..<node.endPositionBeforeTrailingTrivia.utf8Offset, kind: kind))
+        spans.append(
+            Span(range: start..<node.endPositionBeforeTrailingTrivia.utf8Offset, kind: kind)
+        )
     }
 
     // `\.size.bytes` is one name.
@@ -41,7 +43,10 @@ private final class TokenClassifier: SyntaxVisitor {
         let start = node.atSign.positionAfterSkippingLeadingTrivia.utf8Offset
         do {
             spans.append(
-                Span(range: start..<node.attributeName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .keyword)
+                Span(
+                    range: start..<node.attributeName.endPositionBeforeTrailingTrivia.utf8Offset,
+                    kind: .keyword
+                )
             )
         }
         if let arguments = node.arguments { walk(arguments) }
@@ -64,7 +69,8 @@ private final class TokenClassifier: SyntaxVisitor {
     override func visit(_ node: TryExprSyntax) -> SyntaxVisitorContinueKind {
         let start = node.tryKeyword.positionAfterSkippingLeadingTrivia.utf8Offset
         do {
-            let end = (node.questionOrExclamationMark ?? node.tryKeyword).endPositionBeforeTrailingTrivia.utf8Offset
+            let end = (node.questionOrExclamationMark ?? node.tryKeyword)
+                .endPositionBeforeTrailingTrivia.utf8Offset
             spans.append(Span(range: start..<end, kind: .keyword))
         }
         walk(node.expression)
@@ -75,7 +81,8 @@ private final class TokenClassifier: SyntaxVisitor {
     override func visit(_ node: AsExprSyntax) -> SyntaxVisitorContinueKind {
         let start = node.asKeyword.positionAfterSkippingLeadingTrivia.utf8Offset
         do {
-            let end = (node.questionOrExclamationMark ?? node.asKeyword).endPositionBeforeTrailingTrivia.utf8Offset
+            let end = (node.questionOrExclamationMark ?? node.asKeyword)
+                .endPositionBeforeTrailingTrivia.utf8Offset
             spans.append(Span(range: start..<end, kind: .keyword))
         }
         walk(node.expression)
@@ -89,7 +96,10 @@ private final class TokenClassifier: SyntaxVisitor {
             let start = node.period.positionAfterSkippingLeadingTrivia.utf8Offset
             do {
                 spans.append(
-                    Span(range: start..<node.declName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .constant)
+                    Span(
+                        range: start..<node.declName.endPositionBeforeTrailingTrivia.utf8Offset,
+                        kind: .constant
+                    )
                 )
             }
         }
@@ -97,7 +107,9 @@ private final class TokenClassifier: SyntaxVisitor {
     }
 
     override func visit(_ token: TokenSyntax) -> SyntaxVisitorContinueKind {
-        for comment in comments(token.leadingTrivia, from: token.position.utf8Offset) { spans.append(comment) }
+        for comment in comments(token.leadingTrivia, from: token.position.utf8Offset) {
+            spans.append(comment)
+        }
         if let kind = kind(of: token) { add(kind, token) }
         let trailing = token.endPositionBeforeTrailingTrivia.utf8Offset
         for comment in comments(token.trailingTrivia, from: trailing) { spans.append(comment) }
@@ -135,11 +147,14 @@ private final class TokenClassifier: SyntaxVisitor {
             return nil
         case .keyword:
             // A keyword used as a label (`f(in: x)`) or a member name is a name.
-            if parent?.is(LabeledExprSyntax.self) == true || parent?.is(FunctionParameterSyntax.self) == true {
+            if parent?.is(LabeledExprSyntax.self) == true
+                || parent?.is(FunctionParameterSyntax.self) == true
+            {
                 return nil
             }
             return .keyword
-        case .stringQuote, .multilineStringQuote, .stringSegment, .singleQuote, .rawStringPoundDelimiter:
+        case .stringQuote, .multilineStringQuote, .stringSegment, .singleQuote,
+            .rawStringPoundDelimiter:
             return .string
         case .backslash, .leftParen, .rightParen:
             return parent?.is(ExpressionSegmentSyntax.self) == true ? .punctuation : nil
@@ -151,7 +166,8 @@ private final class TokenClassifier: SyntaxVisitor {
         case .pound, .poundSourceLocation:
             return nil
         case .wildcard
-        where parent?.is(WildcardPatternSyntax.self) == true && parent?.parent?.is(ForStmtSyntax.self) == true:
+        where parent?.is(WildcardPatternSyntax.self) == true
+            && parent?.parent?.is(ForStmtSyntax.self) == true:
             // `for _ in …`: the loop's variable, unnamed.
             return .variable
         case .identifier, .dollarIdentifier:
@@ -166,7 +182,9 @@ private final class TokenClassifier: SyntaxVisitor {
         if let reference = parent.as(DeclReferenceExprSyntax.self) {
             // `a.name` is the member's, which is left plain;
             // `.name` alone is a case.
-            if let access = reference.parent?.as(MemberAccessExprSyntax.self), access.declName.id == reference.id {
+            if let access = reference.parent?.as(MemberAccessExprSyntax.self),
+                access.declName.id == reference.id
+            {
                 return nil
             }
             if reference.parent?.is(MacroExpansionExprSyntax.self) == true { return .keyword }

@@ -35,11 +35,14 @@ func publicMembers(of name: String, _ kind: String) -> [Symbol] {
 }
 
 func conformances(of symbol: Symbol, among kept: [String]) -> [String] {
-    let all = graph.relationships.filter { $0.kind == "conformsTo" && $0.source == symbol.identifier.precise }
-        // A protocol of another module is named by its fallback; one of this module's, by its symbol.
+    let all = graph.relationships
+        .filter { $0.kind == "conformsTo" && $0.source == symbol.identifier.precise }
+        // A protocol of another module is named by its fallback; one of this module's, by its
+        // symbol.
         .compactMap { relationship in
             relationship.targetFallback.map { String($0.split(separator: ".").last!) }
-                ?? graph.symbols.first { $0.identifier.precise == relationship.target }?.pathComponents.last
+                ?? graph.symbols.first { $0.identifier.precise == relationship.target }?
+                .pathComponents.last
         }
     return kept.filter(all.contains)
 }

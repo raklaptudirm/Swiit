@@ -23,7 +23,9 @@ extension AttributeScopes {
 }
 
 extension AttributeDynamicLookup {
-    public subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.SwiitAttributes, T>) -> T {
+    public subscript<T: AttributedStringKey>(
+        dynamicMember keyPath: KeyPath<AttributeScopes.SwiitAttributes, T>
+    ) -> T {
         self[T.self]
     }
 }

@@ -45,7 +45,8 @@ extension TypeChecker {
         extensionKey(of: type).flatMap(extensionLayer(forKey:))
     }
 
-    /// What extensions add to a type, and what the extensions of the protocols it conforms to give as defaults.
+    /// What extensions add to a type, and what the extensions of the protocols it conforms to give
+    /// as defaults.
     func extensionLayer(forKey key: String) -> ExtensionLayer? {
         var info = ownExtensionLayer(forKey: key)
         let declared =
@@ -53,14 +54,23 @@ extension TypeChecker {
             + (info?.conformances ?? [])
         for proto in declared.flatMap(protocolClosure) where proto != key {
             guard let defaults = ownExtensionLayer(forKey: proto) else { continue }
-            if var existing = info { existing.merge(defaults); info = existing } else { info = defaults }
+            if var existing = info {
+                existing.merge(defaults); info = existing
+            } else {
+                info = defaults
+            }
         }
-        // A subclass has what the extensions of its superclasses add, and the defaults of the protocols they conform
+        // A subclass has what the extensions of its superclasses add, and the defaults of the
+        // protocols they conform
         // to.
         if let parent = structInfo(named: key)?.superclass, parent != key,
             let inherited = extensionLayer(forKey: parent)
         {
-            if var existing = info { existing.merge(inherited); info = existing } else { info = inherited }
+            if var existing = info {
+                existing.merge(inherited); info = existing
+            } else {
+                info = inherited
+            }
         }
         return info
     }
@@ -88,11 +98,17 @@ extension TypeChecker {
             }
             runtime.members.methods = signatures(members.methods)
             for property in members.staticProperties {
-                runtime.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+                runtime.members.staticProperties[property.name] = MemberProperty(
+                    staticDeclaration: property
+                )
             }
             runtime.members.staticMethods = signatures(members.staticMethods)
             runtime.conformances = members.conformances
-            if var existing = info { existing.merge(runtime); info = existing } else { info = runtime }
+            if var existing = info {
+                existing.merge(runtime); info = existing
+            } else {
+                info = runtime
+            }
         }
         return info
     }
@@ -126,7 +142,9 @@ extension TypeChecker {
         }
         info.members.methods = signatures(members.methods)
         for property in members.staticProperties {
-            info.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+            info.members.staticProperties[property.name] = MemberProperty(
+                staticDeclaration: property
+            )
         }
         info.members.staticMethods = signatures(members.staticMethods)
         info.conformances = decl.conformances
@@ -134,7 +152,8 @@ extension TypeChecker {
             Signature(
                 name: "\(decl.typeName).init",
                 parameters: initializer.parameters,
-                returns: initializer.isFailable ? .optional(.named(decl.typeName)) : .named(decl.typeName),
+                returns: initializer.isFailable
+                    ? .optional(.named(decl.typeName)) : .named(decl.typeName),
                 isMutating: true,
                 isThrowing: initializer.isThrowing
             )
@@ -156,7 +175,9 @@ extension TypeChecker {
         case "Array": return .list(.unknown)
         case "Dictionary": return .dictionary(.unknown, .unknown)
         default:
-            if structInfo(named: key) != nil || enumInfo(named: key) != nil || protocolInfo(named: key) != nil {
+            if structInfo(named: key) != nil || enumInfo(named: key) != nil
+                || protocolInfo(named: key) != nil
+            {
                 return .named(key)
             }
             if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
@@ -164,11 +185,14 @@ extension TypeChecker {
         }
     }
 
-    /// `parameters` (a collection's `Element`) aren't known inside the extension: they fit anything.
+    /// `parameters` (a collection's `Element`) aren't known inside the extension: they fit
+    /// anything.
     private func erasingParameters(_ declaration: FunctionDecl) -> FunctionDecl {
         var copy = declaration
         func erased(_ type: TypeAnnotation) -> TypeAnnotation { substitute(type, [:]) }
-        for index in copy.parameters.indices { copy.parameters[index].type = erased(copy.parameters[index].type) }
+        for index in copy.parameters.indices {
+            copy.parameters[index].type = erased(copy.parameters[index].type)
+        }
         copy.returnType = copy.returnType.map(erased)
         return copy
     }
@@ -191,7 +215,10 @@ extension TypeChecker {
                 var setter = FunctionDecl(
                     name: property.name,
                     parameters: [
-                        Parameter(name: property.setterName, type: substitute(property.type ?? .unknown, [:]))
+                        Parameter(
+                            name: property.setterName,
+                            type: substitute(property.type ?? .unknown, [:])
+                        )
                     ],
                     returnType: nil,
                     body: body

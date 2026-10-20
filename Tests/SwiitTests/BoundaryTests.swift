@@ -11,6 +11,12 @@ import Testing
 
 @Test func theTopLevelOfThePublicAPIIsTheDesignedOne() throws {
     let current = try PublicSurface.current()
-    #expect(current.subtracting(PublicSurface.allowed).sorted() == [], "public, but not in the design")
-    #expect(PublicSurface.allowed.subtracting(current).sorted() == [], "in the design, but not public")
+    #expect(
+        current.subtracting(PublicSurface.allowed).sorted() == [],
+        "public, but not in the design"
+    )
+    #expect(
+        PublicSurface.allowed.subtracting(current).sorted() == [],
+        "in the design, but not public"
+    )
 }

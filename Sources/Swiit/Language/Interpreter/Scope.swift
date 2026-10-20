@@ -88,13 +88,16 @@ final class Scope {
         if let existing = bindings[name], existing.isFunction,
             case .function(let callable) = existing.value, let set = callable as? OverloadSet
         {
-            // The same signature is replaced where it stood, so each overload keeps its place (the checker numbers
+            // The same signature is replaced where it stood, so each overload keeps its place (the
+            // checker numbers
             // them).
-            if let position = set.candidates.firstIndex(where: { $0.hasSameSignature(as: function) }) {
+            if let position = set.candidates.firstIndex(where: { $0.hasSameSignature(as: function) }
+            ) {
                 candidates = set.candidates
                 candidates[position] = function
                 candidates = candidates.enumerated()
-                    .filter { $0.offset == position || !$0.element.hasSameSignature(as: function) }.map(\.element)
+                    .filter { $0.offset == position || !$0.element.hasSameSignature(as: function) }
+                    .map(\.element)
             } else {
                 candidates = set.candidates + candidates
             }
@@ -130,9 +133,12 @@ struct WeakScope {
     weak var scope: Scope?
 }
 
-/// What a scope binds: names to bindings. A scope is nearly always a few names (a call's arguments and locals), for
-/// which hashing every name on every read costs more than comparing a handful of short strings, so those are kept in an
-/// array and searched; a scope that grows past `limit` (the global one) gets a dictionary of positions as well.
+/// What a scope binds: names to bindings. A scope is nearly always a few names (a call's arguments
+/// and locals), for
+/// which hashing every name on every read costs more than comparing a handful of short strings, so
+/// those are kept in an
+/// array and searched; a scope that grows past `limit` (the global one) gets a dictionary of
+/// positions as well.
 struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     private struct Entry {
         let name: String
@@ -175,7 +181,9 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
                 if positions != nil {
                     positions![name] = entries.count - 1
                 } else if entries.count > BindingTable.limit {
-                    positions = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($1.name, $0) })
+                    positions = Dictionary(
+                        uniqueKeysWithValues: entries.enumerated().map { ($1.name, $0) }
+                    )
                 }
             }
         }
@@ -183,7 +191,9 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
 
     private mutating func remove(at index: Int) {
         entries.remove(at: index)
-        if positions != nil { positions = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($1.name, $0) }) }
+        if positions != nil {
+            positions = Dictionary(uniqueKeysWithValues: entries.enumerated().map { ($1.name, $0) })
+        }
     }
 
     @discardableResult
@@ -210,7 +220,8 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     ) -> [String: Binding] {
         var merged = Dictionary(uniqueKeysWithValues: entries.map { ($0.name, $0.binding) })
         for entry in other.entries {
-            merged[entry.name] = merged[entry.name].map { combine($0, entry.binding) } ?? entry.binding
+            merged[entry.name] =
+                merged[entry.name].map { combine($0, entry.binding) } ?? entry.binding
         }
         return merged
     }

@@ -37,14 +37,17 @@ extension Interpreter {
                     if runtime.range == nil {
                         // The innermost statement is where it happened.
                         runtime.range = program.ranges[index]
-                    } else if let last = runtime.calls.indices.last, runtime.calls[last].site == nil {
+                    } else if let last = runtime.calls.indices.last, runtime.calls[last].site == nil
+                    {
                         // The statement the function was called from.
                         runtime.calls[last].site = program.ranges[index]
                     }
                     error = runtime
                 }
-                // The host may carry on with the next statement after an error a script could have caught.
-                if let handle, error is RuntimeError || error is AlreadyReported || error is FatalError,
+                // The host may carry on with the next statement after an error a script could have
+                // caught.
+                if let handle,
+                    error is RuntimeError || error is AlreadyReported || error is FatalError,
                     handle(Diagnostic.of(error))
                 {
                     continue
@@ -145,7 +148,9 @@ extension Interpreter {
             return
         case .declare(let name, let mutable, let expr):
             let value = try evaluate(expr)
-            if name != "_" { scopes[scopes.count - 1].bindings[name] = Binding(value: value, mutable: mutable) }
+            if name != "_" {
+                scopes[scopes.count - 1].bindings[name] = Binding(value: value, mutable: mutable)
+            }
         case .assign(let assignment):
             try assign(assignment)
         case .structDecl(let decl):
@@ -163,9 +168,11 @@ extension Interpreter {
                 effect: decl.effect,
                 typeParameters: decl.runtimeTypeParameters
             )
-            // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_ items: Any...)`.
+            // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_
+            // items: Any...)`.
             let current = scopes[scopes.count - 1]
-            if current.bindings[decl.name] == nil, scopes.count > 1, let builtin = scopes[0].bindings[decl.name],
+            if current.bindings[decl.name] == nil, scopes.count > 1,
+                let builtin = scopes[0].bindings[decl.name],
                 builtin.isFunction
             {
                 current.bindings[decl.name] = builtin
@@ -184,12 +191,19 @@ extension Interpreter {
             do {
                 try runBlock(body)
             } catch let error as RuntimeError {
-                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error") else {
+                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error")
+                else {
                     throw error
                 }
                 try runBlock(clauses[index].body, declaring: bindings)
             } catch let reported as AlreadyReported {
-                guard let (index, bindings) = try firstMatch(clauses, reported.error.value, anyName: "error") else {
+                guard
+                    let (index, bindings) = try firstMatch(
+                        clauses,
+                        reported.error.value,
+                        anyName: "error"
+                    )
+                else {
                     throw reported
                 }
                 try runBlock(clauses[index].body, declaring: bindings)
@@ -221,7 +235,9 @@ extension Interpreter {
             finished(statement, nil)
             if loop.isRepeat {
                 repeat {
-                    guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
+                    guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else {
+                        break
+                    }
                 } while try isTrue(loop.condition)
                 return
             }
@@ -233,7 +249,9 @@ extension Interpreter {
             throw ControlFlow.fallthroughCase
         case .guardStatement(let condition, let otherwise):
             if let bindings = try holds(condition) {
-                for (name, binding) in bindings { scopes[scopes.count - 1].bindings[name] = binding }
+                for (name, binding) in bindings {
+                    scopes[scopes.count - 1].bindings[name] = binding
+                }
                 return
             }
             try runBlock(otherwise)
@@ -270,7 +288,11 @@ extension Interpreter {
 
     /// Runs one iteration; false means `break`. A `break` or `continue` that
     /// names another loop goes on to it.
-    func runLoopBody(_ body: Program, declaring bindings: [String: Binding], label: String? = nil) throws -> Bool {
+    func runLoopBody(
+        _ body: Program,
+        declaring bindings: [String: Binding],
+        label: String? = nil
+    ) throws -> Bool {
         try checkInterrupt()
         do {
             try runBlock(body, declaring: bindings)
@@ -284,7 +306,9 @@ extension Interpreter {
     /// builds a list), strings by character, as in Swift, the Swift
     /// sequences Swiit holds, and command output by line.
     func forEachElement(of sequence: Expr, _ body: (Value) throws -> Bool) throws {
-        if case .binary(let op, let lower, let upper) = sequence, op == .closedRange || op == .halfOpenRange {
+        if case .binary(let op, let lower, let upper) = sequence,
+            op == .closedRange || op == .halfOpenRange
+        {
             for i in try intRange(op, try evaluate(lower), try evaluate(upper)) {
                 guard try body(.int(i)) else { return }
             }
@@ -319,7 +343,8 @@ extension Interpreter {
         }
     }
 
-    /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is reached. A host function
+    /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is
+    /// reached. A host function
     /// that waits
     /// calls it between waits, so a stop is noticed while it does.
     public func checkForStop() throws { try checkInterrupt() }
@@ -327,12 +352,19 @@ extension Interpreter {
     func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
         steps += 1
-        // A task that is cancelled stops at its next step, even before it has begun: that is every step's.
+        // A task that is cancelled stops at its next step, even before it has begun: that is every
+        // step's.
         if cancellation.isSet { throw Cancelled() }
         // The host's interrupt is asked every few steps, not every one.
-        if steps & 15 == 0, task.receivesInterrupts, let reason = host.interrupt() { throw Interrupted(reason: reason) }
-        if let maximum = limits.steps, steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
-        if let deadline, ContinuousClock.now > deadline { throw LimitExceeded("time limit exceeded") }
+        if steps & 15 == 0, task.receivesInterrupts, let reason = host.interrupt() {
+            throw Interrupted(reason: reason)
+        }
+        if let maximum = limits.steps, steps > maximum {
+            throw LimitExceeded("step limit (\(maximum)) exceeded")
+        }
+        if let deadline, ContinuousClock.now > deadline {
+            throw LimitExceeded("time limit exceeded")
+        }
         if let maximum = limits.output, outputCounter.written > maximum {
             throw LimitExceeded("output limit (\(maximum) bytes) exceeded")
         }
@@ -350,10 +382,12 @@ extension Interpreter {
 typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
 
 extension Interpreter {
-    /// Tells the host a statement finished, if it is watching (`Interpreter.Host.statementFinished`).
+    /// Tells the host a statement finished, if it is watching
+    /// (`Interpreter.Host.statementFinished`).
     func finished(_ statement: Statement, _ value: Value?) {
         guard observesStatements, let observer = host.statementFinished else { return }
-        // A `try?` that caught an error gave nil because it failed; other nils, like a function that returns nothing,
+        // A `try?` that caught an error gave nil because it failed; other nils, like a function
+        // that returns nothing,
         // didn't.
         var caught = false
         if value == .nothing, case .expression(.attempt(_, .optional)) = statement { caught = true }

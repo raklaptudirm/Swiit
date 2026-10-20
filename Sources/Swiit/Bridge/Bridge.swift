@@ -8,34 +8,44 @@ import SystemPackage
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 enum Bridge {
-    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A
+    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
+    /// registered. A
     /// snapshot, as
     /// libraries register while other interpreters read.
     public static var types: [String: BridgedType] { lock.withLock { table } }
 
     private static let lock = NSLock()
     nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(
-        uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex, flowType])
-            .map {  // safe: read and changed only holding the lock
-                ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
-            }
+        uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
+            stringIndex, flowType,
+        ])
+        .map {  // safe: read and changed only holding the lock
+            (
+                $0.name,
+                $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
+                    .adding(additions[$0.name] ?? [])
+            )
+        }
     )
 
-    /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and the members it adds
+    /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
+    /// the members it adds
     /// to types the
     /// core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
         lock.withLock {
             for type in more {
                 if let existing = table[type.name] {
-                    // A library adds members to a type the core has (`String.styled`), as an extension does.
+                    // A library adds members to a type the core has (`String.styled`), as an
+                    // extension does.
                     var extended = existing.adding(type.members)
                     // How text becomes one, if the type did not have a way.
                     if extended.parse == nil { extended.parse = type.parse }
                     if extended.literal == nil { extended.literal = type.literal }
                     table[type.name] = extended
                 } else {
-                    table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
+                    table[type.name] =
+                        type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
                         .adding(additions[type.name] ?? [])
                 }
             }
@@ -47,13 +57,17 @@ enum Bridge {
     /// as a text literal (`Character`, `FilePath`). A word of text,
     /// or a string literal where the type is wanted, is converted so.
     public static func value(of typeName: String, from text: String) -> Value?? {
-        guard let type = types[typeName], type.parse != nil || type.literal != nil else { return nil }
+        guard let type = types[typeName], type.parse != nil || type.literal != nil else {
+            return nil
+        }
         return .some(type.parse?(text) ?? type.literal?(text))
     }
 
     /// The bridged type Swiit's type annotation is, and its generic
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
-    public static func type(of annotation: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
+    public static func type(
+        of annotation: TypeAnnotation
+    ) -> (BridgedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
             type.genericParameters.count == arguments.count
         else { return nil }
@@ -66,7 +80,8 @@ enum Bridge {
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
-func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T? where T.StringLiteralType == String {
+func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T?
+where T.StringLiteralType == String {
     T(stringLiteral: text)
 }
 
@@ -78,7 +93,9 @@ where T.ExtendedGraphemeClusterLiteralType == Character {
 
 func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
 where T.UnicodeScalarLiteralType == Unicode.Scalar {
-    guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else { return nil }
+    guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else {
+        return nil
+    }
     return T(unicodeScalarLiteral: scalar)
 }
 
@@ -203,7 +220,8 @@ struct BridgedMember {
     /// `async`: a call, or reading the property, needs `await`. Its glue
     /// waits in `suspend`, so other tasks run meanwhile.
     public var effect: Effect = .sync
-    /// How a host-registered member is called without an interpreter: what a host object's own `member(_:)` uses.
+    /// How a host-registered member is called without an interpreter: what a host object's own
+    /// `member(_:)` uses.
     var plain: (@Sendable ([String: Value]) throws -> Value)?
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).

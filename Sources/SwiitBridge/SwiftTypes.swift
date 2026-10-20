@@ -27,7 +27,9 @@ struct Reader {
     init(_ text: String) { chars = Array(text) }
 
     var atEnd: Bool { skipSpacesCopy() >= chars.count }
-    func peek(_ offset: Int = 0) -> Character? { pos + offset < chars.count ? chars[pos + offset] : nil }
+    func peek(_ offset: Int = 0) -> Character? {
+        pos + offset < chars.count ? chars[pos + offset] : nil
+    }
 
     func skipSpacesCopy() -> Int {
         var p = pos
@@ -39,10 +41,12 @@ struct Reader {
     mutating func consume(_ text: String) -> Bool {
         pos = skipSpacesCopy()
         let target = Array(text)
-        guard pos + target.count <= chars.count, Array(chars[pos..<pos + target.count]) == target else { return false }
+        guard pos + target.count <= chars.count, Array(chars[pos..<pos + target.count]) == target
+        else { return false }
         // A keyword mustn't run into an identifier.
         if let last = target.last, last.isLetter, pos + target.count < chars.count,
-            chars[pos + target.count].isLetter || chars[pos + target.count].isNumber || chars[pos + target.count] == "_"
+            chars[pos + target.count].isLetter || chars[pos + target.count].isNumber
+                || chars[pos + target.count] == "_"
         {
             return false
         }
@@ -68,7 +72,9 @@ struct Reader {
             return String(chars[(pos + 1)..<close])
         }
         var end = pos
-        while end < chars.count, chars[end].isLetter || chars[end].isNumber || chars[end] == "_" { end += 1 }
+        while end < chars.count, chars[end].isLetter || chars[end].isNumber || chars[end] == "_" {
+            end += 1
+        }
         guard end > pos, !chars[pos].isNumber else { return nil }
         defer { pos = end }
         return String(chars[pos..<end])
@@ -88,7 +94,10 @@ struct Reader {
     mutating func type() throws -> SType {
         var result: SType
         pos = skipSpacesCopy()
-        for word in ["some ", "any ", "inout ", "borrowing ", "consuming ", "sending ", "__owned ", "__shared "]
+        for word in [
+            "some ", "any ", "inout ", "borrowing ", "consuming ", "sending ", "__owned ",
+            "__shared ",
+        ]
         where consume(word.trimmingCharacters(in: .whitespaces)) {
             throw Unsupported(reason: word)
         }
@@ -124,7 +133,12 @@ struct Reader {
                 throwing = true
             }
             if consume("->") {
-                result = .function(elements.map(\.type), try type(), throwing: throwing, async: isAsync)
+                result = .function(
+                    elements.map(\.type),
+                    try type(),
+                    throwing: throwing,
+                    async: isAsync
+                )
             } else if isAsync || throwing {
                 throw Unsupported(reason: "effects without a result")
             } else if elements.count == 1 && elements[0].label == nil {
@@ -150,7 +164,9 @@ struct Reader {
             if peek() == ".", let next = peek(1), next.isLetter {
                 pos += 1
                 guard let member = identifier() else { break }
-                if member == "Type" || member == "Protocol" { throw Unsupported(reason: "metatype") }
+                if member == "Type" || member == "Protocol" {
+                    throw Unsupported(reason: "metatype")
+                }
                 result = .member(result, member)
                 continue
             }

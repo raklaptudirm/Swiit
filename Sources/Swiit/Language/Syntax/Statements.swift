@@ -8,7 +8,8 @@ struct Program: Equatable, Sendable {
     var lines: [Int] = []
     /// Where each statement is, as far as it is known: for pointing at it in an error.
     var ranges: [SourceRange] = []
-    /// The expressions each statement has, and where they are, for an error to point at one of them.
+    /// The expressions each statement has, and where they are, for an error to point at one of
+    /// them.
     var spots: [[Spot]] = []
 
     /// Programs are equal by what they say, wherever it was written.
@@ -16,7 +17,12 @@ struct Program: Equatable, Sendable {
         lhs.statements == rhs.statements
     }
 
-    init(statements: [Statement], lines: [Int] = [], ranges: [SourceRange] = [], spots: [[Spot]] = []) {
+    init(
+        statements: [Statement],
+        lines: [Int] = [],
+        ranges: [SourceRange] = [],
+        spots: [[Spot]] = []
+    ) {
         self.statements = statements
         self.lines = lines
         self.ranges = ranges
@@ -150,7 +156,12 @@ struct EnumDecl: Equatable, Sendable {
     /// `enum Result<Success, Failure>`: the type parameters, in order.
     var typeParameters: [String] = []
 
-    init(name: String, rawType: TypeAnnotation? = nil, cases: [EnumCaseDecl], conformances: [String] = []) {
+    init(
+        name: String,
+        rawType: TypeAnnotation? = nil,
+        cases: [EnumCaseDecl],
+        conformances: [String] = []
+    ) {
         self.name = name
         self.rawType = rawType
         self.cases = cases

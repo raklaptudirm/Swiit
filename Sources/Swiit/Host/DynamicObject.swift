@@ -41,7 +41,8 @@ struct DynamicType {
 struct PlainDynamic {
     /// A function in scope, `field(value, key)`: the member or element, or nil.
     public var field: String
-    /// The views of a value by name (`json.port?.int`): a function in scope that gives the value as that type, or nil.
+    /// The views of a value by name (`json.port?.int`): a function in scope that gives the value as
+    /// that type, or nil.
     public var views: [String: View]
     /// What a sequence's items are, when it is read as one.
     public var element: TypeAnnotation
@@ -59,7 +60,12 @@ struct PlainDynamic {
         }
     }
 
-    public init(field: String, views: [String: View], element: TypeAnnotation, standsForAnything: Bool = true) {
+    public init(
+        field: String,
+        views: [String: View],
+        element: TypeAnnotation,
+        standsForAnything: Bool = true
+    ) {
         self.field = field
         self.views = views
         self.element = element
@@ -82,7 +88,9 @@ extension Interpreter {
 extension TypeChecker {
     /// The members' types if `type` is a dynamic object's.
     func dynamicType(of type: TypeAnnotation) -> DynamicType? {
-        guard case .named(let name) = type, let dynamic = interpreter.dynamicTypes[name], dynamic.plain == nil else {
+        guard case .named(let name) = type, let dynamic = interpreter.dynamicTypes[name],
+            dynamic.plain == nil
+        else {
             return nil
         }
         return dynamic
@@ -90,7 +98,8 @@ extension TypeChecker {
 
     /// How a plain dynamic type (parsed JSON) is read, if `type` is one.
     func plainType(of type: TypeAnnotation?) -> (type: DynamicType, plain: PlainDynamic)? {
-        guard case .named(let name)? = type, let dynamic = interpreter.dynamicTypes[name], let plain = dynamic.plain
+        guard case .named(let name)? = type, let dynamic = interpreter.dynamicTypes[name],
+            let plain = dynamic.plain
         else { return nil }
         return (dynamic, plain)
     }
@@ -99,17 +108,25 @@ extension TypeChecker {
     /// for a missing member, or the value as one of the views' types.
     func plainAccess(_ type: TypeAnnotation?, _ base: Expr, _ name: String) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
-        if let view = plain.views[name] { return .call(.variable(view.function), [Argument(label: nil, value: base)]) }
+        if let view = plain.views[name] {
+            return .call(.variable(view.function), [Argument(label: nil, value: base)])
+        }
         return .call(
             .variable(plain.field),
-            [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))]
+            [
+                Argument(label: nil, value: base),
+                Argument(label: nil, value: .literal(.string(name))),
+            ]
         )
     }
 
     /// `value[key]` on a plain dynamic type as it runs.
     func plainIndex(_ type: TypeAnnotation?, _ base: Expr, _ index: Expr) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
-        return .call(.variable(plain.field), [Argument(label: nil, value: base), Argument(label: nil, value: index)])
+        return .call(
+            .variable(plain.field),
+            [Argument(label: nil, value: base), Argument(label: nil, value: index)]
+        )
     }
 }
 
@@ -122,15 +139,22 @@ extension Value {
 }
 
 extension Interpreter {
-    /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a value of the type
+    /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a
+    /// value of the type
     /// `name` is
-    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function `field(value, "port")`,
+    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function
+    /// `field(value, "port")`,
     /// which gives
-    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives the value as that
+    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives
+    /// the value as that
     /// type, or
-    /// nil. Each access is checked as the optional of the type, so a script reads a field it is not sure is there.
-    public func registerDynamic(named name: String, field: String, views: [String: (function: String, type: ValueType)])
-    {
+    /// nil. Each access is checked as the optional of the type, so a script reads a field it is not
+    /// sure is there.
+    public func registerDynamic(
+        named name: String,
+        field: String,
+        views: [String: (function: String, type: ValueType)]
+    ) {
         let type = TypeAnnotation.named(name)
         withMainTask {
             dynamicTypes[name] = DynamicType(
@@ -138,7 +162,9 @@ extension Interpreter {
                 write: .optional(type),
                 plain: PlainDynamic(
                     field: field,
-                    views: views.mapValues { PlainDynamic.View(function: $0.function, type: TypeAnnotation($0.type)) },
+                    views: views.mapValues {
+                        PlainDynamic.View(function: $0.function, type: TypeAnnotation($0.type))
+                    },
                     element: type
                 )
             )

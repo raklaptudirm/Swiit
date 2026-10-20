@@ -12,7 +12,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var message: String
     /// 1-based, for a type error in a multi-line program.
     public var line: Int?
-    /// Where it is in the source: the statement a type or run-time error is in, the token a syntax error is at.
+    /// Where it is in the source: the statement a type or run-time error is in, the token a syntax
+    /// error is at.
     public var range: SourceRange?
     /// For a run-time error: the calls it came out of, innermost first, with where each was made.
     public var calls: [Call] = []
@@ -33,7 +34,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var isReported = false
     /// A `try!` failed: it stops a script, not just its own statement.
     public var isFatal = false
-    /// A syntax error because the source ends too soon: more of it may make it a program (a prompt asks for another
+    /// A syntax error because the source ends too soon: more of it may make it a program (a prompt
+    /// asks for another
     /// line).
     public var isIncomplete = false
     /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
@@ -79,12 +81,18 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         switch error {
         case let diagnostic as Diagnostic: diagnostic
         case let error as TypeError:
-            Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
+            Diagnostic(
+                kind: .type,
+                message: error.message,
+                line: error.line,
+                range: error.spot ?? error.range
+            )
         case let error as RuntimeError: Diagnostic(runtime: error)
         case let reported as AlreadyReported: Diagnostic(runtime: reported.error, isReported: true)
         case let fatal as FatalError:
             { () -> Diagnostic in
-                var diagnostic = Diagnostic(runtime: fatal.error); diagnostic.isFatal = true; return diagnostic
+                var diagnostic = Diagnostic(runtime: fatal.error); diagnostic.isFatal = true;
+                return diagnostic
             }()
         case let limit as LimitExceeded: Diagnostic(kind: .limit, message: limit.description)
         case is Cancelled: Diagnostic(kind: .cancelled, message: "cancelled")
@@ -102,7 +110,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 
     public static func == (lhs: Diagnostic, rhs: Diagnostic) -> Bool {
-        lhs.kind == rhs.kind && lhs.message == rhs.message && lhs.line == rhs.line && lhs.range == rhs.range
+        lhs.kind == rhs.kind && lhs.message == rhs.message && lhs.line == rhs.line
+            && lhs.range == rhs.range
     }
 
     public var description: String { line.map { "line \($0): \(message)" } ?? message }
@@ -138,8 +147,10 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 
     /// The diagnostic as a compiler shows one: what is wrong, then the line of the source it is in,
-    /// with the place marked. `source` is the text that was run; `path` names it, if it came from a file.
-    /// `style`, if given, makes the result styled: the source in the colors it has where it is written,
+    /// with the place marked. `source` is the text that was run; `path` names it, if it came from a
+    /// file.
+    /// `style`, if given, makes the result styled: the source in the colors it has where it is
+    /// written,
     /// the marks and places in their own.
     public func rendered(in source: String, path: String? = nil, color: Bool = false) -> String {
         rendered(in: source, path: path, style: color ? .ansi : nil)
@@ -149,19 +160,33 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
-        if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) { text.removeSubrange(match) }
+        if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) {
+            text.removeSubrange(match)
+        }
         let heading = (kind == .syntax ? "syntax error: " : "error: ") + text
         let place = range ?? line.map { SourceRange(line: $0) }
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n")
         let styles = style?.source(normalized)
         guard let place,
-            let first = Diagnostic.excerpt(of: place, in: normalized, path: path, styles: styles, style: style)
+            let first = Diagnostic.excerpt(
+                of: place,
+                in: normalized,
+                path: path,
+                styles: styles,
+                style: style
+            )
         else { return heading }
         var result = heading + "\n" + first
         // Where the functions it came out of were called from.
         for call in calls {
             guard let site = call.site,
-                let shown = Diagnostic.excerpt(of: site, in: normalized, path: path, styles: styles, style: style)
+                let shown = Diagnostic.excerpt(
+                    of: site,
+                    in: normalized,
+                    path: path,
+                    styles: styles,
+                    style: style
+                )
             else { continue }
             let label = style?.frame("note:") ?? "note:"
             result += "\n\(label) in '\(call.function)', called from here\n" + shown
@@ -182,7 +207,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         guard place.startLine >= 1, place.startLine <= lines.count else { return nil }
         let shown = String(lines[place.startLine - 1])
         let characters = Array(shown)
-        // From the start column to the end of the range, or of the line if it goes on; a whole-line mark is the line's
+        // From the start column to the end of the range, or of the line if it goes on; a whole-line
+        // mark is the line's
         // text.
         var from = max(place.startColumn - 1, 0)
         var to = place.endLine == place.startLine ? place.endColumn - 1 : characters.count
@@ -198,7 +224,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         let marks = String(repeating: "^", count: max(to - from, 1))
         let location = (path.map { "\($0):" } ?? "") + "\(place.startLine):\(from + 1)"
         func frame(_ text: String) -> String { style?.frame(text) ?? text }
-        // The line in the colors it has where it is written: the styles are by character of the whole source.
+        // The line in the colors it has where it is written: the styles are by character of the
+        // whole source.
         var body = shown
         if let styles {
             let before = lines[..<(place.startLine - 1)].reduce(0) { $0 + $1.count + 1 }
@@ -235,8 +262,13 @@ extension Interpreter {
         /// Tasks running at once, each on a thread of its own.
         public var tasks: Int
 
-        public init(steps: Int? = nil, depth: Int = 10_000, time: Duration? = nil, output: Int? = nil, tasks: Int = 256)
-        {
+        public init(
+            steps: Int? = nil,
+            depth: Int = 10_000,
+            time: Duration? = nil,
+            output: Int? = nil,
+            tasks: Int = 256
+        ) {
             self.steps = steps
             self.depth = depth
             self.time = time
@@ -270,9 +302,11 @@ final class OutputCounter: @unchecked Sendable {  // safe: every access holds it
 public final class Cancellation: @unchecked Sendable {  // safe: every access holds its own lock
     private let lock = NSLock()
     private var set = false
-    /// What `isSet` reads without the lock, which every step of every script asks. It is a word written under the lock
+    /// What `isSet` reads without the lock, which every step of every script asks. It is a word
+    /// written under the lock
     /// and
-    /// read by whoever is running: a stale read only delays the stop by a step, and a load of a word is atomic where
+    /// read by whoever is running: a stale read only delays the stop by a step, and a load of a
+    /// word is atomic where
     /// this
     /// runs (arm64 and x86-64), as the SIGINT flag in the host's spawn code is.
     nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
@@ -368,7 +402,13 @@ extension Interpreter {
                 name: "print",
                 summary: "Writes its arguments to the output, separated by spaces, then a newline.",
                 parameters: [
-                    HostFunction.Parameter(label: nil, name: "items", type: .any, variadic: true, showsByType: true),
+                    HostFunction.Parameter(
+                        label: nil,
+                        name: "items",
+                        type: .any,
+                        variadic: true,
+                        showsByType: true
+                    ),
                     HostFunction.Parameter(
                         label: "separator",
                         name: "separator",
@@ -388,7 +428,8 @@ extension Interpreter {
                     var separator = " ", terminator = "\n"
                     if case .string(let text)? = arguments["separator"] { separator = text }
                     if case .string(let text)? = arguments["terminator"] { terminator = text }
-                    let line = try items.map { try interpreter.describing($0) }.joined(separator: separator)
+                    let line = try items.map { try interpreter.describing($0) }
+                        .joined(separator: separator)
                     interpreter.host.output.write(line + terminator)
                     return .nothing
                 }
@@ -403,7 +444,8 @@ extension Interpreter {
 
     // MARK: Values
 
-    /// A global of the script: what `name` is bound to, if anything. Setting one makes it a constant for scripts to
+    /// A global of the script: what `name` is bound to, if anything. Setting one makes it a
+    /// constant for scripts to
     /// read; a
     /// `DynamicObject` is described to the checker as it is set.
     public subscript(name: String) -> Value? {
@@ -425,7 +467,8 @@ extension Interpreter {
         }
     }
 
-    /// A member of a value as a script reads it: `value(of: "columns", in: type)` is `Type.columns`.
+    /// A member of a value as a script reads it: `value(of: "columns", in: type)` is
+    /// `Type.columns`.
     public func value(of member: String, in value: Value) throws(Diagnostic) -> Value {
         do {
             return try withMainTask { try self.member(member, of: value) }
@@ -434,11 +477,14 @@ extension Interpreter {
         }
     }
 
-    /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments would: the overload
+    /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments
+    /// would: the overload
     /// is
-    /// chosen by the labels and the values given, and what is left out takes its default. A struct or enum type given
+    /// chosen by the labels and the values given, and what is left out takes its default. A struct
+    /// or enum type given
     /// as the
-    /// receiver calls its static members and initializers (`call("init", on: type)`). From a host function it runs in
+    /// receiver calls its static members and initializers (`call("init", on: type)`). From a host
+    /// function it runs in
     /// the
     /// calling script's task; from outside, as the main one.
     @discardableResult
@@ -450,16 +496,20 @@ extension Interpreter {
         let written = arguments.map { Argument(label: $0.label, value: .literal($0.value)) }
         do {
             return try inCurrentTask { () throws -> Value in
-                // A Swift type's method by that name, when arguments are given: `count { … }` is a method, not the
+                // A Swift type's method by that name, when arguments are given: `count { … }` is a
+                // method, not the
                 // property `count`.
-                // Where the prelude has a sequence method of the name too, Swift's wins if it takes these arguments, as
+                // Where the prelude has a sequence method of the name too, Swift's wins if it takes
+                // these arguments, as
                 // it does
                 // when a script is checked.
                 if let receiver, let methods = bridgedMethods(name, of: receiver),
                     !arguments.isEmpty || sequenceMethods[name] != nil
                 {
                     var fits = true
-                    if sequenceMethods[name] != nil, case .function(let set as OverloadSet) = methods {
+                    if sequenceMethods[name] != nil,
+                        case .function(let set as OverloadSet) = methods
+                    {
                         fits = set.candidates.contains { (try? self.bind(written, to: $0)) != nil }
                     }
                     if fits { return try self.evaluate(.call(.literal(methods), written)) }
@@ -590,47 +640,65 @@ extension Interpreter {
         try evaluate(source, alreadyCancelled: { false })
     }
 
-    /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that is not lost.
-    private func evaluate(_ source: String, alreadyCancelled: @escaping () -> Bool) throws(Diagnostic) -> Value {
+    /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that
+    /// is not lost.
+    private func evaluate(
+        _ source: String,
+        alreadyCancelled: @escaping () -> Bool
+    ) throws(Diagnostic) -> Value {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         do {
-            // From a host function, in a run already, it carries on where it is. Otherwise Swiit code runs holding the
+            // From a host function, in a run already, it carries on where it is. Otherwise Swiit
+            // code runs holding the
             // lock, which
             // a task it starts waits for.
             if interpreter.lock.isHeldByCurrentThread {
-                return try interpreter.runSource(source, nested: true, alreadyCancelled: alreadyCancelled)
+                return try interpreter.runSource(
+                    source,
+                    nested: true,
+                    alreadyCancelled: alreadyCancelled
+                )
             }
             return try onLargeStack {
-                try interpreter.withMainTask { try interpreter.runSource(source, alreadyCancelled: alreadyCancelled) }
+                try interpreter.withMainTask {
+                    try interpreter.runSource(source, alreadyCancelled: alreadyCancelled)
+                }
             }
         } catch {
             throw Diagnostic.of(error)
         }
     }
 
-    /// What a host that shows the values of a program, as a REPL does, is told of an expression statement.
+    /// What a host that shows the values of a program, as a REPL does, is told of an expression
+    /// statement.
     public struct Observation: Sendable {
         /// What the expression gave.
         public var value: Value
-        /// Swift lets it go without a mention, as the result of a call marked `@discardableResult` is.
+        /// Swift lets it go without a mention, as the result of a call marked `@discardableResult`
+        /// is.
         public var isDiscardable: Bool
         /// It is an `await`, or `try await`.
         public var isAwait: Bool
     }
 
-    /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of it comes through the
+    /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of
+    /// it comes through the
     /// closures.
     ///
-    /// - `observing` is told the value of each of the program's own expression statements as it runs (not those in
+    /// - `observing` is told the value of each of the program's own expression statements as it
+    /// runs (not those in
     /// blocks,
     ///   like the body of a `for`: use `print` for those), except a bare `true` or `false`.
-    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the next one (a script
+    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
+    /// next one (a script
     /// reports
-    ///   an error and carries on); without it, the first stops the run. A stop, a limit and an `Unwinding` error always
+    ///   an error and carries on); without it, the first stops the run. A stop, a limit and an
+    /// `Unwinding` error always
     /// end it.
     ///
-    /// - `finish` runs after the last statement and before the program's own top-level `defer`s, which run when it is
+    /// - `finish` runs after the last statement and before the program's own top-level `defer`s,
+    /// which run when it is
     /// all over.
     ///
     /// A mistake in the program's types or syntax is found before any statement runs.
@@ -647,7 +715,13 @@ extension Interpreter {
         let observer: ValueObserver =
             observe.map { observe in
                 { value, expression, discarded in
-                    try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
+                    try observe(
+                        Observation(
+                            value: value,
+                            isDiscardable: discarded,
+                            isAwait: expression.isAwait
+                        )
+                    )
                 }
             } ?? { _, _, _ in }
         do {
@@ -708,7 +782,8 @@ extension Interpreter {
         nested: Bool = false,
         alreadyCancelled: () -> Bool
     ) throws -> Value {
-        // A run begun from a host function inside one carries on under the limits and the stop of the one it is in.
+        // A run begun from a host function inside one carries on under the limits and the stop of
+        // the one it is in.
         if !nested {
             steps = 0
             outputCounter.reset()
@@ -730,7 +805,8 @@ extension Interpreter {
         do {
             let checker = TypeChecker(interpreter: self)
             var checked = try checker.check(program)
-            // What the program declared is typed as written for the next run: `var x: Int? = nil` is an optional Int.
+            // What the program declared is typed as written for the next run: `var x: Int? = nil`
+            // is an optional Int.
             staticTypes.merge(checker.declaredGlobals) { $1 }
             var last: Expr?
             var lastRange: SourceRange?
@@ -760,7 +836,8 @@ extension Interpreter {
     }
 }
 
-/// Whether the task running an `async` evaluation has been cancelled, which the thread asks as it starts.
+/// Whether the task running an `async` evaluation has been cancelled, which the thread asks as it
+/// starts.
 private final class CancelFlag: @unchecked Sendable {  // safe: every access holds the lock
     private let lock = NSLock()
     private var value = false

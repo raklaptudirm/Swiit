@@ -6,7 +6,9 @@ import Testing
 // `catch` clauses with patterns.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
+    Interpreter(
+        host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
+    )
 }
 
 private func eval(_ source: String) throws -> Value {
@@ -38,15 +40,27 @@ private let errors = """
     """
 
 @Test func aThrownErrorIsCaught() throws {
-    #expect(try eval(errors + "var got = 0; do { got = try check(5) } catch { got = -1 }; got") == .int(5))
-    #expect(try eval(errors + "var got = 0; do { got = try check(-3) } catch { got = -1 }; got") == .int(-1))
+    #expect(
+        try eval(errors + "var got = 0; do { got = try check(5) } catch { got = -1 }; got")
+            == .int(5)
+    )
+    #expect(
+        try eval(errors + "var got = 0; do { got = try check(-3) } catch { got = -1 }; got")
+            == .int(-1)
+    )
     // What `catch` binds is the error itself, cast to get at its fields.
     #expect(
-        try eval(errors + "var code = 0; do { _ = try check(-3) } catch { code = (error as? Oops)?.code ?? 0 }; code")
+        try eval(
+            errors
+                + "var code = 0; do { _ = try check(-3) } catch { code = (error as? Oops)?.code ?? 0 }; code"
+        )
             == .int(-3)
     )
     #expect(
-        try eval(errors + "var s = \"\"; do { _ = try check(-3) } catch { s = error.localizedDescription }; s")
+        try eval(
+            errors
+                + "var s = \"\"; do { _ = try check(-3) } catch { s = error.localizedDescription }; s"
+        )
             == .string("Oops(code: -3)")
     )
 }
@@ -74,7 +88,9 @@ private let errors = """
             """
     #expect(
         try eval(catching + "[kind(1), kind(-20), kind(-1), kind(0), kind(200)]")
-            == .list(["fine", "very negative", "negative", "zero", "network 200"].map(Value.string))
+            == .list(
+                ["fine", "very negative", "negative", "zero", "network 200"].map(Value.string)
+            )
     )
 }
 

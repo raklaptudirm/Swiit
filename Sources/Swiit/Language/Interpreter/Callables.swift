@@ -24,7 +24,10 @@ extension Parameter {
         if label == name {
             pieces.append(.init(name, .variable))
         } else {
-            pieces += [.init(label ?? "_", label == nil ? nil : .variable), .init(" "), .init(name, .variable)]
+            pieces += [
+                .init(label ?? "_", label == nil ? nil : .variable), .init(" "),
+                .init(name, .variable),
+            ]
         }
         return pieces + [.init(": ")] + type.styled + (variadic ? [.init("...")] : [])
     }
@@ -38,7 +41,9 @@ extension Function {
         nameStyle: DisplayStyle = .function,
         hiding hidden: (Parameter) -> Bool
     ) -> [AttributedString] {
-        var pieces: [AttributedString] = [.init(name ?? self.name ?? "closure", nameStyle), .init("(")]
+        var pieces: [AttributedString] = [
+            .init(name ?? self.name ?? "closure", nameStyle), .init("("),
+        ]
         for (index, parameter) in parameters.filter({ !hidden($0) }).enumerated() {
             pieces += (index > 0 ? [.init(", ")] : []) + parameter.declaration
         }

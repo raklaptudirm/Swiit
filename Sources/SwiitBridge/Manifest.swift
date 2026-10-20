@@ -32,7 +32,8 @@ struct Manifest: Codable {
     }
 
     init(contentsOf path: String) throws {
-        self = try JSONDecoder().decode(Manifest.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
+        self = try JSONDecoder()
+            .decode(Manifest.self, from: Data(contentsOf: URL(fileURLWithPath: path)))
     }
 
     /// One member to a line, in order, so what changes shows as a diff.

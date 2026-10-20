@@ -11,7 +11,8 @@ extension Expr {
 }
 
 extension Value {
-    /// The name of its type as errors say it: `Int`, `FileEntry`, `List`, `Tuple` for an unnamed struct.
+    /// The name of its type as errors say it: `Int`, `FileEntry`, `List`, `Tuple` for an unnamed
+    /// struct.
     public var typeName: String {
         switch self {
         case .nothing: "Nothing"
@@ -60,7 +61,8 @@ extension Value {
             return .string(text!)
         case (.list(.string), .object(let box as SwiftValue))
         where box.value is any Sequence
-            && Interpreter.items(of: self).map({ $0.allSatisfy { if case .string = $0 { true } else { false } } })
+            && Interpreter.items(of: self)
+                .map({ $0.allSatisfy { if case .string = $0 { true } else { false } } })
                 == true:
             return .list(Array(Interpreter.items(of: self)!))
         // A key path is a function of one value, as in Swift, and no other kind.
@@ -69,7 +71,8 @@ extension Value {
         // A closure is not a key path: only one is the path of fields it names.
         case (.keyPath, .function(is KeyPathValue)):
             return self
-        case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double), (.string, .string),
+        case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double),
+            (.string, .string),
             (.function, .function), (.functionType, .function), (.parameter, _),
             (.record, .record), (.void, .nothing):
             return self
@@ -77,7 +80,9 @@ extension Value {
             guard record.count == elements.count else { return nil }
             var converted = Record(typeName: record.typeName)
             for (index, (element, field)) in zip(elements, record).enumerated() {
-                guard element.label == nil || element.label == field.key || field.key == String(index),
+                guard
+                    element.label == nil || element.label == field.key
+                        || field.key == String(index),
                     let value = field.value.conforming(to: element.type)
                 else { return nil }
                 converted[element.label ?? field.key] = value
@@ -86,7 +91,8 @@ extension Value {
         case (.dictionary(let keyType, let valueType), .dictionary(let dictionary)):
             var converted = ValueDictionary()
             for (key, value) in dictionary {
-                guard let k = key.conforming(to: keyType), let v = value.conforming(to: valueType) else { return nil }
+                guard let k = key.conforming(to: keyType), let v = value.conforming(to: valueType)
+                else { return nil }
                 converted[k] = v
             }
             return .dictionary(converted)
@@ -132,10 +138,13 @@ extension Value {
         case (.int, .int), (.int, .double), (.double, .int), (.double, .double):
             return compare(asDouble!, other.asDouble!)
         case (.string(let a), .string(let b)): return a.compare(b)
-        case (.enumValue(let a), .enumValue(let b)) where a.type === b.type: return compare(a.index, b.index)
+        case (.enumValue(let a), .enumValue(let b)) where a.type === b.type:
+            return compare(a.index, b.index)
         case (.object(let a as SwiftValue), .object(let b as SwiftValue)):
             if let less = a.isLess(than: b) {
-                return less ? .orderedAscending : b.isLess(than: a) == true ? .orderedDescending : .orderedSame
+                return less
+                    ? .orderedAscending
+                    : b.isLess(than: a) == true ? .orderedDescending : .orderedSame
             }
             return compare(a.typeName, b.typeName)
         case (.list(let a), .list(let b)):

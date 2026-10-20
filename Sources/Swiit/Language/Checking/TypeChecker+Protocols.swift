@@ -88,24 +88,28 @@ extension TypeChecker {
         return conforms(type, to: name)
     }
 
-    /// A type that says it conforms to a protocol of the program's has what the protocol asks, or a default for it.
+    /// A type that says it conforms to a protocol of the program's has what the protocol asks, or a
+    /// default for it.
     func checkConformance(of typeName: String, to protocolName: String) throws {
         guard protocolInfo(named: protocolName) != nil else { return }
         let description = describe(named: typeName) ?? TypeProfile(name: typeName, kind: .other)
         func has(method name: String, labels: [String?]) -> Bool {
             ((description.declared.methods[name] ?? []) + (description.extended.methods[name] ?? []))
-                .contains { $0.parameters.map(\.label) == labels }
+            .contains { $0.parameters.map(\.label) == labels }
         }
         func has(staticMethod name: String, labels: [String?]) -> Bool {
             description.staticMethods(named: name).contains { $0.parameters.map(\.label) == labels }
         }
         func has(property name: String, settable: Bool) -> Bool {
-            guard case .property(let property)? = description.instanceMember(name) else { return false }
+            guard case .property(let property)? = description.instanceMember(name) else {
+                return false
+            }
             return settable ? property.isSettable : true
         }
         for required in requirements(protocolName) {
             for (name, signatures) in required.declared.methods.sorted(by: { $0.key < $1.key }) {
-                for signature in signatures where !has(method: name, labels: signature.parameters.map(\.label)) {
+                for signature in signatures
+                where !has(method: name, labels: signature.parameters.map(\.label)) {
                     throw TypeError(
                         "\(typeName) doesn't conform to \(protocolName): it needs \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))"
                     )
@@ -117,15 +121,21 @@ extension TypeChecker {
                     "\(typeName) doesn't conform to \(protocolName): it needs the \(property.isSettable ? "settable " : "")property '\(name)'"
                 )
             }
-            for (name, signatures) in required.declared.staticMethods.sorted(by: { $0.key < $1.key }) {
-                for signature in signatures where !has(staticMethod: name, labels: signature.parameters.map(\.label)) {
+            for (name, signatures) in required.declared.staticMethods.sorted(by: { $0.key < $1.key }
+            ) {
+                for signature in signatures
+                where !has(staticMethod: name, labels: signature.parameters.map(\.label)) {
                     throw TypeError(
                         "\(typeName) doesn't conform to \(protocolName): it needs static \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))"
                     )
                 }
             }
-            for (name, property) in required.declared.staticProperties.sorted(by: { $0.key < $1.key }) {
-                guard case .property(let found)? = description.staticMember(name), found.type == property.type else {
+            for (name, property) in required.declared.staticProperties.sorted(by: {
+                $0.key < $1.key
+            }) {
+                guard case .property(let found)? = description.staticMember(name),
+                    found.type == property.type
+                else {
                     throw TypeError(
                         "\(typeName) doesn't conform to \(protocolName): it needs a static '\(name)' of \(property.type): static let \(name): \(property.type) = …"
                     )
@@ -133,7 +143,11 @@ extension TypeChecker {
             }
             for initializer in required.declared.initializers {
                 let labels = initializer.parameters.map(\.label)
-                guard description.initializers.contains(where: { $0.parameters.map(\.label) == labels }) else {
+                guard
+                    description.initializers.contains(where: {
+                        $0.parameters.map(\.label) == labels
+                    })
+                else {
                     throw TypeError(
                         "\(typeName) doesn't conform to \(protocolName): it needs init(\(labels.map { ($0 ?? "_") + ":" }.joined()))"
                     )

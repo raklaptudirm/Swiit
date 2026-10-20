@@ -8,7 +8,9 @@ extension TypeChecker {
             if let symbol = scope[name] { return symbol }
         }
         guard let binding = interpreter.lookup(name) else { return nil }
-        if binding.isComputed { return .variable(interpreter.staticTypes[name] ?? .unknown, mutable: false) }
+        if binding.isComputed {
+            return .variable(interpreter.staticTypes[name] ?? .unknown, mutable: false)
+        }
         switch binding.value {
         case .object(let type as StructType):
             return .structType(structInfo(type))
@@ -29,13 +31,18 @@ extension TypeChecker {
                         return signature
                     }
             )
-        // A function a host bound with `set`: it is called as the function it is, with its signature checked, as one a
-        // script declares. (A `var` holding a closure may be assigned another, so it stays a value.)
+        // A function a host bound with `set`: it is called as the function it is, with its
+        // signature checked, as one a
+        // script declares. (A `var` holding a closure may be assigned another, so it stays a
+        // value.)
         case .function(let function as Function)
         where !binding.mutable && interpreter.staticTypes[name] == nil && function.name == name:
             return .functions([signature(function)])
         default:
-            return .variable(interpreter.staticTypes[name] ?? type(of: binding.value), mutable: binding.mutable)
+            return .variable(
+                interpreter.staticTypes[name] ?? type(of: binding.value),
+                mutable: binding.mutable
+            )
         }
     }
 
@@ -112,14 +119,17 @@ extension TypeChecker {
                 Signature(
                     name: initializer.name ?? type.name,
                     parameters: initializer.parameters,
-                    returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
+                    returns: initializer.isFailable
+                        ? .optional(.named(type.name)) : .named(type.name),
                     isMutating: true,
                     isThrowing: initializer.isThrowing,
                     index: index
                 )
             } ?? []
         for property in type.staticProperties {
-            profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+            profile.declared.staticProperties[property.name] = MemberProperty(
+                staticDeclaration: property
+            )
         }
         profile.declared.staticMethods = signatures(type.staticMethods)
         for (index, getter) in type.subscriptGetters.enumerated() {
@@ -142,8 +152,11 @@ extension TypeChecker {
         profile.cases = type.cases.map { enumCase in
             (
                 enumCase.name,
-                zip(enumCase.labels, payloads[enumCase.name] ?? enumCase.labels.map { _ in .unknown })
-                    .map { AssociatedValue(label: $0, type: $1) }
+                zip(
+                    enumCase.labels,
+                    payloads[enumCase.name] ?? enumCase.labels.map { _ in .unknown }
+                )
+                .map { AssociatedValue(label: $0, type: $1) }
             )
         }
         profile.rawType =
@@ -175,7 +188,9 @@ extension TypeChecker {
             }
             profile.declared.methods = signatures(members.methods)
             for property in members.staticProperties {
-                profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+                profile.declared.staticProperties[property.name] = MemberProperty(
+                    staticDeclaration: property
+                )
             }
             profile.declared.staticMethods = signatures(members.staticMethods)
             profile.declared.initializers =
@@ -184,7 +199,8 @@ extension TypeChecker {
                     Signature(
                         name: initializer.name ?? type.name,
                         parameters: initializer.parameters,
-                        returns: initializer.isFailable ? .optional(.named(type.name)) : .named(type.name),
+                        returns: initializer.isFailable
+                            ? .optional(.named(type.name)) : .named(type.name),
                         isMutating: true,
                         isThrowing: initializer.isThrowing,
                         index: index

@@ -57,7 +57,8 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         func name(_ text: String) -> AttributedString { .init(text, .type) }
         func punctuation(_ text: String) -> AttributedString { .init(text) }
         func list(_ items: [[AttributedString]]) -> [AttributedString] {
-            items.enumerated().flatMap { index, item in (index > 0 ? [punctuation(", ")] : []) + item }
+            items.enumerated()
+                .flatMap { index, item in (index > 0 ? [punctuation(", ")] : []) + item }
         }
         switch self {
         case .any: return [name("Any")]
@@ -69,12 +70,15 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         case .void: return [name("Void")]
         case .list(let element): return [punctuation("[")] + element.styled + [punctuation("]")]
         case .dictionary(let key, let value):
-            return [punctuation("[")] + key.styled + [punctuation(": ")] + value.styled + [punctuation("]")]
+            return [punctuation("[")] + key.styled + [punctuation(": ")] + value.styled + [
+                punctuation("]")
+            ]
         case .tuple(let elements):
             return [punctuation("(")]
                 + list(
                     elements.map { element in
-                        (element.label.map { [AttributedString($0, .variable), punctuation(": ")] } ?? [])
+                        (element.label.map { [AttributedString($0, .variable), punctuation(": ")] }
+                            ?? [])
                             + element.type.styled
                     }
                 ) + [punctuation(")")]
@@ -82,21 +86,29 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         case .functionType(let parameters, let result, let throwing, let effect):
             return [punctuation("(")] + list(parameters.map(\.styled)) + [punctuation(")")]
                 + (effect == .async ? [punctuation(" "), .init("async", .keyword)] : [])
-                + (throwing ? [punctuation(" "), .init("throws", .keyword)] : []) + [punctuation(" -> ")]
+                + (throwing ? [punctuation(" "), .init("throws", .keyword)] : []) + [
+                    punctuation(" -> ")
+                ]
                 + result.styled
         case .named(let text), .parameter(let text): return [name(text)]
         case .generic(let text, let arguments):
-            return [name(text), punctuation("<")] + list(arguments.map(\.styled)) + [punctuation(">")]
+            return [name(text), punctuation("<")] + list(arguments.map(\.styled)) + [
+                punctuation(">")
+            ]
         case .someSequence(let element):
-            return [.init("some", .keyword), punctuation(" "), name("Sequence"), punctuation("<")] + element.styled + [
-                punctuation(">")
-            ]
+            return [.init("some", .keyword), punctuation(" "), name("Sequence"), punctuation("<")]
+                + element.styled + [
+                    punctuation(">")
+                ]
         case .keyPath(let root, let value):
-            return [name("KeyPath"), punctuation("<")] + root.styled + [punctuation(", ")] + value.styled + [
-                punctuation(">")
-            ]
+            return [name("KeyPath"), punctuation("<")] + root.styled + [punctuation(", ")]
+                + value.styled + [
+                    punctuation(">")
+                ]
         case .optional(let wrapped):
-            if case .functionType = wrapped { return [punctuation("(")] + wrapped.styled + [punctuation(")?")] }
+            if case .functionType = wrapped {
+                return [punctuation("(")] + wrapped.styled + [punctuation(")?")]
+            }
             return wrapped.styled + [punctuation("?")]
         case .inOut(let wrapped): return [punctuation("inout " + wrapped.description)]
         case .metatype(let wrapped): return [name(wrapped.description), punctuation(".Type")]
@@ -110,16 +122,17 @@ extension TypeAnnotation {
     /// name: one table for the parser (`Int` is `.int`) and for finding the
     /// Swift type an annotation is (`.int` is `Int`). The generic ones are
     /// sugar: `[T]`, `T?`, `[K: V]`.
-    private static let spelled: [(name: String, make: @Sendable ([TypeAnnotation]) -> TypeAnnotation?)] = [
-        ("Int", { $0.isEmpty ? .int : nil }), ("Double", { $0.isEmpty ? .double : nil }),
-        ("String", { $0.isEmpty ? .string : nil }), ("Bool", { $0.isEmpty ? .bool : nil }),
-        ("Record", { $0.isEmpty ? .record : nil }),
-        ("Any", { $0.isEmpty ? .any : nil }), ("Value", { $0.isEmpty ? .any : nil }),
-        ("Void", { $0.isEmpty ? .void : nil }),
-        ("Array", { $0.count == 1 ? .list($0[0]) : nil }),
-        ("Optional", { $0.count == 1 ? .optional($0[0]) : nil }),
-        ("Dictionary", { $0.count == 2 ? .dictionary($0[0], $0[1]) : nil }),
-    ]
+    private static let spelled:
+        [(name: String, make: @Sendable ([TypeAnnotation]) -> TypeAnnotation?)] = [
+            ("Int", { $0.isEmpty ? .int : nil }), ("Double", { $0.isEmpty ? .double : nil }),
+            ("String", { $0.isEmpty ? .string : nil }), ("Bool", { $0.isEmpty ? .bool : nil }),
+            ("Record", { $0.isEmpty ? .record : nil }),
+            ("Any", { $0.isEmpty ? .any : nil }), ("Value", { $0.isEmpty ? .any : nil }),
+            ("Void", { $0.isEmpty ? .void : nil }),
+            ("Array", { $0.count == 1 ? .list($0[0]) : nil }),
+            ("Optional", { $0.count == 1 ? .optional($0[0]) : nil }),
+            ("Dictionary", { $0.count == 2 ? .dictionary($0[0], $0[1]) : nil }),
+        ]
 
     /// The annotation Swiit writes `name<arguments>` with, if it has one of
     /// its own: `Int`, `Array<Int>` as `[Int]`.

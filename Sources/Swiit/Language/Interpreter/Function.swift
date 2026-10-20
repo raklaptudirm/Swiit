@@ -29,7 +29,8 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     public let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
     let inoutNames: Set<String>
-    /// Its result is an optional of what it gives, flattened: an optional it gives back is not made one more
+    /// Its result is an optional of what it gives, flattened: an optional it gives back is not made
+    /// one more
     /// (`flatMap`'s).
     public let flattensResult: Bool
     /// `init?`: leaving it with `return nil` makes nothing.
@@ -100,7 +101,8 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     /// Whether a new declaration would replace this one rather than overload it.
     public func hasSameSignature(as other: Function) -> Bool {
         let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)"] }
-        return parameters.map(signature) == other.parameters.map(signature) && generics == other.generics
+        return parameters.map(signature) == other.parameters.map(signature)
+            && generics == other.generics
     }
 
     /// As Swift shows any function: by what it is, not its name.
@@ -114,7 +116,8 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     /// a closure's, or a function's that says what it returns. A function
     /// without `->` returns nothing.
     private(set) lazy var implicitReturn: Expr? = {
-        guard name == nil || returnType != nil, case .swiit(let body) = body, body.statements.count == 1,
+        guard name == nil || returnType != nil, case .swiit(let body) = body,
+            body.statements.count == 1,
             case .expression(let expr) = body.statements[0]
         else { return nil }
         return expr

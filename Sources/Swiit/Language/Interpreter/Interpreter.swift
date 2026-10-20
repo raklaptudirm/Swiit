@@ -32,7 +32,8 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
-    /// The module a program's types are in, shown before their names where Swift shows it (`main.Point`).
+    /// The module a program's types are in, shown before their names where Swift shows it
+    /// (`main.Point`).
     var moduleName = "main"
     var enumTypeParameters: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
@@ -83,7 +84,10 @@ extension Interpreter {
     func report(_ message: String) {
         let styled = host.error.traits().styled
         if message.hasPrefix("error: ") {
-            host.error.write("\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6) + "\n")
+            host.error.write(
+                "\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6)
+                    + "\n"
+            )
         } else {
             host.error.write("\(host.name):".styled(DisplayStyle.error, styled) + " \(message)\n")
         }

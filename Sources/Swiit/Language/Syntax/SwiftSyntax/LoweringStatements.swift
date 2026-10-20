@@ -27,7 +27,8 @@ extension Lowering {
             return .switchStatement(try switchStatement(node))
         }
         // `_ = f()`: the value, thrown away, as `let _ = f()` does.
-        if let node = expr.as(InfixOperatorExprSyntax.self), node.operator.is(AssignmentExprSyntax.self),
+        if let node = expr.as(InfixOperatorExprSyntax.self),
+            node.operator.is(AssignmentExprSyntax.self),
             node.leftOperand.is(DiscardAssignmentExprSyntax.self)
         {
             return .declare(name: "_", mutable: false, value: try expression(node.rightOperand))
@@ -39,8 +40,12 @@ extension Lowering {
     }
 
     private mutating func statementNode(_ stmt: StmtSyntax) throws -> Statement {
-        if let node = stmt.as(ExpressionStmtSyntax.self) { return try expressionStatement(node.expression) }
-        if let node = stmt.as(ThrowStmtSyntax.self) { return .throwStatement(try expression(node.expression)) }
+        if let node = stmt.as(ExpressionStmtSyntax.self) {
+            return try expressionStatement(node.expression)
+        }
+        if let node = stmt.as(ThrowStmtSyntax.self) {
+            return .throwStatement(try expression(node.expression))
+        }
         if let node = stmt.as(ReturnStmtSyntax.self) {
             guard leaving.function > 0 else {
                 throw SyntaxError("'return' outside a function (line \(line(of: node)))")
@@ -50,7 +55,9 @@ extension Lowering {
         if let node = stmt.as(BreakStmtSyntax.self) {
             if let label = node.label {
                 guard leaving.labels.contains(label.text) else {
-                    throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))")
+                    throw SyntaxError(
+                        "use of unresolved label '\(label.text)' (line \(line(of: node)))"
+                    )
                 }
                 return .breakStatement(label: label.text)
             }
@@ -62,11 +69,15 @@ extension Lowering {
         if let node = stmt.as(ContinueStmtSyntax.self) {
             if let label = node.label {
                 guard leaving.labels.contains(label.text) else {
-                    throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))")
+                    throw SyntaxError(
+                        "use of unresolved label '\(label.text)' (line \(line(of: node)))"
+                    )
                 }
                 return .continueStatement(label: label.text)
             }
-            guard leaving.loop > 0 else { throw SyntaxError("'continue' outside a loop (line \(line(of: node)))") }
+            guard leaving.loop > 0 else {
+                throw SyntaxError("'continue' outside a loop (line \(line(of: node)))")
+            }
             return .continueStatement()
         }
         if stmt.is(FallThroughStmtSyntax.self) {
@@ -118,7 +129,10 @@ extension Lowering {
         return try condition(element: element, isGuard: isGuard)
     }
 
-    mutating func condition(element: ConditionElementSyntax, isGuard: Bool = false) throws -> IfStatement.Condition {
+    mutating func condition(
+        element: ConditionElementSyntax,
+        isGuard: Bool = false
+    ) throws -> IfStatement.Condition {
         switch element.condition {
         case .expression(let expr):
             return .expression(try expression(expr))
@@ -162,7 +176,11 @@ extension Lowering {
             otherwise = Program(statements: [.ifStatement(try ifStatement(nested))])
         }
         // `if a, let b { … } else { … }` is `if a { if let b { … } else { … } } else { … }`.
-        var result = IfStatement(condition: conditions[conditions.count - 1], then: then, otherwise: otherwise)
+        var result = IfStatement(
+            condition: conditions[conditions.count - 1],
+            then: then,
+            otherwise: otherwise
+        )
         for condition in conditions.dropLast().reversed() {
             result = IfStatement(
                 condition: condition,
@@ -176,13 +194,22 @@ extension Lowering {
     /// `outer: for …`, `outer: while …`: a loop `break outer` and `continue outer` name.
     private mutating func labeled(_ node: LabeledStmtSyntax) throws -> Statement {
         let label = node.label.text
-        if let loop = node.statement.as(ForStmtSyntax.self) { return .forLoop(try forLoop(loop, label: label)) }
-        if let loop = node.statement.as(WhileStmtSyntax.self) { return try whileLoop(loop, label: label) }
-        if let loop = node.statement.as(RepeatStmtSyntax.self) { return try repeatLoop(loop, label: label) }
+        if let loop = node.statement.as(ForStmtSyntax.self) {
+            return .forLoop(try forLoop(loop, label: label))
+        }
+        if let loop = node.statement.as(WhileStmtSyntax.self) {
+            return try whileLoop(loop, label: label)
+        }
+        if let loop = node.statement.as(RepeatStmtSyntax.self) {
+            return try repeatLoop(loop, label: label)
+        }
         throw unsupported("a label on anything but a loop", node)
     }
 
-    private mutating func whileLoop(_ node: WhileStmtSyntax, label: String? = nil) throws -> Statement {
+    private mutating func whileLoop(
+        _ node: WhileStmtSyntax,
+        label: String? = nil
+    ) throws -> Statement {
         // What a condition binds is visible in the body only.
         locals.append([])
         defer { locals.removeLast() }
@@ -206,12 +233,20 @@ extension Lowering {
         // `while let x = next() { … }` is `while true { guard let x = next() else { break }; … }`.
         let first = body.lines.first ?? line(of: node)
         let leave = Program(statements: [.breakStatement()], lines: [first])
-        body.statements.insert(contentsOf: conditions.map { .guardStatement($0, otherwise: leave) }, at: 0)
-        if !body.lines.isEmpty { body.lines.insert(contentsOf: conditions.map { _ in first }, at: 0) }
+        body.statements.insert(
+            contentsOf: conditions.map { .guardStatement($0, otherwise: leave) },
+            at: 0
+        )
+        if !body.lines.isEmpty {
+            body.lines.insert(contentsOf: conditions.map { _ in first }, at: 0)
+        }
         return .whileLoop(WhileLoop(condition: .literal(.bool(true)), body: body, label: label))
     }
 
-    private mutating func repeatLoop(_ node: RepeatStmtSyntax, label: String? = nil) throws -> Statement {
+    private mutating func repeatLoop(
+        _ node: RepeatStmtSyntax,
+        label: String? = nil
+    ) throws -> Statement {
         leaving.loop += 1
         if let label { leaving.labels.append(label) }
         let body: Program
@@ -225,7 +260,12 @@ extension Lowering {
             throw error
         }
         return .whileLoop(
-            WhileLoop(condition: try expression(node.condition), body: body, isRepeat: true, label: label)
+            WhileLoop(
+                condition: try expression(node.condition),
+                body: body,
+                isRepeat: true,
+                label: label
+            )
         )
     }
 
@@ -238,13 +278,17 @@ extension Lowering {
         locals.append(Set(SwitchBinding.names(boundBy: pattern)))
         leaving.loop += 1
         if let label { leaving.labels.append(label) }
-        defer { locals.removeLast(); leaving.loop -= 1; if label != nil { leaving.labels.removeLast() } }
+        defer {
+            locals.removeLast(); leaving.loop -= 1; if label != nil { leaving.labels.removeLast() }
+        }
         var body = try block(node.body.statements, scoped: false)
         // `for x in xs where c { … }`: the body runs for the items `c` holds for.
         if let clause = node.whereClause {
             let condition = try expression(clause.condition)
             body = Program(
-                statements: [.ifStatement(IfStatement(condition: .expression(condition), then: body))],
+                statements: [
+                    .ifStatement(IfStatement(condition: .expression(condition), then: body))
+                ],
                 lines: [line(of: clause)]
             )
         }
@@ -252,7 +296,12 @@ extension Lowering {
         if node.caseKeyword != nil {
             body = Program(
                 statements: [
-                    .ifStatement(IfStatement(condition: .pattern(pattern, .variable(InternalName.item)), then: body))
+                    .ifStatement(
+                        IfStatement(
+                            condition: .pattern(pattern, .variable(InternalName.item)),
+                            then: body
+                        )
+                    )
                 ],
                 lines: [line(of: node)]
             )
@@ -279,12 +328,16 @@ extension Lowering {
         let body = try block(node.body.statements)
         var clauses: [SwitchCase] = []
         for clause in node.catchClauses {
-            guard clause.catchItems.count <= 1 else { throw unsupported("a 'catch' of several patterns", clause) }
+            guard clause.catchItems.count <= 1 else {
+                throw unsupported("a 'catch' of several patterns", clause)
+            }
             locals.append([])
             defer { locals.removeLast() }
             guard let item = clause.catchItems.first else {
                 bind("error")
-                clauses.append(SwitchCase(patterns: [], body: try block(clause.body.statements, scoped: false)))
+                clauses.append(
+                    SwitchCase(patterns: [], body: try block(clause.body.statements, scoped: false))
+                )
                 continue
             }
             guard let syntax = item.pattern else { throw unsupported("this 'catch'", clause) }
@@ -325,7 +378,10 @@ extension Lowering {
                     guard let clause = item.whereClause else { continue }
                     // A case holds one guard, the last pattern's.
                     guard position == label.caseItems.count - 1 else {
-                        throw unsupported("a 'where' on a case's pattern other than its last", clause)
+                        throw unsupported(
+                            "a 'where' on a case's pattern other than its last",
+                            clause
+                        )
                     }
                     guardExpr = clause.condition
                 }
@@ -334,7 +390,9 @@ extension Lowering {
             // Every pattern of a case binds the same names, for the body to use.
             let bound = patterns.map { Set(SwitchBinding.names(boundBy: $0)) }
             if let first = bound.first, !bound.allSatisfy({ $0 == first }) {
-                throw SyntaxError("each pattern in a case must bind the same names (line \(line(of: switchCase)))")
+                throw SyntaxError(
+                    "each pattern in a case must bind the same names (line \(line(of: switchCase)))"
+                )
             }
             guard !switchCase.statements.isEmpty else {
                 throw SyntaxError(
@@ -369,10 +427,14 @@ extension Lowering {
             return .binding(name: identifier.identifier.text, mutable: mutable)
         }
         if let binding = pattern.as(ValueBindingPatternSyntax.self) {
-            return try self.pattern(binding.pattern, mutable: binding.bindingSpecifier.tokenKind == .keyword(.var))
+            return try self.pattern(
+                binding.pattern,
+                mutable: binding.bindingSpecifier.tokenKind == .keyword(.var)
+            )
         }
         // `let e as Oops`, `_ as Int`.
-        if let node = pattern.as(ExpressionPatternSyntax.self), let cast = node.expression.as(AsExprSyntax.self),
+        if let node = pattern.as(ExpressionPatternSyntax.self),
+            let cast = node.expression.as(AsExprSyntax.self),
             cast.questionOrExclamationMark == nil
         {
             return .cast(try castOperand(cast.expression, mutable: mutable), try type(cast.type))
@@ -384,7 +446,10 @@ extension Lowering {
     }
 
     /// `.failed(code: let c)`, `Result.failed`, `.a`, or a value to compare with.
-    private mutating func expressionPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
+    private mutating func expressionPattern(
+        _ expr: ExprSyntax,
+        mutable: Bool? = nil
+    ) throws -> Pattern {
         // `let x?`: what isn't nil.
         if let node = expr.as(OptionalChainingExprSyntax.self) {
             return .some(try argumentPattern(node.expression, mutable: mutable))
@@ -393,7 +458,8 @@ extension Lowering {
         if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text == "..." {
             return .partialRange(lower: try expression(node.expression), upper: nil, closed: true)
         }
-        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "..." || node.operator.text == "..<"
+        if let node = expr.as(PrefixOperatorExprSyntax.self),
+            node.operator.text == "..." || node.operator.text == "..<"
         {
             return .partialRange(
                 lower: nil,
@@ -406,7 +472,9 @@ extension Lowering {
             guard tuple.elements.allSatisfy({ $0.label == nil }) else {
                 throw unsupported("a label in a tuple pattern", tuple)
             }
-            return .tuple(try tuple.elements.map { try argumentPattern($0.expression, mutable: mutable) })
+            return .tuple(
+                try tuple.elements.map { try argumentPattern($0.expression, mutable: mutable) }
+            )
         }
         if let call = expr.as(FunctionCallExprSyntax.self),
             let member = call.calledExpression.as(MemberAccessExprSyntax.self)
@@ -438,7 +506,9 @@ extension Lowering {
 
     /// What a cast pattern casts: `e` under `let`, `_`, or another pattern.
     private mutating func castOperand(_ expr: ExprSyntax, mutable: Bool?) throws -> Pattern {
-        if let binding = expr.as(PatternExprSyntax.self) { return try pattern(binding.pattern, mutable: mutable) }
+        if let binding = expr.as(PatternExprSyntax.self) {
+            return try pattern(binding.pattern, mutable: mutable)
+        }
         if expr.is(DiscardAssignmentExprSyntax.self) { return .wildcard }
         if let mutable, let reference = expr.as(DeclReferenceExprSyntax.self) {
             bind(reference.baseName.text)
@@ -448,8 +518,13 @@ extension Lowering {
     }
 
     /// An argument of a case pattern: under `let`, a name is a binding, as in `case let .c(m)`.
-    private mutating func argumentPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
-        if let binding = expr.as(PatternExprSyntax.self) { return try pattern(binding.pattern, mutable: mutable) }
+    private mutating func argumentPattern(
+        _ expr: ExprSyntax,
+        mutable: Bool? = nil
+    ) throws -> Pattern {
+        if let binding = expr.as(PatternExprSyntax.self) {
+            return try pattern(binding.pattern, mutable: mutable)
+        }
         if expr.is(DiscardAssignmentExprSyntax.self) { return .wildcard }
         if let mutable, let reference = expr.as(DeclReferenceExprSyntax.self) {
             bind(reference.baseName.text)
@@ -462,7 +537,8 @@ extension Lowering {
     private func isCaseReference(_ member: MemberAccessExprSyntax) -> Bool {
         guard let base = member.base else { return true }
         guard let reference = base.as(DeclReferenceExprSyntax.self) else { return false }
-        return declaredTypes.contains(reference.baseName.text) || bound[reference.baseName.text] == .type
+        return declaredTypes.contains(reference.baseName.text)
+            || bound[reference.baseName.text] == .type
     }
 
     mutating func bind(_ name: String) {
@@ -475,7 +551,8 @@ enum SwitchBinding {
     static func names(boundBy pattern: Pattern) -> [String] {
         switch pattern {
         case .binding(let name, _): [name]
-        case .enumCase(_, _, let arguments): (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
+        case .enumCase(_, _, let arguments):
+            (arguments ?? []).flatMap { names(boundBy: $0.pattern) }
         case .cast(let inner, _): names(boundBy: inner)
         case .tuple(let patterns): patterns.flatMap { names(boundBy: $0) }
         case .some(let inner): names(boundBy: inner)

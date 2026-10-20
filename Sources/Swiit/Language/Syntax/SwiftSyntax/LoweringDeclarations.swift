@@ -10,13 +10,25 @@ extension Lowering {
             bind(node.name.text)
             return [.function(try function(node))]
         }
-        if let node = decl.as(ProtocolDeclSyntax.self) { return [.protocolDecl(try protocolDeclaration(node))] }
+        if let node = decl.as(ProtocolDeclSyntax.self) {
+            return [.protocolDecl(try protocolDeclaration(node))]
+        }
         // `infix operator **`, `precedencegroup Power { … }`: kept, for later programs to fold by.
         if let node = decl.as(OperatorDeclSyntax.self) {
-            return [.operatorDeclaration(key: "operator \(node.name.text)", source: node.trimmedDescription)]
+            return [
+                .operatorDeclaration(
+                    key: "operator \(node.name.text)",
+                    source: node.trimmedDescription
+                )
+            ]
         }
         if let node = decl.as(PrecedenceGroupDeclSyntax.self) {
-            return [.operatorDeclaration(key: "precedencegroup \(node.name.text)", source: node.trimmedDescription)]
+            return [
+                .operatorDeclaration(
+                    key: "precedencegroup \(node.name.text)",
+                    source: node.trimmedDescription
+                )
+            ]
         }
         if let node = decl.as(StructDeclSyntax.self) {
             let lowered = try structure(node)
@@ -50,16 +62,21 @@ extension Lowering {
             )
             return takeNested() + [.classDecl(lowered)]
         }
-        // The prelude's `Sequence` extension declares its methods; any other type's is an ordinary extension, its
+        // The prelude's `Sequence` extension declares its methods; any other type's is an ordinary
+        // extension, its
         // bodies in Swiit.
-        if prelude, let node = decl.as(ExtensionDeclSyntax.self), node.extendedType.trimmedDescription == "Sequence" {
+        if prelude, let node = decl.as(ExtensionDeclSyntax.self),
+            node.extendedType.trimmedDescription == "Sequence"
+        {
             return [try sequenceExtension(node)]
         }
         if let node = decl.as(ExtensionDeclSyntax.self) { return try typeExtension(node) }
         if let node = decl.as(ImportDeclSyntax.self) { return try importDeclaration(node) }
         if let node = decl.as(IfConfigDeclSyntax.self) { return try conditional(node) }
         if let node = decl.as(TypeAliasDeclSyntax.self) {
-            guard node.genericParameterClause == nil else { throw unsupported("a generic typealias", node) }
+            guard node.genericParameterClause == nil else {
+                throw unsupported("a generic typealias", node)
+            }
             aliases[node.name.text] = try type(node.initializer.value)
             return []
         }
@@ -69,7 +86,8 @@ extension Lowering {
     /// `import Foundation`: what the interpreter already has, so nothing to do.
     /// Any other module isn't there to import yet.
     private func importDeclaration(_ node: ImportDeclSyntax) throws -> [Statement] {
-        guard node.importKindSpecifier == nil, let module = node.path.first, node.path.count == 1 else {
+        guard node.importKindSpecifier == nil, let module = node.path.first, node.path.count == 1
+        else {
             throw unsupported("this import", node)
         }
         guard Lowering.modules.contains(module.name.text) else {
@@ -87,14 +105,18 @@ extension Lowering {
     ]
     /// Types Swift's standard library spells two ways: the old name, and the type it is.
     static let swiftAliases = ["UnicodeScalar": "Unicode.Scalar"]
-    static let modules: Set<String> = ["Swift", "Foundation", "SystemPackage", "Swiit", "_StringProcessing"]
+    static let modules: Set<String> = [
+        "Swift", "Foundation", "SystemPackage", "Swiit", "_StringProcessing",
+    ]
 
     private mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.
         // Who may see it (`private var x`) matters to no one in a program that is one file.
         let access: Set<Keyword> = [.private, .fileprivate, .internal, .public, .open, .package]
         let modifiers = node.modifiers.filter { modifier in
-            if case .keyword(let keyword) = modifier.name.tokenKind { return !access.contains(keyword) }
+            if case .keyword(let keyword) = modifier.name.tokenKind {
+                return !access.contains(keyword)
+            }
             return true
         }
         let isAsync =
@@ -114,11 +136,14 @@ extension Lowering {
             // `let _ = f()`: the value, thrown away.
             // `let (a, b) = pair`: the pair held once, and each name from it.
             if let tuple = binding.pattern.as(TuplePatternSyntax.self) {
-                guard !isAsync, binding.accessorBlock == nil, let initializer = binding.initializer else {
+                guard !isAsync, binding.accessorBlock == nil, let initializer = binding.initializer
+                else {
                     throw unsupported("this variable", binding)
                 }
                 var value = try expression(initializer.value)
-                if let annotation = binding.typeAnnotation { value = .annotated(value, try type(annotation.type)) }
+                if let annotation = binding.typeAnnotation {
+                    value = .annotated(value, try type(annotation.type))
+                }
                 let pattern = try self.pattern(PatternSyntax(tuple), mutable: mutable)
                 destructurings += 1
                 let held = InternalName.tuple(destructurings)
@@ -135,7 +160,9 @@ extension Lowering {
                 throw unsupported("this variable", binding)
             }
             if binding.accessorBlock != nil {
-                guard !isAsync, !isWeak, name != "_", binding.typeAnnotation != nil || binding.initializer != nil else {
+                guard !isAsync, !isWeak, name != "_",
+                    binding.typeAnnotation != nil || binding.initializer != nil
+                else {
                     throw unsupported("this variable", binding)
                 }
                 statements += try computedVariable(
@@ -163,7 +190,13 @@ extension Lowering {
                                     Argument(
                                         value: .annotated(
                                             .literal(.nothing),
-                                            { if case .optional = written { written } else { .optional(written) } }()
+                                            {
+                                                if case .optional = written {
+                                                    written
+                                                } else {
+                                                    .optional(written)
+                                                }
+                                            }()
                                         )
                                     )
                                 ]
@@ -173,12 +206,20 @@ extension Lowering {
                 } else if case .optional = written {
                     if name != "_" { bind(name) }
                     statements.append(
-                        .declare(name: name, mutable: true, value: .annotated(.literal(.nothing), written))
+                        .declare(
+                            name: name,
+                            mutable: true,
+                            value: .annotated(.literal(.nothing), written)
+                        )
                     )
                 } else {
                     if name != "_" { bind(name) }
                     statements.append(
-                        .declare(name: name, mutable: true, value: .call(.variable(InternalName.uninitialized), []))
+                        .declare(
+                            name: name,
+                            mutable: true,
+                            value: .call(.variable(InternalName.uninitialized), [])
+                        )
                     )
                 }
                 continue
@@ -188,7 +229,10 @@ extension Lowering {
                 let operation = ClosureLiteral(
                     parameters: [],
                     returnType: try binding.typeAnnotation.map { try type($0.type) },
-                    body: Program(statements: [.expression(value)], lines: [line(of: initializer.value)]),
+                    body: Program(
+                        statements: [.expression(value)],
+                        lines: [line(of: initializer.value)]
+                    ),
                     names: NamesUsed(names: names(in: initializer.value))
                 )
                 value = .childTask(operation)
@@ -202,7 +246,8 @@ extension Lowering {
         return statements
     }
 
-    /// `var total: Int { get { … } set { … } }` outside a type: a getter function, and a setter if there is one,
+    /// `var total: Int { get { … } set { … } }` outside a type: a getter function, and a setter if
+    /// there is one,
     /// which a read and an assignment of the name call.
     private mutating func computedVariable(
         _ name: String,
@@ -223,15 +268,19 @@ extension Lowering {
                 }
                 switch accessor.accessorSpecifier.tokenKind {
                 case .keyword(.get): getter = body
-                case .keyword(.set): setter = body; newValue = accessor.parameters?.name.text ?? "newValue"
-                case .keyword(.willSet): willSet = body; willSetName = accessor.parameters?.name.text ?? "newValue"
-                case .keyword(.didSet): didSet = body; oldValue = accessor.parameters?.name.text ?? "oldValue"
+                case .keyword(.set):
+                    setter = body; newValue = accessor.parameters?.name.text ?? "newValue"
+                case .keyword(.willSet):
+                    willSet = body; willSetName = accessor.parameters?.name.text ?? "newValue"
+                case .keyword(.didSet):
+                    didSet = body; oldValue = accessor.parameters?.name.text ?? "oldValue"
                 default: throw unsupported("this accessor on a variable", accessor)
                 }
             }
         }
         facts.computedGlobals.insert(name)
-        // `var x: T? { didSet { … } }`: a variable of its own, set through a function that runs the observers.
+        // `var x: T? { didSet { … } }`: a variable of its own, set through a function that runs the
+        // observers.
         if getter == nil, willSet != nil || didSet != nil {
             let held = InternalName.stored(name)
             var statements: [Statement] = []
@@ -239,7 +288,8 @@ extension Lowering {
             if let initializer = binding.initializer {
                 start =
                     type == .any
-                    ? try expression(initializer.value) : .annotated(try expression(initializer.value), type)
+                    ? try expression(initializer.value)
+                    : .annotated(try expression(initializer.value), type)
             } else if case .optional = type {
                 start = .annotated(.literal(.nothing), type)
             } else {
@@ -257,7 +307,10 @@ extension Lowering {
                     )
                 )
             )
-            func lowered(_ body: CodeBlockItemListSyntax, parameters: [String]) throws -> [Statement] {
+            func lowered(
+                _ body: CodeBlockItemListSyntax,
+                parameters: [String]
+            ) throws -> [Statement] {
                 locals.append(Set(parameters))
                 let outer = leaving
                 leaving = Leaving(function: leaving.function + 1)
@@ -266,7 +319,9 @@ extension Lowering {
             }
             var body: [Statement] = []
             if let willSet { body += try lowered(willSet, parameters: [willSetName]).map { $0 } }
-            if didSet != nil { body.append(.declare(name: oldValue, mutable: false, value: .variable(held))) }
+            if didSet != nil {
+                body.append(.declare(name: oldValue, mutable: false, value: .variable(held)))
+            }
             body.append(
                 .assign(
                     Assignment(
@@ -291,7 +346,8 @@ extension Lowering {
                         returnType: nil,
                         body: Program(statements: body),
                         names: NamesUsed(
-                            names: (willSet.map { names(in: $0) } ?? []).union(didSet.map { names(in: $0) } ?? [])
+                            names: (willSet.map { names(in: $0) } ?? [])
+                                .union(didSet.map { names(in: $0) } ?? [])
                         )
                     )
                 )
@@ -357,18 +413,28 @@ extension Lowering {
         var seen: Set<String> = []
         for (index, parameter) in parameters.enumerated() {
             if parameter.name != "_" && !seen.insert(parameter.name).inserted {
-                throw SyntaxError("duplicate parameter '\(parameter.name)' (line \(line(of: node)))")
+                throw SyntaxError(
+                    "duplicate parameter '\(parameter.name)' (line \(line(of: node)))"
+                )
             }
-            if parameter.variadic && index + 1 < parameters.count && parameters[index + 1].label == nil {
-                throw SyntaxError("the parameter after a variadic needs a label (line \(line(of: node)))")
+            if parameter.variadic && index + 1 < parameters.count
+                && parameters[index + 1].label == nil
+            {
+                throw SyntaxError(
+                    "the parameter after a variadic needs a label (line \(line(of: node)))"
+                )
             }
             if parameter.variadic && parameter.defaultValue != nil {
-                throw SyntaxError("a variadic parameter can't have a default value (line \(line(of: node)))")
+                throw SyntaxError(
+                    "a variadic parameter can't have a default value (line \(line(of: node)))"
+                )
             }
         }
     }
 
-    private mutating func lowerParameters(_ clause: FunctionParameterClauseSyntax) throws -> [Parameter] {
+    private mutating func lowerParameters(
+        _ clause: FunctionParameterClauseSyntax
+    ) throws -> [Parameter] {
         try clause.parameters.map { parameter in
             var resultBuilder: String?
             // `inout Int`: a specifier before the type.
@@ -389,7 +455,9 @@ extension Lowering {
                     return false
                 } ?? false
             for attribute in parameter.attributes {
-                guard case .attribute(let attribute) = attribute else { throw unsupported("this attribute", parameter) }
+                guard case .attribute(let attribute) = attribute else {
+                    throw unsupported("this attribute", parameter)
+                }
                 switch attribute.attributeName.trimmedDescription {
                 case let name where facts.resultBuilders.contains(name):
                     resultBuilder = name
@@ -422,27 +490,36 @@ extension Lowering {
     }
 
     /// `<T, U: Comparable>` and `where T: Equatable`: each type parameter, and the protocols
-    /// it has to conform to. Anything else a `where` says (same-type requirements) is left unchecked.
+    /// it has to conform to. Anything else a `where` says (same-type requirements) is left
+    /// unchecked.
     func genericParameters(
         _ clause: GenericParameterClauseSyntax?,
         where whereClause: GenericWhereClauseSyntax? = nil
     ) -> [String: [String]] {
         var generics: [String: [String]] = [:]
         for parameter in clause?.parameters ?? [] {
-            generics[parameter.name.text, default: []] += parameter.inheritedType.map { [$0.trimmedDescription] } ?? []
+            generics[parameter.name.text, default: []] +=
+                parameter.inheritedType.map { [$0.trimmedDescription] } ?? []
         }
         for requirement in whereClause?.requirements ?? [] {
             guard case .conformanceRequirement(let conformance) = requirement.requirement,
-                let left = conformance.leftType.as(IdentifierTypeSyntax.self), generics[left.name.text] != nil
+                let left = conformance.leftType.as(IdentifierTypeSyntax.self),
+                generics[left.name.text] != nil
             else { continue }
             generics[left.name.text, default: []].append(conformance.rightType.trimmedDescription)
         }
         return generics
     }
 
-    mutating func function(_ node: FunctionDeclSyntax, isMember: Bool = false) throws -> FunctionDecl {
+    mutating func function(
+        _ node: FunctionDeclSyntax,
+        isMember: Bool = false
+    ) throws -> FunctionDecl {
         // The type parameters, which its signature and body name.
-        let generics = genericParameters(node.genericParameterClause, where: node.genericWhereClause)
+        let generics = genericParameters(
+            node.genericParameterClause,
+            where: node.genericWhereClause
+        )
         let outerParameters = typeParameters
         typeParameters.formUnion(generics.keys)
         defer { typeParameters = outerParameters }
@@ -489,7 +566,10 @@ extension Lowering {
         leaving = Leaving(function: leaving.function + 1)
         anonymous.append(false)
         functionNames.append(name + "(" + parameters.map { ($0.label ?? "_") + ":" }.joined() + ")")
-        defer { locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast(); functionNames.removeLast() }
+        defer {
+            locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast();
+            functionNames.removeLast()
+        }
         let program = try block(body.statements, scoped: false)
         return FunctionDecl(
             name: name,
@@ -521,9 +601,13 @@ extension Lowering {
     }
 
     private mutating func initializer(_ node: InitializerDeclSyntax) throws -> FunctionDecl {
-        guard node.optionalMark?.tokenKind != .exclamationMark else { throw unsupported("this initializer", node) }
+        guard node.optionalMark?.tokenKind != .exclamationMark else {
+            throw unsupported("this initializer", node)
+        }
         let outerParameters = typeParameters
-        typeParameters.formUnion(genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys)
+        typeParameters.formUnion(
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+        )
         defer { typeParameters = outerParameters }
         let parameters = try parameters(node.signature.parameterClause)
         guard let body = node.body else { throw unsupported("an initializer without a body", node) }
@@ -543,9 +627,15 @@ extension Lowering {
             names: NamesUsed(names: names(in: body))
         )
         declaration.isFailable = node.optionalMark != nil
-        declaration.isConvenience = node.modifiers.contains { $0.name.tokenKind == .keyword(.convenience) }
-        declaration.isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
-        declaration.isNonisolated = node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
+        declaration.isConvenience = node.modifiers.contains {
+            $0.name.tokenKind == .keyword(.convenience)
+        }
+        declaration.isOverride = node.modifiers.contains {
+            $0.name.tokenKind == .keyword(.override)
+        }
+        declaration.isNonisolated = node.modifiers.contains {
+            $0.name.tokenKind == .keyword(.nonisolated)
+        }
         return declaration
     }
 
@@ -584,7 +674,9 @@ extension Lowering {
         for member in block.members {
             if let variable = member.decl.as(VariableDeclSyntax.self) {
                 for binding in variable.bindings {
-                    guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { continue }
+                    guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else {
+                        continue
+                    }
                     if isStatic(variable.modifiers) {
                         statics.insert(identifier.identifier.text)
                     } else {
@@ -625,7 +717,13 @@ extension Lowering {
             } ?? []
         try checkProtocols(inherited)
         let qualified = typePrefix + written
-        var members = StructDecl(name: qualified, properties: [], methods: [], initializers: [], conformances: [])
+        var members = StructDecl(
+            name: qualified,
+            properties: [],
+            methods: [],
+            initializers: [],
+            conformances: []
+        )
         var declaration = ClassDecl(
             name: qualified,
             inherited: inherited,
@@ -648,7 +746,9 @@ extension Lowering {
         declaration.members = members
         // `deinit { … }`.
         for member in block.members {
-            guard let deinitializer = member.decl.as(DeinitializerDeclSyntax.self), let body = deinitializer.body else {
+            guard let deinitializer = member.decl.as(DeinitializerDeclSyntax.self),
+                let body = deinitializer.body
+            else {
                 continue
             }
             let outerState = (tryDepth, leaving)
@@ -672,7 +772,9 @@ extension Lowering {
     ) throws {
         // A `typealias` inside a type, which the members name.
         for member in block.members {
-            if let alias = member.decl.as(TypeAliasDeclSyntax.self), alias.genericParameterClause == nil {
+            if let alias = member.decl.as(TypeAliasDeclSyntax.self),
+                alias.genericParameterClause == nil
+            {
                 aliases[alias.name.text] = try type(alias.initializer.value)
             }
         }
@@ -716,9 +818,12 @@ extension Lowering {
 
     private mutating func structure(_ node: StructDeclSyntax) throws -> StructDecl {
         let outerParameters = typeParameters
-        typeParameters.formUnion(genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys)
+        typeParameters.formUnion(
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+        )
         defer { typeParameters = outerParameters }
-        let conformances = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        let conformances =
+            node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
         try checkProtocols(conformances)
         let qualified = typePrefix + node.name.text
         var declaration = StructDecl(
@@ -734,7 +839,12 @@ extension Lowering {
         let outer = enter(type: node.name.text, members: node.memberBlock)
         defer { members.removeLast(); leave(type: outer) }
 
-        try lowerMembers(of: node.memberBlock, owner: qualified, staticMembers: staticMembers, into: &declaration)
+        try lowerMembers(
+            of: node.memberBlock,
+            owner: qualified,
+            staticMembers: staticMembers,
+            into: &declaration
+        )
         return declaration
     }
 
@@ -745,7 +855,9 @@ extension Lowering {
         // `protocol P: class` limits it to classes, as AnyObject does.
         declaration.inherited =
             node.inheritanceClause?.inheritedTypes
-            .map { $0.type.trimmedDescription == "class" ? "AnyObject" : $0.type.trimmedDescription } ?? []
+            .map {
+                $0.type.trimmedDescription == "class" ? "AnyObject" : $0.type.trimmedDescription
+            } ?? []
         try checkProtocols(declaration.inherited)
         // The types the conforming type chooses are only known to it.
         let outerParameters = typeParameters
@@ -761,7 +873,10 @@ extension Lowering {
         defer { currentType = outerCurrent }
         for member in node.memberBlock.members {
             if let method = member.decl.as(FunctionDeclSyntax.self) {
-                let generics = genericParameters(method.genericParameterClause, where: method.genericWhereClause)
+                let generics = genericParameters(
+                    method.genericParameterClause,
+                    where: method.genericWhereClause
+                )
                 let methodParameters = typeParameters
                 typeParameters.formUnion(generics.keys)
                 defer { typeParameters = methodParameters }
@@ -771,8 +886,11 @@ extension Lowering {
                     parameters: try parameters(method.signature.parameterClause),
                     returnType: try method.signature.returnClause.map { try type($0.type) },
                     body: Program(statements: []),
-                    isMutating: method.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) },
-                    isThrowing: effects?.throwsClause?.throwsSpecifier.tokenKind == .keyword(.throws),
+                    isMutating: method.modifiers.contains {
+                        $0.name.tokenKind == .keyword(.mutating)
+                    },
+                    isThrowing: effects?.throwsClause?.throwsSpecifier.tokenKind
+                        == .keyword(.throws),
                     isAsync: effects?.asyncSpecifier != nil,
                     generics: generics
                 )
@@ -790,7 +908,9 @@ extension Lowering {
                     }
                     var settable = false
                     if case .accessors(let list)? = binding.accessorBlock?.accessors {
-                        settable = list.contains { $0.accessorSpecifier.tokenKind == .keyword(.set) }
+                        settable = list.contains {
+                            $0.accessorSpecifier.tokenKind == .keyword(.set)
+                        }
                     }
                     let property = ProtocolProperty(
                         name: identifier.identifier.text,
@@ -813,7 +933,9 @@ extension Lowering {
                         isThrowing: initializerNode.signature.effectSpecifiers?.throwsClause != nil
                     )
                 )
-            } else if !member.decl.is(AssociatedTypeDeclSyntax.self) && !member.decl.is(TypeAliasDeclSyntax.self) {
+            } else if !member.decl.is(AssociatedTypeDeclSyntax.self)
+                && !member.decl.is(TypeAliasDeclSyntax.self)
+            {
                 throw unsupported("'\(member.decl.kind)' in a protocol", member)
             }
         }
@@ -850,17 +972,25 @@ extension Lowering {
     }
 
     /// `subscript(i: Int) -> T { … }`. Its parameters take no label unless two names are written.
-    private mutating func subscriptDeclaration(_ node: SubscriptDeclSyntax) throws -> SubscriptDecl {
+    private mutating func subscriptDeclaration(_ node: SubscriptDeclSyntax) throws -> SubscriptDecl
+    {
         guard node.genericParameterClause == nil, node.genericWhereClause == nil else {
             throw unsupported("a generic subscript", node)
         }
         var parameters = try self.parameters(node.parameterClause)
-        for (index, written) in node.parameterClause.parameters.enumerated() where written.secondName == nil {
+        for (index, written) in node.parameterClause.parameters.enumerated()
+        where written.secondName == nil {
             parameters[index].label = nil
         }
         let returnType = try type(node.returnClause.type)
-        guard let accessors = node.accessorBlock else { throw unsupported("a subscript without a body", node) }
-        func body(_ items: CodeBlockItemListSyntax, _ extra: [String], _ lowering: inout Lowering) throws -> Program {
+        guard let accessors = node.accessorBlock else {
+            throw unsupported("a subscript without a body", node)
+        }
+        func body(
+            _ items: CodeBlockItemListSyntax,
+            _ extra: [String],
+            _ lowering: inout Lowering
+        ) throws -> Program {
             lowering.locals.append(Set(parameters.compactMap { $0.name } + extra))
             let outer = (lowering.tryDepth, lowering.leaving)
             lowering.tryDepth = 0
@@ -872,7 +1002,11 @@ extension Lowering {
             }
             return try lowering.block(items, scoped: false)
         }
-        var declaration = SubscriptDecl(parameters: parameters, returnType: returnType, getter: Program(statements: []))
+        var declaration = SubscriptDecl(
+            parameters: parameters,
+            returnType: returnType,
+            getter: Program(statements: [])
+        )
         switch accessors.accessors {
         case .getter(let items):
             declaration.getter = try body(items, [], &self)
@@ -896,7 +1030,9 @@ extension Lowering {
                     throw unsupported("this accessor", accessor)
                 }
             }
-            guard sawGetter else { throw SyntaxError("a subscript needs a 'get' (line \(line(of: node)))") }
+            guard sawGetter else {
+                throw SyntaxError("a subscript needs a 'get' (line \(line(of: node)))")
+            }
         }
         return declaration
     }
@@ -904,7 +1040,8 @@ extension Lowering {
     /// What a type can say it conforms to: the protocols Swiit has, and those declared.
     func checkProtocols(_ names: [String]) throws {
         for name in names
-        where !Lowering.protocols.contains(name) && !declaredTypes.contains(nestedNames[name] ?? name)
+        where !Lowering.protocols.contains(name)
+            && !declaredTypes.contains(nestedNames[name] ?? name)
             && bound[name] != .type
         {
             throw SyntaxError(
@@ -917,33 +1054,47 @@ extension Lowering {
     /// for); the second are markers Swift's own code writes, with nothing to
     /// check or do yet.
     static let protocols: Set = [
-        "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "Error",
-        "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject", "CustomDebugStringConvertible",
+        "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence",
+        "Error",
+        "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject",
+        "CustomDebugStringConvertible",
         "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection",
         "RangeReplaceableCollection",
-        "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger",
-        "FloatingPoint", "BinaryFloatingPoint", "IteratorProtocol", "LosslessStringConvertible", "Identifiable",
+        "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger",
+        "UnsignedInteger",
+        "FloatingPoint", "BinaryFloatingPoint", "IteratorProtocol", "LosslessStringConvertible",
+        "Identifiable",
         "ExpressibleByArrayLiteral", "ExpressibleByStringLiteral", "ExpressibleByIntegerLiteral",
     ]
 
     func isStatic(_ modifiers: DeclModifierListSyntax) -> Bool {
-        modifiers.contains { $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class) }
+        modifiers.contains {
+            $0.name.tokenKind == .keyword(.static) || $0.name.tokenKind == .keyword(.class)
+        }
     }
 
     private mutating func properties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
         var properties = try storedAndComputedProperties(node)
         for index in properties.indices {
-            properties[index].isLazy = node.modifiers.contains { $0.name.tokenKind == .keyword(.lazy) }
+            properties[index].isLazy = node.modifiers.contains {
+                $0.name.tokenKind == .keyword(.lazy)
+            }
             properties[index].isWeak = node.modifiers.contains {
                 $0.name.tokenKind == .keyword(.weak) || $0.name.tokenKind == .keyword(.unowned)
             }
-            properties[index].isOverride = node.modifiers.contains { $0.name.tokenKind == .keyword(.override) }
-            properties[index].isNonisolated = node.modifiers.contains { $0.name.tokenKind == .keyword(.nonisolated) }
+            properties[index].isOverride = node.modifiers.contains {
+                $0.name.tokenKind == .keyword(.override)
+            }
+            properties[index].isNonisolated = node.modifiers.contains {
+                $0.name.tokenKind == .keyword(.nonisolated)
+            }
         }
         return properties
     }
 
-    private mutating func storedAndComputedProperties(_ node: VariableDeclSyntax) throws -> [PropertyDecl] {
+    private mutating func storedAndComputedProperties(
+        _ node: VariableDeclSyntax
+    ) throws -> [PropertyDecl] {
         var properties: [PropertyDecl] = []
         let mutable = node.bindingSpecifier.tokenKind == .keyword(.var)
         // An accessor is a function: `return` leaves it.
@@ -956,7 +1107,11 @@ extension Lowering {
             }
             let type = try binding.typeAnnotation.map { try self.type($0.type) }
             if let accessors = binding.accessorBlock {
-                var property = PropertyDecl(name: identifier.identifier.text, mutable: mutable, type: type)
+                var property = PropertyDecl(
+                    name: identifier.identifier.text,
+                    mutable: mutable,
+                    type: type
+                )
                 switch accessors.accessors {
                 case .getter(let body):
                     property.getter = try block(body, scoped: true)
@@ -993,11 +1148,15 @@ extension Lowering {
                 if property.getter == nil {
                     // Observers go with a stored property, which has a value of its own.
                     guard property.setter == nil else {
-                        throw SyntaxError("a property with 'set' needs a 'get' (line \(line(of: binding)))")
+                        throw SyntaxError(
+                            "a property with 'set' needs a 'get' (line \(line(of: binding)))"
+                        )
                     }
                     property.defaultValue = try binding.initializer.map { try expression($0.value) }
                 } else if property.willSet != nil || property.didSet != nil {
-                    throw SyntaxError("a computed property can't have willSet or didSet (line \(line(of: binding)))")
+                    throw SyntaxError(
+                        "a computed property can't have willSet or didSet (line \(line(of: binding)))"
+                    )
                 }
                 properties.append(property)
             } else {
@@ -1005,7 +1164,12 @@ extension Lowering {
                 // `var x: Int?` starts as nil.
                 if value == nil, mutable, case .optional? = type { value = .literal(.nothing) }
                 properties.append(
-                    PropertyDecl(name: identifier.identifier.text, mutable: mutable, type: type, defaultValue: value)
+                    PropertyDecl(
+                        name: identifier.identifier.text,
+                        mutable: mutable,
+                        type: type,
+                        defaultValue: value
+                    )
                 )
             }
         }
@@ -1016,7 +1180,9 @@ extension Lowering {
 
     private mutating func enumeration(_ node: EnumDeclSyntax) throws -> EnumDecl {
         let outerParameters = typeParameters
-        typeParameters.formUnion(genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys)
+        typeParameters.formUnion(
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+        )
         defer { typeParameters = outerParameters }
         var rawType: TypeAnnotation?
         var conformances: [String] = []
@@ -1033,7 +1199,12 @@ extension Lowering {
         try checkProtocols(conformances)
         var cases: [EnumCaseDecl] = []
         let qualified = typePrefix + node.name.text
-        var declaration = EnumDecl(name: qualified, rawType: rawType, cases: [], conformances: conformances)
+        var declaration = EnumDecl(
+            name: qualified,
+            rawType: rawType,
+            cases: [],
+            conformances: conformances
+        )
         declaration.typeParameters = node.genericParameterClause?.parameters.map(\.name.text) ?? []
         var (instanceMembers, staticMembers) = memberNames(of: node.memberBlock)
         if rawType != nil { instanceMembers.insert("rawValue") }
@@ -1046,10 +1217,15 @@ extension Lowering {
                     let associated: [AssociatedValue] =
                         try element.parameterClause?.parameters
                         .map { parameter in
-                            AssociatedValue(label: parameter.firstName?.text, type: try type(parameter.type))
+                            AssociatedValue(
+                                label: parameter.firstName?.text,
+                                type: try type(parameter.type)
+                            )
                         } ?? []
                     let raw = try element.rawValue.map { try expression($0.value) }
-                    cases.append(EnumCaseDecl(name: element.name.text, rawValue: raw, associated: associated))
+                    cases.append(
+                        EnumCaseDecl(name: element.name.text, rawValue: raw, associated: associated)
+                    )
                 }
             } else if let variable = member.decl.as(VariableDeclSyntax.self) {
                 let isStaticMember = isStatic(variable.modifiers)
@@ -1107,14 +1283,17 @@ extension Lowering {
         var parameters: [String: String] = [:]
         for line in lines {
             if line.hasPrefix("- Parameter "), let colon = line.firstIndex(of: ":") {
-                let name = line[line.index(line.startIndex, offsetBy: 12)..<colon].trimmingCharacters(in: .whitespaces)
-                parameters[name] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+                let name = line[line.index(line.startIndex, offsetBy: 12)..<colon]
+                    .trimmingCharacters(in: .whitespaces)
+                parameters[name] = line[line.index(after: colon)...]
+                    .trimmingCharacters(in: .whitespaces)
             } else {
                 summary.append(line)
             }
         }
         return Documentation(
-            summary: summary.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines),
+            summary: summary.joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines),
             parameters: parameters
         )
     }
@@ -1125,17 +1304,21 @@ extension Lowering {
         if let identifier = node.as(IdentifierTypeSyntax.self) {
             let name = identifier.name.text
             if typeParameters.contains(name) { return .parameter(name) }
-            if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil, bound[name] == nil,
+            if Lowering.fixedWidthIntegers.contains(name), identifier.genericArgumentClause == nil,
+                bound[name] == nil,
                 !declaredTypes.contains(name)
             {
                 return .int
             }
-            if let target = Lowering.swiftAliases[name], bound[name] == nil, !declaredTypes.contains(name) {
+            if let target = Lowering.swiftAliases[name], bound[name] == nil,
+                !declaredTypes.contains(name)
+            {
                 return .named(target)
             }
             let isGenericEnum =
                 facts.genericEnums.contains(nestedNames[name] ?? name)
-                || name == "Result" && declaredTypes.contains("Result") == false && bound["Result"] == .type
+                || name == "Result" && declaredTypes.contains("Result") == false
+                    && bound["Result"] == .type
             if let clause = identifier.genericArgumentClause, isGenericEnum {
                 let arguments = try clause.arguments.map { argument -> TypeAnnotation in
                     guard case .type(let written) = argument.argument else {
@@ -1147,7 +1330,8 @@ extension Lowering {
             }
             if identifier.genericArgumentClause != nil, !facts.protocols.contains(name),
                 declaredTypes.contains(nestedNames[name] ?? name)
-                    || bound[name] == .type && TypeAnnotation.spelled(name) == nil && Bridge.types[name] == nil
+                    || bound[name] == .type && TypeAnnotation.spelled(name) == nil
+                        && Bridge.types[name] == nil
             {
                 // A generic type of the program's own: its arguments only say what it holds.
                 return .named(nestedNames[name] ?? name)
@@ -1159,18 +1343,26 @@ extension Lowering {
                     }
                     return try type(written)
                 }
-                if name == "KeyPath", arguments.count == 2 { return .keyPath(arguments[0], arguments[1]) }
+                if name == "KeyPath", arguments.count == 2 {
+                    return .keyPath(arguments[0], arguments[1])
+                }
                 return TypeAnnotation.spelled(name, arguments) ?? .generic(name, arguments)
             }
             if let alias = aliases[name] { return alias }
             if name == "Self", let current = currentType { return .named(current) }
-            if name == "AnyObject", bound[name] == nil, !declaredTypes.contains(name) { return .any }
+            if name == "AnyObject", bound[name] == nil, !declaredTypes.contains(name) {
+                return .any
+            }
             if typeParameters.contains(name) { return .parameter(name) }
             if let nested = nestedNames[name] { return .named(nested) }
             if let spelled = TypeAnnotation.spelled(name) { return spelled }
             if name == "Void" { return .void }
             // `any Collection`, `any Numeric`: Swift's protocols as types hold any value.
-            if Lowering.protocols.contains(name), bound[name] != .type, !declaredTypes.contains(name) { return .any }
+            if Lowering.protocols.contains(name), bound[name] != .type,
+                !declaredTypes.contains(name)
+            {
+                return .any
+            }
             guard declaredTypes.contains(name) || bound[name] == .type else {
                 throw SyntaxError("unknown type '\(name)'")
             }
@@ -1191,13 +1383,17 @@ extension Lowering {
         if let dictionary = node.as(DictionaryTypeSyntax.self) {
             return .dictionary(try type(dictionary.key), try type(dictionary.value))
         }
-        if let optional = node.as(OptionalTypeSyntax.self) { return .optional(try type(optional.wrappedType)) }
+        if let optional = node.as(OptionalTypeSyntax.self) {
+            return .optional(try type(optional.wrappedType))
+        }
         // `Foo!`: an optional that is taken to hold a value.
         if let optional = node.as(ImplicitlyUnwrappedOptionalTypeSyntax.self) {
             return .optional(try type(optional.wrappedType))
         }
         // `T.Type`, `Any.Type`: the type itself as a value.
-        if let metatype = node.as(MetatypeTypeSyntax.self) { return .metatype(try type(metatype.baseType)) }
+        if let metatype = node.as(MetatypeTypeSyntax.self) {
+            return .metatype(try type(metatype.baseType))
+        }
         if let tuple = node.as(TupleTypeSyntax.self) {
             if tuple.elements.isEmpty { return .void }
             if tuple.elements.count == 1, let only = tuple.elements.first, only.firstName == nil {
@@ -1230,21 +1426,34 @@ extension Lowering {
                 async: effect
             )
         }
-        if let attributed = node.as(AttributedTypeSyntax.self) { return try type(attributed.baseType) }
-        // `any Shape`, `some Shape`: the protocol's type; `A & B`, the first, which the others add to.
-        if let existential = node.as(SomeOrAnyTypeSyntax.self) { return try type(existential.constraint) }
-        if let composition = node.as(CompositionTypeSyntax.self), let first = composition.elements.first {
+        if let attributed = node.as(AttributedTypeSyntax.self) {
+            return try type(attributed.baseType)
+        }
+        // `any Shape`, `some Shape`: the protocol's type; `A & B`, the first, which the others add
+        // to.
+        if let existential = node.as(SomeOrAnyTypeSyntax.self) {
+            return try type(existential.constraint)
+        }
+        if let composition = node.as(CompositionTypeSyntax.self),
+            let first = composition.elements.first
+        {
             let parts = try composition.elements.map { try type($0.type) }
-            let names = parts.compactMap { part -> String? in if case .named(let name) = part { name } else { nil } }
+            let names = parts.compactMap { part -> String? in
+                if case .named(let name) = part { name } else { nil }
+            }
             // Protocols together: `A & B`. Anything else stands for the first.
-            if names.count == parts.count, names.count > 1 { return .named(names.joined(separator: " & ")) }
+            if names.count == parts.count, names.count > 1 {
+                return .named(names.joined(separator: " & "))
+            }
             return try type(first.type)
         }
         throw unsupported("this type", node)
     }
 
     private func dottedName(_ node: TypeSyntax) -> String? {
-        if let identifier = node.as(IdentifierTypeSyntax.self), identifier.genericArgumentClause == nil {
+        if let identifier = node.as(IdentifierTypeSyntax.self),
+            identifier.genericArgumentClause == nil
+        {
             return identifier.name.text
         }
         if let member = node.as(MemberTypeSyntax.self), member.genericArgumentClause == nil,

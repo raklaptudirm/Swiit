@@ -31,7 +31,10 @@ final class TaskGroupBox: @unchecked Sendable {  // safe: every access holds its
         condition.unlock()
         let interpreter = interpreter
         do {
-            let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) {
+            let handle = try interpreter.startTask(
+                host: interpreter.host.makeTaskState(),
+                structured: false
+            ) {
                 [self] in
                 let result = Result { try interpreter.call(operation, with: []) }
                 condition.lock()
@@ -143,14 +146,23 @@ extension Bridge {
                     try group(arguments["self"]).waitForAll()
                     return .nothing
                 },
-                member(.method, "cancelAll", returns: .void, summary: "Asks every child to stop.") { _, arguments in
+                member(.method, "cancelAll", returns: .void, summary: "Asks every child to stop.") {
+                    _,
+                    arguments in
                     try group(arguments["self"]).cancelAll()
                     return .nothing
                 },
-                member(.property, "isEmpty", returns: .bool, summary: "Whether no child is left.") { _, arguments in
+                member(.property, "isEmpty", returns: .bool, summary: "Whether no child is left.") {
+                    _,
+                    arguments in
                     .bool(try group(arguments["self"]).isEmpty)
                 },
-                member(.property, "isCancelled", returns: .bool, summary: "Whether the group was asked to stop.") {
+                member(
+                    .property,
+                    "isCancelled",
+                    returns: .bool,
+                    summary: "Whether the group was asked to stop."
+                ) {
                     _,
                     arguments in
                     .bool(try group(arguments["self"]).isCancelled)
@@ -197,7 +209,8 @@ extension Bridge {
                 }
             },
             documentation: Documentation(
-                summary: "Runs the body with a group of child tasks, waiting for them when it ends.",
+                summary:
+                    "Runs the body with a group of child tasks, waiting for them when it ends.",
                 parameters: [:]
             ),
             isThrowing: isThrowing,

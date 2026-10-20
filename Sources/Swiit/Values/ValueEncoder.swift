@@ -31,7 +31,8 @@ extension Value {
         case let date as Date: return .date(date)
         case let convertible as any ValueConvertible: return convertible.value
         case let url as URL: return .string(url.isFileURL ? url.path : url.absoluteString)
-        case let integer as any BinaryInteger: return Int(exactly: integer).map(Value.int) ?? .double(Double(integer))
+        case let integer as any BinaryInteger:
+            return Int(exactly: integer).map(Value.int) ?? .double(Double(integer))
         case let float as any BinaryFloatingPoint: return .double(Double(float))
         default: break
         }
@@ -53,7 +54,10 @@ extension Value {
             }
             return .record(record)
         case .struct, .class, .tuple:
-            var record = Record(typeName: mirror.displayStyle == .tuple ? nil : String(describing: type(of: subject)))
+            var record = Record(
+                typeName: mirror.displayStyle == .tuple
+                    ? nil : String(describing: type(of: subject))
+            )
             for (index, child) in mirror.children.enumerated() {
                 // Unlabeled tuple elements come through as ".0", ".1", ….
                 let label = child.label.map { $0.hasPrefix(".") ? String($0.dropFirst()) : $0 }
@@ -85,19 +89,27 @@ private final class Slot {
         return value
     }
 
-    static func encode<T: Encodable>(_ value: T, into slot: Slot, codingPath: [any CodingKey]) throws {
+    static func encode<T: Encodable>(
+        _ value: T,
+        into slot: Slot,
+        codingPath: [any CodingKey]
+    ) throws {
         switch value {
         case let date as Date: slot.value = .date(date)
         case let convertible as any ValueConvertible: slot.value = convertible.value
         case let url as URL: slot.value = .string(url.isFileURL ? url.path : url.absoluteString)
-        case let decimal as Decimal: slot.value = .double(NSDecimalNumber(decimal: decimal).doubleValue)
+        case let decimal as Decimal:
+            slot.value = .double(NSDecimalNumber(decimal: decimal).doubleValue)
         default:
             let typeName = String(describing: T.self)
-            try value.encode(to: SlotEncoder(slot: slot, codingPath: codingPath, typeName: typeName))
+            try value.encode(
+                to: SlotEncoder(slot: slot, codingPath: codingPath, typeName: typeName)
+            )
         }
     }
 
-    static func integer<T: BinaryInteger>(_ value: T, _ codingPath: [any CodingKey]) throws -> Value {
+    static func integer<T: BinaryInteger>(_ value: T, _ codingPath: [any CodingKey]) throws -> Value
+    {
         guard let int = Int(exactly: value) else {
             throw EncodingError.invalidValue(
                 value,
@@ -157,7 +169,9 @@ private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     mutating func encode(_ value: Bool, forKey key: Key) throws { set(.bool(value), key) }
     mutating func encode(_ value: String, forKey key: Key) throws { set(.string(value), key) }
     mutating func encode(_ value: Double, forKey key: Key) throws { set(.double(value), key) }
-    mutating func encode(_ value: Float, forKey key: Key) throws { set(.double(Double(value)), key) }
+    mutating func encode(_ value: Float, forKey key: Key) throws {
+        set(.double(Double(value)), key)
+    }
     mutating func encode(_ value: Int, forKey key: Key) throws { set(.int(value), key) }
     mutating func encode(_ value: Int8, forKey key: Key) throws { set(.int(Int(value)), key) }
     mutating func encode(_ value: Int16, forKey key: Key) throws { set(.int(Int(value)), key) }
@@ -174,20 +188,32 @@ private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     }
 
     mutating func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
-        try Slot.encode(value, into: record.slot(for: key.stringValue), codingPath: codingPath + [key])
+        try Slot.encode(
+            value,
+            into: record.slot(for: key.stringValue),
+            codingPath: codingPath + [key]
+        )
     }
 
     mutating func nestedContainer<NestedKey: CodingKey>(
         keyedBy keyType: NestedKey.Type,
         forKey key: Key
     ) -> KeyedEncodingContainer<NestedKey> {
-        SlotEncoder(slot: record.slot(for: key.stringValue), codingPath: codingPath + [key], typeName: nil)
-            .container(keyedBy: keyType)
+        SlotEncoder(
+            slot: record.slot(for: key.stringValue),
+            codingPath: codingPath + [key],
+            typeName: nil
+        )
+        .container(keyedBy: keyType)
     }
 
     mutating func nestedUnkeyedContainer(forKey key: Key) -> any UnkeyedEncodingContainer {
-        SlotEncoder(slot: record.slot(for: key.stringValue), codingPath: codingPath + [key], typeName: nil)
-            .unkeyedContainer()
+        SlotEncoder(
+            slot: record.slot(for: key.stringValue),
+            codingPath: codingPath + [key],
+            typeName: nil
+        )
+        .unkeyedContainer()
     }
 
     mutating func superEncoder() -> any Encoder {
@@ -195,7 +221,11 @@ private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     }
 
     mutating func superEncoder(forKey key: Key) -> any Encoder {
-        SlotEncoder(slot: record.slot(for: key.stringValue), codingPath: codingPath + [key], typeName: nil)
+        SlotEncoder(
+            slot: record.slot(for: key.stringValue),
+            codingPath: codingPath + [key],
+            typeName: nil
+        )
     }
 }
 
@@ -228,11 +258,15 @@ private struct UnkeyedContainer: UnkeyedEncodingContainer {
     mutating func encode(_ value: Int16) throws { next().value = .int(Int(value)) }
     mutating func encode(_ value: Int32) throws { next().value = .int(Int(value)) }
     mutating func encode(_ value: Int64) throws { next().value = .int(Int(value)) }
-    mutating func encode(_ value: UInt) throws { next().value = try Slot.integer(value, codingPath) }
+    mutating func encode(_ value: UInt) throws {
+        next().value = try Slot.integer(value, codingPath)
+    }
     mutating func encode(_ value: UInt8) throws { next().value = .int(Int(value)) }
     mutating func encode(_ value: UInt16) throws { next().value = .int(Int(value)) }
     mutating func encode(_ value: UInt32) throws { next().value = .int(Int(value)) }
-    mutating func encode(_ value: UInt64) throws { next().value = try Slot.integer(value, codingPath) }
+    mutating func encode(_ value: UInt64) throws {
+        next().value = try Slot.integer(value, codingPath)
+    }
 
     mutating func encode<T: Encodable>(_ value: T) throws {
         try Slot.encode(value, into: next(), codingPath: codingPath + [IndexKey(count)])
@@ -271,7 +305,9 @@ private struct SingleContainer: SingleValueEncodingContainer {
     mutating func encode(_ value: UInt8) throws { slot.value = .int(Int(value)) }
     mutating func encode(_ value: UInt16) throws { slot.value = .int(Int(value)) }
     mutating func encode(_ value: UInt32) throws { slot.value = .int(Int(value)) }
-    mutating func encode(_ value: UInt64) throws { slot.value = try Slot.integer(value, codingPath) }
+    mutating func encode(_ value: UInt64) throws {
+        slot.value = try Slot.integer(value, codingPath)
+    }
 
     mutating func encode<T: Encodable>(_ value: T) throws {
         try Slot.encode(value, into: slot, codingPath: codingPath)

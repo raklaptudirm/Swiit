@@ -24,7 +24,11 @@ extension Bridge {
         }
         var result = arguments["initialResult"] ?? .nothing
         for item in items {
-            result = try interpreter.callChangingFirst(arguments["updateAccumulatingResult"]!, result, item)
+            result = try interpreter.callChangingFirst(
+                arguments["updateAccumulatingResult"]!,
+                result,
+                item
+            )
         }
         return result
     }
@@ -41,7 +45,9 @@ extension Bridge {
     private static let indexType = TypeAnnotation.named("String.Index")
 
     private static func text(_ arguments: [String: Value]) throws -> String {
-        guard case .string(let text)? = arguments["self"] else { throw RuntimeError("expected a String") }
+        guard case .string(let text)? = arguments["self"] else {
+            throw RuntimeError("expected a String")
+        }
         return text
     }
 
@@ -49,7 +55,9 @@ extension Bridge {
         try SwiftValue.unbox(String.Index.self, value ?? .nothing)
     }
 
-    private static func box(_ index: String.Index) -> Value { SwiftValue.make(index, as: "String.Index") }
+    private static func box(_ index: String.Index) -> Value {
+        SwiftValue.make(index, as: "String.Index")
+    }
 
     /// A position inside the text (or at its end), which a subscript or `index(…)` needs.
     private static func checked(
@@ -57,19 +65,30 @@ extension Bridge {
         in text: String,
         allowingEnd: Bool = false
     ) throws -> String.Index {
-        guard index >= text.startIndex, allowingEnd ? index <= text.endIndex : index < text.endIndex else {
+        guard index >= text.startIndex, allowingEnd ? index <= text.endIndex : index < text.endIndex
+        else {
             throw RuntimeError("String index is out of bounds")
         }
         return index
     }
 
     nonisolated(unsafe) private static let stringIndexMembers: [BridgedMember] = [  // safe: set once, before anything reads it
-        member(.property, "startIndex", returns: indexType, summary: "The position of the first character.") {
+        member(
+            .property,
+            "startIndex",
+            returns: indexType,
+            summary: "The position of the first character."
+        ) {
             _,
             arguments in
             box(try text(arguments).startIndex)
         },
-        member(.property, "endIndex", returns: indexType, summary: "The position after the last character.") {
+        member(
+            .property,
+            "endIndex",
+            returns: indexType,
+            summary: "The position after the last character."
+        ) {
             _,
             arguments in
             box(try text(arguments).endIndex)
@@ -82,7 +101,9 @@ extension Bridge {
             summary: "The position after the given one."
         ) { _, arguments in
             let text = try text(arguments)
-            return box(text.index(after: try checked(try stringIndexValue(arguments["i"]), in: text)))
+            return box(
+                text.index(after: try checked(try stringIndexValue(arguments["i"]), in: text))
+            )
         },
         member(
             .method,
@@ -92,22 +113,33 @@ extension Bridge {
             summary: "The position before the given one."
         ) { _, arguments in
             let text = try text(arguments)
-            let index = try checked(try stringIndexValue(arguments["i"]), in: text, allowingEnd: true)
-            guard index > text.startIndex else { throw RuntimeError("String index is out of bounds") }
+            let index = try checked(
+                try stringIndexValue(arguments["i"]),
+                in: text,
+                allowingEnd: true
+            )
+            guard index > text.startIndex else {
+                throw RuntimeError("String index is out of bounds")
+            }
             return box(text.index(before: index))
         },
         member(
             .method,
             "index",
             parameters: [
-                Parameter(label: nil, name: "i", type: indexType), Parameter(label: "offsetBy", name: "n", type: .int),
+                Parameter(label: nil, name: "i", type: indexType),
+                Parameter(label: "offsetBy", name: "n", type: .int),
             ],
             returns: indexType,
             summary: "The position a number of characters from the given one."
         ) { _, arguments in
             let text = try text(arguments)
             let offset = try Int(arguments["n"]!)
-            let start = try checked(try stringIndexValue(arguments["i"]), in: text, allowingEnd: true)
+            let start = try checked(
+                try stringIndexValue(arguments["i"]),
+                in: text,
+                allowingEnd: true
+            )
             guard
                 let moved = text.index(
                     start,
@@ -130,8 +162,16 @@ extension Bridge {
             summary: "The number of characters between two positions."
         ) { _, arguments in
             let text = try text(arguments)
-            let from = try checked(try stringIndexValue(arguments["start"]), in: text, allowingEnd: true)
-            let to = try checked(try stringIndexValue(arguments["end"]), in: text, allowingEnd: true)
+            let from = try checked(
+                try stringIndexValue(arguments["start"]),
+                in: text,
+                allowingEnd: true
+            )
+            let to = try checked(
+                try stringIndexValue(arguments["end"]),
+                in: text,
+                allowingEnd: true
+            )
             return .int(text.distance(from: from, to: to))
         },
         member(
@@ -143,7 +183,13 @@ extension Bridge {
         ) { _, arguments in
             let text = try text(arguments)
             return SwiftValue.make(
-                text[try checked(try stringIndexValue(arguments["start"]), in: text, allowingEnd: true)...],
+                text[
+                    try checked(
+                        try stringIndexValue(arguments["start"]),
+                        in: text,
+                        allowingEnd: true
+                    )...
+                ],
                 as: "Substring"
             )
         },
@@ -156,7 +202,13 @@ extension Bridge {
         ) { _, arguments in
             let text = try text(arguments)
             return SwiftValue.make(
-                text[..<(try checked(try stringIndexValue(arguments["end"]), in: text, allowingEnd: true))],
+                text[
+                    ..<(try checked(
+                        try stringIndexValue(arguments["end"]),
+                        in: text,
+                        allowingEnd: true
+                    ))
+                ],
                 as: "Substring"
             )
         },
@@ -181,7 +233,11 @@ extension Bridge {
             summary: "The position of the first occurrence of a character."
         ) { _, arguments in
             let text = try text(arguments)
-            guard let wanted = try? SwiftValue.unbox(Character.self, arguments["element"] ?? .nothing),
+            guard
+                let wanted = try? SwiftValue.unbox(
+                    Character.self,
+                    arguments["element"] ?? .nothing
+                ),
                 let found = text.firstIndex(of: wanted)
             else { return .nothing }
             return box(found)
@@ -195,8 +251,16 @@ extension Bridge {
         }
         if case .object(let box as SwiftValue) = index {
             if let range = box.value as? Range<Value> {
-                let low = try checked(try stringIndexValue(range.lowerBound), in: text, allowingEnd: true)
-                let high = try checked(try stringIndexValue(range.upperBound), in: text, allowingEnd: true)
+                let low = try checked(
+                    try stringIndexValue(range.lowerBound),
+                    in: text,
+                    allowingEnd: true
+                )
+                let high = try checked(
+                    try stringIndexValue(range.upperBound),
+                    in: text,
+                    allowingEnd: true
+                )
                 guard low <= high else { throw RuntimeError("String index range is out of bounds") }
                 return SwiftValue.make(text[low..<high], as: "Substring")
             }
@@ -233,11 +297,18 @@ extension Bridge {
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))],
         "Range": [reduceInto, lazyMember(.parameter("Bound"))],
         "AttributedString": [
-            member(.property, "text", returns: .string, summary: "The words, without the styles.") { _, arguments in
-                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain)
+            member(.property, "text", returns: .string, summary: "The words, without the styles.") {
+                _,
+                arguments in
+                .string(
+                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain
+                )
             },
-            member(.property, "plain", returns: .string, summary: "The words, without the styles.") { _, arguments in
-                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain)
+            member(.property, "plain", returns: .string, summary: "The words, without the styles.")
+            { _, arguments in
+                .string(
+                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain
+                )
             },
             member(
                 .property,
@@ -245,14 +316,27 @@ extension Bridge {
                 returns: .string,
                 summary: "The words with the terminal's escapes for each style."
             ) { _, arguments in
-                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).colored)
+                .string(
+                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing)
+                        .colored
+                )
             },
         ],
         "Unicode.Scalar": [
-            member(.property, "value", returns: .int, summary: "The scalar's number, as Unicode gives it.") {
+            member(
+                .property,
+                "value",
+                returns: .int,
+                summary: "The scalar's number, as Unicode gives it."
+            ) {
                 _,
                 arguments in
-                .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, arguments["self"] ?? .nothing).value))
+                .int(
+                    Int(
+                        try SwiftValue.unbox(Unicode.Scalar.self, arguments["self"] ?? .nothing)
+                            .value
+                    )
+                )
             }
         ],
         "Flow": [
@@ -285,7 +369,11 @@ extension Bridge {
                 .method,
                 "first",
                 parameters: [
-                    Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool))
+                    Parameter(
+                        label: "where",
+                        name: "predicate",
+                        type: .functionType([.parameter("Element")], .bool)
+                    )
                 ],
                 returns: .optional(.parameter("Element")),
                 summary: "The first item the predicate accepts."
@@ -294,7 +382,9 @@ extension Bridge {
                     let flow = box.value as? Flow<Value>
                 else { return .nothing }
                 while let item = try flow.read() {
-                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) { return item }
+                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {
+                        return item
+                    }
                 }
                 return .nothing
             },
@@ -302,7 +392,11 @@ extension Bridge {
                 .method,
                 "contains",
                 parameters: [
-                    Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool))
+                    Parameter(
+                        label: "where",
+                        name: "predicate",
+                        type: .functionType([.parameter("Element")], .bool)
+                    )
                 ],
                 returns: .bool,
                 summary: "Whether the predicate accepts an item."
@@ -311,7 +405,9 @@ extension Bridge {
                     let flow = box.value as? Flow<Value>
                 else { return .bool(false) }
                 while let item = try flow.read() {
-                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) { return .bool(true) }
+                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {
+                        return .bool(true)
+                    }
                 }
                 return .bool(false)
             },
@@ -333,7 +429,8 @@ extension Bridge {
                 else { return .string(text) }
                 guard !target.isEmpty else { return .string(text) }
                 return .string(
-                    text.split(separator: target, omittingEmptySubsequences: false).joined(separator: replacement)
+                    text.split(separator: target, omittingEmptySubsequences: false)
+                        .joined(separator: replacement)
                 )
             },
             member(
@@ -344,11 +441,13 @@ extension Bridge {
                 summary: "The parts of the text between the `separator`s."
             ) { _, arguments in
                 let text = try text(arguments)
-                guard case .string(let separator)? = arguments["separator"], !separator.isEmpty else {
+                guard case .string(let separator)? = arguments["separator"], !separator.isEmpty
+                else {
                     return .list([.string(text)])
                 }
                 return .list(
-                    text.split(separator: separator, omittingEmptySubsequences: false).map { .string(String($0)) }
+                    text.split(separator: separator, omittingEmptySubsequences: false)
+                        .map { .string(String($0)) }
                 )
             },
             member(
@@ -370,7 +469,8 @@ extension Bridge {
                 isStatic: true,
                 parameters: [Parameter(label: nil, name: "value", type: .int)],
                 returns: .int,
-                summary: "The same integer: Int(x) of an Int, which also stands for the fixed-width integers."
+                summary:
+                    "The same integer: Int(x) of an Int, which also stands for the fixed-width integers."
             ) { _, arguments in
                 arguments["value"] ?? .nothing
             }
@@ -381,7 +481,11 @@ extension Bridge {
                 "init",
                 isStatic: true,
                 parameters: [
-                    Parameter(label: "grouping", name: "values", type: .someSequence(.parameter("E"))),
+                    Parameter(
+                        label: "grouping",
+                        name: "values",
+                        type: .someSequence(.parameter("E"))
+                    ),
                     Parameter(
                         label: "by",
                         name: "keyForValue",

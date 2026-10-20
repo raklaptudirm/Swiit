@@ -1,15 +1,18 @@
 import Foundation
 
-/// A Swift value type scripts can hold, compare and call the members of, without the host writing a script-side
+/// A Swift value type scripts can hold, compare and call the members of, without the host writing a
+/// script-side
 /// declaration for
-/// it: a `FileSize`, a `URL`. A script sees an ordinary type: its members are checked before the script runs, `==`, `<`
+/// it: a `FileSize`, a `URL`. A script sees an ordinary type: its members are checked before the
+/// script runs, `==`, `<`
 /// and
 /// hashing go by the Swift value's own, and a word of text becomes one through `parse`.
 public struct NativeType: Sendable {
     /// What a member is. A `setter` is a property's other half, for `size.unit = …`.
     public enum MemberKind: Sendable { case method, property, initializer, setter }
 
-    /// A member of the type. Its `function` is called with the arguments in declared order; an instance member's first
+    /// A member of the type. Its `function` is called with the arguments in declared order; an
+    /// instance member's first
     /// parameter is named `self` and receives the value, and scripts do not see it.
     public struct Member: Sendable {
         public var kind: MemberKind
@@ -17,7 +20,12 @@ public struct NativeType: Sendable {
         public var isMutating: Bool
         public var function: HostFunction
 
-        public init(_ kind: MemberKind, isStatic: Bool = false, isMutating: Bool = false, _ function: HostFunction) {
+        public init(
+            _ kind: MemberKind,
+            isStatic: Bool = false,
+            isMutating: Bool = false,
+            _ function: HostFunction
+        ) {
             self.kind = kind
             self.isStatic = isStatic
             self.isMutating = isMutating
@@ -26,14 +34,16 @@ public struct NativeType: Sendable {
     }
 
     public var name: String
-    /// The protocols it conforms to, of those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`.
+    /// The protocols it conforms to, of those Swiit knows: `Equatable`, `Hashable`, `Comparable`,
+    /// `Sequence`.
     public var conformances: [String]
     /// What its associated types are: `Element` is `String` for a sequence of text.
     public var associatedTypes: [String: ValueType]
     public var members: [Member]
     /// A value from text, where text gives a word and the type is wanted.
     public var parse: (@Sendable (String) -> Value?)?
-    /// A value from a text literal, where a script writes `"…"` and the type is wanted (`let column: DisplayColumn =
+    /// A value from a text literal, where a script writes `"…"` and the type is wanted (`let
+    /// column: DisplayColumn =
     /// "name"`).
     public var literal: (@Sendable (String) -> Value?)?
 
@@ -55,7 +65,8 @@ public struct NativeType: Sendable {
 }
 
 extension Value {
-    /// A Swift value, held as it is, of a type registered as `NativeType` named `typeName`. Scripts compare and hash it
+    /// A Swift value, held as it is, of a type registered as `NativeType` named `typeName`. Scripts
+    /// compare and hash it
     /// as
     /// Swift does when the type is `Equatable`, `Hashable` or `Comparable`.
     public init<T>(boxing value: T, as typeName: String) {
@@ -69,24 +80,33 @@ extension Value {
 }
 
 extension Interpreter {
-    /// Makes a Swift value type one scripts can use. Registering a type again adds the members it lacks.
+    /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
+    /// lacks.
     public func register(_ type: NativeType) {
         var bridged = BridgedType(type)
-        // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined` (`Output`'s lines).
+        // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
+        // (`Output`'s lines).
         if type.conformances.contains("Sequence"), let element = type.associatedTypes["Element"] {
             bridged = bridged.adding(
-                itemMembers(of: TypeAnnotation(element), excluding: Set(type.members.map { $0.function.name }))
+                itemMembers(
+                    of: TypeAnnotation(element),
+                    excluding: Set(type.members.map { $0.function.name })
+                )
             )
         }
         Bridge.register([bridged])
         withMainTask {
-            scopes[0].bindings[type.name] = Binding(value: .object(BridgedTypeName(type.name)), mutable: false)
+            scopes[0].bindings[type.name] = Binding(
+                value: .object(BridgedTypeName(type.name)),
+                mutable: false
+            )
         }
     }
 }
 
 extension Interpreter {
-    /// A list's members, which read their receiver without changing it, made members of a sequence: they take its items
+    /// A list's members, which read their receiver without changing it, made members of a sequence:
+    /// they take its items
     /// as the
     /// list they work on.
     func itemMembers(of element: TypeAnnotation, excluding own: Set<String>) -> [BridgedMember] {
@@ -95,7 +115,8 @@ extension Interpreter {
         let bindings = ["Element": element]
         return array.members
             .filter {
-                !$0.isStatic && !$0.isMutating && ($0.kind == .method || $0.kind == .property) && !own.contains($0.name)
+                !$0.isStatic && !$0.isMutating && ($0.kind == .method || $0.kind == .property)
+                    && !own.contains($0.name)
             }
             .map { member in
                 let body: FunctionBody
@@ -115,7 +136,8 @@ extension Interpreter {
                     name: member.name,
                     isStatic: false,
                     parameters: member.parameters.map {
-                        var made = $0; made.type = checker.substitute($0.type, bindings); return made
+                        var made = $0; made.type = checker.substitute($0.type, bindings);
+                        return made
                     },
                     returns: checker.substitute(member.returns, bindings),
                     generics: member.generics,
@@ -185,7 +207,9 @@ extension BridgedMember {
             summary: function.summary ?? "",
             body: .native { _, arguments in
                 var named = Dictionary(
-                    uniqueKeysWithValues: names.compactMap { name in arguments[name].map { (name, $0) } }
+                    uniqueKeysWithValues: names.compactMap { name in
+                        arguments[name].map { (name, $0) }
+                    }
                 )
                 if hasReceiver, let receiver = arguments["self"] { named["self"] = receiver }
                 return try call(named)
@@ -193,7 +217,8 @@ extension BridgedMember {
         )
         plain = { arguments in
             var named = Dictionary(
-                uniqueKeysWithValues: names.compactMap { name in arguments[name].map { (name, $0) } }
+                uniqueKeysWithValues: names.compactMap { name in arguments[name].map { (name, $0) }
+                }
             )
             if hasReceiver, let receiver = arguments["self"] { named["self"] = receiver }
             return try call(named)
@@ -204,7 +229,8 @@ extension BridgedMember {
 // MARK: Writing one
 
 extension NativeType {
-    /// A type written from the Swift type itself: members are key paths and method references, so each one's types are
+    /// A type written from the Swift type itself: members are key paths and method references, so
+    /// each one's types are
     /// the
     /// compiler's and none is spelled twice.
     ///
@@ -222,9 +248,15 @@ extension NativeType {
             literal: (@Sendable (String) -> T?)? = nil
         ) {
             let name = name ?? String(describing: T.self)
-            self.type = NativeType(name: name, conformances: conformances, associatedTypes: associatedTypes)
+            self.type = NativeType(
+                name: name,
+                conformances: conformances,
+                associatedTypes: associatedTypes
+            )
             if let parse { type.parse = { text in parse(text).map { Self.box($0, as: name) } } }
-            if let literal { type.literal = { text in literal(text).map { Self.box($0, as: name) } } }
+            if let literal {
+                type.literal = { text in literal(text).map { Self.box($0, as: name) } }
+            }
         }
 
         private var name: String { type.name }
@@ -236,7 +268,11 @@ extension NativeType {
 
         private var receiver: HostFunction.Parameter { .init(name: "self", type: .named(name)) }
 
-        private func adding(_ kind: MemberKind, isStatic: Bool = false, _ function: HostFunction) -> Builder {
+        private func adding(
+            _ kind: MemberKind,
+            isStatic: Bool = false,
+            _ function: HostFunction
+        ) -> Builder {
             var copy = self
             copy.type.members.append(Member(kind, isStatic: isStatic, function))
             return copy
@@ -251,23 +287,34 @@ extension NativeType {
             var made: [HostFunction.Parameter] = []
             func add<A: ValueConvertible>(_: A.Type) {
                 let label = labels.indices.contains(made.count) ? labels[made.count] : nil
-                made.append(HostFunction.Parameter(label: label, name: label ?? "argument\(made.count)", type: A.self))
+                made.append(
+                    HostFunction.Parameter(
+                        label: label,
+                        name: label ?? "argument\(made.count)",
+                        type: A.self
+                    )
+                )
             }
             repeat add((each Argument).self)
             return made
         }
 
         /// A property that reads a key path: `.property("host", \.host)`.
-        public func property<V: ValueConvertible>(_ name: String, _ keyPath: any KeyPath<T, V> & Sendable) -> Builder {
+        public func property<V: ValueConvertible>(
+            _ name: String,
+            _ keyPath: any KeyPath<T, V> & Sendable
+        ) -> Builder {
             adding(
                 .property,
-                HostFunction(name: name, summary: nil, parameters: [receiver], returns: V.valueType) { arguments in
+                HostFunction(name: name, summary: nil, parameters: [receiver], returns: V.valueType)
+                { arguments in
                     try arguments[0].unboxed(T.self)[keyPath: keyPath].value
                 }
             )
         }
 
-        /// A method, as a reference to it: `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
+        /// A method, as a reference to it: `.method("appending", labels: [nil],
+        /// URL.appendingPathComponent(_:))`.
         public func method<each Argument: ValueConvertible, Result: ValueConvertible>(
             _ name: String,
             labels: [String?] = [],
@@ -278,13 +325,17 @@ extension NativeType {
                 .method,
                 HostFunction(
                     name: name,
-                    parameters: [receiver] + Self.parameters(repeat (each Argument).self, labels: labels),
+                    parameters: [receiver]
+                        + Self.parameters(repeat (each Argument).self, labels: labels),
                     returns: Result.valueType,
                     isThrowing: throwing
                 ) { arguments in
                     var index = 1
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return try function(arguments[0].unboxed(T.self))(repeat try (each Argument)(next())).value
+                    return try function(arguments[0].unboxed(T.self))(
+                        repeat try (each Argument)(next())
+                    )
+                    .value
                 }
             )
         }
@@ -357,7 +408,8 @@ extension NativeType.Builder {
                 ) { arguments in
                     var index = 0
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return try make(repeat try (each Argument)(next())).map { Self.box($0, as: name) } ?? .null
+                    return try make(repeat try (each Argument)(next()))
+                        .map { Self.box($0, as: name) } ?? .null
                 }
             )
         )
@@ -369,7 +421,8 @@ extension Interpreter {
     public func register<T>(_ builder: NativeType.Builder<T>) { register(builder.type) }
 }
 
-/// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function can take and give
+/// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function
+/// can take and give
 /// by
 /// saying so: `extension URL: ValueConvertible {}`. It is held as it is, under its Swift name.
 extension ValueConvertible where Self: Hashable & Sendable {

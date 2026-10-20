@@ -35,14 +35,22 @@ extension Interpreter {
                 }
                 if case .int(let n) = raw { nextInt = n + 1 }
                 guard rawSeen.insert(raw!).inserted else {
-                    throw RuntimeError("\(decl.name).\(enumCase.name): raw value \(raw!) is used twice")
+                    throw RuntimeError(
+                        "\(decl.name).\(enumCase.name): raw value \(raw!) is used twice"
+                    )
                 }
             } else if enumCase.rawValue != nil {
                 throw RuntimeError(
                     "\(decl.name).\(enumCase.name): only an enum with a raw type, like `enum \(decl.name): Int`, has raw values"
                 )
             }
-            cases.append(EnumType.Case(name: enumCase.name, rawValue: raw, labels: enumCase.associated.map(\.label)))
+            cases.append(
+                EnumType.Case(
+                    name: enumCase.name,
+                    rawValue: raw,
+                    labels: enumCase.associated.map(\.label)
+                )
+            )
             payloadTypes[enumCase.name] = enumCase.associated.map(\.type)
         }
         let type = EnumType(name: decl.name, cases: cases)
@@ -85,7 +93,9 @@ extension Interpreter {
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
-        let (initializer, bindings) = try resolve(narrowed(initializers, overload)) { try self.bind(values, to: $0) }
+        let (initializer, bindings) = try resolve(narrowed(initializers, overload)) {
+            try self.bind(values, to: $0)
+        }
         let receiver = Receiver(.nothing, mutable: true, initializing: true)
         task.failedInit = false
         _ = try invoke(initializer, with: bindings, receiver: receiver)
@@ -93,15 +103,22 @@ extension Interpreter {
             task.failedInit = false
             return .nothing
         }
-        guard case .enumValue = receiver.value else { throw RuntimeError("\(type.name).init must set self to a case") }
+        guard case .enumValue = receiver.value else {
+            throw RuntimeError("\(type.name).init must set self to a case")
+        }
         return receiver.value
     }
 
-    /// A computed property of an enum's case, or a method as a function value; nil if there isn't one.
+    /// A computed property of an enum's case, or a method as a function value; nil if there isn't
+    /// one.
     func enumMember(_ name: String, of value: EnumValue) throws -> Value? {
         guard let members = enumMembers[ObjectIdentifier(value.type)] else { return nil }
         if let getter = members.computed[name] {
-            return try invoke(getter, with: [:], receiver: Receiver(.enumValue(value), mutable: false))
+            return try invoke(
+                getter,
+                with: [:],
+                receiver: Receiver(.enumValue(value), mutable: false)
+            )
         }
         guard let methods = members.methods[name] else { return nil }
         let bound = methods.candidates.map { method in
@@ -167,9 +184,13 @@ extension Interpreter {
             }
             return .enumValue(EnumValue(type: type, name: name))
         }
-        guard !definition.labels.isEmpty else { throw RuntimeError("\(written) has no associated values") }
+        guard !definition.labels.isEmpty else {
+            throw RuntimeError("\(written) has no associated values")
+        }
         guard arguments.count == definition.labels.count else {
-            throw RuntimeError("\(written) has \(definition.labels.count) associated values, not \(arguments.count)")
+            throw RuntimeError(
+                "\(written) has \(definition.labels.count) associated values, not \(arguments.count)"
+            )
         }
         let types = enumPayloadTypes[ObjectIdentifier(type)]?[name] ?? []
         var values: [Value] = []
@@ -181,7 +202,9 @@ extension Interpreter {
             let type = index < types.count ? types[index] : .any
             let value = try evaluate(argument.value, expecting: type)
             guard let conforming = conform(value, to: type) else {
-                throw RuntimeError("\(written): value #\(index + 1) must be \(type), not \(value.typeName)")
+                throw RuntimeError(
+                    "\(written): value #\(index + 1) must be \(type), not \(value.typeName)"
+                )
             }
             values.append(conforming)
         }
@@ -201,7 +224,8 @@ extension Interpreter {
     func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         // A value already of a plain type, which is nearly every argument and result.
         switch (type, value) {
-        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _): return value
+        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _):
+            return value
         default: break
         }
         switch type {
@@ -226,13 +250,17 @@ extension Interpreter {
         case .named(let name):
             // A class of the program's: an instance of it or of a subclass.
             if let type = classType(named: name) {
-                guard case .object(let instance as ClassInstance) = value, instance.type.isSubclass(of: type) else {
+                guard case .object(let instance as ClassInstance) = value,
+                    instance.type.isSubclass(of: type)
+                else {
                     return nil
                 }
                 return value
             }
             // A protocol of the program's: any value whose type conforms.
-            if protocolType(named: name) != nil { return self.value(value, conformsTo: name) ? value : nil }
+            if protocolType(named: name) != nil {
+                return self.value(value, conformsTo: name) ? value : nil
+            }
             // A plain dynamic type (parsed JSON) is whatever it parsed as.
             if dynamicTypes[name]?.plain?.standsForAnything == true { return value }
             // A Swift value, boxed, is of its Swift type.
@@ -245,7 +273,9 @@ extension Interpreter {
             }
             // A Character is held as the one-letter String it is.
             if name == "Character", case .string(let text) = value, text.count == 1 { return value }
-            if case .record(let record) = value, record.typeName == name, structType(named: name) != nil {
+            if case .record(let record) = value, record.typeName == name,
+                structType(named: name) != nil
+            {
                 return value
             }
             // An Error is any value whose type conforms to it.
@@ -257,7 +287,8 @@ extension Interpreter {
         case .generic(let name, _):
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
-            // A generic enum of the program's: its arguments say what its cases hold, and it is its name.
+            // A generic enum of the program's: its arguments say what its cases hold, and it is its
+            // name.
             if enumType(named: name) != nil { return conform(value, to: .named(name)) }
             return nil
         case .someSequence:
@@ -272,12 +303,14 @@ extension Interpreter {
     private func conformStructured(_ value: Value, to type: TypeAnnotation) -> Value? {
         switch type {
         case .metatype(let wrapped):
-            // A type, of the kind the type parameter or class says (a subclass's type is its superclass's too).
+            // A type, of the kind the type parameter or class says (a subclass's type is its
+            // superclass's too).
             guard let held = annotation(ofTypeValue: value) else { return nil }
             switch wrapped {
             case .any, .parameter, .unknown: return value
             case .named(let name):
-                if case .object(let object as ClassType) = value, let above = classType(named: name) {
+                if case .object(let object as ClassType) = value, let above = classType(named: name)
+                {
                     return object.isSubclass(of: above) ? value : nil
                 }
                 if protocolType(named: name) != nil || name == "Error" {
@@ -287,7 +320,8 @@ extension Interpreter {
             default: return held == wrapped ? value : nil
             }
         case .parameter(let name):
-            // A type parameter is what the call bound it to, if the body names it; otherwise any type.
+            // A type parameter is what the call bound it to, if the body names it; otherwise any
+            // type.
             guard let bound = lookup(Interpreter.typeArgumentPrefix + name)?.value,
                 let annotation = annotation(ofTypeValue: bound)
             else { return value }
@@ -303,17 +337,22 @@ extension Interpreter {
             }
             return .list(converted)
         case .dictionary(let keyType, let valueType):
-            guard case .dictionary(let dictionary) = value else { return value.conforming(to: type) }
+            guard case .dictionary(let dictionary) = value else {
+                return value.conforming(to: type)
+            }
             var made = ValueDictionary()
             for (key, entry) in dictionary {
-                guard let conformingKey = conform(key, to: keyType), let conformingValue = conform(entry, to: valueType)
+                guard let conformingKey = conform(key, to: keyType),
+                    let conformingValue = conform(entry, to: valueType)
                 else { return nil }
                 made[conformingKey] = conformingValue
             }
             return .dictionary(made)
         case .tuple(let elements):
             // Each element as its own type, which may be a protocol of the program's.
-            guard case .record(let record) = value, record.typeName == nil, record.count == elements.count else {
+            guard case .record(let record) = value, record.typeName == nil,
+                record.count == elements.count
+            else {
                 return value.conforming(to: type)
             }
             var made = Record()
@@ -341,7 +380,11 @@ extension Interpreter {
     // MARK: Matching
 
     /// Whether `value` matches `pattern`, binding what the pattern names.
-    func match(_ pattern: Pattern, _ value: Value, into bindings: inout [String: Binding]) throws -> Bool {
+    func match(
+        _ pattern: Pattern,
+        _ value: Value,
+        into bindings: inout [String: Binding]
+    ) throws -> Bool {
         switch pattern {
         case .wildcard:
             return true
@@ -351,7 +394,9 @@ extension Interpreter {
         case .enumCase(let typeName, let name, let arguments):
             guard case .enumValue(let enumValue) = value else { return false }
             if let typeName {
-                guard let named = enumType(named: typeName) else { throw RuntimeError("no enum named \(typeName)") }
+                guard let named = enumType(named: typeName) else {
+                    throw RuntimeError("no enum named \(typeName)")
+                }
                 guard named === enumValue.type else { return false }
             }
             guard let definition = enumValue.type.case(named: name) else {
@@ -366,24 +411,35 @@ extension Interpreter {
             }
             for (index, argument) in arguments.enumerated() {
                 if let label = argument.label, label != definition.labels[index] {
-                    throw RuntimeError("\(enumValue.type.name).\(name)'s value #\(index + 1) isn't labeled '\(label)'")
+                    throw RuntimeError(
+                        "\(enumValue.type.name).\(name)'s value #\(index + 1) isn't labeled '\(label)'"
+                    )
                 }
-                guard try match(argument.pattern, enumValue.values[index], into: &bindings) else { return false }
+                guard try match(argument.pattern, enumValue.values[index], into: &bindings) else {
+                    return false
+                }
             }
             return true
         case .expression(let expr):
             // A range matches what's in it; anything else, what's equal to it.
-            if case .binary(let op, let lower, let upper) = expr, op == .closedRange || op == .halfOpenRange {
+            if case .binary(let op, let lower, let upper) = expr,
+                op == .closedRange || op == .halfOpenRange
+            {
                 let low = try evaluate(lower)
                 let high = try evaluate(upper)
-                guard let number = value.asDouble, let from = low.asDouble, let to = high.asDouble else { return false }
+                guard let number = value.asDouble, let from = low.asDouble, let to = high.asDouble
+                else { return false }
                 return number >= from && (op == .closedRange ? number <= to : number < to)
             }
             let expected = try evaluate(expr)
             if case .enumValue = value, case .string = expected {
-                throw RuntimeError("can't compare \(value.typeName) with a String; match a case like .\(expected)")
+                throw RuntimeError(
+                    "can't compare \(value.typeName) with a String; match a case like .\(expected)"
+                )
             }
-            if case .object = value, let text = value.text { return Value.string(text).isEqual(to: expected) }
+            if case .object = value, let text = value.text {
+                return Value.string(text).isEqual(to: expected)
+            }
             return value.isEqual(to: expected)
         case .cast(let inner, let type):
             guard let converted = conform(value, to: type) else { return false }
@@ -393,14 +449,18 @@ extension Interpreter {
         case .some(let inner):
             return value != .nothing ? try match(inner, value, into: &bindings) : false
         case .partialRange(let lower, let upper, let closed):
-            if let lower, try apply(.less, value, try evaluate(lower)) == .bool(true) { return false }
+            if let lower, try apply(.less, value, try evaluate(lower)) == .bool(true) {
+                return false
+            }
             if let upper {
                 let bound = try evaluate(upper)
                 return try apply(closed ? .lessEqual : .less, value, bound) == .bool(true)
             }
             return true
         case .tuple(let patterns):
-            guard case .record(let record) = value, record.typeName == nil, record.count == patterns.count else {
+            guard case .record(let record) = value, record.typeName == nil,
+                record.count == patterns.count
+            else {
                 return false
             }
             for (pattern, field) in zip(patterns, record) {
@@ -416,7 +476,8 @@ extension Interpreter {
         switch value {
         case .record(let record):
             guard let name = record.typeName else { return false }
-            return name == "Error" || structType(named: name)?.conformances.contains("Error") == true
+            return name == "Error"
+                || structType(named: name)?.conformances.contains("Error") == true
         case .enumValue(let enumValue):
             return enumConformances[ObjectIdentifier(enumValue.type)]?.contains("Error") == true
         case .object(let instance as ClassInstance):

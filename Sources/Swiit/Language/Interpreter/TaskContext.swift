@@ -44,7 +44,8 @@ final class TaskContext {
 }
 
 extension Interpreter {
-    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main task's is set by the
+    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main
+    /// task's is set by the
     /// host), or
     /// for the main task from outside a run.
     public var taskState: AnyObject? {
@@ -52,7 +53,8 @@ extension Interpreter {
         set { (lock.isHeldByCurrentThread ? task : mainTask).host = newValue }
     }
 
-    /// Whether the task running now has been asked to stop; ask it before a wait and keep the answer for after, since
+    /// Whether the task running now has been asked to stop; ask it before a wait and keep the
+    /// answer for after, since
     /// the
     /// task running changes while one waits.
     public var cancellation: Cancellation { task.cancellation }

@@ -19,7 +19,11 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
         try lower(source, bound: bound, prelude: true)
     }
 
-    private func lower(_ source: String, bound: [String: NameKind], prelude: Bool) throws(SyntaxError) -> Program {
+    private func lower(
+        _ source: String,
+        bound: [String: NameKind],
+        prelude: Bool
+    ) throws(SyntaxError) -> Program {
         var lowering = try lowering(of: source, bound: bound)
         lowering.prelude = prelude
         do {
@@ -27,7 +31,10 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
         } catch var error as SyntaxError {
             // Where the lowering stopped, if nothing says better.
             if error.range == nil, let at = lowering.failedAt {
-                error.range = lowering.range(fromByte: at, toByte: min(at + 1, lowering.bytes.count))
+                error.range = lowering.range(
+                    fromByte: at,
+                    toByte: min(at + 1, lowering.bytes.count)
+                )
             }
             throw error
         } catch {
@@ -45,7 +52,9 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
             .foldAll(parsed) { error in
                 switch error as? OperatorError {
                 case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
-                    problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+                    problems.append(
+                        ("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset)
+                    )
                 case .incomparableOperators(_, _, let node, _)?:
                     // `1...2...3`, `a < b < c`: the second operator can't follow the first.
                     problems.append(
@@ -59,7 +68,9 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
                 }
             }
         if let other { throw SyntaxError("\(other)") }
-        guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
+        guard let tree = folded.as(SourceFileSyntax.self) else {
+            throw SyntaxError("not a source file")
+        }
         var lowering = Lowering(source: source, tree: tree, bound: bound)
         lowering.operatorProblems = problems
         return lowering
@@ -68,7 +79,8 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
     func highlight(_ source: String, bound: [String: NameKind]) -> [Span] {
         let parsed = SwiftSyntaxFrontEnd.parse(source)
         // Operators that don't fold (`a < b < c`) leave their sequence as it is.
-        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { _ in }
+        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound)
+            .foldAll(parsed) { _ in }
         guard let tree = folded.as(SourceFileSyntax.self) else { return [] }
         var lowering = Lowering(source: source, tree: tree, bound: bound)
         lowering.recovering = true
@@ -81,7 +93,10 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
     }
 
     /// Swift's operators, with those declared before and those in this program.
-    static func operators(declaredIn parsed: SourceFileSyntax, bound: [String: NameKind]) -> OperatorTable {
+    static func operators(
+        declaredIn parsed: SourceFileSyntax,
+        bound: [String: NameKind]
+    ) -> OperatorTable {
         var table = OperatorTable.standardOperators
         // The groups first, which the operators name.
         let earlier =
@@ -89,10 +104,14 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
                 if case .operatorDeclaration(let source) = kind { (key, source) } else { nil }
             }
             .sorted {
-                ($0.0.hasPrefix("precedencegroup") ? 0 : 1, $0.0) < ($1.0.hasPrefix("precedencegroup") ? 0 : 1, $1.0)
+                ($0.0.hasPrefix("precedencegroup") ? 0 : 1, $0.0) < (
+                    $1.0.hasPrefix("precedencegroup") ? 0 : 1, $1.0
+                )
             }
         if !earlier.isEmpty {
-            table.addSourceFile(SwiftParser.Parser.parse(source: earlier.map(\.1).joined(separator: "\n"))) { _ in }
+            table.addSourceFile(
+                SwiftParser.Parser.parse(source: earlier.map(\.1).joined(separator: "\n"))
+            ) { _ in }
         }
         table.addSourceFile(parsed) { _ in }
         return table

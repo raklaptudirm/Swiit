@@ -28,10 +28,13 @@ struct Symbol: Decodable {
     let availability: [Availability]?
     let accessLevel: String
     let docComment: Doc?
-    struct Location: Decodable { struct Position: Decodable { let line: Int }; let position: Position }
+    struct Location: Decodable {
+        struct Position: Decodable { let line: Int }; let position: Position
+    }
     let location: Location?
 
-    /// The documentation's lines. A declaration that starts with an attribute (`@Foo`) has the attribute's `@` in the
+    /// The documentation's lines. A declaration that starts with an attribute (`@Foo`) has the
+    /// attribute's `@` in the
     /// last line, which the compiler's range takes in.
     private var docLines: [String] {
         (docComment?.lines ?? [])
@@ -45,15 +48,19 @@ struct Symbol: Decodable {
     /// Its documentation's first paragraph, on one line: what `help` shows.
     var summary: String {
         let lines = docLines
-        return lines.drop { $0.isEmpty }.prefix { !$0.isEmpty && !$0.hasPrefix("- ") }.joined(separator: " ")
+        return lines.drop { $0.isEmpty }.prefix { !$0.isEmpty && !$0.hasPrefix("- ") }
+            .joined(separator: " ")
     }
 
     /// Its `- Parameter name: text` lines, for `help`'s flags.
     var parameterDocs: [String: String] {
         var docs: [String: String] = [:]
         for line in docLines {
-            guard line.hasPrefix("- Parameter "), let colon = line.firstIndex(of: ":") else { continue }
-            let name = line[line.index(line.startIndex, offsetBy: 12)..<colon].trimmingCharacters(in: .whitespaces)
+            guard line.hasPrefix("- Parameter "), let colon = line.firstIndex(of: ":") else {
+                continue
+            }
+            let name = line[line.index(line.startIndex, offsetBy: 12)..<colon]
+                .trimmingCharacters(in: .whitespaces)
             docs[name] = line[line.index(after: colon)...].trimmingCharacters(in: .whitespaces)
         }
         return docs

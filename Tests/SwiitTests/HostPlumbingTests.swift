@@ -3,7 +3,9 @@ import Testing
 @testable import Swiit
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
+    Interpreter(
+        host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
+    )
 }
 
 // What a host that is more than an embedder builds on: internals, tested with @testable.
@@ -45,7 +47,9 @@ private func interpreter() -> Interpreter {
     }
     swiit.register(
         Awaiting(operand: .int, result: .int) { value, _ in
-            .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2)
+            .int(
+                (value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2
+            )
         }
     )
     #expect(try swiit.evaluate("await 21") == .int(42))

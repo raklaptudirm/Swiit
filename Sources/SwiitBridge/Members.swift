@@ -12,23 +12,33 @@ func conforms(_ type: SType, _ proto: String) -> Bool {
     guard case .named(let name, []) = type else { return false }
     // Swiit's own Int, Double, String and Bool, which a run that isn't
     // bridging the standard library knows nothing else about.
-    let comparable: Set = ["Equatable", "Hashable", "Comparable", "Encodable", "CustomStringConvertible"]
+    let comparable: Set = [
+        "Equatable", "Hashable", "Comparable", "Encodable", "CustomStringConvertible",
+    ]
     switch name {
-    case "Int", "Double", "String": return types[name]?.allConformances.contains(proto) ?? comparable.contains(proto)
+    case "Int", "Double", "String":
+        return types[name]?.allConformances.contains(proto) ?? comparable.contains(proto)
     case "Bool":
-        return types[name]?.allConformances.contains(proto) ?? comparable.subtracting(["Comparable"]).contains(proto)
+        return types[name]?.allConformances.contains(proto)
+            ?? comparable.subtracting(["Comparable"]).contains(proto)
     default: return types[name]?.allConformances.contains(proto) ?? false
     }
 }
 
 func available(_ symbol: Symbol) -> Bool {
     for entry in symbol.availability ?? [] {
-        if entry.isUnconditionallyDeprecated == true || entry.isUnconditionallyUnavailable == true { return false }
-        // Obsoleted in the language itself (domain "Swift") counts too.
-        if entry.domain == "Swift" || entry.domain == "SwiftPM", entry.obsoleted != nil || entry.deprecated != nil {
+        if entry.isUnconditionallyDeprecated == true || entry.isUnconditionallyUnavailable == true {
             return false
         }
-        guard entry.domain == nil || entry.domain == "macOS" || entry.domain == "*" else { continue }
+        // Obsoleted in the language itself (domain "Swift") counts too.
+        if entry.domain == "Swift" || entry.domain == "SwiftPM",
+            entry.obsoleted != nil || entry.deprecated != nil
+        {
+            return false
+        }
+        guard entry.domain == nil || entry.domain == "macOS" || entry.domain == "*" else {
+            continue
+        }
         if entry.deprecated != nil || entry.obsoleted != nil { return false }
         if let introduced = entry.introduced, entry.domain == "macOS",
             introduced.major > 14 || introduced.major == 14 && (introduced.minor ?? 0) > 0
@@ -43,14 +53,16 @@ func available(_ symbol: Symbol) -> Bool {
 /// a failable initializer taking one unlabeled piece of text.
 func isTextInitializer(_ symbol: Symbol) -> Bool {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
-    guard let declaration = try? parseDeclaration(text), declaration.isFailable, declaration.parameters.count == 1,
+    guard let declaration = try? parseDeclaration(text), declaration.isFailable,
+        declaration.parameters.count == 1,
         declaration.parameters[0].label == nil, declaration.parameters[0].defaultText == nil
     else { return false }
     switch declaration.parameters[0].type {
     case .named("String", []): return true
     case .named(let generic, []):
         return declaration.generics[generic]?.contains("StringProtocol") ?? false
-            || (symbol.swiftGenerics?.constraints ?? []).contains { $0.lhs == generic && $0.rhs == "StringProtocol" }
+            || (symbol.swiftGenerics?.constraints ?? [])
+                .contains { $0.lhs == generic && $0.rhs == "StringProtocol" }
     default: return false
     }
 }
@@ -59,8 +71,10 @@ func isTextInitializer(_ symbol: Symbol) -> Bool {
 /// initializer taking one unlabeled sequence of any kind.
 func isSequenceInitializer(_ symbol: Symbol) -> Bool {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
-    guard let declaration = try? parseDeclaration(text), !declaration.isFailable, declaration.parameters.count == 1,
-        declaration.parameters[0].label == nil, case .named(let generic, []) = declaration.parameters[0].type
+    guard let declaration = try? parseDeclaration(text), !declaration.isFailable,
+        declaration.parameters.count == 1,
+        declaration.parameters[0].label == nil,
+        case .named(let generic, []) = declaration.parameters[0].type
     else { return false }
     let constraints = (symbol.swiftGenerics?.constraints ?? []) + declaration.constraints
     return (declaration.generics[generic] ?? []).contains("Sequence")
@@ -74,12 +88,16 @@ func parseType(_ text: String) throws -> SType {
 
 /// `S.Element` for a sequence parameter S: S.
 func sequenceParameter(_ type: SType, _ sequences: Set<String>) -> String? {
-    if case .member(.named(let parameter, []), "Element") = type, sequences.contains(parameter) { return parameter }
+    if case .member(.named(let parameter, []), "Element") = type, sequences.contains(parameter) {
+        return parameter
+    }
     return nil
 }
 
-/// The Swift for one member: the key that tells overloads apart, the shape of its signature (to tell a default from
-/// one another module adds), and the source of its declaration (a settable property gives a getter and a setter).
+/// The Swift for one member: the key that tells overloads apart, the shape of its signature (to
+/// tell a default from
+/// one another module adds), and the source of its declaration (a settable property gives a getter
+/// and a setter).
 struct BridgedMember {
     var key: String
     var shape: String
@@ -98,7 +116,8 @@ func bridge(
     if declaration.isMutating && declaration.isStatic { throw Unsupported(reason: "mutating") }
     var owner = original
     let constraints =
-        conditions + (symbol.swiftExtension?.constraints ?? []) + (symbol.swiftGenerics?.constraints ?? [])
+        conditions + (symbol.swiftExtension?.constraints ?? [])
+        + (symbol.swiftGenerics?.constraints ?? [])
         + declaration.constraints
     var ownGenerics = declaration.generics
     if let error = declaration.typedError { ownGenerics.removeValue(forKey: error) }
@@ -111,13 +130,18 @@ func bridge(
     { sequenceNames.insert(constraint.lhs) }
     var sequences: [String: SType] = [:]
     var fixed: [String: SType] = [:]
-    for constraint in constraints where strideFix(constraint) && owner.genericParameters.contains("Bound") {
+    for constraint in constraints
+    where strideFix(constraint) && owner.genericParameters.contains("Bound") {
         fixed["Bound"] = .named("Int", [])
     }
     for constraint in constraints where constraint.kind == "sameType" {
         let lhs = try parseType(constraint.lhs), rhs = try parseType(constraint.rhs)
-        if let parameter = sequenceParameter(lhs, sequenceNames) { sequences[parameter] = rhs; continue }
-        if let parameter = sequenceParameter(rhs, sequenceNames) { sequences[parameter] = lhs; continue }
+        if let parameter = sequenceParameter(lhs, sequenceNames) {
+            sequences[parameter] = rhs; continue
+        }
+        if let parameter = sequenceParameter(rhs, sequenceNames) {
+            sequences[parameter] = lhs; continue
+        }
         // `where Element == String`: the member is for that element only, so
         // it's bridged with Element fixed to it.
         let name = constraint.lhs.replacingOccurrences(of: "Self.", with: "")
@@ -136,14 +160,17 @@ func bridge(
         sequences[parameter] = .named("\(parameter).Element", [])
         ownGenerics["\(parameter).Element"] = []
     }
-    let methodGenerics = Set(ownGenerics.keys).subtracting(sequenceNames).subtracting(owner.genericParameters)
+    let methodGenerics = Set(ownGenerics.keys).subtracting(sequenceNames)
+        .subtracting(owner.genericParameters)
     let allGenerics = methodGenerics.union(owner.genericParameters)
     let context = Context(owner: owner, generics: allGenerics, sequences: sequences)
 
     // Constraints from the member and from the extension it's in.
     var needs: [String: [String]] = ownGenerics.filter { !sequenceNames.contains($0.key) }
     for constraint in constraints where constraint.kind == "conformance" {
-        if constraint.lhs == declaration.typedError || alwaysMet.contains(constraint.rhs) { continue }
+        if constraint.lhs == declaration.typedError || alwaysMet.contains(constraint.rhs) {
+            continue
+        }
         if sequenceNames.contains(constraint.lhs) && constraint.rhs == "Sequence" { continue }
         guard let resolved = resolve(try parseType(constraint.lhs), context) else {
             throw Unsupported(reason: "constraint on \(constraint.lhs)")
@@ -175,7 +202,8 @@ func bridge(
 
     var parameters: [(Parameter, SType)] = []
     for parameter in declaration.parameters {
-        guard let type = resolve(parameter.type, context), supported(type, generics: allGenerics, asParameter: true),
+        guard let type = resolve(parameter.type, context),
+            supported(type, generics: allGenerics, asParameter: true),
             !resultOnly.contains(where: { annotation(type).contains("\(quoted($0))") })
         else {
             throw Unsupported(reason: "parameter \(parameter.type)")
@@ -187,7 +215,9 @@ func bridge(
         returns = selfType(owner)
         if declaration.isFailable { returns = .optional(returns) }
     } else if let declared = declaration.returns {
-        guard let type = resolve(declared, context), supported(type, generics: allGenerics, asParameter: false) else {
+        guard let type = resolve(declared, context),
+            supported(type, generics: allGenerics, asParameter: false)
+        else {
             throw Unsupported(reason: "result \(declared)")
         }
         if case .someSequence = type { throw Unsupported(reason: "result \(declared)") }
@@ -216,7 +246,9 @@ func bridge(
         ]
         let literal = parameter.defaultText.flatMap(literalDefault)
         if let literal { fields.append("defaultValue: \(literal)") }
-        if let text = parameter.defaultText, literal == nil { fields.append("externalDefault: \(quoted(text))") }
+        if let text = parameter.defaultText, literal == nil {
+            fields.append("externalDefault: \(quoted(text))")
+        }
         return "Parameter(\(fields.joined(separator: ", ")))"
     }
     // The glue.
@@ -247,10 +279,12 @@ func bridge(
         target =
             (free ? graph.module.name : declaration.isStatic ? swiftType : "receiver")
             + ".\(swiftName(declaration.name))(\(arguments))"
-    case .property: target = (declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))"
+    case .property:
+        target = (declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))"
     }
     let tryPrefix =
-        (declaration.throwing || declaration.rethrowing ? "try " : "") + (declaration.isAsync ? "await " : "")
+        (declaration.throwing || declaration.rethrowing ? "try " : "")
+        + (declaration.isAsync ? "await " : "")
     var body = ""
     if !declaration.isStatic && declaration.kind != .initializer && !free {
         body += receiverBinding(swiftType, receiverType, mutating: declaration.isMutating)
@@ -273,10 +307,12 @@ func bridge(
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
     } else {
-        body += "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toValue("result", returns))"
+        body +=
+            "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toValue("result", returns))"
     }
     let kind =
-        declaration.kind == .initializer ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
+        declaration.kind == .initializer
+        ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
     // `var extension: String? { get set }`: a setter too, which changes a
     // copy of the receiver and gives it back, as a mutating method does.
     var setter: String?
@@ -303,23 +339,27 @@ func bridge(
         docs.isEmpty
         ? ""
         : ",\n                    parameterDocs: ["
-            + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }.joined(separator: ", ")
+            + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }
+            .joined(separator: ", ")
             + "]"
     let genericsCode =
         generics.isEmpty
         ? "[:]"
         : "["
             + generics.sorted { $0.key < $1.key }
-            .map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }.joined(separator: ", ")
+            .map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }
+            .joined(separator: ", ")
             + "]"
     // An `async` one is waited for in `suspend`, letting other tasks run.
     if declaration.isAsync {
         if declaration.isMutating { throw Unsupported(reason: "async mutating") }
-        body = "return try bridgeAsync(interpreter) { () async throws -> Value in\n\(body)\n                }"
+        body =
+            "return try bridgeAsync(interpreter) { () async throws -> Value in\n\(body)\n                }"
     }
     // A key path reads fields as the host reads them, for as long as the call.
     if parameters.contains(where: { annotation($0.1).hasPrefix(".keyPath") }) {
-        body = "return try withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
+        body =
+            "return try withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
     }
     let member = """
                         BridgedMember(
@@ -337,14 +377,17 @@ func bridge(
     return BridgedMember(key: key, shape: shape, codes: [member] + (setter.map { [$0] } ?? []))
 }
 
-/// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating member's may come in
+/// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating
+/// member's may come in
 /// a
-/// box, moved out of its variable so nothing else holds it while it changes (a collection would be copied whole on
+/// box, moved out of its variable so nothing else holds it while it changes (a collection would be
+/// copied whole on
 /// every
 /// call), and the box gets it back, however the call ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
     guard mutating else {
-        return "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                "
+        return
+            "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                "
     }
     var body =
         "let mover = ReceiverBox.of(args[\"self\"]!)\n                let taken = mover?.take() ?? args[\"self\"]!\n                "

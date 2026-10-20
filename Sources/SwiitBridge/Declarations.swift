@@ -60,7 +60,9 @@ func whereConstraints(_ text: String) -> [Constraint] {
             let lhs = part[..<colon].trimmingCharacters(in: .whitespaces)
             for proto in part[part.index(after: colon)...].split(separator: "&") {
                 let name = proto.trimmingCharacters(in: .whitespaces)
-                if !name.hasPrefix("~") { constraints.append(Constraint(kind: "conformance", lhs: lhs, rhs: name)) }
+                if !name.hasPrefix("~") {
+                    constraints.append(Constraint(kind: "conformance", lhs: lhs, rhs: name))
+                }
             }
         }
     }
@@ -92,7 +94,8 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         switch word {
         case "static", "class": isStatic = true
         case "mutating": isMutating = true
-        case "nonmutating", "public", "final", "override", "convenience", "required", "optional", "dynamic", "lazy",
+        case "nonmutating", "public", "final", "override", "convenience", "required", "optional",
+            "dynamic", "lazy",
             "nonisolated",
             "prefix", "postfix":
             break
@@ -106,7 +109,9 @@ func parseDeclaration(_ text: String) throws -> Declaration {
     func genericParameters(_ reader: inout Reader) throws {
         guard reader.consume("<") else { return }
         repeat {
-            guard let name = reader.identifier() else { throw Unsupported(reason: "generic parameter") }
+            guard let name = reader.identifier() else {
+                throw Unsupported(reason: "generic parameter")
+            }
             if reader.consume("...") { throw Unsupported(reason: "variadic generics") }
             generics[name, default: []] += reader.consume(":") ? try reader.protocols() : []
         } while reader.consume(",")
@@ -139,7 +144,9 @@ func parseDeclaration(_ text: String) throws -> Declaration {
                 }
                 defaultText = text.trimmingCharacters(in: .whitespaces)
             }
-            parameters.append(Parameter(label: label, name: name, type: type, defaultText: defaultText))
+            parameters.append(
+                Parameter(label: label, name: name, type: type, defaultText: defaultText)
+            )
         } while reader.consume(",")
         guard reader.consume(")") else { throw Unsupported(reason: "parameters end") }
         return parameters
@@ -166,7 +173,9 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         let start = reader.pos
         let isOperator = reader.identifier() == nil
         reader.pos = start
-        guard let name = reader.identifier() ?? reader.operatorName() else { throw Unsupported(reason: "operator") }
+        guard let name = reader.identifier() ?? reader.operatorName() else {
+            throw Unsupported(reason: "operator")
+        }
         if !isOperator { try genericParameters(&reader) }
         var parameters = try parameterList(&reader)
         if isOperator {
@@ -191,11 +200,15 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         )
         declaration.isOperator = isOperator
         declaration.isAsync = isAsync
-        if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
+        if reader.consume("where") {
+            declaration.constraints = whereConstraints(String(reader.chars[reader.pos...]))
+        }
         return declaration
     }
     if reader.consume("var") || reader.consume("let") {
-        guard let name = reader.identifier(), reader.consume(":") else { throw Unsupported(reason: "property") }
+        guard let name = reader.identifier(), reader.consume(":") else {
+            throw Unsupported(reason: "property")
+        }
         let type = try reader.type()
         // `{ get async }`: reading it waits. A getter that throws isn't bridged.
         let accessors = String(reader.chars[reader.pos...])
@@ -236,7 +249,9 @@ func parseDeclaration(_ text: String) throws -> Declaration {
             typedError: typedError
         )
         declaration.isAsync = isAsync
-        if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
+        if reader.consume("where") {
+            declaration.constraints = whereConstraints(String(reader.chars[reader.pos...]))
+        }
         return declaration
     }
     throw Unsupported(reason: "kind")

@@ -48,7 +48,9 @@ do {
 }
 /// What the other platforms declare, by module: a member is bridged only if
 /// every one of them has it.
-let otherPlatforms: [Set<String>] = try otherPlatformPaths.map { Set(try Manifest(contentsOf: $0).members) }
+let otherPlatforms: [Set<String>] = try otherPlatformPaths.map {
+    Set(try Manifest(contentsOf: $0).members)
+}
 /// What this platform declares, whatever the others have and whatever the
 /// generator can make of it.
 nonisolated(unsafe) var thisPlatform: Set<String> = []  // safe: the generator runs on one thread
@@ -86,7 +88,8 @@ struct BridgedModule {
     /// Types of other modules that its signatures use, held as they are.
     let external: [String]
 
-    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String]) {
+    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String])
+    {
         self.list = list
         self.types = types
         self.functions = functions
@@ -98,7 +101,8 @@ let modules: [String: BridgedModule] = [
     "Swift": BridgedModule(
         "standardLibrary",
         [
-            ("String", []), ("Substring", []), ("Character", []), ("Unicode.Scalar", []), ("Int", []), ("Double", []),
+            ("String", []), ("Substring", []), ("Character", []), ("Unicode.Scalar", []),
+            ("Int", []), ("Double", []),
             ("Bool", []),
             ("Array", ["Element"]), ("ArraySlice", ["Element"]), ("Set", ["Element"]),
             ("Dictionary", ["Key", "Value"]),
@@ -119,12 +123,15 @@ let modules: [String: BridgedModule] = [
     "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, []),
 ]
 guard let module = modules[graph.module.name] else {
-    FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
+    FileHandle.standardError.write(
+        Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8)
+    )
     exit(2)
 }
 let bridgedTypeNames = module.types
 let access = "internal"
-for symbol in graph.symbols where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
+for symbol in graph.symbols
+where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     guard let equals = text.range(of: "=") else { continue }
     var reader = Reader(String(text[equals.upperBound...]))
@@ -146,7 +153,8 @@ for name in module.external where leaves[name] == nil {
 nonisolated(unsafe) var resultOnly: Set<String> = []  // safe: the generator runs on one thread
 nonisolated(unsafe) var enumNames: Set<String> = []  // safe: the generator runs on one thread
 var typeSources: [String] = []
-// A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read, which may be of it.
+// A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read,
+// which may be of it.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
     leaves[name] = Leaf(
         ".named(\(quoted(name)))",
@@ -158,8 +166,11 @@ do {
     // The module's own types, and when it's read as another module's
     // addition, the same: what it adds is known as it is declared.
     let candidates =
-        module.functions != nil ? graph.symbols : graph.symbols.filter { addedByOthers.contains($0.identifier.precise) }
-    let publicTypes = candidates.filter { $0.pathComponents.count == 1 && $0.accessLevel == "public" }
+        module.functions != nil
+        ? graph.symbols : graph.symbols.filter { addedByOthers.contains($0.identifier.precise) }
+    let publicTypes = candidates.filter {
+        $0.pathComponents.count == 1 && $0.accessLevel == "public"
+    }
     for symbol in publicTypes where symbol.kind.identifier == "swift.enum" {
         let name = symbol.pathComponents[0]
         // The styles text is shown in belong to the printers, not to a script.
@@ -167,7 +178,9 @@ do {
         let cases = publicMembers(of: name, "swift.enum.case")
         // Cases with associated values would need their payloads bridged.
         guard !cases.isEmpty,
-            !cases.contains(where: { ($0.declarationFragments ?? []).contains { $0.spelling.contains("(") } })
+            !cases.contains(where: {
+                ($0.declarationFragments ?? []).contains { $0.spelling.contains("(") }
+            })
         else { continue }
         let protocols = conformances(of: symbol, among: ["Equatable", "Hashable", "Comparable"])
         typeSources.append(
@@ -199,10 +212,14 @@ do {
                 let found = fieldType(type)
             else { break }
             declared.append("    let \(field.pathComponents[1]): \(found.source)")
-            if let patch = found.patch { patches.append("\(quoted(field.pathComponents[1])): \(patch)") }
+            if let patch = found.patch {
+                patches.append("\(quoted(field.pathComponents[1])): \(patch)")
+            }
         }
         guard declared.count == fields.count else {
-            FileHandle.standardError.write(Data("\(name): a field Swiit can't hold; left out\n".utf8))
+            FileHandle.standardError.write(
+                Data("\(name): a field Swiit can't hold; left out\n".utf8)
+            )
             continue
         }
         typeSources.append(
@@ -236,13 +253,19 @@ let swiitOwn: [String: Set<String>] = [
 ]
 
 var typeIDs: [[String]: String] = [:]
-for symbol in graph.symbols where symbol.kind.identifier == "swift.struct" || symbol.kind.identifier == "swift.enum" {
+for symbol in graph.symbols
+where symbol.kind.identifier == "swift.struct" || symbol.kind.identifier == "swift.enum" {
     typeIDs[symbol.pathComponents] = symbol.identifier.precise
 }
-let symbolsByID = Dictionary(graph.symbols.map { ($0.identifier.precise, $0) }, uniquingKeysWith: { first, _ in first })
+let symbolsByID = Dictionary(
+    graph.symbols.map { ($0.identifier.precise, $0) },
+    uniquingKeysWith: { first, _ in first }
+)
 
 /// The protocols the module declares: where their members are listed.
-let protocolNames = Set(graph.symbols.filter { $0.kind.identifier == "swift.protocol" }.map(\.pathComponents[0]))
+let protocolNames = Set(
+    graph.symbols.filter { $0.kind.identifier == "swift.protocol" }.map(\.pathComponents[0])
+)
 
 nonisolated(unsafe) var types: [String: BridgedType] = [:]  // safe: the generator runs on one thread
 for (name, parameters) in bridgedTypeNames {
@@ -262,7 +285,8 @@ for (name, parameters) in bridgedTypeNames {
 for (name, _) in bridgedTypeNames {
     var type = types[name]!
     let id = typeIDs[name.split(separator: ".").map(String.init)]
-    for relationship in graph.relationships where relationship.kind == "conformsTo" && relationship.source == id {
+    for relationship in graph.relationships
+    where relationship.kind == "conformsTo" && relationship.source == id {
         var proto =
             relationship.targetFallback.map { String($0.split(separator: ".").last!) }
             ?? symbolsByID[relationship.target]?.pathComponents.last ?? ""
@@ -272,11 +296,14 @@ for (name, _) in bridgedTypeNames {
         // What the generic parameters must be for it, if Swiit can say.
         var needs: [String: [String]] = [:]
         var sayable = true
-        for constraint in relationship.swiftConstraints ?? [] where !alwaysMet.contains(constraint.rhs) {
+        for constraint in relationship.swiftConstraints ?? []
+        where !alwaysMet.contains(constraint.rhs) {
             if strideFix(constraint) { needs["Bound"] = ["=Int"]; continue }
             if constraint.lhs.contains(".") { continue }  // Bound.Stride, with Bound an Int
             if valueProtocols.contains(constraint.rhs) || constraint.rhs == "Encodable" {
-                if needs[constraint.lhs] != ["=Int"] { needs[constraint.lhs, default: []].append(constraint.rhs) }
+                if needs[constraint.lhs] != ["=Int"] {
+                    needs[constraint.lhs, default: []].append(constraint.rhs)
+                }
             } else {
                 sayable = false
             }
@@ -311,17 +338,21 @@ var counts: [String: Int] = [:]
 nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs on one thread
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
-    declarations.append("    nonisolated(unsafe) private static let \(name): BridgedMember = \(expression)\n")
+    declarations.append(
+        "    nonisolated(unsafe) private static let \(name): BridgedMember = \(expression)\n"
+    )
     return name
 }
 
 for (name, _) in bridgedTypeNames {
-    // A type of another module is known to the generator as it is: what is made is only what this module adds to it.
+    // A type of another module is known to the generator as it is: what is made is only what this
+    // module adds to it.
     let owner = types[name] ?? BridgedType(name: name, parameters: [])
     var seen: Set<String> = []
     var members: [String] = []
     let kinds = [
-        "swift.method", "swift.property", "swift.init", "swift.type.method", "swift.type.property", "swift.func.op",
+        "swift.method", "swift.property", "swift.init", "swift.type.method", "swift.type.property",
+        "swift.func.op",
     ]
     // Its own members, then those of the protocols it conforms to, whether
     // required or added by an extension (`Collection.contains`,
@@ -355,14 +386,18 @@ for (name, _) in bridgedTypeNames {
     var bridgedShapes: Set<String> = []
     let ownCount = ownSymbols.count
     for (index, (symbol, conditions)) in candidates.enumerated() {
-        guard kinds.contains(symbol.kind.identifier), symbol.accessLevel == "public", available(symbol) else {
+        guard kinds.contains(symbol.kind.identifier), symbol.accessLevel == "public",
+            available(symbol)
+        else {
             continue
         }
         let title = symbol.pathComponents.last!
         // Operators of a type from another module: the standard library's
         // (Int, String…) are the host's own, which doesn't ask Swift.
         let isOperator = symbol.kind.identifier == "swift.func.op"
-        guard !title.hasPrefix("_"), title.first?.isLetter ?? false || isOperator && graph.module.name != "Swift" else {
+        guard !title.hasPrefix("_"),
+            title.first?.isLetter ?? false || isOperator && graph.module.name != "Swift"
+        else {
             continue
         }
         // The interpreter's own hooks a type adopts (`swiitDescription`), not for Swiit code.
@@ -383,7 +418,9 @@ for (name, _) in bridgedTypeNames {
             let bridged = try bridge(symbol, of: owner, given: conditions)
             let (key, shape, codes) = (bridged.key, bridged.shape, bridged.codes)
             // What another module adds is an overload, not a default.
-            if index >= ownCount, bridgedShapes.contains(shape), !addedByOthers.contains(symbol.identifier.precise) {
+            if index >= ownCount, bridgedShapes.contains(shape),
+                !addedByOthers.contains(symbol.identifier.precise)
+            {
                 continue
             }
             guard seen.insert(key).inserted else { continue }
@@ -395,7 +432,10 @@ for (name, _) in bridgedTypeNames {
             if ProcessInfo.processInfo.environment["SWIIT_BRIDGE_DEBUG"] == name {
                 FileHandle.standardError.write(Data("\(title): \(unsupported.reason)\n".utf8))
             }
-            skipped[unsupported.reason.split(separator: " ").first.map(String.init) ?? "?", default: 0] += 1
+            skipped[
+                unsupported.reason.split(separator: " ").first.map(String.init) ?? "?",
+                default: 0
+            ] += 1
         }
     }
     let context = Context(owner: owner, generics: Set(owner.genericParameters))
@@ -440,7 +480,9 @@ for (name, _) in bridgedTypeNames {
     if owner.parameters.isEmpty {
         let selfType = SType.named(name, [])
         if graph.symbols.contains(where: {
-            $0.pathComponents == name.split(separator: ".").map(String.init) + [$0.pathComponents.last!]
+            $0.pathComponents == name.split(separator: ".").map(String.init) + [
+                $0.pathComponents.last!
+            ]
                 && $0.kind.identifier == "swift.init" && available($0) && isTextInitializer($0)
         }) {
             parse = "{ \(name)($0).map { \(toValue("$0", selfType)) } }"
@@ -469,7 +511,8 @@ if let list = module.functions {
     // `standardFunctions`.
     let prefix = String(list.dropLast("Functions".count))
     output +=
-        "    \(access) static let \(prefix)Types = #\"\"\"\n" + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
+        "    \(access) static let \(prefix)Types = #\"\"\"\n"
+        + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
     var functions: [String] = []
     for symbol in graph.symbols
     where symbol.kind.identifier == "swift.func" && symbol.pathComponents.count == 1
@@ -479,7 +522,9 @@ if let list = module.functions {
             let bridged = try bridge(symbol, of: BridgedType(name: "", parameters: []), free: true)
             functions += bridged.codes.map(declare)
         } catch let unsupported as Unsupported {
-            FileHandle.standardError.write(Data("\(symbol.pathComponents[0]): \(unsupported.reason)\n".utf8))
+            FileHandle.standardError.write(
+                Data("\(symbol.pathComponents[0]): \(unsupported.reason)\n".utf8)
+            )
         }
     }
     output +=
@@ -488,8 +533,12 @@ if let list = module.functions {
 output += declarations.joined(separator: "\n") + "}\n"
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)
 if let manifestPath {
-    try Manifest(platform: Manifest.current, module: graph.module.name, members: thisPlatform.sorted())
-        .write(to: manifestPath)
+    try Manifest(
+        platform: Manifest.current,
+        module: graph.module.name,
+        members: thisPlatform.sorted()
+    )
+    .write(to: manifestPath)
 }
 let total = counts.values.reduce(0, +)
 FileHandle.standardError.write(

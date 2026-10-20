@@ -159,7 +159,9 @@ extension Interpreter {
             var result = Result { try body() }
             // Its own tasks end with it.
             interpreter.closeTasks(above: -1)
-            if case .failure(let error) = result, error is Cancelled { result = .failure(Cancelled()) }
+            if case .failure(let error) = result, error is Cancelled {
+                result = .failure(Cancelled())
+            }
             interpreter.runningTasks -= 1
             handle.finish(result)
             interpreter.lock.release()

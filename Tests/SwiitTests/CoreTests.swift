@@ -62,18 +62,25 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 @Test func theCoreHasTheStandardLibraryButNotAHostsFunctions() {
     // Members of Swift's types are the core's; functions that reach the file
     // system, the process or a pipeline's data are the host's.
-    let (output, problem) = runOnTheCore(#"[1, 2].map { $0 * 2 }; [1, 2].enumerated().map { $0.offset }"#)
+    let (output, problem) = runOnTheCore(
+        #"[1, 2].map { $0 * 2 }; [1, 2].enumerated().map { $0.offset }"#
+    )
     #expect(problem == nil)
     #expect(output == "[2, 4]\n[0, 1]\n")
     for name in ["ls", "ps", "pwd", "history", "readLine", "from", "to", "table", "list", "help"] {
-        #expect(runOnTheCore("\(name)()").problem?.contains("no function named '\(name)'") == true, "\(name)")
+        #expect(
+            runOnTheCore("\(name)()").problem?.contains("no function named '\(name)'") == true,
+            "\(name)"
+        )
     }
 }
 
 @Test func theCorePreludeIsTheLanguagesOwn() {
     // What a `catch` binds is the language's; `members`, `select`, `help` and
     // `JSON` are declared by the host.
-    let (output, problem) = runOnTheCore(#"do { 1 / 0 } catch { print(error.localizedDescription) }"#)
+    let (output, problem) = runOnTheCore(
+        #"do { 1 / 0 } catch { print(error.localizedDescription) }"#
+    )
     #expect(problem == nil)
     #expect(output == "division by zero\n")
     #expect(runOnTheCore("members([1])").problem != nil)

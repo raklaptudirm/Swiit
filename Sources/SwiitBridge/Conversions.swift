@@ -9,12 +9,15 @@ func annotation(_ type: SType) -> String {
         return ".generic(\(quoted(name)), [\(arguments.map(annotation).joined(separator: ", "))])"
     case .array(let element): return ".list(\(annotation(element)))"
     case .optional(let wrapped): return ".optional(\(annotation(wrapped)))"
-    case .dictionary(let key, let value): return ".dictionary(\(annotation(key)), \(annotation(value)))"
+    case .dictionary(let key, let value):
+        return ".dictionary(\(annotation(key)), \(annotation(value)))"
     case .someSequence(let element): return ".someSequence(\(annotation(element)))"
     case .tuple(let elements):
         if elements.isEmpty { return ".void" }
         return ".tuple(["
-            + elements.map { ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))" }
+            + elements.map {
+                ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))"
+            }
             .joined(separator: ", ") + "])"
     case .function(let parameters, let result, let throwing, let isAsync):
         return
@@ -35,7 +38,9 @@ func spelling(_ type: SType) -> String {
     case .dictionary(let key, let value): return "[\(spelling(key)): \(spelling(value))]"
     case .tuple(let elements):
         if elements.isEmpty { return "Void" }
-        return "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + spelling($0.type) }.joined(separator: ", ")
+        return "("
+            + elements.map { ($0.label.map { "\($0): " } ?? "") + spelling($0.type) }
+            .joined(separator: ", ")
             + ")"
     case .function(let parameters, let result, let throwing, let isAsync):
         return
@@ -59,16 +64,21 @@ func isLeaf(_ type: SType) -> Bool {
 func fromValue(_ value: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.from(value) ?? value
-    case .named("KeyPath", let arguments) where arguments.count == 2: return "try bridgeKeyPath(\(value))"
+    case .named("KeyPath", let arguments) where arguments.count == 2:
+        return "try bridgeKeyPath(\(value))"
     case .named(let name, let arguments):
         let box = "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
         guard arguments.contains(where: isLeaf) else { return box }
         switch name {
-        case "Range", "ClosedRange": return "try bridge\(name)(\(value)) { \(fromValue("$0", arguments[0])) }"
+        case "Range", "ClosedRange":
+            return "try bridge\(name)(\(value)) { \(fromValue("$0", arguments[0])) }"
         default: return "\(spelling(type))(\(box).map { \(fromValue("$0", arguments[0])) })"
         }
     case .array(let element), .someSequence(let element):
-        let items = if case .array = type { "try bridgeList(\(value))" } else { "try bridgeSequence(\(value))" }
+        let items =
+            if case .array = type { "try bridgeList(\(value))" } else {
+                "try bridgeSequence(\(value))"
+            }
         if case .named(let name, []) = element, leaves[name] == nil { return items }
         return "\(items).map { \(fromValue("$0", element)) }"
     case .optional(let wrapped):
@@ -77,7 +87,8 @@ func fromValue(_ value: String, _ type: SType) -> String {
         guard !value.contains("(") else {
             // The `try` is for the closure; what is inside the parentheses has its own.
             let converted = fromValue("$0", wrapped)
-            return "\(converted.contains("try") ? "try " : "")bridgeOptional(\(value)) { \(converted) }"
+            return
+                "\(converted.contains("try") ? "try " : "")bridgeOptional(\(value)) { \(converted) }"
         }
         return "(\(value) == .nothing ? nil : \(fromValue(value, wrapped)))"
     case .dictionary(let key, let value2):
@@ -116,7 +127,9 @@ func toValue(_ swift: String, _ type: SType) -> String {
     case .named(let name, []): return leaves[name]?.to(swift) ?? swift
     case .named(let name, let arguments):
         let typeName = quoted(name)
-        guard arguments.contains(where: isLeaf) else { return "SwiftValue.make(\(swift), as: \(typeName))" }
+        guard arguments.contains(where: isLeaf) else {
+            return "SwiftValue.make(\(swift), as: \(typeName))"
+        }
         let bound = arguments[0]
         switch name {
         case "Range", "ClosedRange":
@@ -152,15 +165,20 @@ func literalDefault(_ text: String) -> String? {
     if Int(text) != nil { return ".literal(.int(\(text)))" }
     if Double(text) != nil { return ".literal(.double(\(text)))" }
     if text == "nil" { return ".literal(.nothing)" }
-    if text.hasPrefix("\""), text.hasSuffix("\""), !text.contains("\\(") { return ".literal(.string(\(text)))" }
+    if text.hasPrefix("\""), text.hasSuffix("\""), !text.contains("\\(") {
+        return ".literal(.string(\(text)))"
+    }
     return nil
 }
 
 /// A member's name as Swift code writes it: a keyword in backticks.
 func swiftName(_ name: String) -> String {
-    ["extension", "default", "func", "import", "in", "is", "as", "operator"].contains(name) ? "`\(name)`" : name
+    ["extension", "default", "func", "import", "in", "is", "as", "operator"].contains(name)
+        ? "`\(name)`" : name
 }
 
 func quoted(_ text: String) -> String {
-    "\"" + text.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") + "\""
+    "\""
+        + text.replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "\"", with: "\\\"") + "\""
 }

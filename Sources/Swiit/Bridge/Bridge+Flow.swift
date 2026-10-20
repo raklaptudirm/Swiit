@@ -1,12 +1,15 @@
 import Foundation
 
-// `Flow`, the items read one at a time with the work done as each is asked for, by hand: the generator reads Swift's
+// `Flow`, the items read one at a time with the work done as each is asked for, by hand: the
+// generator reads Swift's
 // own
 // modules, and this one is Swiit's.
 
 extension Bridge {
     private static let element = TypeAnnotation.parameter("Element")
-    private static func flow(_ element: TypeAnnotation) -> TypeAnnotation { .generic("Flow", [element]) }
+    private static func flow(_ element: TypeAnnotation) -> TypeAnnotation {
+        .generic("Flow", [element])
+    }
 
     private static func receiver(_ arguments: [String: Value]) throws -> Flow<Value> {
         try SwiftValue.unbox(Flow<Value>.self, arguments["self"] ?? .nothing)
@@ -25,13 +28,23 @@ extension Bridge {
                 "init",
                 isStatic: true,
                 parameters: [
-                    Parameter(label: nil, name: "read", type: .functionType([], .optional(element), throws: true))
+                    Parameter(
+                        label: nil,
+                        name: "read",
+                        type: .functionType([], .optional(element), throws: true)
+                    )
                 ],
                 returns: flow(element),
                 generics: ["Element": []],
                 summary: ""
             ) { interpreter, arguments in
-                make(Flow<Value> { bridgeOptional(try bridgeClosure(interpreter, arguments["read"]!)([])) { $0 } })
+                make(
+                    Flow<Value> {
+                        bridgeOptional(try bridgeClosure(interpreter, arguments["read"]!)([])) {
+                            $0
+                        }
+                    }
+                )
             },
             member(
                 .initializer,
@@ -48,7 +61,11 @@ extension Bridge {
                 .method,
                 "filter",
                 parameters: [
-                    Parameter(label: nil, name: "isIncluded", type: .functionType([element], .bool, throws: true))
+                    Parameter(
+                        label: nil,
+                        name: "isIncluded",
+                        type: .functionType([element], .bool, throws: true)
+                    )
                 ],
                 returns: flow(element),
                 generics: ["Element": []],
@@ -89,12 +106,22 @@ extension Bridge {
                 summary: "Each item transformed, nil results dropped."
             ) { interpreter, arguments in
                 let transform = bridgeClosure(interpreter, arguments["transform"]!)
-                return make(try receiver(arguments).compactMap { bridgeOptional(try transform([$0])) { $0 } })
+                return make(
+                    try receiver(arguments)
+                        .compactMap { bridgeOptional(try transform([$0])) { $0 } }
+                )
             },
             member(
                 .method,
                 "prefix",
-                parameters: [Parameter(label: nil, name: "maxLength", type: .int, defaultValue: .literal(.int(1)))],
+                parameters: [
+                    Parameter(
+                        label: nil,
+                        name: "maxLength",
+                        type: .int,
+                        defaultValue: .literal(.int(1))
+                    )
+                ],
                 returns: flow(element),
                 generics: ["Element": []],
                 summary: "The first items; stops reading after them."

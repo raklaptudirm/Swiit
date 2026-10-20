@@ -7,7 +7,9 @@ func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
     guard case .function(let keyPath as KeyPathValue) = value else {
         throw SwiitError("expected a key path, not \(value.typeName)")
     }
-    return keyPath.path.reduce(\Value.self) { path, name in path.appending(path: \Value.[field: name]) }
+    return keyPath.path.reduce(\Value.self) { path, name in
+        path.appending(path: \Value.[field: name])
+    }
 }
 
 /// Runs `body`, which reads fields through key paths, with fields read as the
@@ -31,7 +33,9 @@ func withFieldReader<T>(_ interpreter: Interpreter, _ body: () throws -> T) thro
 /// A case of a Swift enum from a Swiit value: the case of that name, among
 /// all the enum's.
 func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
-    guard case .enumValue(let found) = value, let match = T.allCases.first(where: { "\($0)" == found.name }) else {
+    guard case .enumValue(let found) = value,
+        let match = T.allCases.first(where: { "\($0)" == found.name })
+    else {
         throw SwiitError("expected a \(T.self), not \(value.typeName)")
     }
     return match
@@ -54,7 +58,11 @@ enum FieldKind {
 /// them and all there: the encoder leaves out a nil, and the declaration says
 /// it's a field. A field of `patches` is read from the Swift value itself and
 /// made what it is declared as.
-func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches: [String: FieldKind] = [:]) -> Value {
+func bridgeRecord<T: Encodable>(
+    _ interpreter: Interpreter,
+    _ value: T,
+    patches: [String: FieldKind] = [:]
+) -> Value {
     guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
     var record = Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
@@ -101,8 +109,10 @@ func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
 }
 
 /// A tuple's elements, by label or position, made into a Swift tuple.
-func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T {
-    guard case .record(let record) = value, record.typeName == nil, record.count == labels.count else {
+func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T
+{
+    guard case .record(let record) = value, record.typeName == nil, record.count == labels.count
+    else {
         throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
     }
     return try make(
@@ -116,7 +126,9 @@ func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throw
 /// A Swift tuple as Swiit's, from its elements' labels and values.
 func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
     var record = Record()
-    for (index, (label, value)) in elements(tuple).enumerated() { record[label ?? String(index)] = value }
+    for (index, (label, value)) in elements(tuple).enumerated() {
+        record[label ?? String(index)] = value
+    }
     return .record(record)
 }
 
@@ -128,7 +140,9 @@ func bridgeSequence(_ value: Value) throws -> [Value] {
     case .string(let text):
         return Array(Interpreter.iterator(text))
     case .dictionary(let dictionary):
-        return dictionary.map { bridgeTuple(($0.key, $0.value)) { [("key", $0.0), ("value", $0.1)] } }
+        return dictionary.map {
+            bridgeTuple(($0.key, $0.value)) { [("key", $0.0), ("value", $0.1)] }
+        }
     default:
         guard let items = Interpreter.items(of: value) else {
             throw SwiitError("expected a sequence, not \(value.typeName)")
@@ -138,15 +152,24 @@ func bridgeSequence(_ value: Value) throws -> [Value] {
 }
 
 /// A range with bounds of a Swift type, from Swiit's range of values.
-func bridgeRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> Range<Bound> {
+func bridgeRange<Bound: Comparable>(
+    _ value: Value,
+    _ bound: (Value) throws -> Bound
+) throws -> Range<Bound> {
     let range = try SwiftValue.unbox(Range<Value>.self, value)
-    return Range(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
+    return Range(
+        uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound))
+    )
 }
 
-func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> ClosedRange<Bound>
-{
+func bridgeClosedRange<Bound: Comparable>(
+    _ value: Value,
+    _ bound: (Value) throws -> Bound
+) throws -> ClosedRange<Bound> {
     let range = try SwiftValue.unbox(ClosedRange<Value>.self, value)
-    return ClosedRange(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
+    return ClosedRange(
+        uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound))
+    )
 }
 
 /// A Swift value boxed as Swiit holds it, converted first (a `Set<Int>` to
@@ -155,15 +178,24 @@ func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxe
     SwiftValue.make(convert(value), as: typeName)
 }
 
-func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
+func bridgeBox<T, Boxed: Hashable>(
+    _ value: T,
+    as typeName: String,
+    _ convert: (T) -> Boxed
+) -> Value {
     SwiftValue.make(convert(value), as: typeName)
 }
 
 /// `lower...upper` or `lower..<upper`, of any values that compare.
 func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Value {
-    guard lower <= upper else { throw RuntimeError("range \(lower)\(op.rawValue)\(upper) has its bounds reversed") }
+    guard lower <= upper else {
+        throw RuntimeError("range \(lower)\(op.rawValue)\(upper) has its bounds reversed")
+    }
     if op == .closedRange {
-        return SwiftValue.make(ClosedRange(uncheckedBounds: (lower: lower, upper: upper)), as: "ClosedRange")
+        return SwiftValue.make(
+            ClosedRange(uncheckedBounds: (lower: lower, upper: upper)),
+            as: "ClosedRange"
+        )
     }
     return SwiftValue.make(Range(uncheckedBounds: (lower: lower, upper: upper)), as: "Range")
 }
@@ -185,15 +217,21 @@ extension Interpreter {
         case .list(let items):
             return AnyIterator(items.makeIterator())
         case .object(let box as SwiftValue):
-            if let flow = box.value as? Flow<Value> { return AnyIterator { (try? flow.read()) ?? nil } }
+            if let flow = box.value as? Flow<Value> {
+                return AnyIterator { (try? flow.read()) ?? nil }
+            }
             if let range = box.value as? ClosedRange<Value> {
-                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else {
+                guard case .int(let lower) = range.lowerBound,
+                    case .int(let upper) = range.upperBound
+                else {
                     return nil
                 }
                 return AnyIterator((lower...upper).lazy.map(Value.int).makeIterator())
             }
             if let range = box.value as? Range<Value> {
-                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else {
+                guard case .int(let lower) = range.lowerBound,
+                    case .int(let upper) = range.upperBound
+                else {
                     return nil
                 }
                 return AnyIterator((lower..<upper).lazy.map(Value.int).makeIterator())
@@ -211,8 +249,11 @@ extension Interpreter {
         return AnyIterator {
             guard let next = iterator.next() else { return nil }
             if let value = next as? Value { return value }
-            // What Swiit has a value of its own for is that, not a box (a host type's lines are Strings).
-            if next is String || next is Int || next is Double || next is Bool { return Value(reflecting: next) }
+            // What Swiit has a value of its own for is that, not a box (a host type's lines are
+            // Strings).
+            if next is String || next is Int || next is Double || next is Bool {
+                return Value(reflecting: next)
+            }
             // By the name Swiit writes it with, without its module:
             // FilePath.Component, not SystemPackage.FilePath.Component.
             let name = String(reflecting: type(of: next))

@@ -1,14 +1,19 @@
 import Foundation
 
-// Changing a value where it is. A variable that holds a collection, or a struct that holds one, is changed
-// by moving the part to change out of where it is, changing it, and putting it back: nothing else holds
+// Changing a value where it is. A variable that holds a collection, or a struct that holds one, is
+// changed
+// by moving the part to change out of where it is, changing it, and putting it back: nothing else
+// holds
 // it meanwhile, so it isn't copied. (A copy of a whole collection for each element added would make
-// building one quadratic.) Only places that are plain are changed this way: a stored property, a list
+// building one quadratic.) Only places that are plain are changed this way: a stored property, a
+// list
 // or dictionary element. A computed property, an observer, an instance or a subscript takes the
 // long way, through `update`, which copies.
 //
-// What keeps this working is that no copy of the value is alive while it changes: a `switch` on it, or
-// a tuple made of it, would keep one, so the code here takes it apart with `if case` and `guard case`.
+// What keeps this working is that no copy of the value is alive while it changes: a `switch` on it,
+// or
+// a tuple made of it, would keep one, so the code here takes it apart with `if case` and `guard
+// case`.
 
 extension Interpreter {
     /// A step of a place, with the expressions in it worked out.
@@ -23,12 +28,15 @@ extension Interpreter {
     struct Place {
         var steps: [PlaceStep]
         var type: TypeAnnotation?
-        /// What a value put there must be, if the place is a property with a type: it may be changed to fit.
+        /// What a value put there must be, if the place is a property with a type: it may be
+        /// changed to fit.
         var validate: ((Value) throws -> Value)?
     }
 
-    /// Whether evaluating `expr` twice does what evaluating it once does: so a place whose indexes are
-    /// pure can be looked at first and, if it turns out not to be plain, worked out again the long way.
+    /// Whether evaluating `expr` twice does what evaluating it once does: so a place whose indexes
+    /// are
+    /// pure can be looked at first and, if it turns out not to be plain, worked out again the long
+    /// way.
     func isPure(_ expr: Expr) -> Bool {
         switch expr {
         case .literal, .variable: true
@@ -43,15 +51,18 @@ extension Interpreter {
     }
 
     /// `root` followed by `path` as a place that can be changed in place, or nil if it can't.
-    func plainPlace(_ root: String, _ path: [Assignment.Step], op: BinaryOperator?) throws -> Place? {
-        guard let scope = scopeHolding(root), let binding = scope.bindings[root], binding.special != .initializing,
+    func plainPlace(_ root: String, _ path: [Assignment.Step], op: BinaryOperator?) throws -> Place?
+    {
+        guard let scope = scopeHolding(root), let binding = scope.bindings[root],
+            binding.special != .initializing,
             !binding.isComputed
         else { return nil }
         // Nothing the long way would evaluate first can have an effect.
         for step in path {
             switch step {
             case .index(let expr): guard isPure(expr) else { return nil }
-            case .indexDefault(let key, let fallback): guard isPure(key), isPure(fallback) else { return nil }
+            case .indexDefault(let key, let fallback):
+                guard isPure(key), isPure(fallback) else { return nil }
             case .member, .unwrap: break
             case .subscripted, .optionalChain: return nil
             }
@@ -74,7 +85,9 @@ extension Interpreter {
                     else { return nil }
                     steps.append(.member(name))
                     type = property.type
-                    validate = { [self] value in try self.checked(value, as: property, of: structType) }
+                    validate = { [self] value in
+                        try self.checked(value, as: property, of: structType)
+                    }
                 } else {
                     guard record[name] != nil else { return nil }
                     steps.append(.member(name))
@@ -86,7 +99,9 @@ extension Interpreter {
                 let key = try evaluate(expr)
                 switch current {
                 case .list(let items):
-                    guard case .int(let position) = key, items.indices.contains(position) else { return nil }
+                    guard case .int(let position) = key, items.indices.contains(position) else {
+                        return nil
+                    }
                     current = items[position]
                 case .dictionary(let dictionary):
                     current = dictionary[key] ?? .nothing
@@ -107,16 +122,21 @@ extension Interpreter {
                 return nil
             }
         }
-        // What a type of the program's defines for the operator, or a weak variable, is the long way's.
+        // What a type of the program's defines for the operator, or a weak variable, is the long
+        // way's.
         if path.isEmpty, case .object(is WeakReference) = current { return nil }
         if op != nil, isDeclaredValue(current) { return nil }
         return Place(steps: steps, type: type, validate: validate)
     }
 
-    /// Runs `body` on the value at `place` in the variable `root`, which is moved out while it runs and put
+    /// Runs `body` on the value at `place` in the variable `root`, which is moved out while it runs
+    /// and put
     /// back as `body` left it, however it ends.
-    func withPlace<T>(_ root: String, _ place: Place, _ body: (inout Value) throws -> T) throws -> T {
-        guard let scope = scopeHolding(root) else { throw RuntimeError("no variable named '\(root)'") }
+    func withPlace<T>(_ root: String, _ place: Place, _ body: (inout Value) throws -> T) throws -> T
+    {
+        guard let scope = scopeHolding(root) else {
+            throw RuntimeError("no variable named '\(root)'")
+        }
         // Moved: what the variable held is held by `value` alone.
         var value = scope.bindings[root]!.value
         scope.bindings[root]!.value = .nothing
@@ -144,10 +164,14 @@ extension Interpreter {
             return try descend(&field, rest, body)
         case .index(let key):
             if case .list = value { return try descendList(&value, key, rest, body) }
-            if case .dictionary = value { return try descendDictionary(&value, key, fallback: nil, rest, body) }
+            if case .dictionary = value {
+                return try descendDictionary(&value, key, fallback: nil, rest, body)
+            }
             throw RuntimeError("cannot assign into \(value.typeName) by index")
         case .indexDefault(let key, let fallback):
-            guard case .dictionary = value else { throw RuntimeError("'default:' goes with a dictionary") }
+            guard case .dictionary = value else {
+                throw RuntimeError("'default:' goes with a dictionary")
+            }
             return try descendDictionary(&value, key, fallback: fallback, rest, body)
         }
     }
@@ -180,11 +204,14 @@ extension Interpreter {
         value = .nothing
         var element = dictionary[key] ?? fallback ?? .nothing
         if dictionary[key] != nil { dictionary[key] = .nothing }
-        defer { dictionary[key] = element == .nothing ? nil : element; value = .dictionary(dictionary) }
+        defer {
+            dictionary[key] = element == .nothing ? nil : element; value = .dictionary(dictionary)
+        }
         return try descend(&element, rest, body)
     }
 
-    /// `lhs op= rhs` where the value at `slot` is changed in place when it can be: a list or a string grows.
+    /// `lhs op= rhs` where the value at `slot` is changed in place when it can be: a list or a
+    /// string grows.
     func applyInPlace(_ op: BinaryOperator, _ slot: inout Value, _ rhs: Value) throws {
         if op == .add {
             if case .list(var items) = slot, case .list(let more) = rhs {

@@ -3,7 +3,8 @@ import Testing
 
 @testable import Swiit
 
-// A function built by hand (a layer's, which has a description of the command at run time) and bound with `set`.
+// A function built by hand (a layer's, which has a description of the command at run time) and
+// bound with `set`.
 
 private final class Log: @unchecked Sendable {
     var text = ""

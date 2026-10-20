@@ -201,12 +201,15 @@ extension Interpreter {
             stored: stored,
             computed: computed,
             methods: methods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) },
-            initializers: initializers.isEmpty ? nil : OverloadSet(name: "\(decl.name).init", candidates: initializers),
+            initializers: initializers.isEmpty
+                ? nil : OverloadSet(name: "\(decl.name).init", candidates: initializers),
             memberwise: memberwise,
             conformances: decl.conformances,
             staticProperties: decl.staticProperties,
             staticComputed: staticComputed,
-            staticMethods: staticMethods.mapValues { OverloadSet(name: $0[0].name!, candidates: $0) }
+            staticMethods: staticMethods.mapValues {
+                OverloadSet(name: $0[0].name!, candidates: $0)
+            }
         )
         type.staticSetters = staticSetters
         for declared in decl.subscripts {
@@ -246,7 +249,11 @@ extension Interpreter {
                 )
             }
             if property.willSet != nil || property.didSet != nil {
-                func observer(_ body: Program?, _ parameter: String, _ names: NamesUsed) -> Function? {
+                func observer(
+                    _ body: Program?,
+                    _ parameter: String,
+                    _ names: NamesUsed
+                ) -> Function? {
                     body.map { body in
                         Function(
                             name: property.name,
@@ -271,7 +278,9 @@ extension Interpreter {
             var value = try evaluate(expr, expecting: property.type)
             if let expected = property.type {
                 guard let conforming = conform(value, to: expected) else {
-                    throw RuntimeError("\(decl.name).\(property.name) must be \(expected), not \(value.typeName)")
+                    throw RuntimeError(
+                        "\(decl.name).\(property.name) must be \(expected), not \(value.typeName)"
+                    )
                 }
                 value = conforming
             }
@@ -292,7 +301,11 @@ extension Interpreter {
 
     /// `Point(x: 1, y: 2)`: through an `init` the struct declares, or the
     /// memberwise one.
-    func construct(_ type: StructType, _ arguments: [Argument], overload: Int? = nil) throws -> Value {
+    func construct(
+        _ type: StructType,
+        _ arguments: [Argument],
+        overload: Int? = nil
+    ) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -303,7 +316,8 @@ extension Interpreter {
         if let added = typeExtensions[type.name]?.initializers {
             let ownTakes: Bool
             if let own = type.initializers {
-                ownTakes = (try? resolve(narrowed(own, overload)) { try self.bind(values, to: $0) }) != nil
+                ownTakes =
+                    (try? resolve(narrowed(own, overload)) { try self.bind(values, to: $0) }) != nil
             } else {
                 ownTakes = (try? bind(values, to: type.memberwise)) != nil
             }
@@ -322,7 +336,9 @@ extension Interpreter {
             return .record(record)
         }
 
-        let (initializer, bindings) = try resolve(narrowed(initializers, overload)) { try self.bind(values, to: $0) }
+        let (initializer, bindings) = try resolve(narrowed(initializers, overload)) {
+            try self.bind(values, to: $0)
+        }
         // Defaults first, then whatever the initializer sets.
         var start = Record(typeName: type.name)
         for property in type.stored {
@@ -351,7 +367,11 @@ extension Interpreter {
         return .record(record)
     }
 
-    private func storedValue(_ expr: Expr, for property: PropertyDecl, of type: StructType) throws -> Value {
+    private func storedValue(
+        _ expr: Expr,
+        for property: PropertyDecl,
+        of type: StructType
+    ) throws -> Value {
         let value = try evaluate(expr, expecting: property.type)
         return try checked(value, as: property, of: type)
     }
@@ -359,7 +379,9 @@ extension Interpreter {
     func checked(_ value: Value, as property: PropertyDecl, of type: StructType) throws -> Value {
         guard let expected = property.type else { return value }
         guard let conforming = conform(value, to: expected) else {
-            throw RuntimeError("\(type.name).\(property.name) must be \(expected), not \(value.typeName)")
+            throw RuntimeError(
+                "\(type.name).\(property.name) must be \(expected), not \(value.typeName)"
+            )
         }
         return conforming
     }
@@ -370,7 +392,11 @@ extension Interpreter {
     /// the type has neither by that name.
     func structMember(_ name: String, of record: Record, _ type: StructType) throws -> Value? {
         if let getter = type.computed[name] {
-            return try invoke(getter, with: [:], receiver: Receiver(.record(record), mutable: false))
+            return try invoke(
+                getter,
+                with: [:],
+                receiver: Receiver(.record(record), mutable: false)
+            )
         }
         guard let methods = type.methods[name] else { return nil }
         // `let f = p.describe`: the method with `p` as `self`.
@@ -381,7 +407,9 @@ extension Interpreter {
                 returnType: method.returnType,
                 body: .native { interpreter, arguments in
                     guard !method.isMutating else {
-                        throw RuntimeError("mutating method '\(name)' must be called on a variable, as in p.\(name)(…)")
+                        throw RuntimeError(
+                            "mutating method '\(name)' must be called on a variable, as in p.\(name)(…)"
+                        )
                     }
                     return try interpreter.invoke(
                         method,
@@ -409,11 +437,19 @@ extension Interpreter {
         guard let owner = instance.type.subscriptOwner else {
             throw RuntimeError("\(instance.type.name) has no subscript")
         }
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
-        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: owner.subscriptGetters)) {
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (getter, bindings) = try resolve(
+            OverloadSet(name: "subscript", candidates: owner.subscriptGetters)
+        ) {
             try self.bind(values, to: $0)
         }
-        return try invoke(getter, with: bindings, receiver: Receiver(.object(instance), mutable: true))
+        return try invoke(
+            getter,
+            with: bindings,
+            receiver: Receiver(.object(instance), mutable: true)
+        )
     }
 
     func writeSubscript(
@@ -425,35 +461,55 @@ extension Interpreter {
         guard let owner = instance.type.subscriptOwner else {
             throw RuntimeError("\(instance.type.name) has no subscript")
         }
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
-        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: owner.subscriptGetters)) {
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (getter, bindings) = try resolve(
+            OverloadSet(name: "subscript", candidates: owner.subscriptGetters)
+        ) {
             try self.bind(values, to: $0)
         }
         guard let position = owner.subscriptGetters.firstIndex(where: { $0 === getter }),
             let setter = owner.subscriptSetters[position]
         else {
-            throw RuntimeError("cannot assign through \(instance.type.name)'s subscript: it's get-only")
+            throw RuntimeError(
+                "cannot assign through \(instance.type.name)'s subscript: it's get-only"
+            )
         }
         let receiver = Receiver(.object(instance), mutable: true)
         let current = try invoke(getter, with: bindings, receiver: receiver)
         let updatedValue =
             try rest.isEmpty
-            ? change(current, getter.returnType) : updated(current, rest, type: getter.returnType, change)
+            ? change(current, getter.returnType)
+            : updated(current, rest, type: getter.returnType, change)
         var all = bindings
         all[setter.parameters[setter.parameters.count - 1].name] = updatedValue
         _ = try invoke(setter, with: all, receiver: receiver)
         return .object(instance)
     }
 
-    func readSubscript(_ record: Record, _ type: StructType, _ arguments: [Argument]) throws -> Value {
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
-        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: type.subscriptGetters)) {
+    func readSubscript(
+        _ record: Record,
+        _ type: StructType,
+        _ arguments: [Argument]
+    ) throws -> Value {
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (getter, bindings) = try resolve(
+            OverloadSet(name: "subscript", candidates: type.subscriptGetters)
+        ) {
             try self.bind(values, to: $0)
         }
-        return try invoke(getter, with: bindings, receiver: Receiver(.record(record), mutable: false))
+        return try invoke(
+            getter,
+            with: bindings,
+            receiver: Receiver(.record(record), mutable: false)
+        )
     }
 
-    /// `grid[1, 2] = v` (or with `rest`, a change deeper inside it): the value through the subscript's setter.
+    /// `grid[1, 2] = v` (or with `rest`, a change deeper inside it): the value through the
+    /// subscript's setter.
     func writeSubscript(
         _ record: Record,
         _ type: StructType,
@@ -461,8 +517,12 @@ extension Interpreter {
         _ rest: ArraySlice<Assignment.Step>,
         _ change: (Value, TypeAnnotation?) throws -> Value
     ) throws -> Value {
-        let values = try arguments.map { Argument(label: $0.label, value: .literal(try evaluate($0.value))) }
-        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: type.subscriptGetters)) {
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (getter, bindings) = try resolve(
+            OverloadSet(name: "subscript", candidates: type.subscriptGetters)
+        ) {
             try self.bind(values, to: $0)
         }
         guard let position = type.subscriptGetters.firstIndex(where: { $0 === getter }),
@@ -470,10 +530,15 @@ extension Interpreter {
         else {
             throw RuntimeError("cannot assign through \(type.name)'s subscript: it's get-only")
         }
-        let current = try invoke(getter, with: bindings, receiver: Receiver(.record(record), mutable: false))
+        let current = try invoke(
+            getter,
+            with: bindings,
+            receiver: Receiver(.record(record), mutable: false)
+        )
         let updatedValue =
             try rest.isEmpty
-            ? change(current, getter.returnType) : updated(current, rest, type: getter.returnType, change)
+            ? change(current, getter.returnType)
+            : updated(current, rest, type: getter.returnType, change)
         var all = bindings
         all[setter.parameters[setter.parameters.count - 1].name] = updatedValue
         let receiver = Receiver(.record(record), mutable: true)
@@ -493,8 +558,12 @@ extension Interpreter {
 
     /// `p.move(by: 1)`. A mutating method changes `p` itself, so `p` must
     /// be a `var` (or a part of one).
-    func callMethod(_ methods: OverloadSet, of base: Value, at baseExpr: Expr, _ arguments: [Argument]) throws -> Value
-    {
+    func callMethod(
+        _ methods: OverloadSet,
+        of base: Value,
+        at baseExpr: Expr,
+        _ arguments: [Argument]
+    ) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -504,7 +573,9 @@ extension Interpreter {
             return try invoke(method, with: bindings, receiver: Receiver(base, mutable: false))
         }
         guard let (root, path) = lvalue(baseExpr) else {
-            throw RuntimeError("cannot use mutating method '\(methods.name)' on a value that isn't in a variable")
+            throw RuntimeError(
+                "cannot use mutating method '\(methods.name)' on a value that isn't in a variable"
+            )
         }
         try checkAssignable(root, what: "use mutating method '\(methods.name)' on")
         let receiver = Receiver(base, mutable: true)
@@ -517,7 +588,9 @@ extension Interpreter {
     /// from: a variable, or a part of one.
     func mutate(_ receiver: Expr, by method: String, _ change: (Value) throws -> Value) throws {
         guard let (root, path) = lvalue(receiver) else {
-            throw RuntimeError("cannot use mutating method '\(method)' on a value that isn't in a variable")
+            throw RuntimeError(
+                "cannot use mutating method '\(method)' on a value that isn't in a variable"
+            )
         }
         try checkAssignable(root, what: "use mutating method '\(method)' on")
         try update(root, path) { current, _ in try change(current) }
@@ -546,7 +619,8 @@ extension Interpreter {
     /// `x = v`, `p.x += 1`, `xs[0] = v`, `r["k"] = v`.
     func assign(_ assignment: Assignment) throws {
         // `Point.count += 1`: a static var, set through its type.
-        // A change inside an instance is to the instance itself, which the variable holding it needn't allow.
+        // A change inside an instance is to the instance itself, which the variable holding it
+        // needn't allow.
         var holdsInstance = false
         if !assignment.path.isEmpty {
             switch lookup(assignment.root)?.value {
@@ -554,22 +628,26 @@ extension Interpreter {
             default: break
             }
         }
-        if structType(named: assignment.root) == nil, !(lookup(assignment.root)?.value.isDynamicObject ?? false),
+        if structType(named: assignment.root) == nil,
+            !(lookup(assignment.root)?.value.isDynamicObject ?? false),
             !holdsInstance
         {
             try checkAssignable(assignment.root, what: "assign to")
         }
-        // Where it can be, the change is made where the value is, not on a copy of it (see Interpreter+InPlace.swift).
+        // Where it can be, the change is made where the value is, not on a copy of it (see
+        // Interpreter+InPlace.swift).
         if let place = try plainPlace(assignment.root, assignment.path, op: assignment.op) {
             var value = try evaluate(assignment.value, expecting: place.type)
-            // A property's type is checked for what is put in it; a collection changed in it keeps its type, and isn't
+            // A property's type is checked for what is put in it; a collection changed in it keeps
+            // its type, and isn't
             // walked again.
             if assignment.op == nil, let validate = place.validate { value = try validate(value) }
             try withPlace(assignment.root, place) { slot in
                 guard let op = assignment.op else { slot = value; return }
                 try applyInPlace(op, &slot, value)
                 switch slot {
-                case .int, .double, .bool: if let validate = place.validate { slot = try validate(slot) }
+                case .int, .double, .bool:
+                    if let validate = place.validate { slot = try validate(slot) }
                 default: break
                 }
             }
@@ -580,8 +658,12 @@ extension Interpreter {
         try update(assignment.root, assignment.path) { current, type in
             let value = try evaluate(assignment.value, expecting: type)
             // A weak variable stays weak: what is put in it is held without being kept alive.
-            if assignment.path.isEmpty, case .object(is WeakReference) = current, assignment.op == nil {
-                if case .object(let instance as ClassInstance) = value { return .object(WeakReference(instance)) }
+            if assignment.path.isEmpty, case .object(is WeakReference) = current,
+                assignment.op == nil
+            {
+                if case .object(let instance as ClassInstance) = value {
+                    return .object(WeakReference(instance))
+                }
                 if value == .nothing { return .object(WeakReference(nil)) }
             }
             guard let op = assignment.op else { return value }
@@ -625,7 +707,9 @@ extension Interpreter {
         guard let binding = lookup(root) else { throw RuntimeError("no variable named '\(root)'") }
         guard binding.mutable else {
             if root == "self" {
-                throw RuntimeError("cannot \(what) self here: it's only changed by a mutating method")
+                throw RuntimeError(
+                    "cannot \(what) self here: it's only changed by a mutating method"
+                )
             }
             throw RuntimeError("cannot \(what) '\(root)': it's a 'let' constant")
         }
@@ -644,7 +728,13 @@ extension Interpreter {
         }
         let current = scope.bindings[root]!.value
         let initializing = scope.bindings[root]!.special == .initializing
-        scope.bindings[root]!.value = try updated(current, path[...], type: nil, initializing: initializing, change)
+        scope.bindings[root]!.value = try updated(
+            current,
+            path[...],
+            type: nil,
+            initializing: initializing,
+            change
+        )
     }
 
     /// `initializing`: this is `self` in an `init`, whose own `let`
@@ -672,7 +762,8 @@ extension Interpreter {
                 if let setter = structType.setters[name]
                     ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first
                 {
-                    // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set back.
+                    // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set
+                    // back.
                     let current =
                         task.assigningPlainly && rest.isEmpty
                         ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
@@ -680,7 +771,8 @@ extension Interpreter {
                     let returnType = structType.computed[name]?.returnType
                     let newValue =
                         try rest.isEmpty
-                        ? change(current, returnType) : updated(current, rest, type: returnType, change)
+                        ? change(current, returnType)
+                        : updated(current, rest, type: returnType, change)
                     let parameter = setter.parameters[0]
                     _ = try invoke(
                         setter,
@@ -692,27 +784,39 @@ extension Interpreter {
                 guard let property = structType.property(name) else {
                     let what =
                         structType.computed[name] != nil
-                        ? "it's a computed property" : "\(structType.name) has no property '\(name)'"
+                        ? "it's a computed property"
+                        : "\(structType.name) has no property '\(name)'"
                     throw RuntimeError("cannot assign to '\(name)': \(what)")
                 }
                 guard property.mutable || (initializing && path.count == 1) else {
-                    throw RuntimeError("cannot assign to '\(name)': it's a 'let' property of \(structType.name)")
+                    throw RuntimeError(
+                        "cannot assign to '\(name)': it's a 'let' property of \(structType.name)"
+                    )
                 }
                 let value = try updated(record[name] ?? .nothing, rest, type: property.type, change)
                 let stored = try checked(value, as: property, of: structType)
-                // `willSet` and `didSet` run for a change from outside, not while the value is made.
+                // `willSet` and `didSet` run for a change from outside, not while the value is
+                // made.
                 if let observers = structType.observers[name], !initializing {
                     var working = record
                     if let willSet = observers.willSet {
                         let receiver = Receiver(.record(working), mutable: true)
-                        _ = try invoke(willSet, with: [willSet.parameters[0].name: stored], receiver: receiver)
+                        _ = try invoke(
+                            willSet,
+                            with: [willSet.parameters[0].name: stored],
+                            receiver: receiver
+                        )
                         if case .record(let changed) = receiver.value { working = changed }
                     }
                     let old = working[name] ?? .nothing
                     working[name] = stored
                     if let didSet = observers.didSet {
                         let receiver = Receiver(.record(working), mutable: true)
-                        _ = try invoke(didSet, with: [didSet.parameters[0].name: old], receiver: receiver)
+                        _ = try invoke(
+                            didSet,
+                            with: [didSet.parameters[0].name: old],
+                            receiver: receiver
+                        )
                         if case .record(let changed) = receiver.value { working = changed }
                     }
                     return .record(working)
@@ -738,12 +842,19 @@ extension Interpreter {
         case (.index(let indexExpr), .dictionary(var dictionary)):
             let key = try evaluate(indexExpr)
             let current = dictionary[key] ?? .nothing
-            let value = try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
+            let value =
+                try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
         case (.index(let indexExpr), .record(let record))
         where structType(of: record)?.subscriptGetters.isEmpty == false:
-            return try writeSubscript(record, structType(of: record)!, [Argument(value: indexExpr)], rest, change)
+            return try writeSubscript(
+                record,
+                structType(of: record)!,
+                [Argument(value: indexExpr)],
+                rest,
+                change
+            )
         case (.subscripted(let arguments), .record(let record))
         where structType(of: record)?.subscriptGetters.isEmpty == false:
             return try writeSubscript(record, structType(of: record)!, arguments, rest, change)
@@ -754,7 +865,8 @@ extension Interpreter {
         case (.indexDefault(let keyExpr, let fallback), .dictionary(var dictionary)):
             let key = try evaluate(keyExpr)
             let current = try dictionary[key] ?? evaluate(fallback)
-            let value = try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
+            let value =
+                try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
         case (.index(let indexExpr), .record(var record)):
@@ -763,7 +875,13 @@ extension Interpreter {
                 throw RuntimeError("a record is indexed by String, not \(key.typeName)")
             }
             if structType(of: record) != nil {
-                return try updated(base, [.member(name)] + rest, type: type, initializing: initializing, change)
+                return try updated(
+                    base,
+                    [.member(name)] + rest,
+                    type: type,
+                    initializing: initializing,
+                    change
+                )
             }
             record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
             return .record(record)
@@ -778,19 +896,23 @@ extension Interpreter {
         case (.member(let name), .object(let type as ClassType)):
             // `Counter.total += 1`: a static var of the class.
             guard let slot = type.chain.lazy.compactMap({ $0.statics[name] }).first else {
-                throw RuntimeError("cannot assign to '\(name)': \(type.name) has no static property '\(name)'")
+                throw RuntimeError(
+                    "cannot assign to '\(name)': \(type.name) has no static property '\(name)'"
+                )
             }
             guard slot.mutable else {
                 throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
             }
             slot.value = try updated(slot.value, rest, type: nil, change)
             return base
-        case (.member(let name), .object(let type as StructType)) where type.staticSetters[name] != nil && rest.isEmpty:
+        case (.member(let name), .object(let type as StructType))
+        where type.staticSetters[name] != nil && rest.isEmpty:
             // A computed `static var` with a setter: the new value goes through it.
             // What it holds now is read only to change it (`+=`); `= v` only sets.
             let current =
                 task.assigningPlainly
-                ? Value.nothing : try type.staticComputed[name].map { try invoke($0, with: [:]) } ?? .nothing
+                ? Value.nothing
+                : try type.staticComputed[name].map { try invoke($0, with: [:]) } ?? .nothing
             let newValue = try change(current, type.staticProperty(name)?.type)
             let setter = type.staticSetters[name]!
             _ = try invoke(setter, with: [setter.parameters[0].name: newValue])
@@ -806,8 +928,12 @@ extension Interpreter {
                 throw RuntimeError("cannot assign to '\(type.name).\(name)': it's a 'let' constant")
             }
             let value = try updated(slot.value, rest, type: type.staticProperty(name)?.type, change)
-            if let expected = type.staticProperty(name)?.type, rest.isEmpty, conform(value, to: expected) == nil {
-                throw RuntimeError("\(type.name).\(name) must be \(expected), not \(value.typeName)")
+            if let expected = type.staticProperty(name)?.type, rest.isEmpty,
+                conform(value, to: expected) == nil
+            {
+                throw RuntimeError(
+                    "\(type.name).\(name) must be \(expected), not \(value.typeName)"
+                )
             }
             slot.value = value
             return base
@@ -821,15 +947,26 @@ extension Interpreter {
                 throw RuntimeError("cannot assign to '\(name)' of \(base.typeName)")
             }
             let value = try updated(current, rest, type: setter.parameters[0].type, change)
-            let function = Function(name: name, parameters: setter.parameters, returnType: nil, body: setter.body)
-            guard case .list(let parts) = try invoke(function, with: ["self": base, "newValue": value]),
+            let function = Function(
+                name: name,
+                parameters: setter.parameters,
+                returnType: nil,
+                body: setter.body
+            )
+            guard
+                case .list(let parts) = try invoke(
+                    function,
+                    with: ["self": base, "newValue": value]
+                ),
                 parts.count == 2
             else {
                 throw RuntimeError("\(box.typeName).\(name) gave back no receiver")
             }
             return parts[1]
         case (.member(let name), .object(let object as DynamicObject)):
-            guard rest.isEmpty else { throw RuntimeError("cannot assign into \(object.typeName).\(name)") }
+            guard rest.isEmpty else {
+                throw RuntimeError("cannot assign into \(object.typeName).\(name)")
+            }
             try object.write(name, try change(try object.read(name), nil))
             return base
         case (.index(let indexExpr), .object(let object as DynamicObject)):

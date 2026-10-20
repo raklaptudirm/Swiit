@@ -1,6 +1,7 @@
 import Foundation
 
-/// The builtins' types and signatures are Resources/Prelude.swift, embedded in the target by Package.swift.
+/// The builtins' types and signatures are Resources/Prelude.swift, embedded in the target by
+/// Package.swift.
 extension Interpreter {
     static let prelude = String(decoding: PackageResources.Prelude_swift, as: UTF8.self)
 
@@ -9,17 +10,22 @@ extension Interpreter {
     @discardableResult
     func installPrelude() -> [ExtensionDecl] {
         // The Swift types the declarations may name.
-        let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
+        let bridgedTypeNames = Dictionary(
+            uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) }
+        )
         let program: Program
         do {
             program = try PreludeCache.program(for: Interpreter.prelude, bound: bridgedTypeNames)
         } catch {
             preconditionFailure("the prelude doesn't parse: \(error)")
         }
-        do { return try declarePrelude(program, natives: [:]) } catch { preconditionFailure("the prelude: \(error)") }
+        do { return try declarePrelude(program, natives: [:]) } catch {
+            preconditionFailure("the prelude: \(error)")
+        }
     }
 
-    /// Declares a prelude's statements with the Swift bodies found by name; the additions to types are returned, to be
+    /// Declares a prelude's statements with the Swift bodies found by name; the additions to types
+    /// are returned, to be
     /// declared once the rest is.
     func declarePrelude(
         _ program: Program,
@@ -31,18 +37,22 @@ extension Interpreter {
             case .structDecl(let decl):
                 // Declared as any struct is, then moved out to the builtins.
                 try declare(decl, natives: natives.mapValues(\.body))
-                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
+                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
+                    .removeValue(forKey: decl.name)
             case .enumDecl(let decl):
                 try declare(decl)
-                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
+                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
+                    .removeValue(forKey: decl.name)
             case .typeExtension(let decl):
-                // A host's addition to a type, with its body in Swiit (`extension Int { var mb: FileSize { … } }`):
+                // A host's addition to a type, with its body in Swiit (`extension Int { var mb:
+                // FileSize { … } }`):
                 // declared once the
                 // Swift types are bound by name, so that its body can be checked as a program's is.
                 extensions.append(decl)
             case .protocolDecl(let decl):
                 try declare(decl)
-                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
+                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
+                    .removeValue(forKey: decl.name)
             case .function(let decl):
                 // Written with a body, it is Swiit's; without, Swift's by name.
                 let function: Function
@@ -60,9 +70,14 @@ extension Interpreter {
                     if let native = natives["Sequence." + method.name] {
                         function = builtinFunction(method, native.body, input: native.input)
                     } else if !method.body.statements.isEmpty {
-                        // The sequence, as a list, is `self`; the body is checked as a function's is, so that what it
+                        // The sequence, as a list, is `self`; the body is checked as a function's
+                        // is, so that what it
                         // calls is resolved.
-                        let receiver = Parameter(label: nil, name: "self", type: .list(.parameter("Element")))
+                        let receiver = Parameter(
+                            label: nil,
+                            name: "self",
+                            type: .list(.parameter("Element"))
+                        )
                         var written = method
                         written.parameters = [receiver] + method.parameters
                         written.generics["Element", default: []] += []
@@ -77,7 +92,10 @@ extension Interpreter {
                         throw RuntimeError("no body for Sequence.\(method.name)")
                     }
                     let existing = sequenceMethods[method.name]?.candidates ?? []
-                    sequenceMethods[method.name] = OverloadSet(name: method.name, candidates: existing + [function])
+                    sequenceMethods[method.name] = OverloadSet(
+                        name: method.name,
+                        candidates: existing + [function]
+                    )
                 }
             default:
                 throw RuntimeError("a prelude only declares")
@@ -86,13 +104,17 @@ extension Interpreter {
         return extensions
     }
 
-    /// Declares what a host adds to the language itself: types, protocols, functions and what every sequence has,
+    /// Declares what a host adds to the language itself: types, protocols, functions and what every
+    /// sequence has,
     /// written as
-    /// Swift declarations whose bodies are in Swift too. A function or method written without a body (`func next() ->
+    /// Swift declarations whose bodies are in Swift too. A function or method written without a
+    /// body (`func next() ->
     /// Int`)
-    /// takes the body registered under its name (`"hello"`), or `Type.method` for a method (`"Counter.next"`,
+    /// takes the body registered under its name (`"hello"`), or `Type.method` for a method
+    /// (`"Counter.next"`,
     /// `"Sequence.firsts"`).
-    /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations may overload it.
+    /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
+    /// may overload it.
     public func prelude(
         _ source: String,
         bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]
@@ -114,7 +136,11 @@ extension Interpreter {
                                     }
                                 },
                                 input: name.hasPrefix("Sequence.")
-                                    ? Parameter(label: nil, name: "self", type: .list(.parameter("Element"))) : nil
+                                    ? Parameter(
+                                        label: nil,
+                                        name: "self",
+                                        type: .list(.parameter("Element"))
+                                    ) : nil
                             )
                         )
                     }
@@ -131,7 +157,8 @@ extension Interpreter {
     /// A sequence method written in Swiit, with what its body calls resolved.
     private func checkedSequenceMethod(_ method: FunctionDecl) throws -> Program {
         do {
-            return try TypeChecker(interpreter: self).check(Program(statements: [.function(method)]))
+            return try TypeChecker(interpreter: self)
+                .check(Program(statements: [.function(method)]))
         } catch {
             throw RuntimeError("Sequence.\(method.name): \(error)")
         }
@@ -140,7 +167,11 @@ extension Interpreter {
     /// A builtin as the host's functions are: the prelude's signature, a
     /// Swift body, and for a sequence method, the `@input` it reads the
     /// sequence from (each item, or all of them).
-    private func builtinFunction(_ decl: FunctionDecl, _ body: FunctionBody, input: Parameter?) -> Function {
+    private func builtinFunction(
+        _ decl: FunctionDecl,
+        _ body: FunctionBody,
+        input: Parameter?
+    ) -> Function {
         Function(
             name: decl.name,
             parameters: (input.map { [$0] } ?? []) + decl.parameters,
@@ -181,12 +212,16 @@ private enum PreludeCache {
 }
 
 extension Interpreter {
-    /// The prelude's additions to types, with their bodies checked so that what they call is resolved before they run.
+    /// The prelude's additions to types, with their bodies checked so that what they call is
+    /// resolved before they run.
     func declarePreludeExtensions(_ extensions: [ExtensionDecl]) throws {
         for decl in extensions {
             do {
-                let checked = try TypeChecker(interpreter: self).check(Program(statements: [.typeExtension(decl)]))
-                for case .typeExtension(let resolved) in checked.statements { try declare(resolved) }
+                let checked = try TypeChecker(interpreter: self)
+                    .check(Program(statements: [.typeExtension(decl)]))
+                for case .typeExtension(let resolved) in checked.statements {
+                    try declare(resolved)
+                }
             } catch let error as TypeError {
                 throw RuntimeError("the extension of \(decl.typeName): \(error.message)")
             }

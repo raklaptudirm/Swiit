@@ -55,7 +55,10 @@ extension TypeChecker {
 
     /// Both sides' types, letting a literal or `.case` on one side take its
     /// type from the other, as Swift does: `1 + 2.5`, `k == .file`.
-    func operandTypes(_ lhs: inout Expr, _ rhs: inout Expr) throws -> (TypeAnnotation, TypeAnnotation) {
+    func operandTypes(
+        _ lhs: inout Expr,
+        _ rhs: inout Expr
+    ) throws -> (TypeAnnotation, TypeAnnotation) {
         if case .caseLiteral = lhs, !TypeChecker.isContextual(rhs) {
             let right = try typeOf(&rhs)
             return (try typeOf(&lhs, expecting: right), right)
@@ -110,24 +113,35 @@ extension TypeChecker {
 
     /// The type of `a op b` where an operand is of a type the program declared: through an
     /// operator it defines, or one Comparable and Equatable give.
-    func declaredOperatorType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) -> TypeAnnotation?
-    {
+    func declaredOperatorType(
+        _ op: BinaryOperator,
+        _ left: TypeAnnotation,
+        _ right: TypeAnnotation
+    ) -> TypeAnnotation? {
         if let type = userOperatorType(op.rawValue, [left, right]) { return type }
         switch op {
         case .notEqual: return userOperatorType("==", [left, right]) != nil ? .bool : nil
-        case .greater, .lessEqual, .greaterEqual: return userOperatorType("<", [right, left]) != nil ? .bool : nil
+        case .greater, .lessEqual, .greaterEqual:
+            return userOperatorType("<", [right, left]) != nil ? .bool : nil
         default: return nil
         }
     }
 
-    func binaryType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) throws -> TypeAnnotation {
+    func binaryType(
+        _ op: BinaryOperator,
+        _ left: TypeAnnotation,
+        _ right: TypeAnnotation
+    ) throws -> TypeAnnotation {
         if case .named = left, let type = declaredOperatorType(op, left, right) { return type }
         if case .named = right, let type = declaredOperatorType(op, left, right) { return type }
         if left == .unknown || right == .unknown {
             switch op {
             case .less, .lessEqual, .greater, .greaterEqual: return .bool
             case .closedRange, .halfOpenRange:
-                return .generic(op == .closedRange ? "ClosedRange" : "Range", [left == .unknown ? right : left])
+                return .generic(
+                    op == .closedRange ? "ClosedRange" : "Range",
+                    [left == .unknown ? right : left]
+                )
             default: return left == .unknown ? right : left
             }
         }
@@ -169,7 +183,8 @@ extension TypeChecker {
             case (.int, .int), (.double, .double): return left
             default: throw fail
             }
-        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply,
+        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract,
+            .wrapMultiply,
             .maskShiftLeft, .maskShiftRight:
             guard left == .int, right == .int else { throw fail }
             return .int

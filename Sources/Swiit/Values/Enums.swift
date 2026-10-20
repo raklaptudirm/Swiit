@@ -31,7 +31,8 @@ public final class EnumType: LanguageObject, @unchecked Sendable {  // safe: its
 
     /// The case with this raw value, as `Level(rawValue: 2)` gives it.
     public func `case`(rawValue: Value) -> EnumValue? {
-        cases.first { $0.rawValue == rawValue && $0.labels.isEmpty }.map { EnumValue(type: self, name: $0.name) }
+        cases.first { $0.rawValue == rawValue && $0.labels.isEmpty }
+            .map { EnumValue(type: self, name: $0.name) }
     }
 
     /// Every case, if none has associated values (Swift's `CaseIterable`).

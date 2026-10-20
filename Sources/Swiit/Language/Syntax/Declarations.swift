@@ -284,7 +284,12 @@ struct ClosureLiteral: Equatable, Sendable {
         var isUnowned = false
     }
 
-    init(parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, names: NamesUsed = NamesUsed()) {
+    init(
+        parameters: [Parameter],
+        returnType: TypeAnnotation? = nil,
+        body: Program,
+        names: NamesUsed = NamesUsed()
+    ) {
         self.parameters = parameters
         self.returnType = returnType
         self.body = body
@@ -320,7 +325,8 @@ struct Parameter: Equatable, Sendable {
     var isInout = false
     /// `@autoclosure () -> T`: the argument is written as a T, and made a closure.
     var isAutoclosure = false
-    /// The function shows what it is given as interpolation does, which tells an optional's `nil` from a value
+    /// The function shows what it is given as interpolation does, which tells an optional's `nil`
+    /// from a value
     /// (`print`): so an argument whose type holds an optional is given its type, to be shown by.
     var showsByType = false
     /// A default only Swift can compute, like `Date()`: the

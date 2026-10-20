@@ -2,7 +2,8 @@ import Foundation
 
 // MARK: What a host exports
 
-/// A function described as data: a name, parameters, a result, and a body. The way to offer functions whose shape is
+/// A function described as data: a name, parameters, a result, and a body. The way to offer
+/// functions whose shape is
 /// known only at run time. It is checked like any function the script declares.
 public struct HostFunction: Sendable {
     public struct Parameter: Sendable {
@@ -48,7 +49,8 @@ public struct HostFunction: Sendable {
         /// The enums its type uses, which the host learns by name.
         var enums: [EnumType]
         var documentation: String?
-        /// A default only Swift can compute, like `Date()`: the argument is left out and the function uses its own.
+        /// A default only Swift can compute, like `Date()`: the argument is left out and the
+        /// function uses its own.
         /// Its source, for help.
         var defaultSource: String?
         /// What is given is shown as interpolation shows a value.
@@ -107,7 +109,8 @@ public struct HostFunction: Sendable {
         self.call = { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }
 
-    /// A function whose result is a Swift type: `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
+    /// A function whose result is a Swift type: `HostFunction(name: "size", returns: Int.self) { _
+    /// in 3 }`.
     public init<T: ValueConvertible>(
         name: String,
         summary: String? = nil,
@@ -146,10 +149,13 @@ public struct HostFunction: Sendable {
     var returnType: ValueType? { returns }
 }
 
-/// How a host names a type: a parameter or result of a function it offers, and what `symbols`, `resolveOverload` and
-/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with the types it is
+/// How a host names a type: a parameter or result of a function it offers, and what `symbols`,
+/// `resolveOverload` and
+/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with
+/// the types it is
 /// generic over
-/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type. Whether a named type is a
+/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type.
+/// Whether a named type is a
 /// struct,
 /// an enum or a class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
@@ -172,7 +178,8 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
         }
     }
 
-    /// The type of a Swift type a script can use: `ValueType(Int.self)`, `ValueType([String].self)`; any
+    /// The type of a Swift type a script can use: `ValueType(Int.self)`,
+    /// `ValueType([String].self)`; any
     /// `ValueConvertible`.
     public init<T: ValueConvertible>(_ type: T.Type) {
         self = T.valueType
@@ -198,14 +205,18 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     public var description: String {
         switch self {
         case .named("Array", let arguments) where arguments.count == 1: "[\(arguments[0])]"
-        case .named("Dictionary", let arguments) where arguments.count == 2: "[\(arguments[0]): \(arguments[1])]"
+        case .named("Dictionary", let arguments) where arguments.count == 2:
+            "[\(arguments[0]): \(arguments[1])]"
         case .named("Optional", let arguments) where arguments.count == 1: "\(arguments[0])?"
         case .named(let name, let arguments):
-            arguments.isEmpty ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+            arguments.isEmpty
+                ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
         case .function(let parameters, let returns):
             "(\(parameters.map(\.description).joined(separator: ", "))) -> \(returns)"
         case .tuple(let elements):
-            "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }.joined(separator: ", ")
+            "("
+                + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
+                .joined(separator: ", ")
                 + ")"
         }
     }
@@ -245,7 +256,8 @@ public protocol ValueConvertible {
     var value: Value { get }
 }
 
-/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their elements'. An SPI
+/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their
+/// elements'. An SPI
 /// refinement,
 /// because a requirement only the module can see cannot be satisfied by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [EnumType] { get } }
@@ -268,7 +280,9 @@ extension Value: ValueConvertible {
 extension Int: ValueConvertible {
     public static var valueType: ValueType { .int }
     public init(_ swiitValue: Value) throws {
-        guard case .int(let value) = swiitValue else { throw SwiitError.expected("Int", swiitValue) }
+        guard case .int(let value) = swiitValue else {
+            throw SwiitError.expected("Int", swiitValue)
+        }
         self = value
     }
     public var value: Value { .int(self) }
@@ -293,7 +307,9 @@ extension String: ValueConvertible {
         case .string(let value): self = value
         default:
             // What stands for text (a host type's text) is its text.
-            guard let text = swiitValue.text else { throw SwiitError.expected("String", swiitValue) }
+            guard let text = swiitValue.text else {
+                throw SwiitError.expected("String", swiitValue)
+            }
             self = text
         }
     }
@@ -303,7 +319,9 @@ extension String: ValueConvertible {
 extension Bool: ValueConvertible {
     public static var valueType: ValueType { .bool }
     public init(_ swiitValue: Value) throws {
-        guard case .bool(let value) = swiitValue else { throw SwiitError.expected("Bool", swiitValue) }
+        guard case .bool(let value) = swiitValue else {
+            throw SwiitError.expected("Bool", swiitValue)
+        }
         self = value
     }
     public var value: Value { .bool(self) }

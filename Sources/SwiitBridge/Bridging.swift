@@ -10,7 +10,11 @@ struct Leaf {
     let from: (String) -> String
     let to: (String) -> String
 
-    init(_ annotation: String, _ from: @escaping (String) -> String, _ to: @escaping (String) -> String) {
+    init(
+        _ annotation: String,
+        _ from: @escaping (String) -> String,
+        _ to: @escaping (String) -> String
+    ) {
         self.annotation = annotation
         self.from = from
         self.to = to
@@ -34,7 +38,8 @@ let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange", "Flow"]
 
 /// The protocols a type conforms to, as far as the checker needs to know.
 let knownProtocols: Set = [
-    "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "StandsForText",
+    "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence",
+    "StandsForText",
     "ExpressibleByStringLiteral",
 ]
 /// What Swiit's values (the stand-in for every generic parameter) can be.
@@ -99,13 +104,17 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
         if context.generics.contains(name) || owner.genericParameters.contains(name) {
             return arguments.isEmpty ? type : nil
         }
-        if arguments.isEmpty, let target = owner.associated[name] { return resolve(target, context) }
+        if arguments.isEmpty, let target = owner.associated[name] {
+            return resolve(target, context)
+        }
         if name == "Void" { return .tuple([]) }
         let resolved = arguments.compactMap { resolve($0, context) }
         guard resolved.count == arguments.count else { return nil }
         if name == "Array", resolved.count == 1 { return .array(resolved[0]) }
         if name == "Optional", resolved.count == 1 { return .optional(resolved[0]) }
-        if name == "Dictionary", resolved.count == 2 { return .dictionary(resolved[0], resolved[1]) }
+        if name == "Dictionary", resolved.count == 2 {
+            return .dictionary(resolved[0], resolved[1])
+        }
         return .named(name, resolved)
     case .member(let base, let name):
         // `S.Element`, for a sequence parameter S.
@@ -113,7 +122,9 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
             return name == "Element" ? resolve(element, context) : nil
         }
         // `FilePath.Component`: a nested type that's bridged too.
-        if case .named(let outer, []) = base, types["\(outer).\(name)"] != nil { return .named("\(outer).\(name)", []) }
+        if case .named(let outer, []) = base, types["\(outer).\(name)"] != nil {
+            return .named("\(outer).\(name)", [])
+        }
         guard let resolvedBase = resolve(base, context) else { return nil }
         // `Self.Element`: a generic parameter (on Array) or an associated type.
         if resolvedBase == selfType(owner) {
@@ -121,14 +132,18 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
             if let target = owner.associated[name] { return resolve(target, context) }
         }
         // `Bound.Stride`, with Bound fixed to Int: Int's own.
-        if case .named(let leaf, []) = resolvedBase, let other = types[leaf], let target = other.associated[name] {
+        if case .named(let leaf, []) = resolvedBase, let other = types[leaf],
+            let target = other.associated[name]
+        {
             return resolve(target, Context(owner: other, generics: []))
         }
         return nil
     case .array(let element): return resolve(element, context).map(SType.array)
     case .optional(let wrapped): return resolve(wrapped, context).map(SType.optional)
     case .dictionary(let key, let value):
-        guard let key = resolve(key, context), let value = resolve(value, context) else { return nil }
+        guard let key = resolve(key, context), let value = resolve(value, context) else {
+            return nil
+        }
         return .dictionary(key, value)
     case .tuple(let elements):
         let resolved = elements.compactMap { element in
@@ -137,7 +152,9 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
         return resolved.count == elements.count ? .tuple(resolved) : nil
     case .function(let parameters, let result, let throwing, let isAsync):
         let resolved = parameters.compactMap { resolve($0, context) }
-        guard resolved.count == parameters.count, let result = resolve(result, context) else { return nil }
+        guard resolved.count == parameters.count, let result = resolve(result, context) else {
+            return nil
+        }
         return .function(resolved, result, throwing: throwing, async: isAsync)
     case .someSequence:
         return type
@@ -162,7 +179,9 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
         // reads fields of them, as it can't of a Character.
         if name == "KeyPath", arguments.count == 2 {
             return asParameter
-                && arguments.allSatisfy { if case .named(let n, []) = $0 { generics.contains(n) } else { false } }
+                && arguments.allSatisfy {
+                    if case .named(let n, []) = $0 { generics.contains(n) } else { false }
+                }
         }
         return boxes.contains(name) && arguments.allSatisfy { isSimple($0, generics: generics) }
     case .array(let element), .optional(let element), .someSequence(let element):
@@ -175,7 +194,8 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
             return supported(element.type, generics: generics, asParameter: false)
         }
     case .function(let parameters, let result, _, _):
-        return asParameter && parameters.allSatisfy { supported($0, generics: generics, asParameter: false) }
+        return asParameter
+            && parameters.allSatisfy { supported($0, generics: generics, asParameter: false) }
             && supported(result, generics: generics, asParameter: false)
     case .member:
         return false

@@ -22,14 +22,18 @@ extension WaitingHost {
 /// Wrapped in `whileWaiting`, it lets other Swiit tasks run meanwhile, as
 /// the host's own waits do; unwrapped, it holds every task up while it waits.
 ///
-/// A wait that ends only when `body` returns runs to its end even if the task is cancelled. One that can be cut
-/// short (a sleep, a child process, a network call with a cancel handle) says how with `wake`, which is called when
+/// A wait that ends only when `body` returns runs to its end even if the task is cancelled. One
+/// that can be cut
+/// short (a sleep, a child process, a network call with a cancel handle) says how with `wake`,
+/// which is called when
 /// the task is cancelled: use `whileWaiting(wake:_:)` for it.
 /// The host belongs to the thread that runs the Swiit code calling it.
 enum Waiting {
     private final class Box {
-        // Not weak: a weak reference gives the interpreter a side table, which slows every retain and release of
-        // it (the whole evaluator) to the slow path. The host outlives the thread's use of it: it is set for
+        // Not weak: a weak reference gives the interpreter a side table, which slows every retain
+        // and release of
+        // it (the whole evaluator) to the slow path. The host outlives the thread's use of it: it
+        // is set for
         // the span of its own call (`withMainTask`) or for a task its interpreter waits for.
         unowned(unsafe) var host: WaitingHost?
         init(_ host: WaitingHost?) { self.host = host }
@@ -52,8 +56,10 @@ enum Waiting {
         return result!
     }
 
-    /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It runs on the thread
-    /// that cancels, so it may only do what is safe from there: close a handle, signal a process, resume a
+    /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It
+    /// runs on the thread
+    /// that cancels, so it may only do what is safe from there: close a handle, signal a process,
+    /// resume a
     /// continuation.
     public static func whileWaiting<T>(wake: @escaping () -> Void, _ body: () -> T) -> T {
         guard let host else { return body() }
@@ -81,7 +87,8 @@ enum Waiting {
 }
 
 extension Interpreter {
-    /// A host function that blocks says so, or it holds up every script task: the other tasks run while `wait` does.
+    /// A host function that blocks says so, or it holds up every script task: the other tasks run
+    /// while `wait` does.
     public static func whileWaiting<T>(_ wait: () -> T) -> T {
         Waiting.whileWaiting(wait)
     }
@@ -91,7 +98,8 @@ extension Interpreter {
         Waiting.whileWaiting(wake: wake, wait)
     }
 
-    /// A read of the host's input: it runs when it is this task's turn at the input (a task in the background waits
+    /// A read of the host's input: it runs when it is this task's turn at the input (a task in the
+    /// background waits
     /// until it
     /// is brought forward, as the host says), and not at all if the task is cancelled first.
     public static func whileWaitingForInput<T>(_ read: () -> T?) -> T? {

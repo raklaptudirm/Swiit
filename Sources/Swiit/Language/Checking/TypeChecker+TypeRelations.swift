@@ -1,8 +1,11 @@
 import Foundation
 
 extension TypeChecker {
-    /// A generic enum's type arguments say what its cases hold, and nothing else: its values are its name.
-    func erasedName(_ type: TypeAnnotation) -> String? { if case .named(let name) = erased(type) { name } else { nil } }
+    /// A generic enum's type arguments say what its cases hold, and nothing else: its values are
+    /// its name.
+    func erasedName(_ type: TypeAnnotation) -> String? {
+        if case .named(let name) = erased(type) { name } else { nil }
+    }
 
     func erased(_ type: TypeAnnotation) -> TypeAnnotation {
         switch type {
@@ -21,7 +24,9 @@ extension TypeChecker {
         if case .inOut(let inner) = actual { return fits(inner, expected) }
         if case .inOut(let inner) = expected { return fits(actual, inner) }
         let actual = erased(actual), expected = erased(expected)
-        if actual == expected || actual == .unknown || expected == .unknown || expected == .any { return true }
+        if actual == expected || actual == .unknown || expected == .unknown || expected == .any {
+            return true
+        }
         // A protocol's type is any type that conforms to it.
         if case .named(let protocolName) = expected, protocolInfo(named: protocolName) != nil {
             switch actual {
@@ -37,12 +42,14 @@ extension TypeChecker {
         case (.metatype(let a), .metatype(let b)): return fits(a, b)
         case (_, .optional(let wrapped)): return fits(actual, wrapped)
         case (.list(let a), .list(let b)): return fits(a, b)
-        case (.dictionary(let ak, let av), .dictionary(let bk, let bv)): return fits(ak, bk) && fits(av, bv)
+        case (.dictionary(let ak, let av), .dictionary(let bk, let bv)):
+            return fits(ak, bk) && fits(av, bv)
         case (.generic(let a, let aa), .generic(let b, let ba)):
             return a == b && aa.count == ba.count && zip(aa, ba).allSatisfy { fits($0, $1) }
         // An Error is any of the types that conform to it, as a protocol's type is.
         case (.named(let a), .named("Error")) where conforms(.named(a), to: "Error"): return true
-        // A host type with what it holds is one of that type, which the host described as a protocol: a `Job<Int>` is a
+        // A host type with what it holds is one of that type, which the host described as a
+        // protocol: a `Job<Int>` is a
         // `Job`.
         case (.generic(let a, _), .named(let b)) where a == b && isProtocolType(a): return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
@@ -53,13 +60,16 @@ extension TypeChecker {
             return a.count == b.count
                 && zip(a, b)
                     .allSatisfy { x, y in
-                        (x.label == nil || y.label == nil || x.label == y.label) && fits(x.type, y.type)
+                        (x.label == nil || y.label == nil || x.label == y.label)
+                            && fits(x.type, y.type)
                     }
         case (.parameter, _), (_, .parameter): return true
-        case (.keyPath(let ar, let av), .keyPath(let br, let bv)): return fits(br, ar) && fits(av, bv)
+        case (.keyPath(let ar, let av), .keyPath(let br, let bv)):
+            return fits(br, ar) && fits(av, bv)
         case (.keyPath(let root, let value), .functionType(let parameters, let result, _, _)):
             return parameters.count == 1 && fits(parameters[0], root) && fits(value, result)
-        case (.functionType, .function), (.function, .functionType), (.keyPath, .function): return true
+        case (.functionType, .function), (.function, .functionType), (.keyPath, .function):
+            return true
         case (
             .functionType(let ap, let ar, let athrows, let aeffect),
             .functionType(let bp, let br, let bthrows, let beffect)
@@ -67,8 +77,10 @@ extension TypeChecker {
             // A function that throws can't be passed where one that doesn't is
             // wanted, nor an `async` one where a sync one is.
             return ap.count == bp.count && zip(bp, ap).allSatisfy { fits($0, $1) }
-                && (br == .void || fits(ar, br)) && (!athrows || bthrows) && (aeffect != .async || beffect == .async)
-        // A Swift generic type with its arguments is the type named without them (`Set<Int>` where a `Set` is written).
+                && (br == .void || fits(ar, br)) && (!athrows || bthrows)
+                && (aeffect != .async || beffect == .async)
+        // A Swift generic type with its arguments is the type named without them (`Set<Int>` where
+        // a `Set` is written).
         case (.generic(let a, _), .named(let b)) where a == b && Bridge.types[a] != nil: return true
         case (.named(let a), .generic(let b, _)) where a == b && Bridge.types[a] != nil: return true
         // A class is its superclass too.
@@ -78,7 +90,9 @@ extension TypeChecker {
         case (.tuple, .record): return true
         // What stands for text (an Output) is its text where a String is
         // wanted, and its lines where a [String] is.
-        case (_, .string) where standsForText(actual), (_, .list(.string)) where standsForText(actual): return true
+        case (_, .string) where standsForText(actual),
+            (_, .list(.string)) where standsForText(actual):
+            return true
         default: return false
         }
     }
@@ -101,8 +115,12 @@ extension TypeChecker {
         // `=String`: a bridged member for one element type only
         // (`joined(separator:)` where Element == String).
         if TypeChecker.looseProtocols.contains(proto) { return true }
-        if proto.contains(" & ") { return proto.components(separatedBy: " & ").allSatisfy { conforms(type, to: $0) } }
-        if proto.hasPrefix("=") { return type == .unknown || type.description == String(proto.dropFirst()) }
+        if proto.contains(" & ") {
+            return proto.components(separatedBy: " & ").allSatisfy { conforms(type, to: $0) }
+        }
+        if proto.hasPrefix("=") {
+            return type == .unknown || type.description == String(proto.dropFirst())
+        }
         // A plain dynamic type (JSON) stands in for whatever it parsed as (see `conform`).
         if plainType(of: type)?.plain.standsForAnything == true { return true }
         // A Swift type conforms as it declares: Int, [T] where T does,
@@ -122,7 +140,8 @@ extension TypeChecker {
         case .unknown, .parameter, .record: return true
         case .keyPath, .metatype: return proto == "Equatable" || proto == "Hashable"
         // Tuples compare with `==`, but aren't Hashable or Encodable, as in Swift.
-        case .tuple(let elements): return proto == "Equatable" && elements.allSatisfy { conforms($0.type, to: proto) }
+        case .tuple(let elements):
+            return proto == "Equatable" && elements.allSatisfy { conforms($0.type, to: proto) }
         case .named("Error") where proto == "Error":
             return true
         case .named(let name) where isSubclass(name, of: proto):
@@ -131,14 +150,18 @@ extension TypeChecker {
         case .named(let name):
             // A struct or enum conforms by declaring it; Hashable is Equatable too.
             // A protocol is its own and what it takes in.
-            if protocolInfo(named: name) != nil, protocolClosure(name).contains(proto) { return true }
+            if protocolInfo(named: name) != nil, protocolClosure(name).contains(proto) {
+                return true
+            }
             let description = describe(named: name)
             let declared = (description?.conformances ?? []).flatMap(protocolClosure)
             let withoutPayloads =
-                description?.kind == .enumeration && description?.cases.allSatisfy { $0.payload.isEmpty } == true
+                description?.kind == .enumeration
+                && description?.cases.allSatisfy { $0.payload.isEmpty } == true
             if declared.contains(proto) || proto == "Equatable" && declared.contains("Hashable") {
                 // Swift only makes a Comparable enum's `<` without associated values.
-                return proto == "Comparable" && description?.kind == .enumeration ? withoutPayloads : true
+                return proto == "Comparable" && description?.kind == .enumeration
+                    ? withoutPayloads : true
             }
             // Without associated values, an enum is Equatable and Hashable already.
             return withoutPayloads && (proto == "Equatable" || proto == "Hashable")
@@ -153,19 +176,25 @@ extension TypeChecker {
 
     /// `type` with its type parameters replaced by what they're bound to;
     /// one not bound yet isn't known.
-    func substitute(_ type: TypeAnnotation, _ bindings: [String: TypeAnnotation]) -> TypeAnnotation {
+    func substitute(_ type: TypeAnnotation, _ bindings: [String: TypeAnnotation]) -> TypeAnnotation
+    {
         switch type {
         case .parameter(let name): return bindings[name] ?? .unknown
         case .list(let element): return .list(substitute(element, bindings))
         case .optional(let wrapped): return .optional(substitute(wrapped, bindings))
-        case .dictionary(let key, let value): return .dictionary(substitute(key, bindings), substitute(value, bindings))
-        case .generic(let name, let arguments): return .generic(name, arguments.map { substitute($0, bindings) })
+        case .dictionary(let key, let value):
+            return .dictionary(substitute(key, bindings), substitute(value, bindings))
+        case .generic(let name, let arguments):
+            return .generic(name, arguments.map { substitute($0, bindings) })
         case .someSequence(let element): return .someSequence(substitute(element, bindings))
         case .inOut(let wrapped): return .inOut(substitute(wrapped, bindings))
         case .metatype(let wrapped): return .metatype(substitute(wrapped, bindings))
         case .tuple(let elements):
-            return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
-        case .keyPath(let root, let value): return .keyPath(substitute(root, bindings), substitute(value, bindings))
+            return .tuple(
+                elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) }
+            )
+        case .keyPath(let root, let value):
+            return .keyPath(substitute(root, bindings), substitute(value, bindings))
         case .functionType(let parameters, let result, let throwing, let effect):
             return .functionType(
                 parameters.map { substitute($0, bindings) },
@@ -179,20 +208,26 @@ extension TypeChecker {
 
     /// Binds the type parameters in `pattern` by matching it with `actual`,
     /// the type an argument turned out to have.
-    func unify(_ pattern: TypeAnnotation, _ actual: TypeAnnotation, _ bindings: inout [String: TypeAnnotation]) {
+    func unify(
+        _ pattern: TypeAnnotation,
+        _ actual: TypeAnnotation,
+        _ bindings: inout [String: TypeAnnotation]
+    ) {
         switch (pattern, actual) {
         case (_, .unknown):
             return
         case (.parameter(let name), _):
             if bindings[name] == nil || bindings[name] == .unknown { bindings[name] = actual }
-        case (.list(let p), .list(let a)), (.optional(let p), .optional(let a)), (.metatype(let p), .metatype(let a)):
+        case (.list(let p), .list(let a)), (.optional(let p), .optional(let a)),
+            (.metatype(let p), .metatype(let a)):
             unify(p, a, &bindings)
         case (.optional(let p), _):
             unify(p, actual, &bindings)
         case (.dictionary(let pk, let pv), .dictionary(let ak, let av)):
             unify(pk, ak, &bindings)
             unify(pv, av, &bindings)
-        case (.generic(let p, let ps), .generic(let a, let as_)) where p == a && ps.count == as_.count:
+        case (.generic(let p, let ps), .generic(let a, let as_))
+        where p == a && ps.count == as_.count:
             for (p, a) in zip(ps, as_) { unify(p, a, &bindings) }
         case (.tuple(let ps), .tuple(let as_)) where ps.count == as_.count:
             for (p, a) in zip(ps, as_) { unify(p.type, a.type, &bindings) }
@@ -201,10 +236,12 @@ extension TypeChecker {
         case (.keyPath(let pr, let pv), .keyPath(let ar, let av)):
             unify(pr, ar, &bindings)
             unify(pv, av, &bindings)
-        case (.keyPath(let pr, let pv), .functionType(let parameters, let result, _, _)) where parameters.count == 1:
+        case (.keyPath(let pr, let pv), .functionType(let parameters, let result, _, _))
+        where parameters.count == 1:
             unify(pr, parameters[0], &bindings)
             unify(pv, result, &bindings)
-        case (.functionType(let pp, let pr, _, _), .functionType(let ap, let ar, _, _)) where pp.count == ap.count:
+        case (.functionType(let pp, let pr, _, _), .functionType(let ap, let ar, _, _))
+        where pp.count == ap.count:
             for (p, a) in zip(pp, ap) { unify(p, a, &bindings) }
             unify(pr, ar, &bindings)
         default:
@@ -214,10 +251,15 @@ extension TypeChecker {
 
     /// The type of each item when iterating `type`.
     func elementType(of type: TypeAnnotation) throws -> TypeAnnotation {
-        if case .named(let name) = type, let element = Bridge.types[name]?.associatedTypes["Element"] { return element }
+        if case .named(let name) = type,
+            let element = Bridge.types[name]?.associatedTypes["Element"]
+        {
+            return element
+        }
         if case .generic = type {
             // What `for await` reads: an AsyncSequence of the bridged types (a task group).
-            if let (bridgedType, bindings) = bridged(type), bridgedType.conformances["AsyncSequence"] != nil,
+            if let (bridgedType, bindings) = bridged(type),
+                bridgedType.conformances["AsyncSequence"] != nil,
                 let element = bridgedType.associatedTypes["Element"]
             {
                 return substitute(element, bindings)

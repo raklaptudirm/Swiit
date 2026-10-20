@@ -9,7 +9,12 @@ extension Interpreter {
             scopes[0].declare(hostFunction(export), named: export.name)
         }
         let condition = HostFunction.Parameter(label: nil, name: "condition", type: .bool)
-        let message = HostFunction.Parameter(label: nil, name: "message", type: .string, defaultValue: .string(""))
+        let message = HostFunction.Parameter(
+            label: nil,
+            name: "message",
+            type: .string,
+            defaultValue: .string("")
+        )
         for (name, summary) in [
             ("assert", "Stops with the message unless the condition holds."),
             ("precondition", "Stops with the message unless the condition holds."),
@@ -59,7 +64,8 @@ extension Interpreter {
                     name: "type",
                     parameters: [Parameter(label: "of", name: "value", type: .parameter("T"))],
                     returnType: .metatype(.parameter("T")),
-                    body: .native { interpreter, arguments in interpreter.typeObject(of: arguments["value"] ?? .nothing)
+                    body: .native { interpreter, arguments in
+                        interpreter.typeObject(of: arguments["value"] ?? .nothing)
                     },
                     documentation: Documentation(summary: "The type of a value.", parameters: [:]),
                     generics: ["T": []]
@@ -77,31 +83,45 @@ extension Interpreter {
                     ],
                     returnType: nil,
                     body: .native { interpreter, arguments in
-                        interpreter.task.inoutOutputs = [arguments["b"] ?? .nothing, arguments["a"] ?? .nothing]
+                        interpreter.task.inoutOutputs = [
+                            arguments["b"] ?? .nothing, arguments["a"] ?? .nothing,
+                        ]
                         return .nothing
                     },
-                    documentation: Documentation(summary: "Exchanges the values of two variables.", parameters: [:])
+                    documentation: Documentation(
+                        summary: "Exchanges the values of two variables.",
+                        parameters: [:]
+                    )
                 ),
                 named: "swap"
             )
         for (name, isThrowing) in [("withTaskGroup", false), ("withThrowingTaskGroup", true)] {
             scopes[0].declare(Bridge.taskGroupFunction(name, isThrowing: isThrowing), named: name)
         }
-        // What a Mirror shows: a struct's or class's stored properties, an array's items, a tuple's elements.
+        // What a Mirror shows: a struct's or class's stored properties, an array's items, a tuple's
+        // elements.
         scopes[0]
             .declare(
                 Function(
                     name: "__mirrorChildren",
                     parameters: [Parameter(label: nil, name: "subject", type: .any)],
                     returnType: .list(
-                        .tuple([.init(label: "label", type: .optional(.string)), .init(label: "value", type: .any)])
+                        .tuple([
+                            .init(label: "label", type: .optional(.string)),
+                            .init(label: "value", type: .any),
+                        ])
                     ),
                     body: .native { _, arguments in
                         func child(_ label: String?, _ value: Value) -> Value {
-                            .record(Record(["label": label.map(Value.string) ?? .nothing, "value": value]))
+                            .record(
+                                Record([
+                                    "label": label.map(Value.string) ?? .nothing, "value": value,
+                                ])
+                            )
                         }
                         switch arguments["subject"] ?? .nothing {
-                        case .record(let record): return .list(record.map { child($0.key, $0.value) })
+                        case .record(let record):
+                            return .list(record.map { child($0.key, $0.value) })
                         case .list(let items): return .list(items.map { child(nil, $0) })
                         case .dictionary(let dictionary):
                             return .list(
@@ -111,13 +131,19 @@ extension Interpreter {
                             )
                         case .object(let instance as ClassInstance):
                             return .list(
-                                instance.type.allStored.map { child($0.name, instance.storage[$0.name] ?? .nothing) }
+                                instance.type.allStored.map {
+                                    child($0.name, instance.storage[$0.name] ?? .nothing)
+                                }
                             )
-                        case .enumValue(let value): return .list(value.values.map { child(nil, $0) })
+                        case .enumValue(let value):
+                            return .list(value.values.map { child(nil, $0) })
                         default: return .list([])
                         }
                     },
-                    documentation: Documentation(summary: "The pieces of a value, for Mirror.", parameters: [:])
+                    documentation: Documentation(
+                        summary: "The pieces of a value, for Mirror.",
+                        parameters: [:]
+                    )
                 ),
                 named: "__mirrorChildren"
             )
@@ -132,10 +158,15 @@ extension Interpreter {
                         if case .object(let instance as ClassInstance)? = arguments["x"] {
                             return .object(WeakReference(instance))
                         }
-                        if arguments["x"] == nil || arguments["x"] == .nothing { return .object(WeakReference(nil)) }
+                        if arguments["x"] == nil || arguments["x"] == .nothing {
+                            return .object(WeakReference(nil))
+                        }
                         return arguments["x"] ?? .nothing
                     },
-                    documentation: Documentation(summary: "A weak variable's initial value.", parameters: [:]),
+                    documentation: Documentation(
+                        summary: "A weak variable's initial value.",
+                        parameters: [:]
+                    ),
                     generics: ["T": []]
                 ),
                 named: InternalName.weak
@@ -148,7 +179,10 @@ extension Interpreter {
                     parameters: [],
                     returnType: nil,
                     body: .native { _, _ in .nothing },
-                    documentation: Documentation(summary: "A variable declared without a value.", parameters: [:])
+                    documentation: Documentation(
+                        summary: "A variable declared without a value.",
+                        parameters: [:]
+                    )
                 ),
                 named: InternalName.uninitialized
             )
@@ -167,10 +201,15 @@ extension Interpreter {
                     ],
                     returnType: .optional(.parameter("R")),
                     body: .native { interpreter, arguments in
-                        guard let base = arguments["base"], base != .nothing else { return .nothing }
+                        guard let base = arguments["base"], base != .nothing else {
+                            return .nothing
+                        }
                         return try interpreter.call(arguments["rest"]!, with: [base])
                     },
-                    documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]),
+                    documentation: Documentation(
+                        summary: "The rest of an optional chain.",
+                        parameters: [:]
+                    ),
                     isRethrowing: true,
                     generics: ["T": [], "R": []],
                     flattensResult: true
@@ -196,11 +235,14 @@ extension Interpreter {
                 Function(
                     name: "===",
                     parameters: [
-                        Parameter(label: nil, name: "a", type: .any), Parameter(label: nil, name: "b", type: .any),
+                        Parameter(label: nil, name: "a", type: .any),
+                        Parameter(label: nil, name: "b", type: .any),
                     ],
                     returnType: .bool,
                     body: .native { _, arguments in
-                        guard case .object(let a)? = arguments["a"], case .object(let b)? = arguments["b"] else {
+                        guard case .object(let a)? = arguments["a"],
+                            case .object(let b)? = arguments["b"]
+                        else {
                             return .bool(false)
                         }
                         return .bool(a === b)
@@ -214,11 +256,14 @@ extension Interpreter {
             )
         // The functions of Foundation's math, on Doubles.
         let unary: [(String, @Sendable (Double) -> Double)] = [
-            ("sqrt", { $0.squareRoot() }), ("floor", { $0.rounded(.down) }), ("ceil", { $0.rounded(.up) }),
+            ("sqrt", { $0.squareRoot() }), ("floor", { $0.rounded(.down) }),
+            ("ceil", { $0.rounded(.up) }),
             ("trunc", { $0.rounded(.towardZero) }),
-            ("round", { $0.rounded(.toNearestOrAwayFromZero) }), ("sin", sin), ("cos", cos), ("tan", tan),
+            ("round", { $0.rounded(.toNearestOrAwayFromZero) }), ("sin", sin), ("cos", cos),
+            ("tan", tan),
             ("asin", asin), ("acos", acos),
-            ("atan", atan), ("exp", exp), ("log", log), ("log2", log2), ("log10", log10), ("fabs", { Swift.abs($0) }),
+            ("atan", atan), ("exp", exp), ("log", log), ("log2", log2), ("log10", log10),
+            ("fabs", { Swift.abs($0) }),
         ]
         for (name, function) in unary {
             declare(
@@ -246,7 +291,10 @@ extension Interpreter {
                     ],
                     returnType: .double,
                     isThrowing: false,
-                    call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0, arguments["y"]?.asDouble ?? 0))
+                    call: { arguments in
+                        .double(
+                            function(arguments["x"]?.asDouble ?? 0, arguments["y"]?.asDouble ?? 0)
+                        )
                     }
                 )
             )
@@ -315,7 +363,12 @@ extension Interpreter {
                         parameters: [
                             HostFunction.Parameter(label: nil, name: "x", type: type),
                             HostFunction.Parameter(label: nil, name: "y", type: type),
-                            HostFunction.Parameter(label: nil, name: "rest", type: type, variadic: true),
+                            HostFunction.Parameter(
+                                label: nil,
+                                name: "rest",
+                                type: type,
+                                variadic: true
+                            ),
                         ],
                         returnType: type,
                         isThrowing: false,
@@ -331,8 +384,10 @@ extension Interpreter {
                                 }
                             }
                             var best = values[0]
-                            for value in values.dropFirst() where picksLess ? before(value, best) : before(best, value)
-                            { best = value }
+                            for value in values.dropFirst()
+                            where picksLess ? before(value, best) : before(best, value) {
+                                best = value
+                            }
                             return best
                         }
                     )
@@ -355,10 +410,15 @@ extension Interpreter {
                         returnType: .list(type),
                         isThrowing: false,
                         call: { arguments in
-                            guard let start = arguments["from"], let stop = arguments[end], let step = arguments["by"]
+                            guard let start = arguments["from"], let stop = arguments[end],
+                                let step = arguments["by"]
                             else { return .list([]) }
-                            if case .int(let a) = start, case .int(let b) = stop, case .int(let s) = step {
-                                guard s != 0 else { throw RuntimeError("stride: the step can't be 0") }
+                            if case .int(let a) = start, case .int(let b) = stop,
+                                case .int(let s) = step
+                            {
+                                guard s != 0 else {
+                                    throw RuntimeError("stride: the step can't be 0")
+                                }
                                 var values: [Value] = []
                                 var current = a
                                 while s > 0
@@ -373,7 +433,9 @@ extension Interpreter {
                                 }
                                 return .list(values)
                             }
-                            guard let a = start.asDouble, let b = stop.asDouble, let s = step.asDouble else {
+                            guard let a = start.asDouble, let b = stop.asDouble,
+                                let s = step.asDouble
+                            else {
                                 return .list([])
                             }
                             guard s != 0 else { throw RuntimeError("stride: the step can't be 0") }
@@ -412,7 +474,9 @@ extension Interpreter {
         case .record(let record):
             // A tuple is of the type its elements make: `(x: Int, Double)`.
             guard let typeName = record.typeName, let type = structType(named: typeName) else {
-                return .object(BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description))
+                return .object(
+                    BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description)
+                )
             }
             return .object(type)
         case .object(let instance as ClassInstance): return .object(instance.type)
@@ -421,7 +485,8 @@ extension Interpreter {
         case .object(let type as ClassType): return .object(BridgedTypeName(type.name + ".Type"))
         case .object(let type as StructType): return .object(BridgedTypeName(type.name + ".Type"))
         case .object(let type as EnumType): return .object(BridgedTypeName(type.name + ".Type"))
-        case .object(let type as BridgedTypeName): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as BridgedTypeName):
+            return .object(BridgedTypeName(type.name + ".Type"))
         default: return .nothing
         }
         return lookup(name)?.value ?? .nothing

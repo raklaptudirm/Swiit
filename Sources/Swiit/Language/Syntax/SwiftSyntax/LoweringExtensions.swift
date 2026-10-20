@@ -3,18 +3,29 @@ import SwiftSyntax
 extension Lowering {
     // MARK: Extensions
 
-    /// `extension Int { … }`, `extension Point: Equatable { … }`: members added to a type, whichever
-    /// the type is. A `where` clause is accepted and not checked. Inside, a name that isn't local is
+    /// `extension Int { … }`, `extension Point: Equatable { … }`: members added to a type,
+    /// whichever
+    /// the type is. A `where` clause is accepted and not checked. Inside, a name that isn't local
+    /// is
     /// the type's own member if it has one; the checker finds which (`TypeChecker.variable`).
     mutating func typeExtension(_ node: ExtensionDeclSyntax) throws -> [Statement] {
-        guard let written = typeName(node.extendedType) else { throw unsupported("this extension", node) }
+        guard let written = typeName(node.extendedType) else {
+            throw unsupported("this extension", node)
+        }
         let outerParameters = typeParameters
         defer { typeParameters = outerParameters }
         // A type declared inside another, or by the short name it goes by there.
         let target = nestedNames[written] ?? written
-        let conformances = node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
+        let conformances =
+            node.inheritanceClause?.inheritedTypes.map { $0.type.trimmedDescription } ?? []
         try checkProtocols(conformances)
-        var declaration = StructDecl(name: target, properties: [], methods: [], initializers: [], conformances: [])
+        var declaration = StructDecl(
+            name: target,
+            properties: [],
+            methods: [],
+            initializers: [],
+            conformances: []
+        )
         let (instanceMembers, staticMembers) = memberNames(of: node.memberBlock)
         members.append(instanceMembers)
         let outer = (typePrefix, currentType, nestedNames, typeParameters)
@@ -28,14 +39,27 @@ extension Lowering {
         case "Dictionary": typeParameters = ["Key", "Value"]
         default: break
         }
-        defer { members.removeLast(); (typePrefix, currentType, nestedNames, typeParameters) = outer }
-        try lowerMembers(of: node.memberBlock, owner: target, staticMembers: staticMembers, into: &declaration)
-        for property in declaration.properties where property.getter == nil {
-            throw SyntaxError("an extension can't add a stored property: '\(property.name)' (line \(line(of: node)))")
+        defer {
+            members.removeLast(); (typePrefix, currentType, nestedNames, typeParameters) = outer
         }
-        guard declaration.subscripts.isEmpty else { throw unsupported("a subscript in an extension", node) }
+        try lowerMembers(
+            of: node.memberBlock,
+            owner: target,
+            staticMembers: staticMembers,
+            into: &declaration
+        )
+        for property in declaration.properties where property.getter == nil {
+            throw SyntaxError(
+                "an extension can't add a stored property: '\(property.name)' (line \(line(of: node)))"
+            )
+        }
+        guard declaration.subscripts.isEmpty else {
+            throw unsupported("a subscript in an extension", node)
+        }
         return takeNested() + [
-            .typeExtension(ExtensionDecl(typeName: target, members: declaration, conformances: conformances))
+            .typeExtension(
+                ExtensionDecl(typeName: target, members: declaration, conformances: conformances)
+            )
         ]
     }
 
@@ -45,7 +69,9 @@ extension Lowering {
         if let member = type.as(MemberTypeSyntax.self), let base = typeName(member.baseType) {
             return base + "." + member.name.text
         }
-        if let array = type.as(ArrayTypeSyntax.self), array.element.is(IdentifierTypeSyntax.self) { return "Array" }
+        if let array = type.as(ArrayTypeSyntax.self), array.element.is(IdentifierTypeSyntax.self) {
+            return "Array"
+        }
         return nil
     }
 }

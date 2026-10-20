@@ -15,16 +15,21 @@ extension Lowering {
         if let (core, depth) = optionalChainCore(expr) {
             if depth >= 2, chainPlaceholders[core.id] == nil { return try chain(expr, core) }
         }
-        if let node = expr.as(OptionalChainingExprSyntax.self), let placeholder = chainPlaceholders[node.id] {
+        if let node = expr.as(OptionalChainingExprSyntax.self),
+            let placeholder = chainPlaceholders[node.id]
+        {
             return .variable(placeholder)
         }
         if let node = expr.as(IntegerLiteralExprSyntax.self) {
             let text = node.literal.text.replacingOccurrences(of: "_", with: "")
-            guard let number = Int(text) ?? parseRadix(text) else { throw unsupported("this integer", node) }
+            guard let number = Int(text) ?? parseRadix(text) else {
+                throw unsupported("this integer", node)
+            }
             return .literal(.int(number))
         }
         if let node = expr.as(FloatLiteralExprSyntax.self) {
-            guard let number = Double(node.literal.text.replacingOccurrences(of: "_", with: "")) else {
+            guard let number = Double(node.literal.text.replacingOccurrences(of: "_", with: ""))
+            else {
                 throw unsupported("this number", node)
             }
             return .literal(.double(number))
@@ -36,7 +41,9 @@ extension Lowering {
         if let node = expr.as(StringLiteralExprSyntax.self) { return try string(node) }
         if let node = expr.as(DeclReferenceExprSyntax.self) {
             // `+`, `<`: an operator as a function, as in `reduce(0, +)`.
-            if case .binaryOperator = node.baseName.tokenKind, let op = binaryOperator(node.baseName.text) {
+            if case .binaryOperator = node.baseName.tokenKind,
+                let op = binaryOperator(node.baseName.text)
+            {
                 let body = Expr.binary(op, .variable("$0"), .variable("$1"))
                 return .closure(
                     ClosureLiteral(
@@ -59,9 +66,14 @@ extension Lowering {
         if let node = expr.as(TupleExprSyntax.self) { return try tuple(node) }
         if let node = expr.as(ClosureExprSyntax.self) { return .closure(try closure(node)) }
         if let node = expr.as(PrefixOperatorExprSyntax.self) { return try prefix(node) }
-        if let node = expr.as(ForceUnwrapExprSyntax.self) { return .forceUnwrap(try expression(node.expression)) }
+        if let node = expr.as(ForceUnwrapExprSyntax.self) {
+            return .forceUnwrap(try expression(node.expression))
+        }
         if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text != "..." {
-            return .call(.variable("postfix " + node.operator.text), [Argument(value: try expression(node.expression))])
+            return .call(
+                .variable("postfix " + node.operator.text),
+                [Argument(value: try expression(node.expression))]
+            )
         }
         if let node = expr.as(InfixOperatorExprSyntax.self) { return try infix(node) }
         if let node = expr.as(TernaryExprSyntax.self) { return try ternary(node) }
@@ -100,26 +112,35 @@ extension Lowering {
         if expr.is(SuperExprSyntax.self) { return .variable("super") }
         if let node = expr.as(KeyPathExprSyntax.self) { return try keyPath(node) }
         // `Box<Int>(…)`, `f<Int>(…)`: the types only say what a call would infer.
-        if let node = expr.as(GenericSpecializationExprSyntax.self) { return try expression(node.expression) }
-        if let node = expr.as(InOutExprSyntax.self) { return .inoutArgument(try expression(node.expression)) }
+        if let node = expr.as(GenericSpecializationExprSyntax.self) {
+            return try expression(node.expression)
+        }
+        if let node = expr.as(InOutExprSyntax.self) {
+            return .inoutArgument(try expression(node.expression))
+        }
         if let node = expr.as(IfExprSyntax.self) {
             let statement = try ifStatement(node)
             guard statement.otherwise != nil else {
                 throw SyntaxError("an if expression needs an else (line \(line(of: node)))")
             }
             guard let lowered = statement.asExpression else {
-                throw SyntaxError("each branch of an if expression must be one expression (line \(line(of: node)))")
+                throw SyntaxError(
+                    "each branch of an if expression must be one expression (line \(line(of: node)))"
+                )
             }
             return .ifExpression(lowered)
         }
-        if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "filePath" { return .filePath }
+        if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "filePath" {
+            return .filePath
+        }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "function" {
             return .literal(.string(functionNames.last ?? ""))
         }
         if let node = expr.as(MacroExpansionExprSyntax.self), node.macroName.text == "line" {
             return .literal(.int(line(of: node)))
         }
-        // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are lowered with their
+        // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are
+        // lowered with their
         // base.
         if let node = expr.as(OptionalChainingExprSyntax.self) {
             failedAt = node.questionMark.positionAfterSkippingLeadingTrivia.utf8Offset
@@ -151,14 +172,22 @@ extension Lowering {
             if let (target, _) = alias.swiftType { return .variable(target) }
         }
         // A computed variable is read by its getter.
-        if facts.computedGlobals.contains(name) { return .call(.variable(InternalName.getter(name)), []) }
-        if let context = staticContext, context.names.contains(name) { return .member(.variable(context.owner), name) }
+        if facts.computedGlobals.contains(name) {
+            return .call(.variable(InternalName.getter(name)), [])
+        }
+        if let context = staticContext, context.names.contains(name) {
+            return .member(.variable(context.owner), name)
+        }
         if members.last?.contains(name) == true { return .member(.variable("self"), name) }
         // The fixed-width integers are Int here, without its overflow rules.
-        if Lowering.fixedWidthIntegers.contains(name), bound[name] == nil, !declaredTypes.contains(name) {
+        if Lowering.fixedWidthIntegers.contains(name), bound[name] == nil,
+            !declaredTypes.contains(name)
+        {
             return .variable("Int")
         }
-        if let target = Lowering.swiftAliases[name], bound[name] == nil, !declaredTypes.contains(name) {
+        if let target = Lowering.swiftAliases[name], bound[name] == nil,
+            !declaredTypes.contains(name)
+        {
             return .variable(target)
         }
         return .variable(name)
@@ -177,8 +206,12 @@ extension Lowering {
         var indent = ""
         if multiline {
             let trivia = node.closingQuote.leadingTrivia.description
-            indent = String(trivia.split(separator: "\n", omittingEmptySubsequences: false).last ?? "")
-            guard indent.allSatisfy({ $0 == " " || $0 == "\t" }) else { throw unsupported("this string", node) }
+            indent = String(
+                trivia.split(separator: "\n", omittingEmptySubsequences: false).last ?? ""
+            )
+            guard indent.allSatisfy({ $0 == " " || $0 == "\t" }) else {
+                throw unsupported("this string", node)
+            }
         }
         var parts: [StringPart] = []
         var text = ""
@@ -189,7 +222,8 @@ extension Lowering {
             case .stringSegment(let literal):
                 var raw = literal.content.text
                 if multiline && !indent.isEmpty {
-                    var lines = raw.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+                    var lines = raw.split(separator: "\n", omittingEmptySubsequences: false)
+                        .map(String.init)
                     for index in lines.indices where index > 0 || atLineStart {
                         if lines[index].hasPrefix(indent) {
                             lines[index].removeFirst(indent.count)
@@ -207,7 +241,9 @@ extension Lowering {
                 }
                 text += unescaped
             case .expressionSegment(let interpolation):
-                guard interpolation.expressions.count == 1, let inner = interpolation.expressions.first else {
+                guard interpolation.expressions.count == 1,
+                    let inner = interpolation.expressions.first
+                else {
                     throw unsupported("this interpolation", interpolation)
                 }
                 flush()
@@ -257,7 +293,8 @@ extension Lowering {
                     digits.append(characters[index]); index += 1
                 }
                 index += 1
-                guard let value = UInt32(digits, radix: 16), let scalar = Unicode.Scalar(value) else { return nil }
+                guard let value = UInt32(digits, radix: 16), let scalar = Unicode.Scalar(value)
+                else { return nil }
                 result.unicodeScalars.append(scalar)
             default: return nil
             }
@@ -267,8 +304,13 @@ extension Lowering {
 
     // MARK: Members, calls, subscripts
 
-    private mutating func member(_ node: MemberAccessExprSyntax, called: Bool = false) throws -> Expr {
-        guard node.declName.argumentNames == nil else { throw unsupported("a member with argument names", node) }
+    private mutating func member(
+        _ node: MemberAccessExprSyntax,
+        called: Bool = false
+    ) throws -> Expr {
+        guard node.declName.argumentNames == nil else {
+            throw unsupported("a member with argument names", node)
+        }
         let name = node.declName.baseName.text
         guard let base = node.base else { return .caseLiteral(name, nil) }
         // `x.self`, `Int.self`: the value, or the type, itself.
@@ -278,24 +320,32 @@ extension Lowering {
             let outer =
                 reference.baseName.text == "Self"
                 ? currentType : (nestedNames[reference.baseName.text] ?? reference.baseName.text)
-            if let outer, declaredTypes.contains(outer + "." + name) { return .variable(outer + "." + name) }
-            // A type inside another that an earlier program declared, or one of Swift's inside a namespace:
+            if let outer, declaredTypes.contains(outer + "." + name) {
+                return .variable(outer + "." + name)
+            }
+            // A type inside another that an earlier program declared, or one of Swift's inside a
+            // namespace:
             // `Unicode.Scalar`.
             let base = reference.baseName.text
             if bound[base] == nil || bound[base] == .type, bound[base + "." + name] == .type {
                 return .variable(base + "." + name)
             }
         }
-        if let nested = base.as(MemberAccessExprSyntax.self), case .variable(let outer)? = try? member(nested),
+        if let nested = base.as(MemberAccessExprSyntax.self),
+            case .variable(let outer)? = try? member(nested),
             declaredTypes.contains(outer + "." + name) || bound[outer + "." + name] == .type
         {
             return .variable(outer + "." + name)
         }
         // `String.init`: the initializer as a function, which takes one value.
         if name == "init", !called, !base.is(SuperExprSyntax.self),
-            !base.is(DeclReferenceExprSyntax.self) || base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self"
+            !base.is(DeclReferenceExprSyntax.self)
+                || base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self"
         {
-            let made = Expr.call(try expression(base), [Argument(label: nil, value: .variable("$0"))])
+            let made = Expr.call(
+                try expression(base),
+                [Argument(label: nil, value: .variable("$0"))]
+            )
             return .closure(
                 ClosureLiteral(
                     parameters: [Parameter(name: "$0")],
@@ -305,7 +355,9 @@ extension Lowering {
                 )
             )
         }
-        if let chained = base.as(OptionalChainingExprSyntax.self), chainPlaceholders[chained.id] == nil {
+        if let chained = base.as(OptionalChainingExprSyntax.self),
+            chainPlaceholders[chained.id] == nil
+        {
             return .optionalMember(try expression(chained.expression), name)
         }
         return .member(try expression(base), name)
@@ -317,15 +369,20 @@ extension Lowering {
 
     private mutating func call(_ node: FunctionCallExprSyntax) throws -> Expr {
         // `.failed(code: 2)`: a case whose enum comes from context.
-        let isCase = node.calledExpression.as(MemberAccessExprSyntax.self).map { $0.base == nil } ?? false
-        // `[Int](repeating: 0, count: 3)`, `[String: Int]()`: an array or dictionary made, of the type written.
-        if let written = node.calledExpression.as(ArrayExprSyntax.self), written.elements.count == 1,
+        let isCase =
+            node.calledExpression.as(MemberAccessExprSyntax.self).map { $0.base == nil } ?? false
+        // `[Int](repeating: 0, count: 3)`, `[String: Int]()`: an array or dictionary made, of the
+        // type written.
+        if let written = node.calledExpression.as(ArrayExprSyntax.self),
+            written.elements.count == 1,
             let element = written.elements.first?.expression.as(DeclReferenceExprSyntax.self)
         {
             let made = Expr.call(.variable("Array"), try arguments(node.arguments))
             return .annotated(
                 made,
-                .list(TypeAnnotation.spelled(element.baseName.text) ?? .named(element.baseName.text))
+                .list(
+                    TypeAnnotation.spelled(element.baseName.text) ?? .named(element.baseName.text)
+                )
             )
         }
         if let written = node.calledExpression.as(DictionaryExprSyntax.self),
@@ -367,7 +424,9 @@ extension Lowering {
                 callee = try expression(node.calledExpression)
             }
         }
-        guard node.additionalTrailingClosures.isEmpty else { throw unsupported("more than one trailing closure", node) }
+        guard node.additionalTrailingClosures.isEmpty else {
+            throw unsupported("more than one trailing closure", node)
+        }
         var arguments = try arguments(node.arguments)
         if let trailing = node.trailingClosure {
             arguments.append(Argument(label: nil, value: .closure(try closure(trailing))))
@@ -378,7 +437,8 @@ extension Lowering {
         return .call(callee!, arguments)
     }
 
-    /// The `x?` a postfix chain starts from, and how many links (members, subscripts, `!`; a call with its method
+    /// The `x?` a postfix chain starts from, and how many links (members, subscripts, `!`; a call
+    /// with its method
     /// counts once) are after it.
     private func optionalChainCore(_ expr: ExprSyntax) -> (OptionalChainingExprSyntax, Int)? {
         var node = expr
@@ -401,7 +461,10 @@ extension Lowering {
     }
 
     /// `o?.i.v` as `$chain(o) { $chain1 in $chain1.i.v }`: nil if `o` is, else what the rest gives.
-    private mutating func chain(_ expr: ExprSyntax, _ core: OptionalChainingExprSyntax) throws -> Expr {
+    private mutating func chain(
+        _ expr: ExprSyntax,
+        _ core: OptionalChainingExprSyntax
+    ) throws -> Expr {
         chainCount += 1
         let name = InternalName.chainValue(chainCount)
         chainPlaceholders[core.id] = name
@@ -415,7 +478,10 @@ extension Lowering {
             body: Program(statements: [.expression(rest)], lines: [line(of: expr)]),
             names: NamesUsed(names: names(in: expr))
         )
-        return .call(.variable(InternalName.chain), [Argument(value: base), Argument(value: .closure(closure))])
+        return .call(
+            .variable(InternalName.chain),
+            [Argument(value: base), Argument(value: .closure(closure))]
+        )
     }
 
     private mutating func subscriptCall(_ node: SubscriptCallExprSyntax) throws -> Expr {
@@ -425,10 +491,13 @@ extension Lowering {
             .flatMap { chainPlaceholders[$0.id] == nil ? $0 : nil }
         let base = try expression(chained?.expression ?? node.calledExpression)
         // `value[keyPath: \.a.b]`: the member it names.
-        if node.arguments.count == 1, let argument = node.arguments.first, argument.label?.text == "keyPath",
+        if node.arguments.count == 1, let argument = node.arguments.first,
+            argument.label?.text == "keyPath",
             let literal = argument.expression.as(KeyPathExprSyntax.self), literal.root == nil
         {
-            guard case .keyPath(_, let path) = try keyPath(literal) else { throw unsupported("this key path", literal) }
+            guard case .keyPath(_, let path) = try keyPath(literal) else {
+                throw unsupported("this key path", literal)
+            }
             return path.reduce(base) { .member($0, $1) }
         }
         // `counts[word, default: 0]`.
@@ -436,11 +505,18 @@ extension Lowering {
             let fallback = node.arguments.last,
             fallback.label?.text == "default"
         {
-            return .indexDefault(base, try expression(key.expression), try expression(fallback.expression))
+            return .indexDefault(
+                base,
+                try expression(key.expression),
+                try expression(fallback.expression)
+            )
         }
-        // `xs[2...]`, `xs[..<3]`, `xs[...3]`: what `suffix(from:)`, `prefix(upTo:)` and `prefix(through:)` give.
+        // `xs[2...]`, `xs[..<3]`, `xs[...3]`: what `suffix(from:)`, `prefix(upTo:)` and
+        // `prefix(through:)` give.
         if node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil {
-            if let partial = argument.expression.as(PostfixOperatorExprSyntax.self), partial.operator.text == "..." {
+            if let partial = argument.expression.as(PostfixOperatorExprSyntax.self),
+                partial.operator.text == "..."
+            {
                 return .call(
                     .member(base, "suffix"),
                     [Argument(label: "from", value: try expression(partial.expression))]
@@ -456,7 +532,8 @@ extension Lowering {
                 )
             }
         }
-        guard node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil else {
+        guard node.arguments.count == 1, let argument = node.arguments.first, argument.label == nil
+        else {
             return .subscripted(base, try arguments(node.arguments))
         }
         let index = try expression(argument.expression)
@@ -468,7 +545,9 @@ extension Lowering {
         case .colon: return .record([])
         case .elements(let elements):
             return .record(
-                try elements.map { RecordEntry(key: try expression($0.key), value: try expression($0.value)) }
+                try elements.map {
+                    RecordEntry(key: try expression($0.key), value: try expression($0.value))
+                }
             )
         }
     }
@@ -487,7 +566,9 @@ extension Lowering {
         var returnType: TypeAnnotation?
         var captures: [ClosureLiteral.Capture] = []
         if let signature = node.signature {
-            guard signature.attributes.isEmpty else { throw unsupported("this closure signature", signature) }
+            guard signature.attributes.isEmpty else {
+                throw unsupported("this closure signature", signature)
+            }
             for item in signature.capture?.items ?? [] {
                 let specifier = item.specifier?.specifier.tokenKind
                 let isWeak = specifier == .keyword(.weak)
@@ -519,7 +600,10 @@ extension Lowering {
                         throw unsupported("an attribute on a closure's parameter", parameter)
                     }
                     let name = parameter.secondName?.text ?? parameter.firstName.text
-                    return Parameter(name: name, type: try parameter.type.map { try type($0) } ?? .any)
+                    return Parameter(
+                        name: name,
+                        type: try parameter.type.map { try type($0) } ?? .any
+                    )
                 }
             case nil:
                 break
@@ -587,13 +671,17 @@ extension Lowering {
     /// for an `op`, but not the comparisons that also end in `=` (`==`, `!=`,
     /// `<=`, `>=`, `===`, `!==`).
     static func isCompoundAssignment(_ text: String) -> Bool {
-        text.count > 1 && text.hasSuffix("=") && !["==", "!=", "<=", ">=", "===", "!=="].contains(text)
+        text.count > 1 && text.hasSuffix("=")
+            && !["==", "!=", "<=", ">=", "===", "!=="].contains(text)
     }
 
     private mutating func infix(_ node: InfixOperatorExprSyntax) throws -> Expr {
-        // Left to right, as it is read: a name that isn't bound is found before an operator that isn't Swift's.
+        // Left to right, as it is read: a name that isn't bound is found before an operator that
+        // isn't Swift's.
         let left = try expression(node.leftOperand)
-        if node.operator.is(AssignmentExprSyntax.self) { throw unsupported("an assignment in an expression", node) }
+        if node.operator.is(AssignmentExprSyntax.self) {
+            throw unsupported("an assignment in an expression", node)
+        }
         guard let op = node.operator.as(BinaryOperatorExprSyntax.self) else {
             throw unsupported("the operator '\(node.operator.trimmedDescription)'", node.operator)
         }
@@ -623,7 +711,9 @@ extension Lowering {
         let condition = try expression(node.condition)
         let then = IfStatement.branch(try expression(node.thenExpression))
         let otherwise = IfStatement.branch(try expression(node.elseExpression))
-        return .ifExpression(IfStatement(condition: .expression(condition), then: then, otherwise: otherwise))
+        return .ifExpression(
+            IfStatement(condition: .expression(condition), then: then, otherwise: otherwise)
+        )
     }
 
     /// `x = 1`, `p.x += 1`, `xs[0] = v`: the place and what is done to it.
@@ -667,18 +757,23 @@ extension Lowering {
         return [.expression(.call(.variable(InternalName.setter(name)), [Argument(value: value)]))]
     }
 
-    /// `x <+>= y` where the program declares `func <+>= (lhs: inout T, rhs: T)`: a call, with `x` passed as `&x`.
+    /// `x <+>= y` where the program declares `func <+>= (lhs: inout T, rhs: T)`: a call, with `x`
+    /// passed as `&x`.
     mutating func customCompound(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
         guard let binary = node.operator.as(BinaryOperatorExprSyntax.self),
             Lowering.isCompoundAssignment(binary.operator.text),
-            binaryOperator(String(binary.operator.text.dropLast())) == nil, names()[binary.operator.text] != nil
+            binaryOperator(String(binary.operator.text.dropLast())) == nil,
+            names()[binary.operator.text] != nil
         else { return nil }
         let place = try expression(node.leftOperand)
         return [
             .expression(
                 .call(
                     .variable(binary.operator.text),
-                    [Argument(value: .inoutArgument(place)), Argument(value: try expression(node.rightOperand))]
+                    [
+                        Argument(value: .inoutArgument(place)),
+                        Argument(value: try expression(node.rightOperand)),
+                    ]
                 )
             )
         ]
@@ -686,12 +781,15 @@ extension Lowering {
 
     /// `(a, b) = (b, a + b)`: the right side held once, and each place given its element.
     mutating func tupleAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
-        guard node.operator.is(AssignmentExprSyntax.self), let tuple = node.leftOperand.as(TupleExprSyntax.self),
+        guard node.operator.is(AssignmentExprSyntax.self),
+            let tuple = node.leftOperand.as(TupleExprSyntax.self),
             tuple.elements.count > 1
         else { return nil }
         destructurings += 1
         let held = InternalName.tuple(destructurings)
-        var statements: [Statement] = [.declare(name: held, mutable: false, value: try expression(node.rightOperand))]
+        var statements: [Statement] = [
+            .declare(name: held, mutable: false, value: try expression(node.rightOperand))
+        ]
         for (index, element) in tuple.elements.enumerated() {
             if element.expression.is(DiscardAssignmentExprSyntax.self) { continue }
             statements.append(
@@ -728,13 +826,22 @@ extension Lowering {
             } else if let unwrapped = place.as(ForceUnwrapExprSyntax.self) {
                 path.insert(.unwrap, at: 0)
                 place = unwrapped.expression
-            } else if let subscripted = place.as(SubscriptCallExprSyntax.self), subscripted.arguments.count == 2,
-                let key = subscripted.arguments.first, key.label == nil, let fallback = subscripted.arguments.last,
+            } else if let subscripted = place.as(SubscriptCallExprSyntax.self),
+                subscripted.arguments.count == 2,
+                let key = subscripted.arguments.first, key.label == nil,
+                let fallback = subscripted.arguments.last,
                 fallback.label?.text == "default"
             {
-                path.insert(.indexDefault(try expression(key.expression), try expression(fallback.expression)), at: 0)
+                path.insert(
+                    .indexDefault(
+                        try expression(key.expression),
+                        try expression(fallback.expression)
+                    ),
+                    at: 0
+                )
                 place = subscripted.calledExpression
-            } else if let subscripted = place.as(SubscriptCallExprSyntax.self), subscripted.arguments.count == 1,
+            } else if let subscripted = place.as(SubscriptCallExprSyntax.self),
+                subscripted.arguments.count == 1,
                 let argument = subscripted.arguments.first, argument.label == nil
             {
                 path.insert(.index(try expression(argument.expression)), at: 0)
@@ -758,11 +865,18 @@ extension Lowering {
             rootName = context.owner
         }
         // A struct's own member, in a method: `n += 1` is `self.n += 1`.
-        else if !locals.contains(where: { $0.contains(rootName) }), members.last?.contains(rootName) == true {
+        else if !locals.contains(where: { $0.contains(rootName) }),
+            members.last?.contains(rootName) == true
+        {
             path.insert(.member(rootName), at: 0)
             rootName = "self"
         }
-        return Assignment(root: rootName, path: path, op: op, value: try held ?? expression(rightOperand!))
+        return Assignment(
+            root: rootName,
+            path: path,
+            op: op,
+            value: try held ?? expression(rightOperand!)
+        )
     }
 }
 

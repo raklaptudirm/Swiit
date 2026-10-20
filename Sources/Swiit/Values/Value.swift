@@ -5,9 +5,11 @@ import Foundation
 /// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
-    // The representation is the interpreter's and the host's (SPI). A host builds a value with its initializers and
+    // The representation is the interpreter's and the host's (SPI). A host builds a value with its
+    // initializers and
     // literals and
-    // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never breaks it.
+    // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never
+    // breaks it.
     case nothing
     case bool(Bool)
     case int(Int)
@@ -27,25 +29,32 @@ public enum Value: Sendable {
     case function(any Callable)
 }
 
-/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which the checker reads, so
+/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which
+/// the checker reads, so
 /// a
-/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at run time. Objects
+/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at
+/// run time. Objects
 /// compare
 /// by identity.
-public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
+    CustomDebugStringConvertible
+{
     /// The name `members` and error messages use, like `Job`.
     var typeName: String { get }
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
-    /// A member answered at run time, after the registered ones; nil if there is none. Optional: most objects have only
+    /// A member answered at run time, after the registered ones; nil if there is none. Optional:
+    /// most objects have only
     /// the
     /// registered members.
     func member(_ name: String) -> Value?
-    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that isn't data. By
+    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that
+    /// isn't data. By
     /// default
     /// every member that isn't a method.
     var fields: ValueDictionary? { get }
-    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job reads `[1] running
+    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job
+    /// reads `[1] running
     /// make`);
     /// nil to print as its fields.
     var displaySegments: [DisplaySegment]? { get }
@@ -56,8 +65,10 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, Custom
 /// A piece of text and the style it's shown in.
 public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 
-/// An object the language makes itself (an instance, a type, a weak reference, a Swift value held as it is), as
-/// opposed to one a host hands in. The checker types the language's by what they are, and a host's by the protocol
+/// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
+/// as it is), as
+/// opposed to one a host hands in. The checker types the language's by what they are, and a host's
+/// by the protocol
 /// the host declares for them.
 protocol LanguageObject: HostObject {}
 
@@ -70,7 +81,8 @@ extension HostObject {
             .map(\.name).filter { seen.insert($0).inserted }
     }
 
-    /// The registered members of its type: a property is read, a method is a function bound to the object.
+    /// The registered members of its type: a property is read, a method is a function bound to the
+    /// object.
     public func member(_ name: String) -> Value? {
         guard
             let member = Bridge.types[typeName]?.members
@@ -85,7 +97,11 @@ extension HostObject {
                 HostFunction(
                     name: name,
                     parameters: member.parameters.map {
-                        HostFunction.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type))
+                        HostFunction.Parameter(
+                            label: $0.label,
+                            name: $0.name,
+                            type: ValueType($0.type)
+                        )
                     },
                     returnType: ValueType(member.returns),
                     isThrowing: member.isThrowing,
@@ -176,7 +192,8 @@ public struct Record: Sendable, Hashable, Sequence {
         }
     }
 
-    /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only reference to it.
+    /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only
+    /// reference to it.
     mutating func takeValue(_ key: String) -> Value? {
         guard let current = storage[key] else { return nil }
         storage[key] = .nothing
@@ -206,7 +223,8 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     public var debugDescription: String {
         (typeName ?? "") + "("
             + map { field in
-                (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.debugDescription
+                (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                    + field.value.debugDescription
             }
             .joined(separator: ", ") + ")"
     }
@@ -229,9 +247,12 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
 /// Swift's `[Value: Value]`: iterating it goes in Swift's order, which is
 /// no particular one and changes from run to run. Shown, it's sorted by key
 /// (`sortedForDisplay`), so what's printed is the same every time.
-public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible, CustomDebugStringConvertible {
+public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible,
+    CustomDebugStringConvertible
+{
     private var storage: [Value: Value]
-    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two dictionaries with the
+    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two
+    /// dictionaries with the
     /// same
     /// entries are equal whatever order they were made in.
     private var order: [Value]
@@ -245,7 +266,8 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         get { storage }
         set {
             // What stays keeps its place; what is new comes after, in a fixed order.
-            let added = newValue.keys.filter { storage[$0] == nil }.sorted { Value.displaysBefore($0, $1) }
+            let added = newValue.keys.filter { storage[$0] == nil }
+                .sorted { Value.displaysBefore($0, $1) }
             order = order.filter { newValue[$0] != nil } + added
             storage = newValue
         }
@@ -256,7 +278,8 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
     }
 
-    /// In the order given. A later entry with the same key replaces the value of the earlier one, which keeps its
+    /// In the order given. A later entry with the same key replaces the value of the earlier one,
+    /// which keeps its
     /// place.
     public init(_ entries: [(Value, Value)]) {
         storage = [:]
@@ -275,7 +298,9 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         }
     }
 
-    public static func == (lhs: ValueDictionary, rhs: ValueDictionary) -> Bool { lhs.storage == rhs.storage }
+    public static func == (lhs: ValueDictionary, rhs: ValueDictionary) -> Bool {
+        lhs.storage == rhs.storage
+    }
     public func hash(into hasher: inout Hasher) { hasher.combine(storage) }
 
     public var count: Int { storage.count }
@@ -436,7 +461,8 @@ extension Value {
     }
 }
 
-/// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
+/// A mutating member's receiver, moved out of its variable for the call: nothing else holds the
+/// value
 /// while the member changes it, so a collection is changed where it is, not copied whole each time.
 /// The member's glue takes it out, and puts it back, changed, however the call ends.
 final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
@@ -466,7 +492,8 @@ final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its sta
 
 // MARK: Making and reading values
 
-extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral,
+extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
+    ExpressibleByFloatLiteral,
     ExpressibleByStringLiteral,
     ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
 {
@@ -475,12 +502,16 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, Expre
     public init(floatLiteral value: Double) { self = .double(value) }
     public init(stringLiteral value: String) { self = .string(value) }
     public init(arrayLiteral elements: Value...) { self = .list(elements) }
-    public init(dictionaryLiteral elements: (Value, Value)...) { self = .dictionary(ValueDictionary(elements)) }
+    public init(dictionaryLiteral elements: (Value, Value)...) {
+        self = .dictionary(ValueDictionary(elements))
+    }
 }
 
 extension Value {
-    /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a struct value by name (a
-    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is data. Nil for any other
+    /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a
+    /// struct value by name (a
+    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is
+    /// data. Nil for any other
     /// value.
     public var entries: ValueDictionary? {
         switch self {
@@ -491,11 +522,13 @@ extension Value {
         }
     }
 
-    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's. Nil for anything
+    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's.
+    /// Nil for anything
     /// else.
     public var flow: Flow<Value>? { Interpreter.flow(of: self) }
 
-    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host type's text, a flow),
+    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host
+    /// type's text, a flow),
     /// one at
     /// a time, so a range of a billion never becomes a list; nil for anything else.
     public var items: AnySequence<Value>? {
@@ -503,14 +536,17 @@ extension Value {
         return AnySequence { Interpreter.items(of: self)! }
     }
 
-    /// A described function as a value, for a host object's method to give: `.function(...)` of its own making.
+    /// A described function as a value, for a host object's method to give: `.function(...)` of its
+    /// own making.
     public init(_ function: HostFunction) {
         self = .function(NativeFunction(function))
     }
 
-    /// A struct's value, with its fields in order and every one present (an absent optional is `nil`): `Value(struct:
+    /// A struct's value, with its fields in order and every one present (an absent optional is
+    /// `nil`): `Value(struct:
     /// "Point",
-    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled elements are named by
+    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled
+    /// elements are named by
     /// position.
     public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
         self = .record(Record(fields, typeName: typeName))
@@ -523,7 +559,8 @@ extension Value {
         self = .record(record)
     }
 
-    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one
+    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift
+    /// type, or `name` if one
     /// is given.
     public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
@@ -548,7 +585,8 @@ extension Value {
     public init(_ value: ValueDictionary) { self = .dictionary(value) }
     public init(_ value: some HostObject) { self = .object(value) }
 
-    /// What a value is, as a script would say it. A tuple and a struct value are told apart by whether the type has a
+    /// What a value is, as a script would say it. A tuple and a struct value are told apart by
+    /// whether the type has a
     /// name.
     public enum Kind: Sendable {
         case nothing, bool, int, double, string, list, dictionary
@@ -571,7 +609,8 @@ extension Value {
         }
     }
 
-    /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list casts only if every
+    /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
+    /// casts only if every
     /// element does.
     /// `try T(value)` is the throwing form, and converts as a script's call does.
     public func cast<T: ValueConvertible>(to type: T.Type = T.self) -> T? {
@@ -585,7 +624,8 @@ extension Value {
         return object as? T
     }
 
-    /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an optional string),
+    /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
+    /// optional string),
     /// else nil.
     public func cast(to type: ValueType) -> Value? {
         matches(type) ? self : nil
@@ -605,8 +645,12 @@ extension Value {
             guard case .list(let items) = self else { return false }
             return items.allSatisfy { arguments.first.map($0.matches) ?? true }
         case .named("Dictionary", let arguments):
-            guard case .dictionary(let dictionary) = self, arguments.count == 2 else { return kind == .dictionary }
-            return dictionary.allSatisfy { $0.key.matches(arguments[0]) && $0.value.matches(arguments[1]) }
+            guard case .dictionary(let dictionary) = self, arguments.count == 2 else {
+                return kind == .dictionary
+            }
+            return dictionary.allSatisfy {
+                $0.key.matches(arguments[0]) && $0.value.matches(arguments[1])
+            }
         case .named(let name, _):
             switch self {
             case .record(let record): return record.typeName == name
@@ -615,12 +659,15 @@ extension Value {
             default: return false
             }
         case .tuple(let elements):
-            guard case .record(let record) = self, record.typeName == nil, record.count == elements.count else {
+            guard case .record(let record) = self, record.typeName == nil,
+                record.count == elements.count
+            else {
                 return false
             }
             return zip(record, elements)
                 .allSatisfy { field, element in
-                    (element.label == nil || element.label == field.key) && field.value.matches(element.type)
+                    (element.label == nil || element.label == field.key)
+                        && field.value.matches(element.type)
                 }
         }
     }
@@ -631,7 +678,8 @@ extension Value {
         return value.rawValue
     }
 
-    /// The case of a script enum: its type's name, the case's name, its payload and the labels the payload is declared
+    /// The case of a script enum: its type's name, the case's name, its payload and the labels the
+    /// payload is declared
     /// with.
     public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
         guard case .enumValue(let value) = self else { return nil }

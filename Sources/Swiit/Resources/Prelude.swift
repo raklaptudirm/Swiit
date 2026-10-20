@@ -1,5 +1,7 @@
-// The builtins' types and signatures, written in Swiit and read when the host starts. The checker works from these;
-// the bodies are in Swift, found by name. Doc comments are what help shows. Not compiled: embedded in the target.
+// The builtins' types and signatures, written in Swiit and read when the host starts. The checker
+// works from these;
+// the bodies are in Swift, found by name. Doc comments are what help shows. Not compiled: embedded
+// in the target.
 
 /// What `catch` binds: any error, which tells what went wrong. Cast it to
 /// get at more, as in Swift: `if let failure = error as? CommandFailure`.
@@ -34,14 +36,18 @@ enum Result<Success, Failure: Error> {
         }
     }
 
-    func mapError<NewFailure: Error>(_ transform: (Failure) -> NewFailure) -> Result<Success, NewFailure> {
+    func mapError<NewFailure: Error>(
+        _ transform: (Failure) -> NewFailure
+    ) -> Result<Success, NewFailure> {
         switch self {
         case .success(let value): return .success(value)
         case .failure(let error): return .failure(transform(error))
         }
     }
 
-    func flatMap<NewSuccess>(_ transform: (Success) -> Result<NewSuccess, Failure>) -> Result<NewSuccess, Failure> {
+    func flatMap<NewSuccess>(
+        _ transform: (Success) -> Result<NewSuccess, Failure>
+    ) -> Result<NewSuccess, Failure> {
         switch self {
         case .success(let value): return transform(value)
         case .failure(let error): return .failure(error)
@@ -68,7 +74,8 @@ struct CancellationError: Error {
 }
 
 extension Sequence {
-    /// Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the array it would give.
+    /// Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the
+    /// array it would give.
     func enumerated() -> [(offset: Int, element: Element)] {
         var pairs: [(offset: Int, element: Element)] = []
         var position = 0

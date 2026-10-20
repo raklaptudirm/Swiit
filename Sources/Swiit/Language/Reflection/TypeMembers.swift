@@ -27,7 +27,13 @@ public struct TypeDescription {
         /// For an enum's case: whether it carries associated values.
         public let hasPayload: Bool
 
-        public init(name: String, kind: Kind, signature: AttributedString, summary: String, hasPayload: Bool = false) {
+        public init(
+            name: String,
+            kind: Kind,
+            signature: AttributedString,
+            summary: String,
+            hasPayload: Bool = false
+        ) {
             self.name = name
             self.kind = kind
             self.signature = signature
@@ -137,7 +143,11 @@ extension Interpreter {
                     name: name,
                     kind: .property,
                     signature: AttributedString(
-                        joining: TypeDescription.property(name, getter.returnType ?? .any, mutable: nil)
+                        joining: TypeDescription.property(
+                            name,
+                            getter.returnType ?? .any,
+                            mutable: nil
+                        )
                     ),
                     summary: getter.documentation?.summary.firstLine ?? ""
                 )
@@ -161,7 +171,9 @@ extension Interpreter {
     private func describe(_ type: EnumType) -> TypeDescription {
         let payloads = enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
         let members = type.cases.map { enumCase -> TypeDescription.Member in
-            var signature: [AttributedString] = [.init("case", .keyword), .init(" "), .init(enumCase.name, .function)]
+            var signature: [AttributedString] = [
+                .init("case", .keyword), .init(" "), .init(enumCase.name, .function),
+            ]
             if !enumCase.labels.isEmpty {
                 let types = payloads[enumCase.name] ?? []
                 signature.append(.init("("))
@@ -174,7 +186,9 @@ extension Interpreter {
             }
             if let raw = enumCase.rawValue {
                 let isText = if case .string = raw { true } else { false }
-                signature += [.init(" = "), .init(raw.debugDescription, isText ? .string : .constant)]
+                signature += [
+                    .init(" = "), .init(raw.debugDescription, isText ? .string : .constant),
+                ]
             }
             return .init(
                 name: enumCase.name,
@@ -194,14 +208,21 @@ extension TypeDescription {
         var pieces: [AttributedString] = []
         switch member.kind {
         case .initializer:
-            pieces += [.init("init", .keyword), .init("(")] + parameters(member.parameters) + [.init(")")]
+            pieces +=
+                [.init("init", .keyword), .init("(")] + parameters(member.parameters) + [.init(")")]
         case .property:
             pieces += [.init(member.name, .function), .init(": ")] + member.returns.styled
             if settable {
-                pieces += [.init(" { "), .init("get", .keyword), .init(" "), .init("set", .keyword), .init(" }")]
+                pieces += [
+                    .init(" { "), .init("get", .keyword), .init(" "), .init("set", .keyword),
+                    .init(" }"),
+                ]
             }
         case .method, .setter:
-            pieces += [.init(member.name, .function), .init("(")] + parameters(member.parameters) + [.init(")")]
+            pieces +=
+                [.init(member.name, .function), .init("(")] + parameters(member.parameters) + [
+                    .init(")")
+                ]
             if member.returns != .void { pieces += [.init(" -> ")] + member.returns.styled }
         }
         return AttributedString(joining: pieces)
@@ -211,22 +232,34 @@ extension TypeDescription {
     /// what it's called on, so it isn't shown.
     static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(
-            joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
-                + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .function) { $0.name == "self" }
+            joining: (function.isMutating
+                ? [AttributedString("mutating", .keyword), .init(" ")] : [])
+                + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .function) {
+                    $0.name == "self"
+                }
         )
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
-    static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
-        [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .function), .init(": ")]
+    static func property(
+        _ name: String,
+        _ type: TypeAnnotation,
+        mutable: Bool?
+    ) -> [AttributedString] {
+        [
+            .init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .function),
+            .init(": "),
+        ]
             + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }
 
     private static func parameters(_ parameters: [Parameter]) -> [AttributedString] {
         parameters.enumerated()
-            .flatMap { index, parameter in (index > 0 ? [AttributedString(", ")] : []) + parameter.declaration }
+            .flatMap { index, parameter in
+                (index > 0 ? [AttributedString(", ")] : []) + parameter.declaration
+            }
     }
 }
 

@@ -8,7 +8,10 @@ private final class Log: @unchecked Sendable {
     var text = ""
 }
 
-private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log: Log = Log()) -> Interpreter {
+private func interpreter(
+    limits: Interpreter.Limits = Interpreter.Limits(),
+    log: Log = Log()
+) -> Interpreter {
     Interpreter(
         host: Interpreter.Host(
             output: OutputSink({
@@ -103,7 +106,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 @Test func theSandboxRefusesWhatItWasNotGiven() {
     let swiit = interpreter()
     func message(_ source: String) -> String? {
-        do { _ = try swiit.evaluate(source); return nil } catch { return (error as? Diagnostic)?.message }
+        do { _ = try swiit.evaluate(source); return nil } catch {
+            return (error as? Diagnostic)?.message
+        }
     }
     // Commands and `$(…)` aren't syntax here; files, the process and the
     // environment aren't names.
@@ -153,7 +158,10 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     }
     // The default depth fits the stack eval runs on.
     let deep = interpreter()
-    #expect((try? deep.evaluate("func sum(_ n: Int) -> Int { n == 0 ? 0 : n + sum(n - 1) }; sum(5000)")) == 12_502_500)
+    #expect(
+        (try? deep.evaluate("func sum(_ n: Int) -> Int { n == 0 ? 0 : n + sum(n - 1) }; sum(5000)"))
+            == 12_502_500
+    )
 }
 
 @Test func timeAndOutputAreLimitedToo() {
@@ -281,7 +289,9 @@ private final class Settings: DynamicObject, @unchecked Sendable {
 
 @Test func aNestedTypeIsReachedByALaterEvaluation() throws {
     let swiit = interpreter()
-    _ = try swiit.evaluate("struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }")
+    _ = try swiit.evaluate(
+        "struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }"
+    )
     #expect(try swiit.evaluate("Code.Size.bigger()") == 2)
     #expect(try swiit.evaluate("Code.Kind.a == .a") == true)
 }
@@ -305,12 +315,19 @@ private final class HostNode: HostObject, @unchecked Sendable {
     swiit.register(HostNode.type)
     // It is used as the protocol says, and passes where one is asked for.
     #expect(try swiit.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
-    #expect(try swiit.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == "a")
+    #expect(
+        try swiit.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])")
+            == "a"
+    )
     #expect(try swiit.evaluate("let kept: [Node] = nodes; kept.count") == 2)
     // A mistake is found before anything runs.
-    #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran1"); nodes.map { $0.nosuch }"#) }
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate(#"print("ran1"); nodes.map { $0.nosuch }"#)
+    }
     #expect(log.text == "")
-    #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran2"); nodes.map { $0.label + 1 }"#) }
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate(#"print("ran2"); nodes.map { $0.label + 1 }"#)
+    }
     #expect(log.text == "")
     #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran3"); nodes[0].shout(1)"#) }
     #expect(log.text == "")
@@ -358,12 +375,19 @@ private final class HostNode: HostObject, @unchecked Sendable {
     #expect(try swiit.valueType(of: "Point(x: 1)") == .named("Point"))
     #expect(try swiit.valueType(of: "[1, 2].map { $0 + 1 }") == .list(.int))
     let overloads = swiit.symbols(named: "f")
-    #expect(try swiit.resolveOverload(among: overloads, arguments: [.init(type: .string)]).function?.returns == .string)
     #expect(
-        try swiit.resolveOverload(among: overloads, arguments: [.init(type: .int)]).function?.parameters.first?.type
+        try swiit.resolveOverload(among: overloads, arguments: [.init(type: .string)]).function?
+            .returns == .string
+    )
+    #expect(
+        try swiit.resolveOverload(among: overloads, arguments: [.init(type: .int)]).function?
+            .parameters.first?
+            .type
             == .int
     )
-    #expect(throws: Diagnostic.self) { try swiit.resolveOverload(among: overloads, arguments: [.init(type: .bool)]) }
+    #expect(throws: Diagnostic.self) {
+        try swiit.resolveOverload(among: overloads, arguments: [.init(type: .bool)])
+    }
     let sorted = swiit.symbols(named: "sorted", of: .list(.int))
     #expect(!sorted.isEmpty)
 }
@@ -528,7 +552,9 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
         HostFunction(
             name: "scale",
             summary: "Multiplies.",
-            parameters: [.init(name: "n", type: Int.self), .init(label: "by", name: "k", type: Int.self)],
+            parameters: [
+                .init(name: "n", type: Int.self), .init(label: "by", name: "k", type: Int.self),
+            ],
             returns: Int.self
         ) { arguments in
             Value((arguments[0].cast(to: Int.self) ?? 0) * (arguments[1].cast(to: Int.self) ?? 0))
@@ -537,14 +563,20 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     #expect(try swiit.evaluate("scale(3, by: 4)") == 12)
     #expect(throws: Diagnostic.self) { try swiit.evaluate(#"scale("a", by: 4)"#) }
     let scale = try #require(swiit.symbols(named: "scale").first)
-    #expect(scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int)
+    #expect(
+        scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int
+    )
     #expect(!swiit.symbols(named: "sorted", of: [Int].self).isEmpty)
     #expect(
         try swiit
-            .resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)])
+            .resolveOverload(
+                among: [scale],
+                arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]
+            )
             .name == "scale"
     )
-    // A function symbol is also a function type, and a call's arguments are the elements of a tuple type.
+    // A function symbol is also a function type, and a call's arguments are the elements of a tuple
+    // type.
     #expect(scale.type == .function(parameters: [.int, .int], returns: .int))
 }
 
@@ -603,7 +635,8 @@ struct Bytes: Comparable, Hashable, Sendable {
                     HostFunction(
                         name: "<",
                         parameters: [
-                            .init(name: "lhs", type: .named("Bytes")), .init(name: "rhs", type: .named("Bytes")),
+                            .init(name: "lhs", type: .named("Bytes")),
+                            .init(name: "rhs", type: .named("Bytes")),
                         ],
                         returns: Bool.self
                     ) {
@@ -617,7 +650,9 @@ struct Bytes: Comparable, Hashable, Sendable {
     @Test func aRegisteredTypeIsOneScriptsUse() throws {
         let interpreter = Interpreter()
         interpreter.register(Self.bytesType())
-        let value = try interpreter.evaluate("let a = Bytes(count: 3); let b = Bytes(count: 5); a.count + b.count")
+        let value = try interpreter.evaluate(
+            "let a = Bytes(count: 3); let b = Bytes(count: 5); a.count + b.count"
+        )
         #expect(try Int(value) == 8)
         #expect(try Bool(interpreter.evaluate("a < b")) == true)
         #expect(try Bool(interpreter.evaluate("a == Bytes(count: 3)")) == true)
@@ -644,7 +679,9 @@ extension URL: ValueConvertible {}
             .method("appending", labels: [nil], URL.appendingPathComponent(_:))
             .initializer(labels: ["string"]) { (text: String) in URL(string: text)! }
     )
-    #expect(try swiit.evaluate(#"URL(string: "https://example.com/a").appending("b").path"#) == "/a/b")
+    #expect(
+        try swiit.evaluate(#"URL(string: "https://example.com/a").appending("b").path"#) == "/a/b"
+    )
     #expect(try swiit.evaluate(#"URL(string: "https://example.com/a").host"#) == "example.com")
     #expect(throws: Diagnostic.self) { try swiit.evaluate(#"URL(string: "x").nosuch"#) }
 }
@@ -663,7 +700,9 @@ extension URL: ValueConvertible {}
     #expect(try swiit.call("f", arguments: [(nil, Value("x"))]) == "string")
     #expect(try swiit.call("g", arguments: [("a", Value(1))]) == 11)
     let point = try swiit.evaluate("Point(x: 3)")
-    #expect(try swiit.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6)
+    #expect(
+        try swiit.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6
+    )
     #expect(try swiit.call("origin", on: swiit["Point"]!).entries?[Value("x")] == 0)
     #expect(try swiit.call("uppercased", on: Value("ab")) == "AB")
     #expect(try swiit.call("sorted", on: [3, 1, 2]) == [1, 2, 3])
@@ -720,11 +759,17 @@ private struct Stop: Unwinding {}
     let swiit = interpreter(log: log)
     swiit.register(
         HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
-            throw ScriptError("nope", status: 3, value: Value(struct: "Failure", fields: ["code": Value(7)]))
+            throw ScriptError(
+                "nope",
+                status: 3,
+                value: Value(struct: "Failure", fields: ["code": Value(7)])
+            )
         }
     )
     swiit.register(
-        HostFunction(name: "told", isThrowing: true) { _ in throw ScriptError("already said", isReported: true) }
+        HostFunction(name: "told", isThrowing: true) { _ in
+            throw ScriptError("already said", isReported: true)
+        }
     )
     swiit.register(HostFunction(name: "stop", isThrowing: true) { _ in throw Stop() })
     // A script can catch a script error, and what it carries.
@@ -789,7 +834,10 @@ private final class Mark: @unchecked Sendable {
         """,
         bodies: [
             "Counter.next": { arguments in
-                Value((arguments["self"]?.entries?[Value("start")].flatMap { $0.cast(to: Int.self) } ?? 0) + 1)
+                Value(
+                    (arguments["self"]?.entries?[Value("start")].flatMap { $0.cast(to: Int.self) }
+                        ?? 0) + 1
+                )
             },
             "Sequence.firsts": { arguments in
                 Value(
@@ -823,8 +871,13 @@ private final class Mark: @unchecked Sendable {
     #expect(try swiit.evaluate("Bytes(count: 1) < Bytes(count: 2)") == true)
     #expect(try swiit.evaluate("Bytes(count: 3) >= Bytes(count: 2)") == true)
     #expect(try swiit.evaluate("Bytes(count: 3) != Bytes(count: 2)") == true)
-    #expect(try swiit.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)") == true)
-    #expect(try swiit.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true)
+    #expect(
+        try swiit.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)")
+            == true
+    )
+    #expect(
+        try swiit.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true
+    )
 }
 
 @Test func theHostIsToldAsStatementsFinish() throws {
@@ -843,7 +896,8 @@ private final class Mark: @unchecked Sendable {
         if x == 1 { x + 10 }
         """
     )
-    // Values of the expression statements, in order; `if` is told as it starts, and what is in it as it runs.
+    // Values of the expression statements, in order; `if` is told as it starts, and what is in it
+    // as it runs.
     #expect(told.filter { $0 != "-" } == ["2", "7", "caught", "11"])
 }
 
@@ -864,8 +918,14 @@ private final class Handle: HostObject, @unchecked Sendable {
     )
     swiit.register(computed: "clock", type: .int) { Value(7) }
     swiit.register(
-        Awaiting(operand: .named("Handle"), result: .int, isHandle: { $0.cast(to: Handle.self) != nil }) { value, _ in
-            guard let handle = value?.cast(to: Handle.self) else { throw ScriptError("nothing to await") }
+        Awaiting(
+            operand: .named("Handle"),
+            result: .int,
+            isHandle: { $0.cast(to: Handle.self) != nil }
+        ) { value, _ in
+            guard let handle = value?.cast(to: Handle.self) else {
+                throw ScriptError("nothing to await")
+            }
             return try running.join(handle.task)
         }
     )
@@ -922,12 +982,15 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func aCallByNameFindsTheBridgedOverloadByItsArguments() throws {
     let swiit = interpreter()
     #expect(try swiit.call("contains", on: [1, 2], arguments: [(nil, Value(2))]) == true)
-    #expect(try swiit.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b")
+    #expect(
+        try swiit.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b"
+    )
 }
 
 @Test func aSequenceNativeTypeHasWhatAListHasOverItsItems() throws {
     struct Lines: Sequence, Sendable, Hashable {
-        var lines: [String]; func makeIterator() -> IndexingIterator<[String]> { lines.makeIterator() }
+        var lines: [String];
+        func makeIterator() -> IndexingIterator<[String]> { lines.makeIterator() }
     }
     let swiit = interpreter()
     swiit.register(
@@ -941,12 +1004,20 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).count"#) == 2)
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).map { $0 + "!" }"#) == ["b!", "a!"])
-    #expect(try swiit.call("sorted", on: swiit.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"])
+    #expect(
+        try swiit.call("sorted", on: swiit.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"]
+    )
 }
 
 @Test func aCallWithArgumentsMeansTheMethodNotTheProperty() throws {
     let swiit = interpreter()
-    #expect(try swiit.call("count", on: [1, 2, 3], arguments: [("where", try swiit.evaluate("{ $0 > 1 }"))]) == 2)
+    #expect(
+        try swiit.call(
+            "count",
+            on: [1, 2, 3],
+            arguments: [("where", try swiit.evaluate("{ $0 > 1 }"))]
+        ) == 2
+    )
     #expect(
         try swiit.call(
             "reduce",
@@ -956,7 +1027,9 @@ private final class Handle: HostObject, @unchecked Sendable {
     )
     let reduce = swiit.symbols(named: "reduce", of: .list(.int))
     #expect(
-        try swiit.resolveOverload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)]).name
+        try swiit
+            .resolveOverload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)])
+            .name
             == "reduce"
     )
 }

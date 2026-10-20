@@ -12,8 +12,13 @@ extension Interpreter {
         installLanguageFunctions()
         // Swift's types by name, for their initializers and static members.
         for name in Bridge.types.keys {
-            scopes[0].bindings[name] = Binding(value: .object(BridgedTypeName(name)), mutable: false)
+            scopes[0].bindings[name] = Binding(
+                value: .object(BridgedTypeName(name)),
+                mutable: false
+            )
         }
-        do { try declarePreludeExtensions(extensions) } catch { preconditionFailure("the prelude: \(error)") }
+        do { try declarePreludeExtensions(extensions) } catch {
+            preconditionFailure("the prelude: \(error)")
+        }
     }
 }

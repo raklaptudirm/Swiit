@@ -22,7 +22,9 @@ extension TypeChecker {
     /// A call of `effect` here: an `async` one needs an `await` covering it.
     func effectSite(_ effect: Effect, _ what: String) throws {
         guard effect == .async else { return }
-        guard awaitDepth > 0 else { throw TypeError("\(what) is async, but isn't marked with 'await'") }
+        guard awaitDepth > 0 else {
+            throw TypeError("\(what) is async, but isn't marked with 'await'")
+        }
         asyncSites += 1
         effectContexts[effectContexts.count - 1].effect = .async
     }
@@ -32,7 +34,9 @@ extension TypeChecker {
         guard case .named(let name) = type, let info = structInfo(named: name), info.isActor,
             !info.nonisolated.contains(member)
         else { return }
-        if case .variable(let variable)? = receiver, variable == "self" || variable == "super" { return }
+        if case .variable(let variable)? = receiver, variable == "self" || variable == "super" {
+            return
+        }
         try effectSite(.async, "'\(member)' of the actor \(name)")
     }
 
@@ -72,7 +76,8 @@ extension TypeChecker {
         {
             return
         }
-        let callers = (interpreter.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere).sorted()
+        let callers = (interpreter.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere)
+            .sorted()
         guard !callers.isEmpty else { return }
         let list = callers.map { "'\($0)'" }.joined(separator: ", ")
         throw TypeError(
@@ -84,7 +89,9 @@ extension TypeChecker {
     /// this program declares replaces what was declared before.
     func recordUnawaitedCalls() {
         for name in topLevelUnawaited.keys {
-            for callee in interpreter.unawaitedCallers.keys { interpreter.unawaitedCallers[callee]?.remove(name) }
+            for callee in interpreter.unawaitedCallers.keys {
+                interpreter.unawaitedCallers[callee]?.remove(name)
+            }
         }
         for (name, callees) in topLevelUnawaited {
             for callee in callees { interpreter.unawaitedCallers[callee, default: []].insert(name) }

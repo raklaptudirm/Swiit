@@ -1,4 +1,5 @@
-/// What `await` waits for, which a host registers: the type of the operand (a handle the host made), the type it gives,
+/// What `await` waits for, which a host registers: the type of the operand (a handle the host
+/// made), the type it gives,
 /// and
 /// how to wait. Without one, `await` is refused.
 public struct Awaiting {
@@ -6,9 +7,11 @@ public struct Awaiting {
     public var result: ValueType
     /// Waits for the handle, or with no operand for the latest one; `throwing` for `try await`.
     var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
-    /// Whether a value is one of its handles; `await` of anything else is an `async` call's, and gives the value.
+    /// Whether a value is one of its handles; `await` of anything else is an `async` call's, and
+    /// gives the value.
     var isHandle: (Value) -> Bool
-    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a host's `Job<Int>` gives
+    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a
+    /// host's `Job<Int>` gives
     /// an
     /// Int); `result` else.
     var resultOf: (ValueType) -> ValueType?
@@ -35,20 +38,27 @@ extension Interpreter {
         let perform = awaiting.perform
         // What fails while waiting is a failure a script can catch, as a host function's is.
         made.perform = { [unowned self] handle, throwing in
-            do { return try perform(handle, throwing) } catch { throw hostFailure(error, in: "await") }
+            do { return try perform(handle, throwing) } catch {
+                throw hostFailure(error, in: "await")
+            }
         }
         withMainTask { self.awaiting = made }
     }
 
     /// Makes `name` a global worked out each time it is read, of the type given: a host's `jobs`.
-    public func register(computed name: String, type: ValueType, _ read: @escaping @Sendable () -> Value) {
+    public func register(
+        computed name: String,
+        type: ValueType,
+        _ read: @escaping @Sendable () -> Value
+    ) {
         withMainTask {
             scopes[0].bindings[name] = Binding(computed: read)
             staticTypes[name] = TypeAnnotation(type)
         }
     }
 
-    /// Starts a task: `body` runs script code on a thread of its own, as a Swift `Task` would, and the host keeps
+    /// Starts a task: `body` runs script code on a thread of its own, as a Swift `Task` would, and
+    /// the host keeps
     /// `state` for it
     /// (`taskState` while it runs). It ends with the scope that started it, unless joined first.
     public func startTask(
@@ -62,7 +72,8 @@ extension Interpreter {
         }
     }
 
-    /// Waits for a task to end, letting the other tasks run meanwhile, and gives what it gave or throws why it failed.
+    /// Waits for a task to end, letting the other tasks run meanwhile, and gives what it gave or
+    /// throws why it failed.
     public func join(_ task: TaskHandle) throws(Diagnostic) -> Value {
         do {
             return try inCurrentTask { try joinTask(task) }
@@ -71,7 +82,8 @@ extension Interpreter {
         }
     }
 
-    /// Cancels the tasks the script has started and not joined, and waits for them, as the scope that started them
+    /// Cancels the tasks the script has started and not joined, and waits for them, as the scope
+    /// that started them
     /// closing
     /// would: how a host ends a script.
     public func finishTasks() {

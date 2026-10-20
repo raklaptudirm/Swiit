@@ -16,7 +16,13 @@ private struct FileEntry: Encodable {
 }
 
 @Test func encodesStructsAsTypedRecords() throws {
-    let entry = FileEntry(name: "a.txt", size: 1200, tags: ["x"], owner: .init(name: "rak", id: 501), note: nil)
+    let entry = FileEntry(
+        name: "a.txt",
+        size: 1200,
+        tags: ["x"],
+        owner: .init(name: "rak", id: 501),
+        note: nil
+    )
     guard case .record(let record) = try ValueEncoder().encode(entry) else {
         Issue.record("not a record")
         return

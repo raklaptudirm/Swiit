@@ -29,7 +29,8 @@ extension Bridge {
     /// Conformances this module declares for bridged types, which the
     /// generator doesn't read (it reads the modules the types are from).
     static let conformancesDeclaredHere: [String: [String]] = [
-        "Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"], "ThrowingTaskGroup": ["AsyncSequence"],
+        "Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"],
+        "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
     nonisolated(unsafe) static let concurrency: [BridgedType] =
@@ -80,9 +81,15 @@ extension Bridge {
 
     /// Runs `operation` as an unstructured task, as Swift's `Task { }` does:
     /// it isn't cancelled when the scope that made it ends.
-    private static func start(_ interpreter: Interpreter, _ arguments: [String: Value]) throws -> Value {
+    private static func start(
+        _ interpreter: Interpreter,
+        _ arguments: [String: Value]
+    ) throws -> Value {
         let operation = arguments["operation"]!
-        let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) {
+        let handle = try interpreter.startTask(
+            host: interpreter.host.makeTaskState(),
+            structured: false
+        ) {
             try interpreter.call(operation, with: [])
         }
         return SwiftValue.make(TaskBox(handle), as: "Task")
@@ -102,7 +109,8 @@ extension Bridge {
             ],
             returns: .generic("Task", [.parameter("Success"), .named("Never")]),
             generics: ["Success": []],
-            summary: "Runs the operation as a task of its own, which goes on while the code that started it does.",
+            summary:
+                "Runs the operation as a task of its own, which goes on while the code that started it does.",
             start
         ),
         member(
@@ -135,15 +143,24 @@ extension Bridge {
                 return try interpreter.joinTask(handle)
             } catch is Cancelled {
                 // The task, not the one waiting, was cancelled.
-                if case .failure(let error)? = handle.rawResult, error is Cancelled { throw cancellationError() }
+                if case .failure(let error)? = handle.rawResult, error is Cancelled {
+                    throw cancellationError()
+                }
                 throw Cancelled()
             }
         },
-        member(.method, "cancel", returns: .void, summary: "Asks the task to stop.") { _, arguments in
+        member(.method, "cancel", returns: .void, summary: "Asks the task to stop.") {
+            _,
+            arguments in
             try task(arguments["self"]).cancel()
             return .nothing
         },
-        member(.property, "isCancelled", returns: .bool, summary: "Whether the task has been asked to stop.") {
+        member(
+            .property,
+            "isCancelled",
+            returns: .bool,
+            summary: "Whether the task has been asked to stop."
+        ) {
             _,
             arguments in
             .bool(try task(arguments["self"]).context.cancellation.isSet)
@@ -180,7 +197,9 @@ extension Bridge {
                 "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first."
         ) { interpreter, arguments in
             let nanoseconds = try Int(arguments["duration"]!)
-            try interpreter.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
+            try interpreter.sleep(
+                until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9)
+            )
             return .nothing
         },
         member(
@@ -222,7 +241,10 @@ extension Interpreter {
 
 /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
 /// cancelling the task cancels it.
-func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
+func bridgeAsync(
+    _ interpreter: Interpreter,
+    _ operation: @escaping () async throws -> Value
+) throws -> Value {
     // Set by the operation's task, read by this thread once it's set.
     final class Outcome: @unchecked Sendable {  // safe: every access holds its own lock
         let operation: () async throws -> Value
@@ -246,7 +268,9 @@ func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async thr
     }
     let outcome = Outcome(operation)
     let running = Task.detached {
-        do { outcome.finish(.success(try await outcome.operation())) } catch { outcome.finish(.failure(error)) }
+        do { outcome.finish(.success(try await outcome.operation())) } catch {
+            outcome.finish(.failure(error))
+        }
     }
     let result = interpreter.suspend(wake: { running.cancel() }) { outcome.wait() }
     if case .failure(is CancellationError) = result { throw cancellationError() }
@@ -255,7 +279,10 @@ func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async thr
 
 /// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
-func bridgeAsyncClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
+func bridgeAsyncClosure(
+    _ interpreter: Interpreter,
+    _ function: Value
+) -> ([Value]) async throws -> Value {
     nonisolated(unsafe) let interpreter = interpreter  // safe: runs holding the interpreter lock
     nonisolated(unsafe) let caller = interpreter.task  // safe: runs holding the interpreter lock
     let function = function

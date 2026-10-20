@@ -23,7 +23,11 @@ struct ResultBuilderTransform {
         return "$component\(counter)"
     }
 
-    private func closureCall(_ body: Program, parameters: [Parameter] = [], arguments: [Argument] = []) -> Expr {
+    private func closureCall(
+        _ body: Program,
+        parameters: [Parameter] = [],
+        arguments: [Argument] = []
+    ) -> Expr {
         .call(.closure(ClosureLiteral(parameters: parameters, body: body)), arguments)
     }
 
@@ -39,7 +43,8 @@ struct ResultBuilderTransform {
             case .expression(let expr):
                 let name = fresh()
                 let value =
-                    methods.contains("buildExpression") ? build("buildExpression", [Argument(value: expr)]) : expr
+                    methods.contains("buildExpression")
+                    ? build("buildExpression", [Argument(value: expr)]) : expr
                 add(value, into: &statements, name)
             case .ifStatement(let node):
                 let name = fresh()
@@ -68,14 +73,20 @@ struct ResultBuilderTransform {
                     )
                 } else {
                     guard methods.contains("buildOptional") else {
-                        throw SyntaxError("\(builder) needs buildOptional to have an 'if' without an 'else'")
+                        throw SyntaxError(
+                            "\(builder) needs buildOptional to have an 'if' without an 'else'"
+                        )
                     }
                     let some = IfStatement(
                         condition: node.condition,
                         then: IfStatement.branch(then),
                         otherwise: IfStatement.branch(.literal(.nothing))
                     )
-                    add(build("buildOptional", [Argument(value: .ifExpression(some))]), into: &statements, name)
+                    add(
+                        build("buildOptional", [Argument(value: .ifExpression(some))]),
+                        into: &statements,
+                        name
+                    )
                 }
             case .forLoop(let loop):
                 guard methods.contains("buildArray") else {
@@ -90,7 +101,16 @@ struct ResultBuilderTransform {
                 }
                 let items = Expr.call(
                     .member(loop.sequence, "map"),
-                    [Argument(value: .closure(ClosureLiteral(parameters: [parameter], body: try transform(loop.body))))]
+                    [
+                        Argument(
+                            value: .closure(
+                                ClosureLiteral(
+                                    parameters: [parameter],
+                                    body: try transform(loop.body)
+                                )
+                            )
+                        )
+                    ]
                 )
                 add(build("buildArray", [Argument(value: items)]), into: &statements, name)
             case .switchStatement, .whileLoop, .doCatch, .guardStatement, .returnStatement:
@@ -100,7 +120,9 @@ struct ResultBuilderTransform {
             }
         }
         var result = build("buildBlock", components.map { Argument(value: $0) })
-        if methods.contains("buildFinalResult") { result = build("buildFinalResult", [Argument(value: result)]) }
+        if methods.contains("buildFinalResult") {
+            result = build("buildFinalResult", [Argument(value: result)])
+        }
         statements.append(.returnStatement(result))
         return Program(statements: statements)
     }

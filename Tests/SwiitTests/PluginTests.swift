@@ -15,7 +15,11 @@ private struct Entry: Encodable {
     #expect(try [Int](.list([.int(1), .int(2)])) == [1, 2])
     #expect(try Int?(.nothing) == nil)
     #expect(try Double(.int(3)) == 3)
-    #expect(try [String](SwiftValue.make(["a", "b"] as ArraySlice<String>, as: "ArraySlice")) == ["a", "b"])
+    #expect(
+        try [String](SwiftValue.make(["a", "b"] as ArraySlice<String>, as: "ArraySlice")) == [
+            "a", "b",
+        ]
+    )
     #expect([String].valueType == .list(.string))
     #expect(throws: SwiitError.self) { try Int(.string("x")) }
 }
@@ -35,7 +39,8 @@ private struct Entry: Encodable {
     #expect(try Value(returning: ()) == .nothing)
     #expect(try Value(returning: [1, 2]) == .list([.int(1), .int(2)]))
     #expect(
-        try Value(returning: Entry(name: "a", size: 2)) == .record(Record(["name": .string("a"), "size": .int(2)]))
+        try Value(returning: Entry(name: "a", size: 2))
+            == .record(Record(["name": .string("a"), "size": .int(2)]))
     )
     #expect(try Value(returning: Level.low) == Level.low.value)
 }

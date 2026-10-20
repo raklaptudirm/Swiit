@@ -1,12 +1,15 @@
 import Foundation
 
-// What a host can ask of the names a script can use: the functions, methods, properties, variables and types there are,
+// What a host can ask of the names a script can use: the functions, methods, properties, variables
+// and types there are,
 // which
 // overload a call means, and the type of an expression. One lookup for everything a name can mean.
 
-/// Something a script can name: a function or method, a variable or property, or a type. Only a function has parameters
+/// Something a script can name: a function or method, a variable or property, or a type. Only a
+/// function has parameters
 /// and
-/// effects, only a variable can be settable, only a type has a declaration kind: what a symbol is decides what it has.
+/// effects, only a variable can be settable, only a type has a declaration kind: what a symbol is
+/// decides what it has.
 public struct Symbol: Sendable, Hashable {
     /// What a name stands for, in a word.
     public enum Role: Sendable { case variable, function, type }
@@ -35,7 +38,8 @@ public struct Symbol: Sendable, Hashable {
         public var isAsync: Bool
         /// A method that changes its value.
         public var isMutating: Bool
-        /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for `sorted()`. A protocol
+        /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
+        /// `sorted()`. A protocol
         /// written `=Int`
         /// is a type it must be exactly.
         public var generics: [String: [String]]
@@ -69,7 +73,8 @@ public struct Symbol: Sendable, Hashable {
         /// Whether a call may leave it out.
         public var hasDefault: Bool
         public var isVariadic: Bool
-        /// The type as the checker has it, which tells a type parameter from a type of the same name.
+        /// The type as the checker has it, which tells a type parameter from a type of the same
+        /// name.
         var annotation: TypeAnnotation?
         /// What it is when the call leaves it out, if that is a plain value: `false`, `10`, `"-"`.
         public var defaultValue: Value?
@@ -106,13 +111,17 @@ public struct Symbol: Sendable, Hashable {
         if case .function(let function) = declaration { function } else { nil }
     }
 
-    /// Its type as a value: a function's is a function type (parameter types in order, what it returns); a variable's
+    /// Its type as a value: a function's is a function type (parameter types in order, what it
+    /// returns); a variable's
     /// is its
     /// own; a type's is the type it names.
     public var type: ValueType {
         switch declaration {
         case .function(let function):
-            .function(parameters: function.parameters.map(\.type), returns: function.returns ?? .tuple([]))
+            .function(
+                parameters: function.parameters.map(\.type),
+                returns: function.returns ?? .tuple([])
+            )
         case .variable(let type, _): type
         case .type: .named(name)
         }
@@ -136,10 +145,13 @@ extension ValueType {
             case .optional(let wrapped): .optional(ValueType(wrapped))
             case .generic(let name, let arguments): .named(name, arguments.map(ValueType.init))
             case .tuple(let elements):
-                .tuple(elements.map { ValueType.Element(label: $0.label, type: ValueType($0.type)) })
+                .tuple(
+                    elements.map { ValueType.Element(label: $0.label, type: ValueType($0.type)) }
+                )
             case .functionType(let parameters, let returns, _, _):
                 .function(parameters: parameters.map(ValueType.init), returns: ValueType(returns))
-            case .keyPath(let root, let value): .named("KeyPath", [ValueType(root), ValueType(value)])
+            case .keyPath(let root, let value):
+                .named("KeyPath", [ValueType(root), ValueType(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
             case .parameter(let name): .named(name)
             case .void: .tuple([])
@@ -149,10 +161,12 @@ extension ValueType {
 }
 
 extension Interpreter {
-    /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all of them without a
+    /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all
+    /// of them without a
     /// `name`,
     /// the core's builtins too);
-    /// with one, the members a value of that type has (a struct's or host object's methods and properties, a bridged
+    /// with one, the members a value of that type has (a struct's or host object's methods and
+    /// properties, a bridged
     /// type's,
     /// the sequence methods of a list).
     public func symbols(named name: String? = nil, of type: ValueType? = nil) -> [Symbol] {
@@ -160,7 +174,8 @@ extension Interpreter {
             guard let type else { return globalSymbols(named: name) }
             var annotation = TypeAnnotation(type)
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
-            if case .named(let typeName) = annotation, let generic = Bridge.types[typeName]?.genericParameters,
+            if case .named(let typeName) = annotation,
+                let generic = Bridge.types[typeName]?.genericParameters,
                 !generic.isEmpty
             {
                 annotation = .generic(typeName, generic.map { _ in .unknown })
@@ -170,7 +185,8 @@ extension Interpreter {
     }
 
     /// The members a Swift type has for scripts: `symbols(named: "sorted", of: [Int].self)`.
-    public func symbols<T: ValueConvertible>(named name: String? = nil, of type: T.Type) -> [Symbol] {
+    public func symbols<T: ValueConvertible>(named name: String? = nil, of type: T.Type) -> [Symbol]
+    {
         symbols(named: name, of: ValueType(type))
     }
 
@@ -188,17 +204,24 @@ extension Interpreter {
     private func symbols(of name: String, binding: Binding) -> [Symbol] {
         switch binding.value {
         case .function(let callable):
-            let candidates = (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
+            let candidates =
+                (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
             return candidates.map { function in
                 var symbol = Symbol(
                     name: function.name ?? name,
-                    summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
+                    summary: function.documentation.map(\.summary)
+                        .flatMap { $0.isEmpty ? nil : $0 },
                     declaration: .function(
                         Symbol.Function(
                             parameters: function.parameters.map {
-                                parameter($0, documentation: function.documentation?.parameters[$0.name])
+                                parameter(
+                                    $0,
+                                    documentation: function.documentation?.parameters[$0.name]
+                                )
                             },
-                            returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
+                            returns: function.returnType.flatMap {
+                                $0 == .void ? nil : ValueType($0)
+                            },
                             isThrowing: function.isThrowing,
                             isAsync: function.effect != .sync,
                             isMutating: function.isMutating,
@@ -219,13 +242,19 @@ extension Interpreter {
             return [
                 Symbol(
                     name: name,
-                    declaration: .variable(ValueType(checker.type(of: binding.value)), isSettable: binding.mutable)
+                    declaration: .variable(
+                        ValueType(checker.type(of: binding.value)),
+                        isSettable: binding.mutable
+                    )
                 )
             ]
         }
     }
 
-    fileprivate func parameter(_ parameter: Parameter, documentation: String? = nil) -> Symbol.Parameter {
+    fileprivate func parameter(
+        _ parameter: Parameter,
+        documentation: String? = nil
+    ) -> Symbol.Parameter {
         var plain: Value?
         if case .literal(let value)? = parameter.defaultValue { plain = value }
         var made = Symbol.Parameter(
@@ -253,7 +282,8 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: parameters.map { parameter($0) },
-                            returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                            returns: signature.returns == .void
+                                ? nil : ValueType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating,
@@ -265,24 +295,32 @@ extension Interpreter {
         }
         // A struct's, enum's or host object's own.
         if let profile = checker.describe(type) {
-            for (member, signatures) in profile.declared.methods where name == nil || name == member {
+            for (member, signatures) in profile.declared.methods where name == nil || name == member
+            {
                 signatures.forEach { add($0) }
             }
-            for (member, signatures) in profile.extended.methods where name == nil || name == member {
+            for (member, signatures) in profile.extended.methods where name == nil || name == member
+            {
                 signatures.forEach { add($0) }
             }
-            for (member, property) in profile.declared.properties where name == nil || name == member {
+            for (member, property) in profile.declared.properties
+            where name == nil || name == member {
                 found.append(
                     Symbol(
                         name: member,
-                        declaration: .variable(ValueType(property.type), isSettable: property.isSettable)
+                        declaration: .variable(
+                            ValueType(property.type),
+                            isSettable: property.isSettable
+                        )
                     )
                 )
             }
         }
         // A bridged Swift type's.
         if let (bridgedType, bindings) = checker.bridged(type) {
-            let settable = Set(bridgedType.members.filter { $0.kind == .setter && !$0.isStatic }.map(\.name))
+            let settable = Set(
+                bridgedType.members.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
+            )
             for member in bridgedType.members
             where !member.isStatic && member.kind != .initializer && member.kind != .setter
                 && (name == nil || name == member.name)
@@ -300,7 +338,8 @@ extension Interpreter {
                                             label: $0.label,
                                             name: $0.name,
                                             type: ValueType(substituted),
-                                            hasDefault: $0.defaultValue != nil || $0.externalDefault != nil,
+                                            hasDefault: $0.defaultValue != nil
+                                                || $0.externalDefault != nil,
                                             isVariadic: $0.variadic,
                                             documentation: member.parameterDocs[$0.name]
                                         )
@@ -308,7 +347,8 @@ extension Interpreter {
                                         return made
                                     },
                                     returns: member.returns == .void
-                                        ? nil : ValueType(checker.substitute(member.returns, bindings)),
+                                        ? nil
+                                        : ValueType(checker.substitute(member.returns, bindings)),
                                     isThrowing: member.isThrowing,
                                     isAsync: member.effect != .sync,
                                     isMutating: member.isMutating,
@@ -331,7 +371,8 @@ extension Interpreter {
                 }
             }
         }
-        // What every sequence has: what the host's prelude adds to `Sequence`, which `symbols(of: .named("Sequence"))`
+        // What every sequence has: what the host's prelude adds to `Sequence`, which `symbols(of:
+        // .named("Sequence"))`
         // lists alone.
         var holder: TypeAnnotation?
         if case .list(let element) = type {
@@ -344,7 +385,8 @@ extension Interpreter {
                 for signature in checker.sequenceSignatures(set) {
                     var made = signature
                     made.parameters = made.parameters.map {
-                        var p = $0; p.type = checker.substitute(p.type, ["Element": element]); return p
+                        var p = $0; p.type = checker.substitute(p.type, ["Element": element]);
+                        return p
                     }
                     made.returns = checker.substitute(made.returns, ["Element": element])
                     add(made, dropping: true)
@@ -354,7 +396,8 @@ extension Interpreter {
         return found
     }
 
-    /// What each global name stands for, cheaply: the functions, variables and types a script can name, the core's
+    /// What each global name stands for, cheaply: the functions, variables and types a script can
+    /// name, the core's
     /// builtins and
     /// Swift's own types included. How a front end tells a name it reads from one that is new.
     public func names() -> [String: Symbol.Role] {
@@ -371,7 +414,8 @@ extension Interpreter {
         }
     }
 
-    /// How to color Swift source, in characters, which may be half typed: what it reads before a problem is colored as
+    /// How to color Swift source, in characters, which may be half typed: what it reads before a
+    /// problem is colored as
     /// it reads
     /// it.
     public func highlight(_ source: String) -> [Highlight] {
@@ -403,7 +447,8 @@ extension Interpreter {
         public var kind: Kind
     }
 
-    /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and the host declare, and
+    /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
+    /// the host declare, and
     /// Swift's
     /// own that the core bridges (`String`, `Array`, `Date`).
     public func types() -> [Symbol] {
@@ -427,18 +472,26 @@ extension Interpreter {
         }
     }
 
-    /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`, `Sequence`, or one a
+    /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`,
+    /// `Sequence`, or one a
     /// script
     /// declares), as the checker reads it.
     public func conforms(_ type: ValueType, to protocolName: String) -> Bool {
-        inCurrentTask { TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName) }
+        inCurrentTask {
+            TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName)
+        }
     }
 
-    /// Which of the candidates a call with these arguments means: by their labels and types, the one that fits with the
+    /// Which of the candidates a call with these arguments means: by their labels and types, the
+    /// one that fits with the
     /// fewest conversions. Throws the checker's own complaint when none fits or several do.
-    public func resolveOverload(among candidates: [Symbol], arguments: [ValueType.Element]) throws(Diagnostic) -> Symbol
-    {
-        guard !candidates.isEmpty else { throw Diagnostic(kind: .type, message: "there is nothing to call") }
+    public func resolveOverload(
+        among candidates: [Symbol],
+        arguments: [ValueType.Element]
+    ) throws(Diagnostic) -> Symbol {
+        guard !candidates.isEmpty else {
+            throw Diagnostic(kind: .type, message: "there is nothing to call")
+        }
         let checker = TypeChecker(interpreter: self)
         func penalty(_ candidate: Symbol) -> Int? {
             guard let parameters = candidate.function?.parameters else { return nil }
@@ -448,8 +501,11 @@ extension Interpreter {
             for argument in arguments {
                 // The parameter this argument is for: by label, else the next without one.
                 guard
-                    let index = parameters[next...].firstIndex(where: { $0.label == argument.label })
-                        ?? parameters.firstIndex(where: { $0.isVariadic && $0.label == argument.label })
+                    let index = parameters[next...]
+                        .firstIndex(where: { $0.label == argument.label })
+                        ?? parameters.firstIndex(where: {
+                            $0.isVariadic && $0.label == argument.label
+                        })
                 else { return nil }
                 let parameter = parameters[index]
                 // A function of a signature not known fits where any function is wanted.
@@ -463,14 +519,20 @@ extension Interpreter {
             }
             // What is left out must have a default.
             for parameter in parameters
-            where !given.contains(parameter.name) && !parameter.hasDefault && !parameter.isVariadic { return nil }
+            where !given.contains(parameter.name) && !parameter.hasDefault && !parameter.isVariadic
+            { return nil }
             return cost
         }
-        let fitting = candidates.compactMap { candidate in penalty(candidate).map { (candidate, $0) } }
+        let fitting = candidates.compactMap { candidate in
+            penalty(candidate).map { (candidate, $0) }
+        }
         guard let best = fitting.map(\.1).min() else {
             let shown = arguments.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
                 .joined(separator: ", ")
-            throw Diagnostic(kind: .type, message: "\(candidates[0].name): no overload accepts (\(shown))")
+            throw Diagnostic(
+                kind: .type,
+                message: "\(candidates[0].name): no overload accepts (\(shown))"
+            )
         }
         let winners = fitting.filter { $0.1 == best }
         guard winners.count == 1 else {
@@ -482,9 +544,11 @@ extension Interpreter {
         return winners[0].0
     }
 
-    /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found before any
+    /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found
+    /// before any
     /// statement's effect
-    /// happens. It says what the program declares at its top level (its functions, types and variables), which a host
+    /// happens. It says what the program declares at its top level (its functions, types and
+    /// variables), which a host
     /// can
     /// check its own uses against.
     public func check(_ source: String) throws(Diagnostic) -> Declarations {
@@ -514,21 +578,26 @@ extension Interpreter {
                     var docs: [String: [Documentation]] = [:]
                     for case .function(let decl) in program.statements {
                         docs[decl.name, default: []]
-                            .append(decl.documentation ?? Documentation(summary: "", parameters: [:]))
+                            .append(
+                                decl.documentation ?? Documentation(summary: "", parameters: [:])
+                            )
                     }
                     var declarations = Declarations(
                         symbols: checker.scopes[0].sorted { $0.key < $1.key }
                             .flatMap { declaredSymbols(of: $0.key, $0.value) }
                             .map { symbol in
-                                guard case .function(var function) = symbol.declaration, var queue = docs[symbol.name],
+                                guard case .function(var function) = symbol.declaration,
+                                    var queue = docs[symbol.name],
                                     !queue.isEmpty
                                 else { return symbol }
                                 let documentation = queue.removeFirst()
                                 docs[symbol.name] = queue
                                 var documented = symbol
-                                documented.summary = documentation.summary.isEmpty ? nil : documentation.summary
+                                documented.summary =
+                                    documentation.summary.isEmpty ? nil : documentation.summary
                                 function.parameters = function.parameters.map {
-                                    var p = $0; p.documentation = documentation.parameters[p.name]; return p
+                                    var p = $0; p.documentation = documentation.parameters[p.name];
+                                    return p
                                 }
                                 documented.declaration = .function(function)
                                 return documented
@@ -571,7 +640,8 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                            returns: signature.returns == .void
+                                ? nil : ValueType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating
@@ -583,12 +653,15 @@ extension Interpreter {
         case .enumType: return [Symbol(name: name, declaration: .type(.enumeration))]
         case .protocolType: return [Symbol(name: name, declaration: .type(.protocol))]
         case .variable(let type, let mutable):
-            return [Symbol(name: name, declaration: .variable(ValueType(type), isSettable: mutable))]
+            return [
+                Symbol(name: name, declaration: .variable(ValueType(type), isSettable: mutable))
+            ]
         case .swiftType, .asyncLet: return []
         }
     }
 
-    /// The type of an expression written at the top level: the globals are in scope, a script's locals are not.
+    /// The type of an expression written at the top level: the globals are in scope, a script's
+    /// locals are not.
     public func valueType(of expression: String) throws(Diagnostic) -> ValueType {
         do {
             return try withMainTask { () throws -> ValueType in
@@ -601,8 +674,13 @@ extension Interpreter {
                         isIncomplete: error.incomplete
                     )
                 case .success(let program):
-                    guard program.statements.count == 1, case .expression(var expr) = program.statements[0] else {
-                        throw Diagnostic(kind: .type, message: "valueType(of:) takes one expression")
+                    guard program.statements.count == 1,
+                        case .expression(var expr) = program.statements[0]
+                    else {
+                        throw Diagnostic(
+                            kind: .type,
+                            message: "valueType(of:) takes one expression"
+                        )
                     }
                     do {
                         return ValueType(try TypeChecker(interpreter: self).typeOf(&expr))

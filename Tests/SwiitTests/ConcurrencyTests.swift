@@ -7,7 +7,9 @@ import Testing
 // `async let`, `for await`.
 
 private func interpreter() -> Interpreter {
-    Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
+    Interpreter(
+        host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))
+    )
 }
 
 private func eval(_ source: String) throws -> Value {
@@ -28,8 +30,14 @@ private func typeError(_ source: String) -> String? {
 
 @Test func aTaskGivesItsValue() throws {
     #expect(try eval("let t = Task { 20 + 22 }; await t.value") == .int(42))
-    #expect(try eval("func f() async -> Int { 5 }; let t = Task { await f() * 2 }; await t.value") == .int(10))
-    #expect(typeError("let t = Task { 1 }; t.value") == "'value' is async, but isn't marked with 'await'")
+    #expect(
+        try eval("func f() async -> Int { 5 }; let t = Task { await f() * 2 }; await t.value")
+            == .int(10)
+    )
+    #expect(
+        typeError("let t = Task { 1 }; t.value")
+            == "'value' is async, but isn't marked with 'await'"
+    )
 }
 
 @Test func aThrowingTasksValueThrows() throws {
@@ -94,7 +102,8 @@ private func typeError(_ source: String) -> String? {
     // Reading it waits, and throws what it threw, as in Swift.
     #expect(typeError("async let x = 1; x") == "'value' is async, but isn't marked with 'await'")
     #expect(
-        typeError("async let x = Task.checkCancellation(); await x") == "'value' can throw, but isn't marked with 'try'"
+        typeError("async let x = Task.checkCancellation(); await x")
+            == "'value' can throw, but isn't marked with 'try'"
     )
     #expect(
         typeError("func f() -> Int { async let x = 1; return 2 }")
@@ -105,13 +114,26 @@ private func typeError(_ source: String) -> String? {
 }
 
 @Test func forTryAwaitReadsAnAsyncSequence() throws {
-    #expect(try eval("var total = 0; for try await n in Flow([1, 2, 3]) { total += n }; total") == .int(6))
-    #expect(typeError("for await n in [1, 2] { }") == "'for await' reads an AsyncSequence, and [Int] isn't one")
-    #expect(typeError("for await n in Flow([1]) { }") == "reading a Flow<Int> can throw: write 'for try await'")
+    #expect(
+        try eval("var total = 0; for try await n in Flow([1, 2, 3]) { total += n }; total")
+            == .int(6)
+    )
+    #expect(
+        typeError("for await n in [1, 2] { }")
+            == "'for await' reads an AsyncSequence, and [Int] isn't one"
+    )
+    #expect(
+        typeError("for await n in Flow([1]) { }")
+            == "reading a Flow<Int> can throw: write 'for try await'"
+    )
 }
 
 @Test func aValueIsThrownAway() throws {
-    #expect(try eval("var n = 0; func bump() -> Int { n += 1; return n }; _ = bump(); let _ = bump(); n") == .int(2))
+    #expect(
+        try eval(
+            "var n = 0; func bump() -> Int { n += 1; return n }; _ = bump(); let _ = bump(); n"
+        ) == .int(2)
+    )
 }
 
 @Test func awaitCoversWhatFollows() throws {
@@ -124,7 +146,9 @@ private func typeError(_ source: String) -> String? {
     let swiit = interpreter()
     let twice = Function(
         name: "twice",
-        parameters: [Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))],
+        parameters: [
+            Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))
+        ],
         returnType: .int,
         body: .native { swiit, args in
             try bridgeAsync(swiit) { () async throws -> Value in
@@ -151,8 +175,13 @@ private func typeError(_ source: String) -> String? {
         "actor A { var n = 0; func inc() { n += 1 }; func twice() { inc(); inc() }; nonisolated func id() -> Int { 7 } }; let a = A(); "
     #expect(try eval(actor + "await a.twice(); await a.n") == .int(2))
     #expect(try eval(actor + "a.id()") == .int(7))
-    #expect(typeError(actor + "a.inc()") == "'inc' of the actor A is async, but isn't marked with 'await'")
-    #expect(typeError(actor + "a.n") == "'n' of the actor A is async, but isn't marked with 'await'")
+    #expect(
+        typeError(actor + "a.inc()")
+            == "'inc' of the actor A is async, but isn't marked with 'await'"
+    )
+    #expect(
+        typeError(actor + "a.n") == "'n' of the actor A is async, but isn't marked with 'await'"
+    )
 }
 
 @Test func aTypedThrowThrowsOnlyItsType() throws {

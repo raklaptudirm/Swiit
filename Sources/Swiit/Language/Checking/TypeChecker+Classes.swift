@@ -5,7 +5,11 @@ extension TypeChecker {
 
     /// A class's info, with what its superclass gives already in it: a lookup
     /// on the class finds an inherited member as one of its own.
-    func classInfo(_ decl: ClassDecl, superclass parent: TypeProfile?, conformances: [String]) throws -> TypeProfile {
+    func classInfo(
+        _ decl: ClassDecl,
+        superclass parent: TypeProfile?,
+        conformances: [String]
+    ) throws -> TypeProfile {
         var members = decl.members
         members.conformances = conformances
         var info = try structInfo(members)
@@ -13,7 +17,8 @@ extension TypeChecker {
         info.superclass = parent?.name
         info.convenienceInitializers = members.initializers.map(\.isConvenience)
         info.nonisolated = Set(
-            members.methods.filter(\.isNonisolated).map(\.name) + members.properties.filter(\.isNonisolated).map(\.name)
+            members.methods.filter(\.isNonisolated).map(\.name)
+                + members.properties.filter(\.isNonisolated).map(\.name)
         )
         info.overrides = Set(members.methods.filter(\.isOverride).map(\.name))
         // Without a designated initializer of its own, a class has its superclass's.
@@ -30,7 +35,8 @@ extension TypeChecker {
         // No memberwise initializer: `init()` where every property has a value.
         info.memberwise = Signature(name: decl.name, parameters: [], returns: .named(decl.name))
         guard let parent else { return info }
-        for (name, property) in parent.declared.properties where info.declared.properties[name] == nil {
+        for (name, property) in parent.declared.properties
+        where info.declared.properties[name] == nil {
             info.declared.properties[name] = property
         }
         for (name, signatures) in parent.declared.methods {
@@ -40,10 +46,12 @@ extension TypeChecker {
             }
             info.declared.methods[name] = own + kept
         }
-        for (name, signatures) in parent.declared.staticMethods where info.declared.staticMethods[name] == nil {
+        for (name, signatures) in parent.declared.staticMethods
+        where info.declared.staticMethods[name] == nil {
             info.declared.staticMethods[name] = signatures
         }
-        for (name, property) in parent.declared.staticProperties where info.declared.staticProperties[name] == nil {
+        for (name, property) in parent.declared.staticProperties
+        where info.declared.staticProperties[name] == nil {
             info.declared.staticProperties[name] = property
         }
         if info.subscripts.isEmpty {
@@ -86,7 +94,9 @@ extension TypeChecker {
                 )
             }
             if overrides && !method.isOverride {
-                throw TypeError("\(decl.name).\(method.name) overrides a method of \(parent!.name): write 'override'")
+                throw TypeError(
+                    "\(decl.name).\(method.name) overrides a method of \(parent!.name): write 'override'"
+                )
             }
         }
         for property in decl.members.properties where property.isOverride {

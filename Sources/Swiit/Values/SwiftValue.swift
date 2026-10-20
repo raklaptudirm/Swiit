@@ -10,7 +10,8 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     /// Its Swift type, as Swiit writes it: `Substring`.
     public let typeName: String
 
-    // What it can do as a Swift value (hash, sort, encode) is found out when asked, not kept: anything
+    // What it can do as a Swift value (hash, sort, encode) is found out when asked, not kept:
+    // anything
     // kept would be another reference to a collection inside it, and a collection with two can't be
     // changed in place (a Set would be copied whole by every `insert`).
     private init(_ value: Any, typeName: String) {
@@ -57,11 +58,16 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
 
     /// The Swift value in `value`, which must be one of type `T`.
     public static func unbox<T>(_ type: T.Type, _ value: Value) throws -> T {
-        if case .object(let box as SwiftValue) = value, let unboxed = box.value as? T { return unboxed }
+        if case .object(let box as SwiftValue) = value, let unboxed = box.value as? T {
+            return unboxed
+        }
         // A host's own object is held as it is.
         if case .object(let object) = value, let held = object as? T { return held }
-        // A Character is held as the one-letter String it is, where Swiit makes it (iterating a String).
-        if case .string(let text) = value, text.count == 1, let character = text.first as? T { return character }
+        // A Character is held as the one-letter String it is, where Swiit makes it (iterating a
+        // String).
+        if case .string(let text) = value, text.count == 1, let character = text.first as? T {
+            return character
+        }
         throw SwiitError("expected \(T.self), not \(value.bridgeTypeName)")
     }
 
@@ -77,7 +83,9 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
-    public var description: String { (value as? any SwiitDisplayed)?.swiitDescription ?? String(describing: value) }
+    public var description: String {
+        (value as? any SwiitDisplayed)?.swiitDescription ?? String(describing: value)
+    }
     public var debugDescription: String {
         (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value)
     }

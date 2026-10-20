@@ -3,7 +3,11 @@ import Foundation
 extension TypeChecker {
     // MARK: Statements
 
-    func checkBlock(_ program: inout Program, declaring names: [String: Symbol] = [:], newScope: Bool = false) throws {
+    func checkBlock(
+        _ program: inout Program,
+        declaring names: [String: Symbol] = [:],
+        newScope: Bool = false
+    ) throws {
         if newScope { scopes.append(names) }
         defer { if newScope { scopes.removeLast() } }
         // Declared first, so functions and types can be used before (and by)
@@ -21,7 +25,8 @@ extension TypeChecker {
             case .function(let decl): declareFunction(decl)
             case .structDecl(let decl): structs.append(decl)
             case .classDecl(let decl): classes.append(decl)
-            case .enumDecl(let decl): scopes[scopes.count - 1][decl.name] = .enumType(enumInfo(decl))
+            case .enumDecl(let decl):
+                scopes[scopes.count - 1][decl.name] = .enumType(enumInfo(decl))
             case .typeExtension(let decl): registerExtension(decl)
             default: break
             }
@@ -48,7 +53,9 @@ extension TypeChecker {
             for decl in classes {
                 var superclass: TypeProfile?
                 var conformances = decl.inherited
-                if let first = decl.inherited.first, protocolInfo(named: first) == nil, enumInfo(named: first) == nil {
+                if let first = decl.inherited.first, protocolInfo(named: first) == nil,
+                    enumInfo(named: first) == nil
+                {
                     if let parent = structInfo(named: first), parent.isClass {
                         superclass = parent
                         conformances.removeFirst()
@@ -71,7 +78,8 @@ extension TypeChecker {
             classes = waiting
         }
         for index in program.statements.indices {
-            // A statement inside this one sets its own place; once it's checked, this one's is back (on an error, the
+            // A statement inside this one sets its own place; once it's checked, this one's is back
+            // (on an error, the
             // innermost stays).
             let outer = (line, range, spots)
             if index < program.lines.count { line = program.lines[index] }
@@ -84,11 +92,14 @@ extension TypeChecker {
 
     func checkStatement(_ statement: inout Statement) throws {
         switch statement {
-        case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl, .operatorDeclaration,
+        case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl,
+            .operatorDeclaration,
             .protocolDecl:
             return try checkDeclaration(&statement)
-        case .doCatch, .throwStatement, .guardStatement, .returnStatement, .fallthroughStatement, .breakStatement,
-            .continueStatement, .extensionDecl, .deferBlock, .expression, .ifStatement, .switchStatement, .forLoop,
+        case .doCatch, .throwStatement, .guardStatement, .returnStatement, .fallthroughStatement,
+            .breakStatement,
+            .continueStatement, .extensionDecl, .deferBlock, .expression, .ifStatement,
+            .switchStatement, .forLoop,
             .whileLoop:
             return try checkControl(&statement)
         }
@@ -142,7 +153,8 @@ extension TypeChecker {
         case .doCatch(var body, var clauses):
             // It handles what its body throws if a clause catches anything.
             let catchesAll = clauses.contains {
-                $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll))
+                $0.guardExpr == nil
+                    && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll))
             }
             errorContexts.append(
                 ErrorContext(
@@ -155,19 +167,26 @@ extension TypeChecker {
             let sitesBefore = throwingSites
             try checkBlock(&body, newScope: true)
             errorContexts.removeLast()
-            // What a `catch` that catches everything handles doesn't make the closure around it throw.
+            // What a `catch` that catches everything handles doesn't make the closure around it
+            // throw.
             if catchesAll { throwingSites = sitesBefore }
             // What the body throws is one type, if every call in it says so (`throws(E)`).
             let seen = Array(thrownSeen[seenBefore...])
             var errorType = TypeAnnotation.named("Error")
-            if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) { errorType = type }
+            if let first = seen.first, let type = first, seen.allSatisfy({ $0 == type }) {
+                errorType = type
+            }
             if catchesAll { thrownSeen.removeSubrange(seenBefore...) }
             for index in clauses.indices {
                 var bound: [String: Symbol] = [:]
                 if clauses[index].patterns.isEmpty {
                     bound["error"] = .variable(errorType, mutable: false)
                 } else {
-                    try checkPattern(&clauses[index].patterns[0], against: errorType, binding: &bound)
+                    try checkPattern(
+                        &clauses[index].patterns[0],
+                        against: errorType,
+                        binding: &bound
+                    )
                 }
                 scopes.append(bound)
                 defer { scopes.removeLast() }
@@ -189,7 +208,9 @@ extension TypeChecker {
             }
             let type = try typeOf(&value)
             guard conforms(type, to: "Error") else {
-                throw TypeError("only an Error can be thrown, and \(type) isn't one: declare it ': Error'")
+                throw TypeError(
+                    "only an Error can be thrown, and \(type) isn't one: declare it ': Error'"
+                )
             }
             throwingSites += 1
             thrownSeen.append(nil)
@@ -200,7 +221,9 @@ extension TypeChecker {
             let bound = try checkCondition(&node)
             try checkBlock(&otherwise, newScope: true)
             guard definitelyLeaves(otherwise, orExits: true) else {
-                throw TypeError("guard's else must not carry on: end it with return, break, continue or exit")
+                throw TypeError(
+                    "guard's else must not carry on: end it with return, break, continue or exit"
+                )
             }
             // What the condition binds is bound for the rest of the block.
             for (name, symbol) in bound { scopes[scopes.count - 1][name] = symbol }
@@ -209,7 +232,9 @@ extension TypeChecker {
             guard let context = returns.last else { return }
             if value != nil {
                 if context.declared == .void {
-                    throw TypeError("a function without '->' returns nothing, so 'return' takes no value")
+                    throw TypeError(
+                        "a function without '->' returns nothing, so 'return' takes no value"
+                    )
                 }
                 if let declared = context.declared {
                     try expect(&value!, declared, "the returned value")
@@ -270,7 +295,9 @@ extension TypeChecker {
         }
         // A task group that can't throw is read without `try`.
         if case .generic("TaskGroup", _) = sequence, !loop.isTry { return }
-        guard loop.isTry else { throw TypeError("reading a \(sequence) can throw: write 'for try await'") }
+        guard loop.isTry else {
+            throw TypeError("reading a \(sequence) can throw: write 'for try await'")
+        }
         tryDepth += 1
         defer { tryDepth -= 1 }
         try throwingSite("'for try await'")
@@ -279,7 +306,9 @@ extension TypeChecker {
     /// A condition, which is a Bool.
     func checkCondition(_ condition: inout Expr) throws {
         let type = try typeOf(&condition, expecting: .bool)
-        guard type == .bool || type == .unknown else { throw TypeError("a condition must be a Bool, not \(type)") }
+        guard type == .bool || type == .unknown else {
+            throw TypeError("a condition must be a Bool, not \(type)")
+        }
     }
 
     func checkIf(_ node: inout IfStatement) throws {
@@ -293,7 +322,10 @@ extension TypeChecker {
 
     /// An `if` expression's type: what both branches are, as for a list's
     /// elements, so `c ? 1 : nil` is an Int?.
-    func ifExpressionType(_ node: inout IfStatement, expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func ifExpressionType(
+        _ node: inout IfStatement,
+        expected: TypeAnnotation?
+    ) throws -> TypeAnnotation {
         let bound = try checkCondition(&node)
         guard var thenExpr = IfStatement.branchExpression(node.then),
             var elseExpr = IfStatement.branchExpression(node.otherwise ?? Program(statements: []))
@@ -305,12 +337,17 @@ extension TypeChecker {
         let elseNil = elseExpr == .literal(.nothing)
         var thenType = thenNil ? nil : try typeOf(&thenExpr, expecting: expected)
         scopes.removeLast()
-        let elseType = try typeOf(&elseExpr, expecting: expected ?? thenType.map { elseNil ? .optional($0) : $0 })
+        let elseType = try typeOf(
+            &elseExpr,
+            expecting: expected ?? thenType.map { elseNil ? .optional($0) : $0 }
+        )
         if thenNil { thenType = try typeOf(&thenExpr, expecting: expected ?? .optional(elseType)) }
         node.then = IfStatement.branch(thenExpr)
         node.otherwise = IfStatement.branch(elseExpr)
         guard let type = commonType([thenType!, elseType]) else {
-            throw TypeError("an if expression's branches must have one type, not \(thenType!) and \(elseType)")
+            throw TypeError(
+                "an if expression's branches must have one type, not \(thenType!) and \(elseType)"
+            )
         }
         return type
     }
@@ -344,7 +381,11 @@ extension TypeChecker {
         for index in node.cases.indices {
             var bound: [String: Symbol] = [:]
             for patternIndex in node.cases[index].patterns.indices {
-                try checkPattern(&node.cases[index].patterns[patternIndex], against: subject, binding: &bound)
+                try checkPattern(
+                    &node.cases[index].patterns[patternIndex],
+                    against: subject,
+                    binding: &bound
+                )
             }
             scopes.append(bound)
             defer { scopes.removeLast() }
@@ -368,8 +409,10 @@ extension TypeChecker {
             bound[name] = .variable(type, mutable: mutable)
         case .enumCase(let typeName, let name, var arguments):
             var subject = type
-            // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two cases are not an enum's
-            // at run time, so they are matched as nil and as the value, unless the held type has cases of those names.
+            // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two
+            // cases are not an enum's
+            // at run time, so they are matched as nil and as the value, unless the held type has
+            // cases of those names.
             if case .optional(let held) = subject, typeName == nil || typeName == "Optional",
                 name == "none" || name == "some",
                 !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil)
@@ -389,7 +432,9 @@ extension TypeChecker {
             // `catch Bad.input`: an Error matched as the enum named, if it is one.
             if subject == .named("Error") {
                 guard let typeName else {
-                    throw TypeError("an error could be of any type: write the enum's name, as in Kind.\(name)")
+                    throw TypeError(
+                        "an error could be of any type: write the enum's name, as in Kind.\(name)"
+                    )
                 }
                 guard conforms(.named(typeName), to: "Error") else {
                     throw TypeError("\(typeName) isn't an Error, so no error is one of its cases")
@@ -409,17 +454,27 @@ extension TypeChecker {
             if let typeName, typeName != enumName {
                 throw TypeError("\(typeName).\(name) can't match a \(enumName)")
             }
-            guard let payload = info.payload(of: name) else { throw TypeError("\(enumName) has no case '\(name)'") }
+            guard let payload = info.payload(of: name) else {
+                throw TypeError("\(enumName) has no case '\(name)'")
+            }
             guard arguments != nil else { return }
             guard arguments!.count == payload.count else {
-                throw TypeError("\(enumName).\(name) has \(payload.count) associated values, not \(arguments!.count)")
+                throw TypeError(
+                    "\(enumName).\(name) has \(payload.count) associated values, not \(arguments!.count)"
+                )
             }
             for index in arguments!.indices {
-                try checkPattern(&arguments![index].pattern, against: payload[index].type, binding: &bound)
+                try checkPattern(
+                    &arguments![index].pattern,
+                    against: payload[index].type,
+                    binding: &bound
+                )
             }
             pattern = .enumCase(type: typeName, name: name, arguments: arguments)
         case .expression(var expr):
-            if case .binary(let op, var lower, var upper) = expr, op == .closedRange || op == .halfOpenRange {
+            if case .binary(let op, var lower, var upper) = expr,
+                op == .closedRange || op == .halfOpenRange
+            {
                 let boundType = type == .double ? TypeAnnotation.double : type
                 try expect(&lower, boundType, "a range's bound")
                 try expect(&upper, boundType, "a range's bound")
@@ -459,10 +514,16 @@ extension TypeChecker {
                     )
                 }
                 for index in patterns.indices {
-                    try checkPattern(&patterns[index], against: elements[index].type, binding: &bound)
+                    try checkPattern(
+                        &patterns[index],
+                        against: elements[index].type,
+                        binding: &bound
+                    )
                 }
             case .unknown, .any:
-                for index in patterns.indices { try checkPattern(&patterns[index], against: .unknown, binding: &bound) }
+                for index in patterns.indices {
+                    try checkPattern(&patterns[index], against: .unknown, binding: &bound)
+                }
             default:
                 throw TypeError("a tuple pattern matches a tuple, not \(type)")
             }

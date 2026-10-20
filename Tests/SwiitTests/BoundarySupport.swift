@@ -7,7 +7,8 @@ import Swiit
 enum Boundaries {
     /// The directories of `Sources/Swiit` that stay in the core.
     static let coreDirectories = [
-        "Language/Syntax", "Language/Syntax/SwiftSyntax", "Language/Checking", "Language/Interpreter",
+        "Language/Syntax", "Language/Syntax/SwiftSyntax", "Language/Checking",
+        "Language/Interpreter",
         "Language/Prelude", "Bridge",
         "Language/Reflection", "Host", "Host/Embedding",
     ]
@@ -38,7 +39,10 @@ enum Boundaries {
         ("results", #"\b(Output|Status|FileEntry|FileType)\b"#),
         // How a terminal shows values: color, styles, tables.
         ("display", #"\b(colorOutput|TextStyle|Tabular|DisplayColumn|DisplayRegistry)\b"#),
-        ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
+        (
+            "commands",
+            #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#
+        ),
     ]
 
     /// The operating system, which the core reaches only through `Interpreter.Host`.
@@ -49,12 +53,14 @@ enum Boundaries {
     private static let sources = here.deletingLastPathComponent().deletingLastPathComponent()
         .deletingLastPathComponent()
         .appendingPathComponent("Sources/Swiit")
-    private static let ledger = here.deletingLastPathComponent().appendingPathComponent("boundaries.txt")
+    private static let ledger = here.deletingLastPathComponent()
+        .appendingPathComponent("boundaries.txt")
 
     /// What's wrong, one line each; empty when the core is inside its boundaries.
     static func violations() throws -> [String] {
         var allowed: [String: Int] = [:]  // "file\tgroup" to count
-        for line in try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n") where !line.hasPrefix("#") {
+        for line in try String(contentsOf: ledger, encoding: .utf8).split(separator: "\n")
+        where !line.hasPrefix("#") {
             let fields = line.split(separator: "\t").map(String.init)
             if fields.count == 4, fields[0] == "allow", let count = Int(fields[3]) {
                 allowed["\(fields[1])\t\(fields[2])"] = count
@@ -71,9 +77,12 @@ enum Boundaries {
             where name.hasSuffix(".swift") {
                 let file = "\(directory)/\(name)"
                 seen.insert(file)
-                let source = code(of: try String(contentsOf: url.appendingPathComponent(name), encoding: .utf8))
+                let source = code(
+                    of: try String(contentsOf: url.appendingPathComponent(name), encoding: .utf8)
+                )
 
-                let reached = matches(operatingSystem, in: source).filter { !(permitted[file]?.contains($0) ?? false) }
+                let reached = matches(operatingSystem, in: source)
+                    .filter { !(permitted[file]?.contains($0) ?? false) }
                 if !reached.isEmpty {
                     problems.append(
                         "\(file): reaches the operating system directly (\(Set(reached).sorted().joined(separator: ", "))); go through Interpreter.Host"
@@ -97,7 +106,9 @@ enum Boundaries {
         for key in allowed.keys.sorted() {
             let file = String(key.split(separator: "\t")[0])
             if !seen.contains(file) {
-                problems.append("boundaries.txt: allows \(file), which isn't in the core directories any more")
+                problems.append(
+                    "boundaries.txt: allows \(file), which isn't in the core directories any more"
+                )
             }
         }
         return problems
@@ -108,7 +119,11 @@ enum Boundaries {
         source.split(separator: "\n", omittingEmptySubsequences: false)
             .compactMap { line -> String? in
                 if line.trimmingCharacters(in: .whitespaces).hasPrefix("//") { return nil }
-                return line.replacingOccurrences(of: #"\s//.*$"#, with: "", options: .regularExpression)
+                return line.replacingOccurrences(
+                    of: #"\s//.*$"#,
+                    with: "",
+                    options: .regularExpression
+                )
             }
             .joined(separator: "\n")
     }

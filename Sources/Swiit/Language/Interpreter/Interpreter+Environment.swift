@@ -28,15 +28,22 @@ extension Interpreter {
         return declared ? moduleName + "." + name : name
     }
 
-    func describing(_ value: Value, debug: Bool = false, type: TypeAnnotation? = nil) throws -> String {
-        // What the type knows: an optional is `Optional(…)` or `nil`, and so is one inside a collection.
+    func describing(
+        _ value: Value,
+        debug: Bool = false,
+        type: TypeAnnotation? = nil
+    ) throws -> String {
+        // What the type knows: an optional is `Optional(…)` or `nil`, and so is one inside a
+        // collection.
         switch type {
         case .optional(let wrapped)?:
             if value == .nothing { return "nil" }
             return "Optional(" + (try describing(value, debug: true, type: wrapped)) + ")"
         case .list(let element)?:
             if case .list(let items) = value {
-                return "[" + (try items.map { try describing($0, debug: true, type: element) }).joined(separator: ", ")
+                return "["
+                    + (try items.map { try describing($0, debug: true, type: element) })
+                    .joined(separator: ", ")
                     + "]"
             }
         case .dictionary(let keyType, let valueType)?:
@@ -49,7 +56,9 @@ extension Interpreter {
                     .joined(separator: ", ") + "]"
             }
         case .tuple(let elements)?:
-            if case .record(let record) = value, record.typeName == nil, record.count == elements.count {
+            if case .record(let record) = value, record.typeName == nil,
+                record.count == elements.count
+            {
                 return "("
                     + (try zip(record, elements)
                     .map { field, element in
@@ -62,7 +71,8 @@ extension Interpreter {
             break
         }
         switch value {
-        case .enumValue(let enumValue) where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
+        case .enumValue(let enumValue)
+        where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
             return qualified(enumValue.type.name) + "." + enumValue.name
         case .enumValue(let enumValue) where !enumValue.values.isEmpty:
             let labels = enumValue.definition?.labels ?? []
@@ -72,7 +82,11 @@ extension Interpreter {
                 .map { index, item in
                     let label = index < labels.count ? labels[index] : nil
                     return (label.map { "\($0): " } ?? "")
-                        + (try describing(item, debug: true, type: index < payloads.count ? payloads[index] : nil))
+                        + (try describing(
+                            item,
+                            debug: true,
+                            type: index < payloads.count ? payloads[index] : nil
+                        ))
                 })
                 .joined(separator: ", ") + ")"
         case .string(let text):
@@ -94,7 +108,8 @@ extension Interpreter {
             }
             return qualified(instance.type.name)
         case .list(let items):
-            return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ") + "]"
+            return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ")
+                + "]"
         case .dictionary(let dictionary):
             guard !dictionary.isEmpty else { return "[:]" }
             return "["
@@ -123,7 +138,11 @@ extension Interpreter {
             return shownName + "("
                 + (try record.map { field in
                     (Record.isPosition(field.key) ? "" : "\(field.key): ")
-                        + (try describing(field.value, debug: true, type: declared?.property(field.key)?.type))
+                        + (try describing(
+                            field.value,
+                            debug: true,
+                            type: declared?.property(field.key)?.type
+                        ))
                 })
                 .joined(separator: ", ") + ")"
         default:
