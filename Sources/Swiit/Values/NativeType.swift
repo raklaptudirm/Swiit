@@ -63,8 +63,41 @@ extension Value {
 extension Interpreter {
     /// Makes a Swift value type one scripts can use. Registering a type again adds the members it lacks.
     public func register(_ type: NativeType) {
-        Bridge.register([BridgedType(type)])
+        var bridged = BridgedType(type)
+        // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined` (`Output`'s lines).
+        if type.conformances.contains("Sequence"), let element = type.associatedTypes["Element"] {
+            bridged = bridged.adding(itemMembers(of: TypeAnnotation(element), excluding: Set(type.members.map { $0.function.name })))
+        }
+        Bridge.register([bridged])
         withMainTask { scopes[0].bindings[type.name] = Binding(value: .object(BridgedTypeName(type.name)), mutable: false) }
+    }
+}
+
+extension Interpreter {
+    /// A list's members, which read their receiver without changing it, made members of a sequence: they take its items as the
+    /// list they work on.
+    func itemMembers(of element: TypeAnnotation, excluding own: Set<String>) -> [BridgedMember] {
+        guard let array = Bridge.types["Array"] else { return [] }
+        let checker = TypeChecker(interpreter: self)
+        let bindings = ["Element": element]
+        return array.members.filter { !$0.isStatic && !$0.isMutating && ($0.kind == .method || $0.kind == .property) && !own.contains($0.name) }.map { member in
+            let body: FunctionBody
+            if case .native(let call) = member.body {
+                body = .native { interpreter, arguments in
+                    var arguments = arguments
+                    if let receiver = arguments["self"], let items = receiver.items { arguments["self"] = .list(Array(items)) }
+                    return try call(interpreter, arguments)
+                }
+            } else {
+                body = member.body
+            }
+            return BridgedMember(
+                kind: member.kind, name: member.name, isStatic: false,
+                parameters: member.parameters.map { var made = $0; made.type = checker.substitute($0.type, bindings); return made },
+                returns: checker.substitute(member.returns, bindings), generics: member.generics, isThrowing: member.isThrowing,
+                isRethrowing: member.isRethrowing, isMutating: false, discardableResult: member.discardableResult, summary: member.summary,
+                body: body, parameterDocs: member.parameterDocs, effect: member.effect, typedThrows: member.typedThrows)
+        }
     }
 }
 

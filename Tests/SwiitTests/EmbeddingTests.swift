@@ -816,3 +816,21 @@ private final class Handle: HostObject, @unchecked Sendable {
     swish["settings"] = nil
     #expect(throws: Diagnostic.self) { try swish.evaluate("settings.theme") }
 }
+
+@Test func aCallByNameFindsTheBridgedOverloadByItsArguments() throws {
+    let swish = interpreter()
+    #expect(try swish.call("contains", on: [1, 2], arguments: [(nil, Value(2))]) == true)
+    #expect(try swish.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b")
+    #expect(try swish.call("first", on: [4, 5]) == 4)
+}
+
+@Test func aSequenceNativeTypeHasWhatAListHasOverItsItems() throws {
+    struct Lines: Sequence, Sendable, Hashable { var lines: [String]; func makeIterator() -> IndexingIterator<[String]> { lines.makeIterator() } }
+    let swish = interpreter()
+    swish.register(NativeType.Builder<Lines>("Lines", conformances: ["Equatable", "Hashable", "Sequence"], associatedTypes: ["Element": .string])
+        .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) })
+    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
+    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).count"#) == 2)
+    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).map { $0 + "!" }"#) == ["b!", "a!"])
+    #expect(try swish.call("sorted", on: swish.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"])
+}
