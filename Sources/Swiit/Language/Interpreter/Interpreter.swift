@@ -62,7 +62,8 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     var unawaitedCallers: [String: Set<String>] = [:]
     /// Told each simple statement as it finishes, for a host that keeps an
     /// exit status, as the shell does.
-    @_spi(Layer) public var statementFinished: StatementObserver?
+    /// Whether the host is told as statements finish; not while a `defer` cleans up.
+    var observesStatements = true
     /// What library functions that ask for it are lent, if the host lends its
     /// own (`context` otherwise makes one from the output and the display).
     @_spi(Layer) public var contextProvider: (() -> HostContext)?
@@ -91,13 +92,6 @@ extension Interpreter {
         } else {
             host.error.write("\(host.name):".styled(DisplayStyle.error, styled) + " \(message)\n")
         }
-    }
-
-    /// Reports a problem with one item, like a file `ls` couldn't read,
-    /// without stopping; the statement's status becomes a failure.
-    @_spi(Layer) public func reportItemError(_ message: String) {
-        report(message)
-        itemErrorCount += 1
     }
 }
 

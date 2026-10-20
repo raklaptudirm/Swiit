@@ -85,6 +85,11 @@ extension Interpreter {
 
         /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host keeps for it, as a shell keeps
         /// its output and status. Read back as `Interpreter.taskState` while that task runs.
+        /// Told as each statement finishes, wherever it is nested: with the value of an expression statement (nil for any other),
+        /// and whether it was a `try?` that caught an error. An `if`, a loop, a `switch` and a `do` are told as they start,
+        /// with no value; the statements in them are told as they run. A shell keeps its exit status from these. What a `defer`
+        /// runs is not told: cleaning up doesn't change how the block went.
+        public var statementFinished: (@Sendable (_ value: Value?, _ caughtError: Bool) -> Void)?
         public var makeTaskState: @Sendable () -> AnyObject? = { nil }
         /// Told when the task running waits for another to end (`await`), with the state of the one awaited, before it does;
         /// what it gives back is called once the wait is over. A shell brings the awaited task forward meanwhile.

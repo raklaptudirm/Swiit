@@ -88,9 +88,9 @@ extension Interpreter {
     /// still run, as nothing can leave a `defer`. What they run isn't told to
     /// the host: cleaning up doesn't change how the block went.
     @_spi(Layer) public func runDeferred(_ blocks: [Program]) {
-        let observer = statementFinished
-        statementFinished = nil
-        defer { statementFinished = observer }
+        let observing = observesStatements
+        observesStatements = false
+        defer { observesStatements = observing }
         for body in blocks.reversed() {
             do {
                 try runBlock(body)
@@ -109,7 +109,6 @@ extension Interpreter {
     }
 
     @_spi(Layer) public func run(_ statement: Statement) throws {
-        let errorsBefore = itemErrorCount
         switch statement {
         case .typeExtension(let decl):
             try declare(decl)
@@ -146,12 +145,12 @@ extension Interpreter {
             try declare(decl)
         case .expression(let expr):
             let value = try evaluate(expr)
-            statementFinished?(statement, value, itemErrorCount > errorsBefore)
+            finished(statement, value)
             return
         // What runs inside these says how they went, and a body that doesn't
         // run leaves them as a statement that did nothing.
         case .doCatch(let body, let clauses):
-            statementFinished?(statement, nil, false)
+            finished(statement, nil)
             do {
                 try runBlock(body)
             } catch let error as RuntimeError {
@@ -166,16 +165,16 @@ extension Interpreter {
             let value = try evaluate(expr)
             throw RuntimeError(value.description, thrown: value)
         case .ifStatement(let node):
-            statementFinished?(statement, nil, false)
+            finished(statement, nil)
             let (branch, bindings) = try chooseBranch(node)
             if let branch { try runBlock(branch, declaring: bindings) }
             return
         case .switchStatement(let node):
-            statementFinished?(statement, nil, false)
+            finished(statement, nil)
             try runSwitch(node)
             return
         case .forLoop(let loop):
-            statementFinished?(statement, nil, false)
+            finished(statement, nil)
             try forEachElement(of: loop.sequence) { element in
                 var bindings: [String: Binding] = [:]
                 guard try match(loop.pattern, element, into: &bindings) else {
@@ -185,7 +184,7 @@ extension Interpreter {
             }
             return
         case .whileLoop(let loop):
-            statementFinished?(statement, nil, false)
+            finished(statement, nil)
             if loop.isRepeat {
                 repeat {
                     guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
@@ -215,14 +214,13 @@ extension Interpreter {
         case .continueStatement(let label):
             throw ControlFlow.continueLoop(label)
         }
-        statementFinished?(statement, nil, itemErrorCount > errorsBefore)
+        finished(statement, nil)
     }
 
     /// An expression statement at the top level: evaluated, and shown to the
     /// observer (unless it is a bare `true` or `false`, which stand in for the
     /// Unix commands).
     func runObserved(_ expr: Expr, _ observer: ValueObserver) throws {
-        let errorsBefore = itemErrorCount
         let value = try evaluate(expr)
         let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
         // `xs.removeLast()` alone: Swift's @discardableResult.
@@ -230,7 +228,7 @@ extension Interpreter {
             Bridge.types[type]?.members[member].discardableResult == true
         } else { false }
         if !isBoolLiteral { try observer(value, expr, discarded) }
-        statementFinished?(.expression(expr), value, itemErrorCount > errorsBefore)
+        finished(.expression(expr), value)
     }
 
     /// Runs one iteration; false means `break`. A `break` or `continue` that
@@ -304,5 +302,16 @@ extension Interpreter {
 /// value; the statements in them are told as they run. The shell keeps the
 /// exit status from these.
 @_spi(Layer) public typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
+
+extension Interpreter {
+    /// Tells the host a statement finished, if it is watching (`Interpreter.Host.statementFinished`).
+    func finished(_ statement: Statement, _ value: Value?) {
+        guard observesStatements, let observer = host.statementFinished else { return }
+        // A `try?` that caught an error gave nil because it failed; other nils, like a function that returns nothing, didn't.
+        var caught = false
+        if value == .nothing, case .expression(.attempt(_, .optional)) = statement { caught = true }
+        observer(value, caught)
+    }
+}
 
 @_spi(Layer) public typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void

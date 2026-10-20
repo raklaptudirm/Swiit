@@ -168,7 +168,6 @@ Language/Interpreter/Interpreter+Structs.swift	Layer var description
 Language/Interpreter/Interpreter.swift	Layer func globalNames
 Language/Interpreter/Interpreter.swift	Layer func parse
 Language/Interpreter/Interpreter.swift	Layer func report
-Language/Interpreter/Interpreter.swift	Layer func reportItemError
 Language/Interpreter/Interpreter.swift	Layer init init
 Language/Interpreter/Interpreter.swift	Layer let lock
 Language/Interpreter/Interpreter.swift	Layer let mainTask
@@ -183,7 +182,6 @@ Language/Interpreter/Interpreter.swift	Layer var limits
 Language/Interpreter/Interpreter.swift	Layer var moduleName
 Language/Interpreter/Interpreter.swift	Layer var owner
 Language/Interpreter/Interpreter.swift	Layer var sequenceMethods
-Language/Interpreter/Interpreter.swift	Layer var statementFinished
 Language/Interpreter/Interpreter.swift	Layer var staticTypes
 Language/Interpreter/Interpreter.swift	Layer var task
 Language/Interpreter/InterpreterLock.swift	Layer class InterpreterLock

@@ -15,8 +15,6 @@
     /// The return types of the functions being run, innermost last, so a
     /// returned `.case` knows its enum.
     var returnTypes: [TypeAnnotation?] = []
-    /// Per-item errors reported so far, like a file `ls` couldn't read.
-    var itemErrorCount = 0
     /// What a call's `inout` parameters held when it ended, in order, for the
     /// call to hand back to the places `&` named.
     var inoutOutputs: [Value] = []
@@ -74,12 +72,6 @@ extension Interpreter {
     var returnTypes: [TypeAnnotation?] {
         _read { yield task.returnTypes }
         _modify { yield &task.returnTypes }
-    }
-
-    /// Per-item errors the current task has reported so far.
-    var itemErrorCount: Int {
-        _read { yield task.itemErrorCount }
-        _modify { yield &task.itemErrorCount }
     }
 
 }

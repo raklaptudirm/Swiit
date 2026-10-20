@@ -741,3 +741,19 @@ private final class Mark: @unchecked Sendable {
     #expect(try swish.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)") == true)
     #expect(try swish.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true)
 }
+
+@Test func theHostIsToldAsStatementsFinish() throws {
+    let swish = interpreter()
+    nonisolated(unsafe) var told: [String] = []
+    swish.host.statementFinished = { value, caught in told.append(caught ? "caught" : value.map { $0.description } ?? "-") }
+    _ = try swish.evaluate("""
+    let x = 1
+    x + 1
+    func f() -> Int { 7 }
+    f()
+    try? Int("z")
+    if x == 1 { x + 10 }
+    """)
+    // Values of the expression statements, in order; `if` is told as it starts, and what is in it as it runs.
+    #expect(told.filter { $0 != "-" } == ["2", "7", "caught", "11"])
+}
