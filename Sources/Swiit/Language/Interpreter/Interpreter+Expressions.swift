@@ -567,7 +567,7 @@ extension Interpreter {
             return found
         }
         // An unset environment variable is nil, not a missing field.
-        if case .object(let object as DynamicObject) = value { return try object.read(name) }
+        if case .object(let object) = value, object.readType != nil { return try object.read(name) }
         if case .object(let object) = value, name != "description" && name != "debugDescription" {
             if let property = try bridgedProperty(name, of: value) { return property }
             if let method = bridgedMethods(name, of: value) { return method }
@@ -635,7 +635,7 @@ extension Interpreter {
 
     func element(of base: Value, at index: Value) throws -> Value {
         if case .string(let text) = base { return try Bridge.subscriptString(text, index) }
-        if case .object(let object as DynamicObject) = base {
+        if case .object(let object) = base, object.readType != nil {
             guard case .string(let name) = index else {
                 throw RuntimeError("\(object.typeName) is indexed by name, not \(index.typeName)")
             }

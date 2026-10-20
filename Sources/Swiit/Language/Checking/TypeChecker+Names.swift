@@ -18,7 +18,7 @@ extension TypeChecker {
             return .enumType(enumInfo(type))
         case .object(let type as ProtocolType):
             return .protocolType(protocolInfo(type.declaration))
-        case .object(let object as DynamicObject):
+        case .object(let object) where object.readType != nil:
             return .variable(.named(object.typeName), mutable: false)
         case .object(let type as BridgedTypeName):
             return .swiftType(type.name)

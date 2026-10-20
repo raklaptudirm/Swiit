@@ -961,13 +961,13 @@ extension Interpreter {
                 throw RuntimeError("\(box.typeName).\(name) gave back no receiver")
             }
             return parts[1]
-        case (.member(let name), .object(let object as DynamicObject)):
+        case (.member(let name), .object(let object)) where object.readType != nil:
             guard rest.isEmpty else {
                 throw RuntimeError("cannot assign into \(object.typeName).\(name)")
             }
             try object.write(name, try change(try object.read(name), nil))
             return base
-        case (.index(let indexExpr), .object(let object as DynamicObject)):
+        case (.index(let indexExpr), .object(let object)) where object.readType != nil:
             let key = try evaluate(indexExpr)
             guard case .string(let name) = key, rest.isEmpty else {
                 throw RuntimeError("\(object.typeName) is indexed by name, not \(key.typeName)")

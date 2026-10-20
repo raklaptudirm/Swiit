@@ -213,12 +213,12 @@ private func interpreter(
 }
 
 /// A bag of settings: every member is an Int, assigned through a `let`.
-private final class Settings: DynamicObject, @unchecked Sendable {
+private final class Settings: HostObject, @unchecked Sendable {
     var values: [String: Int] = ["volume": 7]
 
     var typeName: String { "Settings" }
-    var readType: ValueType { .optional(.int) }
-    var writeType: ValueType { .optional(.int) }
+    var readType: ValueType? { .optional(.int) }
+    var writeType: ValueType? { .optional(.int) }
     var memberNames: [String] { values.keys.sorted() }
     var description: String { "Settings" }
     func member(_ name: String) -> Value? { values[name].map { Value($0) } }
@@ -229,7 +229,7 @@ private final class Settings: DynamicObject, @unchecked Sendable {
     }
 }
 
-@Test func aDynamicObjectAnswersForItsOwnMembers() throws {
+@Test func anObjectWithAReadTypeAnswersForItsOwnMembers() throws {
     let swiit = interpreter()
     let settings = Settings()
     swiit["settings"] = Value(settings)
@@ -416,20 +416,20 @@ private final class HostNode: HostObject, @unchecked Sendable {
     #expect(throws: (any Error).self) { try swiit.evaluate("node.nosuch") }
 }
 
-private final class Preferences: DynamicObject, @unchecked Sendable {
+private final class Preferences: HostObject, @unchecked Sendable {
     var values: [String: Value] = ["count": 2, "theme": "dark"]
     var typeName: String { "Preferences" }
     var count: Int { (try? Int(values["count"] ?? .null)) ?? 0 }
     var memberNames: [String] { values.keys.sorted() }
     func member(_ name: String) -> Value? { values[name] }
     var description: String { "Preferences" }
-    var readType: ValueType { .string }
-    var writeType: ValueType { .string }
+    var readType: ValueType? { .string }
+    var writeType: ValueType? { .string }
     func read(_ name: String) throws -> Value { values[name] ?? .null }
     func write(_ name: String, _ value: Value) throws { values[name] = value }
 }
 
-@Test func aDynamicObjectHasTheMembersTheHostDescribedTyped() throws {
+@Test func anObjectWithAReadTypeHasTheMembersTheHostDescribedTyped() throws {
     let swiit = interpreter()
     swiit["settings"] = Value(Preferences())
     // Every member has the one type, until some are described.
