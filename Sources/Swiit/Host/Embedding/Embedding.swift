@@ -449,7 +449,9 @@ extension Interpreter {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         do {
-            // Swiit code runs holding the lock, which a task it starts waits for.
+            // From a host function, in a run already, it carries on where it is. Otherwise Swiit code runs holding the lock, which
+            // a task it starts waits for.
+            if interpreter.lock.isHeldByCurrentThread { return try interpreter.runSource(source, nested: true, alreadyCancelled: alreadyCancelled) }
             return try onLargeStack { try interpreter.withMainTask { try interpreter.runSource(source, alreadyCancelled: alreadyCancelled) } }
         } catch {
             throw Diagnostic.of(error)
@@ -473,21 +475,30 @@ extension Interpreter {
     /// - `onError` is told of a run-time error in a statement, and says whether to go on with the next one (a script reports
     ///   an error and carries on); without it, the first stops the run. A stop, a limit and an `Unwinding` error always end it.
     ///
+    /// - `finish` runs after the last statement and before the program's own top-level `defer`s, which run when it is all over.
+    ///
     /// A mistake in the program's types or syntax is found before any statement runs.
     public func execute(
-        _ source: String, observing observe: ((Observation) throws -> Void)? = nil, onError handle: ((Diagnostic) -> Bool)? = nil
+        _ source: String, observing observe: ((Observation) throws -> Void)? = nil, onError handle: ((Diagnostic) -> Bool)? = nil,
+        then finish: (() -> Void)? = nil
     ) throws(Diagnostic) {
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         nonisolated(unsafe) let observe = observe // safe: runs holding the interpreter lock
         nonisolated(unsafe) let handle = handle // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let finish = finish // safe: runs holding the interpreter lock
+        let observer: ValueObserver = observe.map { observe in
+            { value, expression, discarded in
+                try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
+            }
+        } ?? { _, _, _ in }
         do {
-            _ = try onLargeStack {
-                try interpreter.withMainTask {
-                    try interpreter.runSource(source, observer: observe.map { observe in
-                        { value, expression, discarded in
-                            try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
-                        }
-                    } ?? { _, _, _ in }, onError: handle, alreadyCancelled: { false })
+            if interpreter.lock.isHeldByCurrentThread {
+                _ = try interpreter.runSource(source, observer: observer, onError: handle, finish: finish, nested: true, alreadyCancelled: { false })
+            } else {
+                _ = try onLargeStack {
+                    try interpreter.withMainTask {
+                        try interpreter.runSource(source, observer: observer, onError: handle, finish: finish, alreadyCancelled: { false })
+                    }
                 }
             }
         } catch {
@@ -515,12 +526,18 @@ extension Interpreter {
         return try outcome.get()
     }
 
-    private func runSource(_ source: String, observer: ValueObserver? = nil, onError: ((Diagnostic) -> Bool)? = nil, alreadyCancelled: () -> Bool) throws -> Value {
-        steps = 0
-        outputCounter.reset()
-        deadline = limits.time.map { ContinuousClock.now + $0 }
-        cancellation.clear()
-        if alreadyCancelled() { cancellation.request() }
+    private func runSource(
+        _ source: String, observer: ValueObserver? = nil, onError: ((Diagnostic) -> Bool)? = nil, finish: (() -> Void)? = nil, nested: Bool = false,
+        alreadyCancelled: () -> Bool
+    ) throws -> Value {
+        // A run begun from a host function inside one carries on under the limits and the stop of the one it is in.
+        if !nested {
+            steps = 0
+            outputCounter.reset()
+            deadline = limits.time.map { ContinuousClock.now + $0 }
+            cancellation.clear()
+            if alreadyCancelled() { cancellation.request() }
+        }
         let program: Program
         switch parse(source) {
         case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range, isIncomplete: error.incomplete)
@@ -542,7 +559,7 @@ extension Interpreter {
                 if checked.ranges.count > checked.statements.count { checked.ranges.removeLast() }
                 if checked.spots.count > checked.statements.count { checked.spots.removeLast() }
             }
-            try run(checked, observing: observer, onError: onError)
+            try run(checked, observing: observer, onError: onError, finish: finish)
             do {
                 return try last.map { try evaluate($0) } ?? .nothing
             } catch var error as RuntimeError {

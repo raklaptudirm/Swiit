@@ -148,8 +148,8 @@ extension Interpreter {
                 let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: names)
                 // A method every sequence has gets the sequence, as a list, in `self`.
                 let natives = Dictionary(uniqueKeysWithValues: bodies.map { name, call in
-                    (name, (body: FunctionBody.native { _, arguments in
-                        do { return try call(arguments) } catch let error as Diagnostic { throw RuntimeError(error.message, status: error.status) }
+                    (name, (body: FunctionBody.native { interpreter, arguments in
+                        do { return try call(arguments) } catch { throw interpreter.hostFailure(error, in: name) }
                     }, input: name.hasPrefix("Sequence.")
                         ? Parameter(label: nil, name: "self", type: .list(.parameter("Element")), isInput: true) : nil))
                 })

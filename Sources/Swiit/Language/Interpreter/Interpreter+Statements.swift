@@ -8,7 +8,7 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
-    @_spi(Layer) public func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil) throws {
+    @_spi(Layer) public func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil, finish: (() -> Void)? = nil) throws {
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
@@ -43,6 +43,7 @@ extension Interpreter {
                 throw error
             }
         }
+        finish?()
         // Whatever the last statement let go of.
         if hasPendingDeinits { runPendingDeinits() }
     }

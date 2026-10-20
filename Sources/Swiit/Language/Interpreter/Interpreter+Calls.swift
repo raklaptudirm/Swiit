@@ -309,26 +309,37 @@ extension Interpreter {
         let call = export.call
         return Function(
             name: name, parameters: parameters, returnType: export.returnType.map(TypeAnnotation.init),
-            body: .native { _, arguments in
+            body: .native { interpreter, arguments in
                 do {
                     return try call(arguments)
-                } catch let error as RuntimeError {
-                    throw error
-                } catch let error as ScriptError {
-                    let failure = RuntimeError(error.message, status: error.status, thrown: error.value)
-                    throw error.isReported ? AlreadyReported(error: failure) : failure
-                } catch let diagnostic as Diagnostic {
-                    let failure = RuntimeError(diagnostic.message, status: diagnostic.status)
-                    throw diagnostic.isReported ? AlreadyReported(error: failure) : failure
-                } catch let unwinding as Unwinding {
-                    throw unwinding
                 } catch {
-                    throw RuntimeError("\(name): \(error)")
+                    throw interpreter.hostFailure(error, in: name)
                 }
             },
             documentation: Documentation(summary: export.summary ?? "", parameters: docs),
             isThrowing: export.isThrowing
         )
+    }
+}
+
+extension Interpreter {
+    /// What a script sees of an error a host function threw: a failure it can catch, or one that unwinds it.
+    func hostFailure(_ error: any Error, in function: String) -> any Error {
+        switch error {
+        case is RuntimeError: error
+        case let error as ScriptError:
+            { () -> any Error in
+                let failure = RuntimeError(error.message, status: error.status, thrown: error.value)
+                return error.isReported ? AlreadyReported(error: failure) : failure
+            }()
+        case let diagnostic as Diagnostic:
+            { () -> any Error in
+                let failure = RuntimeError(diagnostic.message, status: diagnostic.status)
+                return diagnostic.isReported ? AlreadyReported(error: failure) : failure
+            }()
+        case is Unwinding: error
+        default: RuntimeError("\(function): \(error)")
+        }
     }
 }
 
