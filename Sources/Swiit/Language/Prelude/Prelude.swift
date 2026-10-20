@@ -135,8 +135,8 @@ extension Interpreter {
     }
 
     /// Declares what a host adds to the language itself: types, protocols, functions and what every sequence has, written as
-    /// Swift declarations whose bodies are in Swift too. A function or method written without a body (`func run() -> Status`)
-    /// takes the body registered under its name (`"run"`), or `Type.method` for a method (`"Command.run"`, `"Sequence.select"`).
+    /// Swift declarations whose bodies are in Swift too. A function or method written without a body (`func next() -> Int`)
+    /// takes the body registered under its name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations may overload it.
     public func prelude(_ source: String, bodies: [String: HostFunction] = [:]) throws(Diagnostic) {
         do {
