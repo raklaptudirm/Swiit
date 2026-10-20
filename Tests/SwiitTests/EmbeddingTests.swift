@@ -835,3 +835,11 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).map { $0 + "!" }"#) == ["b!", "a!"])
     #expect(try swish.call("sorted", on: swish.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"])
 }
+
+@Test func aCallWithArgumentsMeansTheMethodNotTheProperty() throws {
+    let swish = interpreter()
+    #expect(try swish.call("count", on: [1, 2, 3], arguments: [("where", try swish.evaluate("{ $0 > 1 }"))]) == 2)
+    #expect(try swish.call("reduce", on: [1, 2, 3], arguments: [(nil, Value(0)), (nil, try swish.evaluate("{ $0 + $1 }"))]) == 6)
+    let reduce = swish.symbols(named: "reduce", of: .list(.int))
+    #expect(try swish.resolveOverload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)]).name == "reduce")
+}

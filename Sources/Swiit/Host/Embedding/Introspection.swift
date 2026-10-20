@@ -60,6 +60,8 @@ public struct Symbol: Sendable, Hashable {
         /// Whether a call may leave it out.
         public var hasDefault: Bool
         public var isVariadic: Bool
+        /// The type as the checker has it, which tells a type parameter from a type of the same name.
+        var annotation: TypeAnnotation?
         /// What it is when the call leaves it out, if that is a plain value: `false`, `10`, `"-"`.
         public var defaultValue: Value?
         /// What a `- Parameter name:` line of its documentation says.
@@ -184,9 +186,11 @@ extension Interpreter {
     fileprivate func parameter(_ parameter: Parameter, documentation: String? = nil) -> Symbol.Parameter {
         var plain: Value?
         if case .literal(let value)? = parameter.defaultValue { plain = value }
-        return Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
-                                hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic,
-                                defaultValue: plain, documentation: documentation)
+        var made = Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
+                                    hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic,
+                                    defaultValue: plain, documentation: documentation)
+        made.annotation = parameter.type
+        return made
     }
 
     private func memberSymbols(named name: String?, of type: TypeAnnotation) -> [Symbol] {
@@ -217,9 +221,12 @@ extension Interpreter {
                         name: member.name, summary: member.summary.isEmpty ? nil : member.summary,
                         declaration: .function(Symbol.Function(
                             parameters: member.parameters.map {
-                                Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType(checker.substitute($0.type, bindings)),
-                                                 hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic,
-                                                 documentation: member.parameterDocs[$0.name])
+                                let substituted = checker.substitute($0.type, bindings)
+                                var made = Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType(substituted),
+                                                            hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic,
+                                                            documentation: member.parameterDocs[$0.name])
+                                made.annotation = substituted
+                                return made
                             },
                             returns: member.returns == .void ? nil : ValueType(checker.substitute(member.returns, bindings)),
                             isThrowing: member.isThrowing, isAsync: member.effect != .sync, isMutating: member.isMutating,
@@ -323,17 +330,21 @@ extension Interpreter {
             guard let parameters = candidate.function?.parameters else { return nil }
             var cost = 0
             var next = 0
+            var given: Set<String> = []
             for argument in arguments {
                 // The parameter this argument is for: by label, else the next without one.
                 guard let index = parameters[next...].firstIndex(where: { $0.label == argument.label }) ?? parameters.firstIndex(where: { $0.isVariadic && $0.label == argument.label }) else { return nil }
                 let parameter = parameters[index]
-                let actual = TypeAnnotation(argument.type), expected = TypeAnnotation(parameter.type)
+                // A function of a signature not known fits where any function is wanted.
+                var actual = TypeAnnotation(argument.type)
+                if actual == .function { actual = .unknown }
+                let expected = parameter.annotation ?? TypeAnnotation(parameter.type)
                 guard checker.fits(actual, expected) else { return nil }
                 if expected == .any || expected == .unknown { cost += 1 }
+                given.insert(parameter.name)
                 next = parameter.isVariadic ? index : index + 1
             }
             // What is left out must have a default.
-            let given = Set(arguments.compactMap { argument in parameters.first { $0.label == argument.label }?.name })
             for parameter in parameters where !given.contains(parameter.name) && !parameter.hasDefault && !parameter.isVariadic { return nil }
             return cost
         }

@@ -353,10 +353,16 @@ extension Interpreter {
     public func call(
         _ name: String, on receiver: Value? = nil, arguments: [(label: String?, value: Value)] = []
     ) throws(Diagnostic) -> Value {
-        let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
-        let call = Expr.call(callee, arguments.map { Argument(label: $0.label, value: .literal($0.value)) })
+        let written = arguments.map { Argument(label: $0.label, value: .literal($0.value)) }
         do {
-            return try inCurrentTask { try self.evaluate(call) }
+            return try inCurrentTask { () throws -> Value in
+                // A Swift type's method by that name, when arguments are given: `count { … }` is a method, not the property `count`.
+                if let receiver, !arguments.isEmpty, let methods = bridgedMethods(name, of: receiver) {
+                    return try self.evaluate(.call(.literal(methods), written))
+                }
+                let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
+                return try self.evaluate(.call(callee, written))
+            }
         } catch {
             throw Diagnostic.of(error)
         }
