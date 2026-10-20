@@ -38,7 +38,7 @@ import Foundation
 
 /// ^C while the shell itself was running code.
 /// ^C, or in a script SIGTERM or SIGHUP: stops what's running.
-@_spi(Layer) public struct Interrupted: Error {
+@_spi(Layer) public struct Interrupted: Error, Unwinding {
     public var reason: StopReason
 
     public init(reason: StopReason) {

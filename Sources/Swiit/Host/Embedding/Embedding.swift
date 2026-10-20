@@ -190,12 +190,12 @@ extension Interpreter {
     }
 }
 
-@_spi(Layer) public struct LimitExceeded: Error, CustomStringConvertible {
+@_spi(Layer) public struct LimitExceeded: Error, Unwinding, CustomStringConvertible {
     public let description: String
     @_spi(Layer) public init(_ description: String) { self.description = description }
 }
 
-@_spi(Layer) public struct Cancelled: Error {}
+@_spi(Layer) public struct Cancelled: Error, Unwinding {}
 
 /// Bytes written so far, for the output limit.
 @_spi(Layer) public final class OutputCounter: @unchecked Sendable { // safe: every access holds its own lock

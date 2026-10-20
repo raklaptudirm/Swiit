@@ -50,7 +50,7 @@ public struct NativeType: Sendable {
 extension Value {
     /// A Swift value, held as it is, of a type registered as `NativeType` named `typeName`. Scripts compare and hash it as
     /// Swift does when the type is `Equatable`, `Hashable` or `Comparable`.
-    public init<T: Sendable>(boxing value: T, as typeName: String) {
+    public init<T>(boxing value: T, as typeName: String) {
         self = SwiftValue.make(value, as: typeName)
     }
 

@@ -278,6 +278,10 @@ extension Interpreter {
         }
     }
 
+    /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is reached. A host function that waits
+    /// calls it between waits, so a stop is noticed while it does.
+    public func checkForStop() throws { try checkInterrupt() }
+
     @_spi(Layer) public func checkInterrupt() throws {
         if hasPendingDeinits { runPendingDeinits() }
         steps += 1
