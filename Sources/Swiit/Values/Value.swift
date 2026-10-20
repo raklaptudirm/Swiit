@@ -498,6 +498,13 @@ extension Value {
         self = .record(Record(fields, typeName: typeName))
     }
 
+    /// As above, for fields whose names are known only as the program runs: a parsed object's keys.
+    public init(struct typeName: String?, fields: [(name: String, value: Value)]) {
+        var record = Record(typeName: typeName)
+        for (name, value) in fields { record[name] = value }
+        self = .record(record)
+    }
+
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one is given.
     public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
