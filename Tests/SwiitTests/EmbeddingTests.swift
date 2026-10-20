@@ -780,3 +780,19 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swish.evaluate("await spawn()") == 42)
     swish.finishTasks()
 }
+
+@Test func aReplHostIsToldTheValueOfEachExpressionStatement() throws {
+    let swish = interpreter()
+    nonisolated(unsafe) var seen: [String] = []
+    try swish.evaluate("""
+    let x = 2
+    x * 3
+    true
+    [1, 2].map { $0 + x }
+    await Task { 5 }.value
+    for i in 1...2 { i }
+    """, observing: { seen.append($0.value.description + ($0.isAwait ? " (await)" : "")) })
+    #expect(seen == ["6", "[3, 4]", "5 (await)"])
+    // A failure still stops the run.
+    #expect(throws: Diagnostic.self) { try swish.evaluate("1\n2 / 0\n3", observing: { _ in }) }
+}

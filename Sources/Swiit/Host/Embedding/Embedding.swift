@@ -449,6 +449,35 @@ extension Interpreter {
         }
     }
 
+    /// What a host that shows the values of a program, as a REPL does, is told of an expression statement.
+    public struct Observation: Sendable {
+        /// What the expression gave.
+        public var value: Value
+        /// Swift lets it go without a mention, as the result of a call marked `@discardableResult` is.
+        public var isDiscardable: Bool
+        /// It is an `await`, or `try await`.
+        public var isAwait: Bool
+    }
+
+    /// As `evaluate`, and tells `observe` the value of each of the program's own expression statements as it runs (not
+    /// those in blocks, like the body of a `for`: use `print` for those), except a bare `true` or `false`. Nothing is
+    /// given back: what the observer was told is the result.
+    public func evaluate(_ source: String, observing observe: @escaping (Observation) throws -> Void) throws(Diagnostic) {
+        nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let observe = observe // safe: runs holding the interpreter lock
+        do {
+            _ = try onLargeStack {
+                try interpreter.withMainTask {
+                    try interpreter.runSource(source, observer: { value, expression, discarded in
+                        try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
+                    }, alreadyCancelled: { false })
+                }
+            }
+        } catch {
+            throw Diagnostic.of(error)
+        }
+    }
+
     /// As `evaluate`, on a thread of the interpreter's own, and cancelled when the calling task is.
     @discardableResult
     public func evaluate(_ source: String) async throws(Diagnostic) -> Value {
@@ -469,7 +498,7 @@ extension Interpreter {
         return try outcome.get()
     }
 
-    private func runSource(_ source: String, alreadyCancelled: () -> Bool) throws -> Value {
+    private func runSource(_ source: String, observer: ValueObserver? = nil, alreadyCancelled: () -> Bool) throws -> Value {
         steps = 0
         outputCounter.reset()
         deadline = limits.time.map { ContinuousClock.now + $0 }
@@ -484,7 +513,8 @@ extension Interpreter {
             var checked = try TypeChecker(interpreter: self).check(program)
             var last: Expr?
             var lastRange: SourceRange?
-            if case .expression(let expr)? = checked.statements.last {
+            // An observer is told of the last expression too, and it is not given back.
+            if observer == nil, case .expression(let expr)? = checked.statements.last {
                 last = expr
                 lastRange = checked.ranges.last
                 checked.statements.removeLast()
@@ -492,7 +522,7 @@ extension Interpreter {
                 if checked.ranges.count > checked.statements.count { checked.ranges.removeLast() }
                 if checked.spots.count > checked.statements.count { checked.spots.removeLast() }
             }
-            try run(checked)
+            try run(checked, observing: observer)
             do {
                 return try last.map { try evaluate($0) } ?? .nothing
             } catch var error as RuntimeError {
