@@ -14,6 +14,7 @@
 # What a command line is made of (flags, piped input), what a command gives
 # back and the files it lists, and how a terminal shows values. Each exits
 # when it moves to the shell (the agenda's "command-line vocabulary" item).
+allow	Language/Prelude/Prelude.swift	commandline	1
 allow	Language/Syntax/Declarations.swift	commandline	8
 allow	Language/Syntax/SwiftPrinter.swift	commandline	4
 allow	Language/Syntax/TypeAnnotation.swift	display	14
