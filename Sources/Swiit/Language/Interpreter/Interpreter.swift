@@ -56,7 +56,8 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// What reads source into the tree: SwiftParser's, lowered, unless given another.
     @_spi(Layer) public var frontEnd: any SyntaxFrontEnd = SwiftSyntaxFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
-    @_spi(Layer) public var file: String?
+    /// The script being run, as errors and `#filePath` name it.
+    public var file: String?
     /// For each function, the functions declared at the prompt that call it
     /// without `await`, for the redefinition rule (TypeChecker+Effects.swift).
     var unawaitedCallers: [String: Set<String>] = [:]

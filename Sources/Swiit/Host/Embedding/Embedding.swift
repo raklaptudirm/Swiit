@@ -11,7 +11,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var kind: Kind
     public var message: String
     /// 1-based, for a type error in a multi-line program.
-    @_spi(Layer) public var line: Int?
+    public var line: Int?
     /// Where it is in the source: the statement a type or run-time error is in, the token a syntax error is at.
     public var range: SourceRange?
     /// For a run-time error: the calls it came out of, innermost first, with where each was made.
@@ -33,11 +33,15 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var isReported = false
     /// A `try!` failed: it stops a script, not just its own statement.
     public var isFatal = false
+    /// A syntax error because the source ends too soon: more of it may make it a program (a prompt asks for another line).
+    public var isIncomplete = false
     /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
     public var cause: (any Error)?
 
-    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [Call] = [],
-                             status: Int32 = 1, isReported: Bool = false, cause: (any Error)? = nil) {
+    /// A diagnostic of a host's own making: its front end's syntax error, say.
+    public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [Call] = [],
+                status: Int32 = 1, isReported: Bool = false, isIncomplete: Bool = false, cause: (any Error)? = nil) {
+        self.isIncomplete = isIncomplete
         self.kind = kind
         self.message = message
         self.line = line ?? range?.startLine
@@ -519,7 +523,7 @@ extension Interpreter {
         if alreadyCancelled() { cancellation.request() }
         let program: Program
         switch parse(source) {
-        case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
+        case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range, isIncomplete: error.incomplete)
         case .success(let parsed): program = parsed
         }
         do {

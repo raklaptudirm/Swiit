@@ -44,11 +44,9 @@ Host/Embedding/Embedding.swift	Layer func reset
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer init init
-Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer struct Cancelled
 Host/Embedding/Embedding.swift	Layer struct LimitExceeded
 Host/Embedding/Embedding.swift	Layer struct Style
-Host/Embedding/Embedding.swift	Layer var line
 Host/Embedding/Introspection.swift	Layer init init
 Host/Embedding/LargeStack.swift	Layer func onLargeStack
 Host/Embedding/LargeStack.swift	Layer func startLargeStackThread
@@ -172,7 +170,6 @@ Language/Interpreter/Interpreter.swift	Layer let mainTask
 Language/Interpreter/Interpreter.swift	Layer let outputCounter
 Language/Interpreter/Interpreter.swift	Layer var contextProvider
 Language/Interpreter/Interpreter.swift	Layer var dynamicTypes
-Language/Interpreter/Interpreter.swift	Layer var file
 Language/Interpreter/Interpreter.swift	Layer var frontEnd
 Language/Interpreter/Interpreter.swift	Layer var libraries
 Language/Interpreter/Interpreter.swift	Layer var limits

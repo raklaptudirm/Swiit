@@ -300,7 +300,7 @@ extension Interpreter {
         do {
             return try inCurrentTask { () throws -> [Symbol] in
                 switch parse(source) {
-                case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
+                case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range, isIncomplete: error.incomplete)
                 case .success(let program):
                     let checker = TypeChecker(interpreter: self)
                     do {
@@ -337,7 +337,7 @@ extension Interpreter {
         do {
             return try withMainTask { () throws -> ValueType in
                 switch parse(expression) {
-                case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
+                case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range, isIncomplete: error.incomplete)
                 case .success(let program):
                     guard program.statements.count == 1, case .expression(var expr) = program.statements[0] else {
                         throw Diagnostic(kind: .type, message: "valueType(of:) takes one expression")
