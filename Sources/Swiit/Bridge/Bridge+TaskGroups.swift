@@ -4,8 +4,8 @@ import Foundation
 // the interpreter's, and the group gives their results in the order they end.
 
 /// A task group's state: the children's results as they end, and how many are still going.
-final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its own lock
-    nonisolated(unsafe) let interpreter: Interpreter // safe: an interpreter is touched only holding its lock
+final class TaskGroupBox: @unchecked Sendable {  // safe: every access holds its own lock
+    nonisolated(unsafe) let interpreter: Interpreter  // safe: an interpreter is touched only holding its lock
     let isThrowing: Bool
     private let condition = NSCondition()
     private var finished: [Result<Value, any Error>] = []
@@ -31,7 +31,8 @@ final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its 
         condition.unlock()
         let interpreter = interpreter
         do {
-            let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) { [self] in
+            let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) {
+                [self] in
                 let result = Result { try interpreter.call(operation, with: []) }
                 condition.lock()
                 finished.append(result)
@@ -100,21 +101,45 @@ extension Bridge {
     private static func groupType(_ name: String, isThrowing: Bool) -> BridgedType {
         let element = TypeAnnotation.parameter("ChildTaskResult")
         return BridgedType(
-            name: name, genericParameters: ["ChildTaskResult"], conformances: [:],
+            name: name,
+            genericParameters: ["ChildTaskResult"],
+            conformances: [:],
             associatedTypes: ["Element": element],
             members: [
-                member(.method, "addTask", parameters: [Parameter(label: "operation", name: "operation",
-                           type: .functionType([], element, throws: isThrowing, async: .async))], returns: .void,
-                       summary: "Starts the operation as a child task of the group.") { _, arguments in
+                member(
+                    .method,
+                    "addTask",
+                    parameters: [
+                        Parameter(
+                            label: "operation",
+                            name: "operation",
+                            type: .functionType([], element, throws: isThrowing, async: .async)
+                        )
+                    ],
+                    returns: .void,
+                    summary: "Starts the operation as a child task of the group."
+                ) { _, arguments in
                     try group(arguments["self"]).add(arguments["operation"]!)
                     return .nothing
                 },
-                member(.method, "next", returns: .optional(element), throwing: isThrowing, effect: .async,
-                       summary: "The result of the next child to end, or nil when none is left.") { _, arguments in
+                member(
+                    .method,
+                    "next",
+                    returns: .optional(element),
+                    throwing: isThrowing,
+                    effect: .async,
+                    summary: "The result of the next child to end, or nil when none is left."
+                ) { _, arguments in
                     try group(arguments["self"]).next() ?? .nothing
                 },
-                member(.method, "waitForAll", returns: .void, throwing: isThrowing, effect: .async,
-                       summary: "Waits for every child.") { _, arguments in
+                member(
+                    .method,
+                    "waitForAll",
+                    returns: .void,
+                    throwing: isThrowing,
+                    effect: .async,
+                    summary: "Waits for every child."
+                ) { _, arguments in
                     try group(arguments["self"]).waitForAll()
                     return .nothing
                 },
@@ -125,14 +150,16 @@ extension Bridge {
                 member(.property, "isEmpty", returns: .bool, summary: "Whether no child is left.") { _, arguments in
                     .bool(try group(arguments["self"]).isEmpty)
                 },
-                member(.property, "isCancelled", returns: .bool, summary: "Whether the group was asked to stop.") { _, arguments in
+                member(.property, "isCancelled", returns: .bool, summary: "Whether the group was asked to stop.") {
+                    _,
+                    arguments in
                     .bool(try group(arguments["self"]).isCancelled)
                 },
             ]
         )
     }
 
-    nonisolated(unsafe) static let taskGroupTypes: [BridgedType] = [ // safe: set once, before anything reads it
+    nonisolated(unsafe) static let taskGroupTypes: [BridgedType] = [  // safe: set once, before anything reads it
         groupType("TaskGroup", isThrowing: false), groupType("ThrowingTaskGroup", isThrowing: true),
     ]
 
@@ -144,7 +171,16 @@ extension Bridge {
             name: name,
             parameters: [
                 Parameter(label: "of", name: "childType", type: .any),
-                Parameter(label: nil, name: "body", type: .functionType([.generic(typeName, [.unknown])], .parameter("Result"), throws: isThrowing, async: .async)),
+                Parameter(
+                    label: nil,
+                    name: "body",
+                    type: .functionType(
+                        [.generic(typeName, [.unknown])],
+                        .parameter("Result"),
+                        throws: isThrowing,
+                        async: .async
+                    )
+                ),
             ],
             returnType: .parameter("Result"),
             body: .native { interpreter, arguments in
@@ -160,8 +196,13 @@ extension Bridge {
                     throw error
                 }
             },
-            documentation: Documentation(summary: "Runs the body with a group of child tasks, waiting for them when it ends.", parameters: [:]),
-            isThrowing: isThrowing, effect: .async, generics: ["Result": []]
+            documentation: Documentation(
+                summary: "Runs the body with a group of child tasks, waiting for them when it ends.",
+                parameters: [:]
+            ),
+            isThrowing: isThrowing,
+            effect: .async,
+            generics: ["Result": []]
         )
     }
 }

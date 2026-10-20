@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 private enum Level: String, CaseIterable, ScriptEnum {
     case low, high
@@ -21,7 +22,7 @@ private struct Entry: Encodable {
 
 @Test func scriptEnumsBridgeTheirCases() throws {
     let type = Level.swiitEnumType
-    #expect(type === Level.swiitEnumType) // One type, so values compare equal.
+    #expect(type === Level.swiitEnumType)  // One type, so values compare equal.
     #expect(type.name == "Level")
     #expect(type.cases.map(\.name) == ["low", "high"])
     #expect(type.cases.map(\.rawValue) == [.string("low"), .string("high")])
@@ -33,6 +34,8 @@ private struct Entry: Encodable {
 @Test func resultsOfAnyKindBecomeValues() throws {
     #expect(try Value(returning: ()) == .nothing)
     #expect(try Value(returning: [1, 2]) == .list([.int(1), .int(2)]))
-    #expect(try Value(returning: Entry(name: "a", size: 2)) == .record(Record(["name": .string("a"), "size": .int(2)])))
+    #expect(
+        try Value(returning: Entry(name: "a", size: 2)) == .record(Record(["name": .string("a"), "size": .int(2)]))
+    )
     #expect(try Value(returning: Level.low) == Level.low.value)
 }

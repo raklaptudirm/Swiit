@@ -1,7 +1,8 @@
 import Foundation
 
 /// Prints the core's tree as Swift source: the form every construct reduces
-/// to. It is for golden tests of what a rewrite produces, `--emit-swift`, and later compiling the result with `swiftc` to
+/// to. It is for golden tests of what a rewrite produces, `--emit-swift`, and later compiling the result with `swiftc`
+/// to
 /// compare with the interpreter. A construct that only the checker makes, prints as a comment saying so, so printing is
 /// total and the gap is visible.
 struct SwiftPrinter {
@@ -49,7 +50,8 @@ struct SwiftPrinter {
                 switch step {
                 case .member(let name): target += ".\(name)"
                 case .index(let index): target += "[\(expression(index))]"
-                case .indexDefault(let key, let fallback): target += "[\(expression(key)), default: \(expression(fallback))]"
+                case .indexDefault(let key, let fallback):
+                    target += "[\(expression(key)), default: \(expression(fallback))]"
                 case .subscripted(let list): target += "[\(arguments(list))]"
                 case .unwrap: target += "!"
                 case .optionalChain: target += "?"
@@ -58,7 +60,9 @@ struct SwiftPrinter {
             let op = assignment.op.map { "\($0.rawValue)=" } ?? "="
             return ["\(p)\(target) \(op) \(expression(assignment.value))"]
         case .function(let decl):
-            return documentation(decl.documentation).map { "\(p)/// \($0)" } + [p + function(decl, keyword: "func", indent: indent)]
+            return documentation(decl.documentation).map { "\(p)/// \($0)" } + [
+                p + function(decl, keyword: "func", indent: indent)
+            ]
         case .doCatch(let body, let clauses):
             var text = "\(p)do \(block(body, indent: indent))"
             for clause in clauses {
@@ -79,10 +83,16 @@ struct SwiftPrinter {
         case .classDecl(let decl):
             let text = structure(decl.members, indent: indent)
             let heading = "\(p)struct \(decl.members.name)"
-            return [p + (decl.isActor ? "actor " : "class ") + decl.name + (decl.inherited.isEmpty ? "" : ": " + decl.inherited.joined(separator: ", "))
-                + String(text.dropFirst(heading.count))]
+            return [
+                p + (decl.isActor ? "actor " : "class ") + decl.name
+                    + (decl.inherited.isEmpty ? "" : ": " + decl.inherited.joined(separator: ", "))
+                    + String(text.dropFirst(heading.count))
+            ]
         case .protocolDecl(let decl):
-            return [p + "protocol \(decl.name)" + (decl.inherited.isEmpty ? "" : ": " + decl.inherited.joined(separator: ", ")) + " {}"]
+            return [
+                p + "protocol \(decl.name)"
+                    + (decl.inherited.isEmpty ? "" : ": " + decl.inherited.joined(separator: ", ")) + " {}"
+            ]
         case .structDecl(let decl):
             return [structure(decl, indent: indent)]
         case .extensionDecl(let name, let methods):
@@ -120,12 +130,20 @@ struct SwiftPrinter {
             return [p + text + "\(p)}"]
         case .forLoop(let loop):
             let effects = (loop.isTry ? "try " : "") + (loop.isAwait ? "await " : "")
-            return [p + labelText(loop.label) + "for \(effects)\(loopPattern(loop.pattern)) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"]
+            return [
+                p + labelText(loop.label)
+                    + "for \(effects)\(loopPattern(loop.pattern)) in \(expression(loop.sequence)) \(block(loop.body, indent: indent))"
+            ]
         case .whileLoop(let loop):
             if loop.isRepeat {
-                return [p + labelText(loop.label) + "repeat \(block(loop.body, indent: indent)) while \(expression(loop.condition))"]
+                return [
+                    p + labelText(loop.label)
+                        + "repeat \(block(loop.body, indent: indent)) while \(expression(loop.condition))"
+                ]
             }
-            return [p + labelText(loop.label) + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"]
+            return [
+                p + labelText(loop.label) + "while \(expression(loop.condition)) \(block(loop.body, indent: indent))"
+            ]
         }
     }
 
@@ -156,14 +174,22 @@ struct SwiftPrinter {
         parameters.map { parameter in
             var text: String
             // A closure's parameters have no labels to write.
-            if closure { text = parameter.name }
-            else if parameter.label == nil { text = "_ \(parameter.name)" }
-            else if parameter.label == parameter.name { text = parameter.name }
-            else { text = "\(parameter.label!) \(parameter.name)" }
-            if closure ? (parameter.type != .any || parameter.variadic) : true { text += ": \(parameter.type)" + (parameter.variadic ? "..." : "") }
+            if closure {
+                text = parameter.name
+            } else if parameter.label == nil {
+                text = "_ \(parameter.name)"
+            } else if parameter.label == parameter.name {
+                text = parameter.name
+            } else {
+                text = "\(parameter.label!) \(parameter.name)"
+            }
+            if closure ? (parameter.type != .any || parameter.variadic) : true {
+                text += ": \(parameter.type)" + (parameter.variadic ? "..." : "")
+            }
             if let value = parameter.defaultValue { text += " = \(expression(value))" }
             return text
-        }.joined(separator: ", ")
+        }
+        .joined(separator: ", ")
     }
 
     /// A declaration's `///` comment as lines: the summary, then each parameter's note.
@@ -176,11 +202,17 @@ struct SwiftPrinter {
     private func function(_ decl: FunctionDecl, keyword: String, indent: Int) -> String {
         // An initializer is written `init(…)`, and is never marked `mutating`.
         let isInitializer = keyword == "init"
-        var text = (decl.isMutating && !isInitializer ? "mutating " : "") + (isInitializer ? "init" : "\(keyword) \(decl.name)")
+        var text =
+            (decl.isMutating && !isInitializer ? "mutating " : "")
+            + (isInitializer ? "init" : "\(keyword) \(decl.name)")
         if !decl.generics.isEmpty {
-            text += "<" + decl.generics.sorted { $0.key < $1.key }.map { name, protocols in
-                protocols.isEmpty ? name : "\(name): \(protocols.joined(separator: " & "))"
-            }.joined(separator: ", ") + ">"
+            text +=
+                "<"
+                + decl.generics.sorted { $0.key < $1.key }
+                .map { name, protocols in
+                    protocols.isEmpty ? name : "\(name): \(protocols.joined(separator: " & "))"
+                }
+                .joined(separator: ", ") + ">"
         }
         text += "(\(parameters(decl.parameters)))"
         if decl.isAsync { text += " async" }
@@ -192,7 +224,8 @@ struct SwiftPrinter {
     private func property(_ decl: PropertyDecl, prefix: String, indent: Int) -> String {
         let p = pad(indent)
         if let getter = decl.getter {
-            return "\(p)\(prefix)var \(decl.name): \(decl.type.map(\.description) ?? "Any") \(block(getter, indent: indent))"
+            return
+                "\(p)\(prefix)var \(decl.name): \(decl.type.map(\.description) ?? "Any") \(block(getter, indent: indent))"
         }
         var text = "\(p)\(prefix)\(decl.mutable ? "var" : "let") \(decl.name)"
         if let type = decl.type { text += ": \(type)" }
@@ -208,7 +241,9 @@ struct SwiftPrinter {
         members += decl.staticProperties.map { property($0, prefix: "static ", indent: indent + 1) }
         members += decl.properties.map { property($0, prefix: "", indent: indent + 1) }
         members += decl.initializers.map { pad(indent + 1) + function($0, keyword: "init", indent: indent + 1) }
-        members += decl.staticMethods.map { pad(indent + 1) + "static " + function($0, keyword: "func", indent: indent + 1) }
+        members += decl.staticMethods.map {
+            pad(indent + 1) + "static " + function($0, keyword: "func", indent: indent + 1)
+        }
         members += decl.methods.map { pad(indent + 1) + function($0, keyword: "func", indent: indent + 1) }
         return text + " {\n" + members.joined(separator: "\n") + (members.isEmpty ? "" : "\n") + "\(p)}"
     }
@@ -216,7 +251,8 @@ struct SwiftPrinter {
     private func typeExtension(_ decl: ExtensionDecl, indent: Int) -> String {
         let text = structure(decl.members, indent: indent)
         let heading = "\(pad(indent))struct \(decl.members.name)"
-        return "\(pad(indent))extension \(decl.typeName)" + (decl.conformances.isEmpty ? "" : ": " + decl.conformances.joined(separator: ", "))
+        return "\(pad(indent))extension \(decl.typeName)"
+            + (decl.conformances.isEmpty ? "" : ": " + decl.conformances.joined(separator: ", "))
             + text.dropFirst(heading.count)
     }
 
@@ -225,13 +261,18 @@ struct SwiftPrinter {
         var inherited: [String] = []
         if let raw = decl.rawType { inherited.append(raw.description) }
         inherited += decl.conformances
-        var text = "\(p)enum \(decl.name)" + (inherited.isEmpty ? "" : ": " + inherited.joined(separator: ", ")) + " {\n"
+        var text =
+            "\(p)enum \(decl.name)" + (inherited.isEmpty ? "" : ": " + inherited.joined(separator: ", ")) + " {\n"
         for enumCase in decl.cases {
             var line = "\(pad(indent + 1))case \(enumCase.name)"
             if !enumCase.associated.isEmpty {
-                line += "(" + enumCase.associated.map { value in
-                    (value.label.map { "\($0): " } ?? "") + value.type.description
-                }.joined(separator: ", ") + ")"
+                line +=
+                    "("
+                    + enumCase.associated
+                    .map { value in
+                        (value.label.map { "\($0): " } ?? "") + value.type.description
+                    }
+                    .joined(separator: ", ") + ")"
             }
             if let raw = enumCase.rawValue { line += " = \(expression(raw))" }
             text += line + "\n"
@@ -257,11 +298,14 @@ struct SwiftPrinter {
         case .wildcard: "_"
         case .binding(let name, let mutable): "\(mutable ? "var" : "let") \(name)"
         case .enumCase(let type, let name, let arguments):
-            "\(type ?? "").\(name)" + (arguments.map { arguments in
-                "(" + arguments.map { argument in
-                    (argument.label.map { "\($0): " } ?? "") + self.pattern(argument.pattern)
-                }.joined(separator: ", ") + ")"
-            } ?? "")
+            "\(type ?? "").\(name)"
+                + (arguments.map { arguments in
+                    "("
+                        + arguments.map { argument in
+                            (argument.label.map { "\($0): " } ?? "") + self.pattern(argument.pattern)
+                        }
+                        .joined(separator: ", ") + ")"
+                } ?? "")
         case .expression(let expr): expression(expr)
         case .cast(let inner, let type): "\(self.pattern(inner)) as \(type)"
         case .isType(let type): "is \(type)"
@@ -277,7 +321,8 @@ struct SwiftPrinter {
     private func arguments(_ arguments: [Argument]) -> String {
         arguments.map { (argument: Argument) in
             (argument.label.map { "\($0): " } ?? "") + expression(argument.value)
-        }.joined(separator: ", ")
+        }
+        .joined(separator: ", ")
     }
 
     /// An operand of a larger expression: parenthesized unless it is atomic.
@@ -294,15 +339,22 @@ struct SwiftPrinter {
         switch expr {
         case .literal(let value): return literal(value)
         case .string(let parts):
-            return "\"" + parts.map { part in
-                switch part {
-                case .literal(let text): escaped(text)
-                case .expression(let inner): "\\(\(expression(inner)))"
+            return "\""
+                + parts.map { part in
+                    switch part {
+                    case .literal(let text): escaped(text)
+                    case .expression(let inner): "\\(\(expression(inner)))"
+                    }
                 }
-            }.joined() + "\""
+                .joined() + "\""
         case .variable(let name): return name
         case .attempt(let inner, let kind):
-            let mark = switch kind { case .plain: ""; case .optional: "?"; case .forced: "!" }
+            let mark =
+                switch kind {
+                case .plain: "";
+                case .optional: "?";
+                case .forced: "!"
+                }
             return "try\(mark) \(expression(inner))"
         case .await(let target, let throwing):
             return (throwing ? "try " : "") + "await" + (target.map { " \(operand($0))" } ?? "")
@@ -316,7 +368,8 @@ struct SwiftPrinter {
             // A closure last is written after the parentheses, as Swift does.
             if let last = arguments.last, last.label == nil, case .closure(let closure) = last.value {
                 let rest = Array(arguments.dropLast())
-                return "\(operand(callee))" + (rest.isEmpty ? "" : "(\(self.arguments(rest)))") + " " + closureText(closure)
+                return "\(operand(callee))" + (rest.isEmpty ? "" : "(\(self.arguments(rest)))") + " "
+                    + closureText(closure)
             }
             return "\(operand(callee))(\(self.arguments(arguments)))"
         case .member(let base, let name): return "\(operand(base)).\(name)"
@@ -326,7 +379,8 @@ struct SwiftPrinter {
         case .binary(let op, let lhs, let rhs): return "\(operand(lhs)) \(op.rawValue) \(operand(rhs))"
         case .index(let base, let index): return "\(operand(base))[\(expression(index))]"
         case .subscripted(let base, let list): return "\(operand(base))[\(arguments(list))]"
-        case .indexDefault(let base, let key, let fallback): return "\(operand(base))[\(expression(key)), default: \(expression(fallback))]"
+        case .indexDefault(let base, let key, let fallback):
+            return "\(operand(base))[\(expression(key)), default: \(expression(fallback))]"
         case .tuple(let elements): return "(\(arguments(elements)))"
         case .annotated(let inner, let type): return "\(operand(inner)) as \(type)"
         case .forceUnwrap(let inner): return "\(operand(inner))!"
@@ -346,7 +400,13 @@ struct SwiftPrinter {
             case .method, .setter: return expression(.call(.member(.variable(base), member.name), args))
             }
         case .cast(let inner, let type, let kind):
-            let word = switch kind { case .conditional: "as?"; case .forced: "as!"; case .check: "is"; case .upcast: "as" }
+            let word =
+                switch kind {
+                case .conditional: "as?";
+                case .forced: "as!";
+                case .check: "is";
+                case .upcast: "as"
+                }
             return "\(operand(inner)) \(word) \(type)"
         case .filePath: return "#filePath"
         case .ifExpression(let node): return ifText(node, indent: 0)
@@ -362,7 +422,9 @@ struct SwiftPrinter {
         let body = lines(closure.body, indent: 1)
         var text = "{"
         if !implicit {
-            text += " (\(parameters(closure.parameters, closure: true)))" + (closure.returnType.map { " -> \($0)" } ?? "") + " in"
+            text +=
+                " (\(parameters(closure.parameters, closure: true)))" + (closure.returnType.map { " -> \($0)" } ?? "")
+                + " in"
         }
         if body.count <= 1 { return text + " " + (body.first?.trimmingCharacters(in: .whitespaces) ?? "") + " }" }
         return text + "\n" + body.joined(separator: "\n") + "\n}"
@@ -389,7 +451,11 @@ struct SwiftPrinter {
             case "\t": result += "\\t"
             case "\r": result += "\\r"
             default:
-                if scalar.value < 0x20 { result += "\\u{\(String(scalar.value, radix: 16))}" } else { result.unicodeScalars.append(scalar) }
+                if scalar.value < 0x20 {
+                    result += "\\u{\(String(scalar.value, radix: 16))}"
+                } else {
+                    result.unicodeScalars.append(scalar)
+                }
             }
         }
         return result

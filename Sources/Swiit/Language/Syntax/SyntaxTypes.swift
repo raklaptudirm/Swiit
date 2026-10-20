@@ -53,4 +53,3 @@ struct Span: Equatable, Sendable {
         self.kind = kind
     }
 }
-

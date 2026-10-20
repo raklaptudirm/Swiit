@@ -12,7 +12,9 @@ extension TypeChecker {
         var classes: [ClassDecl] = []
         // What types are held to first.
         for statement in program.statements {
-            if case .protocolDecl(let decl) = statement { scopes[scopes.count - 1][decl.name] = .protocolType(protocolInfo(decl)) }
+            if case .protocolDecl(let decl) = statement {
+                scopes[scopes.count - 1][decl.name] = .protocolType(protocolInfo(decl))
+            }
         }
         for statement in program.statements {
             switch statement {
@@ -56,7 +58,9 @@ extension TypeChecker {
                     }
                 }
                 do {
-                    scopes[scopes.count - 1][decl.name] = .structType(try classInfo(decl, superclass: superclass, conformances: conformances))
+                    scopes[scopes.count - 1][decl.name] = .structType(
+                        try classInfo(decl, superclass: superclass, conformances: conformances)
+                    )
                 } catch let error as TypeError {
                     firstError = firstError ?? error
                     waiting.append(decl)
@@ -67,7 +71,8 @@ extension TypeChecker {
             classes = waiting
         }
         for index in program.statements.indices {
-            // A statement inside this one sets its own place; once it's checked, this one's is back (on an error, the innermost stays).
+            // A statement inside this one sets its own place; once it's checked, this one's is back (on an error, the
+            // innermost stays).
             let outer = (line, range, spots)
             if index < program.lines.count { line = program.lines[index] }
             if index < program.ranges.count { range = program.ranges[index] }
@@ -79,9 +84,12 @@ extension TypeChecker {
 
     func checkStatement(_ statement: inout Statement) throws {
         switch statement {
-        case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl, .operatorDeclaration, .protocolDecl:
+        case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl, .operatorDeclaration,
+            .protocolDecl:
             return try checkDeclaration(&statement)
-        case .doCatch, .throwStatement, .guardStatement, .returnStatement, .fallthroughStatement, .breakStatement, .continueStatement, .extensionDecl, .deferBlock, .expression, .ifStatement, .switchStatement, .forLoop, .whileLoop:
+        case .doCatch, .throwStatement, .guardStatement, .returnStatement, .fallthroughStatement, .breakStatement,
+            .continueStatement, .extensionDecl, .deferBlock, .expression, .ifStatement, .switchStatement, .forLoop,
+            .whileLoop:
             return try checkControl(&statement)
         }
     }
@@ -133,9 +141,16 @@ extension TypeChecker {
         switch statement {
         case .doCatch(var body, var clauses):
             // It handles what its body throws if a clause catches anything.
-            let catchesAll = clauses.contains { $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll)) }
-            errorContexts.append(ErrorContext(handled: catchesAll || errorContexts.last!.handled,
-                                              boundary: errorContexts.last!.boundary, thrown: catchesAll ? nil : errorContexts.last!.thrown))
+            let catchesAll = clauses.contains {
+                $0.guardExpr == nil && ($0.patterns.isEmpty || $0.patterns.contains(where: \.catchesAll))
+            }
+            errorContexts.append(
+                ErrorContext(
+                    handled: catchesAll || errorContexts.last!.handled,
+                    boundary: errorContexts.last!.boundary,
+                    thrown: catchesAll ? nil : errorContexts.last!.thrown
+                )
+            )
             let seenBefore = thrownSeen.count
             let sitesBefore = throwingSites
             try checkBlock(&body, newScope: true)
@@ -201,7 +216,9 @@ extension TypeChecker {
                 } else {
                     context.seen.append(try typeOf(&value!))
                 }
-            } else if let declared = context.declared, declared != .void, declared != .unknown, declared != .optional(.void) {
+            } else if let declared = context.declared, declared != .void, declared != .unknown,
+                declared != .optional(.void)
+            {
                 throw TypeError("this function must return \(declared)")
             }
             statement = .returnStatement(value)
@@ -245,7 +262,9 @@ extension TypeChecker {
         try checkAwaitAllowed()
         effectContexts[effectContexts.count - 1].effect = .async
         if sequence != .unknown {
-            guard let (bridgedType, bindings) = bridged(sequence), bridgedConforms(bridgedType, bindings, to: "AsyncSequence") else {
+            guard let (bridgedType, bindings) = bridged(sequence),
+                bridgedConforms(bridgedType, bindings, to: "AsyncSequence")
+            else {
                 throw TypeError("'for await' reads an AsyncSequence, and \(sequence) isn't one")
             }
         }
@@ -277,7 +296,8 @@ extension TypeChecker {
     func ifExpressionType(_ node: inout IfStatement, expected: TypeAnnotation?) throws -> TypeAnnotation {
         let bound = try checkCondition(&node)
         guard var thenExpr = IfStatement.branchExpression(node.then),
-              var elseExpr = IfStatement.branchExpression(node.otherwise ?? Program(statements: [])) else {
+            var elseExpr = IfStatement.branchExpression(node.otherwise ?? Program(statements: []))
+        else {
             throw TypeError("each branch of an if expression must be one expression")
         }
         scopes.append(bound)
@@ -335,7 +355,11 @@ extension TypeChecker {
         }
     }
 
-    func checkPattern(_ pattern: inout Pattern, against written: TypeAnnotation, binding bound: inout [String: Symbol]) throws {
+    func checkPattern(
+        _ pattern: inout Pattern,
+        against written: TypeAnnotation,
+        binding bound: inout [String: Symbol]
+    ) throws {
         let type = erased(written)
         switch pattern {
         case .wildcard:
@@ -346,8 +370,10 @@ extension TypeChecker {
             var subject = type
             // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two cases are not an enum's
             // at run time, so they are matched as nil and as the value, unless the held type has cases of those names.
-            if case .optional(let held) = subject, typeName == nil || typeName == "Optional", name == "none" || name == "some",
-               !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil) {
+            if case .optional(let held) = subject, typeName == nil || typeName == "Optional",
+                name == "none" || name == "some",
+                !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil)
+            {
                 if name == "none", arguments == nil || arguments?.isEmpty == true {
                     pattern = .expression(.literal(.nothing))
                     return
@@ -362,8 +388,12 @@ extension TypeChecker {
             if case .optional(let wrapped) = subject { subject = wrapped }
             // `catch Bad.input`: an Error matched as the enum named, if it is one.
             if subject == .named("Error") {
-                guard let typeName else { throw TypeError("an error could be of any type: write the enum's name, as in Kind.\(name)") }
-                guard conforms(.named(typeName), to: "Error") else { throw TypeError("\(typeName) isn't an Error, so no error is one of its cases") }
+                guard let typeName else {
+                    throw TypeError("an error could be of any type: write the enum's name, as in Kind.\(name)")
+                }
+                guard conforms(.named(typeName), to: "Error") else {
+                    throw TypeError("\(typeName) isn't an Error, so no error is one of its cases")
+                }
                 subject = .named(typeName)
             }
             if subject == .unknown {
@@ -408,7 +438,9 @@ extension TypeChecker {
             break
         case .some(var inner):
             var wrapped = TypeAnnotation.unknown
-            if case .optional(let held) = type { wrapped = held } else if type != .unknown && type != .any {
+            if case .optional(let held) = type {
+                wrapped = held
+            } else if type != .unknown && type != .any {
                 throw TypeError("'?' in a pattern matches an optional, not \(type)")
             }
             try checkPattern(&inner, against: wrapped, binding: &bound)
@@ -422,9 +454,13 @@ extension TypeChecker {
             switch type {
             case .tuple(let elements):
                 guard elements.count == patterns.count else {
-                    throw TypeError("a tuple pattern of \(patterns.count) can't match \(type), which has \(elements.count)")
+                    throw TypeError(
+                        "a tuple pattern of \(patterns.count) can't match \(type), which has \(elements.count)"
+                    )
                 }
-                for index in patterns.indices { try checkPattern(&patterns[index], against: elements[index].type, binding: &bound) }
+                for index in patterns.indices {
+                    try checkPattern(&patterns[index], against: elements[index].type, binding: &bound)
+                }
             case .unknown, .any:
                 for index in patterns.indices { try checkPattern(&patterns[index], against: .unknown, binding: &bound) }
             default:
@@ -452,7 +488,9 @@ extension TypeChecker {
         lastThrown = nil
         thrownSeen.append(thrown)
         if let expected = errorContexts.last?.thrown, thrown != expected {
-            throw TypeError("\(what) throws \(thrown.map(\.description) ?? "any Error"), but this function throws only \(expected)")
+            throw TypeError(
+                "\(what) throws \(thrown.map(\.description) ?? "any Error"), but this function throws only \(expected)"
+            )
         }
         guard tryDepth > 0 else {
             throw TypeError("\(what) can throw, but isn't marked with 'try'")

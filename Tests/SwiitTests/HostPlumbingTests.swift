@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 private func interpreter() -> Interpreter {
     Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
@@ -10,7 +11,9 @@ private func interpreter() -> Interpreter {
 @Test func errorsAreReportedUnderTheHostsName() {
     final class Log: @unchecked Sendable { var text = "" }
     let log = Log()
-    let sink = OutputSink({ log.text += $0; return true })
+    let sink = OutputSink({
+        log.text += $0; return true
+    })
     Interpreter(host: Interpreter.Host(error: sink)).report("error: no")
     Interpreter(host: Interpreter.Host(name: "tool", error: sink)).report("error: no")
     #expect(log.text == "swiit: error: no\ntool: error: no\n")
@@ -19,9 +22,11 @@ private func interpreter() -> Interpreter {
 @Test func aComputedGlobalIsReadFreshAndCannotBeAssigned() throws {
     let swiit = interpreter()
     nonisolated(unsafe) var reads = 0
-    swiit.register(computed: "counter", type: .int) { reads += 1; return .int(reads) }
+    swiit.register(computed: "counter", type: .int) {
+        reads += 1; return .int(reads)
+    }
     #expect(try swiit.evaluate("counter") == .int(1))
-    #expect(try swiit.evaluate("counter + counter") == .int(5)) // 2 + 3: read each time
+    #expect(try swiit.evaluate("counter + counter") == .int(5))  // 2 + 3: read each time
     do {
         _ = try swiit.evaluate("counter = 9")
         Issue.record("expected a diagnostic")
@@ -38,6 +43,10 @@ private func interpreter() -> Interpreter {
     } catch let error {
         #expect(error.message.contains("nothing to await"))
     }
-    swiit.register(Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) })
+    swiit.register(
+        Awaiting(operand: .int, result: .int) { value, _ in
+            .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2)
+        }
+    )
     #expect(try swiit.evaluate("await 21") == .int(42))
 }

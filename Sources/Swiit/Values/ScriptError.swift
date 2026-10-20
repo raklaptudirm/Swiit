@@ -1,6 +1,7 @@
 import Foundation
 
-/// How a host function fails so a script can see it: the message is what is reported, and a script's `catch` can bind it.
+/// How a host function fails so a script can see it: the message is what is reported, and a script's `catch` can bind
+/// it.
 /// Anything else a host function throws that is not `Unwinding` is reported as `name: error`, and caught the same way.
 public struct ScriptError: Error, CustomStringConvertible, Sendable {
     public var message: String
@@ -21,7 +22,8 @@ public struct ScriptError: Error, CustomStringConvertible, Sendable {
     public var description: String { message }
 }
 
-/// An error a host function throws to end the run, which a script cannot catch: its `catch` and `try?` let it go by, its
+/// An error a host function throws to end the run, which a script cannot catch: its `catch` and `try?` let it go by,
+/// its
 /// `defer`s run, and it reaches the host as the `cause` of the diagnostic `evaluate` throws. A host's `exit` and a job
 /// stopping are such.
 public protocol Unwinding: Error {}

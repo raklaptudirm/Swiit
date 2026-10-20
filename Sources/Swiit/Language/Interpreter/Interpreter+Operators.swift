@@ -148,8 +148,10 @@ extension Interpreter {
             break
         }
         // Tuples compare element by element, as Swift's do.
-        if case .record(let a) = lhs, case .record(let b) = rhs, a.typeName == nil, b.typeName == nil, a.count == b.count,
-           [.less, .lessEqual, .greater, .greaterEqual].contains(op) {
+        if case .record(let a) = lhs, case .record(let b) = rhs, a.typeName == nil, b.typeName == nil,
+            a.count == b.count,
+            [.less, .lessEqual, .greater, .greaterEqual].contains(op)
+        {
             for (x, y) in zip(a, b) {
                 if try apply(.equal, x.value, y.value) == .bool(true) { continue }
                 return try apply(op == .lessEqual ? .less : op == .greaterEqual ? .greater : op, x.value, y.value)
@@ -158,7 +160,8 @@ extension Interpreter {
         }
         // Swift values that order themselves (an index, a date).
         if case .object(let a as SwiftValue) = lhs, case .object(let b as SwiftValue) = rhs,
-           [.less, .lessEqual, .greater, .greaterEqual].contains(op), let ordered = a.isLess(than: b) {
+            [.less, .lessEqual, .greater, .greaterEqual].contains(op), let ordered = a.isLess(than: b)
+        {
             let equal = a.objectIdentity == b.objectIdentity
             switch op {
             case .less: return .bool(ordered)

@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 // `async` and `await` as Swift has them (Docs/async.md, step 3): only
 // the checker's answers are new; the interpreter waits at every wait anyway.
@@ -29,7 +30,10 @@ private func typeError(_ source: String) -> String? {
 
 @Test func awaitIsWrittenInAnAsyncContext() throws {
     let source = "func f() async -> Int { 1 }; "
-    #expect(typeError(source + "func g() -> Int { await f() }") == "'await' in a function that isn't async: declare it 'async'")
+    #expect(
+        typeError(source + "func g() -> Int { await f() }")
+            == "'await' in a function that isn't async: declare it 'async'"
+    )
     #expect(try interpreter().evaluate(source + "func g() async -> Int { await f() + 1 }; await g()") == .int(2))
     // A closure that awaits is async itself, and is awaited too.
     #expect(try interpreter().evaluate(source + "let c = { await f() }; await c()") == .int(1))
@@ -45,7 +49,8 @@ private func typeError(_ source: String) -> String? {
 }
 
 @Test func asyncIsWrittenInTypesAndPrinted() throws {
-    let program = try SwiftSyntaxFrontEnd().parse("func f(_ g: () async -> Int) async throws -> Int { await g() }", bound: [:])
+    let program = try SwiftSyntaxFrontEnd()
+        .parse("func f(_ g: () async -> Int) async throws -> Int { await g() }", bound: [:])
     guard case .function(let decl) = program.statements[0] else { Issue.record(); return }
     #expect(decl.isAsync && decl.isThrowing)
     #expect(decl.parameters[0].type == .functionType([], .int, async: .async))

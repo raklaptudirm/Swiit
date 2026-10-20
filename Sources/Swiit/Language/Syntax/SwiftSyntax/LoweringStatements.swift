@@ -28,7 +28,8 @@ extension Lowering {
         }
         // `_ = f()`: the value, thrown away, as `let _ = f()` does.
         if let node = expr.as(InfixOperatorExprSyntax.self), node.operator.is(AssignmentExprSyntax.self),
-           node.leftOperand.is(DiscardAssignmentExprSyntax.self) {
+            node.leftOperand.is(DiscardAssignmentExprSyntax.self)
+        {
             return .declare(name: "_", mutable: false, value: try expression(node.rightOperand))
         }
         if let node = expr.as(InfixOperatorExprSyntax.self), let assignment = try assignment(node) {
@@ -41,27 +42,37 @@ extension Lowering {
         if let node = stmt.as(ExpressionStmtSyntax.self) { return try expressionStatement(node.expression) }
         if let node = stmt.as(ThrowStmtSyntax.self) { return .throwStatement(try expression(node.expression)) }
         if let node = stmt.as(ReturnStmtSyntax.self) {
-            guard leaving.function > 0 else { throw SyntaxError("'return' outside a function (line \(line(of: node)))") }
+            guard leaving.function > 0 else {
+                throw SyntaxError("'return' outside a function (line \(line(of: node)))")
+            }
             return .returnStatement(try node.expression.map { try expression($0) })
         }
         if let node = stmt.as(BreakStmtSyntax.self) {
             if let label = node.label {
-                guard leaving.labels.contains(label.text) else { throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))") }
+                guard leaving.labels.contains(label.text) else {
+                    throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))")
+                }
                 return .breakStatement(label: label.text)
             }
-            guard leaving.loop > 0 || leaving.switchCase > 0 else { throw SyntaxError("'break' outside a loop or switch (line \(line(of: node)))") }
+            guard leaving.loop > 0 || leaving.switchCase > 0 else {
+                throw SyntaxError("'break' outside a loop or switch (line \(line(of: node)))")
+            }
             return .breakStatement()
         }
         if let node = stmt.as(ContinueStmtSyntax.self) {
             if let label = node.label {
-                guard leaving.labels.contains(label.text) else { throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))") }
+                guard leaving.labels.contains(label.text) else {
+                    throw SyntaxError("use of unresolved label '\(label.text)' (line \(line(of: node)))")
+                }
                 return .continueStatement(label: label.text)
             }
             guard leaving.loop > 0 else { throw SyntaxError("'continue' outside a loop (line \(line(of: node)))") }
             return .continueStatement()
         }
         if stmt.is(FallThroughStmtSyntax.self) {
-            guard leaving.switchCase > 0 else { throw SyntaxError("'fallthrough' outside a switch (line \(line(of: stmt)))") }
+            guard leaving.switchCase > 0 else {
+                throw SyntaxError("'fallthrough' outside a switch (line \(line(of: stmt)))")
+            }
             return .fallthroughStatement
         }
         if let node = stmt.as(DeferStmtSyntax.self) {
@@ -89,12 +100,21 @@ extension Lowering {
     }
 
     /// Every condition of an `if`, `guard` or `while`, each seeing what the ones before it bind.
-    mutating func conditionList(_ list: ConditionElementListSyntax, isGuard: Bool = false) throws -> [IfStatement.Condition] {
+    mutating func conditionList(
+        _ list: ConditionElementListSyntax,
+        isGuard: Bool = false
+    ) throws -> [IfStatement.Condition] {
         try list.map { try condition(element: $0, isGuard: isGuard) }
     }
 
-    mutating func condition(_ conditions: ConditionElementListSyntax, _ node: some SyntaxProtocol, isGuard: Bool = false) throws -> IfStatement.Condition {
-        guard conditions.count == 1, let element = conditions.first else { throw unsupported("more than one condition", node) }
+    mutating func condition(
+        _ conditions: ConditionElementListSyntax,
+        _ node: some SyntaxProtocol,
+        isGuard: Bool = false
+    ) throws -> IfStatement.Condition {
+        guard conditions.count == 1, let element = conditions.first else {
+            throw unsupported("more than one condition", node)
+        }
         return try condition(element: element, isGuard: isGuard)
     }
 
@@ -103,7 +123,9 @@ extension Lowering {
         case .expression(let expr):
             return .expression(try expression(expr))
         case .optionalBinding(let binding):
-            guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else { throw unsupported("this binding", binding) }
+            guard let identifier = binding.pattern.as(IdentifierPatternSyntax.self) else {
+                throw unsupported("this binding", binding)
+            }
             let lowered: Expr
             if let value = binding.initializer?.value {
                 lowered = try expression(value)
@@ -113,7 +135,11 @@ extension Lowering {
                 lowered = self.reference(reference)
             }
             bind(identifier.identifier.text)
-            return .binding(name: identifier.identifier.text, mutable: binding.bindingSpecifier.tokenKind == .keyword(.var), value: lowered)
+            return .binding(
+                name: identifier.identifier.text,
+                mutable: binding.bindingSpecifier.tokenKind == .keyword(.var),
+                value: lowered
+            )
         case .matchingPattern(let matching):
             let subject = try expression(matching.initializer.value)
             return .pattern(try pattern(matching.pattern), subject)
@@ -138,7 +164,11 @@ extension Lowering {
         // `if a, let b { … } else { … }` is `if a { if let b { … } else { … } } else { … }`.
         var result = IfStatement(condition: conditions[conditions.count - 1], then: then, otherwise: otherwise)
         for condition in conditions.dropLast().reversed() {
-            result = IfStatement(condition: condition, then: Program(statements: [.ifStatement(result)], lines: [line(of: node)]), otherwise: otherwise)
+            result = IfStatement(
+                condition: condition,
+                then: Program(statements: [.ifStatement(result)], lines: [line(of: node)]),
+                otherwise: otherwise
+            )
         }
         return result
     }
@@ -161,9 +191,17 @@ extension Lowering {
         if let label { leaving.labels.append(label) }
         defer { leaving.loop -= 1; if label != nil { leaving.labels.removeLast() } }
         var body = try block(node.body.statements)
-        let tests = conditions.compactMap { condition -> Expr? in if case .expression(let test) = condition { test } else { nil } }
+        let tests = conditions.compactMap { condition -> Expr? in
+            if case .expression(let test) = condition { test } else { nil }
+        }
         if tests.count == conditions.count, let first = tests.first {
-            return .whileLoop(WhileLoop(condition: tests.dropFirst().reduce(first) { .binary(.and, $0, $1) }, body: body, label: label))
+            return .whileLoop(
+                WhileLoop(
+                    condition: tests.dropFirst().reduce(first) { .binary(.and, $0, $1) },
+                    body: body,
+                    label: label
+                )
+            )
         }
         // `while let x = next() { … }` is `while true { guard let x = next() else { break }; … }`.
         let first = body.lines.first ?? line(of: node)
@@ -186,7 +224,9 @@ extension Lowering {
             if label != nil { leaving.labels.removeLast() }
             throw error
         }
-        return .whileLoop(WhileLoop(condition: try expression(node.condition), body: body, isRepeat: true, label: label))
+        return .whileLoop(
+            WhileLoop(condition: try expression(node.condition), body: body, isRepeat: true, label: label)
+        )
     }
 
     private mutating func forLoop(_ node: ForStmtSyntax, label: String? = nil) throws -> ForLoop {
@@ -203,16 +243,36 @@ extension Lowering {
         // `for x in xs where c { … }`: the body runs for the items `c` holds for.
         if let clause = node.whereClause {
             let condition = try expression(clause.condition)
-            body = Program(statements: [.ifStatement(IfStatement(condition: .expression(condition), then: body))], lines: [line(of: clause)])
+            body = Program(
+                statements: [.ifStatement(IfStatement(condition: .expression(condition), then: body))],
+                lines: [line(of: clause)]
+            )
         }
         // `for case let x? in xs`: the body runs for the items that match the pattern.
         if node.caseKeyword != nil {
-            body = Program(statements: [.ifStatement(IfStatement(condition: .pattern(pattern, .variable(InternalName.item)), then: body))], lines: [line(of: node)])
-            return ForLoop(pattern: .binding(name: InternalName.item, mutable: false), sequence: sequence, body: body,
-                           isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil, label: label)
+            body = Program(
+                statements: [
+                    .ifStatement(IfStatement(condition: .pattern(pattern, .variable(InternalName.item)), then: body))
+                ],
+                lines: [line(of: node)]
+            )
+            return ForLoop(
+                pattern: .binding(name: InternalName.item, mutable: false),
+                sequence: sequence,
+                body: body,
+                isAwait: node.awaitKeyword != nil,
+                isTry: node.tryKeyword != nil,
+                label: label
+            )
         }
-        return ForLoop(pattern: pattern, sequence: sequence, body: body,
-                       isAwait: node.awaitKeyword != nil, isTry: node.tryKeyword != nil, label: label)
+        return ForLoop(
+            pattern: pattern,
+            sequence: sequence,
+            body: body,
+            isAwait: node.awaitKeyword != nil,
+            isTry: node.tryKeyword != nil,
+            label: label
+        )
     }
 
     private mutating func doCatch(_ node: DoStmtSyntax) throws -> Statement {
@@ -230,7 +290,13 @@ extension Lowering {
             guard let syntax = item.pattern else { throw unsupported("this 'catch'", clause) }
             let caught = try pattern(syntax)
             let guardExpr = try item.whereClause.map { try expression($0.condition) }
-            clauses.append(SwitchCase(patterns: [caught], guardExpr: guardExpr, body: try block(clause.body.statements, scoped: false)))
+            clauses.append(
+                SwitchCase(
+                    patterns: [caught],
+                    guardExpr: guardExpr,
+                    body: try block(clause.body.statements, scoped: false)
+                )
+            )
         }
         return .doCatch(body: body, clauses: clauses)
     }
@@ -243,7 +309,9 @@ extension Lowering {
         leaving.switchCase += 1
         defer { leaving.switchCase -= 1 }
         for element in node.cases {
-            guard case .switchCase(let switchCase) = element else { throw unsupported("a compiler directive in a 'switch'", element) }
+            guard case .switchCase(let switchCase) = element else {
+                throw unsupported("a compiler directive in a 'switch'", element)
+            }
             locals.append([])
             defer { locals.removeLast() }
             var patterns: [Pattern] = []
@@ -269,9 +337,17 @@ extension Lowering {
                 throw SyntaxError("each pattern in a case must bind the same names (line \(line(of: switchCase)))")
             }
             guard !switchCase.statements.isEmpty else {
-                throw SyntaxError("a case needs at least one statement; write `break` to do nothing (line \(line(of: switchCase)))")
+                throw SyntaxError(
+                    "a case needs at least one statement; write `break` to do nothing (line \(line(of: switchCase)))"
+                )
             }
-            cases.append(SwitchCase(patterns: patterns, guardExpr: lowered, body: try block(switchCase.statements, scoped: false)))
+            cases.append(
+                SwitchCase(
+                    patterns: patterns,
+                    guardExpr: lowered,
+                    body: try block(switchCase.statements, scoped: false)
+                )
+            )
         }
         return SwitchStatement(subject: subject, cases: cases)
     }
@@ -280,7 +356,9 @@ extension Lowering {
         if pattern.is(WildcardPatternSyntax.self) { return .wildcard }
         // `(a, _)`, `let (a, b)`.
         if let node = pattern.as(TuplePatternSyntax.self) {
-            guard node.elements.allSatisfy({ $0.label == nil }) else { throw unsupported("a label in a tuple pattern", node) }
+            guard node.elements.allSatisfy({ $0.label == nil }) else {
+                throw unsupported("a label in a tuple pattern", node)
+            }
             return .tuple(try node.elements.map { try self.pattern($0.pattern, mutable: mutable) })
         }
         // `is Oops`.
@@ -295,38 +373,65 @@ extension Lowering {
         }
         // `let e as Oops`, `_ as Int`.
         if let node = pattern.as(ExpressionPatternSyntax.self), let cast = node.expression.as(AsExprSyntax.self),
-           cast.questionOrExclamationMark == nil {
+            cast.questionOrExclamationMark == nil
+        {
             return .cast(try castOperand(cast.expression, mutable: mutable), try type(cast.type))
         }
-        if let node = pattern.as(ExpressionPatternSyntax.self) { return try expressionPattern(node.expression, mutable: mutable) }
+        if let node = pattern.as(ExpressionPatternSyntax.self) {
+            return try expressionPattern(node.expression, mutable: mutable)
+        }
         throw unsupported("the pattern '\(pattern.kind)'", pattern)
     }
 
     /// `.failed(code: let c)`, `Result.failed`, `.a`, or a value to compare with.
     private mutating func expressionPattern(_ expr: ExprSyntax, mutable: Bool? = nil) throws -> Pattern {
         // `let x?`: what isn't nil.
-        if let node = expr.as(OptionalChainingExprSyntax.self) { return .some(try argumentPattern(node.expression, mutable: mutable)) }
+        if let node = expr.as(OptionalChainingExprSyntax.self) {
+            return .some(try argumentPattern(node.expression, mutable: mutable))
+        }
         // `5...`, `..<3`, `...9`.
         if let node = expr.as(PostfixOperatorExprSyntax.self), node.operator.text == "..." {
             return .partialRange(lower: try expression(node.expression), upper: nil, closed: true)
         }
-        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "..." || node.operator.text == "..<" {
-            return .partialRange(lower: nil, upper: try expression(node.expression), closed: node.operator.text == "...")
+        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "..." || node.operator.text == "..<"
+        {
+            return .partialRange(
+                lower: nil,
+                upper: try expression(node.expression),
+                closed: node.operator.text == "..."
+            )
         }
         // `(1, _)`: a tuple, element by element. One in parentheses is its element.
         if let tuple = expr.as(TupleExprSyntax.self), tuple.elements.count != 1 {
-            guard tuple.elements.allSatisfy({ $0.label == nil }) else { throw unsupported("a label in a tuple pattern", tuple) }
+            guard tuple.elements.allSatisfy({ $0.label == nil }) else {
+                throw unsupported("a label in a tuple pattern", tuple)
+            }
             return .tuple(try tuple.elements.map { try argumentPattern($0.expression, mutable: mutable) })
         }
-        if let call = expr.as(FunctionCallExprSyntax.self), let member = call.calledExpression.as(MemberAccessExprSyntax.self) {
+        if let call = expr.as(FunctionCallExprSyntax.self),
+            let member = call.calledExpression.as(MemberAccessExprSyntax.self)
+        {
             var arguments: [PatternArgument] = []
             for argument in call.arguments {
-                arguments.append(PatternArgument(label: argument.label?.text, pattern: try argumentPattern(argument.expression, mutable: mutable)))
+                arguments.append(
+                    PatternArgument(
+                        label: argument.label?.text,
+                        pattern: try argumentPattern(argument.expression, mutable: mutable)
+                    )
+                )
             }
-            return .enumCase(type: member.base.map { $0.trimmedDescription }, name: member.declName.baseName.text, arguments: arguments)
+            return .enumCase(
+                type: member.base.map { $0.trimmedDescription },
+                name: member.declName.baseName.text,
+                arguments: arguments
+            )
         }
         if let member = expr.as(MemberAccessExprSyntax.self), isCaseReference(member) {
-            return .enumCase(type: member.base.map { $0.trimmedDescription }, name: member.declName.baseName.text, arguments: nil)
+            return .enumCase(
+                type: member.base.map { $0.trimmedDescription },
+                name: member.declName.baseName.text,
+                arguments: nil
+            )
         }
         return .expression(try expression(expr))
     }

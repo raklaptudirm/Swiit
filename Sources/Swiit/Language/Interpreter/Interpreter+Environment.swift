@@ -8,7 +8,8 @@ extension Interpreter {
             case .literal(let text): text
             case .expression(let expr): try describing(try evaluate(expr))
             }
-        }.joined()
+        }
+        .joined()
     }
 
     /// What `print` and interpolation show, as Swift does: a String as it is,
@@ -19,10 +20,11 @@ extension Interpreter {
     /// A type of the program's with its module in front, as Swift shows it where it is shown whole
     /// (`main.Point(x: 1)` in an array, `main.Color.red`); Swiit's own types by their names.
     func qualified(_ name: String) -> String {
-        let declared = scopes.dropFirst().contains { scope in
-            guard case .object(let object)? = scope.bindings[name]?.value else { return false }
-            return object is StructType || object is EnumType || object is ClassType
-        }
+        let declared = scopes.dropFirst()
+            .contains { scope in
+                guard case .object(let object)? = scope.bindings[name]?.value else { return false }
+                return object is StructType || object is EnumType || object is ClassType
+            }
         return declared ? moduleName + "." + name : name
     }
 
@@ -34,34 +36,45 @@ extension Interpreter {
             return "Optional(" + (try describing(value, debug: true, type: wrapped)) + ")"
         case .list(let element)?:
             if case .list(let items) = value {
-                return "[" + (try items.map { try describing($0, debug: true, type: element) }).joined(separator: ", ") + "]"
+                return "[" + (try items.map { try describing($0, debug: true, type: element) }).joined(separator: ", ")
+                    + "]"
             }
         case .dictionary(let keyType, let valueType)?:
             if case .dictionary(let dictionary) = value {
                 guard !dictionary.isEmpty else { return "[:]" }
-                return "[" + (try dictionary.sortedForDisplay.map {
-                    "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: valueType))"
-                }).joined(separator: ", ") + "]"
+                return "["
+                    + (try dictionary.sortedForDisplay.map {
+                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: valueType))"
+                    })
+                    .joined(separator: ", ") + "]"
             }
         case .tuple(let elements)?:
             if case .record(let record) = value, record.typeName == nil, record.count == elements.count {
-                return "(" + (try zip(record, elements).map { field, element in
-                    (Record.isPosition(field.key) ? "" : "\(field.key): ") + (try describing(field.value, debug: true, type: element.type))
-                }).joined(separator: ", ") + ")"
+                return "("
+                    + (try zip(record, elements)
+                    .map { field, element in
+                        (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                            + (try describing(field.value, debug: true, type: element.type))
+                    })
+                    .joined(separator: ", ") + ")"
             }
         default:
             break
         }
         switch value {
- case .enumValue(let enumValue) where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
+        case .enumValue(let enumValue) where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
             return qualified(enumValue.type.name) + "." + enumValue.name
         case .enumValue(let enumValue) where !enumValue.values.isEmpty:
             let labels = enumValue.definition?.labels ?? []
             let payloads = enumPayloadTypes[ObjectIdentifier(enumValue.type)]?[enumValue.name] ?? []
-            return (debug ? qualified(enumValue.type.name) + "." : "") + enumValue.name + "(" + (try enumValue.values.enumerated().map { index, item in
-                let label = index < labels.count ? labels[index] : nil
-                return (label.map { "\($0): " } ?? "") + (try describing(item, debug: true, type: index < payloads.count ? payloads[index] : nil))
-            }).joined(separator: ", ") + ")"
+            return (debug ? qualified(enumValue.type.name) + "." : "") + enumValue.name + "("
+                + (try enumValue.values.enumerated()
+                .map { index, item in
+                    let label = index < labels.count ? labels[index] : nil
+                    return (label.map { "\($0): " } ?? "")
+                        + (try describing(item, debug: true, type: index < payloads.count ? payloads[index] : nil))
+                })
+                .joined(separator: ", ") + ")"
         case .string(let text):
             return debug ? value.debugDescription : text
         // A type is shown as its name, as `print(Int.self)` does.
@@ -74,7 +87,9 @@ extension Interpreter {
         case .object(let type as ClassType):
             return type.name
         case .object(let instance as ClassInstance):
-            if conformanceList(of: value).contains("CustomStringConvertible"), let text = try classMember("description", of: instance) {
+            if conformanceList(of: value).contains("CustomStringConvertible"),
+                let text = try classMember("description", of: instance)
+            {
                 return try describing(text)
             }
             return qualified(instance.type.name)
@@ -82,25 +97,35 @@ extension Interpreter {
             return "[" + (try items.map { try describing($0, debug: true) }).joined(separator: ", ") + "]"
         case .dictionary(let dictionary):
             guard !dictionary.isEmpty else { return "[:]" }
-            return "[" + (try dictionary.sortedForDisplay.map {
-                "\(try describing($0.key, debug: true)): \(try describing($0.value, debug: true))"
-            }).joined(separator: ", ") + "]"
+            return "["
+                + (try dictionary.sortedForDisplay.map {
+                    "\(try describing($0.key, debug: true)): \(try describing($0.value, debug: true))"
+                })
+                .joined(separator: ", ") + "]"
         case .record(let record):
             if let type = structType(of: record) {
                 let conformances = conformanceList(of: value)
-                if debug, conformances.contains("CustomDebugStringConvertible"), let text = try extensionMember("debugDescription", of: value) ?? structMember("debugDescription", of: record, type) {
+                if debug, conformances.contains("CustomDebugStringConvertible"),
+                    let text = try extensionMember("debugDescription", of: value)
+                        ?? structMember("debugDescription", of: record, type)
+                {
                     return try describing(text)
                 }
-                if conformances.contains("CustomStringConvertible"), let text = try extensionMember("description", of: value) ?? structMember("description", of: record, type) {
+                if conformances.contains("CustomStringConvertible"),
+                    let text = try extensionMember("description", of: value)
+                        ?? structMember("description", of: record, type)
+                {
                     return try describing(text)
                 }
             }
             let declared = structType(of: record)
             let shownName = record.typeName.map { debug ? qualified($0) : $0 } ?? ""
-            return shownName + "(" + (try record.map { field in
-                (Record.isPosition(field.key) ? "" : "\(field.key): ")
-                    + (try describing(field.value, debug: true, type: declared?.property(field.key)?.type))
-            }).joined(separator: ", ") + ")"
+            return shownName + "("
+                + (try record.map { field in
+                    (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                        + (try describing(field.value, debug: true, type: declared?.property(field.key)?.type))
+                })
+                .joined(separator: ", ") + ")"
         default:
             return debug ? value.debugDescription : value.description
         }

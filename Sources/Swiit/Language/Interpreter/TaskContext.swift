@@ -1,4 +1,3 @@
-
 /// A line of execution through Swiit code: its own call stack (the scopes
 /// of the calls and blocks it is in, under the global ones every task
 /// shares), its own cancellation flag, and what its host keeps for it, as the
@@ -45,14 +44,16 @@ final class TaskContext {
 }
 
 extension Interpreter {
-    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main task's is set by the host), or
+    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main task's is set by the
+    /// host), or
     /// for the main task from outside a run.
     public var taskState: AnyObject? {
         get { (lock.isHeldByCurrentThread ? task : mainTask).host }
         set { (lock.isHeldByCurrentThread ? task : mainTask).host = newValue }
     }
 
-    /// Whether the task running now has been asked to stop; ask it before a wait and keep the answer for after, since the
+    /// Whether the task running now has been asked to stop; ask it before a wait and keep the answer for after, since
+    /// the
     /// task running changes while one waits.
     public var cancellation: Cancellation { task.cancellation }
 

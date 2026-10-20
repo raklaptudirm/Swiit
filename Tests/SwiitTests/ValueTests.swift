@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 @Test func rendersScalars() {
     #expect(Value.int(42).description == "42")
@@ -60,11 +61,16 @@ private final class Thing: HostObject {
 }
 
 @Test func enumsWithRawAndAssociatedValues() {
-    let level = EnumType(name: "Level", cases: [.init(name: "low", rawValue: .int(1)), .init(name: "high", rawValue: .int(2))])
+    let level = EnumType(
+        name: "Level",
+        cases: [.init(name: "low", rawValue: .int(1)), .init(name: "high", rawValue: .int(2))]
+    )
     #expect(level.case(rawValue: .int(2))?.name == "high")
     #expect(level.case(rawValue: .int(3)) == nil)
     let result = EnumType(name: "Result", cases: [.init(name: "ok"), .init(name: "failed", labels: ["code", nil])])
     #expect(result.allCases == nil)
-    #expect(result.member("failed") == nil) // made by calling
-    #expect(EnumValue(type: result, name: "failed", values: [.int(2), .string("x")]).description == "failed(code: 2, x)")
+    #expect(result.member("failed") == nil)  // made by calling
+    #expect(
+        EnumValue(type: result, name: "failed", values: [.int(2), .string("x")]).description == "failed(code: 2, x)"
+    )
 }

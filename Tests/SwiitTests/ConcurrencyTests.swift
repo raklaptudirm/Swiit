@@ -1,6 +1,7 @@
-@testable import Swiit
 import Foundation
 import Testing
+
+@testable import Swiit
 
 // Swift's concurrency, (Docs/async.md, step 7): `Task`,
 // `async let`, `for await`.
@@ -35,7 +36,11 @@ private func typeError(_ source: String) -> String? {
     let source = "let t = Task { try Task.checkCancellation(); return 1 }; "
     #expect(typeError(source + "await t.value") == "'value' can throw, but isn't marked with 'try'")
     #expect(try eval(source + "try await t.value") == .int(1))
-    #expect(try eval("let t = Task { try Task.checkCancellation(); return 1 }; t.cancel(); var failed = false; do { let r = try await t.value } catch { failed = true }; failed") == .bool(true))
+    #expect(
+        try eval(
+            "let t = Task { try Task.checkCancellation(); return 1 }; t.cancel(); var failed = false; do { let r = try await t.value } catch { failed = true }; failed"
+        ) == .bool(true)
+    )
     // A task that can't throw is awaited without `try`.
     #expect(typeError("let t = Task { 1 }; await t.value") == nil)
 }
@@ -43,10 +48,10 @@ private func typeError(_ source: String) -> String? {
 @Test func tasksRunWhileOthersSleep() throws {
     let start = Date()
     let source = """
-    let a = Task { try await Task.sleep(nanoseconds: 300_000_000); return 1 }
-    let b = Task { try await Task.sleep(nanoseconds: 300_000_000); return 2 }
-    try await a.value + b.value
-    """
+        let a = Task { try await Task.sleep(nanoseconds: 300_000_000); return 1 }
+        let b = Task { try await Task.sleep(nanoseconds: 300_000_000); return 2 }
+        try await a.value + b.value
+        """
     #expect(try eval(source) == .int(3))
     #expect(Date().timeIntervalSince(start) < 0.55)
 }
@@ -54,12 +59,12 @@ private func typeError(_ source: String) -> String? {
 @Test func aCancelledTaskStops() throws {
     let start = Date()
     let source = """
-    let t = Task { try await Task.sleep(nanoseconds: 100_000_000_000); return 1 }
-    t.cancel()
-    var caught = false
-    do { let r = try await t.value } catch { caught = error is CancellationError }
-    [t.isCancelled, caught]
-    """
+        let t = Task { try await Task.sleep(nanoseconds: 100_000_000_000); return 1 }
+        t.cancel()
+        var caught = false
+        do { let r = try await t.value } catch { caught = error is CancellationError }
+        [t.isCancelled, caught]
+        """
     #expect(try eval(source) == .list([.bool(true), .bool(true)]))
     #expect(Date().timeIntervalSince(start) < 5)
     #expect(try eval("Task.isCancelled") == .bool(false))
@@ -69,27 +74,32 @@ private func typeError(_ source: String) -> String? {
 @Test func aTaskOutlivesTheScopeThatMadeIt() throws {
     // Unlike a job's, Swift's `Task { }` isn't structured: it goes on.
     let source = """
-    func start() -> Task<Int, Never> { Task { await Task.yield(); return 7 } }
-    let t = start()
-    await t.value
-    """
+        func start() -> Task<Int, Never> { Task { await Task.yield(); return 7 } }
+        let t = start()
+        await t.value
+        """
     #expect(try eval(source) == .int(7))
 }
 
 @Test func asyncLetStartsAChildTaskThatReadingAwaits() throws {
     let start = Date()
     let source = """
-    func slow(_ n: Int) async -> Int { try? await Task.sleep(nanoseconds: 300_000_000); return n }
-    async let a = slow(1)
-    async let b = slow(2)
-    await a + b
-    """
+        func slow(_ n: Int) async -> Int { try? await Task.sleep(nanoseconds: 300_000_000); return n }
+        async let a = slow(1)
+        async let b = slow(2)
+        await a + b
+        """
     #expect(try eval(source) == .int(3))
     #expect(Date().timeIntervalSince(start) < 0.55)
     // Reading it waits, and throws what it threw, as in Swift.
     #expect(typeError("async let x = 1; x") == "'value' is async, but isn't marked with 'await'")
-    #expect(typeError("async let x = Task.checkCancellation(); await x") == "'value' can throw, but isn't marked with 'try'")
-    #expect(typeError("func f() -> Int { async let x = 1; return 2 }") == "'await' in a function that isn't async: declare it 'async'")
+    #expect(
+        typeError("async let x = Task.checkCancellation(); await x") == "'value' can throw, but isn't marked with 'try'"
+    )
+    #expect(
+        typeError("func f() -> Int { async let x = 1; return 2 }")
+            == "'await' in a function that isn't async: declare it 'async'"
+    )
     // A closure reading it keeps it, as it keeps any variable.
     #expect(try eval("async let x = 5; let c = { await x * 2 }; await c()") == .int(10))
 }
@@ -113,7 +123,8 @@ private func typeError(_ source: String) -> String? {
 @Test func aBridgedAsyncFunctionRunsWhileOthersWaitAndCallsBack() throws {
     let swiit = interpreter()
     let twice = Function(
-        name: "twice", parameters: [Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))],
+        name: "twice",
+        parameters: [Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))],
         returnType: .int,
         body: .native { swiit, args in
             try bridgeAsync(swiit) { () async throws -> Value in
@@ -126,7 +137,8 @@ private func typeError(_ source: String) -> String? {
         effect: .async
     )
     swiit.scopes[0].declare(twice, named: "twice")
-    let source = "let t = Task { await twice { $0 + 1 } }; let u = Task { await twice { $0 * 2 } }; [await t.value, await u.value]"
+    let source =
+        "let t = Task { await twice { $0 + 1 } }; let u = Task { await twice { $0 * 2 } }; [await t.value, await u.value]"
     let start = Date()
     #expect(try onLargeStack { try swiit.evaluate(source) } == .list([.int(12), .int(40)]))
     // Not timed closely: CI's machines are slow to start threads and tasks.
@@ -135,7 +147,8 @@ private func typeError(_ source: String) -> String? {
 }
 
 @Test func anActorsStateIsReachedWithAwait() throws {
-    let actor = "actor A { var n = 0; func inc() { n += 1 }; func twice() { inc(); inc() }; nonisolated func id() -> Int { 7 } }; let a = A(); "
+    let actor =
+        "actor A { var n = 0; func inc() { n += 1 }; func twice() { inc(); inc() }; nonisolated func id() -> Int { 7 } }; let a = A(); "
     #expect(try eval(actor + "await a.twice(); await a.n") == .int(2))
     #expect(try eval(actor + "a.id()") == .int(7))
     #expect(typeError(actor + "a.inc()") == "'inc' of the actor A is async, but isn't marked with 'await'")
@@ -143,8 +156,17 @@ private func typeError(_ source: String) -> String? {
 }
 
 @Test func aTypedThrowThrowsOnlyItsType() throws {
-    let head = "enum A: Error { case x }; enum B: Error { case y }; func fa() throws(A) { throw .x }; func fb() throws { throw B.y }; "
-    #expect(typeError(head + "func g() throws(A) { try fb() }")?.contains("throws any Error, but this function throws only A") == true)
+    let head =
+        "enum A: Error { case x }; enum B: Error { case y }; func fa() throws(A) { throw .x }; func fb() throws { throw B.y }; "
+    #expect(
+        typeError(head + "func g() throws(A) { try fb() }")?
+            .contains("throws any Error, but this function throws only A") == true
+    )
     #expect(typeError(head + "func g() throws(A) { throw B.y }") != nil)
-    #expect(try eval(head + "func g() throws(A) -> Int { try fa(); return 1 }; do { try g() } catch { switch error { case .x: print(1) } }; 2") == .int(2))
+    #expect(
+        try eval(
+            head
+                + "func g() throws(A) -> Int { try fa(); return 1 }; do { try g() } catch { switch error { case .x: print(1) } }; 2"
+        ) == .int(2)
+    )
 }

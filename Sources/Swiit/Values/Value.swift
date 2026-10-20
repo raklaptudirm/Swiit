@@ -5,7 +5,8 @@ import Foundation
 /// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
-    // The representation is the interpreter's and the host's (SPI). A host builds a value with its initializers and literals and
+    // The representation is the interpreter's and the host's (SPI). A host builds a value with its initializers and
+    // literals and
     // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never breaks it.
     case nothing
     case bool(Bool)
@@ -26,21 +27,26 @@ public enum Value: Sendable {
     case function(any Callable)
 }
 
-/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which the checker reads, so a
-/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at run time. Objects compare
+/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which the checker reads, so
+/// a
+/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at run time. Objects
+/// compare
 /// by identity.
 public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
     /// The name `members` and error messages use, like `Job`.
     var typeName: String { get }
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
-    /// A member answered at run time, after the registered ones; nil if there is none. Optional: most objects have only the
+    /// A member answered at run time, after the registered ones; nil if there is none. Optional: most objects have only
+    /// the
     /// registered members.
     func member(_ name: String) -> Value?
-    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that isn't data. By default
+    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that isn't data. By
+    /// default
     /// every member that isn't a method.
     var fields: ValueDictionary? { get }
-    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job reads `[1] running  make`);
+    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job reads `[1] running
+    /// make`);
     /// nil to print as its fields.
     var displaySegments: [DisplaySegment]? { get }
     /// What equality and hashing go by: the object itself, by default.
@@ -59,26 +65,37 @@ extension HostObject {
     /// The registered members of its type, unless it says.
     public var memberNames: [String] {
         var seen = Set<String>()
-        return (Bridge.types[typeName]?.members ?? []).filter { !$0.isStatic && ($0.kind == .method || $0.kind == .property) }
+        return (Bridge.types[typeName]?.members ?? [])
+            .filter { !$0.isStatic && ($0.kind == .method || $0.kind == .property) }
             .map(\.name).filter { seen.insert($0).inserted }
     }
 
     /// The registered members of its type: a property is read, a method is a function bound to the object.
     public func member(_ name: String) -> Value? {
-        guard let member = Bridge.types[typeName]?.members.first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
-              let plain = member.plain else { return nil }
+        guard
+            let member = Bridge.types[typeName]?.members
+                .first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
+            let plain = member.plain
+        else { return nil }
         let receiver = Value(self)
         switch member.kind {
         case .property: return try? plain(["self": receiver])
         case .method:
-            return Value(HostFunction(
-                name: name, parameters: member.parameters.map { HostFunction.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type)) },
-                returnType: ValueType(member.returns), isThrowing: member.isThrowing,
-                call: { arguments in
-                    var arguments = arguments
-                    arguments["self"] = receiver
-                    return try plain(arguments)
-                }))
+            return Value(
+                HostFunction(
+                    name: name,
+                    parameters: member.parameters.map {
+                        HostFunction.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type))
+                    },
+                    returnType: ValueType(member.returns),
+                    isThrowing: member.isThrowing,
+                    call: { arguments in
+                        var arguments = arguments
+                        arguments["self"] = receiver
+                        return try plain(arguments)
+                    }
+                )
+            )
         default: return nil
         }
     }
@@ -187,16 +204,20 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     /// `(name: "x", 2)`, for a record without one; a tuple's unlabeled
     /// elements are keyed by position.
     public var debugDescription: String {
-        (typeName ?? "") + "(" + map { field in
-            (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.debugDescription
-        }.joined(separator: ", ") + ")"
+        (typeName ?? "") + "("
+            + map { field in
+                (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.debugDescription
+            }
+            .joined(separator: ", ") + ")"
     }
 
     /// What interpolation shows: like `debugDescription`, with text unquoted.
     public var description: String {
-        (typeName ?? "") + "(" + map { field in
-            (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.description
-        }.joined(separator: ", ") + ")"
+        (typeName ?? "") + "("
+            + map { field in
+                (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.description
+            }
+            .joined(separator: ", ") + ")"
     }
 
     /// `0`, `1`, …: the key of a tuple element without a label.
@@ -210,7 +231,8 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
 /// (`sortedForDisplay`), so what's printed is the same every time.
 public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible, CustomDebugStringConvertible {
     private var storage: [Value: Value]
-    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two dictionaries with the same
+    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two dictionaries with the
+    /// same
     /// entries are equal whatever order they were made in.
     private var order: [Value]
 
@@ -234,7 +256,8 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
         order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
     }
 
-    /// In the order given. A later entry with the same key replaces the value of the earlier one, which keeps its place.
+    /// In the order given. A later entry with the same key replaces the value of the earlier one, which keeps its
+    /// place.
     public init(_ entries: [(Value, Value)]) {
         storage = [:]
         order = []
@@ -273,7 +296,9 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
 
     public var debugDescription: String {
         guard !isEmpty else { return "[:]" }
-        return "[" + sortedForDisplay.map { "\($0.key.debugDescription): \($0.value.debugDescription)" }.joined(separator: ", ") + "]"
+        return "["
+            + sortedForDisplay.map { "\($0.key.debugDescription): \($0.value.debugDescription)" }
+            .joined(separator: ", ") + "]"
     }
 
     public var description: String { debugDescription }
@@ -289,7 +314,8 @@ extension Value {
             return a.displayNumber! < b.displayNumber!
         case (.string(let x), .string(let y)): return x < y
         case (.bool(let x), .bool(let y)): return !x && y
-        case (.enumValue(let x), .enumValue(let y)) where x.type === y.type && x.index != y.index: return x.index < y.index
+        case (.enumValue(let x), .enumValue(let y)) where x.type === y.type && x.index != y.index:
+            return x.index < y.index
         default:
             return a.debugDescription < b.debugDescription
         }
@@ -410,11 +436,10 @@ extension Value {
     }
 }
 
-
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
 /// while the member changes it, so a collection is changed where it is, not copied whole each time.
 /// The member's glue takes it out, and puts it back, changed, however the call ends.
-final class ReceiverBox: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public var value: Value
     public init(_ value: Value) { self.value = value }
 
@@ -439,11 +464,12 @@ final class ReceiverBox: LanguageObject, @unchecked Sendable { // safe: its stat
     public var description: String { "\(value)" }
 }
 
-
 // MARK: Making and reading values
 
-extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, ExpressibleByStringLiteral,
-                 ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral,
+    ExpressibleByStringLiteral,
+    ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
+{
     public init(booleanLiteral value: Bool) { self = .bool(value) }
     public init(integerLiteral value: Int) { self = .int(value) }
     public init(floatLiteral value: Double) { self = .double(value) }
@@ -454,7 +480,8 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, Expre
 
 extension Value {
     /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a struct value by name (a
-    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is data. Nil for any other value.
+    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is data. Nil for any other
+    /// value.
     public var entries: ValueDictionary? {
         switch self {
         case .dictionary(let dictionary): dictionary
@@ -464,10 +491,12 @@ extension Value {
         }
     }
 
-    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's. Nil for anything else.
+    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's. Nil for anything
+    /// else.
     public var flow: Flow<Value>? { Interpreter.flow(of: self) }
 
-    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host type's text, a flow), one at
+    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host type's text, a flow),
+    /// one at
     /// a time, so a range of a billion never becomes a list; nil for anything else.
     public var items: AnySequence<Value>? {
         guard Interpreter.items(of: self) != nil else { return nil }
@@ -479,8 +508,10 @@ extension Value {
         self = .function(NativeFunction(function))
     }
 
-    /// A struct's value, with its fields in order and every one present (an absent optional is `nil`): `Value(struct: "Point",
-    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled elements are named by position.
+    /// A struct's value, with its fields in order and every one present (an absent optional is `nil`): `Value(struct:
+    /// "Point",
+    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled elements are named by
+    /// position.
     public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
         self = .record(Record(fields, typeName: typeName))
     }
@@ -492,7 +523,8 @@ extension Value {
         self = .record(record)
     }
 
-    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one is given.
+    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one
+    /// is given.
     public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
         if let name, case .record(var record) = self {
@@ -516,7 +548,8 @@ extension Value {
     public init(_ value: ValueDictionary) { self = .dictionary(value) }
     public init(_ value: some HostObject) { self = .object(value) }
 
-    /// What a value is, as a script would say it. A tuple and a struct value are told apart by whether the type has a name.
+    /// What a value is, as a script would say it. A tuple and a struct value are told apart by whether the type has a
+    /// name.
     public enum Kind: Sendable {
         case nothing, bool, int, double, string, list, dictionary
         case tuple, structure, enumeration, function, object
@@ -538,7 +571,8 @@ extension Value {
         }
     }
 
-    /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list casts only if every element does.
+    /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list casts only if every
+    /// element does.
     /// `try T(value)` is the throwing form, and converts as a script's call does.
     public func cast<T: ValueConvertible>(to type: T.Type = T.self) -> T? {
         guard let result = try? T(self), result.value == self else { return nil }
@@ -551,7 +585,8 @@ extension Value {
         return object as? T
     }
 
-    /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an optional string), else nil.
+    /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an optional string),
+    /// else nil.
     public func cast(to type: ValueType) -> Value? {
         matches(type) ? self : nil
     }
@@ -580,10 +615,13 @@ extension Value {
             default: return false
             }
         case .tuple(let elements):
-            guard case .record(let record) = self, record.typeName == nil, record.count == elements.count else { return false }
-            return zip(record, elements).allSatisfy { field, element in
-                (element.label == nil || element.label == field.key) && field.value.matches(element.type)
+            guard case .record(let record) = self, record.typeName == nil, record.count == elements.count else {
+                return false
             }
+            return zip(record, elements)
+                .allSatisfy { field, element in
+                    (element.label == nil || element.label == field.key) && field.value.matches(element.type)
+                }
         }
     }
 
@@ -593,7 +631,8 @@ extension Value {
         return value.rawValue
     }
 
-    /// The case of a script enum: its type's name, the case's name, its payload and the labels the payload is declared with.
+    /// The case of a script enum: its type's name, the case's name, its payload and the labels the payload is declared
+    /// with.
     public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
         guard case .enumValue(let value) = self else { return nil }
         return (value.type.name, value.name, value.values, value.definition?.labels ?? [])

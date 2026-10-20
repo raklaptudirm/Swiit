@@ -34,11 +34,12 @@ struct Symbol: Decodable {
     /// The documentation's lines. A declaration that starts with an attribute (`@Foo`) has the attribute's `@` in the
     /// last line, which the compiler's range takes in.
     private var docLines: [String] {
-        (docComment?.lines ?? []).map { line in
-            var text = line.text
-            if text.hasSuffix("\n@") { text.removeLast(2) }
-            return text.trimmingCharacters(in: .whitespaces)
-        }
+        (docComment?.lines ?? [])
+            .map { line in
+                var text = line.text
+                if text.hasSuffix("\n@") { text.removeLast(2) }
+                return text.trimmingCharacters(in: .whitespaces)
+            }
     }
 
     /// Its documentation's first paragraph, on one line: what `help` shows.

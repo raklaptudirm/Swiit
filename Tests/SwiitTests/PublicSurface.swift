@@ -1,21 +1,28 @@
 import Foundation
 
-
-/// The public API's top level: the types an embedder meets, and nothing else (Docs/Design/swiit-public-api.md, §3). Each is
+/// The public API's top level: the types an embedder meets, and nothing else (Docs/Design/swiit-public-api.md, §3).
+/// Each is
 /// documented there; a new one is a decision, made by adding its name here and to the design.
 enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "ValueDictionary", "Callable", "ValueType", "HostObject", "DynamicObject",
-        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation", "TypeDescription", "TaskHandle", "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle", "DisplayStyleAttribute", "StandsForText", "SwiitDisplayed",
+        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol",
+        "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation", "TypeDescription", "TaskHandle",
+        "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle", "DisplayStyleAttribute", "StandsForText",
+        "SwiitDisplayed",
     ]
 
-    private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        .deletingLastPathComponent()
         .appendingPathComponent("Sources/Swiit")
-    private static let declaration = try! NSRegularExpression(pattern:
-        #"^(?:@\w+(?:\([^)]*\))?\s+)*public\s+(?:final\s+|indirect\s+)*(?:class|struct|enum|protocol|typealias|func|var|let)\s+([A-Za-z_]\w*)"#,
-        options: [.anchorsMatchLines])
+    private static let declaration = try! NSRegularExpression(
+        pattern:
+            #"^(?:@\w+(?:\([^)]*\))?\s+)*public\s+(?:final\s+|indirect\s+)*(?:class|struct|enum|protocol|typealias|func|var|let)\s+([A-Za-z_]\w*)"#,
+        options: [.anchorsMatchLines]
+    )
 
-    /// The top-level `public` declarations (not `@_spi`), by name, outside the standard library's target and the generated glue.
+    /// The top-level `public` declarations (not `@_spi`), by name, outside the standard library's target and the
+    /// generated glue.
     static func current() throws -> Set<String> {
         var names: Set<String> = []
         let files = FileManager.default.enumerator(atPath: sources.path)!.compactMap { $0 as? String }

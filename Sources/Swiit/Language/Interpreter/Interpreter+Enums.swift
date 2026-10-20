@@ -14,12 +14,16 @@ extension Interpreter {
             var raw: Value?
             if let rawType = decl.rawType {
                 guard enumCase.associated.isEmpty else {
-                    throw RuntimeError("\(decl.name).\(enumCase.name): an enum with raw values can't have associated values")
+                    throw RuntimeError(
+                        "\(decl.name).\(enumCase.name): an enum with raw values can't have associated values"
+                    )
                 }
                 if let expr = enumCase.rawValue {
                     let value = try evaluate(expr)
                     guard let conforming = value.conforming(to: rawType) else {
-                        throw RuntimeError("\(decl.name).\(enumCase.name)'s raw value must be \(rawType), not \(value.typeName)")
+                        throw RuntimeError(
+                            "\(decl.name).\(enumCase.name)'s raw value must be \(rawType), not \(value.typeName)"
+                        )
                     }
                     raw = conforming
                 } else {
@@ -34,7 +38,9 @@ extension Interpreter {
                     throw RuntimeError("\(decl.name).\(enumCase.name): raw value \(raw!) is used twice")
                 }
             } else if enumCase.rawValue != nil {
-                throw RuntimeError("\(decl.name).\(enumCase.name): only an enum with a raw type, like `enum \(decl.name): Int`, has raw values")
+                throw RuntimeError(
+                    "\(decl.name).\(enumCase.name): only an enum with a raw type, like `enum \(decl.name): Int`, has raw values"
+                )
             }
             cases.append(EnumType.Case(name: enumCase.name, rawValue: raw, labels: enumCase.associated.map(\.label)))
             payloadTypes[enumCase.name] = enumCase.associated.map(\.type)
@@ -49,16 +55,32 @@ extension Interpreter {
 
     /// An enum's computed properties and methods, and its static ones.
     private func declareMembers(of decl: EnumDecl, on type: EnumType) throws {
-        guard !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty || !decl.staticMethods.isEmpty
-            || !decl.initializers.isEmpty else { return }
+        guard
+            !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty
+                || !decl.staticMethods.isEmpty
+                || !decl.initializers.isEmpty
+        else { return }
         let members = TypeMembers()
-        try fill(members, of: decl.name, properties: decl.properties, methods: decl.methods, staticProperties: decl.staticProperties,
-                 staticMethods: decl.staticMethods, initializers: decl.initializers, subscripts: [])
+        try fill(
+            members,
+            of: decl.name,
+            properties: decl.properties,
+            methods: decl.methods,
+            staticProperties: decl.staticProperties,
+            staticMethods: decl.staticMethods,
+            initializers: decl.initializers,
+            subscripts: []
+        )
         enumMembers[ObjectIdentifier(type)] = members
     }
 
     /// `Direction(code: "N")`: through an `init` the enum declares, which sets `self` to a case.
-    func constructEnum(_ type: EnumType, _ initializers: OverloadSet, _ arguments: [Argument], overload: Int?) throws -> Value {
+    func constructEnum(
+        _ type: EnumType,
+        _ initializers: OverloadSet,
+        _ arguments: [Argument],
+        overload: Int?
+    ) throws -> Value {
         let values = try arguments.map { argument -> Argument in
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
@@ -83,13 +105,25 @@ extension Interpreter {
         }
         guard let methods = members.methods[name] else { return nil }
         let bound = methods.candidates.map { method in
-            Function(name: method.name, parameters: method.parameters, returnType: method.returnType,
-                     body: .native { interpreter, arguments in
-                         guard !method.isMutating else {
-                             throw RuntimeError("mutating method '\(name)' must be called on a variable, as in value.\(name)(…)")
-                         }
-                         return try interpreter.invoke(method, with: arguments, receiver: Receiver(.enumValue(value), mutable: false))
-                     }, documentation: method.documentation, isMutating: method.isMutating)
+            Function(
+                name: method.name,
+                parameters: method.parameters,
+                returnType: method.returnType,
+                body: .native { interpreter, arguments in
+                    guard !method.isMutating else {
+                        throw RuntimeError(
+                            "mutating method '\(name)' must be called on a variable, as in value.\(name)(…)"
+                        )
+                    }
+                    return try interpreter.invoke(
+                        method,
+                        with: arguments,
+                        receiver: Receiver(.enumValue(value), mutable: false)
+                    )
+                },
+                documentation: method.documentation,
+                isMutating: method.isMutating
+            )
         }
         return .function(OverloadSet(name: name, candidates: bound))
     }
@@ -192,7 +226,9 @@ extension Interpreter {
         case .named(let name):
             // A class of the program's: an instance of it or of a subclass.
             if let type = classType(named: name) {
-                guard case .object(let instance as ClassInstance) = value, instance.type.isSubclass(of: type) else { return nil }
+                guard case .object(let instance as ClassInstance) = value, instance.type.isSubclass(of: type) else {
+                    return nil
+                }
                 return value
             }
             // A protocol of the program's: any value whose type conforms.
@@ -202,7 +238,11 @@ extension Interpreter {
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
             // A host's object is of the type it registered.
-            if case .object(let object) = value, isHostObject(object), object.typeName == name, Bridge.types[name] != nil { return value }
+            if case .object(let object) = value, isHostObject(object), object.typeName == name,
+                Bridge.types[name] != nil
+            {
+                return value
+            }
             // A Character is held as the one-letter String it is.
             if name == "Character", case .string(let text) = value, text.count == 1 { return value }
             if case .record(let record) = value, record.typeName == name, structType(named: name) != nil {
@@ -211,7 +251,8 @@ extension Interpreter {
             // An Error is any value whose type conforms to it.
             if name == "Error", isError(value) { return value }
             guard case .enumValue(let enumValue) = value, let expected = enumType(named: name),
-                  enumValue.type === expected else { return nil }
+                enumValue.type === expected
+            else { return nil }
             return value
         case .generic(let name, _):
             // A Swift value, boxed, is of its Swift type.
@@ -236,14 +277,20 @@ extension Interpreter {
             switch wrapped {
             case .any, .parameter, .unknown: return value
             case .named(let name):
-                if case .object(let object as ClassType) = value, let above = classType(named: name) { return object.isSubclass(of: above) ? value : nil }
-                if protocolType(named: name) != nil || name == "Error" { return typeValue(value, conformsTo: name) ? value : nil }
+                if case .object(let object as ClassType) = value, let above = classType(named: name) {
+                    return object.isSubclass(of: above) ? value : nil
+                }
+                if protocolType(named: name) != nil || name == "Error" {
+                    return typeValue(value, conformsTo: name) ? value : nil
+                }
                 return held == wrapped ? value : nil
             default: return held == wrapped ? value : nil
             }
         case .parameter(let name):
             // A type parameter is what the call bound it to, if the body names it; otherwise any type.
-            guard let bound = lookup(Interpreter.typeArgumentPrefix + name)?.value, let annotation = annotation(ofTypeValue: bound) else { return value }
+            guard let bound = lookup(Interpreter.typeArgumentPrefix + name)?.value,
+                let annotation = annotation(ofTypeValue: bound)
+            else { return value }
             return conform(value, to: annotation)
         case .optional(let wrapped):
             return value == .nothing ? value : conform(value, to: wrapped)
@@ -259,7 +306,8 @@ extension Interpreter {
             guard case .dictionary(let dictionary) = value else { return value.conforming(to: type) }
             var made = ValueDictionary()
             for (key, entry) in dictionary {
-                guard let conformingKey = conform(key, to: keyType), let conformingValue = conform(entry, to: valueType) else { return nil }
+                guard let conformingKey = conform(key, to: keyType), let conformingValue = conform(entry, to: valueType)
+                else { return nil }
                 made[conformingKey] = conformingValue
             }
             return .dictionary(made)
@@ -310,9 +358,11 @@ extension Interpreter {
                 throw RuntimeError("\(enumValue.type.name) has no case '\(name)'")
             }
             guard enumValue.name == name else { return false }
-            guard let arguments else { return true } // `.failed` matches whatever it carries.
+            guard let arguments else { return true }  // `.failed` matches whatever it carries.
             guard arguments.count == enumValue.values.count else {
-                throw RuntimeError("\(enumValue.type.name).\(name) has \(enumValue.values.count) associated values, not \(arguments.count)")
+                throw RuntimeError(
+                    "\(enumValue.type.name).\(name) has \(enumValue.values.count) associated values, not \(arguments.count)"
+                )
             }
             for (index, argument) in arguments.enumerated() {
                 if let label = argument.label, label != definition.labels[index] {
@@ -350,7 +400,9 @@ extension Interpreter {
             }
             return true
         case .tuple(let patterns):
-            guard case .record(let record) = value, record.typeName == nil, record.count == patterns.count else { return false }
+            guard case .record(let record) = value, record.typeName == nil, record.count == patterns.count else {
+                return false
+            }
             for (pattern, field) in zip(patterns, record) {
                 guard try match(pattern, field.value, into: &bindings) else { return false }
             }
@@ -377,7 +429,11 @@ extension Interpreter {
     /// The first of `cases` whose pattern (and `where`) matches `subject`, and
     /// what it binds; one without patterns matches anything, binding
     /// `anyName` if given (a bare `catch` binds `error`).
-    func firstMatch(_ cases: [SwitchCase], _ subject: Value, anyName: String? = nil) throws -> (index: Int, bindings: [String: Binding])? {
+    func firstMatch(
+        _ cases: [SwitchCase],
+        _ subject: Value,
+        anyName: String? = nil
+    ) throws -> (index: Int, bindings: [String: Binding])? {
         for (index, switchCase) in cases.enumerated() {
             if switchCase.patterns.isEmpty {
                 return (index, anyName.map { [$0: Binding(value: subject, mutable: false)] } ?? [:])
@@ -408,7 +464,9 @@ extension Interpreter {
     func runSwitch(_ node: SwitchStatement) throws {
         let subject = try evaluate(node.subject)
         guard let start = try firstMatch(node.cases, subject) else {
-            throw RuntimeError("switch over \(subject.description.isEmpty ? subject.typeName : subject.description) matched no case; add one, or a default")
+            throw RuntimeError(
+                "switch over \(subject.description.isEmpty ? subject.typeName : subject.description) matched no case; add one, or a default"
+            )
         }
 
         var index = start.index
@@ -421,7 +479,7 @@ extension Interpreter {
                 index += 1
                 bindings = [:]
             } catch ControlFlow.breakLoop(nil) {
-                return // `break` leaves the switch.
+                return  // `break` leaves the switch.
             }
         }
     }

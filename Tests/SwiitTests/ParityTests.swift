@@ -1,6 +1,7 @@
-@testable import Swiit
 import Foundation
 import Testing
+
+@testable import Swiit
 
 // Swift programs and what the compiler printed for each (parity.json). A case
 // marked "ok" must print the same here; one marked "todo" is a gap, and the
@@ -23,8 +24,14 @@ private let parityCases: [ParityCase] = {
 /// What the program printed, or why it didn't run.
 private func printed(_ source: String) -> (output: String, problem: String?) {
     nonisolated(unsafe) var output = ""
-    let host = Interpreter.Host(output: OutputSink({ output += $0; return true }),
-                         error: OutputSink({ output += "err: " + $0; return true }))
+    let host = Interpreter.Host(
+        output: OutputSink({
+            output += $0; return true
+        }),
+        error: OutputSink({
+            output += "err: " + $0; return true
+        })
+    )
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     do {
         _ = try interpreter.evaluate(source)
@@ -37,17 +44,19 @@ private func printed(_ source: String) -> (output: String, problem: String?) {
 }
 
 @Test(arguments: parityCases.filter { $0.status == "ok" })
-fileprivate func swiftPrintsWhatTheCompilerPrints(_ item: ParityCase) {
+private func swiftPrintsWhatTheCompilerPrints(_ item: ParityCase) {
     let result = printed(item.source)
     #expect(result.problem == nil, Comment(rawValue: result.problem ?? ""))
     #expect(result.output == item.expected)
 }
 
 @Test func gapsThatCloseAreMarkedOk() {
-    let closed = parityCases.filter { $0.status == "todo" }.filter { item in
-        let result = printed(item.source)
-        return result.problem == nil && result.output == item.expected
-    }.map(\.name)
+    let closed = parityCases.filter { $0.status == "todo" }
+        .filter { item in
+            let result = printed(item.source)
+            return result.problem == nil && result.output == item.expected
+        }
+        .map(\.name)
     #expect(closed == [], "these now pass: mark them \"ok\" in parity.json")
 }
 
@@ -58,7 +67,10 @@ func theGapsAndWhyTheyAreOpen() {
     var lines: [String] = []
     for item in parityCases where item.status == "todo" {
         let result = printed(item.source)
-        let why = result.problem ?? (result.output == item.expected ? "passes" : "prints \(result.output.debugDescription), not \(item.expected.debugDescription)")
+        let why =
+            result.problem
+            ?? (result.output == item.expected
+                ? "passes" : "prints \(result.output.debugDescription), not \(item.expected.debugDescription)")
         lines.append("GAP \(item.name): \(why.split(separator: "\n").first.map(String.init) ?? why)")
     }
     print(lines.joined(separator: "\n"))
@@ -70,6 +82,11 @@ func runTheGivenSource() {
     let source = ProcessInfo.processInfo.environment["PARITY_RUN"]!
     let result = printed(source)
     print("OUTPUT:", result.output, "PROBLEM:", result.problem ?? "none")
-    let interpreter = Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })), limits: Interpreter.Limits())
-    do { _ = try interpreter.evaluate(source) } catch let diagnostic as Diagnostic { print("RENDERED:\n" + diagnostic.rendered(in: source)) } catch {}
+    let interpreter = Interpreter(
+        host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })),
+        limits: Interpreter.Limits()
+    )
+    do { _ = try interpreter.evaluate(source) } catch let diagnostic as Diagnostic {
+        print("RENDERED:\n" + diagnostic.rendered(in: source))
+    } catch {}
 }

@@ -66,27 +66,36 @@ extension Interpreter {
     }
 
     private func describe(_ type: BridgedType) -> TypeDescription {
-        var members = type.members.filter { $0.kind != .setter }.map { member in
-            let settable = member.kind == .property
-                && type.members.contains { $0.kind == .setter && $0.name == member.name }
-            let kind: TypeDescription.Kind = switch member.kind {
-            case .initializer: .initializer
-            case .property, .setter: member.isStatic ? .staticProperty : .property
-            case .method: member.isStatic ? .staticMethod : .method
+        var members = type.members.filter { $0.kind != .setter }
+            .map { member in
+                let settable =
+                    member.kind == .property
+                    && type.members.contains { $0.kind == .setter && $0.name == member.name }
+                let kind: TypeDescription.Kind =
+                    switch member.kind {
+                    case .initializer: .initializer
+                    case .property, .setter: member.isStatic ? .staticProperty : .property
+                    case .method: member.isStatic ? .staticMethod : .method
+                    }
+                return TypeDescription.Member(
+                    name: member.kind == .initializer ? "init" : member.name,
+                    kind: kind,
+                    signature: TypeDescription.signature(member, settable: settable),
+                    summary: member.summary
+                )
             }
-            return TypeDescription.Member(
-                name: member.kind == .initializer ? "init" : member.name,
-                kind: kind,
-                signature: TypeDescription.signature(member, settable: settable),
-                summary: member.summary
-            )
-        }
         // A sequence has the host's additions too: `select`, `get`, …
         if type.conformances["Sequence"] != nil {
             for (name, methods) in sequenceMethods.sorted(by: { $0.key < $1.key }) {
                 for method in methods.candidates {
-                    members.append(.init(name: name, kind: .method, signature: TypeDescription.signature(method),
-                                         summary: method.documentation?.summary.firstLine ?? ""))
+                    members.append(
+                        .init(
+                            name: name,
+                            kind: .method,
+                            signature: TypeDescription.signature(method),
+                            summary: method.documentation?.summary.firstLine ?? ""
+                        )
+                    )
                 }
             }
         }
@@ -97,24 +106,53 @@ extension Interpreter {
         var members: [TypeDescription.Member] = []
         let initializers = type.initializers?.candidates ?? [type.memberwise]
         for initializer in initializers {
-            members.append(.init(name: "init", kind: .initializer, signature: TypeDescription.signature(initializer, as: "init"),
-                                 summary: initializer.documentation?.summary.firstLine ?? ""))
+            members.append(
+                .init(
+                    name: "init",
+                    kind: .initializer,
+                    signature: TypeDescription.signature(initializer, as: "init"),
+                    summary: initializer.documentation?.summary.firstLine ?? ""
+                )
+            )
         }
         for property in type.stored {
-            members.append(.init(name: property.name, kind: .property,
-                                 signature: AttributedString(joining: TypeDescription.property(property.name, property.type ?? .any, mutable: property.mutable)),
-                                 summary: ""))
+            members.append(
+                .init(
+                    name: property.name,
+                    kind: .property,
+                    signature: AttributedString(
+                        joining: TypeDescription.property(
+                            property.name,
+                            property.type ?? .any,
+                            mutable: property.mutable
+                        )
+                    ),
+                    summary: ""
+                )
+            )
         }
         for (name, getter) in type.computed.sorted(by: { $0.key < $1.key }) {
-            members.append(.init(name: name, kind: .property,
-                                 signature: AttributedString(joining: TypeDescription.property(name, getter.returnType ?? .any, mutable: nil)),
-                                 summary: getter.documentation?.summary.firstLine ?? ""))
+            members.append(
+                .init(
+                    name: name,
+                    kind: .property,
+                    signature: AttributedString(
+                        joining: TypeDescription.property(name, getter.returnType ?? .any, mutable: nil)
+                    ),
+                    summary: getter.documentation?.summary.firstLine ?? ""
+                )
+            )
         }
         for (name, methods) in type.methods.sorted(by: { $0.key < $1.key }) {
             for method in methods.candidates {
-                members.append(.init(name: name, kind: .method,
-                                     signature: TypeDescription.signature(method),
-                                     summary: method.documentation?.summary.firstLine ?? ""))
+                members.append(
+                    .init(
+                        name: name,
+                        kind: .method,
+                        signature: TypeDescription.signature(method),
+                        summary: method.documentation?.summary.firstLine ?? ""
+                    )
+                )
             }
         }
         return TypeDescription(name: type.name, kind: "struct", members: members)
@@ -138,8 +176,13 @@ extension Interpreter {
                 let isText = if case .string = raw { true } else { false }
                 signature += [.init(" = "), .init(raw.debugDescription, isText ? .string : .constant)]
             }
-            return .init(name: enumCase.name, kind: .case, signature: AttributedString(joining: signature), summary: "",
-                         hasPayload: !enumCase.labels.isEmpty)
+            return .init(
+                name: enumCase.name,
+                kind: .case,
+                signature: AttributedString(joining: signature),
+                summary: "",
+                hasPayload: !enumCase.labels.isEmpty
+            )
         }
         return TypeDescription(name: type.name, kind: "enum", members: members)
     }
@@ -154,7 +197,9 @@ extension TypeDescription {
             pieces += [.init("init", .keyword), .init("(")] + parameters(member.parameters) + [.init(")")]
         case .property:
             pieces += [.init(member.name, .function), .init(": ")] + member.returns.styled
-            if settable { pieces += [.init(" { "), .init("get", .keyword), .init(" "), .init("set", .keyword), .init(" }")] }
+            if settable {
+                pieces += [.init(" { "), .init("get", .keyword), .init(" "), .init("set", .keyword), .init(" }")]
+            }
         case .method, .setter:
             pieces += [.init(member.name, .function), .init("(")] + parameters(member.parameters) + [.init(")")]
             if member.returns != .void { pieces += [.init(" -> ")] + member.returns.styled }
@@ -165,19 +210,23 @@ extension TypeDescription {
     /// A Swiit function as a member, under `name` if given: its input is
     /// what it's called on, so it isn't shown.
     static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
-        AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
-                   + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .function) { $0.name == "self" })
+        AttributedString(
+            joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
+                + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .function) { $0.name == "self" }
+        )
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
     static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
-        [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .function), .init(": ")] + type.styled
+        [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .function), .init(": ")]
+            + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }
 
     private static func parameters(_ parameters: [Parameter]) -> [AttributedString] {
-        parameters.enumerated().flatMap { index, parameter in (index > 0 ? [AttributedString(", ")] : []) + parameter.declaration }
+        parameters.enumerated()
+            .flatMap { index, parameter in (index > 0 ? [AttributedString(", ")] : []) + parameter.declaration }
     }
 }
 

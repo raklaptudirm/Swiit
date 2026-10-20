@@ -15,7 +15,8 @@ func conforms(_ type: SType, _ proto: String) -> Bool {
     let comparable: Set = ["Equatable", "Hashable", "Comparable", "Encodable", "CustomStringConvertible"]
     switch name {
     case "Int", "Double", "String": return types[name]?.allConformances.contains(proto) ?? comparable.contains(proto)
-    case "Bool": return types[name]?.allConformances.contains(proto) ?? comparable.subtracting(["Comparable"]).contains(proto)
+    case "Bool":
+        return types[name]?.allConformances.contains(proto) ?? comparable.subtracting(["Comparable"]).contains(proto)
     default: return types[name]?.allConformances.contains(proto) ?? false
     }
 }
@@ -24,11 +25,16 @@ func available(_ symbol: Symbol) -> Bool {
     for entry in symbol.availability ?? [] {
         if entry.isUnconditionallyDeprecated == true || entry.isUnconditionallyUnavailable == true { return false }
         // Obsoleted in the language itself (domain "Swift") counts too.
-        if entry.domain == "Swift" || entry.domain == "SwiftPM", entry.obsoleted != nil || entry.deprecated != nil { return false }
+        if entry.domain == "Swift" || entry.domain == "SwiftPM", entry.obsoleted != nil || entry.deprecated != nil {
+            return false
+        }
         guard entry.domain == nil || entry.domain == "macOS" || entry.domain == "*" else { continue }
         if entry.deprecated != nil || entry.obsoleted != nil { return false }
         if let introduced = entry.introduced, entry.domain == "macOS",
-           introduced.major > 14 || introduced.major == 14 && (introduced.minor ?? 0) > 0 { return false }
+            introduced.major > 14 || introduced.major == 14 && (introduced.minor ?? 0) > 0
+        {
+            return false
+        }
     }
     return true
 }
@@ -38,11 +44,13 @@ func available(_ symbol: Symbol) -> Bool {
 func isTextInitializer(_ symbol: Symbol) -> Bool {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     guard let declaration = try? parseDeclaration(text), declaration.isFailable, declaration.parameters.count == 1,
-          declaration.parameters[0].label == nil, declaration.parameters[0].defaultText == nil else { return false }
+        declaration.parameters[0].label == nil, declaration.parameters[0].defaultText == nil
+    else { return false }
     switch declaration.parameters[0].type {
     case .named("String", []): return true
-    case .named(let generic, []): return declaration.generics[generic]?.contains("StringProtocol") ?? false
-        || (symbol.swiftGenerics?.constraints ?? []).contains { $0.lhs == generic && $0.rhs == "StringProtocol" }
+    case .named(let generic, []):
+        return declaration.generics[generic]?.contains("StringProtocol") ?? false
+            || (symbol.swiftGenerics?.constraints ?? []).contains { $0.lhs == generic && $0.rhs == "StringProtocol" }
     default: return false
     }
 }
@@ -52,7 +60,8 @@ func isTextInitializer(_ symbol: Symbol) -> Bool {
 func isSequenceInitializer(_ symbol: Symbol) -> Bool {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     guard let declaration = try? parseDeclaration(text), !declaration.isFailable, declaration.parameters.count == 1,
-          declaration.parameters[0].label == nil, case .named(let generic, []) = declaration.parameters[0].type else { return false }
+        declaration.parameters[0].label == nil, case .named(let generic, []) = declaration.parameters[0].type
+    else { return false }
     let constraints = (symbol.swiftGenerics?.constraints ?? []) + declaration.constraints
     return (declaration.generics[generic] ?? []).contains("Sequence")
         || constraints.contains { $0.lhs == generic && $0.rhs == "Sequence" }
@@ -78,20 +87,28 @@ struct BridgedMember {
 }
 
 /// The Swift for one member: its signature and glue.
-func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Constraint] = [], free: Bool = false) throws -> BridgedMember {
+func bridge(
+    _ symbol: Symbol,
+    of original: BridgedType,
+    given conditions: [Constraint] = [],
+    free: Bool = false
+) throws -> BridgedMember {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     let declaration = try parseDeclaration(text)
     if declaration.isMutating && declaration.isStatic { throw Unsupported(reason: "mutating") }
     var owner = original
-    let constraints = conditions + (symbol.swiftExtension?.constraints ?? []) + (symbol.swiftGenerics?.constraints ?? [])
+    let constraints =
+        conditions + (symbol.swiftExtension?.constraints ?? []) + (symbol.swiftGenerics?.constraints ?? [])
         + declaration.constraints
     var ownGenerics = declaration.generics
     if let error = declaration.typedError { ownGenerics.removeValue(forKey: error) }
 
     // Its generic parameters that are sequences: `S: Sequence`.
     var sequenceNames = Set(ownGenerics.filter { $0.value.contains("Sequence") }.keys)
-    for constraint in constraints where constraint.kind == "conformance" && constraint.rhs == "Sequence"
-        && ownGenerics[constraint.lhs] != nil { sequenceNames.insert(constraint.lhs) }
+    for constraint in constraints
+    where constraint.kind == "conformance" && constraint.rhs == "Sequence"
+        && ownGenerics[constraint.lhs] != nil
+    { sequenceNames.insert(constraint.lhs) }
     var sequences: [String: SType] = [:]
     var fixed: [String: SType] = [:]
     for constraint in constraints where strideFix(constraint) && owner.genericParameters.contains("Bound") {
@@ -104,7 +121,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         // `where Element == String`: the member is for that element only, so
         // it's bridged with Element fixed to it.
         let name = constraint.lhs.replacingOccurrences(of: "Self.", with: "")
-        guard owner.genericParameters.contains(name), isLeaf(rhs) else { throw Unsupported(reason: "same-type constraint") }
+        guard owner.genericParameters.contains(name), isLeaf(rhs) else {
+            throw Unsupported(reason: "same-type constraint")
+        }
         fixed[name] = rhs
     }
     for (parameter, type) in fixed {
@@ -132,7 +151,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         if case .named(let parameter, []) = resolved, allGenerics.contains(parameter) {
             needs[parameter, default: []].append(constraint.rhs)
         } else if resolved == selfType(owner) {
-            guard owner.allConformances.contains(constraint.rhs) else { throw Unsupported(reason: "Self: \(constraint.rhs)") }
+            guard owner.allConformances.contains(constraint.rhs) else {
+                throw Unsupported(reason: "Self: \(constraint.rhs)")
+            }
         } else if !conforms(resolved, constraint.rhs) {
             throw Unsupported(reason: "\(constraint.lhs): \(constraint.rhs)")
         }
@@ -140,7 +161,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     var generics: [String: [String]] = [:]
     for (parameter, protocols) in needs {
         let relevant = Set(protocols).subtracting(alwaysMet)
-        guard relevant.allSatisfy(valueProtocols.contains) else { throw Unsupported(reason: "constraint \(relevant.sorted())") }
+        guard relevant.allSatisfy(valueProtocols.contains) else {
+            throw Unsupported(reason: "constraint \(relevant.sorted())")
+        }
         generics[parameter] = relevant.sorted()
     }
     // A parameter fixed by `where Element == String` must be that type,
@@ -153,7 +176,8 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     var parameters: [(Parameter, SType)] = []
     for parameter in declaration.parameters {
         guard let type = resolve(parameter.type, context), supported(type, generics: allGenerics, asParameter: true),
-              !resultOnly.contains(where: { annotation(type).contains("\(quoted($0))") }) else {
+            !resultOnly.contains(where: { annotation(type).contains("\(quoted($0))") })
+        else {
             throw Unsupported(reason: "parameter \(parameter.type)")
         }
         parameters.append((parameter, type))
@@ -176,13 +200,20 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         if !mentioned { throw Unsupported(reason: "uninferrable generic \(parameter)") }
     }
 
-    let shape = "\(declaration.kind) \(declaration.isStatic) \(declaration.name)(" + parameters.map { "\($0.0.label ?? "_"):" }.joined() + ")"
-    let key = "\(declaration.kind) \(declaration.isStatic) \(declaration.name)(" + parameters.map { "\($0.0.label ?? "_"):\(annotation($0.1))" }.joined(separator: ",") + ")"
+    let shape =
+        "\(declaration.kind) \(declaration.isStatic) \(declaration.name)("
+        + parameters.map { "\($0.0.label ?? "_"):" }.joined() + ")"
+    let key =
+        "\(declaration.kind) \(declaration.isStatic) \(declaration.name)("
+        + parameters.map { "\($0.0.label ?? "_"):\(annotation($0.1))" }.joined(separator: ",") + ")"
 
     // The signature.
     let parameterCode = parameters.map { parameter, type in
         // In the order `Parameter` declares them.
-        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(type))"]
+        var fields = [
+            "label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))",
+            "type: \(annotation(type))",
+        ]
         let literal = parameter.defaultText.flatMap(literalDefault)
         if let literal { fields.append("defaultValue: \(literal)") }
         if let text = parameter.defaultText, literal == nil { fields.append("externalDefault: \(quoted(text))") }
@@ -206,15 +237,20 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     case .initializer: target = "\(swiftType)(\(arguments))"
     case .method where declaration.isOperator:
         // Written as Swift writes it: `-(a)`, `(a) + (b)`.
-        target = argumentList.count == 1 ? "\(declaration.name)(\(argumentList[0]))"
+        target =
+            argumentList.count == 1
+            ? "\(declaration.name)(\(argumentList[0]))"
             : "(\(argumentList[0])) \(declaration.name) (\(argumentList[1]))"
     case .method:
         // A free function is the module's own: qualified, so a standard
         // library function of the same name (readLine) isn't ambiguous.
-        target = (free ? graph.module.name : declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))(\(arguments))"
+        target =
+            (free ? graph.module.name : declaration.isStatic ? swiftType : "receiver")
+            + ".\(swiftName(declaration.name))(\(arguments))"
     case .property: target = (declaration.isStatic ? swiftType : "receiver") + ".\(swiftName(declaration.name))"
     }
-    let tryPrefix = (declaration.throwing || declaration.rethrowing ? "try " : "") + (declaration.isAsync ? "await " : "")
+    let tryPrefix =
+        (declaration.throwing || declaration.rethrowing ? "try " : "") + (declaration.isAsync ? "await " : "")
     var body = ""
     if !declaration.isStatic && declaration.kind != .initializer && !free {
         body += receiverBinding(swiftType, receiverType, mutating: declaration.isMutating)
@@ -228,38 +264,54 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     if declaration.isMutating {
         // The result, and the receiver as the call left it, for the host to
         // put back where it came from.
-        body += isVoid ? "\(tryPrefix)\(target)\n                " : "let result\(resultType) = \(tryPrefix)\(target)\n                "
-        body += "return .list([\(isVoid ? ".nothing" : toValue("result", returns)), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
+        body +=
+            isVoid
+            ? "\(tryPrefix)\(target)\n                "
+            : "let result\(resultType) = \(tryPrefix)\(target)\n                "
+        body +=
+            "return .list([\(isVoid ? ".nothing" : toValue("result", returns)), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
     } else {
         body += "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toValue("result", returns))"
     }
-    let kind = declaration.kind == .initializer ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
+    let kind =
+        declaration.kind == .initializer ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
     // `var extension: String? { get set }`: a setter too, which changes a
     // copy of the receiver and gives it back, as a mutating method does.
     var setter: String?
     if declaration.kind == .property, !declaration.isStatic, text.contains("set }") {
         setter = """
-                BridgedMember(
-                    kind: .setter, name: \(quoted(declaration.name)), isStatic: false,
-                    parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
-                    returns: .void, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
-                        receiver.\(swiftName(declaration.name)) = \(fromValue("args[\"newValue\"]!", returns))
-                        return .list([.nothing, \(toValue("receiver", receiverType))])
-                    }
-                )
-"""
+                            BridgedMember(
+                                kind: .setter, name: \(quoted(declaration.name)), isStatic: false,
+                                parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
+                                returns: .void, generics: [:],
+                                isThrowing: false, isRethrowing: false, isMutating: true,
+                                discardableResult: false, summary: "",
+                                body: .native { interpreter, args in
+                                    _ = interpreter
+                                    var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
+                                    receiver.\(swiftName(declaration.name)) = \(fromValue("args[\"newValue\"]!", returns))
+                                    return .list([.nothing, \(toValue("receiver", receiverType))])
+                                }
+                            )
+            """
     }
     // A function's flags are documented in `help`; a member's are not shown.
     let docs = free ? symbol.parameterDocs : [:]
-    let parameterDocs = docs.isEmpty ? "" : ",\n                    parameterDocs: [" + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }.joined(separator: ", ") + "]"
-    let genericsCode = generics.isEmpty ? "[:]" : "[" + generics.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }.joined(separator: ", ") + "]"
+    let parameterDocs =
+        docs.isEmpty
+        ? ""
+        : ",\n                    parameterDocs: ["
+            + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }.joined(separator: ", ")
+            + "]"
+    let genericsCode =
+        generics.isEmpty
+        ? "[:]"
+        : "["
+            + generics.sorted { $0.key < $1.key }
+            .map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }.joined(separator: ", ")
+            + "]"
     // An `async` one is waited for in `suspend`, letting other tasks run.
     if declaration.isAsync {
         if declaration.isMutating { throw Unsupported(reason: "async mutating") }
@@ -270,32 +322,38 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         body = "return try withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
     }
     let member = """
-                BridgedMember(
-                    kind: \(kind), name: \(quoted(declaration.name)), isStatic: \(declaration.isStatic),
-                    parameters: [\(parameterCode.joined(separator: ", "))],
-                    returns: \(annotation(returns)), generics: \(genericsCode),
-                    isThrowing: \(declaration.throwing), isRethrowing: \(declaration.rethrowing), isMutating: \(declaration.isMutating),
-                    discardableResult: \(text.contains("@discardableResult")), summary: \(quoted(symbol.summary)),
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        \(body)
-                    }\(parameterDocs)\(declaration.isAsync ? ",\n                    effect: .async" : "")
-                )
-"""
+                        BridgedMember(
+                            kind: \(kind), name: \(quoted(declaration.name)), isStatic: \(declaration.isStatic),
+                            parameters: [\(parameterCode.joined(separator: ", "))],
+                            returns: \(annotation(returns)), generics: \(genericsCode),
+                            isThrowing: \(declaration.throwing), isRethrowing: \(declaration.rethrowing), isMutating: \(declaration.isMutating),
+                            discardableResult: \(text.contains("@discardableResult")), summary: \(quoted(symbol.summary)),
+                            body: .native { interpreter, args in
+                                _ = interpreter
+                                \(body)
+                            }\(parameterDocs)\(declaration.isAsync ? ",\n                    effect: .async" : "")
+                        )
+        """
     return BridgedMember(key: key, shape: shape, codes: [member] + (setter.map { [$0] } ?? []))
 }
 
-/// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating member's may come in a
-/// box, moved out of its variable so nothing else holds it while it changes (a collection would be copied whole on every
+/// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating member's may come in
+/// a
+/// box, moved out of its variable so nothing else holds it while it changes (a collection would be copied whole on
+/// every
 /// call), and the box gets it back, however the call ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
-    guard mutating else { return "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                " }
-    var body = "let mover = ReceiverBox.of(args[\"self\"]!)\n                let taken = mover?.take() ?? args[\"self\"]!\n                "
+    guard mutating else {
+        return "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                "
+    }
+    var body =
+        "let mover = ReceiverBox.of(args[\"self\"]!)\n                let taken = mover?.take() ?? args[\"self\"]!\n                "
     // Used once, `taken` ends there, so the receiver holds the only reference to a collection.
     var conversion = fromValue("taken", receiverType)
-    if conversion.components(separatedBy: "taken").count == 2 { conversion = conversion.replacingOccurrences(of: "taken", with: "consume taken") }
+    if conversion.components(separatedBy: "taken").count == 2 {
+        conversion = conversion.replacingOccurrences(of: "taken", with: "consume taken")
+    }
     body += "var receiver: \(swiftType) = \(conversion)\n                "
     body += "defer { mover?.put(\(toValue("receiver", receiverType))) }\n                "
     return body
 }
-

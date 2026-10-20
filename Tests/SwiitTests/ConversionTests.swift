@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 private struct FileEntry: Encodable {
     struct Owner: Encodable {
@@ -47,7 +48,7 @@ private final class Node {
 
 @Test func reflectsAnything() {
     let node = Node()
-    node.next = node // A cycle, cut off by the depth limit.
+    node.next = node  // A cycle, cut off by the depth limit.
     guard case .record(let record) = Value(reflecting: node) else {
         Issue.record("not a record")
         return

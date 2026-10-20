@@ -17,7 +17,7 @@ struct Leaf {
     }
 }
 
-nonisolated(unsafe) var leaves: [String: Leaf] = [ // safe: the generator runs on one thread
+nonisolated(unsafe) var leaves: [String: Leaf] = [  // safe: the generator runs on one thread
     "Int": Leaf(".int", { "try Int(\($0))" }, { "\($0).value" }),
     "Double": Leaf(".double", { "try Double(\($0))" }, { "\($0).value" }),
     "Bool": Leaf(".bool", { "try Bool(\($0))" }, { "\($0).value" }),
@@ -26,15 +26,17 @@ nonisolated(unsafe) var leaves: [String: Leaf] = [ // safe: the generator runs o
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which
 /// a signature may use.
-nonisolated(unsafe) var topLevelAliases: [String: SType] = [:] // safe: the generator runs on one thread
+nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]  // safe: the generator runs on one thread
 
 /// Generic types Swiit holds as they are, boxed (`SwiftValue`), with Swiit's
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.
 let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange", "Flow"]
 
 /// The protocols a type conforms to, as far as the checker needs to know.
-let knownProtocols: Set = ["Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "StandsForText",
-                           "ExpressibleByStringLiteral"]
+let knownProtocols: Set = [
+    "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence", "StandsForText",
+    "ExpressibleByStringLiteral",
+]
 /// What Swiit's values (the stand-in for every generic parameter) can be.
 let valueProtocols: Set = ["Equatable", "Hashable", "Comparable"]
 /// Constraints every Swiit value meets, so they say nothing.
@@ -90,9 +92,13 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
     case .named("Self", []):
         return selfType(owner)
     case .named(let name, let arguments):
-        if arguments.isEmpty, let element = context.sequences[name] { return resolve(element, context).map(SType.someSequence) }
+        if arguments.isEmpty, let element = context.sequences[name] {
+            return resolve(element, context).map(SType.someSequence)
+        }
         if arguments.isEmpty, let target = topLevelAliases[name] { return resolve(target, context) }
-        if context.generics.contains(name) || owner.genericParameters.contains(name) { return arguments.isEmpty ? type : nil }
+        if context.generics.contains(name) || owner.genericParameters.contains(name) {
+            return arguments.isEmpty ? type : nil
+        }
         if arguments.isEmpty, let target = owner.associated[name] { return resolve(target, context) }
         if name == "Void" { return .tuple([]) }
         let resolved = arguments.compactMap { resolve($0, context) }
@@ -125,7 +131,9 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
         guard let key = resolve(key, context), let value = resolve(value, context) else { return nil }
         return .dictionary(key, value)
     case .tuple(let elements):
-        let resolved = elements.compactMap { element in resolve(element.type, context).map { SType.Element(label: element.label, type: $0) } }
+        let resolved = elements.compactMap { element in
+            resolve(element.type, context).map { SType.Element(label: element.label, type: $0) }
+        }
         return resolved.count == elements.count ? .tuple(resolved) : nil
     case .function(let parameters, let result, let throwing, let isAsync):
         let resolved = parameters.compactMap { resolve($0, context) }
@@ -153,7 +161,8 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
         // Only over generic parameters, which are Swiit's values: the path
         // reads fields of them, as it can't of a Character.
         if name == "KeyPath", arguments.count == 2 {
-            return asParameter && arguments.allSatisfy { if case .named(let n, []) = $0 { generics.contains(n) } else { false } }
+            return asParameter
+                && arguments.allSatisfy { if case .named(let n, []) = $0 { generics.contains(n) } else { false } }
         }
         return boxes.contains(name) && arguments.allSatisfy { isSimple($0, generics: generics) }
     case .array(let element), .optional(let element), .someSequence(let element):

@@ -10,18 +10,25 @@ extension TypeChecker {
         if case .functions(let existing)? = scopes[scopes.count - 1][decl.name] {
             overloads = existing
         } else if scopes.count == 1, let binding = interpreter.scopes.last?.bindings[decl.name], binding.isFunction,
-                  case .function(let set as OverloadSet) = binding.value {
+            case .function(let set as OverloadSet) = binding.value
+        {
             // At the top, it joins what earlier entries declared.
             overloads = set.candidates.map(signature)
         } else if scopes.count == 1, let binding = interpreter.scopes.first?.bindings[decl.name], binding.isFunction,
-                  case .function(let set as OverloadSet) = binding.value {
+            case .function(let set as OverloadSet) = binding.value
+        {
             // A builtin of that name is overloaded, not replaced.
             overloads = set.candidates.map(signature)
         }
         overloads.removeAll { sameParameters($0.parameters, decl.parameters) && $0.generics == decl.generics }
         var declared = Signature(
-            name: decl.name, parameters: decl.parameters, returns: decl.returnType ?? .void, isThrowing: decl.isThrowing,
-            isRethrowing: decl.isRethrowing, effect: decl.effect, generics: decl.generics
+            name: decl.name,
+            parameters: decl.parameters,
+            returns: decl.returnType ?? .void,
+            isThrowing: decl.isThrowing,
+            isRethrowing: decl.isRethrowing,
+            effect: decl.effect,
+            generics: decl.generics
         )
         declared.thrownType = decl.thrownType
         declared.typeParameters = decl.runtimeTypeParameters
@@ -31,18 +38,24 @@ extension TypeChecker {
     }
 
     func sameParameters(_ a: [Parameter], _ b: [Parameter]) -> Bool {
-        a.count == b.count && zip(a, b).allSatisfy { $0.label == $1.label && $0.type == $1.type && $0.variadic == $1.variadic }
+        a.count == b.count
+            && zip(a, b).allSatisfy { $0.label == $1.label && $0.type == $1.type && $0.variadic == $1.variadic }
     }
 
     /// A body written for the result builder `name`, as the plain code it stands for.
     func resultBuilt(_ body: Program, by name: String) throws -> Program {
         guard let info = structInfo(named: name) else { throw TypeError("@\(name) is not a result builder") }
         var transform = ResultBuilderTransform(builder: name, methods: Set(info.declared.staticMethods.keys))
-        do { return try transform.transform(body) } catch let error as SyntaxError { throw TypeError(error.description) }
+        do { return try transform.transform(body) } catch let error as SyntaxError {
+            throw TypeError(error.description)
+        }
     }
 
     func checkFunction(
-        _ decl: inout FunctionDecl, self selfType: TypeAnnotation? = nil, mutating: Bool = false, initializing: Bool = false
+        _ decl: inout FunctionDecl,
+        self selfType: TypeAnnotation? = nil,
+        mutating: Bool = false,
+        initializing: Bool = false
     ) throws {
         if let builder = decl.resultBuilder {
             decl.body = try resultBuilt(decl.body, by: builder)
@@ -59,10 +72,13 @@ extension TypeChecker {
             names[parameter.name] = .variable(parameter.variadic ? .list(known) : known, mutable: parameter.isInout)
         }
         // A type parameter is a value in the body too (`T()`, `T.self`), of a type that isn't known there.
-        for parameter in decl.generics.keys where names[parameter] == nil { names[parameter] = .variable(.unknown, mutable: false) }
+        for parameter in decl.generics.keys where names[parameter] == nil {
+            names[parameter] = .variable(.unknown, mutable: false)
+        }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }
         // `super` is the class above, as `self`.
-        if case .named(let className)? = selfType, let info = structInfo(named: className), let parent = info.superclass {
+        if case .named(let className)? = selfType, let info = structInfo(named: className), let parent = info.superclass
+        {
             names["super"] = .variable(.named(parent), mutable: true)
         }
         if initializing { names[InternalName.initializing] = .variable(.void, mutable: false) }
@@ -71,7 +87,13 @@ extension TypeChecker {
         try checkBecomingAsync(decl)
         let topLevel = effectContexts.count == 1
         returns.append(ReturnContext(declared: result))
-        errorContexts.append(ErrorContext(handled: decl.isThrowing || decl.isRethrowing, boundary: .function(decl.name), thrown: decl.thrownType))
+        errorContexts.append(
+            ErrorContext(
+                handled: decl.isThrowing || decl.isRethrowing,
+                boundary: .function(decl.name),
+                thrown: decl.thrownType
+            )
+        )
         scopes.append(names)
         defer {
             returns.removeLast()
@@ -116,10 +138,12 @@ extension TypeChecker {
     /// `orExits` (for a guard's `else`), by `break` or `continue`.
     func definitelyLeaves(_ program: Program, orExits: Bool) -> Bool {
         // Declarations after the last statement run nothing, as in Swift.
-        guard let last = program.statements.last(where: {
-            if case .function = $0 { return false }
-            return !$0.declaresType
-        }) else { return false }
+        guard
+            let last = program.statements.last(where: {
+                if case .function = $0 { return false }
+                return !$0.declaresType
+            })
+        else { return false }
         let leaves = { (program: Program) in self.definitelyLeaves(program, orExits: orExits) }
         switch last {
         case .returnStatement:
@@ -151,8 +175,13 @@ extension TypeChecker {
     func structInfo(_ decl: StructDecl) throws -> TypeProfile {
         var methods: [String: [Signature]] = [:]
         for method in decl.methods {
-            var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
-                                      isMutating: method.isMutating, isThrowing: method.isThrowing)
+            var signature = Signature(
+                name: method.name,
+                parameters: method.parameters,
+                returns: method.returnType ?? .void,
+                isMutating: method.isMutating,
+                isThrowing: method.isThrowing
+            )
             signature.thrownType = method.thrownType
             signature.index = methods[method.name]?.count ?? 0
             methods[method.name, default: []].append(signature)
@@ -168,22 +197,33 @@ extension TypeChecker {
         }
         let memberwise = Signature(
             name: decl.name,
-            parameters: stored.filter { $0.mutable || $0.defaultValue == nil }.map {
-                Parameter(label: $0.name, name: $0.name, type: $0.type ?? .unknown, defaultValue: $0.defaultValue)
-            },
+            parameters: stored.filter { $0.mutable || $0.defaultValue == nil }
+                .map {
+                    Parameter(label: $0.name, name: $0.name, type: $0.type ?? .unknown, defaultValue: $0.defaultValue)
+                },
             returns: .named(decl.name)
         )
-        let initializers = decl.initializers.enumerated().map { index, initializer in
-            Signature(name: "\(decl.name).init", parameters: initializer.parameters,
-                      returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
-                      isMutating: true, isThrowing: initializer.isThrowing, index: index)
-        }
+        let initializers = decl.initializers.enumerated()
+            .map { index, initializer in
+                Signature(
+                    name: "\(decl.name).init",
+                    parameters: initializer.parameters,
+                    returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
+                    isMutating: true,
+                    isThrowing: initializer.isThrowing,
+                    index: index
+                )
+            }
         // An untyped static takes its value's type once the struct is known
         // (`checkStruct`), since the value may use the struct itself.
         var staticMethods: [String: [Signature]] = [:]
         for method in decl.staticMethods {
-            var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
-                                      isThrowing: method.isThrowing)
+            var signature = Signature(
+                name: method.name,
+                parameters: method.parameters,
+                returns: method.returnType ?? .void,
+                isThrowing: method.isThrowing
+            )
             signature.index = staticMethods[method.name]?.count ?? 0
             staticMethods[method.name, default: []].append(signature)
         }
@@ -191,15 +231,34 @@ extension TypeChecker {
         profile.conformances = decl.conformances
         profile.memberwise = memberwise
         for property in decl.properties where property.getter != nil {
-            profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.setter != nil, stored: nil)
+            profile.declared.properties[property.name] = MemberProperty(
+                type: property.type ?? .unknown,
+                isSettable: property.setter != nil,
+                stored: nil
+            )
         }
-        for property in stored { profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.mutable, stored: property) }
+        for property in stored {
+            profile.declared.properties[property.name] = MemberProperty(
+                type: property.type ?? .unknown,
+                isSettable: property.mutable,
+                stored: property
+            )
+        }
         profile.declared.methods = methods
         profile.declared.initializers = initializers
-        for property in decl.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        for property in decl.staticProperties {
+            profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+        }
         profile.declared.staticMethods = staticMethods
         for (index, declared) in decl.subscripts.enumerated() {
-            profile.subscripts.append(Signature(name: "subscript", parameters: declared.parameters, returns: declared.returnType, index: index))
+            profile.subscripts.append(
+                Signature(
+                    name: "subscript",
+                    parameters: declared.parameters,
+                    returns: declared.returnType,
+                    index: index
+                )
+            )
             profile.subscriptSettable.append(declared.setter != nil)
         }
         return profile
@@ -218,7 +277,9 @@ extension TypeChecker {
             // What a class conforms to by saying so isn't made from its fields.
             if isClass { continue }
             if proto == "Comparable", !decl.staticMethods.contains(where: { $0.name == "<" }) {
-                throw TypeError("\(decl.name) can't be Comparable without a '<' of its own: static func < (a: \(decl.name), b: \(decl.name)) -> Bool")
+                throw TypeError(
+                    "\(decl.name) can't be Comparable without a '<' of its own: static func < (a: \(decl.name), b: \(decl.name)) -> Bool"
+                )
             }
             // Iterating needs a `makeIterator` of its own, which nothing declared in Swiit has yet.
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
@@ -233,22 +294,40 @@ extension TypeChecker {
             let property = decl.properties[index]
             // Observers see the property's value, and may change the rest of the struct.
             if property.getter == nil {
-                for (observer, name) in [(property.willSet, property.willSetName), (property.didSet, property.didSetName)] {
+                for (observer, name) in [
+                    (property.willSet, property.willSetName), (property.didSet, property.didSetName),
+                ] {
                     guard let body = observer else { continue }
-                    var function = FunctionDecl(name: property.name, parameters: [Parameter(name: name, type: property.type ?? .unknown)],
-                                                returnType: nil, body: body)
+                    var function = FunctionDecl(
+                        name: property.name,
+                        parameters: [Parameter(name: name, type: property.type ?? .unknown)],
+                        returnType: nil,
+                        body: body
+                    )
                     try checkFunction(&function, self: selfType, mutating: true)
-                    if body == property.willSet && name == property.willSetName { decl.properties[index].willSet = function.body }
-                    else { decl.properties[index].didSet = function.body }
+                    if body == property.willSet && name == property.willSetName {
+                        decl.properties[index].willSet = function.body
+                    } else {
+                        decl.properties[index].didSet = function.body
+                    }
                 }
             }
             if let getter = property.getter {
-                var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type, body: getter)
+                var function = FunctionDecl(
+                    name: property.name,
+                    parameters: [],
+                    returnType: property.type,
+                    body: getter
+                )
                 try checkFunction(&function, self: selfType)
                 decl.properties[index].getter = function.body
                 if let setter = property.setter {
-                    var function = FunctionDecl(name: property.name, parameters: [Parameter(name: property.setterName, type: property.type ?? .unknown)],
-                                                returnType: nil, body: setter)
+                    var function = FunctionDecl(
+                        name: property.name,
+                        parameters: [Parameter(name: property.setterName, type: property.type ?? .unknown)],
+                        returnType: nil,
+                        body: setter
+                    )
                     try checkFunction(&function, self: selfType, mutating: true)
                     decl.properties[index].setter = function.body
                 }
@@ -264,12 +343,21 @@ extension TypeChecker {
         }
         for index in decl.subscripts.indices {
             let declared = decl.subscripts[index]
-            var getter = FunctionDecl(name: "subscript", parameters: declared.parameters, returnType: declared.returnType, body: declared.getter)
+            var getter = FunctionDecl(
+                name: "subscript",
+                parameters: declared.parameters,
+                returnType: declared.returnType,
+                body: declared.getter
+            )
             try checkFunction(&getter, self: selfType)
             decl.subscripts[index].getter = getter.body
             if let body = declared.setter {
-                var setter = FunctionDecl(name: "subscript", parameters: declared.parameters + [Parameter(name: declared.setterName, type: declared.returnType)],
-                                          returnType: nil, body: body)
+                var setter = FunctionDecl(
+                    name: "subscript",
+                    parameters: declared.parameters + [Parameter(name: declared.setterName, type: declared.returnType)],
+                    returnType: nil,
+                    body: body
+                )
                 try checkFunction(&setter, self: selfType, mutating: true)
                 decl.subscripts[index].setter = setter.body
             }
@@ -277,7 +365,12 @@ extension TypeChecker {
         for index in decl.staticProperties.indices {
             let property = decl.staticProperties[index]
             if let getter = property.getter {
-                var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type, body: getter)
+                var function = FunctionDecl(
+                    name: property.name,
+                    parameters: [],
+                    returnType: property.type,
+                    body: getter
+                )
                 try checkFunction(&function)
                 decl.staticProperties[index].getter = function.body
             } else if var value = property.defaultValue {
@@ -288,7 +381,9 @@ extension TypeChecker {
                     // checks can now use.
                     decl.staticProperties[index].type = try typeOf(&value)
                     if case .structType(var info)? = scopes[scopes.count - 1][decl.name] {
-                        info.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: decl.staticProperties[index])
+                        info.declared.staticProperties[property.name] = MemberProperty(
+                            staticDeclaration: decl.staticProperties[index]
+                        )
                         scopes[scopes.count - 1][decl.name] = .structType(info)
                     }
                 }
@@ -309,12 +404,17 @@ extension TypeChecker {
 
     /// Protocols a type conforms to by saying so, whatever its members are:
     /// it describes itself, or can be thrown.
-    static let askNothingOfMembers: Set<String> = Set(["CustomStringConvertible", "Error", "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject"])
-        .union(looseProtocols)
-    /// Swift's protocols that Swiit takes on trust: a type that says it has one is believed, and a generic asking for one is given any type.
+    static let askNothingOfMembers: Set<String> = Set([
+        "CustomStringConvertible", "Error", "CaseIterable", "Sendable", "Decodable", "Codable", "AnyObject",
+    ])
+    .union(looseProtocols)
+    /// Swift's protocols that Swiit takes on trust: a type that says it has one is believed, and a generic asking for
+    /// one is given any type.
     static let looseProtocols: Set<String> = [
-        "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection", "RangeReplaceableCollection",
-        "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger", "FloatingPoint",
+        "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection",
+        "RangeReplaceableCollection",
+        "Numeric", "SignedNumeric", "BinaryInteger", "FixedWidthInteger", "SignedInteger", "UnsignedInteger",
+        "FloatingPoint",
         "BinaryFloatingPoint", "IteratorProtocol", "LosslessStringConvertible", "Identifiable",
         "ExpressibleByArrayLiteral", "ExpressibleByStringLiteral", "ExpressibleByIntegerLiteral",
     ]
@@ -323,8 +423,13 @@ extension TypeChecker {
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {
             var result: [String: [Signature]] = [:]
             for method in declared {
-                var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
-                                          isMutating: method.isMutating, isThrowing: method.isThrowing)
+                var signature = Signature(
+                    name: method.name,
+                    parameters: method.parameters,
+                    returns: method.returnType ?? .void,
+                    isMutating: method.isMutating,
+                    isThrowing: method.isThrowing
+                )
                 signature.index = result[method.name]?.count ?? 0
                 result[method.name, default: []].append(signature)
             }
@@ -336,16 +441,28 @@ extension TypeChecker {
         profile.conformances = decl.conformances
         profile.typeParameters = decl.typeParameters
         for property in decl.properties where property.getter != nil {
-            profile.declared.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: false, stored: nil)
+            profile.declared.properties[property.name] = MemberProperty(
+                type: property.type ?? .unknown,
+                isSettable: false,
+                stored: nil
+            )
         }
         profile.declared.methods = signatures(decl.methods)
-        for property in decl.staticProperties { profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
-        profile.declared.staticMethods = signatures(decl.staticMethods)
-        profile.declared.initializers = decl.initializers.enumerated().map { index, initializer in
-            Signature(name: "\(decl.name).init", parameters: initializer.parameters,
-                      returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
-                      isMutating: true, isThrowing: initializer.isThrowing, index: index)
+        for property in decl.staticProperties {
+            profile.declared.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
         }
+        profile.declared.staticMethods = signatures(decl.staticMethods)
+        profile.declared.initializers = decl.initializers.enumerated()
+            .map { index, initializer in
+                Signature(
+                    name: "\(decl.name).init",
+                    parameters: initializer.parameters,
+                    returns: initializer.isFailable ? .optional(.named(decl.name)) : .named(decl.name),
+                    isMutating: true,
+                    isThrowing: initializer.isThrowing,
+                    index: index
+                )
+            }
         profile.addSynthesizedEnumMembers()
         return profile
     }
@@ -357,7 +474,9 @@ extension TypeChecker {
             if proto == "Sequence" { throw TypeError("\(decl.name) can't be a Sequence yet") }
             for enumCase in decl.cases {
                 for value in enumCase.associated where !conforms(value.type, to: proto) {
-                    throw TypeError("\(decl.name) can't be \(proto): \(decl.name).\(enumCase.name) holds a \(value.type), which isn't")
+                    throw TypeError(
+                        "\(decl.name) can't be \(proto): \(decl.name).\(enumCase.name) holds a \(value.type), which isn't"
+                    )
                 }
             }
         }
@@ -381,7 +500,12 @@ extension TypeChecker {
         for index in decl.staticProperties.indices {
             let property = decl.staticProperties[index]
             if let getter = property.getter {
-                var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type, body: getter)
+                var function = FunctionDecl(
+                    name: property.name,
+                    parameters: [],
+                    returnType: property.type,
+                    body: getter
+                )
                 try checkFunction(&function)
                 decl.staticProperties[index].getter = function.body
             } else if var value = property.defaultValue {

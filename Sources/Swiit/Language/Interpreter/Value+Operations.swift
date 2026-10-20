@@ -58,7 +58,10 @@ extension Value {
         // Swift sequence of Strings (a host type's text) is the list of them where a list is.
         case (.string, .object) where text != nil:
             return .string(text!)
-        case (.list(.string), .object(let box as SwiftValue)) where box.value is any Sequence && Interpreter.items(of: self).map({ $0.allSatisfy { if case .string = $0 { true } else { false } } }) == true:
+        case (.list(.string), .object(let box as SwiftValue))
+        where box.value is any Sequence
+            && Interpreter.items(of: self).map({ $0.allSatisfy { if case .string = $0 { true } else { false } } })
+                == true:
             return .list(Array(Interpreter.items(of: self)!))
         // A key path is a function of one value, as in Swift, and no other kind.
         case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
@@ -67,15 +70,16 @@ extension Value {
         case (.keyPath, .function(is KeyPathValue)):
             return self
         case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double), (.string, .string),
-             (.function, .function), (.functionType, .function), (.parameter, _),
-             (.record, .record), (.void, .nothing):
+            (.function, .function), (.functionType, .function), (.parameter, _),
+            (.record, .record), (.void, .nothing):
             return self
         case (.tuple(let elements), .record(let record)):
             guard record.count == elements.count else { return nil }
             var converted = Record(typeName: record.typeName)
             for (index, (element, field)) in zip(elements, record).enumerated() {
                 guard element.label == nil || element.label == field.key || field.key == String(index),
-                      let value = field.value.conforming(to: element.type) else { return nil }
+                    let value = field.value.conforming(to: element.type)
+                else { return nil }
                 converted[element.label ?? field.key] = value
             }
             return .record(converted)
@@ -125,11 +129,14 @@ extension Value {
         if case .object = other, let b = other.text { return order(comparedTo: .string(b)) }
         switch (self, other) {
         case (.bool(let a), .bool(let b)): return compare(a ? 1 : 0, b ? 1 : 0)
-        case (.int, .int), (.int, .double), (.double, .int), (.double, .double): return compare(asDouble!, other.asDouble!)
+        case (.int, .int), (.int, .double), (.double, .int), (.double, .double):
+            return compare(asDouble!, other.asDouble!)
         case (.string(let a), .string(let b)): return a.compare(b)
         case (.enumValue(let a), .enumValue(let b)) where a.type === b.type: return compare(a.index, b.index)
         case (.object(let a as SwiftValue), .object(let b as SwiftValue)):
-            if let less = a.isLess(than: b) { return less ? .orderedAscending : b.isLess(than: a) == true ? .orderedDescending : .orderedSame }
+            if let less = a.isLess(than: b) {
+                return less ? .orderedAscending : b.isLess(than: a) == true ? .orderedDescending : .orderedSame
+            }
             return compare(a.typeName, b.typeName)
         case (.list(let a), .list(let b)):
             for (x, y) in zip(a, b) {

@@ -12,7 +12,13 @@ public struct HostFunction: Sendable {
         public var defaultValue: Value?
         public var isVariadic: Bool
 
-        public init(label: String? = nil, name: String, type: ValueType = .any, defaultValue: Value? = nil, isVariadic: Bool = false) {
+        public init(
+            label: String? = nil,
+            name: String,
+            type: ValueType = .any,
+            defaultValue: Value? = nil,
+            isVariadic: Bool = false
+        ) {
             self.label = label
             self.name = name
             self.type = type
@@ -22,8 +28,20 @@ public struct HostFunction: Sendable {
         }
 
         /// A parameter of a Swift type: `Parameter(name: "count", type: Int.self)`.
-        public init<T: ValueConvertible>(label: String? = nil, name: String, type: T.Type, defaultValue: Value? = nil, isVariadic: Bool = false) {
-            self.init(label: label, name: name, type: ValueType(type), defaultValue: defaultValue, isVariadic: isVariadic)
+        public init<T: ValueConvertible>(
+            label: String? = nil,
+            name: String,
+            type: T.Type,
+            defaultValue: Value? = nil,
+            isVariadic: Bool = false
+        ) {
+            self.init(
+                label: label,
+                name: name,
+                type: ValueType(type),
+                defaultValue: defaultValue,
+                isVariadic: isVariadic
+            )
             self.enums = T.swiitEnums
         }
 
@@ -37,8 +55,14 @@ public struct HostFunction: Sendable {
         var showsByType = false
 
         init(
-            label: String?, name: String, type: ValueType, enums: [EnumType] = [], variadic: Bool = false,
-            documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil,
+            label: String?,
+            name: String,
+            type: ValueType,
+            enums: [EnumType] = [],
+            variadic: Bool = false,
+            documentation: String? = nil,
+            defaultValue: Value? = nil,
+            defaultSource: String? = nil,
             showsByType: Bool = false
         ) {
             self.showsByType = showsByType
@@ -67,7 +91,11 @@ public struct HostFunction: Sendable {
 
     /// `body` is called with its arguments in declared order, defaults filled in.
     public init(
-        name: String, summary: String? = nil, parameters: [Parameter] = [], returns: ValueType? = nil, isThrowing: Bool = false,
+        name: String,
+        summary: String? = nil,
+        parameters: [Parameter] = [],
+        returns: ValueType? = nil,
+        isThrowing: Bool = false,
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.name = name
@@ -81,15 +109,30 @@ public struct HostFunction: Sendable {
 
     /// A function whose result is a Swift type: `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
     public init<T: ValueConvertible>(
-        name: String, summary: String? = nil, parameters: [Parameter] = [], returns: T.Type, isThrowing: Bool = false,
+        name: String,
+        summary: String? = nil,
+        parameters: [Parameter] = [],
+        returns: T.Type,
+        isThrowing: Bool = false,
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
-        self.init(name: name, summary: summary, parameters: parameters, returns: ValueType(returns), isThrowing: isThrowing, body: body)
+        self.init(
+            name: name,
+            summary: summary,
+            parameters: parameters,
+            returns: ValueType(returns),
+            isThrowing: isThrowing,
+            body: body
+        )
     }
 
     /// As the host's functions are described: a body taking the arguments by name.
     init(
-        name: String, summary: String? = nil, parameters: [Parameter], returnType: ValueType?, isThrowing: Bool = false,
+        name: String,
+        summary: String? = nil,
+        parameters: [Parameter],
+        returnType: ValueType?,
+        isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
     ) {
         self.name = name
@@ -104,8 +147,10 @@ public struct HostFunction: Sendable {
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`, `resolveOverload` and
-/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with the types it is generic over
-/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type. Whether a named type is a struct,
+/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with the types it is
+/// generic over
+/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type. Whether a named type is a
+/// struct,
 /// an enum or a class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     case named(String, [ValueType] = [])
@@ -127,7 +172,8 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
         }
     }
 
-    /// The type of a Swift type a script can use: `ValueType(Int.self)`, `ValueType([String].self)`; any `ValueConvertible`.
+    /// The type of a Swift type a script can use: `ValueType(Int.self)`, `ValueType([String].self)`; any
+    /// `ValueConvertible`.
     public init<T: ValueConvertible>(_ type: T.Type) {
         self = T.valueType
     }
@@ -143,7 +189,9 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     /// `[Element]`, which is `Array<Element>`.
     public static func list(_ element: ValueType) -> ValueType { .named("Array", [element]) }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
-    public static func dictionary(_ key: ValueType, _ value: ValueType) -> ValueType { .named("Dictionary", [key, value]) }
+    public static func dictionary(_ key: ValueType, _ value: ValueType) -> ValueType {
+        .named("Dictionary", [key, value])
+    }
     /// `Wrapped?`, which is `Optional<Wrapped>`.
     public static func optional(_ wrapped: ValueType) -> ValueType { .named("Optional", [wrapped]) }
 
@@ -152,16 +200,20 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
         case .named("Array", let arguments) where arguments.count == 1: "[\(arguments[0])]"
         case .named("Dictionary", let arguments) where arguments.count == 2: "[\(arguments[0]): \(arguments[1])]"
         case .named("Optional", let arguments) where arguments.count == 1: "\(arguments[0])?"
-        case .named(let name, let arguments): arguments.isEmpty ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
-        case .function(let parameters, let returns): "(\(parameters.map(\.description).joined(separator: ", "))) -> \(returns)"
-        case .tuple(let elements): "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }.joined(separator: ", ") + ")"
+        case .named(let name, let arguments):
+            arguments.isEmpty ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+        case .function(let parameters, let returns):
+            "(\(parameters.map(\.description).joined(separator: ", "))) -> \(returns)"
+        case .tuple(let elements):
+            "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }.joined(separator: ", ")
+                + ")"
         }
     }
 }
 
 /// A host's function or method as a value, as `repo.log` gives it. The
 /// host calls it like any other function.
-final class NativeFunction: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class NativeFunction: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let function: HostFunction
 
     public init(_ function: HostFunction) {
@@ -193,7 +245,8 @@ public protocol ValueConvertible {
     var value: Value { get }
 }
 
-/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their elements'. An SPI refinement,
+/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their elements'. An SPI
+/// refinement,
 /// because a requirement only the module can see cannot be satisfied by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [EnumType] { get } }
 
@@ -288,7 +341,9 @@ extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: Value
     public static var valueType: ValueType { .dictionary(Key.valueType, Value.valueType) }
     static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
-        guard case .dictionary(let entries) = swiitValue else { throw SwiitError.expected("[\(Key.valueType): \(Value.valueType)]", swiitValue) }
+        guard case .dictionary(let entries) = swiitValue else {
+            throw SwiitError.expected("[\(Key.valueType): \(Value.valueType)]", swiitValue)
+        }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
     }
     public var value: Swiit.Value {
@@ -358,10 +413,15 @@ func swiitReturnType(_ type: Any.Type) -> ValueType {
 
 /// An object argument: one of the host's own classes, held as a live object.
 func swiitArgument<T: HostObject>(
-    _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
+    _ arguments: [String: Value],
+    _ name: String,
+    of function: String,
+    as type: T.Type = T.self
 ) throws -> T {
     guard case .object(let object as T) = arguments[name] ?? .nothing else {
-        throw SwiitError("\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).bridgeTypeName)")
+        throw SwiitError(
+            "\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).bridgeTypeName)"
+        )
     }
     return object
 }
@@ -369,7 +429,10 @@ func swiitArgument<T: HostObject>(
 /// An argument the macro-generated code converts: a clear message naming
 /// the function and parameter when it doesn't fit.
 func swiitArgument<T: ValueConvertible>(
-    _ arguments: [String: Value], _ name: String, of function: String, as type: T.Type = T.self
+    _ arguments: [String: Value],
+    _ name: String,
+    of function: String,
+    as type: T.Type = T.self
 ) throws -> T {
     do {
         return try T(arguments[name] ?? .nothing)
@@ -394,16 +457,22 @@ public protocol ScriptEnum: ValueConvertible, CaseIterable {
 extension ScriptEnum {
     static var swiitEnumType: EnumType {
         EnumRegistry.shared.type(for: Self.self) {
-            EnumType(name: String(describing: Self.self), cases: allCases.map { value in
-                let raw = (value as? any RawRepresentable)?.rawValue
-                return EnumType.Case(name: String(describing: value), rawValue: raw.flatMap { raw in
-                    switch raw {
-                    case let int as Int: .int(int)
-                    case let string as String: .string(string)
-                    default: nil
-                    }
-                })
-            })
+            EnumType(
+                name: String(describing: Self.self),
+                cases: allCases.map { value in
+                    let raw = (value as? any RawRepresentable)?.rawValue
+                    return EnumType.Case(
+                        name: String(describing: value),
+                        rawValue: raw.flatMap { raw in
+                            switch raw {
+                            case let int as Int: .int(int)
+                            case let string as String: .string(string)
+                            default: nil
+                            }
+                        }
+                    )
+                }
+            )
         }
     }
 
@@ -411,7 +480,8 @@ extension ScriptEnum {
 
     public init(_ swiitValue: Value) throws {
         guard case .enumValue(let value) = swiitValue, value.type === Self.swiitEnumType,
-              let found = Self.allCases.first(where: { String(describing: $0) == value.name }) else {
+            let found = Self.allCases.first(where: { String(describing: $0) == value.name })
+        else {
             throw SwiitError.expected(Self.swiitEnumType.name, swiitValue)
         }
         self = found
@@ -423,7 +493,7 @@ extension ScriptEnum {
 }
 
 /// Each `ScriptEnum`'s `EnumType`, made once.
-final class EnumRegistry: @unchecked Sendable { // safe: every access holds its own lock
+final class EnumRegistry: @unchecked Sendable {  // safe: every access holds its own lock
     static let shared = EnumRegistry()
     private let lock = NSLock()
     private var types: [ObjectIdentifier: EnumType] = [:]

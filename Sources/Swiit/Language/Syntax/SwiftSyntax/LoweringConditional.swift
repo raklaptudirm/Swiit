@@ -24,8 +24,12 @@ extension Lowering {
         if let node = expr.as(BooleanLiteralExprSyntax.self) { return node.literal.tokenKind == .keyword(.true) }
         // A flag set with `-D`, which Swiit has none of.
         if expr.is(DeclReferenceExprSyntax.self) { return false }
-        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "!" { return !(try holds(node.expression)) }
-        if let node = expr.as(TupleExprSyntax.self), node.elements.count == 1, let only = node.elements.first { return try holds(only.expression) }
+        if let node = expr.as(PrefixOperatorExprSyntax.self), node.operator.text == "!" {
+            return !(try holds(node.expression))
+        }
+        if let node = expr.as(TupleExprSyntax.self), node.elements.count == 1, let only = node.elements.first {
+            return try holds(only.expression)
+        }
         if let node = expr.as(InfixOperatorExprSyntax.self), let op = node.operator.as(BinaryOperatorExprSyntax.self) {
             switch op.operator.text {
             case "&&": return try holds(node.leftOperand) && holds(node.rightOperand)
@@ -33,15 +37,21 @@ extension Lowering {
             default: break
             }
         }
-        if let node = expr.as(FunctionCallExprSyntax.self), let callee = node.calledExpression.as(DeclReferenceExprSyntax.self),
-           let argument = node.arguments.first?.expression {
+        if let node = expr.as(FunctionCallExprSyntax.self),
+            let callee = node.calledExpression.as(DeclReferenceExprSyntax.self),
+            let argument = node.arguments.first?.expression
+        {
             switch callee.baseName.text {
             case "os": return Lowering.operatingSystem == argument.trimmedDescription
             case "arch": return Lowering.architecture == argument.trimmedDescription
             case "canImport": return Lowering.modules.contains(argument.trimmedDescription)
-            case "targetEnvironment", "hasFeature", "hasAttribute", "_runtime", "_ptrauth", "_endian", "_pointerBitWidth": return false
+            case "targetEnvironment", "hasFeature", "hasAttribute", "_runtime", "_ptrauth", "_endian",
+                "_pointerBitWidth":
+                return false
             case "swift", "compiler":
-                guard let version = argument.as(PrefixOperatorExprSyntax.self), let wanted = Lowering.version(of: version.expression.trimmedDescription) else {
+                guard let version = argument.as(PrefixOperatorExprSyntax.self),
+                    let wanted = Lowering.version(of: version.expression.trimmedDescription)
+                else {
                     throw unsupported("this version check", node)
                 }
                 switch version.operator.text {

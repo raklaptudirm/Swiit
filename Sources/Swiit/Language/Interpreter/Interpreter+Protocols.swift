@@ -1,7 +1,7 @@
 import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-final class ProtocolType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ProtocolType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]
@@ -49,10 +49,14 @@ extension Interpreter {
         }
         // A host's object conforms to the protocol the program declares under its type's name: that is how the host
         // describes it (`protocol Node { var label: String { get } }`).
-        if case .object(let object) = value, isHostObject(object), protocolType(named: object.typeName) != nil { declared.append(object.typeName) }
+        if case .object(let object) = value, isHostObject(object), protocolType(named: object.typeName) != nil {
+            declared.append(object.typeName)
+        }
         if case .object(let instance as ClassInstance) = value {
             for type in instance.type.chain { declared += typeExtensions[type.name]?.conformances ?? [] }
-        } else if let key = typeKey(of: value) { declared += typeExtensions[key]?.conformances ?? [] }
+        } else if let key = typeKey(of: value) {
+            declared += typeExtensions[key]?.conformances ?? []
+        }
         return conformances(taking: declared)
     }
 
@@ -80,7 +84,9 @@ extension Interpreter {
         case let structType as StructType:
             declared = structType.conformances + (typeExtensions[structType.name]?.conformances ?? [])
         case let enumType as EnumType:
-            declared = (enumConformances[ObjectIdentifier(enumType)] ?? []) + (typeExtensions[enumType.name]?.conformances ?? [])
+            declared =
+                (enumConformances[ObjectIdentifier(enumType)] ?? [])
+                + (typeExtensions[enumType.name]?.conformances ?? [])
         case let classType as ClassType:
             declared = classType.allConformances
             for above in classType.chain { declared += typeExtensions[above.name]?.conformances ?? [] }
@@ -104,11 +110,12 @@ extension Interpreter {
         var chain: [TypeMembers] = []
         if case .object(let instance as ClassInstance) = value {
             for type in instance.type.chain { if let own = typeExtensions[type.name] { chain.append(own) } }
-        } else if let key = typeKey(of: value), let own = typeExtensions[key] { chain.append(own) }
+        } else if let key = typeKey(of: value), let own = typeExtensions[key] {
+            chain.append(own)
+        }
         for name in conformanceList(of: value) {
             if let members = typeExtensions[name] { chain.append(members) }
         }
         return chain
     }
 }
-

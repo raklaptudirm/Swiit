@@ -40,7 +40,9 @@ private final class TokenClassifier: SyntaxVisitor {
     override func visit(_ node: AttributeSyntax) -> SyntaxVisitorContinueKind {
         let start = node.atSign.positionAfterSkippingLeadingTrivia.utf8Offset
         do {
-            spans.append(Span(range: start..<node.attributeName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .keyword))
+            spans.append(
+                Span(range: start..<node.attributeName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .keyword)
+            )
         }
         if let arguments = node.arguments { walk(arguments) }
         return .skipChildren
@@ -86,7 +88,9 @@ private final class TokenClassifier: SyntaxVisitor {
         if node.base == nil {
             let start = node.period.positionAfterSkippingLeadingTrivia.utf8Offset
             do {
-                spans.append(Span(range: start..<node.declName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .constant))
+                spans.append(
+                    Span(range: start..<node.declName.endPositionBeforeTrailingTrivia.utf8Offset, kind: .constant)
+                )
             }
         }
         return .visitChildren
@@ -122,7 +126,8 @@ private final class TokenClassifier: SyntaxVisitor {
             return .constant
         case .keyword(.self):
             return .variable
-        case .keyword(.Self), .keyword(.Any) where parent?.is(IdentifierTypeSyntax.self) == true:
+        case .keyword(.Self),
+            .keyword(.Any) where parent?.is(IdentifierTypeSyntax.self) == true:
             return .type
         case .keyword(.try):
             return nil
@@ -130,7 +135,9 @@ private final class TokenClassifier: SyntaxVisitor {
             return nil
         case .keyword:
             // A keyword used as a label (`f(in: x)`) or a member name is a name.
-            if parent?.is(LabeledExprSyntax.self) == true || parent?.is(FunctionParameterSyntax.self) == true { return nil }
+            if parent?.is(LabeledExprSyntax.self) == true || parent?.is(FunctionParameterSyntax.self) == true {
+                return nil
+            }
             return .keyword
         case .stringQuote, .multilineStringQuote, .stringSegment, .singleQuote, .rawStringPoundDelimiter:
             return .string
@@ -143,7 +150,8 @@ private final class TokenClassifier: SyntaxVisitor {
             return .punctuation
         case .pound, .poundSourceLocation:
             return nil
-        case .wildcard where parent?.is(WildcardPatternSyntax.self) == true && parent?.parent?.is(ForStmtSyntax.self) == true:
+        case .wildcard
+        where parent?.is(WildcardPatternSyntax.self) == true && parent?.parent?.is(ForStmtSyntax.self) == true:
             // `for _ in …`: the loop's variable, unnamed.
             return .variable
         case .identifier, .dollarIdentifier:

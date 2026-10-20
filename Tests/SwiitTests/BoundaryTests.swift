@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 @Test func theCoreStaysInsideItsBoundaries() throws {
     // The language layers reach the operating system only through Interpreter.Host,

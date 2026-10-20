@@ -12,13 +12,17 @@ extension TypeChecker {
         info.kind = decl.isActor ? .actor : .classType
         info.superclass = parent?.name
         info.convenienceInitializers = members.initializers.map(\.isConvenience)
-        info.nonisolated = Set(members.methods.filter(\.isNonisolated).map(\.name) + members.properties.filter(\.isNonisolated).map(\.name))
+        info.nonisolated = Set(
+            members.methods.filter(\.isNonisolated).map(\.name) + members.properties.filter(\.isNonisolated).map(\.name)
+        )
         info.overrides = Set(members.methods.filter(\.isOverride).map(\.name))
         // Without a designated initializer of its own, a class has its superclass's.
         if !info.convenienceInitializers.contains(false), let parent {
             let inherited = parent.declared.initializers.map { initializer -> Signature in
                 var copy = initializer
-                copy.returns = initializer.returns == .optional(.named(parent.name)) ? .optional(.named(decl.name)) : .named(decl.name)
+                copy.returns =
+                    initializer.returns == .optional(.named(parent.name))
+                    ? .optional(.named(decl.name)) : .named(decl.name)
                 return copy
             }
             info.declared.initializers += inherited
@@ -26,14 +30,22 @@ extension TypeChecker {
         // No memberwise initializer: `init()` where every property has a value.
         info.memberwise = Signature(name: decl.name, parameters: [], returns: .named(decl.name))
         guard let parent else { return info }
-        for (name, property) in parent.declared.properties where info.declared.properties[name] == nil { info.declared.properties[name] = property }
+        for (name, property) in parent.declared.properties where info.declared.properties[name] == nil {
+            info.declared.properties[name] = property
+        }
         for (name, signatures) in parent.declared.methods {
             let own = info.declared.methods[name] ?? []
-            let kept = signatures.filter { inherited in !own.contains { sameParameters($0.parameters, inherited.parameters) } }
+            let kept = signatures.filter { inherited in
+                !own.contains { sameParameters($0.parameters, inherited.parameters) }
+            }
             info.declared.methods[name] = own + kept
         }
-        for (name, signatures) in parent.declared.staticMethods where info.declared.staticMethods[name] == nil { info.declared.staticMethods[name] = signatures }
-        for (name, property) in parent.declared.staticProperties where info.declared.staticProperties[name] == nil { info.declared.staticProperties[name] = property }
+        for (name, signatures) in parent.declared.staticMethods where info.declared.staticMethods[name] == nil {
+            info.declared.staticMethods[name] = signatures
+        }
+        for (name, property) in parent.declared.staticProperties where info.declared.staticProperties[name] == nil {
+            info.declared.staticProperties[name] = property
+        }
         if info.subscripts.isEmpty {
             info.subscripts = parent.subscripts
             info.subscriptSettable = parent.subscriptSettable
@@ -46,7 +58,9 @@ extension TypeChecker {
     func classChain(_ info: TypeProfile) -> [TypeProfile] {
         var result = [info]
         var current = info
-        while let name = current.superclass, let next = structInfo(named: name), !result.contains(where: { $0.name == next.name }) {
+        while let name = current.superclass, let next = structInfo(named: name),
+            !result.contains(where: { $0.name == next.name })
+        {
             result.append(next)
             current = next
         }
@@ -67,7 +81,9 @@ extension TypeChecker {
             let inherited = parent?.declared.methods[method.name] ?? []
             let overrides = inherited.contains { sameParameters($0.parameters, method.parameters) }
             if method.isOverride && !overrides {
-                throw TypeError("\(decl.name).\(method.name) says 'override' but \(parent?.name ?? "the class") has no such method")
+                throw TypeError(
+                    "\(decl.name).\(method.name) says 'override' but \(parent?.name ?? "the class") has no such method"
+                )
             }
             if overrides && !method.isOverride {
                 throw TypeError("\(decl.name).\(method.name) overrides a method of \(parent!.name): write 'override'")
@@ -75,7 +91,9 @@ extension TypeChecker {
         }
         for property in decl.members.properties where property.isOverride {
             guard let parent, parent.declared.properties[property.name] != nil else {
-                throw TypeError("\(decl.name).\(property.name) says 'override' but \(parent?.name ?? "the class") has no such property")
+                throw TypeError(
+                    "\(decl.name).\(property.name) says 'override' but \(parent?.name ?? "the class") has no such property"
+                )
             }
         }
         try checkStruct(&decl.members, isClass: true)

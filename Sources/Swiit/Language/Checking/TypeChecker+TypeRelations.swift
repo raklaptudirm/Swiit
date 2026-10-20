@@ -27,7 +27,8 @@ extension TypeChecker {
             switch actual {
             // A host type with what it holds is that type (`Job<Int>` is a `Job`).
             case .generic(let name, _) where name == protocolName: return true
-            case .named, .int, .double, .string, .bool, .list, .dictionary, .generic: return conforms(actual, to: protocolName)
+            case .named, .int, .double, .string, .bool, .list, .dictionary, .generic:
+                return conforms(actual, to: protocolName)
             default: break
             }
         }
@@ -41,22 +42,28 @@ extension TypeChecker {
             return a == b && aa.count == ba.count && zip(aa, ba).allSatisfy { fits($0, $1) }
         // An Error is any of the types that conform to it, as a protocol's type is.
         case (.named(let a), .named("Error")) where conforms(.named(a), to: "Error"): return true
-        // A host type with what it holds is one of that type, which the host described as a protocol: a `Job<Int>` is a `Job`.
+        // A host type with what it holds is one of that type, which the host described as a protocol: a `Job<Int>` is a
+        // `Job`.
         case (.generic(let a, _), .named(let b)) where a == b && isProtocolType(a): return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
         case (_, .someSequence(let element)):
             guard let actualElement = anySequenceElement(actual) else { return false }
             return fits(actualElement, element)
         case (.tuple(let a), .tuple(let b)):
-            return a.count == b.count && zip(a, b).allSatisfy { x, y in
-                (x.label == nil || y.label == nil || x.label == y.label) && fits(x.type, y.type)
-            }
+            return a.count == b.count
+                && zip(a, b)
+                    .allSatisfy { x, y in
+                        (x.label == nil || y.label == nil || x.label == y.label) && fits(x.type, y.type)
+                    }
         case (.parameter, _), (_, .parameter): return true
         case (.keyPath(let ar, let av), .keyPath(let br, let bv)): return fits(br, ar) && fits(av, bv)
         case (.keyPath(let root, let value), .functionType(let parameters, let result, _, _)):
             return parameters.count == 1 && fits(parameters[0], root) && fits(value, result)
         case (.functionType, .function), (.function, .functionType), (.keyPath, .function): return true
-        case (.functionType(let ap, let ar, let athrows, let aeffect), .functionType(let bp, let br, let bthrows, let beffect)):
+        case (
+            .functionType(let ap, let ar, let athrows, let aeffect),
+            .functionType(let bp, let br, let bthrows, let beffect)
+        ):
             // A function that throws can't be passed where one that doesn't is
             // wanted, nor an `async` one where a sync one is.
             return ap.count == bp.count && zip(bp, ap).allSatisfy { fits($0, $1) }
@@ -127,7 +134,8 @@ extension TypeChecker {
             if protocolInfo(named: name) != nil, protocolClosure(name).contains(proto) { return true }
             let description = describe(named: name)
             let declared = (description?.conformances ?? []).flatMap(protocolClosure)
-            let withoutPayloads = description?.kind == .enumeration && description?.cases.allSatisfy { $0.payload.isEmpty } == true
+            let withoutPayloads =
+                description?.kind == .enumeration && description?.cases.allSatisfy { $0.payload.isEmpty } == true
             if declared.contains(proto) || proto == "Equatable" && declared.contains("Hashable") {
                 // Swift only makes a Comparable enum's `<` without associated values.
                 return proto == "Comparable" && description?.kind == .enumeration ? withoutPayloads : true
@@ -155,10 +163,16 @@ extension TypeChecker {
         case .someSequence(let element): return .someSequence(substitute(element, bindings))
         case .inOut(let wrapped): return .inOut(substitute(wrapped, bindings))
         case .metatype(let wrapped): return .metatype(substitute(wrapped, bindings))
-        case .tuple(let elements): return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
+        case .tuple(let elements):
+            return .tuple(elements.map { .init(label: $0.label, type: substitute($0.type, bindings)) })
         case .keyPath(let root, let value): return .keyPath(substitute(root, bindings), substitute(value, bindings))
         case .functionType(let parameters, let result, let throwing, let effect):
-            return .functionType(parameters.map { substitute($0, bindings) }, substitute(result, bindings), throws: throwing, async: effect)
+            return .functionType(
+                parameters.map { substitute($0, bindings) },
+                substitute(result, bindings),
+                throws: throwing,
+                async: effect
+            )
         default: return type
         }
     }
@@ -204,10 +218,13 @@ extension TypeChecker {
         if case .generic = type {
             // What `for await` reads: an AsyncSequence of the bridged types (a task group).
             if let (bridgedType, bindings) = bridged(type), bridgedType.conformances["AsyncSequence"] != nil,
-               let element = bridgedType.associatedTypes["Element"] {
+                let element = bridgedType.associatedTypes["Element"]
+            {
                 return substitute(element, bindings)
             }
-            guard let element = bridgedElement(type) else { throw TypeError("can't iterate over \(type): it isn't a Sequence") }
+            guard let element = bridgedElement(type) else {
+                throw TypeError("can't iterate over \(type): it isn't a Sequence")
+            }
             return element
         }
         switch type {

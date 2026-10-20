@@ -38,24 +38,49 @@ struct ResultBuilderTransform {
             switch statement {
             case .expression(let expr):
                 let name = fresh()
-                let value = methods.contains("buildExpression") ? build("buildExpression", [Argument(value: expr)]) : expr
+                let value =
+                    methods.contains("buildExpression") ? build("buildExpression", [Argument(value: expr)]) : expr
                 add(value, into: &statements, name)
             case .ifStatement(let node):
                 let name = fresh()
                 let then = closureCall(try transform(node.then))
                 if let otherwise = node.otherwise {
-                    guard methods.contains("buildEither") else { throw SyntaxError("\(builder) needs buildEither(first:) and buildEither(second:) for an 'if' with an 'else'") }
+                    guard methods.contains("buildEither") else {
+                        throw SyntaxError(
+                            "\(builder) needs buildEither(first:) and buildEither(second:) for an 'if' with an 'else'"
+                        )
+                    }
                     let first = build("buildEither", [Argument(label: "first", value: then)])
-                    let second = build("buildEither", [Argument(label: "second", value: closureCall(try transform(otherwise)))])
-                    add(.ifExpression(IfStatement(condition: node.condition, then: IfStatement.branch(first), otherwise: IfStatement.branch(second))),
-                        into: &statements, name)
+                    let second = build(
+                        "buildEither",
+                        [Argument(label: "second", value: closureCall(try transform(otherwise)))]
+                    )
+                    add(
+                        .ifExpression(
+                            IfStatement(
+                                condition: node.condition,
+                                then: IfStatement.branch(first),
+                                otherwise: IfStatement.branch(second)
+                            )
+                        ),
+                        into: &statements,
+                        name
+                    )
                 } else {
-                    guard methods.contains("buildOptional") else { throw SyntaxError("\(builder) needs buildOptional to have an 'if' without an 'else'") }
-                    let some = IfStatement(condition: node.condition, then: IfStatement.branch(then), otherwise: IfStatement.branch(.literal(.nothing)))
+                    guard methods.contains("buildOptional") else {
+                        throw SyntaxError("\(builder) needs buildOptional to have an 'if' without an 'else'")
+                    }
+                    let some = IfStatement(
+                        condition: node.condition,
+                        then: IfStatement.branch(then),
+                        otherwise: IfStatement.branch(.literal(.nothing))
+                    )
                     add(build("buildOptional", [Argument(value: .ifExpression(some))]), into: &statements, name)
                 }
             case .forLoop(let loop):
-                guard methods.contains("buildArray") else { throw SyntaxError("\(builder) needs buildArray to have a 'for' in it") }
+                guard methods.contains("buildArray") else {
+                    throw SyntaxError("\(builder) needs buildArray to have a 'for' in it")
+                }
                 let name = fresh()
                 var parameter = Parameter(name: "_")
                 switch loop.pattern {
@@ -63,7 +88,10 @@ struct ResultBuilderTransform {
                 case .wildcard: break
                 default: throw SyntaxError("a 'for' in a result builder binds one name or _")
                 }
-                let items = Expr.call(.member(loop.sequence, "map"), [Argument(value: .closure(ClosureLiteral(parameters: [parameter], body: try transform(loop.body))))])
+                let items = Expr.call(
+                    .member(loop.sequence, "map"),
+                    [Argument(value: .closure(ClosureLiteral(parameters: [parameter], body: try transform(loop.body))))]
+                )
                 add(build("buildArray", [Argument(value: items)]), into: &statements, name)
             case .switchStatement, .whileLoop, .doCatch, .guardStatement, .returnStatement:
                 throw SyntaxError("a result builder's body can't use this statement")

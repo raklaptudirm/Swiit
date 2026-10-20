@@ -4,7 +4,7 @@ import Foundation
 // it, so `help`, and anything else that shows text with emphasis, hands
 // Swiit a standard type. Foundation alone has no colors (they're in AppKit,
 // UIKit and SwiftUI), so the host's own are one attribute: a style by what
-// the text is, which the terminal turns into a color when it's shown. 
+// the text is, which the terminal turns into a color when it's shown.
 
 /// The style a run of text is in: `DisplayStyle`'s roles (a keyword, a type,
 /// a flag…), not a color, so what a color is, or whether there is one, is

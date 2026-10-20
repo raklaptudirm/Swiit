@@ -64,7 +64,19 @@ struct FunctionDecl: Equatable, Sendable {
     var runtimeTypeParameters: Set<String> { Set(generics.keys).intersection(names.names) }
     var names = NamesUsed()
 
-    init(name: String, parameters: [Parameter], returnType: TypeAnnotation? = nil, body: Program, documentation: Documentation? = nil, isMutating: Bool = false, isThrowing: Bool = false, isAsync: Bool = false, isRethrowing: Bool = false, generics: [String: [String]] = [:], names: NamesUsed = NamesUsed()) {
+    init(
+        name: String,
+        parameters: [Parameter],
+        returnType: TypeAnnotation? = nil,
+        body: Program,
+        documentation: Documentation? = nil,
+        isMutating: Bool = false,
+        isThrowing: Bool = false,
+        isAsync: Bool = false,
+        isRethrowing: Bool = false,
+        generics: [String: [String]] = [:],
+        names: NamesUsed = NamesUsed()
+    ) {
         self.name = name
         self.parameters = parameters
         self.returnType = returnType
@@ -124,7 +136,13 @@ struct StructDecl: Equatable, Sendable {
     /// `subscript(i: Int) -> T { get … set … }`: what `value[i]` reads and writes.
     var subscripts: [SubscriptDecl] = []
 
-    init(name: String, properties: [PropertyDecl], methods: [FunctionDecl], initializers: [FunctionDecl], conformances: [String] = []) {
+    init(
+        name: String,
+        properties: [PropertyDecl],
+        methods: [FunctionDecl],
+        initializers: [FunctionDecl],
+        conformances: [String] = []
+    ) {
         self.name = name
         self.properties = properties
         self.methods = methods
@@ -217,7 +235,14 @@ struct PropertyDecl: Equatable, Sendable {
     var didSetName = "oldValue"
     var didSetNames = NamesUsed()
 
-    init(name: String, mutable: Bool, type: TypeAnnotation? = nil, defaultValue: Expr? = nil, getter: Program? = nil, getterNames: NamesUsed = NamesUsed()) {
+    init(
+        name: String,
+        mutable: Bool,
+        type: TypeAnnotation? = nil,
+        defaultValue: Expr? = nil,
+        getter: Program? = nil,
+        getterNames: NamesUsed = NamesUsed()
+    ) {
         self.name = name
         self.mutable = mutable
         self.type = type
@@ -305,9 +330,14 @@ struct Parameter: Equatable, Sendable {
     var hasDefault: Bool { defaultValue != nil || externalDefault != nil }
 
     init(
-        label: String? = nil, name: String, type: TypeAnnotation = .any, variadic: Bool = false,
-        defaultValue: Expr? = nil, externalDefault: String? = nil,
-        isInout: Bool = false, isAutoclosure: Bool = false
+        label: String? = nil,
+        name: String,
+        type: TypeAnnotation = .any,
+        variadic: Bool = false,
+        defaultValue: Expr? = nil,
+        externalDefault: String? = nil,
+        isInout: Bool = false,
+        isAutoclosure: Bool = false
     ) {
         self.isAutoclosure = isAutoclosure
         self.isInout = isInout

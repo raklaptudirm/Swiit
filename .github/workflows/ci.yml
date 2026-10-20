@@ -34,6 +34,23 @@ jobs:
           brew install swiftlint
           swiftlint lint --strict --baseline .swiftlint-baseline.json Sources
 
+  # The code is as `swift format` writes it (.swift-format): formatting it again changes nothing.
+  format:
+    name: Format
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: swift format
+        run: |
+          swift format -i -r Sources Tests
+          git diff --exit-code
+
   macos:
     name: macOS
     runs-on: macos-15

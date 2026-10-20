@@ -1,7 +1,7 @@
 import Foundation
 
 /// A class a program declares.
-final class ClassType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
     public let superclass: ClassType?
     let isActor: Bool
@@ -22,7 +22,14 @@ final class ClassType: LanguageObject, @unchecked Sendable { // safe: its state 
     /// The protocols it names itself.
     public let conformances: [String]
 
-    init(name: String, superclass: ClassType?, isActor: Bool, stored: [PropertyDecl], staticProperties: [PropertyDecl], conformances: [String]) {
+    init(
+        name: String,
+        superclass: ClassType?,
+        isActor: Bool,
+        stored: [PropertyDecl],
+        staticProperties: [PropertyDecl],
+        conformances: [String]
+    ) {
         self.name = name
         self.superclass = superclass
         self.isActor = isActor
@@ -91,7 +98,7 @@ final class ClassType: LanguageObject, @unchecked Sendable { // safe: its state 
 }
 
 /// A value of a class: shared by every variable that holds it.
-final class ClassInstance: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class ClassInstance: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     let type: ClassType
     var storage: [String: Value]
     /// What runs when the last reference goes (the class's `deinit`s), if any.
@@ -111,4 +118,3 @@ final class ClassInstance: LanguageObject, @unchecked Sendable { // safe: its st
     public func member(_ name: String) -> Value? { storage[name] }
     public var description: String { type.name }
 }
-

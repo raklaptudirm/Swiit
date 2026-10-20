@@ -123,7 +123,10 @@ struct Lowering {
 
     /// Where a node is, from the start of its text to the end of it.
     func range(of node: some SyntaxProtocol) -> SourceRange {
-        range(fromByte: node.positionAfterSkippingLeadingTrivia.utf8Offset, toByte: node.endPositionBeforeTrailingTrivia.utf8Offset)
+        range(
+            fromByte: node.positionAfterSkippingLeadingTrivia.utf8Offset,
+            toByte: node.endPositionBeforeTrailingTrivia.utf8Offset
+        )
     }
 
     /// Where bytes are: lines and columns in characters.
@@ -164,8 +167,10 @@ struct Lowering {
         }
         if let (problem, _) = firstProblem(in: tree) { throw problem }
         if let problem = operatorProblems.first {
-            throw SyntaxError("\(problem.message) (line \(line(atByte: problem.offset)))",
-                              range: range(fromByte: problem.offset, toByte: min(problem.offset + 1, bytes.count)))
+            throw SyntaxError(
+                "\(problem.message) (line \(line(atByte: problem.offset)))",
+                range: range(fromByte: problem.offset, toByte: min(problem.offset + 1, bytes.count))
+            )
         }
         return lowered
     }
@@ -190,7 +195,9 @@ struct Lowering {
         defer { if scoped { locals.removeLast() } }
         // Functions can be called before their declarations, as in Swift.
         for item in items {
-            if case .decl(let decl) = item.item, let function = decl.as(FunctionDeclSyntax.self) { functions.insert(function.name.text) }
+            if case .decl(let decl) = item.item, let function = decl.as(FunctionDeclSyntax.self) {
+                functions.insert(function.name.text)
+            }
         }
         var statements: [Statement] = []
         var lines: [Int] = []
@@ -203,7 +210,7 @@ struct Lowering {
             defer { currentSpots = outerSpots }
             do {
                 lowered = try statement(item.item)
-            } catch where recovering {
+            } catch  where recovering {
                 continue
             } catch {
                 failedEnd = failedEnd ?? item.endPosition.utf8Offset
@@ -241,7 +248,9 @@ struct Lowering {
         guard case .decl(let decl) = item else { return }
         collectTypeNames(decl, prefix: "")
         // An operator declared in the program can be used before its declaration, as any function can.
-        if let node = decl.as(FunctionDeclSyntax.self), let first = node.name.text.first, !(first.isLetter || first == "_") {
+        if let node = decl.as(FunctionDeclSyntax.self), let first = node.name.text.first,
+            !(first.isLetter || first == "_")
+        {
             functions.insert(node.name.text)
         }
     }
@@ -250,37 +259,57 @@ struct Lowering {
     private mutating func collectTypeNames(_ decl: DeclSyntax, prefix: String) {
         let block: MemberBlockSyntax
         let name: String
-        if let node = decl.as(StructDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
-        else if let node = decl.as(EnumDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
-        else if let node = decl.as(ProtocolDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
-        else if let node = decl.as(ClassDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
-        else if let node = decl.as(ActorDeclSyntax.self) { name = prefix + node.name.text; block = node.memberBlock }
-        else { return }
+        if let node = decl.as(StructDeclSyntax.self) {
+            name = prefix + node.name.text; block = node.memberBlock
+        } else if let node = decl.as(EnumDeclSyntax.self) {
+            name = prefix + node.name.text; block = node.memberBlock
+        } else if let node = decl.as(ProtocolDeclSyntax.self) {
+            name = prefix + node.name.text; block = node.memberBlock
+        } else if let node = decl.as(ClassDeclSyntax.self) {
+            name = prefix + node.name.text; block = node.memberBlock
+        } else if let node = decl.as(ActorDeclSyntax.self) {
+            name = prefix + node.name.text; block = node.memberBlock
+        } else {
+            return
+        }
         declaredTypes.insert(name)
         if decl.is(ProtocolDeclSyntax.self) { facts.protocols.insert(name) }
         // A class's members, and its superclass, for a subclass's bodies to name what it inherits.
         if let node = decl.as(ClassDeclSyntax.self) {
-            if let first = node.inheritanceClause?.inheritedTypes.first { facts.superclass[name] = first.type.trimmedDescription }
+            if let first = node.inheritanceClause?.inheritedTypes.first {
+                facts.superclass[name] = first.type.trimmedDescription
+            }
             for member in block.members {
                 if let variable = member.decl.as(VariableDeclSyntax.self), !isStatic(variable.modifiers) {
                     for binding in variable.bindings {
-                        if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) { facts.instanceMembers[name, default: []].insert(identifier.identifier.text) }
+                        if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
+                            facts.instanceMembers[name, default: []].insert(identifier.identifier.text)
+                        }
                     }
                 }
-                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) { facts.instanceMembers[name, default: []].insert(method.name.text) }
+                if let method = member.decl.as(FunctionDeclSyntax.self), !isStatic(method.modifiers) {
+                    facts.instanceMembers[name, default: []].insert(method.name.text)
+                }
             }
         }
         // A result builder: its name, and the functions it has.
-        let attributes = decl.as(StructDeclSyntax.self)?.attributes ?? decl.as(EnumDeclSyntax.self)?.attributes
+        let attributes =
+            decl.as(StructDeclSyntax.self)?.attributes ?? decl.as(EnumDeclSyntax.self)?.attributes
             ?? decl.as(ClassDeclSyntax.self)?.attributes
-        if attributes?.contains(where: { attribute in
-            if case .attribute(let named) = attribute { return named.attributeName.trimmedDescription == "resultBuilder" }
-            return false
-        }) == true {
+        if attributes?
+            .contains(where: { attribute in
+                if case .attribute(let named) = attribute {
+                    return named.attributeName.trimmedDescription == "resultBuilder"
+                }
+                return false
+            }) == true
+        {
             facts.resultBuilders.insert(name)
         }
         // A generic enum keeps its type arguments, which say what its cases hold.
-        if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil { facts.genericEnums.insert(name) }
+        if let node = decl.as(EnumDeclSyntax.self), node.genericParameterClause != nil {
+            facts.genericEnums.insert(name)
+        }
         for member in block.members { collectTypeNames(member.decl, prefix: name + ".") }
     }
 
@@ -293,7 +322,10 @@ struct Lowering {
         let text = "\(message) (line \(line(atByte: position.utf8Offset)))"
         // A problem is at a token: one character is what is known of it.
         let place = range(fromByte: position.utf8Offset, toByte: min(position.utf8Offset + 1, bytes.count))
-        return (finder.incomplete ? SyntaxError(text, incomplete: true, range: place) : SyntaxError(text, range: place), position.utf8Offset)
+        return (
+            finder.incomplete ? SyntaxError(text, incomplete: true, range: place) : SyntaxError(text, range: place),
+            position.utf8Offset
+        )
     }
 }
 
@@ -341,7 +373,9 @@ private final class ProblemFinder: SyntaxVisitor {
         var message = "expected " + name
         var parent = token.parent
         while let current = parent {
-            if current.is(GuardStmtSyntax.self), token.tokenKind == .keyword(.else) { message += " after guard's condition" }
+            if current.is(GuardStmtSyntax.self), token.tokenKind == .keyword(.else) {
+                message += " after guard's condition"
+            }
             if current.is(CodeBlockItemSyntax.self) { break }
             parent = current.parent
         }
@@ -366,7 +400,9 @@ private final class ProblemFinder: SyntaxVisitor {
             found = (describeMissing(token), token.position)
             // At the end of the text, or with only blanks and comments after it (a window cut after a blank line):
             // the construct isn't finished, and a longer window may finish it.
-            if token.position >= end || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile }) ?? true {
+            if token.position >= end
+                || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile }) ?? true
+            {
                 incomplete = true
             }
         }

@@ -49,8 +49,13 @@ func whereConstraints(_ text: String) -> [Constraint] {
     var constraints: [Constraint] = []
     for part in parts {
         if let range = part.range(of: "==") {
-            constraints.append(Constraint(kind: "sameType", lhs: part[..<range.lowerBound].trimmingCharacters(in: .whitespaces),
-                                          rhs: part[range.upperBound...].trimmingCharacters(in: .whitespaces)))
+            constraints.append(
+                Constraint(
+                    kind: "sameType",
+                    lhs: part[..<range.lowerBound].trimmingCharacters(in: .whitespaces),
+                    rhs: part[range.upperBound...].trimmingCharacters(in: .whitespaces)
+                )
+            )
         } else if let colon = part.firstIndex(of: ":") {
             let lhs = part[..<colon].trimmingCharacters(in: .whitespaces)
             for proto in part[part.index(after: colon)...].split(separator: "&") {
@@ -87,8 +92,10 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         switch word {
         case "static", "class": isStatic = true
         case "mutating": isMutating = true
-        case "nonmutating", "public", "final", "override", "convenience", "required", "optional", "dynamic", "lazy", "nonisolated",
-             "prefix", "postfix": break
+        case "nonmutating", "public", "final", "override", "convenience", "required", "optional", "dynamic", "lazy",
+            "nonisolated",
+            "prefix", "postfix":
+            break
         default: reader.pos = save
         }
         if reader.pos == save { break }
@@ -143,7 +150,9 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         if reader.consume("throws") {
             // `throws(E)`, E from a closure it's given: it rethrows.
             if reader.consume("(") {
-                guard let error = reader.identifier(), reader.consume(")") else { throw Unsupported(reason: "typed throws") }
+                guard let error = reader.identifier(), reader.consume(")") else {
+                    throw Unsupported(reason: "typed throws")
+                }
                 typedError = error
                 return (false, true)
             }
@@ -160,12 +169,26 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         guard let name = reader.identifier() ?? reader.operatorName() else { throw Unsupported(reason: "operator") }
         if !isOperator { try genericParameters(&reader) }
         var parameters = try parameterList(&reader)
-        if isOperator { parameters = parameters.map { Parameter(label: nil, name: $0.name, type: $0.type, defaultText: $0.defaultText) } }
+        if isOperator {
+            parameters = parameters.map {
+                Parameter(label: nil, name: $0.name, type: $0.type, defaultText: $0.defaultText)
+            }
+        }
         let (throwing, rethrowing) = try effects(&reader)
         let returns = reader.consume("->") ? try reader.type() : nil
-        var declaration = Declaration(kind: .method, name: name, isStatic: isStatic, isMutating: isMutating, isFailable: false,
-                                      generics: generics, parameters: parameters, returns: returns,
-                                      throwing: throwing, rethrowing: rethrowing, typedError: typedError)
+        var declaration = Declaration(
+            kind: .method,
+            name: name,
+            isStatic: isStatic,
+            isMutating: isMutating,
+            isFailable: false,
+            generics: generics,
+            parameters: parameters,
+            returns: returns,
+            throwing: throwing,
+            rethrowing: rethrowing,
+            typedError: typedError
+        )
         declaration.isOperator = isOperator
         declaration.isAsync = isAsync
         if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
@@ -177,8 +200,19 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         // `{ get async }`: reading it waits. A getter that throws isn't bridged.
         let accessors = String(reader.chars[reader.pos...])
         if accessors.contains("throws") { throw Unsupported(reason: "throwing getter") }
-        var declaration = Declaration(kind: .property, name: name, isStatic: isStatic, isMutating: false, isFailable: false,
-                                      generics: [:], parameters: [], returns: type, throwing: false, rethrowing: false, typedError: nil)
+        var declaration = Declaration(
+            kind: .property,
+            name: name,
+            isStatic: isStatic,
+            isMutating: false,
+            isFailable: false,
+            generics: [:],
+            parameters: [],
+            returns: type,
+            throwing: false,
+            rethrowing: false,
+            typedError: nil
+        )
         declaration.isAsync = accessors.contains("async")
         return declaration
     }
@@ -188,9 +222,19 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         try genericParameters(&reader)
         let parameters = try parameterList(&reader)
         let (throwing, rethrowing) = try effects(&reader)
-        var declaration = Declaration(kind: .initializer, name: "init", isStatic: true, isMutating: false, isFailable: failable,
-                                      generics: generics, parameters: parameters, returns: nil,
-                                      throwing: throwing, rethrowing: rethrowing, typedError: typedError)
+        var declaration = Declaration(
+            kind: .initializer,
+            name: "init",
+            isStatic: true,
+            isMutating: false,
+            isFailable: failable,
+            generics: generics,
+            parameters: parameters,
+            returns: nil,
+            throwing: throwing,
+            rethrowing: rethrowing,
+            typedError: typedError
+        )
         declaration.isAsync = isAsync
         if reader.consume("where") { declaration.constraints = whereConstraints(String(reader.chars[reader.pos...])) }
         return declaration

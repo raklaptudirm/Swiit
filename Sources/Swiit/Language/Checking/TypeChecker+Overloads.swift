@@ -29,7 +29,10 @@ extension TypeChecker {
     /// most exactly. A tie is ambiguous, unless an argument's type isn't
     /// known yet, when nil leaves the choice to run time.
     func resolve(
-        _ candidates: [Signature], _ arguments: inout [Argument], name: String, bindings: [String: TypeAnnotation] = [:]
+        _ candidates: [Signature],
+        _ arguments: inout [Argument],
+        name: String,
+        bindings: [String: TypeAnnotation] = [:]
     ) throws -> Signature? {
         var fitting: [FittingOverload] = []
         var firstError: TypeError?
@@ -46,7 +49,15 @@ extension TypeChecker {
                 resolved.solved = matched.solved
                 resolved.returns = matched.returns
                 resolved.isThrowing = matched.throwing
-                fitting.append(FittingOverload(signature: resolved, cost: matched.cost, uncertain: matched.uncertain, arguments: attempt, sites: throwingSites))
+                fitting.append(
+                    FittingOverload(
+                        signature: resolved,
+                        cost: matched.cost,
+                        uncertain: matched.uncertain,
+                        arguments: attempt,
+                        sites: throwingSites
+                    )
+                )
             } catch let error as TypeError {
                 firstError = firstError ?? error
                 if !error.isArity { typeErrors.append(error) }
@@ -57,11 +68,15 @@ extension TypeChecker {
             if candidates.count == 1, let firstError { throw firstError }
             if typeErrors.count == 1 { throw typeErrors[0] }
             let list = candidates.map { "  " + signatureText($0) }
-            throw TypeError("\(name): no overload accepts these arguments; candidates:\n" + list.joined(separator: "\n"))
+            throw TypeError(
+                "\(name): no overload accepts these arguments; candidates:\n" + list.joined(separator: "\n")
+            )
         }
         let winners = fitting.filter { $0.cost == best }
-        if winners.count > 1, !winners.contains(where: \.uncertain), let specific = mostSpecific(winners.map(\.signature)),
-           let position = winners.firstIndex(where: { $0.signature.index == specific.index }) {
+        if winners.count > 1, !winners.contains(where: \.uncertain),
+            let specific = mostSpecific(winners.map(\.signature)),
+            let position = winners.firstIndex(where: { $0.signature.index == specific.index })
+        {
             arguments = winners[position].arguments
             throwingSites = winners[position].sites
             lastThrown = winners[position].signature.thrownType
@@ -69,8 +84,10 @@ extension TypeChecker {
         }
         if winners.count > 1 {
             if winners.contains(where: \.uncertain) { return nil }
-            throw TypeError("\(name): ambiguous call; these overloads all match:\n"
-                            + winners.map { "  " + signatureText($0.signature) }.joined(separator: "\n"))
+            throw TypeError(
+                "\(name): ambiguous call; these overloads all match:\n"
+                    + winners.map { "  " + signatureText($0.signature) }.joined(separator: "\n")
+            )
         }
         arguments = winners[0].arguments
         throwingSites = winners[0].sites
@@ -112,7 +129,8 @@ extension TypeChecker {
     }
 
     func signatureText(_ signature: Signature) -> String {
-        "\(signature.name)(" + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ") + ")"
+        "\(signature.name)(" + signature.parameters.map { "\($0.label ?? "_"): \($0.type)" }.joined(separator: ", ")
+            + ")"
     }
 
     /// Matches `arguments` to `signature`'s parameters by Swift's rules for
@@ -120,7 +138,9 @@ extension TypeChecker {
     /// conversions (a literal Int as a Double, a value made optional, an
     /// Output as its text) and untyped parameters, which match anything.
     func match(
-        _ arguments: inout [Argument], to signature: Signature, bindings initial: [String: TypeAnnotation]
+        _ arguments: inout [Argument],
+        to signature: Signature,
+        bindings initial: [String: TypeAnnotation]
     ) throws -> OverloadMatch {
         let name = signature.name
         var cost = 0
@@ -138,14 +158,23 @@ extension TypeChecker {
                 throw TypeError("\(name): '\(parameter.name)' isn't inout, so it can't be passed with &")
             }
             // `@autoclosure`: the argument is the closure's result, and is made a closure.
-            if parameter.isAutoclosure, case .functionType(let closureParameters, _, _, _) = parameter.type, closureParameters.isEmpty {
-                if case .closure = arguments[index].value {} else {
-                    arguments[index].value = .closure(ClosureLiteral(
-                        parameters: [], body: Program(statements: [.expression(arguments[index].value)])))
+            if parameter.isAutoclosure, case .functionType(let closureParameters, _, _, _) = parameter.type,
+                closureParameters.isEmpty
+            {
+                if case .closure = arguments[index].value {
+                } else {
+                    arguments[index].value = .closure(
+                        ClosureLiteral(
+                            parameters: [],
+                            body: Program(statements: [.expression(arguments[index].value)])
+                        )
+                    )
                 }
             }
             // `@Builder content: () -> V`: a closure given for it is made by the builder.
-            if let builder = parameter.resultBuilder, case .closure(var literal) = arguments[index].value, literal.builtBy == nil {
+            if let builder = parameter.resultBuilder, case .closure(var literal) = arguments[index].value,
+                literal.builtBy == nil
+            {
                 literal.body = try resultBuilt(literal.body, by: builder)
                 literal.builtBy = builder
                 arguments[index].value = .closure(literal)
@@ -183,13 +212,18 @@ extension TypeChecker {
                 // is a `Task<Int, Never>`.
                 if case .functionType(_, _, false, _) = actual, case .functionType(_, _, true, _) = wanted { cost += 1 }
                 // A closure that gives a value takes the overload that wants one over the one that drops it.
-                if case .functionType(_, let given, _, _) = actual, case .functionType(_, .void, _, _) = wanted, given != .void, given != .unknown { cost += 1 }
+                if case .functionType(_, let given, _, _) = actual, case .functionType(_, .void, _, _) = wanted,
+                    given != .void, given != .unknown
+                {
+                    cost += 1
+                }
             }
             index += 1
         }
         for (position, parameter) in signature.parameters.enumerated() {
             let later = signature.parameters[(position + 1)...]
-            let trailing = index == arguments.count - 1 && arguments[index].label == nil && parameter.label != nil
+            let trailing =
+                index == arguments.count - 1 && arguments[index].label == nil && parameter.label != nil
                 && later.allSatisfy { $0.label != nil } && parameter.type.acceptsFunction
                 && { if case .closure = arguments[index].value { true } else { false } }()
             if index < arguments.count, arguments[index].label == parameter.label || trailing {
@@ -216,11 +250,19 @@ extension TypeChecker {
         for (parameter, protocols) in signature.generics {
             guard let bound = bindings[parameter], bound != .unknown else { continue }
             for proto in protocols where !conforms(bound, to: proto) {
-                throw TypeError("\(name) needs \(parameter) to be \(proto.hasPrefix("=") ? String(proto.dropFirst()) : proto), and \(bound) isn't")
+                throw TypeError(
+                    "\(name) needs \(parameter) to be \(proto.hasPrefix("=") ? String(proto.dropFirst()) : proto), and \(bound) isn't"
+                )
             }
         }
         let throwing = signature.isThrowing || signature.isRethrowing && argumentsThrow
-        return OverloadMatch(cost: cost, uncertain: uncertain, returns: substitute(signature.returns, bindings), throwing: throwing, solved: bindings)
+        return OverloadMatch(
+            cost: cost,
+            uncertain: uncertain,
+            returns: substitute(signature.returns, bindings),
+            throwing: throwing,
+            solved: bindings
+        )
     }
 
     /// Whether an argument has a type of its own, apart from context: not a

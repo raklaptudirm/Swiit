@@ -3,7 +3,12 @@ import Foundation
 extension TypeChecker {
     // MARK: Operators
 
-    func binaryExprType(_ op: BinaryOperator, _ lhs: inout Expr, _ rhs: inout Expr, expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func binaryExprType(
+        _ op: BinaryOperator,
+        _ lhs: inout Expr,
+        _ rhs: inout Expr,
+        expected: TypeAnnotation?
+    ) throws -> TypeAnnotation {
         switch op {
         case .and, .or:
             try expect(&lhs, .bool, "'\(op.rawValue)''s left side")
@@ -26,7 +31,10 @@ extension TypeChecker {
         case .equal, .notEqual:
             // A `.case` on one side takes the other side's type.
             let (left, right) = try operandTypes(&lhs, &rhs)
-            guard fits(left, right) || fits(right, left) || standsForText(left) && right == .string || left == .string && standsForText(right) else {
+            guard
+                fits(left, right) || fits(right, left) || standsForText(left) && right == .string
+                    || left == .string && standsForText(right)
+            else {
                 throw TypeError("can't compare \(left) with \(right)")
             }
             // Anything optional compares with a `nil` literal, as in Swift.
@@ -34,7 +42,9 @@ extension TypeChecker {
             if case .literal(.nothing) = lhs { return .bool }
             let compared = left == .unknown ? right : left
             guard conforms(compared, to: "Equatable") else {
-                throw TypeError("'\(op.rawValue)' needs Equatable values, and \(compared) isn't: declare it, as in struct \(compared): Equatable")
+                throw TypeError(
+                    "'\(op.rawValue)' needs Equatable values, and \(compared) isn't: declare it, as in struct \(compared): Equatable"
+                )
             }
             return .bool
         default:
@@ -91,7 +101,8 @@ extension TypeChecker {
         }
         if case .functions(let overloads)? = lookup(name) { candidates += overloads }
         let fitting = candidates.filter { candidate in
-            candidate.parameters.count == operands.count && zip(candidate.parameters, operands).allSatisfy { fits($1, $0.type) }
+            candidate.parameters.count == operands.count
+                && zip(candidate.parameters, operands).allSatisfy { fits($1, $0.type) }
         }
         guard let first = fitting.first else { return nil }
         return fitting.allSatisfy { $0.returns == first.returns } ? first.returns : .unknown
@@ -99,7 +110,8 @@ extension TypeChecker {
 
     /// The type of `a op b` where an operand is of a type the program declared: through an
     /// operator it defines, or one Comparable and Equatable give.
-    func declaredOperatorType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) -> TypeAnnotation? {
+    func declaredOperatorType(_ op: BinaryOperator, _ left: TypeAnnotation, _ right: TypeAnnotation) -> TypeAnnotation?
+    {
         if let type = userOperatorType(op.rawValue, [left, right]) { return type }
         switch op {
         case .notEqual: return userOperatorType("==", [left, right]) != nil ? .bool : nil
@@ -122,7 +134,8 @@ extension TypeChecker {
         let fail = TypeError("'\(op.rawValue)' can't be applied to \(left) and \(right)")
         // Tuples compare element by element when their elements do.
         if case .tuple(let a) = left, case .tuple(let b) = right, a.count == b.count,
-           [.less, .lessEqual, .greater, .greaterEqual].contains(op) {
+            [.less, .lessEqual, .greater, .greaterEqual].contains(op)
+        {
             for (x, y) in zip(a, b) { _ = try binaryType(.less, x.type, y.type) }
             return .bool
         }
@@ -156,7 +169,8 @@ extension TypeChecker {
             case (.int, .int), (.double, .double): return left
             default: throw fail
             }
-        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply, .maskShiftLeft, .maskShiftRight:
+        case .remainder, .bitAnd, .bitOr, .bitXor, .shiftLeft, .shiftRight, .wrapAdd, .wrapSubtract, .wrapMultiply,
+            .maskShiftLeft, .maskShiftRight:
             guard left == .int, right == .int else { throw fail }
             return .int
         default:

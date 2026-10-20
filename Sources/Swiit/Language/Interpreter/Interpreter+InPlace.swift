@@ -44,7 +44,9 @@ extension Interpreter {
 
     /// `root` followed by `path` as a place that can be changed in place, or nil if it can't.
     func plainPlace(_ root: String, _ path: [Assignment.Step], op: BinaryOperator?) throws -> Place? {
-        guard let scope = scopeHolding(root), let binding = scope.bindings[root], binding.special != .initializing, !binding.isComputed else { return nil }
+        guard let scope = scopeHolding(root), let binding = scope.bindings[root], binding.special != .initializing,
+            !binding.isComputed
+        else { return nil }
         // Nothing the long way would evaluate first can have an effect.
         for step in path {
             switch step {
@@ -67,8 +69,9 @@ extension Interpreter {
                 guard case .record(let record) = current else { return nil }
                 if let structType = structType(of: record) {
                     guard structType.setters[name] == nil, structType.observers[name] == nil,
-                          extensionChain(of: current).allSatisfy({ $0.setters[name] == nil }),
-                          let property = structType.property(name), property.mutable else { return nil }
+                        extensionChain(of: current).allSatisfy({ $0.setters[name] == nil }),
+                        let property = structType.property(name), property.mutable
+                    else { return nil }
                     steps.append(.member(name))
                     type = property.type
                     validate = { [self] value in try self.checked(value, as: property, of: structType) }
@@ -121,14 +124,20 @@ extension Interpreter {
         return try descend(&value, place.steps[...], body)
     }
 
-    private func descend<T>(_ value: inout Value, _ steps: ArraySlice<PlaceStep>, _ body: (inout Value) throws -> T) throws -> T {
+    private func descend<T>(
+        _ value: inout Value,
+        _ steps: ArraySlice<PlaceStep>,
+        _ body: (inout Value) throws -> T
+    ) throws -> T {
         guard let step = steps.first else { return try body(&value) }
         let rest = steps.dropFirst()
         switch step {
         case .unwrap:
             return try descend(&value, rest, body)
         case .member(let name):
-            guard case .record(var record) = value else { throw RuntimeError("cannot assign to '\(name)' of \(value.typeName)") }
+            guard case .record(var record) = value else {
+                throw RuntimeError("cannot assign to '\(name)' of \(value.typeName)")
+            }
             value = .nothing
             var field = record.takeValue(name) ?? .nothing
             defer { record[name] = field; value = .record(record) }
@@ -143,7 +152,12 @@ extension Interpreter {
         }
     }
 
-    private func descendList<T>(_ value: inout Value, _ key: Value, _ rest: ArraySlice<PlaceStep>, _ body: (inout Value) throws -> T) throws -> T {
+    private func descendList<T>(
+        _ value: inout Value,
+        _ key: Value,
+        _ rest: ArraySlice<PlaceStep>,
+        _ body: (inout Value) throws -> T
+    ) throws -> T {
         guard case .list(var items) = value else { preconditionFailure() }
         guard case .int(let position) = key, items.indices.contains(position) else {
             throw RuntimeError("index \(key) is out of range for a list of \(items.count)")
@@ -156,7 +170,11 @@ extension Interpreter {
     }
 
     private func descendDictionary<T>(
-        _ value: inout Value, _ key: Value, fallback: Value?, _ rest: ArraySlice<PlaceStep>, _ body: (inout Value) throws -> T
+        _ value: inout Value,
+        _ key: Value,
+        fallback: Value?,
+        _ rest: ArraySlice<PlaceStep>,
+        _ body: (inout Value) throws -> T
     ) throws -> T {
         guard case .dictionary(var dictionary) = value else { preconditionFailure() }
         value = .nothing

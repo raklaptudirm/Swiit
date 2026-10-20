@@ -9,11 +9,13 @@ extension Bridge {
     /// `symbol` taking `arity` operands.
     static func operators(_ symbol: String, arity: Int, of typeNames: [String]) -> [BridgedMember] {
         var seen: Set<String> = []
-        return typeNames.filter { seen.insert($0).inserted }.flatMap { name in
-            (types[name]?.members ?? []).filter {
-                $0.isStatic && $0.kind == .method && $0.name == symbol && $0.parameters.count == arity
+        return typeNames.filter { seen.insert($0).inserted }
+            .flatMap { name in
+                (types[name]?.members ?? [])
+                    .filter {
+                        $0.isStatic && $0.kind == .method && $0.name == symbol && $0.parameters.count == arity
+                    }
             }
-        }
     }
 }
 
@@ -39,9 +41,10 @@ extension Interpreter {
         let names = operands.compactMap { operand -> String? in
             if case .object(let box as SwiftValue) = operand { box.typeName } else { nil }
         }
-        let functions = Bridge.operators(symbol, arity: operands.count, of: names).map {
-            Function(name: symbol, parameters: $0.parameters, returnType: nil, body: $0.body)
-        }
+        let functions = Bridge.operators(symbol, arity: operands.count, of: names)
+            .map {
+                Function(name: symbol, parameters: $0.parameters, returnType: nil, body: $0.body)
+            }
         guard !functions.isEmpty else { return nil }
         return try call(.function(OverloadSet(name: symbol, candidates: functions)), with: operands)
     }

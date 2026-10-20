@@ -3,7 +3,11 @@ import Foundation
 extension TypeChecker {
     // MARK: Calls
 
-    func callType(_ callee: inout Expr, _ arguments: inout [Argument], expected: TypeAnnotation?) throws -> TypeAnnotation {
+    func callType(
+        _ callee: inout Expr,
+        _ arguments: inout [Argument],
+        expected: TypeAnnotation?
+    ) throws -> TypeAnnotation {
         // `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`.
         if case .variable(let name) = callee, let symbol = lookup(name) {
             switch symbol {
@@ -33,7 +37,15 @@ extension TypeChecker {
                 return try call(overloads, callee: &callee, &arguments, name: name, expected: expected)
             case .swiftType(let typeName):
                 // `String(sub)`: an initializer.
-                let (type, bridgedExpr) = try bridgedCall(typeName, kind: .initializer, isStatic: true, receiver: nil, bindings: [:], name: "init", &arguments)
+                let (type, bridgedExpr) = try bridgedCall(
+                    typeName,
+                    kind: .initializer,
+                    isStatic: true,
+                    receiver: nil,
+                    bindings: [:],
+                    name: "init",
+                    &arguments
+                )
                 callee = bridgedExpr
                 return type
             default:
@@ -41,14 +53,23 @@ extension TypeChecker {
             }
         }
         if case .member(.variable(let typeName), let name) = callee, case .swiftType? = lookup(typeName) {
-            let (type, bridgedExpr) = try bridgedCall(typeName, kind: .method, isStatic: true, receiver: nil, bindings: [:], name: name, &arguments)
+            let (type, bridgedExpr) = try bridgedCall(
+                typeName,
+                kind: .method,
+                isStatic: true,
+                receiver: nil,
+                bindings: [:],
+                name: name,
+                &arguments
+            )
             callee = bridgedExpr
             return type
         }
         // `Point.make(1)`, `Level.make()`: a static method of a struct or an enum, its own or one an extension adds.
         if case .member(.variable(let typeName), let name) = callee, let symbol = lookup(typeName),
-           { if case .structType = symbol { true } else if case .enumType = symbol { true } else { false } }(),
-           case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name) {
+            { if case .structType = symbol { true } else if case .enumType = symbol { true } else { false } }(),
+            case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name)
+        {
             return try callMember(methods, name, callee: &callee, &arguments)
         }
         // `x?.f()`: the method's result, or nil.
@@ -77,7 +98,9 @@ extension TypeChecker {
             return try methodCallType(base, baseExpr: baseExpr, name, &callee, &arguments)
         }
         // In a type's body, a call to a name that isn't bound may be to the type's own method.
-        if case .variable(let name) = callee, lookup(name) == nil, case .variable(let selfType, _)? = lookup("self"), hasMember(selfType, named: name) {
+        if case .variable(let name) = callee, lookup(name) == nil, case .variable(let selfType, _)? = lookup("self"),
+            hasMember(selfType, named: name)
+        {
             callee = .member(.variable("self"), name)
             return try callType(&callee, &arguments, expected: expected)
         }
@@ -87,7 +110,9 @@ extension TypeChecker {
         }
         let type = try typeOf(&callee)
         // `f(x)` where f's type has `callAsFunction`: that method is called.
-        if case .named(let typeName) = type, let info = structInfo(named: typeName), info.declared.methods["callAsFunction"] != nil {
+        if case .named(let typeName) = type, let info = structInfo(named: typeName),
+            info.declared.methods["callAsFunction"] != nil
+        {
             var method = Expr.member(callee, "callAsFunction")
             let result = try callType(&method, &arguments, expected: expected)
             callee = method
@@ -98,7 +123,13 @@ extension TypeChecker {
     }
 
     /// A call to a named function: the overload is chosen here.
-    func call(_ overloads: [Signature], callee: inout Expr, _ arguments: inout [Argument], name: String, expected: TypeAnnotation? = nil) throws -> TypeAnnotation {
+    func call(
+        _ overloads: [Signature],
+        callee: inout Expr,
+        _ arguments: inout [Argument],
+        name: String,
+        expected: TypeAnnotation? = nil
+    ) throws -> TypeAnnotation {
         calledByName(name)
         guard let chosen = try resolve(overloads, &arguments, name: name) else {
             // Which one isn't known until it runs (an argument isn't typed yet).
@@ -109,13 +140,16 @@ extension TypeChecker {
         // What the call is used as says the rest (`let a: A = make()`).
         var solved = chosen.solved
         var returns = chosen.returns
-        if let expected, let declared = overloads.first(where: { $0.index == chosen.index }), chosen.typeParameters.contains(where: { solved[$0] == nil }) {
+        if let expected, let declared = overloads.first(where: { $0.index == chosen.index }),
+            chosen.typeParameters.contains(where: { solved[$0] == nil })
+        {
             unify(declared.returns, expected, &solved)
             returns = substitute(declared.returns, solved)
         }
-        let types = chosen.typeParameters.sorted().compactMap { parameter in
-            solved[parameter].flatMap { $0 == .unknown ? nil : TypeArgument(name: parameter, type: $0) }
-        }
+        let types = chosen.typeParameters.sorted()
+            .compactMap { parameter in
+                solved[parameter].flatMap { $0 == .unknown ? nil : TypeArgument(name: parameter, type: $0) }
+            }
         if !types.isEmpty { callee = .specialized(callee, types) }
         if chosen.isThrowing { try throwingSite("'\(name)'") }
         try effectSite(chosen.effect, "'\(name)'")
@@ -124,13 +158,21 @@ extension TypeChecker {
         return returns
     }
 
-    /// A call to one of a member's overloads: the one the arguments fit, what choosing it asks of the call (naming it to the
+    /// A call to one of a member's overloads: the one the arguments fit, what choosing it asks of the call (naming it
+    /// to the
     /// interpreter when it has several, a change of the receiver, a `try`, an `await`), and what it gives back.
     func callMember(
-        _ methods: [Signature], _ name: String, bindings: [String: TypeAnnotation] = [:], callee: inout Expr, _ arguments: inout [Argument],
-        narrowing: Bool = true, mutating receiver: Expr? = nil
+        _ methods: [Signature],
+        _ name: String,
+        bindings: [String: TypeAnnotation] = [:],
+        callee: inout Expr,
+        _ arguments: inout [Argument],
+        narrowing: Bool = true,
+        mutating receiver: Expr? = nil
     ) throws -> TypeAnnotation {
-        guard let chosen = try resolve(methods, &arguments, name: name, bindings: bindings) else { return commonReturn(methods) }
+        guard let chosen = try resolve(methods, &arguments, name: name, bindings: bindings) else {
+            return commonReturn(methods)
+        }
         if narrowing, methods.count > 1 { callee = .chosen(callee, overload: chosen.index) }
         if let receiver, chosen.isMutating { try checkMutable(receiver, method: name) }
         if chosen.isThrowing { try throwingSite("'\(name)'") }
@@ -145,41 +187,69 @@ extension TypeChecker {
     /// `base.name(arguments)` for a receiver of type `base`; `baseExpr` is
     /// where it came from, if it can be changed by a mutating method.
     func methodCallType(
-        _ written: TypeAnnotation, baseExpr: Expr?, _ name: String, _ callee: inout Expr, _ arguments: inout [Argument]
+        _ written: TypeAnnotation,
+        baseExpr: Expr?,
+        _ name: String,
+        _ callee: inout Expr,
+        _ arguments: inout [Argument]
     ) throws -> TypeAnnotation {
         let base = erased(written)
-        // `t.init()`, `t.make()` for a type held in a value (`T.Type`): what it is isn't known here, so not what it makes.
+        // `t.init()`, `t.make()` for a type held in a value (`T.Type`): what it is isn't known here, so not what it
+        // makes.
         if case .metatype(let made) = base {
             for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
             return name == "init" ? made : .unknown
         }
         // `self.init(x: 1)` in an initializer: another initializer makes the value.
-        if name == "init", case .named(let structName) = base, structInfo(named: structName) != nil, let description = describe(base),
-           lookup(InternalName.initializing) != nil {
+        if name == "init", case .named(let structName) = base, structInfo(named: structName) != nil,
+            let description = describe(base),
+            lookup(InternalName.initializing) != nil
+        {
             let candidates = description.initializers
             guard let chosen = try resolve(candidates, &arguments, name: "init") else { return .void }
-            if candidates.count > 1, description.namesItsInitializers { callee = .chosen(callee, overload: chosen.index) }
+            if candidates.count > 1, description.namesItsInitializers {
+                callee = .chosen(callee, overload: chosen.index)
+            }
             if chosen.isThrowing { try throwingSite("init") }
             return .void
         }
-        // A method the type declares, a requirement of a protocol or the default an extension of it gives, or one an extension
+        // A method the type declares, a requirement of a protocol or the default an extension of it gives, or one an
+        // extension
         // adds to any type (`self` is the receiver, and a collection's items are known).
-        if let description = describe(base), case .methods(let methods, let origin)? = description.instanceMember(name) {
-            // A class's method is shared by every reference and a protocol's is any type's: no overload set of a value type's
+        if let description = describe(base), case .methods(let methods, let origin)? = description.instanceMember(name)
+        {
+            // A class's method is shared by every reference and a protocol's is any type's: no overload set of a value
+            // type's
             // own to name one of, and no value to change.
             let ofAValue = !(description.kind == .protocolType || origin == .declaration && description.isClass)
-            let result = try callMember(methods, name, bindings: origin == .extensions ? elementBindings(for: base) : [:], callee: &callee, &arguments,
-                                        narrowing: ofAValue, mutating: ofAValue ? baseExpr : nil)
+            let result = try callMember(
+                methods,
+                name,
+                bindings: origin == .extensions ? elementBindings(for: base) : [:],
+                callee: &callee,
+                &arguments,
+                narrowing: ofAValue,
+                mutating: ofAValue ? baseExpr : nil
+            )
             return description.kind == .protocolType ? substitute(result, [:]) : result
         }
         // Swift's own methods first; then what the prelude adds for sequences,
         // like `sorted(by: \.size)`.
         var bridgedError: TypeError?
-        if let (bridgedType, bindings) = bridged(base), bridgedType.members.contains(where: { $0.kind == .method && !$0.isStatic && $0.name == name }) {
+        if let (bridgedType, bindings) = bridged(base),
+            bridgedType.members.contains(where: { $0.kind == .method && !$0.isStatic && $0.name == name })
+        {
             var attempt = arguments
             do {
-                let (type, bridgedExpr) = try bridgedCall(bridgedType.name, kind: .method, isStatic: false, receiver: baseExpr,
-                                                          bindings: bindings, name: name, &attempt)
+                let (type, bridgedExpr) = try bridgedCall(
+                    bridgedType.name,
+                    kind: .method,
+                    isStatic: false,
+                    receiver: baseExpr,
+                    bindings: bindings,
+                    name: name,
+                    &attempt
+                )
                 arguments = attempt
                 callee = bridgedExpr
                 return type
@@ -203,11 +273,18 @@ extension TypeChecker {
     func apply(_ type: TypeAnnotation, _ arguments: inout [Argument], name: String) throws -> TypeAnnotation {
         switch type {
         case .functionType(let parameters, let result, let throwing, let effect):
-            let signature = Signature(name: name, parameters: parameters.map { type -> Parameter in
-                if case .inOut(let inner) = type { return Parameter(label: nil, name: "_", type: inner, isInout: true) }
-                return Parameter(label: nil, name: "_", type: type)
-            },
-                                      returns: result, isThrowing: throwing, effect: effect)
+            let signature = Signature(
+                name: name,
+                parameters: parameters.map { type -> Parameter in
+                    if case .inOut(let inner) = type {
+                        return Parameter(label: nil, name: "_", type: inner, isInout: true)
+                    }
+                    return Parameter(label: nil, name: "_", type: type)
+                },
+                returns: result,
+                isThrowing: throwing,
+                effect: effect
+            )
             _ = try resolve([signature], &arguments, name: name)
             if throwing { try throwingSite(name) }
             try effectSite(effect, name)
@@ -216,7 +293,8 @@ extension TypeChecker {
             for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
             return .unknown
         case .metatype:
-            // `t(…)` for a type `t`: an initializer. What it makes isn't worked out here (a call checked again, once its
+            // `t(…)` for a type `t`: an initializer. What it makes isn't worked out here (a call checked again, once
+            // its
             // overload is chosen, comes this way too, and the initializer's own type was decided the first time).
             for index in arguments.indices { _ = try typeOf(&arguments[index].value, expecting: .unknown) }
             return .unknown
@@ -237,7 +315,11 @@ extension TypeChecker {
             case .index(let inner, _), .indexDefault(let inner, _, _), .forceUnwrap(let inner): root = inner
             case .variable(let name):
                 // A member of a class instance is changed on the instance, whatever holds it.
-                if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }
+                if throughMember, case .variable(.named(let typeName), _)? = lookup(name),
+                    structInfo(named: typeName)?.isClass == true
+                {
+                    return
+                }
                 if case .variable(_, let mutable)? = lookup(name), !mutable {
                     throw TypeError("cannot pass '\(name)' as inout: it's a 'let' constant")
                 }
@@ -259,7 +341,11 @@ extension TypeChecker {
             case .index(let inner, _), .indexDefault(let inner, _, _): root = inner
             case .forceUnwrap(let inner), .optionalMember(let inner, _): root = inner
             case .variable(let name):
-                if throughMember, case .variable(.named(let typeName), _)? = lookup(name), structInfo(named: typeName)?.isClass == true { return }
+                if throughMember, case .variable(.named(let typeName), _)? = lookup(name),
+                    structInfo(named: typeName)?.isClass == true
+                {
+                    return
+                }
                 if case .variable(_, let mutable)? = lookup(name), !mutable {
                     throw TypeError("cannot use mutating method '\(method)' on '\(name)': it's a 'let' constant")
                 }

@@ -6,7 +6,9 @@ extension Interpreter {
     /// Whether two values are of the same kind: a plain one is told by its case, without building the name of its type.
     static func sameKind(_ a: Value, _ b: Value) -> Bool {
         switch (a, b) {
-        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.list, .list), (.dictionary, .dictionary): true
+        case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.list, .list),
+            (.dictionary, .dictionary):
+            true
         case (.int, _), (.double, _), (.string, _), (.bool, _), (.list, _), (.dictionary, _): false
         default: a.typeName == b.typeName
         }
@@ -34,7 +36,10 @@ extension Interpreter {
 
         var made = BindingTable(capacity: arguments.count + 1)
         for argument in arguments {
-            made[argument.key] = Binding(value: argument.value, mutable: !function.inoutNames.isEmpty && function.inoutNames.contains(argument.key))
+            made[argument.key] = Binding(
+                value: argument.value,
+                mutable: !function.inoutNames.isEmpty && function.inoutNames.contains(argument.key)
+            )
         }
         return try runSwiit(function, in: Scope(table: made), receiver: receiver)
     }
@@ -42,11 +47,17 @@ extension Interpreter {
     /// Runs a Swiit function whose parameters are bound in `argumentScope`.
     func runSwiit(_ function: Function, in argumentScope: Scope, receiver: Receiver? = nil) throws -> Value {
         let savedScopes = scopes
-        // A type parameter the call left to what was passed (a protocol's type) is the type of that value, as Swift opens an existential.
+        // A type parameter the call left to what was passed (a protocol's type) is the type of that value, as Swift
+        // opens an existential.
         for name in function.typeParameters {
-            if case .object(let bound)? = function.captured.last?.bindings[Interpreter.typeArgumentPrefix + name]?.value, !(bound is ProtocolType) { continue }
+            if case .object(let bound)? = function.captured.last?.bindings[Interpreter.typeArgumentPrefix + name]?.value,
+                !(bound is ProtocolType)
+            {
+                continue
+            }
             guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }),
-                  let argument = argumentScope.bindings[parameter.name]?.value else { continue }
+                let argument = argumentScope.bindings[parameter.name]?.value
+            else { continue }
             let actual = typeObject(of: argument)
             guard actual != .nothing else { continue }
             argumentScope.bindings[name] = Binding(value: actual, mutable: false)
@@ -54,15 +65,20 @@ extension Interpreter {
         }
         if let receiver {
             argumentScope.bindings["self"] = Binding(
-                value: receiver.value, mutable: receiver.mutable, special: receiver.initializing ? .initializing : nil
+                value: receiver.value,
+                mutable: receiver.mutable,
+                special: receiver.initializing ? .initializing : nil
             )
         }
         // A nested function reaches itself through the call, not by keeping
         // the binding it's stored in, which would be a cycle.
         if let name = function.name, function.captured.count > 2, argumentScope.bindings[name] == nil,
-           case .swiit = function.body {
+            case .swiit = function.body
+        {
             argumentScope.bindings[name] = Binding(
-                value: .function(OverloadSet(name: name, candidates: [function])), mutable: false, isFunction: true
+                value: .function(OverloadSet(name: name, candidates: [function])),
+                mutable: false,
+                isFunction: true
             )
         }
         var inside = [Scope]()
@@ -103,7 +119,8 @@ extension Interpreter {
 
         // What the `inout` parameters hold now goes back to where the call took them from.
         if !function.inoutNames.isEmpty {
-            task.inoutOutputs = function.parameters.filter(\.isInout).map { argumentScope.bindings[$0.name]?.value ?? .nothing }
+            task.inoutOutputs = function.parameters.filter(\.isInout)
+                .map { argumentScope.bindings[$0.name]?.value ?? .nothing }
         }
         guard let returnType = function.returnType else { return result }
         guard let conforming = conform(result, to: returnType) else {
@@ -155,10 +172,14 @@ extension Interpreter {
     /// trailing closure does in Swift (`xs.sorted { $0.x < $1.x }` for
     /// `by:`), unless a later unlabeled parameter is waiting for it.
     func isTrailingClosure(
-        _ arguments: [Argument], at index: Int, for parameter: Parameter, before later: ArraySlice<Parameter>
+        _ arguments: [Argument],
+        at index: Int,
+        for parameter: Parameter,
+        before later: ArraySlice<Parameter>
     ) -> Bool {
         guard index == arguments.count - 1, arguments[index].label == nil, parameter.label != nil,
-              later.allSatisfy({ $0.label != nil }) else { return false }
+            later.allSatisfy({ $0.label != nil })
+        else { return false }
         switch arguments[index].value {
         case .closure, .literal(.function): return parameter.type.acceptsFunction
         default: return false
@@ -176,13 +197,22 @@ extension Interpreter {
         var penalty = 0
         func checked(_ value: Value, for parameter: Parameter) throws -> Value {
             let result = try self.checked(value, for: parameter, of: name)
-            if parameter.type == .any || !Interpreter.sameKind(result, value) || !result.isEqual(to: value) { penalty += 1 }
+            if parameter.type == .any || !Interpreter.sameKind(result, value) || !result.isEqual(to: value) {
+                penalty += 1
+            }
             return result
         }
         var index = 0
         for (position, parameter) in function.parameters.enumerated() {
-            if index < arguments.count, arguments[index].label == parameter.label
-                || isTrailingClosure(arguments, at: index, for: parameter, before: function.parameters[(position + 1)...]) {
+            if index < arguments.count,
+                arguments[index].label == parameter.label
+                    || isTrailingClosure(
+                        arguments,
+                        at: index,
+                        for: parameter,
+                        before: function.parameters[(position + 1)...]
+                    )
+            {
                 if parameter.variadic {
                     var values: [Value] = []
                     repeat {
@@ -191,7 +221,10 @@ extension Interpreter {
                     } while index < arguments.count && arguments[index].label == nil
                     bound[parameter.name] = try checked(.list(values), for: parameter)
                 } else {
-                    bound[parameter.name] = try checked(try evaluate(arguments[index].value, expecting: parameter.type), for: parameter)
+                    bound[parameter.name] = try checked(
+                        try evaluate(arguments[index].value, expecting: parameter.type),
+                        for: parameter
+                    )
                     index += 1
                 }
             } else if parameter.variadic {
@@ -199,9 +232,10 @@ extension Interpreter {
             } else if let defaultValue = parameter.defaultValue {
                 bound[parameter.name] = try defaultArgument(defaultValue, for: parameter, of: function)
             } else if parameter.externalDefault != nil {
-                continue // The Swift function fills it in.
+                continue  // The Swift function fills it in.
             } else {
-                let label = parameter.label.map { "'\($0):'" } ?? "#\(function.parameters.firstIndex(of: parameter)! + 1)"
+                let label =
+                    parameter.label.map { "'\($0):'" } ?? "#\(function.parameters.firstIndex(of: parameter)! + 1)"
                 throw RuntimeError("\(name): missing argument \(label)")
             }
         }
@@ -217,7 +251,11 @@ extension Interpreter {
         let savedScopes = scopes
         scopes = function.captured
         defer { scopes = savedScopes }
-        return try checked(try evaluate(expr, expecting: parameter.type), for: parameter, of: function.name ?? "closure")
+        return try checked(
+            try evaluate(expr, expecting: parameter.type),
+            for: parameter,
+            of: function.name ?? "closure"
+        )
     }
 
     func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {
@@ -248,7 +286,8 @@ extension Interpreter {
     /// Picks the overload that `bind` accepts with the lowest penalty, the
     /// most specific match. Ties are an error, never a guess.
     func resolve(
-        _ set: OverloadSet, _ bind: (Function) throws -> (bindings: [String: Value], penalty: Int)
+        _ set: OverloadSet,
+        _ bind: (Function) throws -> (bindings: [String: Value], penalty: Int)
     ) throws -> (Function, [String: Value]) {
         if set.candidates.count == 1 {
             return (set.candidates[0], try bind(set.candidates[0]).bindings)
@@ -263,19 +302,25 @@ extension Interpreter {
             }
         }
         guard let best = matches.map(\.penalty).min() else {
-            throw RuntimeError("\(set.name): no overload accepts these arguments; candidates:\n"
-                + set.candidates.map { "  " + $0.signature }.joined(separator: "\n"))
+            throw RuntimeError(
+                "\(set.name): no overload accepts these arguments; candidates:\n"
+                    + set.candidates.map { "  " + $0.signature }.joined(separator: "\n")
+            )
         }
         var bestMatches = matches.filter { $0.penalty == best }
         // Of equals, a function that takes a type itself beats one generic in it, as in Swift.
         if bestMatches.count > 1 {
-            let generic = { (function: Function) in function.parameters.filter { if case .parameter = $0.type { true } else { false } }.count }
+            let generic = { (function: Function) in
+                function.parameters.filter { if case .parameter = $0.type { true } else { false } }.count
+            }
             let fewest = bestMatches.map { generic($0.function) }.min()!
             bestMatches = bestMatches.filter { generic($0.function) == fewest }
         }
         guard bestMatches.count == 1 else {
-            throw RuntimeError("\(set.name): ambiguous call; these overloads all match:\n"
-                + bestMatches.map { "  " + $0.function.signature }.joined(separator: "\n"))
+            throw RuntimeError(
+                "\(set.name): ambiguous call; these overloads all match:\n"
+                    + bestMatches.map { "  " + $0.function.signature }.joined(separator: "\n")
+            )
         }
         return (bestMatches[0].function, bestMatches[0].bindings)
     }
@@ -287,8 +332,11 @@ extension Interpreter {
     func hostFunction(_ export: HostFunction) -> Function {
         let parameters = export.parameters.map { parameter -> Parameter in
             var made = Parameter(
-                label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
-                variadic: parameter.variadic, defaultValue: parameter.defaultValue.map(Expr.literal),
+                label: parameter.label,
+                name: parameter.name,
+                type: TypeAnnotation(parameter.type),
+                variadic: parameter.variadic,
+                defaultValue: parameter.defaultValue.map(Expr.literal),
                 externalDefault: parameter.defaultSource
             )
             made.showsByType = parameter.showsByType
@@ -301,7 +349,9 @@ extension Interpreter {
         let name = export.name
         let call = export.call
         return Function(
-            name: name, parameters: parameters, returnType: export.returnType.map(TypeAnnotation.init),
+            name: name,
+            parameters: parameters,
+            returnType: export.returnType.map(TypeAnnotation.init),
             body: .native { interpreter, arguments in
                 do {
                     return try call(arguments)
@@ -345,30 +395,46 @@ extension TypeAnnotation {
         case .named("Double", _): self = .double
         case .named("String", _): self = .string
         case .named("Function", _): self = .function
-        case .named("KeyPath", let arguments) where arguments.count == 2: self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
+        case .named("KeyPath", let arguments) where arguments.count == 2:
+            self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
         case .named("Array", let arguments) where arguments.count == 1: self = .list(TypeAnnotation(arguments[0]))
-        case .named("Optional", let arguments) where arguments.count == 1: self = .optional(TypeAnnotation(arguments[0]))
+        case .named("Optional", let arguments) where arguments.count == 1:
+            self = .optional(TypeAnnotation(arguments[0]))
         case .named("Dictionary", let arguments) where arguments.count == 2:
             self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
-        case .named(let name, let arguments): self = arguments.isEmpty ? .named(name) : .generic(name, arguments.map(TypeAnnotation.init))
-        case .function(let parameters, let returns): self = .functionType(parameters.map(TypeAnnotation.init), TypeAnnotation(returns))
-        case .tuple(let elements): self = .tuple(elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) })
+        case .named(let name, let arguments):
+            self = arguments.isEmpty ? .named(name) : .generic(name, arguments.map(TypeAnnotation.init))
+        case .function(let parameters, let returns):
+            self = .functionType(parameters.map(TypeAnnotation.init), TypeAnnotation(returns))
+        case .tuple(let elements):
+            self = .tuple(elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) })
         }
     }
 }
 
 extension Interpreter {
-    /// Calls a closure of two values whose first it changes in place (`reduce(into:)`'s), giving what it left in the first.
+    /// Calls a closure of two values whose first it changes in place (`reduce(into:)`'s), giving what it left in the
+    /// first.
     func callChangingFirst(_ value: Value, _ first: Value, _ second: Value) throws -> Value {
         guard case .function(let function as Function) = value, !function.parameters.isEmpty else {
-            return try { _ = try call(value, with: [first, second]); return first }()
+            return try {
+                _ = try call(value, with: [first, second]); return first
+            }()
         }
         var parameters = function.parameters
         parameters[0].isInout = true
         let changing = Function(
-            name: function.name, parameters: parameters, returnType: function.returnType, body: function.body,
-            captured: function.captured, documentation: function.documentation, isMutating: function.isMutating,
-            isThrowing: function.isThrowing, isRethrowing: function.isRethrowing, effect: function.effect, generics: function.generics
+            name: function.name,
+            parameters: parameters,
+            returnType: function.returnType,
+            body: function.body,
+            captured: function.captured,
+            documentation: function.documentation,
+            isMutating: function.isMutating,
+            isThrowing: function.isThrowing,
+            isRethrowing: function.isRethrowing,
+            effect: function.effect,
+            generics: function.generics
         )
         let unlabeled = [first, second].map { Argument(label: nil, value: .literal($0)) }
         _ = try invoke(changing, with: try bind(unlabeled, to: changing).bindings)

@@ -8,16 +8,21 @@ import SystemPackage
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 enum Bridge {
-    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A snapshot, as
+    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have registered. A
+    /// snapshot, as
     /// libraries register while other interpreters read.
     public static var types: [String: BridgedType] { lock.withLock { table } }
 
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex, flowType]).map { // safe: read and changed only holding the lock
-        ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
-    })
+    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(
+        uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex, flowType])
+            .map {  // safe: read and changed only holding the lock
+                ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
+            }
+    )
 
-    /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and the members it adds to types the
+    /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and the members it adds
+    /// to types the
     /// core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
         lock.withLock {
@@ -30,7 +35,8 @@ enum Bridge {
                     if extended.literal == nil { extended.literal = type.literal }
                     table[type.name] = extended
                 } else {
-                    table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
+                    table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
+                        .adding(additions[type.name] ?? [])
                 }
             }
         }
@@ -49,7 +55,8 @@ enum Bridge {
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     public static func type(of annotation: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
-              type.genericParameters.count == arguments.count else { return nil }
+            type.genericParameters.count == arguments.count
+        else { return nil }
         return (type, Dictionary(uniqueKeysWithValues: zip(type.genericParameters, arguments)))
     }
 }
@@ -76,7 +83,7 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-final class BridgedTypeName: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
     public init(_ name: String) { self.name = name }
     public var typeName: String { "type" }
@@ -108,17 +115,27 @@ struct BridgedType {
     public var arrayLiteral: (([Value]) -> Value)?
     public let members: [BridgedMember]
 
-
     /// It, with members written by hand too, where the generator can't make them.
     func adding(_ extra: [BridgedMember]) -> BridgedType {
         // A member already there (a library registered twice) is not added again.
         let extra = extra.filter { new in
-            !members.contains { $0.kind == new.kind && $0.name == new.name && $0.isStatic == new.isStatic
-                && $0.parameters.map(\.label) == new.parameters.map(\.label) && $0.parameters.map(\.type) == new.parameters.map(\.type) }
+            !members.contains {
+                $0.kind == new.kind && $0.name == new.name && $0.isStatic == new.isStatic
+                    && $0.parameters.map(\.label) == new.parameters.map(\.label)
+                    && $0.parameters.map(\.type) == new.parameters.map(\.type)
+            }
         }
         guard !extra.isEmpty else { return self }
-        return BridgedType(name: name, genericParameters: genericParameters, conformances: conformances, associatedTypes: associatedTypes,
-                           parse: parse, literal: literal, arrayLiteral: arrayLiteral, members: members + extra)
+        return BridgedType(
+            name: name,
+            genericParameters: genericParameters,
+            conformances: conformances,
+            associatedTypes: associatedTypes,
+            parse: parse,
+            literal: literal,
+            arrayLiteral: arrayLiteral,
+            members: members + extra
+        )
     }
 
     /// It, conforming to `protocols` too, whatever its generic parameters are.
@@ -126,11 +143,28 @@ struct BridgedType {
         guard !protocols.isEmpty else { return self }
         var all = conformances
         for name in protocols { all[name] = [:] }
-        return BridgedType(name: name, genericParameters: genericParameters, conformances: all, associatedTypes: associatedTypes,
-                           parse: parse, literal: literal, arrayLiteral: arrayLiteral, members: members)
+        return BridgedType(
+            name: name,
+            genericParameters: genericParameters,
+            conformances: all,
+            associatedTypes: associatedTypes,
+            parse: parse,
+            literal: literal,
+            arrayLiteral: arrayLiteral,
+            members: members
+        )
     }
 
-    public init(name: String, genericParameters: [String], conformances: [String: [String: [String]]], associatedTypes: [String: TypeAnnotation], parse: ((String) -> Value?)? = nil, literal: ((String) -> Value?)? = nil, arrayLiteral: (([Value]) -> Value)? = nil, members: [BridgedMember]) {
+    public init(
+        name: String,
+        genericParameters: [String],
+        conformances: [String: [String: [String]]],
+        associatedTypes: [String: TypeAnnotation],
+        parse: ((String) -> Value?)? = nil,
+        literal: ((String) -> Value?)? = nil,
+        arrayLiteral: (([Value]) -> Value)? = nil,
+        members: [BridgedMember]
+    ) {
         self.name = name
         self.genericParameters = genericParameters
         self.conformances = conformances
@@ -175,7 +209,23 @@ struct BridgedMember {
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?
 
-    public init(kind: Kind, name: String, isStatic: Bool, parameters: [Parameter], returns: TypeAnnotation, generics: [String: [String]], isThrowing: Bool, isRethrowing: Bool, isMutating: Bool, discardableResult: Bool, summary: String, body: FunctionBody, parameterDocs: [String: String] = [:], effect: Effect = .sync, typedThrows: String? = nil) {
+    public init(
+        kind: Kind,
+        name: String,
+        isStatic: Bool,
+        parameters: [Parameter],
+        returns: TypeAnnotation,
+        generics: [String: [String]],
+        isThrowing: Bool,
+        isRethrowing: Bool,
+        isMutating: Bool,
+        discardableResult: Bool,
+        summary: String,
+        body: FunctionBody,
+        parameterDocs: [String: String] = [:],
+        effect: Effect = .sync,
+        typedThrows: String? = nil
+    ) {
         self.effect = effect
         self.typedThrows = typedThrows
         self.kind = kind
@@ -195,4 +245,3 @@ struct BridgedMember {
 }
 
 // MARK: Conversions the glue uses
-

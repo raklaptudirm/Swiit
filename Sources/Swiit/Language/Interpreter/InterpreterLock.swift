@@ -6,7 +6,7 @@ import Foundation
 /// parallel and the language needs no locks of its own. A task lets go only
 /// to wait (`Interpreter.suspend`), so state changes under it only across a
 /// wait. The thread that holds it may take it again.
-final class InterpreterLock: @unchecked Sendable { // safe: every access holds its own lock
+final class InterpreterLock: @unchecked Sendable {  // safe: every access holds its own lock
     private let condition = NSCondition()
     private var holder: pthread_t?
     private var depth = 0
@@ -77,7 +77,7 @@ final class InterpreterLock: @unchecked Sendable { // safe: every access holds i
 
 /// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
-public final class TaskHandle: @unchecked Sendable { // safe: every access holds its own lock
+public final class TaskHandle: @unchecked Sendable {  // safe: every access holds its own lock
     let context: TaskContext
     private let condition = NSCondition()
     private var outcome: Result<Value, any Error>?
@@ -134,8 +134,11 @@ extension Interpreter {
     /// interrupts of the host's; it stops when it's cancelled. A structured
     /// task ends with the scope that started it (`closeTasks`); Swift's
     /// `Task { }` isn't one.
-    func startTask(host taskHost: AnyObject?, structured: Bool = true,
-                   _ body: @escaping () throws -> Value) throws -> TaskHandle {
+    func startTask(
+        host taskHost: AnyObject?,
+        structured: Bool = true,
+        _ body: @escaping () throws -> Value
+    ) throws -> TaskHandle {
         guard runningTasks < limits.tasks else {
             throw RuntimeError("there are already \(limits.tasks) tasks running")
         }
@@ -146,9 +149,9 @@ extension Interpreter {
         if structured { task.children.append((callDepth, handle)) }
         // The interpreter and the task are touched only holding the lock,
         // which the thread takes first: that is what makes this safe.
-        nonisolated(unsafe) let body = body // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let taskContext = context // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let body = body  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let taskContext = context  // safe: runs holding the interpreter lock
         host.startThread {
             interpreter.lock.acquire()
             interpreter.task = taskContext

@@ -1,5 +1,6 @@
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 // The core on its own: the target builds and runs without the host.
 
@@ -8,8 +9,12 @@ import Testing
 private func runOnTheCore(_ source: String) -> (output: String, problem: String?) {
     let captured = Capture()
     var output: String { captured.text }
-    let host = Interpreter.Host(output: captured.sink,
-                         error: OutputSink({ captured.add("err: " + $0); return true }))
+    let host = Interpreter.Host(
+        output: captured.sink,
+        error: OutputSink({
+            captured.add("err: " + $0); return true
+        })
+    )
     let interpreter = Interpreter(host: host, limits: Interpreter.Limits())
     switch interpreter.parse(source) {
     case .failure(let error):
@@ -31,15 +36,17 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 }
 
 @Test func theCoreRunsSwiftWithoutAShell() {
-    let (output, problem) = runOnTheCore("""
-    let xs = [3, 1, 2]
-    xs.sorted()
-    struct P { var x: Int; static let origin = P(x: 0) }
-    P(x: 1)
-    P.origin
-    func double(_ n: Int) -> Int { n * 2 }
-    xs.map { double($0) }
-    """)
+    let (output, problem) = runOnTheCore(
+        """
+        let xs = [3, 1, 2]
+        xs.sorted()
+        struct P { var x: Int; static let origin = P(x: 0) }
+        P(x: 1)
+        P.origin
+        func double(_ n: Int) -> Int { n * 2 }
+        xs.map { double($0) }
+        """
+    )
     #expect(problem == nil)
     #expect(output == "[1, 2, 3]\nP(x: 1)\nP(x: 0)\n[6, 2, 4]\n")
 }
@@ -79,7 +86,9 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 @Test func closuresKeepOnlyWhatTheyUse() throws {
     let swiit = Interpreter()
     let value = try onLargeStack {
-        try swiit.evaluate("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
+        try swiit.evaluate(
+            "func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()"
+        )
     }
     #expect(value == .int(2))
     guard case .function(let closure as Function)? = swiit.lookup("h")?.value else {
@@ -95,7 +104,8 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 /// A case's `where` is its last pattern's, as in Swift: in `case 1, 2 where c:`
 /// a 1 matches whatever c is.
 @Test func aCasesGuardIsItsLastPatterns() throws {
-    let source = "func kind(_ n: Int) -> String { switch n { case 1, 2 where false: return \"small\"; default: return \"other\" } }; [kind(1), kind(2)]"
+    let source =
+        "func kind(_ n: Int) -> String { switch n { case 1, 2 where false: return \"small\"; default: return \"other\" } }; [kind(1), kind(2)]"
     let value = try onLargeStack { try Interpreter().evaluate(source) }
     #expect(value == .list([.string("small"), .string("other")]))
 }

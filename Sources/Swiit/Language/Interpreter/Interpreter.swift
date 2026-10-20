@@ -4,7 +4,7 @@ import Foundation
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
 /// runs only Swift. The host owns one.
-public final class Interpreter: @unchecked Sendable { // safe: every public method holds the interpreter's lock
+public final class Interpreter: @unchecked Sendable {  // safe: every public method holds the interpreter's lock
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     /// Where its output goes and how it is told to stop; a host may change it between runs.
     public var host: Interpreter.Host
@@ -41,7 +41,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     var declaredOperators: [String: String] = [:]
     /// Instances released since a statement began, whose `deinit` runs at the next one.
     var pendingDeinits: [ClassInstance] = []
-    nonisolated(unsafe) var hasPendingDeinits = false // safe: a hint, set holding `deinitLock`; a stale read only delays a `deinit` by a statement
+    nonisolated(unsafe) var hasPendingDeinits = false  // safe: a hint, set holding `deinitLock`; a stale read only delays a `deinit` by a statement
     let deinitLock = NSLock()
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
@@ -104,14 +104,16 @@ extension Interpreter {
 
     /// Names the parser should know: builtins and globals, as variables or functions.
     func globalNames() -> [String: NameKind] {
-        scopes[0].bindings.merging(scopes[1].bindings) { $1 }.mapValues { binding in
-            if binding.isFunction { return .function }
-            if binding.isComputed { return .variable }
-            if case .object(is EnumType) = binding.value { return .type }
-            if case .object(is StructType) = binding.value { return .type }
-            if case .object(is ProtocolType) = binding.value { return .type }
-            if case .object(is BridgedTypeName) = binding.value { return .type }
-            return .variable
-        }.merging(declaredOperators.mapValues(NameKind.operatorDeclaration)) { $1 }
+        scopes[0].bindings.merging(scopes[1].bindings) { $1 }
+            .mapValues { binding in
+                if binding.isFunction { return .function }
+                if binding.isComputed { return .variable }
+                if case .object(is EnumType) = binding.value { return .type }
+                if case .object(is StructType) = binding.value { return .type }
+                if case .object(is ProtocolType) = binding.value { return .type }
+                if case .object(is BridgedTypeName) = binding.value { return .type }
+                return .variable
+            }
+            .merging(declaredOperators.mapValues(NameKind.operatorDeclaration)) { $1 }
     }
 }

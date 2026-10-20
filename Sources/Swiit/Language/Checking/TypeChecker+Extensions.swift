@@ -48,13 +48,18 @@ extension TypeChecker {
     /// What extensions add to a type, and what the extensions of the protocols it conforms to give as defaults.
     func extensionLayer(forKey key: String) -> ExtensionLayer? {
         var info = ownExtensionLayer(forKey: key)
-        let declared = (structInfo(named: key)?.conformances ?? enumInfo(named: key)?.conformances ?? []) + (info?.conformances ?? [])
+        let declared =
+            (structInfo(named: key)?.conformances ?? enumInfo(named: key)?.conformances ?? [])
+            + (info?.conformances ?? [])
         for proto in declared.flatMap(protocolClosure) where proto != key {
             guard let defaults = ownExtensionLayer(forKey: proto) else { continue }
             if var existing = info { existing.merge(defaults); info = existing } else { info = defaults }
         }
-        // A subclass has what the extensions of its superclasses add, and the defaults of the protocols they conform to.
-        if let parent = structInfo(named: key)?.superclass, parent != key, let inherited = extensionLayer(forKey: parent) {
+        // A subclass has what the extensions of its superclasses add, and the defaults of the protocols they conform
+        // to.
+        if let parent = structInfo(named: key)?.superclass, parent != key,
+            let inherited = extensionLayer(forKey: parent)
+        {
             if var existing = info { existing.merge(inherited); info = existing } else { info = inherited }
         }
         return info
@@ -66,18 +71,25 @@ extension TypeChecker {
             var runtime = ExtensionLayer()
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in
-                    set.candidates.enumerated().map { index, method in
-                        var signature = signature(method)
-                        signature.index = index
-                        return signature
-                    }
+                    set.candidates.enumerated()
+                        .map { index, method in
+                            var signature = signature(method)
+                            signature.index = index
+                            return signature
+                        }
                 }
             }
             for (name, function) in members.computed {
-                runtime.members.properties[name] = MemberProperty(type: function.returnType ?? .unknown, isSettable: members.setters[name] != nil, stored: nil)
+                runtime.members.properties[name] = MemberProperty(
+                    type: function.returnType ?? .unknown,
+                    isSettable: members.setters[name] != nil,
+                    stored: nil
+                )
             }
             runtime.members.methods = signatures(members.methods)
-            for property in members.staticProperties { runtime.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+            for property in members.staticProperties {
+                runtime.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+            }
             runtime.members.staticMethods = signatures(members.staticMethods)
             runtime.conformances = members.conformances
             if var existing = info { existing.merge(runtime); info = existing } else { info = runtime }
@@ -92,27 +104,46 @@ extension TypeChecker {
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {
             var result: [String: [Signature]] = [:]
             for method in declared {
-                var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
-                                          isMutating: method.isMutating, isThrowing: method.isThrowing, effect: method.effect)
+                var signature = Signature(
+                    name: method.name,
+                    parameters: method.parameters,
+                    returns: method.returnType ?? .void,
+                    isMutating: method.isMutating,
+                    isThrowing: method.isThrowing,
+                    effect: method.effect
+                )
                 signature.index = result[method.name]?.count ?? 0
                 result[method.name, default: []].append(signature)
             }
             return result
         }
         for property in members.properties where property.getter != nil {
-            info.members.properties[property.name] = MemberProperty(type: property.type ?? .unknown, isSettable: property.setter != nil, stored: nil)
+            info.members.properties[property.name] = MemberProperty(
+                type: property.type ?? .unknown,
+                isSettable: property.setter != nil,
+                stored: nil
+            )
         }
         info.members.methods = signatures(members.methods)
-        for property in members.staticProperties { info.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property) }
+        for property in members.staticProperties {
+            info.members.staticProperties[property.name] = MemberProperty(staticDeclaration: property)
+        }
         info.members.staticMethods = signatures(members.staticMethods)
         info.conformances = decl.conformances
         info.members.initializers = members.initializers.map { initializer in
-            Signature(name: "\(decl.typeName).init", parameters: initializer.parameters,
-                      returns: initializer.isFailable ? .optional(.named(decl.typeName)) : .named(decl.typeName),
-                      isMutating: true, isThrowing: initializer.isThrowing)
+            Signature(
+                name: "\(decl.typeName).init",
+                parameters: initializer.parameters,
+                returns: initializer.isFailable ? .optional(.named(decl.typeName)) : .named(decl.typeName),
+                isMutating: true,
+                isThrowing: initializer.isThrowing
+            )
         }
-        if var existing = localExtensions[decl.typeName] { existing.merge(info); localExtensions[decl.typeName] = existing }
-        else { localExtensions[decl.typeName] = info }
+        if var existing = localExtensions[decl.typeName] {
+            existing.merge(info); localExtensions[decl.typeName] = existing
+        } else {
+            localExtensions[decl.typeName] = info
+        }
     }
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
@@ -125,7 +156,9 @@ extension TypeChecker {
         case "Array": return .list(.unknown)
         case "Dictionary": return .dictionary(.unknown, .unknown)
         default:
-            if structInfo(named: key) != nil || enumInfo(named: key) != nil || protocolInfo(named: key) != nil { return .named(key) }
+            if structInfo(named: key) != nil || enumInfo(named: key) != nil || protocolInfo(named: key) != nil {
+                return .named(key)
+            }
             if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
             throw TypeError("can't extend '\(key)': it isn't a type Swiit knows")
         }
@@ -146,12 +179,23 @@ extension TypeChecker {
         for index in members.properties.indices {
             let property = members.properties[index]
             guard let getter = property.getter else { continue }
-            var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type.map { substitute($0, [:]) }, body: getter)
+            var function = FunctionDecl(
+                name: property.name,
+                parameters: [],
+                returnType: property.type.map { substitute($0, [:]) },
+                body: getter
+            )
             try checkFunction(&function, self: selfType)
             members.properties[index].getter = function.body
             if let body = property.setter {
-                var setter = FunctionDecl(name: property.name, parameters: [Parameter(name: property.setterName, type: substitute(property.type ?? .unknown, [:]))],
-                                          returnType: nil, body: body)
+                var setter = FunctionDecl(
+                    name: property.name,
+                    parameters: [
+                        Parameter(name: property.setterName, type: substitute(property.type ?? .unknown, [:]))
+                    ],
+                    returnType: nil,
+                    body: body
+                )
                 try checkFunction(&setter, self: selfType, mutating: true)
                 members.properties[index].setter = setter.body
             }
@@ -164,12 +208,20 @@ extension TypeChecker {
         for index in members.staticProperties.indices {
             let property = members.staticProperties[index]
             if let getter = property.getter {
-                var function = FunctionDecl(name: property.name, parameters: [], returnType: property.type, body: getter)
+                var function = FunctionDecl(
+                    name: property.name,
+                    parameters: [],
+                    returnType: property.type,
+                    body: getter
+                )
                 try checkFunction(&function)
                 members.staticProperties[index].getter = function.body
             } else if var value = property.defaultValue {
-                if let type = property.type { try expect(&value, type, "\(decl.typeName).\(property.name)'s value") }
-                else { members.staticProperties[index].type = try typeOf(&value) }
+                if let type = property.type {
+                    try expect(&value, type, "\(decl.typeName).\(property.name)'s value")
+                } else {
+                    members.staticProperties[index].type = try typeOf(&value)
+                }
                 members.staticProperties[index].defaultValue = value
             }
         }
@@ -192,7 +244,9 @@ extension TypeChecker {
     func hasMember(_ type: TypeAnnotation, named name: String) -> Bool {
         if describe(type)?.instanceMember(name) != nil { return true }
         if case .named = type { return false }
-        if let (bridgedType, _) = bridged(type) { return bridgedType.members.contains { !$0.isStatic && $0.name == name } }
+        if let (bridgedType, _) = bridged(type) {
+            return bridgedType.members.contains { !$0.isStatic && $0.name == name }
+        }
         return false
     }
 }

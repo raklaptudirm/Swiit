@@ -24,13 +24,13 @@ public enum DisplayStyle: String, Sendable {
     // What each kind of thing is shown in.
     public static let keyword = DisplayStyle.magenta
     public static let string = DisplayStyle.yellow
-    public static let constant = DisplayStyle.brightMagenta // numbers, true, nil
+    public static let constant = DisplayStyle.brightMagenta  // numbers, true, nil
     public static let type = DisplayStyle.brightYellow
-    public static let variable = DisplayStyle.cyan // a variable, a parameter's name
-    public static let path = DisplayStyle.green // a FilePath, unquoted, unlike a String
-    public static let function = DisplayStyle.green // a function's name
-    public static let comment = DisplayStyle.dim // secondary text: job numbers, `nil`s, cut-off markers
-    public static let label = DisplayStyle.bold // table headers, record keys, help sections
+    public static let variable = DisplayStyle.cyan  // a variable, a parameter's name
+    public static let path = DisplayStyle.green  // a FilePath, unquoted, unlike a String
+    public static let function = DisplayStyle.green  // a function's name
+    public static let comment = DisplayStyle.dim  // secondary text: job numbers, `nil`s, cut-off markers
+    public static let label = DisplayStyle.bold  // table headers, record keys, help sections
     public static let error = DisplayStyle.boldRed
 
     /// The terminal's escape for it, and what ends it.

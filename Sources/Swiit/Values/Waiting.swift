@@ -53,7 +53,8 @@ enum Waiting {
     }
 
     /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It runs on the thread
-    /// that cancels, so it may only do what is safe from there: close a handle, signal a process, resume a continuation.
+    /// that cancels, so it may only do what is safe from there: close a handle, signal a process, resume a
+    /// continuation.
     public static func whileWaiting<T>(wake: @escaping () -> Void, _ body: () -> T) -> T {
         guard let host else { return body() }
         var result: T?
@@ -90,7 +91,8 @@ extension Interpreter {
         Waiting.whileWaiting(wake: wake, wait)
     }
 
-    /// A read of the host's input: it runs when it is this task's turn at the input (a task in the background waits until it
+    /// A read of the host's input: it runs when it is this task's turn at the input (a task in the background waits
+    /// until it
     /// is brought forward, as the host says), and not at all if the task is cancelled first.
     public static func whileWaitingForInput<T>(_ read: () -> T?) -> T? {
         Waiting.forInput(read)

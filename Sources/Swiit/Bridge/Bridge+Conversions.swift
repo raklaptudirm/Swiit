@@ -64,12 +64,13 @@ func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches:
         if let optional = held.map(Mirror.init(reflecting:)), optional.displayStyle == .optional {
             held = optional.children.first?.value
         }
-        record[field] = switch (patches[field], held) {
-        case (.enumeration(let type)?, let held?): interpreter.declaredCase(type, "\(held)")
-        case (.boxed(let type)?, let held?): SwiftValue.make(held, as: type)
-        case (_, .some): encoded[field] ?? .nothing
-        default: .nothing
-        }
+        record[field] =
+            switch (patches[field], held) {
+            case (.enumeration(let type)?, let held?): interpreter.declaredCase(type, "\(held)")
+            case (.boxed(let type)?, let held?): SwiftValue.make(held, as: type)
+            case (_, .some): encoded[field] ?? .nothing
+            default: .nothing
+            }
     }
     return .record(record)
 }
@@ -79,14 +80,18 @@ func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
     default:
-        guard let items = Interpreter.items(of: value) else { throw SwiitError("expected a list, not \(value.typeName)") }
+        guard let items = Interpreter.items(of: value) else {
+            throw SwiitError("expected a list, not \(value.typeName)")
+        }
         return Array(items)
     }
 }
 
 /// A dictionary as Swift's, which is what it holds.
 func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
-    guard case .dictionary(let dictionary) = value else { throw SwiitError("expected a dictionary, not \(value.typeName)") }
+    guard case .dictionary(let dictionary) = value else {
+        throw SwiitError("expected a dictionary, not \(value.typeName)")
+    }
     return dictionary.dictionary
 }
 
@@ -100,9 +105,12 @@ func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throw
     guard case .record(let record) = value, record.typeName == nil, record.count == labels.count else {
         throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
     }
-    return try make(labels.enumerated().map { index, label in
-        label.flatMap { record[$0] } ?? record[record.keys[index]]!
-    })
+    return try make(
+        labels.enumerated()
+            .map { index, label in
+                label.flatMap { record[$0] } ?? record[record.keys[index]]!
+            }
+    )
 }
 
 /// A Swift tuple as Swiit's, from its elements' labels and values.
@@ -122,7 +130,9 @@ func bridgeSequence(_ value: Value) throws -> [Value] {
     case .dictionary(let dictionary):
         return dictionary.map { bridgeTuple(($0.key, $0.value)) { [("key", $0.0), ("value", $0.1)] } }
     default:
-        guard let items = Interpreter.items(of: value) else { throw SwiitError("expected a sequence, not \(value.typeName)") }
+        guard let items = Interpreter.items(of: value) else {
+            throw SwiitError("expected a sequence, not \(value.typeName)")
+        }
         return Array(items)
     }
 }
@@ -133,7 +143,8 @@ func bridgeRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> B
     return Range(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
 }
 
-func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> ClosedRange<Bound> {
+func bridgeClosedRange<Bound: Comparable>(_ value: Value, _ bound: (Value) throws -> Bound) throws -> ClosedRange<Bound>
+{
     let range = try SwiftValue.unbox(ClosedRange<Value>.self, value)
     return ClosedRange(uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound)))
 }
@@ -151,7 +162,9 @@ func bridgeBox<T, Boxed: Hashable>(_ value: T, as typeName: String, _ convert: (
 /// `lower...upper` or `lower..<upper`, of any values that compare.
 func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Value {
     guard lower <= upper else { throw RuntimeError("range \(lower)\(op.rawValue)\(upper) has its bounds reversed") }
-    if op == .closedRange { return SwiftValue.make(ClosedRange(uncheckedBounds: (lower: lower, upper: upper)), as: "ClosedRange") }
+    if op == .closedRange {
+        return SwiftValue.make(ClosedRange(uncheckedBounds: (lower: lower, upper: upper)), as: "ClosedRange")
+    }
     return SwiftValue.make(Range(uncheckedBounds: (lower: lower, upper: upper)), as: "Range")
 }
 
@@ -174,11 +187,15 @@ extension Interpreter {
         case .object(let box as SwiftValue):
             if let flow = box.value as? Flow<Value> { return AnyIterator { (try? flow.read()) ?? nil } }
             if let range = box.value as? ClosedRange<Value> {
-                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else { return nil }
+                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else {
+                    return nil
+                }
                 return AnyIterator((lower...upper).lazy.map(Value.int).makeIterator())
             }
             if let range = box.value as? Range<Value> {
-                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else { return nil }
+                guard case .int(let lower) = range.lowerBound, case .int(let upper) = range.upperBound else {
+                    return nil
+                }
                 return AnyIterator((lower..<upper).lazy.map(Value.int).makeIterator())
             }
             guard let sequence = box.value as? any Sequence else { return nil }
@@ -221,7 +238,10 @@ extension Value: Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {
         // A type of the program's with its own `<` (Comparable) says which comes first.
         if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
-           case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs]) { return less }
+            case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs])
+        {
+            return less
+        }
         return lhs.order(comparedTo: rhs) == .orderedAscending
     }
 }

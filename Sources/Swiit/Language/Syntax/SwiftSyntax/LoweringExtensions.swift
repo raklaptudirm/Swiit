@@ -22,7 +22,9 @@ extension Lowering {
         typePrefix = target + "."
         // What a collection's members call its items.
         switch written {
-        case "Array", "ArraySlice", "Set", "Sequence", "Collection", "BidirectionalCollection", "RandomAccessCollection": typeParameters = ["Element"]
+        case "Array", "ArraySlice", "Set", "Sequence", "Collection", "BidirectionalCollection",
+            "RandomAccessCollection":
+            typeParameters = ["Element"]
         case "Dictionary": typeParameters = ["Key", "Value"]
         default: break
         }
@@ -32,13 +34,17 @@ extension Lowering {
             throw SyntaxError("an extension can't add a stored property: '\(property.name)' (line \(line(of: node)))")
         }
         guard declaration.subscripts.isEmpty else { throw unsupported("a subscript in an extension", node) }
-        return takeNested() + [.typeExtension(ExtensionDecl(typeName: target, members: declaration, conformances: conformances))]
+        return takeNested() + [
+            .typeExtension(ExtensionDecl(typeName: target, members: declaration, conformances: conformances))
+        ]
     }
 
     /// The name an extended type is written with: `Int`, `Outer.Inner`, or `Array<Int>`'s `Array`.
     private func typeName(_ type: TypeSyntax) -> String? {
         if let identifier = type.as(IdentifierTypeSyntax.self) { return identifier.name.text }
-        if let member = type.as(MemberTypeSyntax.self), let base = typeName(member.baseType) { return base + "." + member.name.text }
+        if let member = type.as(MemberTypeSyntax.self), let base = typeName(member.baseType) {
+            return base + "." + member.name.text
+        }
         if let array = type.as(ArrayTypeSyntax.self), array.element.is(IdentifierTypeSyntax.self) { return "Array" }
         return nil
     }

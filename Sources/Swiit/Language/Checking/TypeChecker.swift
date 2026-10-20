@@ -55,8 +55,18 @@ final class TypeChecker {
         var solved: [String: TypeAnnotation] = [:]
         /// Its result is flattened if it is an optional of an optional (see `Function.flattensResult`).
         var flattensResult = false
-    
-        init(name: String, parameters: [Parameter], returns: TypeAnnotation, isMutating: Bool = false, isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, index: Int = 0, generics: [String: [String]] = [:]) {
+
+        init(
+            name: String,
+            parameters: [Parameter],
+            returns: TypeAnnotation,
+            isMutating: Bool = false,
+            isThrowing: Bool = false,
+            isRethrowing: Bool = false,
+            effect: Effect = .sync,
+            index: Int = 0,
+            generics: [String: [String]] = [:]
+        ) {
             self.effect = effect
             self.name = name
             self.parameters = parameters
@@ -114,7 +124,7 @@ final class TypeChecker {
                 }
             }
         }
-    
+
         init(handled: Bool, boundary: Boundary = .topLevel, thrown: TypeAnnotation? = nil) {
             self.handled = handled
             self.boundary = boundary
@@ -166,7 +176,9 @@ final class TypeChecker {
     /// Checks a program, returning it with what was decided written in.
     func check(_ program: Program) throws(TypeError) -> Program {
         var checked = program
-        for statement in program.statements { if case .function(let decl) = statement { redeclaredHere.insert(decl.name) } }
+        for statement in program.statements {
+            if case .function(let decl) = statement { redeclaredHere.insert(decl.name) }
+        }
         do {
             try checkBlock(&checked)
             recordUnawaitedCalls()

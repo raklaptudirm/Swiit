@@ -6,7 +6,7 @@ import Foundation
 // Docs/async.md, step 7.
 
 /// A `Task`'s value: the interpreter's task it started.
-final class TaskBox: @unchecked Sendable { // safe: only immutable state
+final class TaskBox: @unchecked Sendable {  // safe: only immutable state
     public let handle: TaskHandle
     init(_ handle: TaskHandle) { self.handle = handle }
 }
@@ -14,30 +14,64 @@ final class TaskBox: @unchecked Sendable { // safe: only immutable state
 /// What `Task.checkCancellation()`, `Task.sleep` and a cancelled task's
 /// `value` throw: Swift's `CancellationError`.
 func cancellationError() -> RuntimeError {
-    RuntimeError("the task was cancelled", thrown: .record(Record(
-        ["localizedDescription": .string("the task was cancelled")], typeName: "CancellationError")))
+    RuntimeError(
+        "the task was cancelled",
+        thrown: .record(
+            Record(
+                ["localizedDescription": .string("the task was cancelled")],
+                typeName: "CancellationError"
+            )
+        )
+    )
 }
 
 extension Bridge {
     /// Conformances this module declares for bridged types, which the
     /// generator doesn't read (it reads the modules the types are from).
-    static let conformancesDeclaredHere: [String: [String]] = ["Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"], "ThrowingTaskGroup": ["AsyncSequence"]]
+    static let conformancesDeclaredHere: [String: [String]] = [
+        "Flow": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"], "ThrowingTaskGroup": ["AsyncSequence"],
+    ]
 
-    nonisolated(unsafe) static let concurrency: [BridgedType] = [ // safe: set once, before anything reads it
-        BridgedType(
-            name: "Task", genericParameters: ["Success", "Failure"], conformances: ["Hashable": [:], "Equatable": [:]],
-            associatedTypes: [:], members: taskMembers
-        ),
-    ] + taskGroupTypes
+    nonisolated(unsafe) static let concurrency: [BridgedType] =
+        [  // safe: set once, before anything reads it
+            BridgedType(
+                name: "Task",
+                genericParameters: ["Success", "Failure"],
+                conformances: ["Hashable": [:], "Equatable": [:]],
+                associatedTypes: [:],
+                members: taskMembers
+            )
+        ] + taskGroupTypes
 
     static func member(
-        _ kind: BridgedMember.Kind, _ name: String, isStatic: Bool = false, parameters: [Parameter] = [],
-        returns: TypeAnnotation, generics: [String: [String]] = [:], throwing: Bool = false, effect: Effect = .sync,
-        typedThrows: String? = nil, summary: String, _ body: @escaping (Interpreter, [String: Value]) throws -> Value
+        _ kind: BridgedMember.Kind,
+        _ name: String,
+        isStatic: Bool = false,
+        parameters: [Parameter] = [],
+        returns: TypeAnnotation,
+        generics: [String: [String]] = [:],
+        throwing: Bool = false,
+        effect: Effect = .sync,
+        typedThrows: String? = nil,
+        summary: String,
+        _ body: @escaping (Interpreter, [String: Value]) throws -> Value
     ) -> BridgedMember {
-        BridgedMember(kind: kind, name: name, isStatic: isStatic, parameters: parameters, returns: returns, generics: generics,
-                      isThrowing: throwing, isRethrowing: false, isMutating: false, discardableResult: kind == .initializer,
-                      summary: summary, body: .native(body), effect: effect, typedThrows: typedThrows)
+        BridgedMember(
+            kind: kind,
+            name: name,
+            isStatic: isStatic,
+            parameters: parameters,
+            returns: returns,
+            generics: generics,
+            isThrowing: throwing,
+            isRethrowing: false,
+            isMutating: false,
+            discardableResult: kind == .initializer,
+            summary: summary,
+            body: .native(body),
+            effect: effect,
+            typedThrows: typedThrows
+        )
     }
 
     private static func task(_ value: Value?) throws -> TaskHandle {
@@ -54,18 +88,48 @@ extension Bridge {
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
 
-    nonisolated(unsafe) private static let taskMembers: [BridgedMember] = [ // safe: set once, before anything reads it
-        member(.initializer, "init", isStatic: true,
-               parameters: [Parameter(label: "operation", name: "operation", type: .functionType([], .parameter("Success"), async: .async))],
-               returns: .generic("Task", [.parameter("Success"), .named("Never")]), generics: ["Success": []],
-               summary: "Runs the operation as a task of its own, which goes on while the code that started it does.", start),
-        member(.initializer, "init", isStatic: true,
-               parameters: [Parameter(label: "operation", name: "operation",
-                                      type: .functionType([], .parameter("Success"), throws: true, async: .async))],
-               returns: .generic("Task", [.parameter("Success"), .named("Error")]), generics: ["Success": []],
-               summary: "Runs the throwing operation as a task of its own, which goes on while the code that started it does.", start),
-        member(.property, "value", returns: .parameter("Success"), effect: .async, typedThrows: "Failure",
-               summary: "What the task gives, once it has ended; what it threw, if it threw.") { interpreter, arguments in
+    nonisolated(unsafe) private static let taskMembers: [BridgedMember] = [  // safe: set once, before anything reads it
+        member(
+            .initializer,
+            "init",
+            isStatic: true,
+            parameters: [
+                Parameter(
+                    label: "operation",
+                    name: "operation",
+                    type: .functionType([], .parameter("Success"), async: .async)
+                )
+            ],
+            returns: .generic("Task", [.parameter("Success"), .named("Never")]),
+            generics: ["Success": []],
+            summary: "Runs the operation as a task of its own, which goes on while the code that started it does.",
+            start
+        ),
+        member(
+            .initializer,
+            "init",
+            isStatic: true,
+            parameters: [
+                Parameter(
+                    label: "operation",
+                    name: "operation",
+                    type: .functionType([], .parameter("Success"), throws: true, async: .async)
+                )
+            ],
+            returns: .generic("Task", [.parameter("Success"), .named("Error")]),
+            generics: ["Success": []],
+            summary:
+                "Runs the throwing operation as a task of its own, which goes on while the code that started it does.",
+            start
+        ),
+        member(
+            .property,
+            "value",
+            returns: .parameter("Success"),
+            effect: .async,
+            typedThrows: "Failure",
+            summary: "What the task gives, once it has ended; what it threw, if it threw."
+        ) { interpreter, arguments in
             let handle = try task(arguments["self"])
             do {
                 return try interpreter.joinTask(handle)
@@ -79,27 +143,54 @@ extension Bridge {
             try task(arguments["self"]).cancel()
             return .nothing
         },
-        member(.property, "isCancelled", returns: .bool, summary: "Whether the task has been asked to stop.") { _, arguments in
+        member(.property, "isCancelled", returns: .bool, summary: "Whether the task has been asked to stop.") {
+            _,
+            arguments in
             .bool(try task(arguments["self"]).context.cancellation.isSet)
         },
-        member(.property, "isCancelled", isStatic: true, returns: .bool,
-               summary: "Whether the task running this has been asked to stop.") { interpreter, _ in
+        member(
+            .property,
+            "isCancelled",
+            isStatic: true,
+            returns: .bool,
+            summary: "Whether the task running this has been asked to stop."
+        ) { interpreter, _ in
             .bool(interpreter.task.cancellation.isSet)
         },
-        member(.method, "checkCancellation", isStatic: true, returns: .void, throwing: true,
-               summary: "Throws a CancellationError if the task running this has been asked to stop.") { interpreter, _ in
+        member(
+            .method,
+            "checkCancellation",
+            isStatic: true,
+            returns: .void,
+            throwing: true,
+            summary: "Throws a CancellationError if the task running this has been asked to stop."
+        ) { interpreter, _ in
             if interpreter.task.cancellation.isSet { throw cancellationError() }
             return .nothing
         },
-        member(.method, "sleep", isStatic: true, parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
-               returns: .void, throwing: true, effect: .async,
-               summary: "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.") { interpreter, arguments in
+        member(
+            .method,
+            "sleep",
+            isStatic: true,
+            parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
+            returns: .void,
+            throwing: true,
+            effect: .async,
+            summary:
+                "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first."
+        ) { interpreter, arguments in
             let nanoseconds = try Int(arguments["duration"]!)
             try interpreter.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },
-        member(.method, "yield", isStatic: true, returns: .void, effect: .async,
-               summary: "Lets other tasks run before this one goes on.") { interpreter, _ in
+        member(
+            .method,
+            "yield",
+            isStatic: true,
+            returns: .void,
+            effect: .async,
+            summary: "Lets other tasks run before this one goes on."
+        ) { interpreter, _ in
             _ = interpreter.suspend { sched_yield() }
             return .nothing
         },
@@ -133,7 +224,7 @@ extension Interpreter {
 /// cancelling the task cancels it.
 func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
     // Set by the operation's task, read by this thread once it's set.
-    final class Outcome: @unchecked Sendable { // safe: every access holds its own lock
+    final class Outcome: @unchecked Sendable {  // safe: every access holds its own lock
         let operation: () async throws -> Value
         private let condition = NSCondition()
         private var stored: Result<Value, any Error>?
@@ -165,8 +256,8 @@ func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async thr
 /// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
 func bridgeAsyncClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
-    nonisolated(unsafe) let interpreter = interpreter // safe: runs holding the interpreter lock
-    nonisolated(unsafe) let caller = interpreter.task // safe: runs holding the interpreter lock
+    nonisolated(unsafe) let interpreter = interpreter  // safe: runs holding the interpreter lock
+    nonisolated(unsafe) let caller = interpreter.task  // safe: runs holding the interpreter lock
     let function = function
     return { arguments in
         let arguments = arguments

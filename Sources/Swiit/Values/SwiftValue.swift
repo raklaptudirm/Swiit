@@ -5,7 +5,7 @@ import Foundation
 /// the checker and to you; its members are bridged (see
 /// Docs/swift-interop.md). It compares, hashes and sorts as the Swift
 /// value does, when its type can.
-final class SwiftValue: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let value: Any
     /// Its Swift type, as Swiit writes it: `Substring`.
     public let typeName: String
@@ -71,11 +71,14 @@ final class SwiftValue: LanguageObject, @unchecked Sendable { // safe: its state
         return SwiftValue.lessThan(comparable, other.value)
     }
 
-    public var identity: AnyHashable { (value as? any Hashable).map { AnyHashable($0) } ?? AnyHashable(ObjectIdentifier(self)) }
+    public var identity: AnyHashable {
+        (value as? any Hashable).map { AnyHashable($0) } ?? AnyHashable(ObjectIdentifier(self))
+    }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
     public var description: String { (value as? any SwiitDisplayed)?.swiitDescription ?? String(describing: value) }
-    public var debugDescription: String { (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value) }
+    public var debugDescription: String {
+        (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value)
+    }
 }
-

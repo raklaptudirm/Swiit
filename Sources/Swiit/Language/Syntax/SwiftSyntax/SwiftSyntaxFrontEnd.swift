@@ -41,17 +41,23 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
         let parsed = SwiftSyntaxFrontEnd.parse(source)
         var problems: [(message: String, offset: Int)] = []
         var other: Error?
-        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound).foldAll(parsed) { error in
-            switch error as? OperatorError {
-            case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
-                problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
-            case .incomparableOperators(_, _, let node, _)?:
-                // `1...2...3`, `a < b < c`: the second operator can't follow the first.
-                problems.append(("'\(node.trimmedDescription)' can't be chained; use parentheses or '&&'", node.positionAfterSkippingLeadingTrivia.utf8Offset))
-            default:
-                other = other ?? error
+        let folded = SwiftSyntaxFrontEnd.operators(declaredIn: parsed, bound: bound)
+            .foldAll(parsed) { error in
+                switch error as? OperatorError {
+                case .missingOperator(_, let node)?, .missingGroup(_, let node)?:
+                    problems.append(("\(error)", node.positionAfterSkippingLeadingTrivia.utf8Offset))
+                case .incomparableOperators(_, _, let node, _)?:
+                    // `1...2...3`, `a < b < c`: the second operator can't follow the first.
+                    problems.append(
+                        (
+                            "'\(node.trimmedDescription)' can't be chained; use parentheses or '&&'",
+                            node.positionAfterSkippingLeadingTrivia.utf8Offset
+                        )
+                    )
+                default:
+                    other = other ?? error
+                }
             }
-        }
         if let other { throw SyntaxError("\(other)") }
         guard let tree = folded.as(SourceFileSyntax.self) else { throw SyntaxError("not a source file") }
         var lowering = Lowering(source: source, tree: tree, bound: bound)
@@ -78,9 +84,13 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
     static func operators(declaredIn parsed: SourceFileSyntax, bound: [String: NameKind]) -> OperatorTable {
         var table = OperatorTable.standardOperators
         // The groups first, which the operators name.
-        let earlier = bound.compactMap { key, kind -> (String, String)? in
-            if case .operatorDeclaration(let source) = kind { (key, source) } else { nil }
-        }.sorted { ($0.0.hasPrefix("precedencegroup") ? 0 : 1, $0.0) < ($1.0.hasPrefix("precedencegroup") ? 0 : 1, $1.0) }
+        let earlier =
+            bound.compactMap { key, kind -> (String, String)? in
+                if case .operatorDeclaration(let source) = kind { (key, source) } else { nil }
+            }
+            .sorted {
+                ($0.0.hasPrefix("precedencegroup") ? 0 : 1, $0.0) < ($1.0.hasPrefix("precedencegroup") ? 0 : 1, $1.0)
+            }
         if !earlier.isEmpty {
             table.addSourceFile(SwiftParser.Parser.parse(source: earlier.map(\.1).joined(separator: "\n"))) { _ in }
         }

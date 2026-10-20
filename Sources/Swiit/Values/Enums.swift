@@ -1,7 +1,7 @@
 /// An enum's definition: its name and cases, in order. Declared in Swiit
 /// (`enum FileType { case file, directory }`) or by the host.
 /// Types compare by identity, so two enums with the same name are distinct.
-public final class EnumType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+public final class EnumType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public struct Case: Sendable, Equatable {
         public let name: String
         /// For an enum with raw values (`enum Level: Int`).
@@ -104,10 +104,11 @@ public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebu
     public var description: String {
         guard !values.isEmpty else { return name }
         let labels = definition?.labels ?? []
-        let parts = values.enumerated().map { index, value in
-            let label = index < labels.count ? labels[index] : nil
-            return (label.map { "\($0): " } ?? "") + value.description
-        }
+        let parts = values.enumerated()
+            .map { index, value in
+                let label = index < labels.count ? labels[index] : nil
+                return (label.map { "\($0): " } ?? "") + value.description
+            }
         return "\(name)(\(parts.joined(separator: ", ")))"
     }
 
@@ -117,11 +118,11 @@ public struct EnumValue: Sendable, Hashable, CustomStringConvertible, CustomDebu
         let written = "\(type.name).\(name)"
         guard !values.isEmpty else { return written }
         let labels = definition?.labels ?? []
-        let parts = values.enumerated().map { index, value in
-            let label = index < labels.count ? labels[index] : nil
-            return (label.map { "\($0): " } ?? "") + value.debugDescription
-        }
+        let parts = values.enumerated()
+            .map { index, value in
+                let label = index < labels.count ? labels[index] : nil
+                return (label.map { "\($0): " } ?? "") + value.debugDescription
+            }
         return "\(written)(\(parts.joined(separator: ", ")))"
     }
 }
-

@@ -1,5 +1,5 @@
-
-/// What `await` waits for, which a host registers: the type of the operand (a handle the host made), the type it gives, and
+/// What `await` waits for, which a host registers: the type of the operand (a handle the host made), the type it gives,
+/// and
 /// how to wait. Without one, `await` is refused.
 public struct Awaiting {
     public var operand: ValueType
@@ -8,13 +8,18 @@ public struct Awaiting {
     var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
     /// Whether a value is one of its handles; `await` of anything else is an `async` call's, and gives the value.
     var isHandle: (Value) -> Bool
-    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a host's `Job<Int>` gives an
+    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a host's `Job<Int>` gives
+    /// an
     /// Int); `result` else.
     var resultOf: (ValueType) -> ValueType?
 
-    public init(operand: ValueType, result: ValueType, isHandle: @escaping (Value) -> Bool = { _ in true },
-                resultOf: @escaping (ValueType) -> ValueType? = { _ in nil },
-                perform: @escaping (Value?, Bool) throws -> Value) {
+    public init(
+        operand: ValueType,
+        result: ValueType,
+        isHandle: @escaping (Value) -> Bool = { _ in true },
+        resultOf: @escaping (ValueType) -> ValueType? = { _ in nil },
+        perform: @escaping (Value?, Bool) throws -> Value
+    ) {
         self.operand = operand
         self.result = result
         self.isHandle = isHandle
@@ -43,9 +48,13 @@ extension Interpreter {
         }
     }
 
-    /// Starts a task: `body` runs script code on a thread of its own, as a Swift `Task` would, and the host keeps `state` for it
+    /// Starts a task: `body` runs script code on a thread of its own, as a Swift `Task` would, and the host keeps
+    /// `state` for it
     /// (`taskState` while it runs). It ends with the scope that started it, unless joined first.
-    public func startTask(state: AnyObject?, _ body: @escaping @Sendable () throws -> Value) throws(Diagnostic) -> TaskHandle {
+    public func startTask(
+        state: AnyObject?,
+        _ body: @escaping @Sendable () throws -> Value
+    ) throws(Diagnostic) -> TaskHandle {
         do {
             return try inCurrentTask { try startTask(host: state, structured: true, body) }
         } catch {
@@ -62,7 +71,8 @@ extension Interpreter {
         }
     }
 
-    /// Cancels the tasks the script has started and not joined, and waits for them, as the scope that started them closing
+    /// Cancels the tasks the script has started and not joined, and waits for them, as the scope that started them
+    /// closing
     /// would: how a host ends a script.
     public func finishTasks() {
         inCurrentTask { closeTasks(above: -1) }

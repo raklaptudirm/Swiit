@@ -42,7 +42,10 @@ struct Reader {
         guard pos + target.count <= chars.count, Array(chars[pos..<pos + target.count]) == target else { return false }
         // A keyword mustn't run into an identifier.
         if let last = target.last, last.isLetter, pos + target.count < chars.count,
-           chars[pos + target.count].isLetter || chars[pos + target.count].isNumber || chars[pos + target.count] == "_" { return false }
+            chars[pos + target.count].isLetter || chars[pos + target.count].isNumber || chars[pos + target.count] == "_"
+        {
+            return false
+        }
         pos += target.count
         return true
     }
@@ -85,7 +88,8 @@ struct Reader {
     mutating func type() throws -> SType {
         var result: SType
         pos = skipSpacesCopy()
-        for word in ["some ", "any ", "inout ", "borrowing ", "consuming ", "sending ", "__owned ", "__shared "] where consume(word.trimmingCharacters(in: .whitespaces)) {
+        for word in ["some ", "any ", "inout ", "borrowing ", "consuming ", "sending ", "__owned ", "__shared "]
+        where consume(word.trimmingCharacters(in: .whitespaces)) {
             throw Unsupported(reason: word)
         }
         while consume("@escaping") {}
@@ -129,7 +133,9 @@ struct Reader {
                 result = .tuple(elements)
             }
         } else {
-            guard let name = identifier() else { throw Unsupported(reason: "type at \(String(chars[pos...]).prefix(20))") }
+            guard let name = identifier() else {
+                throw Unsupported(reason: "type at \(String(chars[pos...]).prefix(20))")
+            }
             var arguments: [SType] = []
             if peek() == "<" {
                 pos += 1

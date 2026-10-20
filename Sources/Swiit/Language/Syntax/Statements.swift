@@ -117,8 +117,13 @@ struct IfStatement: Equatable, Sendable {
     /// every branch one expression. `else if` branches become expressions too.
     var asExpression: IfStatement? {
         guard let otherwise, let thenExpr = IfStatement.branchExpression(then),
-              let elseExpr = IfStatement.branchExpression(otherwise) else { return nil }
-        return IfStatement(condition: condition, then: IfStatement.branch(thenExpr), otherwise: IfStatement.branch(elseExpr))
+            let elseExpr = IfStatement.branchExpression(otherwise)
+        else { return nil }
+        return IfStatement(
+            condition: condition,
+            then: IfStatement.branch(thenExpr),
+            otherwise: IfStatement.branch(elseExpr)
+        )
     }
 
     init(condition: Condition, then: Program, otherwise: Program? = nil) {
@@ -254,12 +259,32 @@ struct ForLoop: Equatable, Sendable {
     /// `outer: for …`, which `break outer` and `continue outer` name.
     var label: String?
 
-    init(variable: String, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false, label: String? = nil) {
-        self.init(pattern: variable == "_" ? .wildcard : .binding(name: variable, mutable: false), sequence: sequence, body: body,
-                  isAwait: isAwait, isTry: isTry, label: label)
+    init(
+        variable: String,
+        sequence: Expr,
+        body: Program,
+        isAwait: Bool = false,
+        isTry: Bool = false,
+        label: String? = nil
+    ) {
+        self.init(
+            pattern: variable == "_" ? .wildcard : .binding(name: variable, mutable: false),
+            sequence: sequence,
+            body: body,
+            isAwait: isAwait,
+            isTry: isTry,
+            label: label
+        )
     }
 
-    init(pattern: Pattern, sequence: Expr, body: Program, isAwait: Bool = false, isTry: Bool = false, label: String? = nil) {
+    init(
+        pattern: Pattern,
+        sequence: Expr,
+        body: Program,
+        isAwait: Bool = false,
+        isTry: Bool = false,
+        label: String? = nil
+    ) {
         self.pattern = pattern
         self.sequence = sequence
         self.body = body

@@ -1,4 +1,3 @@
-
 /// A host object whose members aren't declared one by one: `env`, whose
 /// members are the process's variables. Reading a member or indexing by a
 /// string asks the object, assigning writes to it, and the checker types
@@ -72,7 +71,10 @@ extension Interpreter {
     /// Binds `name` to a dynamic object in the outermost scope, and tells the
     /// checker the type of its members.
     func bind(_ name: String, to object: some DynamicObject) {
-        dynamicTypes[object.typeName] = DynamicType(read: TypeAnnotation(object.readType), write: TypeAnnotation(object.writeType))
+        dynamicTypes[object.typeName] = DynamicType(
+            read: TypeAnnotation(object.readType),
+            write: TypeAnnotation(object.writeType)
+        )
         scopes[0].bindings[name] = Binding(value: .object(object), mutable: false)
     }
 }
@@ -80,13 +82,16 @@ extension Interpreter {
 extension TypeChecker {
     /// The members' types if `type` is a dynamic object's.
     func dynamicType(of type: TypeAnnotation) -> DynamicType? {
-        guard case .named(let name) = type, let dynamic = interpreter.dynamicTypes[name], dynamic.plain == nil else { return nil }
+        guard case .named(let name) = type, let dynamic = interpreter.dynamicTypes[name], dynamic.plain == nil else {
+            return nil
+        }
         return dynamic
     }
 
     /// How a plain dynamic type (parsed JSON) is read, if `type` is one.
     func plainType(of type: TypeAnnotation?) -> (type: DynamicType, plain: PlainDynamic)? {
-        guard case .named(let name)? = type, let dynamic = interpreter.dynamicTypes[name], let plain = dynamic.plain else { return nil }
+        guard case .named(let name)? = type, let dynamic = interpreter.dynamicTypes[name], let plain = dynamic.plain
+        else { return nil }
         return (dynamic, plain)
     }
 
@@ -95,7 +100,10 @@ extension TypeChecker {
     func plainAccess(_ type: TypeAnnotation?, _ base: Expr, _ name: String) -> Expr? {
         guard let (_, plain) = plainType(of: type) else { return nil }
         if let view = plain.views[name] { return .call(.variable(view.function), [Argument(label: nil, value: base)]) }
-        return .call(.variable(plain.field), [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))])
+        return .call(
+            .variable(plain.field),
+            [Argument(label: nil, value: base), Argument(label: nil, value: .literal(.string(name)))]
+        )
     }
 
     /// `value[key]` on a plain dynamic type as it runs.
@@ -114,18 +122,26 @@ extension Value {
 }
 
 extension Interpreter {
-    /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a value of the type `name` is
-    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function `field(value, "port")`, which gives
-    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives the value as that type, or
+    /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a value of the type
+    /// `name` is
+    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function `field(value, "port")`,
+    /// which gives
+    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives the value as that
+    /// type, or
     /// nil. Each access is checked as the optional of the type, so a script reads a field it is not sure is there.
-    public func registerDynamic(named name: String, field: String, views: [String: (function: String, type: ValueType)]) {
+    public func registerDynamic(named name: String, field: String, views: [String: (function: String, type: ValueType)])
+    {
         let type = TypeAnnotation.named(name)
         withMainTask {
-            dynamicTypes[name] = DynamicType(read: .optional(type), write: .optional(type), plain: PlainDynamic(
-                field: field,
-                views: views.mapValues { PlainDynamic.View(function: $0.function, type: TypeAnnotation($0.type)) },
-                element: type
-            ))
+            dynamicTypes[name] = DynamicType(
+                read: .optional(type),
+                write: .optional(type),
+                plain: PlainDynamic(
+                    field: field,
+                    views: views.mapValues { PlainDynamic.View(function: $0.function, type: TypeAnnotation($0.type)) },
+                    element: type
+                )
+            )
         }
     }
 }

@@ -3,17 +3,22 @@ import Foundation
 func annotation(_ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.annotation ?? ".parameter(\(quoted(name)))"
-    case .named("KeyPath", let arguments) where arguments.count == 2: return ".keyPath(\(annotation(arguments[0])), \(annotation(arguments[1])))"
-    case .named(let name, let arguments): return ".generic(\(quoted(name)), [\(arguments.map(annotation).joined(separator: ", "))])"
+    case .named("KeyPath", let arguments) where arguments.count == 2:
+        return ".keyPath(\(annotation(arguments[0])), \(annotation(arguments[1])))"
+    case .named(let name, let arguments):
+        return ".generic(\(quoted(name)), [\(arguments.map(annotation).joined(separator: ", "))])"
     case .array(let element): return ".list(\(annotation(element)))"
     case .optional(let wrapped): return ".optional(\(annotation(wrapped)))"
     case .dictionary(let key, let value): return ".dictionary(\(annotation(key)), \(annotation(value)))"
     case .someSequence(let element): return ".someSequence(\(annotation(element)))"
     case .tuple(let elements):
         if elements.isEmpty { return ".void" }
-        return ".tuple([" + elements.map { ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))" }.joined(separator: ", ") + "])"
+        return ".tuple(["
+            + elements.map { ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))" }
+            .joined(separator: ", ") + "])"
     case .function(let parameters, let result, let throwing, let isAsync):
-        return ".functionType([\(parameters.map(annotation).joined(separator: ", "))], \(annotation(result)), throws: \(throwing)"
+        return
+            ".functionType([\(parameters.map(annotation).joined(separator: ", "))], \(annotation(result)), throws: \(throwing)"
             + (isAsync ? ", async: .async)" : ")")
     case .member: fatalError("unsupported \(type)")
     }
@@ -30,9 +35,11 @@ func spelling(_ type: SType) -> String {
     case .dictionary(let key, let value): return "[\(spelling(key)): \(spelling(value))]"
     case .tuple(let elements):
         if elements.isEmpty { return "Void" }
-        return "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + spelling($0.type) }.joined(separator: ", ") + ")"
+        return "(" + elements.map { ($0.label.map { "\($0): " } ?? "") + spelling($0.type) }.joined(separator: ", ")
+            + ")"
     case .function(let parameters, let result, let throwing, let isAsync):
-        return "(\(parameters.map(spelling).joined(separator: ", ")))\(isAsync ? " async" : "")\(throwing ? " throws" : "") -> \(spelling(result))"
+        return
+            "(\(parameters.map(spelling).joined(separator: ", ")))\(isAsync ? " async" : "")\(throwing ? " throws" : "") -> \(spelling(result))"
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -75,12 +82,14 @@ func fromValue(_ value: String, _ type: SType) -> String {
         return "(\(value) == .nothing ? nil : \(fromValue(value, wrapped)))"
     case .dictionary(let key, let value2):
         guard isLeaf(key) || isLeaf(value2) else { return "try bridgeDictionary(\(value))" }
-        return "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromValue("$0.key", key)), \(fromValue("$0.value", value2))) })"
+        return
+            "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromValue("$0.key", key)), \(fromValue("$0.value", value2))) })"
     case .tuple(let elements):
         let labels = elements.map { $0.label.map(quoted) ?? "nil" }.joined(separator: ", ")
-        let parts = elements.enumerated().map { index, element in
-            (element.label.map { "\($0): " } ?? "") + fromValue("t[\(index)]", element.type)
-        }
+        let parts = elements.enumerated()
+            .map { index, element in
+                (element.label.map { "\($0): " } ?? "") + fromValue("t[\(index)]", element.type)
+            }
         return "try bridgeTuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
     case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
@@ -88,9 +97,14 @@ func fromValue(_ value: String, _ type: SType) -> String {
         let typed = zip(names, parameters).map { "\($0): \(spelling($1))" }.joined(separator: ", ")
         // A closure Swift calls as `async` runs on a thread of the interpreter's
         // (`bridgeAsyncClosure`), as the task that passed it.
-        let call = isAsync ? "(try await bridgeAsyncClosure(interpreter, \(value))([\(arguments)]))" : "try bridgeClosure(interpreter, \(value))([\(arguments)])"
+        let call =
+            isAsync
+            ? "(try await bridgeAsyncClosure(interpreter, \(value))([\(arguments)]))"
+            : "try bridgeClosure(interpreter, \(value))([\(arguments)])"
         let effects = isAsync ? "async throws" : "throws"
-        if case .tuple(let elements) = result, elements.isEmpty { return "{ (\(typed)) \(effects) -> Void in _ = \(call) }" }
+        if case .tuple(let elements) = result, elements.isEmpty {
+            return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"
+        }
         return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromValue(call, result)) }"
     case .member: fatalError("unsupported \(type)")
     }
@@ -106,9 +120,11 @@ func toValue(_ swift: String, _ type: SType) -> String {
         let bound = arguments[0]
         switch name {
         case "Range", "ClosedRange":
-            return "bridgeBox(\(swift), as: \(typeName)) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toValue("r.lowerBound", bound)), upper: \(toValue("r.upperBound", bound)))) }"
+            return
+                "bridgeBox(\(swift), as: \(typeName)) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toValue("r.lowerBound", bound)), upper: \(toValue("r.upperBound", bound)))) }"
         default:
-            return "bridgeBox(\(swift), as: \(typeName)) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
+            return
+                "bridgeBox(\(swift), as: \(typeName)) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
         if case .named(let name, []) = element, leaves[name] == nil { return ".list(\(swift))" }
@@ -117,12 +133,14 @@ func toValue(_ swift: String, _ type: SType) -> String {
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.
         guard isLeaf(key) || isLeaf(value) else { return "bridgeDictionary(\(swift))" }
-        return "bridgeDictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toValue("$0.key", key)), \(toValue("$0.value", value))) }))"
+        return
+            "bridgeDictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toValue("$0.key", key)), \(toValue("$0.value", value))) }))"
     case .tuple(let elements):
         if elements.isEmpty { return ".nothing" }
-        let parts = elements.enumerated().map { index, element in
-            "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
-        }
+        let parts = elements.enumerated()
+            .map { index, element in
+                "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
+            }
         return "bridgeTuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
     case .someSequence, .function, .member: fatalError("unsupported \(type)")
     }

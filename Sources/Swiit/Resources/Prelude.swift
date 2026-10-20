@@ -67,7 +67,6 @@ struct CancellationError: Error {
     let localizedDescription: String
 }
 
-
 extension Sequence {
     /// Each item with its position, as pairs: Swift's lazy `EnumeratedSequence` is held as the array it would give.
     func enumerated() -> [(offset: Int, element: Element)] {

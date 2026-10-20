@@ -2,7 +2,7 @@ import Foundation
 
 /// Every function declared under one name. A name declared with `func` is
 /// always bound to one of these, even with a single candidate.
-final class OverloadSet: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class OverloadSet: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
     public let candidates: [Function]
 
@@ -34,7 +34,9 @@ extension Function {
     /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`,
     /// without the parameters `hiding` says, in pieces by what each is.
     public func declaration(
-        as name: String? = nil, nameStyle: DisplayStyle = .function, hiding hidden: (Parameter) -> Bool
+        as name: String? = nil,
+        nameStyle: DisplayStyle = .function,
+        hiding hidden: (Parameter) -> Bool
     ) -> [AttributedString] {
         var pieces: [AttributedString] = [.init(name ?? self.name ?? "closure", nameStyle), .init("(")]
         for (index, parameter) in parameters.filter({ !hidden($0) }).enumerated() {
@@ -58,7 +60,7 @@ extension Function {
 
 /// `\.size` or `\.status.code`: reads the path of members from a value.
 /// Where a function is wanted it's one, as in Swift: `xs.map(\.name)`.
-final class KeyPathValue: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class KeyPathValue: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let path: [String]
 
     public init(path: [String]) {
@@ -92,11 +94,17 @@ extension TypeAnnotation {
 extension Function {
     /// A builtin written in Swift, with its documentation.
     public static func builtin(
-        _ name: String, _ summary: String, _ parameters: [Parameter],
-        docs: [String: String] = [:], _ body: FunctionBody
+        _ name: String,
+        _ summary: String,
+        _ parameters: [Parameter],
+        docs: [String: String] = [:],
+        _ body: FunctionBody
     ) -> Function {
         Function(
-            name: name, parameters: parameters, returnType: nil, body: body,
+            name: name,
+            parameters: parameters,
+            returnType: nil,
+            body: body,
             documentation: Documentation(summary: summary, parameters: docs)
         )
     }

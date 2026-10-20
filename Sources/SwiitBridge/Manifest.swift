@@ -38,7 +38,8 @@ struct Manifest: Codable {
     /// One member to a line, in order, so what changes shows as a diff.
     func write(to path: String) throws {
         try FileManager.default.createDirectory(
-            at: URL(fileURLWithPath: path).deletingLastPathComponent(), withIntermediateDirectories: true
+            at: URL(fileURLWithPath: path).deletingLastPathComponent(),
+            withIntermediateDirectories: true
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]

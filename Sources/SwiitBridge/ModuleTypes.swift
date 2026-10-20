@@ -1,7 +1,7 @@
 import Foundation
 
 /// The module's types held as they are, from another module: a FilePath.
-nonisolated(unsafe) var externalTypes: Set<String> = [] // safe: the generator runs on one thread
+nonisolated(unsafe) var externalTypes: Set<String> = []  // safe: the generator runs on one thread
 
 /// A field's type as Swiit source, and what encoding leaves for the glue to
 /// fix (an enum or a path is text there); nil if Swiit can't hold it so.
@@ -25,8 +25,11 @@ func fieldType(_ type: SType) -> (source: String, patch: String?)? {
 }
 
 func publicMembers(of name: String, _ kind: String) -> [Symbol] {
-    graph.symbols.filter { $0.pathComponents.count == 2 && $0.pathComponents[0] == name
-        && $0.kind.identifier == kind && $0.accessLevel == "public" }
+    graph.symbols
+        .filter {
+            $0.pathComponents.count == 2 && $0.pathComponents[0] == name
+                && $0.kind.identifier == kind && $0.accessLevel == "public"
+        }
         // In declaration order, which the graph gives as source lines.
         .sorted { ($0.location?.position.line ?? 0) < ($1.location?.position.line ?? 0) }
 }

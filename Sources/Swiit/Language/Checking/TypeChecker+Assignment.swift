@@ -9,7 +9,8 @@ extension TypeChecker {
         // `Point.count += 1`: a static var is assigned through its type.
         var start = 0
         if case .structType(let info) = symbol {
-            guard case .member(let name)? = assignment.path.first, let property = info.declared.staticProperties[name] else {
+            guard case .member(let name)? = assignment.path.first, let property = info.declared.staticProperties[name]
+            else {
                 throw TypeError("cannot assign to '\(assignment.root)': it isn't a variable")
             }
             guard property.isSettable else {
@@ -23,7 +24,9 @@ extension TypeChecker {
                 throw TypeError("cannot assign to '\(assignment.root)': it isn't a variable")
             }
             // A class instance is a reference: a `let` of one still has its members assigned.
-            let isReference: Bool = { if case .named(let name) = rootType, structInfo(named: name)?.isClass == true { true } else { false } }()
+            let isReference: Bool = {
+                if case .named(let name) = rootType, structInfo(named: name)?.isClass == true { true } else { false }
+            }()
             guard mutable || dynamicType(of: rootType) != nil || (isReference && !assignment.path.isEmpty) else {
                 if assignment.root == "self" {
                     throw TypeError("cannot assign to self here: it's only changed by a mutating method")
@@ -39,30 +42,38 @@ extension TypeChecker {
                 if let dynamic = dynamicType(of: type) {
                     type = dynamic.write
                 } else if case .member(let name) = assignment.path[index], case .named(let structName) = type,
-                          let description = describe(type), [.structure, .classType, .actor].contains(description.kind) {
+                    let description = describe(type), [.structure, .classType, .actor].contains(description.kind)
+                {
                     guard case .property(let property)? = description.instanceMember(name) else {
                         throw TypeError("cannot assign to '\(name)': \(structName) has no property '\(name)'")
                     }
                     // A computed property is assigned through its setter.
                     guard let stored = property.stored else {
-                        guard property.isSettable else { throw TypeError("cannot assign to '\(name)': it's a computed property") }
+                        guard property.isSettable else {
+                            throw TypeError("cannot assign to '\(name)': it's a computed property")
+                        }
                         type = property.type
                         continue
                     }
-                    let initializing = assignment.root == "self" && index == 0 && lookup(InternalName.initializing) != nil
+                    let initializing =
+                        assignment.root == "self" && index == 0 && lookup(InternalName.initializing) != nil
                     guard stored.mutable || (initializing && last) else {
                         throw TypeError("cannot assign to '\(name)': it's a 'let' property of \(structName)")
                     }
                     type = property.type
                 } else if case .member(let name) = assignment.path[index], case .tuple(let elements) = type {
-                    guard let element = tupleElement(name, of: elements) else { throw TypeError("\(type) has no element '\(name)'") }
+                    guard let element = tupleElement(name, of: elements) else {
+                        throw TypeError("\(type) has no element '\(name)'")
+                    }
                     type = element
                 } else if type == .unknown || type == .record || type == .any {
                     type = .unknown
                 } else if case .member(let name) = assignment.path[index], let (bridgedType, bindings) = bridged(type),
-                          bridgedType.members.contains(where: { $0.kind == .property && !$0.isStatic && $0.name == name }) {
+                    bridgedType.members.contains(where: { $0.kind == .property && !$0.isStatic && $0.name == name })
+                {
                     // `p.extension = "md"`: a Swift property with a setter.
-                    guard let setter = bridgedType.members.first(where: { $0.kind == .setter && $0.name == name }) else {
+                    guard let setter = bridgedType.members.first(where: { $0.kind == .setter && $0.name == name })
+                    else {
                         throw TypeError("cannot assign to '\(name)': it's a get-only property of \(type)")
                     }
                     type = substitute(setter.parameters[0].type, bindings)
@@ -77,7 +88,9 @@ extension TypeChecker {
                 case .named(let structName) where structInfo(named: structName)?.subscripts.isEmpty == false:
                     var arguments = [Argument(value: indexExpr)]
                     let (result, settable) = try structSubscript(structInfo(named: structName)!, &arguments)
-                    guard settable else { throw TypeError("cannot assign through \(structName)'s subscript: it's get-only") }
+                    guard settable else {
+                        throw TypeError("cannot assign through \(structName)'s subscript: it's get-only")
+                    }
                     indexExpr = arguments[0].value
                     type = result
                 case .list(let element):
@@ -99,7 +112,9 @@ extension TypeChecker {
                     throw TypeError("cannot assign into \(type) by several indexes")
                 }
                 let (result, settable) = try structSubscript(info, &arguments)
-                guard settable else { throw TypeError("cannot assign through \(structName)'s subscript: it's get-only") }
+                guard settable else {
+                    throw TypeError("cannot assign through \(structName)'s subscript: it's get-only")
+                }
                 type = result
                 assignment.path[index] = .subscripted(arguments)
             case .optionalChain:
@@ -107,9 +122,12 @@ extension TypeChecker {
                 type = wrapped
             case .unwrap:
                 // A dictionary's entry is written as the value, but read as an optional: `d[k]![0] = 1`.
-                if case .optional(let wrapped) = type { type = wrapped }
-                else if index > 0, case .index = assignment.path[index - 1] {}
-                else { throw TypeError("'!' needs an optional, not \(type)") }
+                if case .optional(let wrapped) = type {
+                    type = wrapped
+                } else if index > 0, case .index = assignment.path[index - 1] {
+                } else {
+                    throw TypeError("'!' needs an optional, not \(type)")
+                }
             case .indexDefault(var key, var fallback):
                 guard case .dictionary(let keyType, let valueType) = type else {
                     throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")
@@ -123,7 +141,9 @@ extension TypeChecker {
         if let op = assignment.op {
             let valueType = try typeOf(&assignment.value, expecting: type)
             // `a += b` through a `+=` the type defines.
-            if case .named(let typeName) = type, describe(named: typeName)?.staticMethods(named: "\(op.rawValue)=").isEmpty == false {
+            if case .named(let typeName) = type,
+                describe(named: typeName)?.staticMethods(named: "\(op.rawValue)=").isEmpty == false
+            {
                 return
             }
             let result = try binaryType(op, type, valueType)

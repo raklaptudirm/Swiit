@@ -8,7 +8,7 @@ enum FunctionBody {
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
-final class Function: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class Function: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String?
     public let parameters: [Parameter]
     public let returnType: TypeAnnotation?
@@ -29,7 +29,8 @@ final class Function: Callable, @unchecked Sendable { // safe: its state is touc
     public let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
     let inoutNames: Set<String>
-    /// Its result is an optional of what it gives, flattened: an optional it gives back is not made one more (`flatMap`'s).
+    /// Its result is an optional of what it gives, flattened: an optional it gives back is not made one more
+    /// (`flatMap`'s).
     public let flattensResult: Bool
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
@@ -39,10 +40,21 @@ final class Function: Callable, @unchecked Sendable { // safe: its state is touc
     public weak var owner: ClassType?
 
     public init(
-        name: String?, parameters: [Parameter], returnType: TypeAnnotation?, body: FunctionBody,
-        captured: [Scope] = [], documentation: Documentation? = nil, isMutating: Bool = false,
-        isThrowing: Bool = false, isRethrowing: Bool = false, effect: Effect = .sync, generics: [String: [String]] = [:],
-        isFailable: Bool = false, isConvenience: Bool = false, typeParameters: Set<String> = [], flattensResult: Bool = false
+        name: String?,
+        parameters: [Parameter],
+        returnType: TypeAnnotation?,
+        body: FunctionBody,
+        captured: [Scope] = [],
+        documentation: Documentation? = nil,
+        isMutating: Bool = false,
+        isThrowing: Bool = false,
+        isRethrowing: Bool = false,
+        effect: Effect = .sync,
+        generics: [String: [String]] = [:],
+        isFailable: Bool = false,
+        isConvenience: Bool = false,
+        typeParameters: Set<String> = [],
+        flattensResult: Bool = false
     ) {
         self.flattensResult = flattensResult
         self.typeParameters = typeParameters
@@ -65,10 +77,22 @@ final class Function: Callable, @unchecked Sendable { // safe: its state is touc
     /// It, with `scope` among what it captured: the types of its type parameters, for one call.
     func capturing(_ scope: Scope) -> Function {
         let copy = Function(
-            name: name, parameters: parameters, returnType: returnType, body: body, captured: captured + [scope],
-            documentation: documentation, isMutating: isMutating, isThrowing: isThrowing, isRethrowing: isRethrowing,
-            effect: effect, generics: generics, isFailable: isFailable, isConvenience: isConvenience, typeParameters: typeParameters,
-            flattensResult: flattensResult)
+            name: name,
+            parameters: parameters,
+            returnType: returnType,
+            body: body,
+            captured: captured + [scope],
+            documentation: documentation,
+            isMutating: isMutating,
+            isThrowing: isThrowing,
+            isRethrowing: isRethrowing,
+            effect: effect,
+            generics: generics,
+            isFailable: isFailable,
+            isConvenience: isConvenience,
+            typeParameters: typeParameters,
+            flattensResult: flattensResult
+        )
         copy.owner = owner
         return copy
     }
@@ -91,7 +115,8 @@ final class Function: Callable, @unchecked Sendable { // safe: its state is touc
     /// without `->` returns nothing.
     private(set) lazy var implicitReturn: Expr? = {
         guard name == nil || returnType != nil, case .swiit(let body) = body, body.statements.count == 1,
-              case .expression(let expr) = body.statements[0] else { return nil }
+            case .expression(let expr) = body.statements[0]
+        else { return nil }
         return expr
     }()
 }

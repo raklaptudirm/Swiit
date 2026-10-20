@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+
 @testable import Swiit
 
 // Where an error is: the diagnostic points at the source it came from, as a compiler does.
@@ -15,13 +16,15 @@ private func diagnostic(_ source: String) -> Diagnostic? {
     let source = "let a = 1\nlet x: Int = \"hi\"\nprint(x)"
     let found = try #require(diagnostic(source))
     #expect(found.range == SourceRange(startLine: 2, startColumn: 14, endLine: 2, endColumn: 18))
-    #expect(found.rendered(in: source) == """
-        error: the value must be Int, not String
-         --> 2:14
-          |
-        2 | let x: Int = "hi"
-          |              ^^^^
-        """)
+    #expect(
+        found.rendered(in: source) == """
+            error: the value must be Int, not String
+             --> 2:14
+              |
+            2 | let x: Int = "hi"
+              |              ^^^^
+            """
+    )
 }
 
 @Test func anArgumentIsWhatAnArgumentErrorPointsAt() throws {
@@ -60,7 +63,10 @@ private func diagnostic(_ source: String) -> Diagnostic? {
     // The host says the escape of each character, and what frames and marks.
     let style = Diagnostic.Style(
         source: { text in text.map { $0 == "x" ? "<x>" : nil } },
-        frame: { "[\($0)]" }, mark: { "{\($0)}" }, reset: "</>")
+        frame: { "[\($0)]" },
+        mark: { "{\($0)}" },
+        reset: "</>"
+    )
     let shown = found.rendered(in: source, style: style)
     #expect(shown.contains("let <x>x</>: Int"))
     #expect(shown.contains("[-->] 1:14"))

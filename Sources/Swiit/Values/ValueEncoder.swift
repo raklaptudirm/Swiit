@@ -99,7 +99,10 @@ private final class Slot {
 
     static func integer<T: BinaryInteger>(_ value: T, _ codingPath: [any CodingKey]) throws -> Value {
         guard let int = Int(exactly: value) else {
-            throw EncodingError.invalidValue(value, .init(codingPath: codingPath, debugDescription: "\(value) doesn't fit in an Int"))
+            throw EncodingError.invalidValue(
+                value,
+                .init(codingPath: codingPath, debugDescription: "\(value) doesn't fit in an Int")
+            )
         }
         return .int(int)
     }
@@ -160,18 +163,23 @@ private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
     mutating func encode(_ value: Int16, forKey key: Key) throws { set(.int(Int(value)), key) }
     mutating func encode(_ value: Int32, forKey key: Key) throws { set(.int(Int(value)), key) }
     mutating func encode(_ value: Int64, forKey key: Key) throws { set(.int(Int(value)), key) }
-    mutating func encode(_ value: UInt, forKey key: Key) throws { set(try Slot.integer(value, codingPath + [key]), key) }
+    mutating func encode(_ value: UInt, forKey key: Key) throws {
+        set(try Slot.integer(value, codingPath + [key]), key)
+    }
     mutating func encode(_ value: UInt8, forKey key: Key) throws { set(.int(Int(value)), key) }
     mutating func encode(_ value: UInt16, forKey key: Key) throws { set(.int(Int(value)), key) }
     mutating func encode(_ value: UInt32, forKey key: Key) throws { set(.int(Int(value)), key) }
-    mutating func encode(_ value: UInt64, forKey key: Key) throws { set(try Slot.integer(value, codingPath + [key]), key) }
+    mutating func encode(_ value: UInt64, forKey key: Key) throws {
+        set(try Slot.integer(value, codingPath + [key]), key)
+    }
 
     mutating func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
         try Slot.encode(value, into: record.slot(for: key.stringValue), codingPath: codingPath + [key])
     }
 
     mutating func nestedContainer<NestedKey: CodingKey>(
-        keyedBy keyType: NestedKey.Type, forKey key: Key
+        keyedBy keyType: NestedKey.Type,
+        forKey key: Key
     ) -> KeyedEncodingContainer<NestedKey> {
         SlotEncoder(slot: record.slot(for: key.stringValue), codingPath: codingPath + [key], typeName: nil)
             .container(keyedBy: keyType)
@@ -230,7 +238,9 @@ private struct UnkeyedContainer: UnkeyedEncodingContainer {
         try Slot.encode(value, into: next(), codingPath: codingPath + [IndexKey(count)])
     }
 
-    mutating func nestedContainer<NestedKey: CodingKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> {
+    mutating func nestedContainer<NestedKey: CodingKey>(
+        keyedBy keyType: NestedKey.Type
+    ) -> KeyedEncodingContainer<NestedKey> {
         SlotEncoder(slot: next(), codingPath: codingPath, typeName: nil).container(keyedBy: keyType)
     }
 

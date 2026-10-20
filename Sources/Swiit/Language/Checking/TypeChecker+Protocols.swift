@@ -7,9 +7,15 @@ extension TypeChecker {
         func signatures(_ declared: [FunctionDecl]) -> [String: [Signature]] {
             var result: [String: [Signature]] = [:]
             for method in declared {
-                var signature = Signature(name: method.name, parameters: method.parameters, returns: method.returnType ?? .void,
-                                          isMutating: method.isMutating, isThrowing: method.isThrowing, effect: method.effect,
-                                          generics: method.generics)
+                var signature = Signature(
+                    name: method.name,
+                    parameters: method.parameters,
+                    returns: method.returnType ?? .void,
+                    isMutating: method.isMutating,
+                    isThrowing: method.isThrowing,
+                    effect: method.effect,
+                    generics: method.generics
+                )
                 signature.index = result[method.name]?.count ?? 0
                 result[method.name, default: []].append(signature)
             }
@@ -19,12 +25,31 @@ extension TypeChecker {
         info.inherited = decl.inherited
         info.declared.methods = signatures(decl.methods)
         info.declared.staticMethods = signatures(decl.staticMethods)
-        for property in decl.properties { info.declared.properties[property.name] = MemberProperty(type: property.type, isSettable: property.settable, stored: nil) }
-        for property in decl.staticProperties { info.declared.staticProperties[property.name] = MemberProperty(type: property.type, isSettable: false, stored: nil) }
-        info.declared.initializers = decl.initializers.enumerated().map { index, initializer in
-            Signature(name: "init", parameters: initializer.parameters, returns: .named(decl.name), isMutating: true,
-                      isThrowing: initializer.isThrowing, index: index)
+        for property in decl.properties {
+            info.declared.properties[property.name] = MemberProperty(
+                type: property.type,
+                isSettable: property.settable,
+                stored: nil
+            )
         }
+        for property in decl.staticProperties {
+            info.declared.staticProperties[property.name] = MemberProperty(
+                type: property.type,
+                isSettable: false,
+                stored: nil
+            )
+        }
+        info.declared.initializers = decl.initializers.enumerated()
+            .map { index, initializer in
+                Signature(
+                    name: "init",
+                    parameters: initializer.parameters,
+                    returns: .named(decl.name),
+                    isMutating: true,
+                    isThrowing: initializer.isThrowing,
+                    index: index
+                )
+            }
         return info
     }
 
@@ -68,7 +93,8 @@ extension TypeChecker {
         guard protocolInfo(named: protocolName) != nil else { return }
         let description = describe(named: typeName) ?? TypeProfile(name: typeName, kind: .other)
         func has(method name: String, labels: [String?]) -> Bool {
-            ((description.declared.methods[name] ?? []) + (description.extended.methods[name] ?? [])).contains { $0.parameters.map(\.label) == labels }
+            ((description.declared.methods[name] ?? []) + (description.extended.methods[name] ?? []))
+                .contains { $0.parameters.map(\.label) == labels }
         }
         func has(staticMethod name: String, labels: [String?]) -> Bool {
             description.staticMethods(named: name).contains { $0.parameters.map(\.label) == labels }
@@ -80,26 +106,37 @@ extension TypeChecker {
         for required in requirements(protocolName) {
             for (name, signatures) in required.declared.methods.sorted(by: { $0.key < $1.key }) {
                 for signature in signatures where !has(method: name, labels: signature.parameters.map(\.label)) {
-                    throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))")
+                    throw TypeError(
+                        "\(typeName) doesn't conform to \(protocolName): it needs \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))"
+                    )
                 }
             }
-            for (name, property) in required.declared.properties.sorted(by: { $0.key < $1.key }) where !has(property: name, settable: property.isSettable) {
-                throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs the \(property.isSettable ? "settable " : "")property '\(name)'")
+            for (name, property) in required.declared.properties.sorted(by: { $0.key < $1.key })
+            where !has(property: name, settable: property.isSettable) {
+                throw TypeError(
+                    "\(typeName) doesn't conform to \(protocolName): it needs the \(property.isSettable ? "settable " : "")property '\(name)'"
+                )
             }
             for (name, signatures) in required.declared.staticMethods.sorted(by: { $0.key < $1.key }) {
                 for signature in signatures where !has(staticMethod: name, labels: signature.parameters.map(\.label)) {
-                    throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs static \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))")
+                    throw TypeError(
+                        "\(typeName) doesn't conform to \(protocolName): it needs static \(name)(\(signature.parameters.map { ($0.label ?? "_") + ":" }.joined()))"
+                    )
                 }
             }
             for (name, property) in required.declared.staticProperties.sorted(by: { $0.key < $1.key }) {
                 guard case .property(let found)? = description.staticMember(name), found.type == property.type else {
-                    throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs a static '\(name)' of \(property.type): static let \(name): \(property.type) = …")
+                    throw TypeError(
+                        "\(typeName) doesn't conform to \(protocolName): it needs a static '\(name)' of \(property.type): static let \(name): \(property.type) = …"
+                    )
                 }
             }
             for initializer in required.declared.initializers {
                 let labels = initializer.parameters.map(\.label)
                 guard description.initializers.contains(where: { $0.parameters.map(\.label) == labels }) else {
-                    throw TypeError("\(typeName) doesn't conform to \(protocolName): it needs init(\(labels.map { ($0 ?? "_") + ":" }.joined()))")
+                    throw TypeError(
+                        "\(typeName) doesn't conform to \(protocolName): it needs init(\(labels.map { ($0 ?? "_") + ":" }.joined()))"
+                    )
                 }
             }
         }

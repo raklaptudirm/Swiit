@@ -1,6 +1,7 @@
 import Foundation
-@testable import Swiit
 import Testing
+
+@testable import Swiit
 
 // A function built by hand (a layer's, which has a description of the command at run time) and bound with `set`.
 
@@ -10,15 +11,28 @@ private final class Log: @unchecked Sendable {
 
 @Test func aFunctionTheHostBoundIsCheckedBeforeTheScriptRuns() throws {
     let log = Log()
-    let swiit = Interpreter(host: Interpreter.Host(output: OutputSink({ log.text += $0; return true }),
-                                            error: OutputSink({ log.text += "err: " + $0; return true })))
-    swiit["described"] = .function(Function(
-        name: "described", parameters: [Parameter(label: nil, name: "x", type: .int)], returnType: .int,
-        body: .native { _, arguments in arguments["x"] ?? .nothing }, isThrowing: true))
+    let swiit = Interpreter(
+        host: Interpreter.Host(
+            output: OutputSink({
+                log.text += $0; return true
+            }),
+            error: OutputSink({
+                log.text += "err: " + $0; return true
+            })
+        )
+    )
+    swiit["described"] = .function(
+        Function(
+            name: "described",
+            parameters: [Parameter(label: nil, name: "x", type: .int)],
+            returnType: .int,
+            body: .native { _, arguments in arguments["x"] ?? .nothing },
+            isThrowing: true
+        )
+    )
     #expect(try swiit.evaluate("try described(1)") == .int(1))
     // A wrong argument, and a call without `try`, are found before anything runs.
     #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran"); try described("a")"#) }
     #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran"); described(1)"#) }
     #expect(log.text == "")
 }
-

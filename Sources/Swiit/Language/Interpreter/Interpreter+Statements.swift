@@ -8,7 +8,12 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
-    func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil, finish: (() -> Void)? = nil) throws {
+    func run(
+        _ program: Program,
+        observing observer: ValueObserver? = nil,
+        onError handle: ((Diagnostic) -> Bool)? = nil,
+        finish: (() -> Void)? = nil
+    ) throws {
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
@@ -18,7 +23,7 @@ extension Interpreter {
                 deferred.append(body)
                 continue
             }
-            if statement.declaresType { continue } // Hoisted.
+            if statement.declaresType { continue }  // Hoisted.
             try checkInterrupt()
             do {
                 if let observer, case .expression(let expression) = statement {
@@ -39,7 +44,11 @@ extension Interpreter {
                     error = runtime
                 }
                 // The host may carry on with the next statement after an error a script could have caught.
-                if let handle, error is RuntimeError || error is AlreadyReported || error is FatalError, handle(Diagnostic.of(error)) { continue }
+                if let handle, error is RuntimeError || error is AlreadyReported || error is FatalError,
+                    handle(Diagnostic.of(error))
+                {
+                    continue
+                }
                 throw error
             }
         }
@@ -72,7 +81,9 @@ extension Interpreter {
     /// A condition's value.
     func isTrue(_ condition: Expr) throws -> Bool {
         let value = try evaluate(condition)
-        guard case .bool(let truth) = value else { throw RuntimeError("condition must be a Bool, not \(value.typeName)") }
+        guard case .bool(let truth) = value else {
+            throw RuntimeError("condition must be a Bool, not \(value.typeName)")
+        }
         return truth
     }
 
@@ -82,8 +93,12 @@ extension Interpreter {
     /// declared by then, as it always has.
     func hoistDeclarations(_ program: Program) throws {
         for statement in program.statements {
-            if case .function = statement { try run(statement) }
-            else if statement.declaresType, case .typeExtension = statement {} else if statement.declaresType { try run(statement) }
+            if case .function = statement {
+                try run(statement)
+            } else if statement.declaresType, case .typeExtension = statement {
+            } else if statement.declaresType {
+                try run(statement)
+            }
         }
         // What extensions add comes once the types are there to be made.
         for statement in program.statements {
@@ -138,13 +153,21 @@ extension Interpreter {
         case .function(let decl):
             // Captures the scope it's bound in, so it can call itself.
             let function = Function(
-                name: decl.name, parameters: decl.parameters, returnType: decl.returnType,
-                body: .swiit(decl.body), captured: captureScopes(decl.names), documentation: decl.documentation,
-                isThrowing: decl.isThrowing, effect: decl.effect, typeParameters: decl.runtimeTypeParameters
+                name: decl.name,
+                parameters: decl.parameters,
+                returnType: decl.returnType,
+                body: .swiit(decl.body),
+                captured: captureScopes(decl.names),
+                documentation: decl.documentation,
+                isThrowing: decl.isThrowing,
+                effect: decl.effect,
+                typeParameters: decl.runtimeTypeParameters
             )
             // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_ items: Any...)`.
             let current = scopes[scopes.count - 1]
-            if current.bindings[decl.name] == nil, scopes.count > 1, let builtin = scopes[0].bindings[decl.name], builtin.isFunction {
+            if current.bindings[decl.name] == nil, scopes.count > 1, let builtin = scopes[0].bindings[decl.name],
+                builtin.isFunction
+            {
                 current.bindings[decl.name] = builtin
             }
             current.declare(function, named: decl.name)
@@ -161,10 +184,14 @@ extension Interpreter {
             do {
                 try runBlock(body)
             } catch let error as RuntimeError {
-                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error") else { throw error }
+                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error") else {
+                    throw error
+                }
                 try runBlock(clauses[index].body, declaring: bindings)
             } catch let reported as AlreadyReported {
-                guard let (index, bindings) = try firstMatch(clauses, reported.error.value, anyName: "error") else { throw reported }
+                guard let (index, bindings) = try firstMatch(clauses, reported.error.value, anyName: "error") else {
+                    throw reported
+                }
                 try runBlock(clauses[index].body, declaring: bindings)
             }
             return
@@ -215,7 +242,9 @@ extension Interpreter {
             throw RuntimeError("guard's else carried on")
         case .returnStatement(let expr):
             // A `.case` returned from a function declared to return an enum.
-            throw ControlFlow.returned(try expr.map { try evaluate($0, expecting: returnTypes.last ?? nil) } ?? .nothing)
+            throw ControlFlow.returned(
+                try expr.map { try evaluate($0, expecting: returnTypes.last ?? nil) } ?? .nothing
+            )
         case .breakStatement(let label):
             throw ControlFlow.breakLoop(label)
         case .continueStatement(let label):
@@ -231,9 +260,10 @@ extension Interpreter {
         let value = try evaluate(expr)
         let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
         // `xs.removeLast()` alone: Swift's @discardableResult.
-        let discarded = if case .bridged(let type, let member, _, _) = expr {
-            Bridge.types[type]?.members[member].discardableResult == true
-        } else { false }
+        let discarded =
+            if case .bridged(let type, let member, _, _) = expr {
+                Bridge.types[type]?.members[member].discardableResult == true
+            } else { false }
         if !isBoolLiteral { try observer(value, expr, discarded) }
         finished(.expression(expr), value)
     }
@@ -270,9 +300,13 @@ extension Interpreter {
         let elements: AnyIterator<Value>
         if case .dictionary(let dictionary) = value {
             // In the order they are shown in, which is the same every run.
-            elements = AnyIterator(dictionary.sortedForDisplay.map { entry in
-                Value.record(Record(["key": entry.key, "value": entry.value]))
-            }.makeIterator())
+            elements = AnyIterator(
+                dictionary.sortedForDisplay
+                    .map { entry in
+                        Value.record(Record(["key": entry.key, "value": entry.value]))
+                    }
+                    .makeIterator()
+            )
         } else if case .string(let text) = value {
             elements = AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
         } else if let items = Interpreter.items(of: value) {
@@ -285,7 +319,8 @@ extension Interpreter {
         }
     }
 
-    /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is reached. A host function that waits
+    /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is reached. A host function
+    /// that waits
     /// calls it between waits, so a stop is noticed while it does.
     public func checkForStop() throws { try checkInterrupt() }
 
@@ -318,7 +353,8 @@ extension Interpreter {
     /// Tells the host a statement finished, if it is watching (`Interpreter.Host.statementFinished`).
     func finished(_ statement: Statement, _ value: Value?) {
         guard observesStatements, let observer = host.statementFinished else { return }
-        // A `try?` that caught an error gave nil because it failed; other nils, like a function that returns nothing, didn't.
+        // A `try?` that caught an error gave nil because it failed; other nils, like a function that returns nothing,
+        // didn't.
         var caught = false
         if value == .nothing, case .expression(.attempt(_, .optional)) = statement { caught = true }
         observer(value, caught)

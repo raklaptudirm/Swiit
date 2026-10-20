@@ -1,4 +1,3 @@
-
 // Effects, as Swift has them for `async` (Docs/async.md, "Types and
 // effects"): a call to an `async` function is marked with `await`, and
 // `await` is written in an async context (the top level, an `async`
@@ -30,7 +29,9 @@ extension TypeChecker {
 
     /// What an actor's state is reached through from outside: as an async call is, with `await`.
     func actorSite(_ type: TypeAnnotation, _ receiver: Expr?, _ member: String) throws {
-        guard case .named(let name) = type, let info = structInfo(named: name), info.isActor, !info.nonisolated.contains(member) else { return }
+        guard case .named(let name) = type, let info = structInfo(named: name), info.isActor,
+            !info.nonisolated.contains(member)
+        else { return }
         if case .variable(let variable)? = receiver, variable == "self" || variable == "super" { return }
         try effectSite(.async, "'\(member)' of the actor \(name)")
     }
@@ -51,7 +52,7 @@ extension TypeChecker {
     func withEffects<T>(allowsAwait: Bool, _ body: () throws -> T) rethrows -> (T, EffectContext) {
         effectContexts.append(EffectContext(allowsAwait: allowsAwait))
         let awaitBefore = awaitDepth
-        awaitDepth = 0 // An `await` outside doesn't reach in.
+        awaitDepth = 0  // An `await` outside doesn't reach in.
         defer {
             effectContexts.removeLast()
             awaitDepth = awaitBefore
@@ -65,12 +66,18 @@ extension TypeChecker {
     /// would have to (the redefinition rule).
     func checkBecomingAsync(_ decl: FunctionDecl) throws {
         guard decl.isAsync, effectContexts.count == 1 else { return }
-        if let binding = interpreter.scopes.last?.bindings[decl.name], case .function(let set as OverloadSet) = binding.value,
-           set.candidates.allSatisfy({ $0.effect == .async }) { return }
+        if let binding = interpreter.scopes.last?.bindings[decl.name],
+            case .function(let set as OverloadSet) = binding.value,
+            set.candidates.allSatisfy({ $0.effect == .async })
+        {
+            return
+        }
         let callers = (interpreter.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere).sorted()
         guard !callers.isEmpty else { return }
         let list = callers.map { "'\($0)'" }.joined(separator: ", ")
-        throw TypeError("\(decl.name) can't become async: \(list) call\(callers.count == 1 ? "s" : "") it without 'await'")
+        throw TypeError(
+            "\(decl.name) can't become async: \(list) call\(callers.count == 1 ? "s" : "") it without 'await'"
+        )
     }
 
     /// Who calls what without `await`, kept for the redefinition rule; what
