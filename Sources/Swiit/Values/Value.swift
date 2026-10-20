@@ -600,6 +600,12 @@ extension Value {
         }
     }
 
+    /// The raw value of a script enum's case, if its type has them.
+    public var rawValue: Value? {
+        guard case .enumValue(let value) = self else { return nil }
+        return value.rawValue
+    }
+
     /// The case of a script enum: its type's name, the case's name, its payload and the labels the payload is declared with.
     public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
         guard case .enumValue(let value) = self else { return nil }
