@@ -163,8 +163,8 @@ extension TypeChecker {
                 }
                 type = wrapped
             case .unwrap:
-                // A dictionary's entry is written as the value, but read as an optional: `d[k]![0]
-                // = 1`.
+                // A dictionary's entry is written as the value, but read as an optional:
+                // `d[k]![0] = 1`.
                 if case .optional(let wrapped) = type {
                     type = wrapped
                 } else if index > 0, case .index = assignment.path[index - 1] {

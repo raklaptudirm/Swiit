@@ -76,9 +76,8 @@ indirect enum Expr: Equatable, Sendable {
     /// A function, method or initializer, with the overload the checker
     /// chose: the candidate at that position. Only the checker makes these.
     case chosen(Expr, overload: Int)
-    /// A generic function as called here, with the types its type parameters
-    /// are in this call, for a body that names them (`T()`, `x as? T`). Only the checker makes
-    /// these.
+    /// A generic function as called here, with the types its type parameters are in this call, for
+    /// a body that names them (`T()`, `x as? T`). Only the checker makes these.
     case specialized(Expr, [TypeArgument])
     /// A member of a Swift type, bridged (Bridge.swift): the member the
     /// checker chose, by its position among its type's, with `self` if it

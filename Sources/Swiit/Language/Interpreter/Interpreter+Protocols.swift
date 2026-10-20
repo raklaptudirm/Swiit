@@ -51,8 +51,7 @@ extension Interpreter {
             break
         }
         // A host's object conforms to the protocol the program declares under its type's name: that
-        // is how the host
-        // describes it (`protocol Node { var label: String { get } }`).
+        // is how the host describes it (`protocol Node { var label: String { get } }`).
         if case .object(let object) = value, isHostObject(object),
             protocolType(named: object.typeName) != nil
         {

@@ -43,10 +43,8 @@ extension Interpreter {
 
 extension Interpreter {
     /// `xs.append(1)` on a variable holding a collection: the value is moved into a box the glue
-    /// takes it from, so
-    /// that it changes where it is. (Copied, it would cost the whole collection on every call.) Nil
-    /// if this isn't
-    /// that case, which then goes the long way round.
+    /// takes it from, so that it changes where it is. (Copied, it would cost the whole collection
+    /// on every call.) Nil if this isn't that case, which then goes the long way round.
     func runMutatingInPlace(
         _ member: BridgedMember,
         _ function: Function,
@@ -114,10 +112,8 @@ extension Interpreter {
     }
 
     /// The Swift methods of a value named `name`, bound to it, looked up when it runs: what a call
-    /// on a value whose
-    /// type
-    /// the checker did not know (a closure's `$0` in a pipeline stage) finds. Nil if its type has
-    /// none.
+    /// on a value whose type the checker did not know (a closure's `$0` in a pipeline stage) finds.
+    /// Nil if its type has none.
     func bridgedMethods(_ name: String, of value: Value) -> Value? {
         let typeName: String? =
             switch value {

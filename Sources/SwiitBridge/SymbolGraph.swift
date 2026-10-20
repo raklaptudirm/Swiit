@@ -34,8 +34,7 @@ struct Symbol: Decodable {
     let location: Location?
 
     /// The documentation's lines. A declaration that starts with an attribute (`@Foo`) has the
-    /// attribute's `@` in the
-    /// last line, which the compiler's range takes in.
+    /// attribute's `@` in the last line, which the compiler's range takes in.
     private var docLines: [String] {
         (docComment?.lines ?? [])
             .map { line in

@@ -6,10 +6,8 @@ import Foundation
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
     // The representation is the interpreter's and the host's (SPI). A host builds a value with its
-    // initializers and
-    // literals and
-    // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never
-    // breaks it.
+    // initializers and literals and reads one with `kind`, `cast(to:)`, `entries` and `enumCase`,
+    // so a new representation never breaks it.
     case nothing
     case bool(Bool)
     case int(Int)
@@ -30,12 +28,8 @@ public enum Value: Sendable {
 }
 
 /// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which
-/// the checker reads, so
-/// a
-/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at
-/// run time. Objects
-/// compare
-/// by identity.
+/// the checker reads, so a script's use of one is checked before it runs; `member(_:)` is for the
+/// few a host answers for at run time. Objects compare by identity.
 public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     CustomDebugStringConvertible
 {
@@ -44,19 +38,13 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
     /// A member answered at run time, after the registered ones; nil if there is none. Optional:
-    /// most objects have only
-    /// the
-    /// registered members.
+    /// most objects have only the registered members.
     func member(_ name: String) -> Value?
     /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that
-    /// isn't data. By
-    /// default
-    /// every member that isn't a method.
+    /// isn't data. By default every member that isn't a method.
     var fields: ValueDictionary? { get }
     /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job
-    /// reads `[1] running
-    /// make`);
-    /// nil to print as its fields.
+    /// reads `[1] running make`); nil to print as its fields.
     var displaySegments: [DisplaySegment]? { get }
     /// What equality and hashing go by: the object itself, by default.
     var identity: AnyHashable { get }
@@ -66,10 +54,8 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
 public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
-/// as it is), as
-/// opposed to one a host hands in. The checker types the language's by what they are, and a host's
-/// by the protocol
-/// the host declares for them.
+/// as it is), as opposed to one a host hands in. The checker types the language's by what they are,
+/// and a host's by the protocol the host declares for them.
 protocol LanguageObject: HostObject {}
 
 extension HostObject {
@@ -252,9 +238,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
 {
     private var storage: [Value: Value]
     /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two
-    /// dictionaries with the
-    /// same
-    /// entries are equal whatever order they were made in.
+    /// dictionaries with the same entries are equal whatever order they were made in.
     private var order: [Value]
 
     public init() {
@@ -279,8 +263,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     }
 
     /// In the order given. A later entry with the same key replaces the value of the earlier one,
-    /// which keeps its
-    /// place.
+    /// which keeps its place.
     public init(_ entries: [(Value, Value)]) {
         storage = [:]
         order = []
@@ -462,9 +445,8 @@ extension Value {
 }
 
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the
-/// value
-/// while the member changes it, so a collection is changed where it is, not copied whole each time.
-/// The member's glue takes it out, and puts it back, changed, however the call ends.
+/// value while the member changes it, so a collection is changed where it is, not copied whole each
+/// time. The member's glue takes it out, and puts it back, changed, however the call ends.
 final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public var value: Value
     public init(_ value: Value) { self.value = value }
@@ -509,10 +491,8 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
 
 extension Value {
     /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a
-    /// struct value by name (a
-    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is
-    /// data. Nil for any other
-    /// value.
+    /// struct value by name (a tuple's unlabeled ones by position, "0", "1"), or the fields of a
+    /// host's object that is data. Nil for any other value.
     public var entries: ValueDictionary? {
         switch self {
         case .dictionary(let dictionary): dictionary
@@ -523,14 +503,12 @@ extension Value {
     }
 
     /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's.
-    /// Nil for anything
-    /// else.
+    /// Nil for anything else.
     public var flow: Flow<Value>? { Interpreter.flow(of: self) }
 
     /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host
-    /// type's text, a flow),
-    /// one at
-    /// a time, so a range of a billion never becomes a list; nil for anything else.
+    /// type's text, a flow), one at a time, so a range of a billion never becomes a list; nil for
+    /// anything else.
     public var items: AnySequence<Value>? {
         guard Interpreter.items(of: self) != nil else { return nil }
         return AnySequence { Interpreter.items(of: self)! }
@@ -543,11 +521,8 @@ extension Value {
     }
 
     /// A struct's value, with its fields in order and every one present (an absent optional is
-    /// `nil`): `Value(struct:
-    /// "Point",
-    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled
-    /// elements are named by
-    /// position.
+    /// `nil`): `Value(struct: "Point", fields: ["x": Value(1), "y": Value(2)])`. With no name it is
+    /// a tuple, whose unlabeled elements are named by position.
     public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
         self = .record(Record(fields, typeName: typeName))
     }
@@ -560,8 +535,7 @@ extension Value {
     }
 
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift
-    /// type, or `name` if one
-    /// is given.
+    /// type, or `name` if one is given.
     public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
         if let name, case .record(var record) = self {
@@ -586,8 +560,7 @@ extension Value {
     public init(_ value: some HostObject) { self = .object(value) }
 
     /// What a value is, as a script would say it. A tuple and a struct value are told apart by
-    /// whether the type has a
-    /// name.
+    /// whether the type has a name.
     public enum Kind: Sendable {
         case nothing, bool, int, double, string, list, dictionary
         case tuple, structure, enumeration, function, object
@@ -610,9 +583,8 @@ extension Value {
     }
 
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
-    /// casts only if every
-    /// element does.
-    /// `try T(value)` is the throwing form, and converts as a script's call does.
+    /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
+    /// script's call does.
     public func cast<T: ValueConvertible>(to type: T.Type = T.self) -> T? {
         guard let result = try? T(self), result.value == self else { return nil }
         return result
@@ -625,8 +597,7 @@ extension Value {
     }
 
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
-    /// optional string),
-    /// else nil.
+    /// optional string), else nil.
     public func cast(to type: ValueType) -> Value? {
         matches(type) ? self : nil
     }
@@ -679,8 +650,7 @@ extension Value {
     }
 
     /// The case of a script enum: its type's name, the case's name, its payload and the labels the
-    /// payload is declared
-    /// with.
+    /// payload is declared with.
     public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
         guard case .enumValue(let value) = self else { return nil }
         return (value.type.name, value.name, value.values, value.definition?.labels ?? [])

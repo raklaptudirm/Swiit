@@ -1,15 +1,12 @@
 import Foundation
 
 // What a host can ask of the names a script can use: the functions, methods, properties, variables
-// and types there are,
-// which
-// overload a call means, and the type of an expression. One lookup for everything a name can mean.
+// and types there are, which overload a call means, and the type of an expression. One lookup for
+// everything a name can mean.
 
 /// Something a script can name: a function or method, a variable or property, or a type. Only a
-/// function has parameters
-/// and
-/// effects, only a variable can be settable, only a type has a declaration kind: what a symbol is
-/// decides what it has.
+/// function has parameters and effects, only a variable can be settable, only a type has a
+/// declaration kind: what a symbol is decides what it has.
 public struct Symbol: Sendable, Hashable {
     /// What a name stands for, in a word.
     public enum Role: Sendable { case variable, function, type }
@@ -39,9 +36,7 @@ public struct Symbol: Sendable, Hashable {
         /// A method that changes its value.
         public var isMutating: Bool
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
-        /// `sorted()`. A protocol
-        /// written `=Int`
-        /// is a type it must be exactly.
+        /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
         public var generics: [String: [String]]
 
         public init(
@@ -112,9 +107,7 @@ public struct Symbol: Sendable, Hashable {
     }
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
-    /// returns); a variable's
-    /// is its
-    /// own; a type's is the type it names.
+    /// returns); a variable's is its own; a type's is the type it names.
     public var type: ValueType {
         switch declaration {
         case .function(let function):
@@ -162,13 +155,9 @@ extension ValueType {
 
 extension Interpreter {
     /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all
-    /// of them without a
-    /// `name`,
-    /// the core's builtins too);
-    /// with one, the members a value of that type has (a struct's or host object's methods and
-    /// properties, a bridged
-    /// type's,
-    /// the sequence methods of a list).
+    /// of them without a `name`, the core's builtins too); with one, the members a value of that
+    /// type has (a struct's or host object's methods and properties, a bridged type's, the sequence
+    /// methods of a list).
     public func symbols(named name: String? = nil, of type: ValueType? = nil) -> [Symbol] {
         withMainTask {
             guard let type else { return globalSymbols(named: name) }
@@ -371,9 +360,8 @@ extension Interpreter {
                 }
             }
         }
-        // What every sequence has: what the host's prelude adds to `Sequence`, which `symbols(of:
-        // .named("Sequence"))`
-        // lists alone.
+        // What every sequence has: what the host's prelude adds to `Sequence`, which
+        // `symbols(of: .named("Sequence"))` lists alone.
         var holder: TypeAnnotation?
         if case .list(let element) = type {
             holder = element
@@ -397,9 +385,8 @@ extension Interpreter {
     }
 
     /// What each global name stands for, cheaply: the functions, variables and types a script can
-    /// name, the core's
-    /// builtins and
-    /// Swift's own types included. How a front end tells a name it reads from one that is new.
+    /// name, the core's builtins and Swift's own types included. How a front end tells a name it
+    /// reads from one that is new.
     public func names() -> [String: Symbol.Role] {
         withMainTask {
             globalNames()
@@ -415,9 +402,7 @@ extension Interpreter {
     }
 
     /// How to color Swift source, in characters, which may be half typed: what it reads before a
-    /// problem is colored as
-    /// it reads
-    /// it.
+    /// problem is colored as it reads it.
     public func highlight(_ source: String) -> [Highlight] {
         let bound = withMainTask { globalNames() }
         return frontEnd.highlight(source, bound: bound)
@@ -448,9 +433,7 @@ extension Interpreter {
     }
 
     /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
-    /// the host declare, and
-    /// Swift's
-    /// own that the core bridges (`String`, `Array`, `Date`).
+    /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public func types() -> [Symbol] {
         withMainTask {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
@@ -473,9 +456,7 @@ extension Interpreter {
     }
 
     /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`,
-    /// `Sequence`, or one a
-    /// script
-    /// declares), as the checker reads it.
+    /// `Sequence`, or one a script declares), as the checker reads it.
     public func conforms(_ type: ValueType, to protocolName: String) -> Bool {
         inCurrentTask {
             TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName)
@@ -483,8 +464,8 @@ extension Interpreter {
     }
 
     /// Which of the candidates a call with these arguments means: by their labels and types, the
-    /// one that fits with the
-    /// fewest conversions. Throws the checker's own complaint when none fits or several do.
+    /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
+    /// or several do.
     public func resolveOverload(
         among candidates: [Symbol],
         arguments: [ValueType.Element]
@@ -545,12 +526,8 @@ extension Interpreter {
     }
 
     /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found
-    /// before any
-    /// statement's effect
-    /// happens. It says what the program declares at its top level (its functions, types and
-    /// variables), which a host
-    /// can
-    /// check its own uses against.
+    /// before any statement's effect happens. It says what the program declares at its top level
+    /// (its functions, types and variables), which a host can check its own uses against.
     public func check(_ source: String) throws(Diagnostic) -> Declarations {
         do {
             return try inCurrentTask { () throws -> Declarations in

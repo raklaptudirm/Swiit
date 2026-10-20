@@ -1,19 +1,15 @@
 import Foundation
 
 // Changing a value where it is. A variable that holds a collection, or a struct that holds one, is
-// changed
-// by moving the part to change out of where it is, changing it, and putting it back: nothing else
-// holds
-// it meanwhile, so it isn't copied. (A copy of a whole collection for each element added would make
-// building one quadratic.) Only places that are plain are changed this way: a stored property, a
-// list
-// or dictionary element. A computed property, an observer, an instance or a subscript takes the
-// long way, through `update`, which copies.
+// changed by moving the part to change out of where it is, changing it, and putting it back:
+// nothing else holds it meanwhile, so it isn't copied. (A copy of a whole collection for each
+// element added would make building one quadratic.) Only places that are plain are changed this
+// way: a stored property, a list or dictionary element. A computed property, an observer, an
+// instance or a subscript takes the long way, through `update`, which copies.
 //
 // What keeps this working is that no copy of the value is alive while it changes: a `switch` on it,
-// or
-// a tuple made of it, would keep one, so the code here takes it apart with `if case` and `guard
-// case`.
+// or a tuple made of it, would keep one, so the code here takes it apart with `if case` and
+// `guard case`.
 
 extension Interpreter {
     /// A step of a place, with the expressions in it worked out.
@@ -34,9 +30,8 @@ extension Interpreter {
     }
 
     /// Whether evaluating `expr` twice does what evaluating it once does: so a place whose indexes
-    /// are
-    /// pure can be looked at first and, if it turns out not to be plain, worked out again the long
-    /// way.
+    /// are pure can be looked at first and, if it turns out not to be plain, worked out again the
+    /// long way.
     func isPure(_ expr: Expr) -> Bool {
         switch expr {
         case .literal, .variable: true
@@ -130,8 +125,7 @@ extension Interpreter {
     }
 
     /// Runs `body` on the value at `place` in the variable `root`, which is moved out while it runs
-    /// and put
-    /// back as `body` left it, however it ends.
+    /// and put back as `body` left it, however it ends.
     func withPlace<T>(_ root: String, _ place: Place, _ body: (inout Value) throws -> T) throws -> T
     {
         guard let scope = scopeHolding(root) else {

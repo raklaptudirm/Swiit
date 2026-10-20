@@ -1,12 +1,10 @@
 import Foundation
 
 // What the checker knows of a type, in one place. A type's members are declared in one of several
-// places (a struct,
-// class or actor; an enum; a protocol; the extensions on any of them, and on Swift's own types) and
-// each kept its own
-// description, so every question about a member (its type, how to call it, whether it can be set)
-// was asked of each in
-// turn. A `TypeProfile` gathers them: ask it once.
+// places (a struct, class or actor; an enum; a protocol; the extensions on any of them, and on
+// Swift's own types) and each kept its own description, so every question about a member (its type,
+// how to call it, whether it can be set) was asked of each in turn. A `TypeProfile` gathers them:
+// ask it once.
 
 /// A property of a type: stored or computed.
 struct MemberProperty {
@@ -27,8 +25,8 @@ struct MemberSet {
 }
 
 /// Which set of overloads a method is among, as the interpreter keeps them: the type's own, or the
-/// extensions'. A call
-/// the checker resolved says which of that set it chose, so the two can't be mixed in one list.
+/// extensions'. A call the checker resolved says which of that set it chose, so the two can't be
+/// mixed in one list.
 enum MemberOrigin { case declaration, extensions }
 
 /// What `name` is on a type.
@@ -52,8 +50,7 @@ extension MemberProperty {
 
 extension MemberSet {
     /// Adds what `other` has, after this: the methods of a name go on as further overloads,
-    /// numbered on from this
-    /// one's.
+    /// numbered on from this one's.
     mutating func merge(_ other: MemberSet) {
         properties.merge(other.properties) { $1 }
         for (name, signatures) in other.methods {
@@ -85,8 +82,7 @@ struct TypeProfile {
     var rawType: TypeAnnotation?
     var typeParameters: [String] = []
     /// What the type declares itself (for a class, with what its superclass gives), and what
-    /// extensions add: those of
-    /// the type, of the protocols it conforms to, and of its superclasses.
+    /// extensions add: those of the type, of the protocols it conforms to, and of its superclasses.
     var declared = MemberSet()
     var extended = MemberSet()
     /// A struct with no initializer of its own is made by its memberwise one.
@@ -104,9 +100,8 @@ struct TypeProfile {
     func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
 
     /// What Swift synthesizes for an enum: `rawValue` where it has raw values, `allCases` where no
-    /// case has associated
-    /// values.
-    /// (A Swiit enum isn't a Swift type the bridge could describe, so they are made here.)
+    /// case has associated values. (A Swiit enum isn't a Swift type the bridge could describe, so
+    /// they are made here.)
     mutating func addSynthesizedEnumMembers() {
         if let rawType {
             declared.properties["rawValue"] = MemberProperty(
@@ -135,9 +130,8 @@ struct TypeProfile {
     }
 
     /// Whether a call of an initializer names which it chose, to the interpreter: it keeps the
-    /// type's own as a set of
-    /// overloads
-    /// that a value type's are in, with none added by extensions, which it keeps apart.
+    /// type's own as a set of overloads that a value type's are in, with none added by extensions,
+    /// which it keeps apart.
     var namesItsInitializers: Bool {
         !declared.initializers.isEmpty && !isClass && extended.initializers.isEmpty
     }
@@ -152,9 +146,7 @@ struct TypeProfile {
     }
 
     /// Every static method by that name, the type's own and those extensions add: for an operator,
-    /// which the overloads
-    /// of
-    /// both are candidates of.
+    /// which the overloads of both are candidates of.
     func staticMethods(named name: String) -> [TypeChecker.Signature] {
         (declared.staticMethods[name] ?? []) + (extended.staticMethods[name] ?? [])
     }

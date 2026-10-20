@@ -393,10 +393,9 @@ extension TypeChecker {
             return type
         case .caseLiteral(let name, var arguments):
             // `.none` and `.some(x)`, where an optional is wanted. An optional is not an enum at
-            // run time: nil is
-            // `.nothing` and a present value is itself, so these two cases are rewritten here to
-            // that
-            // representation (and in `checkPattern`, for patterns), not declared like an enum's.
+            // run time: nil is `.nothing` and a present value is itself, so these two cases are
+            // rewritten here to that representation (and in `checkPattern`, for patterns), not
+            // declared like an enum's.
             if case .optional(let wrapped)? = expected {
                 if name == "none", arguments == nil {
                     expr = .literal(.nothing)
@@ -680,8 +679,7 @@ extension TypeChecker {
             }
         case .object(let object):
             // The host registered its type under its name (or, as the host's jobs are, a program
-            // declared a protocol of
-            // it).
+            // declared a protocol of it).
             if interpreter.isHostObject(object), Bridge.types[object.typeName] != nil {
                 .named(object.typeName)
             } else if interpreter.isHostObject(object),
@@ -714,8 +712,8 @@ extension TypeChecker {
             return .list(element)
         }
         if expected == .any {
-            // Each by its own type, a `.case` taking its from the others, as in `[Level.high,
-            // .low]`.
+            // Each by its own type, a `.case` taking its from the others, as in
+            // `[Level.high, .low]`.
             _ = try elementTypes(&items)
             return .any
         }

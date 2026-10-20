@@ -194,10 +194,8 @@ extension TypeChecker {
     }
 
     /// A call to one of a member's overloads: the one the arguments fit, what choosing it asks of
-    /// the call (naming it
-    /// to the
-    /// interpreter when it has several, a change of the receiver, a `try`, an `await`), and what it
-    /// gives back.
+    /// the call (naming it to the interpreter when it has several, a change of the receiver, a
+    /// `try`, an `await`), and what it gives back.
     func callMember(
         _ methods: [Signature],
         _ name: String,
@@ -233,8 +231,7 @@ extension TypeChecker {
     ) throws -> TypeAnnotation {
         let base = erased(written)
         // `t.init()`, `t.make()` for a type held in a value (`T.Type`): what it is isn't known
-        // here, so not what it
-        // makes.
+        // here, so not what it makes.
         if case .metatype(let made) = base {
             for index in arguments.indices {
                 _ = try typeOf(&arguments[index].value, expecting: .unknown)
@@ -257,16 +254,13 @@ extension TypeChecker {
             return .void
         }
         // A method the type declares, a requirement of a protocol or the default an extension of it
-        // gives, or one an
-        // extension
-        // adds to any type (`self` is the receiver, and a collection's items are known).
+        // gives, or one an extension adds to any type (`self` is the receiver, and a collection's
+        // items are known).
         if let description = describe(base),
             case .methods(let methods, let origin)? = description.instanceMember(name)
         {
             // A class's method is shared by every reference and a protocol's is any type's: no
-            // overload set of a value
-            // type's
-            // own to name one of, and no value to change.
+            // overload set of a value type's own to name one of, and no value to change.
             let ofAValue =
                 !(description.kind == .protocolType
                 || origin == .declaration && description.isClass)
@@ -350,10 +344,8 @@ extension TypeChecker {
             return .unknown
         case .metatype:
             // `t(…)` for a type `t`: an initializer. What it makes isn't worked out here (a call
-            // checked again, once
-            // its
-            // overload is chosen, comes this way too, and the initializer's own type was decided
-            // the first time).
+            // checked again, once its overload is chosen, comes this way too, and the initializer's
+            // own type was decided the first time).
             for index in arguments.indices {
                 _ = try typeOf(&arguments[index].value, expecting: .unknown)
             }

@@ -215,8 +215,7 @@ extension Interpreter {
     // MARK: Making instances
 
     /// Every initializer an instance of the class may be made by: its own, or, if it declares no
-    /// designated one, those
-    /// it inherits.
+    /// designated one, those it inherits.
     func initializers(of type: ClassType) -> [Function] {
         if type.initializers.contains(where: { !$0.isConvenience }) { return type.initializers }
         return type.initializers + (type.superclass.map(initializers(of:)) ?? [])

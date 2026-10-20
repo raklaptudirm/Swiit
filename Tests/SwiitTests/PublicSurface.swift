@@ -1,9 +1,8 @@
 import Foundation
 
 /// The public API's top level: the types an embedder meets, and nothing else
-/// (Docs/Design/swiit-public-api.md, §3).
-/// Each is
-/// documented there; a new one is a decision, made by adding its name here and to the design.
+/// (Docs/Design/swiit-public-api.md, §3). Each is documented there; a new one is a decision, made
+/// by adding its name here and to the design.
 enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "ValueDictionary", "Callable", "ValueType", "HostObject",
@@ -28,8 +27,7 @@ enum PublicSurface {
     )
 
     /// The top-level `public` declarations (not `@_spi`), by name, outside the standard library's
-    /// target and the
-    /// generated glue.
+    /// target and the generated glue.
     static func current() throws -> Set<String> {
         var names: Set<String> = []
         let files = FileManager.default.enumerator(atPath: sources.path)!

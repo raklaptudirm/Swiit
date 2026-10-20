@@ -79,8 +79,7 @@ extension TypeChecker {
         }
         for index in program.statements.indices {
             // A statement inside this one sets its own place; once it's checked, this one's is back
-            // (on an error, the
-            // innermost stays).
+            // (on an error, the innermost stays).
             let outer = (line, range, spots)
             if index < program.lines.count { line = program.lines[index] }
             if index < program.ranges.count { range = program.ranges[index] }
@@ -410,9 +409,8 @@ extension TypeChecker {
         case .enumCase(let typeName, let name, var arguments):
             var subject = type
             // `.none` and `.some(let x)` against an optional: as in `typeOf`, an optional's two
-            // cases are not an enum's
-            // at run time, so they are matched as nil and as the value, unless the held type has
-            // cases of those names.
+            // cases are not an enum's at run time, so they are matched as nil and as the value,
+            // unless the held type has cases of those names.
             if case .optional(let held) = subject, typeName == nil || typeName == "Optional",
                 name == "none" || name == "some",
                 !(erasedName(held).flatMap { enumInfo(named: $0)?.payload(of: name) } != nil)

@@ -57,8 +57,7 @@ extension Interpreter {
     ) throws -> Value {
         let savedScopes = scopes
         // A type parameter the call left to what was passed (a protocol's type) is the type of that
-        // value, as Swift
-        // opens an existential.
+        // value, as Swift opens an existential.
         for name in function.typeParameters {
             if case .object(let bound)? = function.captured.last?
                 .bindings[Interpreter.typeArgumentPrefix + name]?
@@ -155,8 +154,7 @@ extension Interpreter {
     }
 
     /// The scope of a call to a Swiit function whose arguments are one for each parameter, in order
-    /// and with the labels
-    /// the parameters have; nil for any other call, which `bind` works out.
+    /// and with the labels the parameters have; nil for any other call, which `bind` works out.
     func bindPlainly(_ arguments: [Argument], to function: Function) throws -> Scope? {
         guard case .swiit = function.body, function.parameters.count == arguments.count else {
             return nil
@@ -474,8 +472,7 @@ extension TypeAnnotation {
 
 extension Interpreter {
     /// Calls a closure of two values whose first it changes in place (`reduce(into:)`'s), giving
-    /// what it left in the
-    /// first.
+    /// what it left in the first.
     func callChangingFirst(_ value: Value, _ first: Value, _ second: Value) throws -> Value {
         guard case .function(let function as Function) = value, !function.parameters.isEmpty else {
             return try {

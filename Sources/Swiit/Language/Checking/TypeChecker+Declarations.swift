@@ -462,8 +462,7 @@ extension TypeChecker {
     ])
     .union(looseProtocols)
     /// Swift's protocols that Swiit takes on trust: a type that says it has one is believed, and a
-    /// generic asking for
-    /// one is given any type.
+    /// generic asking for one is given any type.
     static let looseProtocols: Set<String> = [
         "Collection", "BidirectionalCollection", "RandomAccessCollection", "MutableCollection",
         "RangeReplaceableCollection",

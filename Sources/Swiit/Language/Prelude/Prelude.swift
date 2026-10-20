@@ -25,8 +25,7 @@ extension Interpreter {
     }
 
     /// Declares a prelude's statements with the Swift bodies found by name; the additions to types
-    /// are returned, to be
-    /// declared once the rest is.
+    /// are returned, to be declared once the rest is.
     func declarePrelude(
         _ program: Program,
         natives: [String: (body: FunctionBody, input: Parameter?)]
@@ -44,10 +43,9 @@ extension Interpreter {
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
                     .removeValue(forKey: decl.name)
             case .typeExtension(let decl):
-                // A host's addition to a type, with its body in Swiit (`extension Int { var mb:
-                // FileSize { … } }`):
-                // declared once the
-                // Swift types are bound by name, so that its body can be checked as a program's is.
+                // A host's addition to a type, with its body in Swiit
+                // (`extension Int { var mb: FileSize { … } }`): declared once the Swift types are
+                // bound by name, so that its body can be checked as a program's is.
                 extensions.append(decl)
             case .protocolDecl(let decl):
                 try declare(decl)
@@ -71,8 +69,7 @@ extension Interpreter {
                         function = builtinFunction(method, native.body, input: native.input)
                     } else if !method.body.statements.isEmpty {
                         // The sequence, as a list, is `self`; the body is checked as a function's
-                        // is, so that what it
-                        // calls is resolved.
+                        // is, so that what it calls is resolved.
                         let receiver = Parameter(
                             label: nil,
                             name: "self",
@@ -105,14 +102,9 @@ extension Interpreter {
     }
 
     /// Declares what a host adds to the language itself: types, protocols, functions and what every
-    /// sequence has,
-    /// written as
-    /// Swift declarations whose bodies are in Swift too. A function or method written without a
-    /// body (`func next() ->
-    /// Int`)
-    /// takes the body registered under its name (`"hello"`), or `Type.method` for a method
-    /// (`"Counter.next"`,
-    /// `"Sequence.firsts"`).
+    /// sequence has, written as Swift declarations whose bodies are in Swift too. A function or
+    /// method written without a body (`func next() -> Int`) takes the body registered under its
+    /// name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
     /// may overload it.
     public func prelude(

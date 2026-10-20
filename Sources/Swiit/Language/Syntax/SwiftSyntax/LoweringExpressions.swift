@@ -140,8 +140,7 @@ extension Lowering {
             return .literal(.int(line(of: node)))
         }
         // `x?` alone: Swift's optional chaining goes on with a member or a subscript, which are
-        // lowered with their
-        // base.
+        // lowered with their base.
         if let node = expr.as(OptionalChainingExprSyntax.self) {
             failedAt = node.questionMark.positionAfterSkippingLeadingTrivia.utf8Offset
             throw SyntaxError("unexpected '?'")
@@ -324,8 +323,7 @@ extension Lowering {
                 return .variable(outer + "." + name)
             }
             // A type inside another that an earlier program declared, or one of Swift's inside a
-            // namespace:
-            // `Unicode.Scalar`.
+            // namespace: `Unicode.Scalar`.
             let base = reference.baseName.text
             if bound[base] == nil || bound[base] == .type, bound[base + "." + name] == .type {
                 return .variable(base + "." + name)
@@ -438,8 +436,7 @@ extension Lowering {
     }
 
     /// The `x?` a postfix chain starts from, and how many links (members, subscripts, `!`; a call
-    /// with its method
-    /// counts once) are after it.
+    /// with its method counts once) are after it.
     private func optionalChainCore(_ expr: ExprSyntax) -> (OptionalChainingExprSyntax, Int)? {
         var node = expr
         var depth = 0

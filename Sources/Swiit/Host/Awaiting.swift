@@ -1,7 +1,5 @@
 /// What `await` waits for, which a host registers: the type of the operand (a handle the host
-/// made), the type it gives,
-/// and
-/// how to wait. Without one, `await` is refused.
+/// made), the type it gives, and how to wait. Without one, `await` is refused.
 public struct Awaiting {
     public var operand: ValueType
     public var result: ValueType
@@ -11,9 +9,7 @@ public struct Awaiting {
     /// gives the value.
     var isHandle: (Value) -> Bool
     /// What awaiting a handle of this type gives, where it depends on what the handle holds (a
-    /// host's `Job<Int>` gives
-    /// an
-    /// Int); `result` else.
+    /// host's `Job<Int>` gives an Int); `result` else.
     var resultOf: (ValueType) -> ValueType?
 
     public init(
@@ -58,9 +54,8 @@ extension Interpreter {
     }
 
     /// Starts a task: `body` runs script code on a thread of its own, as a Swift `Task` would, and
-    /// the host keeps
-    /// `state` for it
-    /// (`taskState` while it runs). It ends with the scope that started it, unless joined first.
+    /// the host keeps `state` for it (`taskState` while it runs). It ends with the scope that
+    /// started it, unless joined first.
     public func startTask(
         state: AnyObject?,
         _ body: @escaping @Sendable () throws -> Value
@@ -83,9 +78,7 @@ extension Interpreter {
     }
 
     /// Cancels the tasks the script has started and not joined, and waits for them, as the scope
-    /// that started them
-    /// closing
-    /// would: how a host ends a script.
+    /// that started them closing would: how a host ends a script.
     public func finishTasks() {
         inCurrentTask { closeTasks(above: -1) }
     }

@@ -618,9 +618,8 @@ extension Interpreter {
 
     /// `x = v`, `p.x += 1`, `xs[0] = v`, `r["k"] = v`.
     func assign(_ assignment: Assignment) throws {
-        // `Point.count += 1`: a static var, set through its type.
-        // A change inside an instance is to the instance itself, which the variable holding it
-        // needn't allow.
+        // `Point.count += 1`: a static var, set through its type. A change inside an instance is to
+        // the instance itself, which the variable holding it needn't allow.
         var holdsInstance = false
         if !assignment.path.isEmpty {
             switch lookup(assignment.root)?.value {
@@ -639,8 +638,7 @@ extension Interpreter {
         if let place = try plainPlace(assignment.root, assignment.path, op: assignment.op) {
             var value = try evaluate(assignment.value, expecting: place.type)
             // A property's type is checked for what is put in it; a collection changed in it keeps
-            // its type, and isn't
-            // walked again.
+            // its type, and isn't walked again.
             if assignment.op == nil, let validate = place.validate { value = try validate(value) }
             try withPlace(assignment.root, place) { slot in
                 guard let op = assignment.op else { slot = value; return }

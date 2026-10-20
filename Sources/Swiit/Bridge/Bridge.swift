@@ -9,9 +9,7 @@ import SystemPackage
 /// for the checker, and its glue, which calls Swift.
 enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
-    /// registered. A
-    /// snapshot, as
-    /// libraries register while other interpreters read.
+    /// registered. A snapshot, as libraries register while other interpreters read.
     public static var types: [String: BridgedType] { lock.withLock { table } }
 
     private static let lock = NSLock()
@@ -29,9 +27,7 @@ enum Bridge {
     )
 
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
-    /// the members it adds
-    /// to types the
-    /// core has. Registering one again is no change.
+    /// the members it adds to types the core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
         lock.withLock {
             for type in more {

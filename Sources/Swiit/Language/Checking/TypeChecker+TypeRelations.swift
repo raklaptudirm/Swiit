@@ -49,8 +49,7 @@ extension TypeChecker {
         // An Error is any of the types that conform to it, as a protocol's type is.
         case (.named(let a), .named("Error")) where conforms(.named(a), to: "Error"): return true
         // A host type with what it holds is one of that type, which the host described as a
-        // protocol: a `Job<Int>` is a
-        // `Job`.
+        // protocol: a `Job<Int>` is a `Job`.
         case (.generic(let a, _), .named(let b)) where a == b && isProtocolType(a): return true
         // Any sequence of the right elements, for a Swift `S: Sequence`.
         case (_, .someSequence(let element)):

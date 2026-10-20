@@ -1,10 +1,8 @@
 import Foundation
 
 /// How well a call's arguments fit one overload, and what the call is then: what fitting cost
-/// (conversions made),
-/// whether a type left unknown makes the fit uncertain, its result and whether it throws, and the
-/// type parameters
-/// the arguments bound.
+/// (conversions made), whether a type left unknown makes the fit uncertain, its result and whether
+/// it throws, and the type parameters the arguments bound.
 struct OverloadMatch {
     var cost: Int
     var uncertain: Bool
@@ -14,8 +12,7 @@ struct OverloadMatch {
 }
 
 /// An overload the arguments fit, with the arguments as checked against it and how many throwing
-/// calls that left
-/// pending, so the best of the overloads can be chosen and its checking kept.
+/// calls that left pending, so the best of the overloads can be chosen and its checking kept.
 struct FittingOverload {
     var signature: TypeChecker.Signature
     var cost: Int
@@ -100,8 +97,7 @@ extension TypeChecker {
     }
 
     /// Of overloads that all fit, the one Swift prefers: with fewer generic parameters, or
-    /// constraints that
-    /// refine the others' (`T: P3` over `T: P1` when P3 takes in P1).
+    /// constraints that refine the others' (`T: P3` over `T: P1` when P3 takes in P1).
     func mostSpecific(_ candidates: [Signature]) -> Signature? {
         func genericCount(_ signature: Signature) -> Int {
             func count(_ type: TypeAnnotation) -> Int {

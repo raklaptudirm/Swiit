@@ -168,8 +168,8 @@ extension Interpreter {
                 effect: decl.effect,
                 typeParameters: decl.runtimeTypeParameters
             )
-            // A function of a builtin's name overloads it: `print(_ p: Point)` beside `print(_
-            // items: Any...)`.
+            // A function of a builtin's name overloads it: `print(_ p: Point)` beside
+            // `print(_ items: Any...)`.
             let current = scopes[scopes.count - 1]
             if current.bindings[decl.name] == nil, scopes.count > 1,
                 let builtin = scopes[0].bindings[decl.name],
@@ -344,9 +344,8 @@ extension Interpreter {
     }
 
     /// Throws if the script should stop: it was cancelled, the host asked it to, or a limit is
-    /// reached. A host function
-    /// that waits
-    /// calls it between waits, so a stop is noticed while it does.
+    /// reached. A host function that waits calls it between waits, so a stop is noticed while it
+    /// does.
     public func checkForStop() throws { try checkInterrupt() }
 
     func checkInterrupt() throws {
@@ -387,8 +386,7 @@ extension Interpreter {
     func finished(_ statement: Statement, _ value: Value?) {
         guard observesStatements, let observer = host.statementFinished else { return }
         // A `try?` that caught an error gave nil because it failed; other nils, like a function
-        // that returns nothing,
-        // didn't.
+        // that returns nothing, didn't.
         var caught = false
         if value == .nothing, case .expression(.attempt(_, .optional)) = statement { caught = true }
         observer(value, caught)

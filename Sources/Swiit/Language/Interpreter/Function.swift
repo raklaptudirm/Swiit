@@ -30,8 +30,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     /// The names of its `inout` parameters, which a call hands back.
     let inoutNames: Set<String>
     /// Its result is an optional of what it gives, flattened: an optional it gives back is not made
-    /// one more
-    /// (`flatMap`'s).
+    /// one more (`flatMap`'s).
     public let flattensResult: Bool
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool

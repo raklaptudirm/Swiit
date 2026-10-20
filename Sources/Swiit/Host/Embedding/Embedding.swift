@@ -35,8 +35,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// A `try!` failed: it stops a script, not just its own statement.
     public var isFatal = false
     /// A syntax error because the source ends too soon: more of it may make it a program (a prompt
-    /// asks for another
-    /// line).
+    /// asks for another line).
     public var isIncomplete = false
     /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
     public var cause: (any Error)?
@@ -148,10 +147,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
 
     /// The diagnostic as a compiler shows one: what is wrong, then the line of the source it is in,
     /// with the place marked. `source` is the text that was run; `path` names it, if it came from a
-    /// file.
-    /// `style`, if given, makes the result styled: the source in the colors it has where it is
-    /// written,
-    /// the marks and places in their own.
+    /// file. `style`, if given, makes the result styled: the source in the colors it has where it
+    /// is written, the marks and places in their own.
     public func rendered(in source: String, path: String? = nil, color: Bool = false) -> String {
         rendered(in: source, path: path, style: color ? .ansi : nil)
     }
@@ -208,8 +205,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         let shown = String(lines[place.startLine - 1])
         let characters = Array(shown)
         // From the start column to the end of the range, or of the line if it goes on; a whole-line
-        // mark is the line's
-        // text.
+        // mark is the line's text.
         var from = max(place.startColumn - 1, 0)
         var to = place.endLine == place.startLine ? place.endColumn - 1 : characters.count
         if place.startColumn == 1, place.endColumn == 1, place.endLine == place.startLine {
@@ -303,12 +299,9 @@ public final class Cancellation: @unchecked Sendable {  // safe: every access ho
     private let lock = NSLock()
     private var set = false
     /// What `isSet` reads without the lock, which every step of every script asks. It is a word
-    /// written under the lock
-    /// and
-    /// read by whoever is running: a stale read only delays the stop by a step, and a load of a
-    /// word is atomic where
-    /// this
-    /// runs (arm64 and x86-64), as the SIGINT flag in the host's spawn code is.
+    /// written under the lock and read by whoever is running: a stale read only delays the stop by
+    /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
+    /// flag in the host's spawn code is.
     nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
         let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
         pointer.initialize(to: 0)
@@ -445,9 +438,7 @@ extension Interpreter {
     // MARK: Values
 
     /// A global of the script: what `name` is bound to, if anything. Setting one makes it a
-    /// constant for scripts to
-    /// read; a
-    /// `DynamicObject` is described to the checker as it is set.
+    /// constant for scripts to read; a `DynamicObject` is described to the checker as it is set.
     public subscript(name: String) -> Value? {
         get { withMainTask { lookup(name)?.value } }
         set {
@@ -478,15 +469,10 @@ extension Interpreter {
     }
 
     /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments
-    /// would: the overload
-    /// is
-    /// chosen by the labels and the values given, and what is left out takes its default. A struct
-    /// or enum type given
-    /// as the
-    /// receiver calls its static members and initializers (`call("init", on: type)`). From a host
-    /// function it runs in
-    /// the
-    /// calling script's task; from outside, as the main one.
+    /// would: the overload is chosen by the labels and the values given, and what is left out takes
+    /// its default. A struct or enum type given as the receiver calls its static members and
+    /// initializers (`call("init", on: type)`). From a host function it runs in the calling
+    /// script's task; from outside, as the main one.
     @discardableResult
     public func call(
         _ name: String,
@@ -497,12 +483,9 @@ extension Interpreter {
         do {
             return try inCurrentTask { () throws -> Value in
                 // A Swift type's method by that name, when arguments are given: `count { … }` is a
-                // method, not the
-                // property `count`.
-                // Where the prelude has a sequence method of the name too, Swift's wins if it takes
-                // these arguments, as
-                // it does
-                // when a script is checked.
+                // method, not the property `count`. Where the prelude has a sequence method of the
+                // name too, Swift's wins if it takes these arguments, as it does when a script is
+                // checked.
                 if let receiver, let methods = bridgedMethods(name, of: receiver),
                     !arguments.isEmpty || sequenceMethods[name] != nil
                 {
@@ -650,9 +633,7 @@ extension Interpreter {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         do {
             // From a host function, in a run already, it carries on where it is. Otherwise Swiit
-            // code runs holding the
-            // lock, which
-            // a task it starts waits for.
+            // code runs holding the lock, which a task it starts waits for.
             if interpreter.lock.isHeldByCurrentThread {
                 return try interpreter.runSource(
                     source,
@@ -683,23 +664,17 @@ extension Interpreter {
     }
 
     /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of
-    /// it comes through the
-    /// closures.
+    /// it comes through the closures.
     ///
     /// - `observing` is told the value of each of the program's own expression statements as it
-    /// runs (not those in
-    /// blocks,
-    ///   like the body of a `for`: use `print` for those), except a bare `true` or `false`.
+    ///   runs (not those in blocks, like the body of a `for`: use `print` for those), except a bare
+    ///   `true` or `false`.
     /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
-    /// next one (a script
-    /// reports
-    ///   an error and carries on); without it, the first stops the run. A stop, a limit and an
-    /// `Unwinding` error always
-    /// end it.
+    ///   next one (a script reports an error and carries on); without it, the first stops the run.
+    ///   A stop, a limit and an `Unwinding` error always end it.
     ///
     /// - `finish` runs after the last statement and before the program's own top-level `defer`s,
-    /// which run when it is
-    /// all over.
+    ///   which run when it is all over.
     ///
     /// A mistake in the program's types or syntax is found before any statement runs.
     public func execute(

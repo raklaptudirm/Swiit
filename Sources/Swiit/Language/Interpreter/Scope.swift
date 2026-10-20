@@ -89,8 +89,7 @@ final class Scope {
             case .function(let callable) = existing.value, let set = callable as? OverloadSet
         {
             // The same signature is replaced where it stood, so each overload keeps its place (the
-            // checker numbers
-            // them).
+            // checker numbers them).
             if let position = set.candidates.firstIndex(where: { $0.hasSameSignature(as: function) }
             ) {
                 candidates = set.candidates
@@ -134,11 +133,9 @@ struct WeakScope {
 }
 
 /// What a scope binds: names to bindings. A scope is nearly always a few names (a call's arguments
-/// and locals), for
-/// which hashing every name on every read costs more than comparing a handful of short strings, so
-/// those are kept in an
-/// array and searched; a scope that grows past `limit` (the global one) gets a dictionary of
-/// positions as well.
+/// and locals), for which hashing every name on every read costs more than comparing a handful of
+/// short strings, so those are kept in an array and searched; a scope that grows past `limit` (the
+/// global one) gets a dictionary of positions as well.
 struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     private struct Entry {
         let name: String

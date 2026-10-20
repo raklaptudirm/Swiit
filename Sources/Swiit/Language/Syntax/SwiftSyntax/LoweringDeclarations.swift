@@ -63,8 +63,7 @@ extension Lowering {
             return takeNested() + [.classDecl(lowered)]
         }
         // The prelude's `Sequence` extension declares its methods; any other type's is an ordinary
-        // extension, its
-        // bodies in Swiit.
+        // extension, its bodies in Swiit.
         if prelude, let node = decl.as(ExtensionDeclSyntax.self),
             node.extendedType.trimmedDescription == "Sequence"
         {
@@ -247,8 +246,7 @@ extension Lowering {
     }
 
     /// `var total: Int { get { … } set { … } }` outside a type: a getter function, and a setter if
-    /// there is one,
-    /// which a read and an assignment of the name call.
+    /// there is one, which a read and an assignment of the name call.
     private mutating func computedVariable(
         _ name: String,
         type: TypeAnnotation,
@@ -489,9 +487,8 @@ extension Lowering {
         }
     }
 
-    /// `<T, U: Comparable>` and `where T: Equatable`: each type parameter, and the protocols
-    /// it has to conform to. Anything else a `where` says (same-type requirements) is left
-    /// unchecked.
+    /// `<T, U: Comparable>` and `where T: Equatable`: each type parameter, and the protocols it has
+    /// to conform to. Anything else a `where` says (same-type requirements) is left unchecked.
     func genericParameters(
         _ clause: GenericParameterClauseSyntax?,
         where whereClause: GenericWhereClauseSyntax? = nil

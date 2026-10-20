@@ -2,13 +2,10 @@ import Foundation
 import SwiftOperators
 import SwiftSyntax
 
-/// Lowers SwiftParser's tree to the core's. A construct it doesn't lower is a
-/// `SyntaxError` that names it, so the supported subset is the set of nodes
-/// handled here.
-/// How the type around a declaration names things, kept to restore when its body ends: the
-/// qualified name its
-/// members are declared under, the type that `Self` is, and the short names of the types declared
-/// inside it.
+/// Lowers SwiftParser's tree to the core's. A construct it doesn't lower is a `SyntaxError` that
+/// names it, so the supported subset is the set of nodes handled here. How the type around a
+/// declaration names things, kept to restore when its body ends: the qualified name its members are
+/// declared under, the type that `Self` is, and the short names of the types declared inside it.
 struct EnclosingType {
     var prefix: String
     var current: String?
@@ -433,8 +430,7 @@ private final class ProblemFinder: SyntaxVisitor {
         if found == nil, token.presence == .missing, !isAccepted(token) {
             found = (describeMissing(token), token.position)
             // At the end of the text, or with only blanks and comments after it (a window cut after
-            // a blank line):
-            // the construct isn't finished, and a longer window may finish it.
+            // a blank line): the construct isn't finished, and a longer window may finish it.
             if token.position >= end
                 || token.nextToken(viewMode: .sourceAccurate).map({ $0.tokenKind == .endOfFile })
                     ?? true

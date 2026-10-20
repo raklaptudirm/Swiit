@@ -263,8 +263,7 @@ extension Interpreter {
     }
 
     /// `lhs op rhs`: a few operators look at their operands first (`&&`, `??`, a `.case` on one
-    /// side); the rest
-    /// evaluate both and apply.
+    /// side); the rest evaluate both and apply.
     private func evaluateBinary(_ op: BinaryOperator, _ lhs: Expr, _ rhs: Expr) throws -> Value {
         switch op {
         case .and:
@@ -497,9 +496,8 @@ extension Interpreter {
     }
 
     /// A call to the one function there is, with each argument for the parameter in its place: no
-    /// overload to choose
-    /// and
-    /// nothing to match, so the arguments become its scope directly. Nil for any other call.
+    /// overload to choose and nothing to match, so the arguments become its scope directly. Nil for
+    /// any other call.
     private func callPlainly(_ value: Value, _ arguments: [Argument]) throws -> Value? {
         guard case .function(let target) = value else { return nil }
         let only =
@@ -650,8 +648,7 @@ extension Interpreter {
             return record[key] ?? .nothing
         }
         // A Swift sequence Swiit holds is indexed by position (a host type's text, by line);
-        // subscripts aren't bridged
-        // yet.
+        // subscripts aren't bridged yet.
         if case .object = base, let items = Interpreter.items(of: base) {
             return try element(of: .list(Array(items)), at: index)
         }
@@ -700,8 +697,7 @@ extension Interpreter {
             if let object = typeValue(of: type.type) {
                 bindings[type.name] = Binding(value: object, mutable: false)
                 // Kept under a name no program writes, for a test against it (`x as? T`), which a
-                // global type of the
-                // same name mustn't answer.
+                // global type of the same name mustn't answer.
                 bindings[Interpreter.typeArgumentPrefix + type.name] = Binding(
                     value: object,
                     mutable: false

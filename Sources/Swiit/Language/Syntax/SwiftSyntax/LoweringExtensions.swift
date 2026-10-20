@@ -4,10 +4,9 @@ extension Lowering {
     // MARK: Extensions
 
     /// `extension Int { … }`, `extension Point: Equatable { … }`: members added to a type,
-    /// whichever
-    /// the type is. A `where` clause is accepted and not checked. Inside, a name that isn't local
-    /// is
-    /// the type's own member if it has one; the checker finds which (`TypeChecker.variable`).
+    /// whichever the type is. A `where` clause is accepted and not checked. Inside, a name that
+    /// isn't local is the type's own member if it has one; the checker finds which
+    /// (`TypeChecker.variable`).
     mutating func typeExtension(_ node: ExtensionDeclSyntax) throws -> [Statement] {
         guard let written = typeName(node.extendedType) else {
             throw unsupported("this extension", node)

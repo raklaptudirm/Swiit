@@ -11,9 +11,8 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     public let typeName: String
 
     // What it can do as a Swift value (hash, sort, encode) is found out when asked, not kept:
-    // anything
-    // kept would be another reference to a collection inside it, and a collection with two can't be
-    // changed in place (a Set would be copied whole by every `insert`).
+    // anything kept would be another reference to a collection inside it, and a collection with two
+    // can't be changed in place (a Set would be copied whole by every `insert`).
     private init(_ value: Any, typeName: String) {
         self.value = value
         self.typeName = typeName

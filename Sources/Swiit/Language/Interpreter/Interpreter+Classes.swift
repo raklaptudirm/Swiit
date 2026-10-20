@@ -58,8 +58,7 @@ final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state
     func isSubclass(of other: ClassType) -> Bool { chain.contains { $0 === other } }
 
     /// The methods by that name, the nearest class's first, one for each signature (the nearer
-    /// overrides).
-    /// The subscripts of the nearest class that declares any.
+    /// overrides). The subscripts of the nearest class that declares any.
     var subscriptOwner: ClassType? { chain.first { !$0.subscriptGetters.isEmpty } }
 
     func allMethods(_ name: String) -> [Function] {

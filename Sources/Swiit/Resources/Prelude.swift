@@ -1,7 +1,6 @@
 // The builtins' types and signatures, written in Swiit and read when the host starts. The checker
-// works from these;
-// the bodies are in Swift, found by name. Doc comments are what help shows. Not compiled: embedded
-// in the target.
+// works from these; the bodies are in Swift, found by name. Doc comments are what help shows. Not
+// compiled: embedded in the target.
 
 /// What `catch` binds: any error, which tells what went wrong. Cast it to
 /// get at more, as in Swift: `if let failure = error as? CommandFailure`.

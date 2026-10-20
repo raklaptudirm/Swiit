@@ -95,9 +95,8 @@ func sequenceParameter(_ type: SType, _ sequences: Set<String>) -> String? {
 }
 
 /// The Swift for one member: the key that tells overloads apart, the shape of its signature (to
-/// tell a default from
-/// one another module adds), and the source of its declaration (a settable property gives a getter
-/// and a setter).
+/// tell a default from one another module adds), and the source of its declaration (a settable
+/// property gives a getter and a setter).
 struct BridgedMember {
     var key: String
     var shape: String
@@ -378,12 +377,9 @@ func bridge(
 }
 
 /// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating
-/// member's may come in
-/// a
-/// box, moved out of its variable so nothing else holds it while it changes (a collection would be
-/// copied whole on
-/// every
-/// call), and the box gets it back, however the call ends.
+/// member's may come in a box, moved out of its variable so nothing else holds it while it changes
+/// (a collection would be copied whole on every call), and the box gets it back, however the call
+/// ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
     guard mutating else {
         return

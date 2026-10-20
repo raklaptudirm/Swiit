@@ -140,16 +140,11 @@ extension Value {
 
 extension Interpreter {
     /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a
-    /// value of the type
-    /// `name` is
-    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function
-    /// `field(value, "port")`,
-    /// which gives
-    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives
-    /// the value as that
-    /// type, or
-    /// nil. Each access is checked as the optional of the type, so a script reads a field it is not
-    /// sure is there.
+    /// value of the type `name` is whatever it parsed as (lists, structs, scalars), and
+    /// `value.port` is the host function `field(value, "port")`, which gives the member, or nil.
+    /// `value.port?.int` is a view: `views["int"]` names a function that gives the value as that
+    /// type, or nil. Each access is checked as the optional of the type, so a script reads a field
+    /// it is not sure is there.
     public func registerDynamic(
         named name: String,
         field: String,

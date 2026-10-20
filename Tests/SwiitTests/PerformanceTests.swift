@@ -4,9 +4,8 @@ import Testing
 @testable import Swiit
 
 // Where time must not go: a script that builds a collection one element at a time has to be linear,
-// not
-// quadratic. A copy of the whole collection on each call is what these catch; the limits are loose
-// so only that fails.
+// not quadratic. A copy of the whole collection on each call is what these catch; the limits are
+// loose so only that fails.
 
 private func seconds(_ source: String) throws -> Double {
     let host = Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true }))

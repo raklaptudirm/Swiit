@@ -1,9 +1,7 @@
 import Foundation
 
 // `Flow`, the items read one at a time with the work done as each is asked for, by hand: the
-// generator reads Swift's
-// own
-// modules, and this one is Swiit's.
+// generator reads Swift's own modules, and this one is Swiit's.
 
 extension Bridge {
     private static let element = TypeAnnotation.parameter("Element")

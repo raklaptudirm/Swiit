@@ -77,8 +77,7 @@ extension Interpreter {
     }
 
     /// The operator a program defines for these operands, as a static method of one of their types
-    /// or
-    /// a function: nil if none takes them.
+    /// or a function: nil if none takes them.
     func userOperator(_ name: String, _ operands: [Value]) throws -> Value? {
         var candidates: [Function] = []
         for operand in operands { candidates += staticOperators(name, of: operand) }

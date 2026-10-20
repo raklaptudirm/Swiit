@@ -3,8 +3,8 @@ import Foundation
 // MARK: What a host exports
 
 /// A function described as data: a name, parameters, a result, and a body. The way to offer
-/// functions whose shape is
-/// known only at run time. It is checked like any function the script declares.
+/// functions whose shape is known only at run time. It is checked like any function the script
+/// declares.
 public struct HostFunction: Sendable {
     public struct Parameter: Sendable {
         public var label: String?
@@ -50,8 +50,7 @@ public struct HostFunction: Sendable {
         var enums: [EnumType]
         var documentation: String?
         /// A default only Swift can compute, like `Date()`: the argument is left out and the
-        /// function uses its own.
-        /// Its source, for help.
+        /// function uses its own. Its source, for help.
         var defaultSource: String?
         /// What is given is shown as interpolation shows a value.
         var showsByType = false
@@ -109,8 +108,8 @@ public struct HostFunction: Sendable {
         self.call = { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }
 
-    /// A function whose result is a Swift type: `HostFunction(name: "size", returns: Int.self) { _
-    /// in 3 }`.
+    /// A function whose result is a Swift type:
+    /// `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
     public init<T: ValueConvertible>(
         name: String,
         summary: String? = nil,
@@ -150,14 +149,10 @@ public struct HostFunction: Sendable {
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`,
-/// `resolveOverload` and
-/// `valueType(of:)` speak. Swift's type grammar is small and closed, and so is this: a name with
-/// the types it is
-/// generic over
-/// (`Int`, `Array<Int>`, `Optional<String>`, `Flow<String>`), a function type, a tuple type.
-/// Whether a named type is a
-/// struct,
-/// an enum or a class is a fact about its declaration: `symbols(named:)` says.
+/// `resolveOverload` and `valueType(of:)` speak. Swift's type grammar is small and closed, and so
+/// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
+/// `Flow<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
+/// class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     case named(String, [ValueType] = [])
     case function(parameters: [ValueType], returns: ValueType)
@@ -179,8 +174,7 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     }
 
     /// The type of a Swift type a script can use: `ValueType(Int.self)`,
-    /// `ValueType([String].self)`; any
-    /// `ValueConvertible`.
+    /// `ValueType([String].self)`; any `ValueConvertible`.
     public init<T: ValueConvertible>(_ type: T.Type) {
         self = T.valueType
     }
@@ -257,9 +251,8 @@ public protocol ValueConvertible {
 }
 
 /// A type that names enums in its `valueType`, which scripts learn by name: containers hold their
-/// elements'. An SPI
-/// refinement,
-/// because a requirement only the module can see cannot be satisfied by a conformance outside it.
+/// elements'. An SPI refinement, because a requirement only the module can see cannot be satisfied
+/// by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [EnumType] { get } }
 
 extension ValueConvertible {
