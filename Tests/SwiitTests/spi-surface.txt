@@ -216,7 +216,6 @@ Language/Interpreter/TaskContext.swift	Layer var scopes
 Language/Interpreter/TaskContext.swift	Layer var scopes
 Language/Interpreter/Value+Operations.swift	Layer func conforming
 Language/Interpreter/Value+Operations.swift	Layer func order
-Language/Interpreter/Value+Operations.swift	Layer var typeName
 Language/Interpreter/ValueStream.swift	Layer class ValueStream
 Language/Reflection/HelpStyle.swift	Layer enum HelpStyle
 Language/Reflection/TypeMembers.swift	Layer func describedTypeName
@@ -402,15 +401,12 @@ Values/Value.swift	Layer init init
 Values/Value.swift	Layer init init
 Values/Value.swift	Layer init init
 Values/Value.swift	Layer protocol LanguageObject
-Values/Value.swift	Layer protocol ObjectDetails
 Values/Value.swift	Layer protocol WrapsValue
 Values/Value.swift	Layer struct Record
-Values/Value.swift	Layer typealias DisplaySegment
 Values/Value.swift	Layer typealias SwiitValue
 Values/Value.swift	Layer var asRecord
 Values/Value.swift	Layer var date
 Values/Value.swift	Layer var dictionary
-Values/Value.swift	Layer var fields
 Values/Value.swift	Layer var objectDisplaySegments
 Values/Value.swift	Layer var objectFields
 Values/Value.swift	Layer var objectIdentity

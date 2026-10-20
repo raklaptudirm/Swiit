@@ -37,46 +37,23 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, Custom
     /// A member answered at run time, after the registered ones; nil if there is none. Optional: most objects have only the
     /// registered members.
     func member(_ name: String) -> Value?
+    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that isn't data. By default
+    /// every member that isn't a method.
+    var fields: ValueDictionary? { get }
+    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job reads `[1] running  make`);
+    /// nil to print as its fields.
+    var displaySegments: [DisplaySegment]? { get }
+    /// What equality and hashing go by: the object itself, by default.
+    var identity: AnyHashable { get }
 }
 
 /// A piece of text and the style it's shown in.
-@_spi(Layer) public typealias DisplaySegment = (text: String, style: DisplayStyle?)
-
-/// What an object can say of how it shows, beyond its members: the objects of the language and the shell's say it; a host's
-/// object has the defaults.
-@_spi(Layer) public protocol ObjectDetails: HostObject {
-    /// Its data as a record, which tables, `select` and `to json` use; nil
-    /// for an object that isn't data, like an enum type.
-    var fields: Record? { get }
-    /// How it prints in the debug form, in pieces to color, if it has a form
-    /// of its own (a job reads `[1] running  make`); nil to print as its fields.
-    var displaySegments: [DisplaySegment]? { get }
-    /// What equality and hashing go by: the object itself, by default; a
-    /// boxed Swift value's own value, when it's Hashable.
-    var identity: AnyHashable { get }
-}
+public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held as it is), as
 /// opposed to one a host hands in. The checker types the language's by what they are, and a host's by the protocol
 /// the host declares for them.
-@_spi(Layer) public protocol LanguageObject: ObjectDetails {}
-
-extension ObjectDetails {
-    public var identity: AnyHashable { AnyHashable(ObjectIdentifier(self)) }
-
-    public var displaySegments: [DisplaySegment]? { nil }
-
-    /// Every member that isn't a method, in `memberNames` order.
-    public var fields: Record? {
-        var record = Record(typeName: typeName)
-        for name in memberNames {
-            guard let value = member(name) else { continue }
-            if case .function = value { continue }
-            record[name] = value
-        }
-        return record
-    }
-}
+@_spi(Layer) public protocol LanguageObject: HostObject {}
 
 extension HostObject {
     /// The registered members of its type, unless it says.
@@ -86,31 +63,55 @@ extension HostObject {
             .map(\.name).filter { seen.insert($0).inserted }
     }
 
-    public func member(_ name: String) -> Value? { nil }
-
-    @_spi(Layer) public var objectFields: Record? {
-        if let details = self as? any ObjectDetails { return details.fields }
-        return ObjectFields.of(self)
+    /// The registered members of its type: a property is read, a method is a function bound to the object.
+    public func member(_ name: String) -> Value? {
+        guard let member = Bridge.types[typeName]?.members.first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
+              let plain = member.plain else { return nil }
+        let receiver = Value(self)
+        switch member.kind {
+        case .property: return try? plain(["self": receiver])
+        case .method:
+            return Value(HostFunction(
+                name: name, parameters: member.parameters.map { HostFunction.Parameter(label: $0.label, name: $0.name, type: ValueType($0.type)) },
+                returnType: ValueType(member.returns), isThrowing: member.isThrowing,
+                call: { arguments in
+                    var arguments = arguments
+                    arguments["self"] = receiver
+                    return try plain(arguments)
+                }))
+        default: return nil
+        }
     }
-    @_spi(Layer) public var objectDisplaySegments: [DisplaySegment]? { (self as? any ObjectDetails)?.displaySegments }
-    @_spi(Layer) public var objectIdentity: AnyHashable { (self as? any ObjectDetails)?.identity ?? AnyHashable(ObjectIdentifier(self)) }
+
+    public var identity: AnyHashable { AnyHashable(ObjectIdentifier(self)) }
+
+    public var displaySegments: [DisplaySegment]? { nil }
+
+    /// Every member that isn't a method, in `memberNames` order.
+    public var fields: ValueDictionary? {
+        var fields = ValueDictionary()
+        for name in memberNames {
+            guard let value = member(name) else { continue }
+            if case .function = value { continue }
+            fields[Value.string(name)] = value
+        }
+        return fields
+    }
+
+    /// `fields` as the language's record of the object's type.
+    @_spi(Layer) public var objectFields: Record? {
+        guard let fields else { return nil }
+        var record = Record(typeName: typeName)
+        for (key, value) in fields { if case .string(let name) = key { record[name] = value } }
+        return record
+    }
+    @_spi(Layer) public var objectDisplaySegments: [DisplaySegment]? { displaySegments }
+    @_spi(Layer) public var objectIdentity: AnyHashable { identity }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
     /// description, for an object that isn't data.
     public var debugDescription: String {
         objectFields?.debugDescription ?? description
-    }
-}
-
-enum ObjectFields {
-    static func of(_ object: some HostObject) -> Record? {
-        var record = Record(typeName: object.typeName)
-        for name in object.memberNames {
-            guard let value = object.member(name) else { continue }
-            if case .function = value { continue }
-            record[name] = value
-        }
-        return record
     }
 }
 
@@ -426,7 +427,7 @@ extension Value {
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the value
 /// while the member changes it, so a collection is changed where it is, not copied whole each time.
 /// The member's glue takes it out, and puts it back, changed, however the call ends.
-@_spi(Layer) public final class ReceiverBox: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ReceiverBox: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public var value: Value
     public init(_ value: Value) { self.value = value }
 
@@ -447,11 +448,10 @@ extension Value {
     public var typeName: String { "receiver" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    @_spi(Layer) public var fields: Record? { nil }
+    public var fields: ValueDictionary? { nil }
     public var description: String { "\(value)" }
 }
 
-@_spi(Layer) extension ReceiverBox: LanguageObject {}
 
 // MARK: Making and reading values
 
@@ -481,9 +481,13 @@ extension Value {
         self = .function(NativeFunction(function))
     }
 
-    /// Any `Encodable` as a value: a record, a list, a string.
-    public init(encoding value: some Encodable) throws {
+    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one is given.
+    public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
+        if let name, case .record(var record) = self {
+            record.typeName = name
+            self = .record(record)
+        }
     }
 
 }

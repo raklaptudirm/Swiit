@@ -72,13 +72,13 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 }
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-@_spi(Layer) public final class BridgedTypeName: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class BridgedTypeName: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     public init(_ name: String) { self.name = name }
     public var typeName: String { "type" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: Record? { nil }
+    public var fields: ValueDictionary? { nil }
     @_spi(Layer) public var description: String { name }
 }
 
@@ -165,6 +165,8 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
     /// `async`: a call, or reading the property, needs `await`. Its glue
     /// waits in `suspend`, so other tasks run meanwhile.
     public var effect: Effect = .sync
+    /// How a host-registered member is called without an interpreter: what a host object's own `member(_:)` uses.
+    var plain: (@Sendable ([String: Value]) throws -> Value)?
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?
@@ -190,4 +192,3 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 
 // MARK: Conversions the glue uses
 
-@_spi(Layer) extension BridgedTypeName: LanguageObject {}

@@ -1,13 +1,13 @@
 import Foundation
 
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
-final class WeakReference: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+final class WeakReference: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     weak var target: ClassInstance?
     init(_ target: ClassInstance?) { self.target = target }
     var typeName: String { "weak" }
     var memberNames: [String] { [] }
     func member(_ name: String) -> Value? { nil }
-    var fields: Record? { nil }
+    var fields: ValueDictionary? { nil }
     var description: String { target.map { "\($0)" } ?? "nil" }
 }
 
@@ -351,4 +351,3 @@ extension Interpreter {
     }
 }
 
-@_spi(Layer) extension WeakReference: LanguageObject {}

@@ -1,7 +1,7 @@
 /// An enum's definition: its name and cases, in order. Declared in Swiit
 /// (`enum FileType { case file, directory }`) or by the host.
 /// Types compare by identity, so two enums with the same name are distinct.
-@_spi(Layer) public final class EnumType: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class EnumType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public struct Case: Sendable, Equatable {
         public let name: String
         /// For an enum with raw values (`enum Level: Int`).
@@ -57,7 +57,7 @@
     }
 
     /// A type, not data: it shows as `enum Name`.
-    public var fields: Record? { nil }
+    public var fields: ValueDictionary? { nil }
 
     public var description: String { "enum \(name)" }
 }
@@ -125,4 +125,3 @@
     }
 }
 
-@_spi(Layer) extension EnumType: LanguageObject {}

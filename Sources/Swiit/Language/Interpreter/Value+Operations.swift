@@ -11,7 +11,8 @@ extension Expr {
 }
 
 extension Value {
-    @_spi(Layer) public var typeName: String {
+    /// The name of its type as errors say it: `Int`, `FileEntry`, `List`, `Tuple` for an unnamed struct.
+    public var typeName: String {
         switch self {
         case .nothing: "Nothing"
         case .bool: "Bool"

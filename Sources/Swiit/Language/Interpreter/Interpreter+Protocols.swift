@@ -1,7 +1,7 @@
 import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-@_spi(Layer) public final class ProtocolType: ObjectDetails, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
+@_spi(Layer) public final class ProtocolType: LanguageObject, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let name: String
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]
@@ -17,7 +17,7 @@ import Foundation
     public var typeName: String { "protocol" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: Record? { nil }
+    public var fields: ValueDictionary? { nil }
     public var description: String { "protocol \(name)" }
 }
 
@@ -112,4 +112,3 @@ extension Interpreter {
     }
 }
 
-@_spi(Layer) extension ProtocolType: LanguageObject {}

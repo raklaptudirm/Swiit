@@ -106,6 +106,11 @@ extension BridgedMember {
                 return try call(named)
             }
         )
+        plain = { arguments in
+            var named = Dictionary(uniqueKeysWithValues: names.compactMap { name in arguments[name].map { (name, $0) } })
+            if hasReceiver, let receiver = arguments["self"] { named["self"] = receiver }
+            return try call(named)
+        }
     }
 }
 
