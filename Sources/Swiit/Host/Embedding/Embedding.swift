@@ -16,13 +16,44 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var range: SourceRange?
     /// For a run-time error: the calls it came out of, innermost first, with where each was made.
     @_spi(Layer) public var calls: [RuntimeError.Call] = []
+    /// For a run-time error: the status the failure gives (a failed command's own, for a shell).
+    public var status: Int32 = 1
+    /// The host reported it already (`ScriptError.isReported`).
+    public var isReported = false
+    /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
+    public var cause: (any Error)?
 
-    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = []) {
+    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = [],
+                             status: Int32 = 1, isReported: Bool = false, cause: (any Error)? = nil) {
         self.kind = kind
         self.message = message
         self.line = line ?? range?.startLine
         self.range = range
         self.calls = calls
+        self.status = status
+        self.isReported = isReported
+        self.cause = cause
+    }
+
+    /// A diagnostic is `Sendable` and the error it carries is whatever the host threw.
+    @_spi(Layer) public init(runtime error: RuntimeError, isReported: Bool = false) {
+        self.init(kind: .runtime, message: error.description, range: error.range, calls: error.calls, status: error.status, isReported: isReported)
+    }
+
+    /// What any error that came out of a run is, as a diagnostic.
+    static func of(_ error: any Error) -> Diagnostic {
+        switch error {
+        case let diagnostic as Diagnostic: diagnostic
+        case let error as TypeError: Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
+        case let error as RuntimeError: Diagnostic(runtime: error)
+        case let reported as AlreadyReported: Diagnostic(runtime: reported.error, isReported: true)
+        case let fatal as FatalError: Diagnostic(runtime: fatal.error)
+        case let limit as LimitExceeded: Diagnostic(kind: .limit, message: limit.description)
+        case is Cancelled: Diagnostic(kind: .cancelled, message: "cancelled")
+        case is Interrupted: Diagnostic(kind: .cancelled, message: "interrupted")
+        case let error as ScriptError: Diagnostic(kind: .runtime, message: error.message, status: error.status, isReported: error.isReported, cause: error)
+        default: Diagnostic(kind: .runtime, message: "\(error)", cause: error)
+        }
     }
 
     public static func == (lhs: Diagnostic, rhs: Diagnostic) -> Bool {
@@ -288,10 +319,8 @@ extension Interpreter {
     public func value(of member: String, in value: Value) throws(Diagnostic) -> Value {
         do {
             return try withMainTask { try self.member(member, of: value) }
-        } catch let error as RuntimeError {
-            throw Diagnostic(kind: .runtime, message: error.description)
         } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+            throw Diagnostic.of(error)
         }
     }
 
@@ -307,10 +336,8 @@ extension Interpreter {
         let call = Expr.call(callee, arguments.map { Argument(label: $0.label, value: .literal($0.value)) })
         do {
             return try inCurrentTask { try self.evaluate(call) }
-        } catch let error as RuntimeError {
-            throw Diagnostic(kind: .runtime, message: error.description, range: error.range, calls: error.calls)
         } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+            throw Diagnostic.of(error)
         }
     }
 
@@ -405,10 +432,8 @@ extension Interpreter {
         do {
             // Swiit code runs holding the lock, which a task it starts waits for.
             return try onLargeStack { try interpreter.withMainTask { try interpreter.runSource(source, alreadyCancelled: alreadyCancelled) } }
-        } catch let diagnostic as Diagnostic {
-            throw diagnostic
         } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+            throw Diagnostic.of(error)
         }
     }
 
@@ -466,20 +491,8 @@ extension Interpreter {
                 }
                 throw error
             }
-        } catch let error as TypeError {
-            throw Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
-        } catch let error as RuntimeError {
-            throw Diagnostic(kind: .runtime, message: error.description, range: error.range, calls: error.calls)
-        } catch let reported as AlreadyReported {
-            throw Diagnostic(kind: .runtime, message: reported.error.description)
-        } catch let fatal as FatalError {
-            throw Diagnostic(kind: .runtime, message: fatal.error.description)
-        } catch let limit as LimitExceeded {
-            throw Diagnostic(kind: .limit, message: limit.description)
-        } catch is Cancelled {
-            throw Diagnostic(kind: .cancelled, message: "cancelled")
-        } catch is Interrupted {
-            throw Diagnostic(kind: .cancelled, message: "interrupted")
+        } catch {
+            throw Diagnostic.of(error)
         }
     }
 }

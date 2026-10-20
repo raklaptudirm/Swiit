@@ -643,3 +643,29 @@ extension URL: ValueConvertible {}
     #expect(swish.valueType(of: Value(3)) == .int)
     #expect(swish.valueType(of: [1, 2]) == .list(.int))
 }
+
+private struct Stop: Unwinding {}
+
+@Test func aHostFunctionFailsWithAScriptErrorOrUnwinds() throws {
+    let log = Log()
+    let swish = interpreter(log: log)
+    swish.register(HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
+        throw ScriptError("nope", status: 3, value: Value(struct: "Failure", fields: ["code": Value(7)]))
+    })
+    swish.register(HostFunction(name: "told", isThrowing: true) { _ in throw ScriptError("already said", isReported: true) })
+    swish.register(HostFunction(name: "stop", isThrowing: true) { _ in throw Stop() })
+    // A script can catch a script error, and what it carries.
+    _ = try swish.evaluate("struct Failure: Error { let code: Int }")
+    #expect(try swish.evaluate("var r = -1; do { _ = try fail() } catch let f as Failure { r = f.code } catch { r = -2 }; r") == 7)
+    #expect(try swish.evaluate("(try? fail()) == nil") == true)
+    let failure = #expect(throws: Diagnostic.self) { try swish.evaluate("try fail()") }
+    #expect(failure?.status == 3 && failure?.message == "nope")
+    let told = #expect(throws: Diagnostic.self) { try swish.evaluate("try told()") }
+    #expect(told?.isReported == true)
+    // An unwinding error is not caught, runs the defers, and reaches the host.
+    let stopped = #expect(throws: Diagnostic.self) {
+        try swish.evaluate(#"func f() throws { defer { print("deferred") }; try stop() }; do { try f() } catch { print("caught") }"#)
+    }
+    #expect(stopped?.cause is Stop)
+    #expect(log.text == "deferred\n")
+}

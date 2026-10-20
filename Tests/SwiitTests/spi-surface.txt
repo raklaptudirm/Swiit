@@ -44,6 +44,7 @@ Host/Embedding/Embedding.swift	Layer func rendered
 Host/Embedding/Embedding.swift	Layer func reset
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer init init
+Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer struct Cancelled
 Host/Embedding/Embedding.swift	Layer struct LimitExceeded
 Host/Embedding/Embedding.swift	Layer struct Style

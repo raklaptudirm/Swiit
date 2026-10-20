@@ -314,8 +314,14 @@ extension Interpreter {
                     return try call(arguments)
                 } catch let error as RuntimeError {
                     throw error
+                } catch let error as ScriptError {
+                    let failure = RuntimeError(error.message, status: error.status, thrown: error.value)
+                    throw error.isReported ? AlreadyReported(error: failure) : failure
                 } catch let diagnostic as Diagnostic {
-                    throw RuntimeError(diagnostic.message)
+                    let failure = RuntimeError(diagnostic.message, status: diagnostic.status)
+                    throw diagnostic.isReported ? AlreadyReported(error: failure) : failure
+                } catch let unwinding as Unwinding {
+                    throw unwinding
                 } catch {
                     throw RuntimeError("\(name): \(error)")
                 }

@@ -10,6 +10,8 @@ public struct Symbol: Sendable, Hashable {
     /// The line `help` shows, when it has one.
     public var summary: String?
     public var declaration: Declaration
+    /// Whether the core or the host provides it, as opposed to a script's own declaration.
+    public var isBuiltin = false
 
     public enum Declaration: Sendable, Hashable {
         /// A function, or a method of a type.
@@ -143,11 +145,13 @@ extension Interpreter {
         case .function(let callable):
             let candidates = (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
             return candidates.map { function in
-                Symbol(name: function.name ?? name, summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
+                var symbol = Symbol(name: function.name ?? name, summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
                        declaration: .function(Symbol.Function(
                            parameters: function.parameters.map { parameter($0, documentation: function.documentation?.parameters[$0.name]) },
                            returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
                            isThrowing: function.isThrowing, isAsync: function.effect != .sync, isMutating: function.isMutating)))
+                symbol.isBuiltin = function.isBuiltin
+                return symbol
             }
         case .object(is StructType): return [Symbol(name: name, declaration: .type(.structure))]
         case .object(is EnumType): return [Symbol(name: name, declaration: .type(.enumeration))]
@@ -294,10 +298,8 @@ extension Interpreter {
                     return checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) }
                 }
             }
-        } catch let diagnostic as Diagnostic {
-            throw diagnostic
         } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+            throw Diagnostic.of(error)
         }
     }
 
@@ -334,10 +336,8 @@ extension Interpreter {
                     }
                 }
             }
-        } catch let diagnostic as Diagnostic {
-            throw diagnostic
         } catch {
-            throw Diagnostic(kind: .runtime, message: "\(error)")
+            throw Diagnostic.of(error)
         }
     }
 }
