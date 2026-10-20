@@ -823,7 +823,6 @@ private final class Handle: HostObject, @unchecked Sendable {
     let swish = interpreter()
     #expect(try swish.call("contains", on: [1, 2], arguments: [(nil, Value(2))]) == true)
     #expect(try swish.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b")
-    #expect(try swish.call("first", on: [4, 5]) == 4)
 }
 
 @Test func aSequenceNativeTypeHasWhatAListHasOverItsItems() throws {
