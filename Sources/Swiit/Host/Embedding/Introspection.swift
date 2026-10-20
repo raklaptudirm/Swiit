@@ -118,7 +118,8 @@ extension ValueType {
 }
 
 extension Interpreter {
-    /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all of them without a `name`);
+    /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all of them without a `name`,
+    /// the core's builtins too);
     /// with one, the members a value of that type has (a struct's or host object's methods and properties, a bridged type's,
     /// the sequence methods of a list).
     public func symbols(named name: String? = nil, of type: ValueType? = nil) -> [Symbol] {
@@ -142,7 +143,10 @@ extension Interpreter {
         if let name {
             return lookup(name).map { symbols(of: name, binding: $0) } ?? []
         }
-        return scopes[1].bindings.sorted { $0.key < $1.key }.flatMap { symbols(of: $0.key, binding: $0.value) }
+        // What was declared, then the core's builtins it doesn't shadow.
+        let declared = scopes[1].bindings
+        let core = scopes[0].bindings.filter { declared[$0.key] == nil }
+        return (declared.sorted { $0.key < $1.key } + core.sorted { $0.key < $1.key }).flatMap { symbols(of: $0.key, binding: $0.value) }
     }
 
     private func symbols(of name: String, binding: Binding) -> [Symbol] {

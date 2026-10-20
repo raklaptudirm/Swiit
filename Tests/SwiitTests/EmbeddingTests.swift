@@ -321,8 +321,9 @@ private final class HostNode: HostObject, @unchecked Sendable {
     swish.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
     swish.register("check", throwing: true) { (x: Int) throws -> Int in x }
     _ = try swish.evaluate("func area(width: Int, height: Int = 1) -> Int { width * height }")
-    let names = swish.symbols().map(\.name).sorted()
-    #expect(names == ["area", "check", "greet"])
+    let names = Set(swish.symbols().map(\.name))
+    #expect(names.isSuperset(of: ["area", "check", "greet"]))
+    #expect(names.contains("print"))
     let area = try #require(swish.symbols(named: "area").first)
     let function = try #require(area.function)
     #expect(function.parameters.map(\.label) == ["width", "height"])
