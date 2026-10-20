@@ -527,7 +527,10 @@ extension Interpreter {
         case .success(let parsed): program = parsed
         }
         do {
-            var checked = try TypeChecker(interpreter: self).check(program)
+            let checker = TypeChecker(interpreter: self)
+            var checked = try checker.check(program)
+            // What the program declared is typed as written for the next run: `var x: Int? = nil` is an optional Int.
+            staticTypes.merge(checker.declaredGlobals) { $1 }
             var last: Expr?
             var lastRange: SourceRange?
             // An observer is told of the last expression too, and it is not given back.
