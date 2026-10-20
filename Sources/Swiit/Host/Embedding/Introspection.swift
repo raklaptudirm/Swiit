@@ -6,6 +6,9 @@ import Foundation
 /// Something a script can name: a function or method, a variable or property, or a type. Only a function has parameters and
 /// effects, only a variable can be settable, only a type has a declaration kind: what a symbol is decides what it has.
 public struct Symbol: Sendable, Hashable {
+    /// What a name stands for, in a word.
+    public enum Role: Sendable { case variable, function, type }
+
     public var name: String
     /// The line `help` shows, when it has one.
     public var summary: String?
@@ -232,6 +235,48 @@ extension Interpreter {
             }
         }
         return found
+    }
+
+    /// What each global name stands for, cheaply: the functions, variables and types a script can name, the core's builtins and
+    /// Swift's own types included. How a front end tells a name it reads from one that is new.
+    public func names() -> [String: Symbol.Role] {
+        withMainTask {
+            globalNames().compactMapValues { kind in
+                switch kind {
+                case .function: .function
+                case .variable: .variable
+                case .type: .type
+                default: nil
+                }
+            }
+        }
+    }
+
+    /// How to color Swift source, in characters, which may be half typed: what it reads before a problem is colored as it reads
+    /// it.
+    public func highlight(_ source: String) -> [Highlight] {
+        let bound = withMainTask { globalNames() }
+        return frontEnd.highlight(source, bound: bound).map { span in
+            Highlight(range: span.range, kind: switch span.kind {
+            case .keyword: .keyword
+            case .command: .command
+            case .flag: .flag
+            case .string: .string
+            case .number: .number
+            case .constant: .constant
+            case .variable: .variable
+            case .comment: .comment
+            case .type: .type
+            case .punctuation: .punctuation
+            })
+        }
+    }
+
+    /// A stretch of source and what it is.
+    public struct Highlight: Sendable {
+        public enum Kind: Sendable { case keyword, command, flag, string, number, constant, variable, comment, type, punctuation }
+        public var range: Range<Int>
+        public var kind: Kind
     }
 
     /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and the host declare, and Swift's
