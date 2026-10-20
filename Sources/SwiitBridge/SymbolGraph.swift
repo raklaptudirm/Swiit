@@ -31,7 +31,7 @@ struct Symbol: Decodable {
     struct Location: Decodable { struct Position: Decodable { let line: Int }; let position: Position }
     let location: Location?
 
-    /// The documentation's lines. A declaration that starts with an attribute (`@_spi(Layer)`) has the attribute's `@` in the
+    /// The documentation's lines. A declaration that starts with an attribute (`@Foo`) has the attribute's `@` in the
     /// last line, which the compiler's range takes in.
     private var docLines: [String] {
         (docComment?.lines ?? []).map { line in

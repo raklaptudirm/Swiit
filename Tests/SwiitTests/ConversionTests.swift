@@ -1,4 +1,4 @@
-@testable @_spi(Layer) import Swiit
+@testable import Swiit
 import Testing
 
 private struct FileEntry: Encodable {

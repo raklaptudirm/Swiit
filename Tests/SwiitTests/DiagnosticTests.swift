@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable @_spi(Layer) @_spi(Host) import Swiit
+@testable import Swiit
 
 // Where an error is: the diagnostic points at the source it came from, as a compiler does.
 

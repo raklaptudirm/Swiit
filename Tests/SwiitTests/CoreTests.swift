@@ -1,4 +1,4 @@
-@_spi(Layer) @testable import Swiit
+@testable import Swiit
 import Testing
 
 // The core on its own: the target builds and runs without the shell.

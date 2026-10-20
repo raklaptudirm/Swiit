@@ -213,9 +213,9 @@ extension ValueConvertible {
 }
 
 extension Value: ValueConvertible {
-    @_spi(Layer) public static var valueType: ValueType { .any }
-    @_spi(Layer) public init(_ swiitValue: Value) { self = swiitValue }
-    @_spi(Layer) public var value: Value { self }
+    public static var valueType: ValueType { .any }
+    public init(_ swiitValue: Value) { self = swiitValue }
+    public var value: Value { self }
 }
 
 extension Int: ValueConvertible {
@@ -271,9 +271,9 @@ extension Date: ValueConvertible {
     public var value: Value { .date(self) }
 }
 
-@_spi(Layer) extension Array: ValueEnums where Element: ValueConvertible {}
-@_spi(Layer) extension Dictionary: ValueEnums where Key: ValueConvertible, Value: ValueConvertible {}
-@_spi(Layer) extension Optional: ValueEnums where Wrapped: ValueConvertible {}
+extension Array: ValueEnums where Element: ValueConvertible {}
+extension Dictionary: ValueEnums where Key: ValueConvertible, Value: ValueConvertible {}
+extension Optional: ValueEnums where Wrapped: ValueConvertible {}
 
 extension Array: ValueConvertible where Element: ValueConvertible {
     public static var valueType: ValueType { .list(Element.valueType) }
@@ -394,7 +394,7 @@ func swiitArgument<T: ValueConvertible>(
 public protocol ScriptEnum: ValueConvertible, CaseIterable {
     /// Its cases and raw values, as Swiit sees them; one instance per type,
     /// so values compare equal across calls.
-    @_spi(Layer) static var swiitEnumType: EnumType { get }
+    static var swiitEnumType: EnumType { get }
 }
 
 extension ScriptEnum {

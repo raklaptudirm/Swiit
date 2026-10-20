@@ -26,7 +26,6 @@ allow	Language/Interpreter/Function.swift	commandline	3
 allow	Language/Interpreter/Interpreter+Calls.swift	commandline	6
 allow	Language/Interpreter/Interpreter+SequenceMethods.swift	commandline	1
 allow	Language/Interpreter/Interpreter.swift	display	6
-allow	Bridge/Bridge+Conversions.swift	display	2
 allow	Language/Reflection/TypeMembers.swift	commandline	1
 allow	Language/Reflection/TypeMembers.swift	display	4
 allow	Host/SwiitHost.swift	display	5

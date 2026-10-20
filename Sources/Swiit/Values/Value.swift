@@ -7,23 +7,23 @@ import Foundation
 public enum Value: Sendable {
     // The representation is the interpreter's and the shell's (SPI). A host builds a value with its initializers and literals and
     // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never breaks it.
-    @_spi(Layer) case nothing
-    @_spi(Layer) case bool(Bool)
-    @_spi(Layer) case int(Int)
-    @_spi(Layer) case double(Double)
-    @_spi(Layer) case string(String)
-    @_spi(Layer) case list([Value])
+    case nothing
+    case bool(Bool)
+    case int(Int)
+    case double(Double)
+    case string(String)
+    case list([Value])
     /// Named fields in order, like a row of a table: a struct's value (with
     /// its type's name), or a tuple (without).
-    @_spi(Layer) case record(Record)
+    case record(Record)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
-    @_spi(Layer) case dictionary(ValueDictionary)
+    case dictionary(ValueDictionary)
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
-    @_spi(Layer) case enumValue(EnumValue)
+    case enumValue(EnumValue)
     /// A live value with members of its own: a background job, an enum type,
     /// and later bridged Swift objects.
-    @_spi(Layer) case object(any HostObject)
-    @_spi(Layer) case function(any Callable)
+    case object(any HostObject)
+    case function(any Callable)
 }
 
 /// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which the checker reads, so a
@@ -115,11 +115,6 @@ extension HostObject {
     }
 }
 
-/// A Swiit value as a Swift function takes or gives one whole, whatever it
-/// is. The name tells a bridged function's parameter from a generic parameter
-/// called `Value`.
-typealias SwiitValue = Value
-
 extension Value {
     /// A record, or an object's fields: what a table row is made from.
     var asRecord: Record? {
@@ -131,21 +126,13 @@ extension Value {
     }
 }
 
-/// A type that holds a Swiit value as it is, whose type says how it's read:
-/// `JSON`, which is whatever it parsed as. A function that gives one gives
-/// the value it holds.
-protocol WrapsValue {
-    var value: Value { get }
-    init(_ value: Value)
-}
-
 /// A function value. The interpreter implements this for Swiit functions and
 /// closures; hosts implement it for Swift functions.
 public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 /// Fields in insertion order. Two records are equal when they have the same
 /// fields, whatever their order or type name.
-@_spi(Layer) public struct Record: Sendable, Hashable, Sequence {
+public struct Record: Sendable, Hashable, Sequence {
     public private(set) var keys: [String] = []
     private var storage: [String: Value] = [:]
     /// The Swift type this record came from, like `FileEntry`, which picks

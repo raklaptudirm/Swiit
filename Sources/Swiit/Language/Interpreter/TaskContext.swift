@@ -129,7 +129,7 @@ extension Interpreter {
 /// A function that waits (a host's, a library's) lets other tasks run: a
 /// plain wait is a `suspend`, and a read of the input waits first for the
 /// task's turn at it, which the host says (`inputTurn`).
-@_spi(Layer) extension Interpreter: WaitingHost {
+extension Interpreter: WaitingHost {
     func wait(_ body: () -> Void) {
         suspend { body() }
     }

@@ -1,4 +1,4 @@
-@_spi(Layer) @testable import Swiit
+@testable import Swiit
 import Testing
 
 // The printer's own check: what it prints reads back as the same tree. The

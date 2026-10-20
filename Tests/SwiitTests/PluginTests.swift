@@ -1,4 +1,4 @@
-@testable @_spi(Layer) import Swiit
+@testable import Swiit
 import Testing
 
 private enum Level: String, CaseIterable, ScriptEnum {

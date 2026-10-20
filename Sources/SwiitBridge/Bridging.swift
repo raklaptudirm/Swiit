@@ -22,10 +22,6 @@ nonisolated(unsafe) var leaves: [String: Leaf] = [ // safe: the generator runs o
     "Double": Leaf(".double", { "try Double(\($0))" }, { "\($0).value" }),
     "Bool": Leaf(".bool", { "try Bool(\($0))" }, { "\($0).value" }),
     "String": Leaf(".string", { "try String(\($0))" }, { "\($0).value" }),
-    // Swiit's own value, passed as it is: what a function that lays values
-    // out takes. Spelled `SwiitValue`, which a generic parameter called
-    // `Value` (Dictionary's) can't be mistaken for.
-    "SwiitValue": Leaf(".any", { $0 }, { $0 }),
 ]
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which

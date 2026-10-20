@@ -65,9 +65,6 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// exit status, as the shell does.
     /// Whether the host is told as statements finish; not while a `defer` cleans up.
     var observesStatements = true
-    /// What library functions that ask for it are lent, if the host lends its
-    /// own (`context` otherwise makes one from the output and the display).
-    var contextProvider: (() -> HostContext)?
 
     /// What bounds a run (steps, depth, time, output), counted from the start
     /// of each `eval`.

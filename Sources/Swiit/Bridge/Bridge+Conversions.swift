@@ -75,15 +75,6 @@ func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches:
     return .record(record)
 }
 
-extension Interpreter {
-    /// What a standard library function that asks for it is lent: the host's,
-    /// if it lends one (the shell's carries what was entered before), else
-    /// the output's traits and how values display.
-    var context: HostContext {
-        contextProvider?() ?? HostContext(history: [], colorOutput: host.output.traits().styled)
-    }
-}
-
 /// A list's items, or a Swift sequence's (a command's output is its lines).
 func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
@@ -228,7 +219,7 @@ func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) t
 /// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic
 /// algorithms that need Comparable elements work on them.
 extension Value: Comparable {
-    @_spi(Layer) public static func < (lhs: Value, rhs: Value) -> Bool {
+    public static func < (lhs: Value, rhs: Value) -> Bool {
         // A type of the program's with its own `<` (Comparable) says which comes first.
         if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
            case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs]) { return less }

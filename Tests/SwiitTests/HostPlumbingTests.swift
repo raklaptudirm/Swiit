@@ -1,4 +1,4 @@
-@_spi(Layer) @testable import Swiit
+@testable import Swiit
 import Testing
 
 private func interpreter() -> Interpreter {
