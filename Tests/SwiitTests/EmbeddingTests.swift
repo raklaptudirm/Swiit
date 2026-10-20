@@ -615,12 +615,14 @@ extension URL: ValueConvertible {}
     let swish = interpreter(log: log)
     let declared = try swish.check("""
     print("ran")
+    /// Says f.
     func f(a: Int, b: Bool = false) -> String { "x" }
     enum Kind { case a, b }
     """)
     #expect(log.text == "")
     #expect(declared.symbols.map(\.name) == ["Kind", "f"])
     #expect(declared.enumerations["Kind"]?.cases == ["a", "b"])
+    #expect(declared.symbols.first { $0.name == "f" }?.summary == "Says f.")
     let f = declared.symbols.first { $0.name == "f" }?.function
     #expect(f?.parameters.map(\.label) == ["a", "b"])
     #expect(f?.parameters[1].defaultValue == false)

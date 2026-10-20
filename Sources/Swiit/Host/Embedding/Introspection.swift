@@ -364,7 +364,19 @@ extension Interpreter {
                     } catch let error as TypeError {
                         throw Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
                     }
-                    var declarations = Declarations(symbols: checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) })
+                    // The doc comments of the functions it declares, in the order it declares them.
+                    var docs: [String: [Documentation]] = [:]
+                    for case .function(let decl) in program.statements { docs[decl.name, default: []].append(decl.documentation ?? Documentation(summary: "", parameters: [:])) }
+                    var declarations = Declarations(symbols: checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) }.map { symbol in
+                        guard case .function(var function) = symbol.declaration, var queue = docs[symbol.name], !queue.isEmpty else { return symbol }
+                        let documentation = queue.removeFirst()
+                        docs[symbol.name] = queue
+                        var documented = symbol
+                        documented.summary = documentation.summary.isEmpty ? nil : documentation.summary
+                        function.parameters = function.parameters.map { var p = $0; p.documentation = documentation.parameters[p.name]; return p }
+                        documented.declaration = .function(function)
+                        return documented
+                    })
                     for case (let name, .enumType(let profile)) in checker.scopes[0] {
                         declarations.enumerations[name] = Declarations.Enumeration(
                             cases: profile.cases.filter { $0.payload.isEmpty }.map(\.name), hasRawValues: profile.rawType != nil)
