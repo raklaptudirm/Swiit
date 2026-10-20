@@ -231,8 +231,10 @@ extension Interpreter {
                 }
             }
         }
-        // What every sequence has.
-        if case .list(let element) = type {
+        // What every sequence has: what the host's prelude adds to `Sequence`, which `symbols(of: .named("Sequence"))` lists alone.
+        var holder: TypeAnnotation?
+        if case .list(let element) = type { holder = element } else if case .named("Sequence") = type { holder = .unknown }
+        if let element = holder {
             for (member, set) in sequenceMethods where name == nil || name == member {
                 for signature in checker.sequenceSignatures(set) {
                     var made = signature
