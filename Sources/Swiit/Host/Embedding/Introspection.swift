@@ -136,6 +136,10 @@ extension Interpreter {
             return lookup(name).map { symbols(of: name, binding: $0) } ?? []
         }
         return scopes[1].bindings.sorted { $0.key < $1.key }.flatMap { symbols(of: $0.key, binding: $0.value) }
+            + scopes[0].bindings.sorted { $0.key < $1.key }.compactMap { name, binding in
+                // Swift's own types, which the core bridges: `String`, `Array`, `Date`.
+                if case .object(is BridgedTypeName) = binding.value { Symbol(name: name, declaration: .type(.structure)) } else { nil }
+            }
     }
 
     private func symbols(of name: String, binding: Binding) -> [Symbol] {
@@ -145,7 +149,7 @@ extension Interpreter {
             return candidates.map { function in
                 Symbol(name: function.name ?? name, summary: function.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
                        declaration: .function(Symbol.Function(
-                           parameters: function.parameters.map(parameter),
+                           parameters: function.parameters.map { parameter($0, documentation: function.documentation?.parameters[$0.name]) },
                            returns: function.returnType.flatMap { $0 == .void ? nil : ValueType($0) },
                            isThrowing: function.isThrowing, isAsync: function.effect != .sync, isMutating: function.isMutating)))
             }
@@ -159,12 +163,12 @@ extension Interpreter {
         }
     }
 
-    fileprivate func parameter(_ parameter: Parameter) -> Symbol.Parameter {
+    fileprivate func parameter(_ parameter: Parameter, documentation: String? = nil) -> Symbol.Parameter {
         var plain: Value?
         if case .literal(let value)? = parameter.defaultValue { plain = value }
         return Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
                                 hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic,
-                                defaultValue: plain)
+                                defaultValue: plain, documentation: documentation)
     }
 
     private func memberSymbols(named name: String?, of type: TypeAnnotation) -> [Symbol] {
@@ -174,7 +178,7 @@ extension Interpreter {
             var parameters = signature.parameters
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
             found.append(Symbol(name: signature.name, declaration: .function(Symbol.Function(
-                parameters: parameters.map(parameter), returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                parameters: parameters.map { parameter($0) }, returns: signature.returns == .void ? nil : ValueType(signature.returns),
                 isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating))))
         }
         // A struct's, enum's or host object's own.
@@ -195,7 +199,8 @@ extension Interpreter {
                         declaration: .function(Symbol.Function(
                             parameters: member.parameters.map {
                                 Symbol.Parameter(label: $0.label, name: $0.name, type: ValueType(checker.substitute($0.type, bindings)),
-                                                 hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic)
+                                                 hasDefault: $0.defaultValue != nil || $0.externalDefault != nil, isVariadic: $0.variadic,
+                                                 documentation: member.parameterDocs[$0.name])
                             },
                             returns: member.returns == .void ? nil : ValueType(checker.substitute(member.returns, bindings)),
                             isThrowing: member.isThrowing, isAsync: member.effect != .sync, isMutating: member.isMutating))))
@@ -218,6 +223,12 @@ extension Interpreter {
             }
         }
         return found
+    }
+
+    /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`, `Sequence`, or one a script
+    /// declares), as the checker reads it.
+    public func conforms(_ type: ValueType, to protocolName: String) -> Bool {
+        inCurrentTask { TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName) }
     }
 
     /// Which of the candidates a call with these arguments means: by their labels and types, the one that fits with the
@@ -285,7 +296,7 @@ extension Interpreter {
         case .functions(let signatures):
             return signatures.map { signature in
                 Symbol(name: signature.name, declaration: .function(Symbol.Function(
-                    parameters: signature.parameters.map(parameter), returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                    parameters: signature.parameters.map { parameter($0) }, returns: signature.returns == .void ? nil : ValueType(signature.returns),
                     isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating)))
             }
         case .structType: return [Symbol(name: name, declaration: .type(.structure))]
