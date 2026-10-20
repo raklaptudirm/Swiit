@@ -726,3 +726,17 @@ private final class Mark: @unchecked Sendable {
     #expect(!swish.symbols(named: "firsts", of: .list(.int)).isEmpty)
 }
 
+
+@Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
+    let swish = interpreter()
+    swish.register(NativeType.Builder<Bytes>("Bytes", conformances: ["Equatable", "Hashable", "Comparable"])
+        .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
+        .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } })
+    #expect(try swish.evaluate(#"Bytes("5") != nil"#) == true)
+    #expect(try swish.evaluate(#"Bytes("x") == nil"#) == true)
+    #expect(try swish.evaluate("Bytes(count: 1) < Bytes(count: 2)") == true)
+    #expect(try swish.evaluate("Bytes(count: 3) >= Bytes(count: 2)") == true)
+    #expect(try swish.evaluate("Bytes(count: 3) != Bytes(count: 2)") == true)
+    #expect(try swish.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)") == true)
+    #expect(try swish.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true)
+}

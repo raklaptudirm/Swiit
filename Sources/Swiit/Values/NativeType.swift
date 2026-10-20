@@ -29,18 +29,21 @@ public struct NativeType: Sendable {
     /// What its associated types are: `Element` is `String` for a sequence of text.
     public var associatedTypes: [String: ValueType]
     public var members: [Member]
-    /// A value from text, where a script or a command line gives text and the type is wanted.
+    /// A value from text, where a command line gives a word and the type is wanted.
     public var parse: (@Sendable (String) -> Value?)?
+    /// A value from a text literal, where a script writes `"…"` and the type is wanted (`let column: DisplayColumn = "name"`).
+    public var literal: (@Sendable (String) -> Value?)?
 
     public init(
         name: String, conformances: [String] = [], associatedTypes: [String: ValueType] = [:], members: [Member] = [],
-        parse: (@Sendable (String) -> Value?)? = nil
+        parse: (@Sendable (String) -> Value?)? = nil, literal: (@Sendable (String) -> Value?)? = nil
     ) {
         self.name = name
         self.conformances = conformances
         self.associatedTypes = associatedTypes
         self.members = members
         self.parse = parse
+        self.literal = literal
     }
 }
 
@@ -71,7 +74,7 @@ extension BridgedType {
             name: type.name, genericParameters: [],
             conformances: Dictionary(uniqueKeysWithValues: type.conformances.map { ($0, [:]) }),
             associatedTypes: type.associatedTypes.mapValues(TypeAnnotation.init),
-            parse: type.parse, literal: nil, arrayLiteral: nil,
+            parse: type.parse, literal: type.literal, arrayLiteral: nil,
             members: type.members.map(BridgedMember.init)
         )
     }
@@ -128,11 +131,12 @@ extension NativeType {
 
         public init(
             _ name: String? = nil, conformances: [String] = [], associatedTypes: [String: ValueType] = [:],
-            parse: (@Sendable (String) -> T?)? = nil
+            parse: (@Sendable (String) -> T?)? = nil, literal: (@Sendable (String) -> T?)? = nil
         ) {
             let name = name ?? String(describing: T.self)
             self.type = NativeType(name: name, conformances: conformances, associatedTypes: associatedTypes)
             if let parse { type.parse = { text in parse(text).map { Self.box($0, as: name) } } }
+            if let literal { type.literal = { text in literal(text).map { Self.box($0, as: name) } } }
         }
 
         private var name: String { type.name }
@@ -150,7 +154,9 @@ extension NativeType {
             return copy
         }
 
-        private static func parameters<each Argument: ValueConvertible>(_: repeat (each Argument).Type, labels: [String?]) -> [HostFunction.Parameter] {
+        fileprivate mutating func append(_ member: Member) { type.members.append(member) }
+
+        fileprivate static func parameters<each Argument: ValueConvertible>(_: repeat (each Argument).Type, labels: [String?]) -> [HostFunction.Parameter] {
             var made: [HostFunction.Parameter] = []
             func add<A: ValueConvertible>(_: A.Type) {
                 let label = labels.indices.contains(made.count) ? labels[made.count] : nil
@@ -197,8 +203,7 @@ extension NativeType {
             })
         }
 
-        /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`. The make may fail with `nil`,
-        /// which a script sees as an optional.
+        /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
         public func initializer<each Argument: ValueConvertible>(
             labels: [String?] = [], throwing: Bool = false, _ make: @escaping @Sendable (repeat each Argument) throws -> T
         ) -> Builder {
@@ -212,6 +217,25 @@ extension NativeType {
                 return Self.box(try make(repeat try (each Argument)(next())), as: name)
             })
         }
+    }
+}
+
+extension NativeType.Builder {
+    /// An initializer that can fail, which a script sees as one that gives an optional: `.failableInitializer(URL.init(string:))`.
+    public func failableInitializer<each Argument: ValueConvertible>(
+        labels: [String?] = [], throwing: Bool = false, _ make: @escaping @Sendable (repeat each Argument) throws -> T?
+    ) -> NativeType.Builder<T> {
+        let name = type.name
+        var copy = self
+        copy.append(.init(.initializer, HostFunction(
+            name: "init", parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+            returns: .optional(.named(name)), isThrowing: throwing
+        ) { arguments in
+            var index = 0
+            func next() -> Value { defer { index += 1 }; return arguments[index] }
+            return try make(repeat try (each Argument)(next())).map { Self.box($0, as: name) } ?? .null
+        }))
+        return copy
     }
 }
 
