@@ -295,6 +295,30 @@ extension Interpreter {
         }
     }
 
+    /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments would: the overload is
+    /// chosen by the labels and the values given, and what is left out takes its default. A struct or enum type given as the
+    /// receiver calls its static members and initializers (`call("init", on: type)`). From a host function it runs in the
+    /// calling script's task; from outside, as the main one.
+    @discardableResult
+    public func call(
+        _ name: String, on receiver: Value? = nil, arguments: [(label: String?, value: Value)] = []
+    ) throws(Diagnostic) -> Value {
+        let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
+        let call = Expr.call(callee, arguments.map { Argument(label: $0.label, value: .literal($0.value)) })
+        do {
+            return try inCurrentTask { try self.evaluate(call) }
+        } catch let error as RuntimeError {
+            throw Diagnostic(kind: .runtime, message: error.description, range: error.range, calls: error.calls)
+        } catch {
+            throw Diagnostic(kind: .runtime, message: "\(error)")
+        }
+    }
+
+    /// Runs `body` as the task that is running now, or as the main one when no script is.
+    func inCurrentTask<T>(_ body: () throws -> T) rethrows -> T {
+        lock.isHeldByCurrentThread ? try body() : try withMainTask(body)
+    }
+
     // MARK: Functions
 
     /// Makes a described function one scripts can call, checked like any they declare.

@@ -314,6 +314,8 @@ extension Interpreter {
                     return try call(arguments)
                 } catch let error as RuntimeError {
                     throw error
+                } catch let diagnostic as Diagnostic {
+                    throw RuntimeError(diagnostic.message)
                 } catch {
                     throw RuntimeError("\(name): \(error)")
                 }
@@ -333,6 +335,7 @@ extension TypeAnnotation {
         case .named("Double", _): self = .double
         case .named("String", _): self = .string
         case .named("Function", _): self = .function
+        case .named("KeyPath", let arguments) where arguments.count == 2: self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
         case .named("Array", let arguments) where arguments.count == 1: self = .list(TypeAnnotation(arguments[0]))
         case .named("Optional", let arguments) where arguments.count == 1: self = .optional(TypeAnnotation(arguments[0]))
         case .named("Dictionary", let arguments) where arguments.count == 2:

@@ -588,3 +588,58 @@ extension URL: ValueConvertible {}
     #expect(try swish.evaluate(#"URL(string: "https://example.com/a").host"#) == "example.com")
     #expect(throws: Diagnostic.self) { try swish.evaluate(#"URL(string: "x").nosuch"#) }
 }
+
+@Test func aCallByNameChoosesTheOverloadAsAScriptsCallWould() throws {
+    let swish = interpreter()
+    _ = try swish.evaluate("""
+    struct Point { var x: Int; func scaled(by k: Int) -> Point { Point(x: x * k) }; static func origin() -> Point { Point(x: 0) } }
+    func f(_ n: Int) -> String { "int" }
+    func f(_ s: String) -> String { "string" }
+    func g(a: Int, b: Int = 10) -> Int { a + b }
+    """)
+    #expect(try swish.call("f", arguments: [(nil, Value(1))]) == "int")
+    #expect(try swish.call("f", arguments: [(nil, Value("x"))]) == "string")
+    #expect(try swish.call("g", arguments: [("a", Value(1))]) == 11)
+    let point = try swish.evaluate("Point(x: 3)")
+    #expect(try swish.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6)
+    #expect(try swish.call("origin", on: swish["Point"]!).entries?[Value("x")] == 0)
+    #expect(try swish.call("uppercased", on: Value("ab")) == "AB")
+    #expect(try swish.call("sorted", on: [3, 1, 2]) == [1, 2, 3])
+    #expect(throws: Diagnostic.self) { try swish.call("f", arguments: [(nil, Value(true))]) }
+    #expect(throws: Diagnostic.self) { try swish.call("nosuch") }
+}
+
+@Test func aCheckFindsMistakesAndRunsNothing() throws {
+    let log = Log()
+    let swish = interpreter(log: log)
+    let declared = try swish.check("""
+    print("ran")
+    func f(a: Int, b: Bool = false) -> String { "x" }
+    enum Kind { case a, b }
+    """)
+    #expect(log.text == "")
+    #expect(declared.map(\.name) == ["Kind", "f"])
+    let f = declared.first { $0.name == "f" }?.function
+    #expect(f?.parameters.map(\.label) == ["a", "b"])
+    #expect(f?.parameters[1].defaultValue == false)
+    #expect(throws: Diagnostic.self) { try swish.check(#"print("ran"); let x: Int = "s""#) }
+    #expect(log.text == "")
+    // Nothing was declared by checking.
+    #expect(swish.symbols(named: "f").isEmpty)
+}
+
+@Test func wordsAndValuesConvertToTheTypeAParameterNames() throws {
+    let swish = interpreter()
+    _ = try swish.evaluate("enum Kind { case file, directory }")
+    #expect(swish.value(fromWord: "5", as: .int) == 5)
+    #expect(swish.value(fromWord: "x", as: .int) == nil)
+    #expect(swish.value(fromWord: "x", as: .string) == "x")
+    #expect(swish.value(fromWord: ".directory", as: .named("Kind"))?.enumCase?.name == "directory")
+    #expect(swish.value(fromWord: "nope", as: .named("Kind")) == nil)
+    #expect(swish.value(fromWord: "x", as: .optional(.string)) == "x")
+    #expect(swish.value(fromWord: "x", as: .named("Element")) == "x")
+    #expect(swish.convert(Value(3), to: .int) == 3)
+    #expect(swish.convert(Value("3"), to: .int) == nil)
+    #expect(swish.valueType(of: Value(3)) == .int)
+    #expect(swish.valueType(of: [1, 2]) == .list(.int))
+}

@@ -50,13 +50,20 @@ public struct Symbol: Sendable, Hashable {
         /// Whether a call may leave it out.
         public var hasDefault: Bool
         public var isVariadic: Bool
+        /// What it is when the call leaves it out, if that is a plain value: `false`, `10`, `"-"`.
+        public var defaultValue: Value?
+        /// What a `- Parameter name:` line of its documentation says.
+        public var documentation: String?
 
-        public init(label: String? = nil, name: String, type: ValueType = .any, hasDefault: Bool = false, isVariadic: Bool = false) {
+        public init(label: String? = nil, name: String, type: ValueType = .any, hasDefault: Bool = false, isVariadic: Bool = false,
+                    defaultValue: Value? = nil, documentation: String? = nil) {
             self.label = label
             self.name = name
             self.type = type
             self.hasDefault = hasDefault
             self.isVariadic = isVariadic
+            self.defaultValue = defaultValue
+            self.documentation = documentation
         }
     }
 
@@ -99,6 +106,10 @@ extension ValueType {
         case .generic(let name, let arguments): .named(name, arguments.map(ValueType.init))
         case .tuple(let elements): .tuple(elements.map { ValueType.Element(label: $0.label, type: ValueType($0.type)) })
         case .functionType(let parameters, let returns, _, _): .function(parameters: parameters.map(ValueType.init), returns: ValueType(returns))
+        case .keyPath(let root, let value): .named("KeyPath", [ValueType(root), ValueType(value)])
+        // A type parameter (`Element`) is named, and nothing is declared under the name.
+        case .parameter(let name): .named(name)
+        case .void: .tuple([])
         default: .any
         }
     }
@@ -148,9 +159,12 @@ extension Interpreter {
         }
     }
 
-    private func parameter(_ parameter: Parameter) -> Symbol.Parameter {
-        Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
-                         hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic)
+    fileprivate func parameter(_ parameter: Parameter) -> Symbol.Parameter {
+        var plain: Value?
+        if case .literal(let value)? = parameter.defaultValue { plain = value }
+        return Symbol.Parameter(label: parameter.label, name: parameter.name, type: ValueType(parameter.type),
+                                hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil, isVariadic: parameter.variadic,
+                                defaultValue: plain)
     }
 
     private func memberSymbols(named name: String?, of type: TypeAnnotation) -> [Symbol] {
@@ -239,6 +253,47 @@ extension Interpreter {
             throw Diagnostic(kind: .type, message: "\(candidates[0].name): ambiguous call; \(winners.count) overloads match")
         }
         return winners[0].0
+    }
+
+    /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found before any statement's effect
+    /// happens. It says what the program declares at its top level (its functions, types and variables), which a host can
+    /// check its own uses against, as a command line against the function it names.
+    public func check(_ source: String) throws(Diagnostic) -> [Symbol] {
+        do {
+            return try inCurrentTask { () throws -> [Symbol] in
+                switch parse(source) {
+                case .failure(let error): throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
+                case .success(let program):
+                    let checker = TypeChecker(interpreter: self)
+                    do {
+                        _ = try checker.check(program)
+                    } catch let error as TypeError {
+                        throw Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
+                    }
+                    return checker.scopes[0].sorted { $0.key < $1.key }.flatMap { declaredSymbols(of: $0.key, $0.value) }
+                }
+            }
+        } catch let diagnostic as Diagnostic {
+            throw diagnostic
+        } catch {
+            throw Diagnostic(kind: .runtime, message: "\(error)")
+        }
+    }
+
+    private func declaredSymbols(of name: String, _ symbol: TypeChecker.Symbol) -> [Symbol] {
+        switch symbol {
+        case .functions(let signatures):
+            return signatures.map { signature in
+                Symbol(name: signature.name, declaration: .function(Symbol.Function(
+                    parameters: signature.parameters.map(parameter), returns: signature.returns == .void ? nil : ValueType(signature.returns),
+                    isThrowing: signature.isThrowing, isAsync: signature.effect != .sync, isMutating: signature.isMutating)))
+            }
+        case .structType: return [Symbol(name: name, declaration: .type(.structure))]
+        case .enumType: return [Symbol(name: name, declaration: .type(.enumeration))]
+        case .protocolType: return [Symbol(name: name, declaration: .type(.protocol))]
+        case .variable(let type, let mutable): return [Symbol(name: name, declaration: .variable(ValueType(type), isSettable: mutable))]
+        case .swiftType, .asyncLet: return []
+        }
     }
 
     /// The type of an expression written at the top level: the globals are in scope, a script's locals are not.
