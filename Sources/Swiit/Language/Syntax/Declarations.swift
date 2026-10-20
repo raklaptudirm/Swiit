@@ -227,7 +227,7 @@ struct PropertyDecl: Equatable, Sendable {
     }
 }
 
-/// The `#` comment block directly above a `func`, for `--help`.
+/// The `#` comment block directly above a `func`, for help.
 struct Documentation: Equatable, Sendable {
     var summary: String
     /// From `- Parameter name: description` lines.
@@ -282,7 +282,7 @@ struct NamesUsed: Equatable, Sendable {
 }
 
 struct Parameter: Equatable, Sendable {
-    /// The argument label; nil for `_` (positional in command mode).
+    /// The argument label; nil for `_`.
     var label: String?
     var name: String
     var type: TypeAnnotation = .any

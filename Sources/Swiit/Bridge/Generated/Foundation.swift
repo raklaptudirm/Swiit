@@ -2,7 +2,6 @@
 // Don't edit: the bridge generator (swiit-bridge) remakes it.
 import Foundation
 import Foundation
-import SwiitStandardLibrary
 
 extension Bridge {
     internal nonisolated(unsafe) static let foundation: [BridgedType] = [
@@ -11,18 +10,18 @@ extension Bridge {
             name: "Date", genericParameters: [],
             conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
             associatedTypes: ["Stride": .double],
-            parse: { Date($0).map { SwiftValue.make($0, as: "Date") } }, literal: nil, arrayLiteral: nil,
+            parse: nil, literal: nil, arrayLiteral: nil,
             members: [
-                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33
+                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29
             ]
         ),
         BridgedType(
             name: "AttributedString", genericParameters: [],
-            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:], "StandsForText": [:]],
+            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:]],
             associatedTypes: ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(AttributedString.self, $0).map { SwiftValue.make($0, as: "AttributedString") } }, arrayLiteral: nil,
             members: [
-                member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45
+                member30, member31, member32, member33, member34, member35
             ]
         ),
     ]
@@ -430,58 +429,6 @@ extension Bridge {
                 )
 
     nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "text", type: .string)],
-                    returns: .optional(.named("Date")), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A date written as ISO 8601 text, like `2026-09-27T14:03:00Z`; nil for anything else.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date(try String(args["text"]!))
-                return (result.map { SwiftValue.make($0, as: "Date") } ?? .nothing)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "-", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .double, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "How many seconds apart two dates are: `later - earlier`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try SwiftValue.unbox(Date.self, args["rhs"]!))
-                return result.value
-                    }
-                )
-
-    nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "+", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .int)],
-                    returns: .named("Date"), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A date some whole seconds later or earlier, as `date + 60`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) + (try Int(args["rhs"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "-", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .int)],
-                    returns: .named("Date"), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try Int(args["rhs"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
                     returns: .string, generics: [:],
@@ -495,7 +442,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
                     returns: .bool, generics: [:],
@@ -508,7 +455,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member36: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
                     returns: .named("AttributedString"), generics: [:],
@@ -521,7 +468,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member37: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
                     kind: .method, name: "==", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
                     returns: .bool, generics: [:],
@@ -534,7 +481,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member38: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
                     returns: .named("AttributedString"), generics: [:],
@@ -547,7 +494,7 @@ extension Bridge {
                     }
                 )
 
-    nonisolated(unsafe) private static let member39: BridgedMember =                 BridgedMember(
+    nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
                     kind: .method, name: "+", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
                     returns: .named("AttributedString"), generics: [:],
@@ -557,88 +504,6 @@ extension Bridge {
                         _ = interpreter
                         let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) + (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
                 return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member40: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "joining", name: "pieces", type: .list(.named("AttributedString")))],
-                    returns: .named("AttributedString"), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Pieces one after the other.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = AttributedString(joining: try bridgeList(args["pieces"]!).map { try SwiftValue.unbox(AttributedString.self, $0) })
-                return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member41: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "plain", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Without the styles.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
-                let result = receiver.plain
-                return result.value
-                    }
-                )
-
-    nonisolated(unsafe) private static let member42: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "documentation", name: "text", type: .string)],
-                    returns: .named("AttributedString"), generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Text written in Markdown, as documentation is: its code, strong text, emphasis and links as styles, which show where there are colors, and the plain words anywhere else. Only the inline syntax, which is what a description is made of; see `InlineMarkdown`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = AttributedString(documentation: try String(args["text"]!))
-                return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member43: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "colored", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "With the terminal's escapes for each style.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
-                let result = receiver.colored
-                return result.value
-                    }
-                )
-
-    nonisolated(unsafe) private static let member44: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "rendered", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "styled", type: .bool)],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "As a String: with the terminal's escapes if `styled`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
-                let result = receiver.rendered(try Bool(args["styled"]!))
-                return result.value
-                    }
-                )
-
-    nonisolated(unsafe) private static let member45: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "text", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [:],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
-                let result = receiver.text
-                return result.value
                     }
                 )
 }

@@ -2,7 +2,7 @@ import Foundation
 
 struct RuntimeError: Error, CustomStringConvertible {
     public let description: String
-    /// The status the failure gives: a failed command's own, for `$(…)`.
+    /// The status the failure gives: a host's own, for a failed process.
     public var status: Int32 = 1
     /// What `catch` binds when the thrower has more to say than a message: the
     /// host's failed command carries its status and text.

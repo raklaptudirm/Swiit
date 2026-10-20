@@ -276,8 +276,7 @@ extension Interpreter {
         return frontEnd.highlight(source, bound: bound).map { span in
             let kind: Highlight.Kind = switch span.kind {
             case .keyword: .keyword
-            case .command: .command
-            case .flag: .flag
+            case .function: .function
             case .string: .string
             case .number: .number
             case .constant: .constant
@@ -292,7 +291,7 @@ extension Interpreter {
 
     /// A stretch of source and what it is.
     public struct Highlight: Sendable {
-        public enum Kind: Sendable { case keyword, command, flag, string, number, constant, variable, comment, type, punctuation }
+        public enum Kind: Sendable { case keyword, function, string, number, constant, variable, comment, type, punctuation }
         public var range: Range<Int>
         public var kind: Kind
     }
@@ -362,7 +361,7 @@ extension Interpreter {
 
     /// Checks a program as `evaluate` would, and stops there: nothing runs, so a mistake is found before any statement's effect
     /// happens. It says what the program declares at its top level (its functions, types and variables), which a host can
-    /// check its own uses against, as a command line against the function it names.
+    /// check its own uses against.
     public func check(_ source: String) throws(Diagnostic) -> Declarations {
         do {
             return try inCurrentTask { () throws -> Declarations in

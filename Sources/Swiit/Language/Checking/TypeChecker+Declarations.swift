@@ -113,7 +113,7 @@ extension TypeChecker {
     }
 
     /// Whether running `program` always leaves it: by `return`, or, with
-    /// `orExits` (for a guard's `else`), by `break`, `continue` or `exit`.
+    /// `orExits` (for a guard's `else`), by `break` or `continue`.
     func definitelyLeaves(_ program: Program, orExits: Bool) -> Bool {
         // Declarations after the last statement run nothing, as in Swift.
         guard let last = program.statements.last(where: {
@@ -139,8 +139,10 @@ extension TypeChecker {
         // What never comes back.
         case .expression(.call(.variable("fatalError"), _)), .expression(.call(.variable("preconditionFailure"), _)):
             return true
-        case .expression(.call(.variable("exitShell"), _)) where orExits:
-            return true
+        case .expression(.call(.variable(let name), _)):
+            // Any function declared to return `Never`: the host's `exit`.
+            guard case .functions(let overloads)? = lookup(name) else { return false }
+            return overloads.allSatisfy { $0.returns == .named("Never") }
         default:
             return false
         }

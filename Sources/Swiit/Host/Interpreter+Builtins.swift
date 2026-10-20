@@ -4,44 +4,16 @@ import Foundation
 /// the host: the same help and overloads as Swiit ones.
 
 extension Interpreter {
-    /// Installs the builtins: the core's own, and the host's `libraries`
-    /// (bridged functions and types, and declarations for the prelude).
-    func installBuiltinFunctions(libraries added: [Library] = []) {
-        libraries = [.standard] + added
-        for library in added { Bridge.register(library.bridged) }
+    /// Installs the builtins.
+    func installBuiltinFunctions() {
         scopes[0].bindings["args"] = Binding(value: .list([]), mutable: false)
         let extensions = installPrelude()
         installPrint()
         installLanguageFunctions()
-        installStandardFunctions()
         // Swift's types by name, for their initializers and static members.
         for name in Bridge.types.keys {
             scopes[0].bindings[name] = Binding(value: .object(BridgedTypeName(name)), mutable: false)
         }
         do { try declarePreludeExtensions(extensions) } catch { preconditionFailure("the prelude: \(error)") }
-    }
-
-    /// The host's own functions, written in Swift (SwiitStandardLibrary) and
-    /// bridged: `pwd`, `readLine`. Each is an ordinary function to the rest
-    /// of the host,.
-    private func installStandardFunctions() {
-        for member in libraries.flatMap(\.functions) {
-            let function = Function(
-                name: member.name, parameters: member.parameters, returnType: member.returns, body: member.body,
-                documentation: Documentation(summary: member.summary, parameters: member.parameterDocs),
-                isThrowing: member.isThrowing, isRethrowing: member.isRethrowing, generics: member.generics
-            )
-            scopes[0].declare(function, named: member.name)
-        }
-    }
-
-    /// Each builtin's body, by name, for the prelude's declarations: the
-    /// core's own, then the installed libraries'. A sequence method's also
-    /// says how it reads the sequence: each item (`filter`), or all of them
-    /// (`sorted`).
-    func builtinBodies() -> [String: (body: FunctionBody, input: Parameter?)] {
-        var bodies: [String: (body: FunctionBody, input: Parameter?)] = [:]
-        for library in libraries { bodies.merge(library.bodies) { _, new in new } }
-        return bodies
     }
 }

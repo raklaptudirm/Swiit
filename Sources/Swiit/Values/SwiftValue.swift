@@ -76,8 +76,6 @@ final class SwiftValue: LanguageObject, @unchecked Sendable { // safe: its state
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
     public var description: String { (value as? any SwiitDisplayed)?.swiitDescription ?? String(describing: value) }
-    /// What a table shows of it: its description, unless the type says shorter.
-    public var cell: String { (value as? any SwiitDisplayed)?.swiitCell ?? description }
     public var debugDescription: String { (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value) }
 }
 

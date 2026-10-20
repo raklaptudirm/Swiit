@@ -6,7 +6,7 @@ extension Interpreter {
         inCurrentTask { conform(value, to: TypeAnnotation(type)) }
     }
 
-    /// Text as a value of `type`, as a word on a command line is: an enum's case by its name (`directory` or `.directory`)
+    /// Text as a value of `type`, as a word of text is: an enum's case by its name (`directory` or `.directory`)
     /// or raw value, a Swift type by its own initializer from text (`5` for an `Int`, a path for a `FilePath`), a key path by
     /// the field names (`size`, `owner.name`), and anything else by being text, as `String`, `Any` and a type parameter are.
     /// Nil if the text is not one.

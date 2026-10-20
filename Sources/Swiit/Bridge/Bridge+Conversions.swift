@@ -1,8 +1,7 @@
 import Foundation
-import SwiitStandardLibrary
 import SystemPackage
 
-/// A Swiit key path (`\.status.code`, or `--by size`) as a Swift one over
+/// A Swiit key path (`\.status.code`) as a Swift one over
 /// values: each name a subscript that reads the field, one after another.
 func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
     guard case .function(let keyPath as KeyPathValue) = value else {
@@ -75,7 +74,7 @@ func bridgeRecord<T: Encodable>(_ interpreter: Interpreter, _ value: T, patches:
     return .record(record)
 }
 
-/// A list's items, or a Swift sequence's (a command's output is its lines).
+/// A list's items, or a Swift sequence's (a host type's lines).
 func bridgeList(_ value: Value) throws -> [Value] {
     switch value {
     case .list(let items): return items
@@ -166,7 +165,7 @@ extension Interpreter {
     }
 
     /// The items of a list, or a Swift sequence Swiit
-    /// holds (a command's output) (a Set, a range of Ints, a dictionary's keys), one at a time,
+    /// holds (a host type's text) (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
     static func items(of value: Value) -> AnyIterator<Value>? {
         switch value {
@@ -195,7 +194,7 @@ extension Interpreter {
         return AnyIterator {
             guard let next = iterator.next() else { return nil }
             if let value = next as? Value { return value }
-            // What Swiit has a value of its own for is that, not a box (a command's lines are Strings).
+            // What Swiit has a value of its own for is that, not a box (a host type's lines are Strings).
             if next is String || next is Int || next is Double || next is Bool { return Value(reflecting: next) }
             // By the name Swiit writes it with, without its module:
             // FilePath.Component, not SystemPackage.FilePath.Component.

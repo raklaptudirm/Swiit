@@ -3,8 +3,7 @@ import Foundation
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
-/// runs only Swift (a layer over it, like the host, rewrites its own syntax
-/// first; Docs/boundaries.md). The host owns one.
+/// runs only Swift. The host owns one.
 public final class Interpreter: @unchecked Sendable { // safe: every public method holds the interpreter's lock
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     /// Where its output goes and how it is told to stop; a host may change it between runs.
@@ -16,8 +15,6 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     weak var owner: AnyObject?
     /// The members, by name, of the host's object types that Swift doesn't
     /// declare (the host's `Job`), for the checker.
-    /// The bridged libraries installed: the core's, and the host's.
-    var libraries: [Library] = []
     /// The types of dynamic objects' members (`DynamicObject`), by type name.
     var dynamicTypes: [String: DynamicType] = [:]
     /// What `await` waits for, if the host has anything to wait for.

@@ -1,5 +1,4 @@
 import Foundation
-import SwiitStandardLibrary
 
 // Members of Swift's types that the generator can't bridge, written by hand.
 
@@ -138,6 +137,17 @@ extension Bridge {
     nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [ // safe: set once, before anything reads it
         "Array": [reduceInto, lazyMember(.parameter("Element"))], "Set": [reduceInto, lazyMember(.parameter("Element"))],
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))], "Range": [reduceInto, lazyMember(.parameter("Bound"))],
+        "AttributedString": [
+            member(.property, "text", returns: .string, summary: "The words, without the styles.") { _, arguments in
+                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain)
+            },
+            member(.property, "plain", returns: .string, summary: "The words, without the styles.") { _, arguments in
+                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain)
+            },
+            member(.property, "colored", returns: .string, summary: "The words with the terminal's escapes for each style.") { _, arguments in
+                .string(try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).colored)
+            },
+        ],
         "Unicode.Scalar": [
             member(.property, "value", returns: .int, summary: "The scalar's number, as Unicode gives it.") { _, arguments in
                 .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, arguments["self"] ?? .nothing).value))
@@ -174,6 +184,20 @@ extension Bridge {
             },
         ],
         "String": stringIndexMembers + [
+            member(.method, "replacingOccurrences",
+                   parameters: [Parameter(label: "of", name: "target", type: .string), Parameter(label: "with", name: "replacement", type: .string)],
+                   returns: .string, summary: "The text with every `target` replaced by `replacement`.") { _, arguments in
+                let text = try text(arguments)
+                guard case .string(let target)? = arguments["target"], case .string(let replacement)? = arguments["replacement"] else { return .string(text) }
+                guard !target.isEmpty else { return .string(text) }
+                return .string(text.split(separator: target, omittingEmptySubsequences: false).joined(separator: replacement))
+            },
+            member(.method, "components", parameters: [Parameter(label: "separatedBy", name: "separator", type: .string)],
+                   returns: .list(.string), summary: "The parts of the text between the `separator`s.") { _, arguments in
+                let text = try text(arguments)
+                guard case .string(let separator)? = arguments["separator"], !separator.isEmpty else { return .list([.string(text)]) }
+                return .list(text.split(separator: separator, omittingEmptySubsequences: false).map { .string(String($0)) })
+            },
             member(.initializer, "init", isStatic: true,
                    parameters: [Parameter(label: nil, name: "value", type: .parameter("T"))], returns: .string,
                    generics: ["T": ["CustomStringConvertible"]],

@@ -9,8 +9,8 @@ private func interpreter() -> Interpreter {
 }
 
 private func eval(_ source: String) throws -> Value {
-    let swish = interpreter()
-    return try onLargeStack { try swish.evaluate(source) }
+    let swiit = interpreter()
+    return try onLargeStack { try swiit.evaluate(source) }
 }
 
 private func typeError(_ source: String) -> String? {

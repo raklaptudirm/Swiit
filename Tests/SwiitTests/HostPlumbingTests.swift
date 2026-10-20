@@ -5,7 +5,7 @@ private func interpreter() -> Interpreter {
     Interpreter(host: Interpreter.Host(output: OutputSink({ _ in true }), error: OutputSink({ _ in true })))
 }
 
-// What a host that is more than an embedder (the shell) builds on: SPI, not part of the embedding API.
+// What a host that is more than an embedder builds on: internals, tested with @testable.
 
 @Test func errorsAreReportedUnderTheHostsName() {
     final class Log: @unchecked Sendable { var text = "" }
@@ -17,13 +17,13 @@ private func interpreter() -> Interpreter {
 }
 
 @Test func aComputedGlobalIsReadFreshAndCannotBeAssigned() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     nonisolated(unsafe) var reads = 0
-    swish.register(computed: "counter", type: .int) { reads += 1; return .int(reads) }
-    #expect(try swish.evaluate("counter") == .int(1))
-    #expect(try swish.evaluate("counter + counter") == .int(5)) // 2 + 3: read each time
+    swiit.register(computed: "counter", type: .int) { reads += 1; return .int(reads) }
+    #expect(try swiit.evaluate("counter") == .int(1))
+    #expect(try swiit.evaluate("counter + counter") == .int(5)) // 2 + 3: read each time
     do {
-        _ = try swish.evaluate("counter = 9")
+        _ = try swiit.evaluate("counter = 9")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .type)
@@ -31,13 +31,13 @@ private func interpreter() -> Interpreter {
 }
 
 @Test func awaitNeedsAHostThatHasSomethingToWaitFor() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     do {
-        _ = try swish.evaluate("await 1")
+        _ = try swiit.evaluate("await 1")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.message.contains("nothing to await"))
     }
-    swish.register(Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) })
-    #expect(try swish.evaluate("await 21") == .int(42))
+    swiit.register(Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) })
+    #expect(try swiit.evaluate("await 21") == .int(42))
 }

@@ -1,15 +1,12 @@
 // swift-tools-version: 6.0
 import PackageDescription
 
-// The interpreter. It knows nothing of the shell: Swish is a client of it.
+// The interpreter. It knows nothing of the programs that host it.
 let package = Package(
     name: "Swiit",
     platforms: [.macOS(.v14)],
     products: [
         .library(name: "Swiit", targets: ["Swiit"]),
-        // Plain Swift the interpreter bridges (`Flow`, the formatters); the
-        // shell's own library builds on it.
-        .library(name: "SwiitStandardLibrary", targets: ["SwiitStandardLibrary"]),
         // Reads Swift's symbol graphs and writes the glue that bridges them
         // (`Scripts/bridge`); not part of the interpreter.
         .executable(name: "swiit-bridge", targets: ["SwiitBridge"]),
@@ -22,29 +19,19 @@ let package = Package(
     ],
     targets: [
         .executableTarget(name: "SwiitBridge"),
-        // The interpreter's own functions, written in Swift: `swiit-bridge`
-        // reads their declarations and Swiit calls them.
-        .target(
-            name: "SwiitStandardLibrary",
-            dependencies: [
-                .product(name: "SystemPackage", package: "swift-system"),
-            ],
-            path: "Sources/Swiit/Library"
-        ),
         .target(
             name: "Swiit",
             dependencies: [
-                "SwiitStandardLibrary",
                 .product(name: "SystemPackage", package: "swift-system"),
                 // Source is read by SwiftParser; the front end lowers its tree.
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftParser", package: "swift-syntax"),
                 .product(name: "SwiftOperators", package: "swift-syntax"),
             ],
-            // Its standard library is a module of its own, so the generator can read it.
-            exclude: ["Library"]
+            // The prelude is Swift source that is read, not compiled: it is embedded in the target.
+            resources: [.embedInCode("Resources/Prelude.swift")]
         ),
-        // boundaries.txt and spi-surface.txt are data the boundary tests read from the source tree.
+        // boundaries.txt and programs.txt are data the boundary tests read from the source tree.
         .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "programs.txt", "parity.json", "parity-NOTICE.txt", "Goldens"]),
     ]
 )

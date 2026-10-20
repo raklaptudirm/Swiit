@@ -279,7 +279,7 @@ extension Interpreter {
         }
     }
 
-    /// A case from the command line: its name (`directory` or `.directory`),
+    /// A case from text: its name (`directory` or `.directory`),
     /// or its raw value.
     func enumCase(fromText text: String, _ type: EnumType) -> Value? {
         let name = text.hasPrefix(".") ? String(text.dropFirst()) : text

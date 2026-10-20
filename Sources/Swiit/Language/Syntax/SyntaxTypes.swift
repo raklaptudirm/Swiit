@@ -41,7 +41,7 @@ struct SyntaxError: Error, Equatable, CustomStringConvertible {
 /// records these as it goes, so the colors always agree with how the line
 /// will actually be read.
 enum SpanKind: Equatable, Sendable {
-    case keyword, command, flag, string, number, constant, variable, comment, type, punctuation
+    case keyword, function, string, number, constant, variable, comment, type, punctuation
 }
 
 struct Span: Equatable, Sendable {

@@ -6,9 +6,8 @@
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //
 // Scripts/bridge runs it on the standard library, on swift-system
-// (for FilePath), on the interpreter's own SwiitStandardLibrary, which also
-// adds to the standard library's types; a client with a library of its own
-// (the host's SwishShellLibrary) runs it on that. A member is bridged only if every
+// (for FilePath) and on Foundation; a client with a library of its own
+// runs it on that. A member is bridged only if every
 // type in its signature is one Swiit can pass or hold (see `supported`); the
 // rest are left out, and counted on stderr.
 //
@@ -77,22 +76,12 @@ struct BridgedModule {
     let functions: String?
     /// Types of other modules that its signatures use, held as they are.
     let external: [String]
-    /// Structs Swiit declares itself, made from the Swift value as a record.
-    let records: [String]
-    /// Generated into the host's target, not the core's.
-    let outsideCore: Bool
-    /// Types of other modules that this one adds members to, with extensions (`String.styled`): only the added members are made.
-    let extending: [String]
 
-    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String], _ records: [String], _ outsideCore: Bool,
-         extending: [String] = []) {
-        self.extending = extending
+    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String]) {
         self.list = list
         self.types = types
         self.functions = functions
         self.external = external
-        self.records = records
-        self.outsideCore = outsideCore
     }
 }
 
@@ -101,31 +90,19 @@ let modules: [String: BridgedModule] = [
         ("String", []), ("Substring", []), ("Character", []), ("Unicode.Scalar", []), ("Int", []), ("Double", []), ("Bool", []),
         ("Array", ["Element"]), ("ArraySlice", ["Element"]), ("Set", ["Element"]), ("Dictionary", ["Key", "Value"]),
         ("Optional", ["Wrapped"]), ("Range", ["Bound"]), ("ClosedRange", ["Bound"]),
-        // The interpreter's own, which a pipeline reads lazily (SwiitStandardLibrary).
-        ("Flow", ["Element"]),
-    ], nil, [], [], false),
+    ], nil, []),
     // FilePath.Root is left out: the standard library's FilePath (SE-0529)
     // calls it Anchor.
-    "SystemPackage": BridgedModule("system", [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])], nil, [], [], false),
+    "SystemPackage": BridgedModule("system", [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])], nil, []),
     // Foundation's types Swiit holds as Swift's: a date.
-    "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, [], [], false),
-    // The host's own functions: every public free function. Their types are
-    // Swift's (bridged from the other modules, so held here as they are).
-    "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
-    // The host's: the part of the library that reaches the process, the file
-    // system and the session. It is generated into the host's target.
-    "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", []), ("Output", [])], "shellFunctions", ["FilePath", "Date"], ["Status"], true, extending: ["String"]),
+    "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, []),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8))
     exit(2)
 }
 let bridgedTypeNames = module.types
-/// How the generated tables are visible: the interpreter's to the host as SPI,
-/// the host's own within the host's package.
-let access = module.outsideCore ? "package" : "internal"
-// A library outside the core takes Swiit's own value as it is (the standard library's Dictionary has a generic `Value` of its own).
-if module.outsideCore { leaves["Value"] = Leaf(".any", { $0 }, { $0 }) }
+let access = "internal"
 for symbol in graph.symbols where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     guard let equals = text.range(of: "=") else { continue }
@@ -144,15 +121,6 @@ for name in module.external where leaves[name] == nil {
 nonisolated(unsafe) var resultOnly: Set<String> = [] // safe: the generator runs on one thread
 nonisolated(unsafe) var enumNames: Set<String> = [] // safe: the generator runs on one thread
 var typeSources: [String] = []
-/// How the module's types say they're shown (`Tabular`, `DisplayStyled`):
-/// by type name, calling the Swift that says so.
-var columnSources: [String] = []
-var styleSources: [String] = []
-// A struct Swiit declares itself, whose Swift value is made a record.
-for name in module.records {
-    resultOnly.insert(name)
-    leaves[name] = Leaf(".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") }, { "bridgeRecord(interpreter, \($0))" })
-}
 // A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read, which may be of it.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
     leaves[name] = Leaf(".named(\(quoted(name)))", { "try SwiftValue.unbox(\(name).self, \($0))" }, { "SwiftValue.make(\($0), as: \(quoted(name)))" })
@@ -176,19 +144,15 @@ do {
         // argument if the enum lists them; if not, it's a result only.
         let iterable = !conformances(of: symbol, among: ["CaseIterable"]).isEmpty
         if !iterable { resultOnly.insert(name) }
-        if iterable, !conformances(of: symbol, among: ["DisplayStyled"]).isEmpty {
-            styleSources.append("\(quoted(name)): { name in \(name).allCases.first { \"\\($0)\" == name }?.displayStyle }")
-        }
         leaves[name] = Leaf(".named(\(quoted(name)))", { iterable ? "try bridgeCase(\(name).self, \($0))" : "fatalError()" },
                         { "interpreter.declaredCase(\(quoted(name)), String(describing: \($0)))" })
     }
     for symbol in publicTypes where symbol.kind.identifier == "swift.struct" {
         let name = symbol.pathComponents[0]
-        // A type the module holds as Swift's and bridges the members of (`FileSize`) is no record, nor is one Swiit declares itself (`Status`).
-        if module.types.contains(where: { $0.0 == name }) || module.records.contains(name) { continue }
+        // A type the module holds as Swift's and bridges the members of is no record.
+        if module.types.contains(where: { $0.0 == name }) { continue }
         let protocols = conformances(of: symbol, among: ["Equatable", "Hashable", "Encodable"])
         guard protocols.contains("Encodable") else { continue }
-        if !conformances(of: symbol, among: ["Tabular"]).isEmpty { columnSources.append("\(quoted(name)): \(name).columns") }
         let fields = publicMembers(of: name, "swift.property")
         var declared: [String] = []
         var patches: [String] = []
@@ -286,9 +250,9 @@ var output = """
 // Generated by swiit-bridge from the \(graph.module.name) module's symbol graph.
 // Don't edit: the bridge generator (swiit-bridge) remakes it.
 import Foundation
-\(module.outsideCore ? "import Swiit\n" : "")\(graph.module.name == "Swift" ? "" : "\(module.outsideCore ? "" : "")import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "\(module.outsideCore ? "" : "")import \($0)\n" }.joined())
+\(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
 extension Bridge {
-\(module.types.isEmpty && module.extending.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
+\(module.types.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
 
 """
 var skipped: [String: Int] = [:]
@@ -303,7 +267,7 @@ func declare(_ expression: String) -> String {
     return name
 }
 
-for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
+for (name, _) in bridgedTypeNames {
     // A type of another module is known to the generator as it is: what is made is only what this module adds to it.
     let owner = types[name] ?? BridgedType(name: name, parameters: [])
     var seen: Set<String> = []
@@ -341,7 +305,7 @@ for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
         // (Int, String…) are the host's own, which doesn't ask Swift.
         let isOperator = symbol.kind.identifier == "swift.func.op"
         guard !title.hasPrefix("_"), title.first?.isLetter ?? false || isOperator && graph.module.name != "Swift" else { continue }
-        // The interpreter's own hooks a type adopts (`swiitCell`), not for Swiit code.
+        // The interpreter's own hooks a type adopts (`swiitDescription`), not for Swiit code.
         if title.hasPrefix("swiit") { continue }
         if isOperator && graph.module.name == "Swift" { continue }
         if swiitOwn[name]?.contains(title) ?? false { continue }
@@ -365,8 +329,8 @@ for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
             members.append(contentsOf: codes.map(declare))
             counts[name, default: 0] += 1
         } catch let unsupported as Unsupported {
-            // SWISH_BRIDGE_DEBUG=Set: why each of a type's members is left out.
-            if ProcessInfo.processInfo.environment["SWISH_BRIDGE_DEBUG"] == name {
+            // SWIIT_BRIDGE_DEBUG=Set: why each of a type's members is left out.
+            if ProcessInfo.processInfo.environment["SWIIT_BRIDGE_DEBUG"] == name {
                 FileHandle.standardError.write(Data("\(title): \(unsupported.reason)\n".utf8))
             }
             skipped[unsupported.reason.split(separator: " ").first.map(String.init) ?? "?", default: 0] += 1
@@ -395,16 +359,16 @@ for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
        graph.symbols.contains(where: { $0.pathComponents == [name, $0.pathComponents.last!]
            && $0.kind.identifier == "swift.init" && available($0) && isSequenceInitializer($0) }) {
         let collection = selfType(owner)
-        arrayLiteral = "{ \(toSwish("\(spelling(collection))($0)", collection)) }"
+        arrayLiteral = "{ \(toValue("\(spelling(collection))($0)", collection)) }"
     }
     if owner.parameters.isEmpty {
         let selfType = SType.named(name, [])
         if graph.symbols.contains(where: { $0.pathComponents == name.split(separator: ".").map(String.init) + [$0.pathComponents.last!]
             && $0.kind.identifier == "swift.init" && available($0) && isTextInitializer($0) }) {
-            parse = "{ \(name)($0).map { \(toSwish("$0", selfType)) } }"
+            parse = "{ \(name)($0).map { \(toValue("$0", selfType)) } }"
         }
         if owner.allConformances.contains("ExpressibleByUnicodeScalarLiteral") {
-            literal = "{ textLiteral(\(name).self, $0).map { \(toSwish("$0", selfType)) } }"
+            literal = "{ textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
         }
     }
     output += """
@@ -420,20 +384,13 @@ for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
 
 """
 }
-if !module.types.isEmpty || !module.extending.isEmpty { output += "    ]\n" }
+if !module.types.isEmpty { output += "    ]\n" }
 if let list = module.functions {
     output += "    /// The module's structs, as Swiit source: declared with the prelude.\n"
     // What the module is called in the names of its tables: `standard` for
-    // `standardFunctions`, `host` for `shellFunctions`.
+    // `standardFunctions`.
     let prefix = String(list.dropLast("Functions".count))
     output += "    \(access) static let \(prefix)Types = #\"\"\"\n" + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
-    // Tables are the host's: a module generated into the host's target says how its types show in one.
-    if module.outsideCore {
-        output += "    /// How the module's structs say which columns a table starts with.\n"
-        output += "    \(access) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"
-        output += "    /// How the module's enums say how a case is shown, by case name.\n"
-        output += "    \(access) static let \(prefix)EnumStyles: [String: @Sendable (String) -> DisplayStyle?] = [\(styleSources.isEmpty ? ":" : styleSources.joined(separator: ", "))]\n\n"
-    }
     var functions: [String] = []
     for symbol in graph.symbols where symbol.kind.identifier == "swift.func" && symbol.pathComponents.count == 1
         && symbol.accessLevel == "public" && available(symbol) {

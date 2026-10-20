@@ -7,7 +7,7 @@
 # what all the platforms there have: CI makes Linux's (see
 # .github/workflows/ci.yml), and a member only one has can't break the other.
 #
-# A client with bridges of its own (the shell has them) runs the generator
+# A client with bridges of its own (a host may have them) runs the generator
 # itself: `swift run --package-path <Swiit> -c release swiit-bridge --help`.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -16,7 +16,9 @@ if [ "$(uname)" = Darwin ]; then platform=macos; else platform=linux; fi
 graphs=$(mktemp -d)
 trap 'rm -rf "$graphs"' EXIT
 
-swift build
+# Not the whole package: the glue being made may be what stops it from building.
+swift build --target SystemPackage
+swift build --product swiit-bridge
 machine=$(uname -m)
 built=$(swift build --show-bin-path)
 
@@ -35,8 +37,7 @@ graph() {
 # Other modules that extend a module's types, whose graphs are read with it.
 extensions() {
     case "$1" in
-        Swift) echo "_StringProcessing SwiitStandardLibrary" ;;
-        Foundation) echo "SwiitStandardLibrary" ;;
+        Swift) echo "_StringProcessing" ;;
     esac
 }
 # A module's types can be defined in a module it re-exports, which some
@@ -48,12 +49,11 @@ reexports() {
 output() {
     case "$1" in
         Swift) echo StandardLibrary ;;
-        SwiitStandardLibrary) echo SwiitLibrary ;;
         *) echo "$1" ;;
     esac
 }
 
-for module in Swift SystemPackage Foundation SwiitStandardLibrary; do
+for module in Swift SystemPackage Foundation; do
     graph "$module"
     extra=()
     hosts=("$module")
@@ -70,9 +70,6 @@ for module in Swift SystemPackage Foundation SwiitStandardLibrary; do
             file="$graphs/$other@$host.symbols.json"
             if [ -f "$file" ]; then extra+=("$file"); fi
         done
-        # The library's own types are declared in its module, which the
-        # extensions use.
-        if [ "$other" = SwiitStandardLibrary ]; then extra+=("$graphs/$other.symbols.json"); fi
     done
     platforms=(--manifest "Bridges/$platform/$module.json")
     for other in macos linux; do

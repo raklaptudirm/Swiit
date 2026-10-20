@@ -31,7 +31,7 @@ struct Lowering {
     /// While a static member is lowered: its type and the static members a
     /// bare name there reads through the type's name.
     var staticContext: (owner: String, names: Set<String>)?
-    /// The function names declared so far, which a command may call.
+    /// The function names declared so far, the names of the program.
     var functions: Set<String> = []
     /// How many `try`s cover the code being lowered, which makes a `$(…)` or an
     /// `await` throw; a function's or closure's body starts afresh.
@@ -52,7 +52,7 @@ struct Lowering {
     /// they are, as a bare `await`.
     var accepted: Set<SyntaxIdentifier> = []
     /// What folding operators found wrong, and where (in bytes): a problem only
-    /// outside what the plug-in read, as `f -- --x` is a command's words.
+    /// outside what the front end read.
     var operatorProblems: [(message: String, offset: Int)] = []
     /// Whether to go on past a statement that can't be read, as highlighting
     /// a line half typed does, rather than stop at it.
@@ -66,10 +66,6 @@ struct Lowering {
     /// The closures around the code being lowered, innermost last: whether
     /// each takes `$0`, `$1`, … (one without named parameters does).
     var anonymous: [Bool] = []
-    /// Where a name that isn't bound is an error, as the layer's reading of a
-    /// unit needs (a word that isn't a name is a command's): the Swift here
-    /// is read by what the names around it are.
-    var strictNames = false
     /// `typealias Name = Type`, which a type written as `Name` stands for.
     var aliases: [String: TypeAnnotation] = [:]
     /// The functions around the code being lowered, innermost last, as `#function` names them.
@@ -145,8 +141,7 @@ struct Lowering {
         return SourceRange(startLine: from.line, startColumn: from.column, endLine: to.line, endColumn: to.column)
     }
 
-    /// The line a byte offset is on, in the whole source: a lowering of part
-    /// of it (SwiftServices.swift) starts at a line of its own.
+    /// The line a byte offset is on, in the whole source.
     func line(atByte offset: Int) -> Int {
         converter.location(for: AbsolutePosition(utf8Offset: offset)).line + lineOffset
     }
@@ -154,18 +149,16 @@ struct Lowering {
     // MARK: Programs
 
     mutating func program() throws -> Program {
-        if let refusal = LayerSyntaxFinder.first(in: tree) { throw SyntaxError("\(refusal.message) (line \(line(of: refusal.node)))") }
         for item in tree.statements { collectTypeNames(item.item) }
         // A SwiftParser tree that has problems has them in `unexpected` nodes
-        // and missing tokens; the first one outside what the plug-in read is
-        // the error, and comes before whatever else went wrong.
+        // and missing tokens; the first one is the error, and comes
+        // before whatever else went wrong.
         let lowered: Program
         do {
             lowered = try block(tree.statements, scoped: false)
         } catch {
             // A problem in or before the statement that couldn't be lowered
-            // explains it; one further on is in code not yet read, where the
-            // plug-in's syntax may be.
+            // explains it; one further on is in code not yet read.
             if let (problem, offset) = firstProblem(in: tree), offset <= failedEnd ?? Int.max { throw problem }
             throw error
         }
@@ -177,9 +170,9 @@ struct Lowering {
         return lowered
     }
 
-    // MARK: The layer's syntax
+    // MARK: Names
 
-    /// The names the plug-in's parser needs to know, as the code being lowered has them.
+    /// The names the code being lowered has bound, and what each is.
     func names() -> [String: NameKind] {
         var names = bound
         for name in declaredTypes { names[name] = .type }
@@ -385,41 +378,4 @@ private final class ProblemFinder: SyntaxVisitor {
         }
         return .skipChildren
     }
-}
-
-/// With no layer plugged in, the constructs only a layer reads (`$(…)`, `$name`,
-/// `async …`, a `|` between values) are refused by
-/// name: SwiftParser's reading of them is its guess at text that isn't Swift.
-private final class LayerSyntaxFinder: SyntaxVisitor {
-    var found: (message: String, node: Syntax)?
-
-    static func first(in tree: SourceFileSyntax) -> (message: String, node: Syntax)? {
-        let finder = LayerSyntaxFinder(viewMode: .sourceAccurate)
-        finder.walk(tree)
-        return finder.found
-    }
-
-    private func refuse(_ message: String, _ node: some SyntaxProtocol) -> SyntaxVisitorContinueKind {
-        if found == nil { found = (message, Syntax(node)) }
-        return .skipChildren
-    }
-
-    override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
-        guard let callee = node.calledExpression.as(DeclReferenceExprSyntax.self) else { return .visitChildren }
-        switch callee.baseName.text {
-        case "$": return refuse("$(…) runs commands, which are interpreter syntax, and isn't available in Swift-only code", node)
-        case "async": return refuse("'async' starts a command in the background, which is interpreter syntax; Swift-only code has no async yet", node)
-        default: return .visitChildren
-        }
-    }
-
-    override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
-        let name = node.baseName.text
-        if name.hasPrefix("$"), name.count > 1, Int(name.dropFirst()) == nil {
-            return refuse("$name reads the environment, which is interpreter syntax, and isn't available in Swift-only code", node)
-        }
-        if name == "async" { return refuse("'async' starts a command in the background, which is interpreter syntax; Swift-only code has no async yet", node) }
-        return .visitChildren
-    }
-
 }

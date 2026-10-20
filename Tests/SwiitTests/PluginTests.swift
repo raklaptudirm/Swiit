@@ -19,7 +19,7 @@ private struct Entry: Encodable {
     #expect(throws: SwiitError.self) { try Int(.string("x")) }
 }
 
-@Test func swishEnumsBridgeTheirCases() throws {
+@Test func scriptEnumsBridgeTheirCases() throws {
     let type = Level.swiitEnumType
     #expect(type === Level.swiitEnumType) // One type, so values compare equal.
     #expect(type.name == "Level")

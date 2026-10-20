@@ -53,7 +53,7 @@ private let programs: [(name: String, source: String)] = [
 
 // MARK: Every program the test suites run
 
-/// Programs harvested from the test suites of the shell and the interpreter:
+/// Programs harvested from the test suites of the host and the interpreter:
 /// what each parsed. Those that are Swift alone (the oracle reads them without a
 /// layer's syntax) are the corpus the second front end is held to.
 private func harvested() throws -> [String] {

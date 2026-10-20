@@ -13,7 +13,7 @@ enum Bridge {
     public static var types: [String: BridgedType] { lock.withLock { table } }
 
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex]).map { // safe: read and changed only holding the lock
+    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [stringIndex, flowType]).map { // safe: read and changed only holding the lock
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
@@ -24,7 +24,11 @@ enum Bridge {
             for type in more {
                 if let existing = table[type.name] {
                     // A library adds members to a type the core has (`String.styled`), as an extension does.
-                    table[type.name] = existing.adding(type.members)
+                    var extended = existing.adding(type.members)
+                    // How text becomes one, if the type did not have a way.
+                    if extended.parse == nil { extended.parse = type.parse }
+                    if extended.literal == nil { extended.literal = type.literal }
+                    table[type.name] = extended
                 } else {
                     table[type.name] = type.conforming(to: conformancesDeclaredHere[type.name] ?? []).adding(additions[type.name] ?? [])
                 }
@@ -34,8 +38,8 @@ enum Bridge {
 
     /// Text as a value of the type named, if the type can be text and the
     /// text is one: through its failable initializer from text (`Int`), or
-    /// as a text literal (`Character`, `FilePath`). A word on the command
-    /// line, or a string literal where the type is wanted, is converted so.
+    /// as a text literal (`Character`, `FilePath`). A word of text,
+    /// or a string literal where the type is wanted, is converted so.
     public static func value(of typeName: String, from text: String) -> Value?? {
         guard let type = types[typeName], type.parse != nil || type.literal != nil else { return nil }
         return .some(type.parse?(text) ?? type.literal?(text))

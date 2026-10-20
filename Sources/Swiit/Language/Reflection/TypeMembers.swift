@@ -123,7 +123,7 @@ extension Interpreter {
     private func describe(_ type: EnumType) -> TypeDescription {
         let payloads = enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
         let members = type.cases.map { enumCase -> TypeDescription.Member in
-            var signature: [AttributedString] = [.init("case", .keyword), .init(" "), .init(enumCase.name, .command)]
+            var signature: [AttributedString] = [.init("case", .keyword), .init(" "), .init(enumCase.name, .function)]
             if !enumCase.labels.isEmpty {
                 let types = payloads[enumCase.name] ?? []
                 signature.append(.init("("))
@@ -153,10 +153,10 @@ extension TypeDescription {
         case .initializer:
             pieces += [.init("init", .keyword), .init("(")] + parameters(member.parameters) + [.init(")")]
         case .property:
-            pieces += [.init(member.name, .command), .init(": ")] + member.returns.styled
+            pieces += [.init(member.name, .function), .init(": ")] + member.returns.styled
             if settable { pieces += [.init(" { "), .init("get", .keyword), .init(" "), .init("set", .keyword), .init(" }")] }
         case .method, .setter:
-            pieces += [.init(member.name, .command), .init("(")] + parameters(member.parameters) + [.init(")")]
+            pieces += [.init(member.name, .function), .init("(")] + parameters(member.parameters) + [.init(")")]
             if member.returns != .void { pieces += [.init(" -> ")] + member.returns.styled }
         }
         return AttributedString(joining: pieces)
@@ -166,13 +166,13 @@ extension TypeDescription {
     /// what it's called on, so it isn't shown.
     static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
-                   + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.name == "self" })
+                   + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .function) { $0.name == "self" })
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
     static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
-        [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .command), .init(": ")] + type.styled
+        [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .function), .init(": ")] + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }
 

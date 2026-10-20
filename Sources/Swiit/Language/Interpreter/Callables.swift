@@ -34,7 +34,7 @@ extension Function {
     /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`,
     /// without the parameters `hiding` says, in pieces by what each is.
     public func declaration(
-        as name: String? = nil, nameStyle: DisplayStyle = .command, hiding hidden: (Parameter) -> Bool
+        as name: String? = nil, nameStyle: DisplayStyle = .function, hiding hidden: (Parameter) -> Bool
     ) -> [AttributedString] {
         var pieces: [AttributedString] = [.init(name ?? self.name ?? "closure", nameStyle), .init("(")]
         for (index, parameter) in parameters.filter({ !hidden($0) }).enumerated() {
@@ -52,7 +52,7 @@ extension Function {
     }
 
     public func declaration(hiding hidden: (Parameter) -> Bool) -> [AttributedString] {
-        declaration(as: nil, nameStyle: .command, hiding: hidden)
+        declaration(as: nil, nameStyle: .function, hiding: hidden)
     }
 }
 

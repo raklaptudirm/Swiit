@@ -2,7 +2,7 @@
 import Foundation
 import Testing
 
-// Swift's concurrency, from Swish (Docs/async.md, step 7): `Task`,
+// Swift's concurrency, (Docs/async.md, step 7): `Task`,
 // `async let`, `for await`.
 
 private func interpreter() -> Interpreter {
@@ -10,8 +10,8 @@ private func interpreter() -> Interpreter {
 }
 
 private func eval(_ source: String) throws -> Value {
-    let swish = interpreter()
-    return try onLargeStack { try swish.evaluate(source) }
+    let swiit = interpreter()
+    return try onLargeStack { try swiit.evaluate(source) }
 }
 
 private func typeError(_ source: String) -> String? {
@@ -67,7 +67,7 @@ private func typeError(_ source: String) -> String? {
 }
 
 @Test func aTaskOutlivesTheScopeThatMadeIt() throws {
-    // Unlike a shell job's, Swift's `Task { }` isn't structured: it goes on.
+    // Unlike a job's, Swift's `Task { }` isn't structured: it goes on.
     let source = """
     func start() -> Task<Int, Never> { Task { await Task.yield(); return 7 } }
     let t = start()
@@ -109,15 +109,15 @@ private func typeError(_ source: String) -> String? {
 }
 
 /// A Swift `async` function, bridged as the generator bridges one: it calls
-/// back into Swish through an `async` closure.
+/// back into Swiit through an `async` closure.
 @Test func aBridgedAsyncFunctionRunsWhileOthersWaitAndCallsBack() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     let twice = Function(
         name: "twice", parameters: [Parameter(label: nil, name: "f", type: .functionType([.int], .int, async: .async))],
         returnType: .int,
-        body: .native { shell, args in
-            try bridgeAsync(shell) { () async throws -> Value in
-                let f = bridgeAsyncClosure(shell, args["f"]!)
+        body: .native { swiit, args in
+            try bridgeAsync(swiit) { () async throws -> Value in
+                let f = bridgeAsyncClosure(swiit, args["f"]!)
                 try await Task.sleep(nanoseconds: 100_000_000)
                 let once = try Int(try await f([.int(10)]))
                 return .int(try Int(try await f([.int(once)])))
@@ -125,10 +125,10 @@ private func typeError(_ source: String) -> String? {
         },
         effect: .async
     )
-    swish.scopes[0].declare(twice, named: "twice")
+    swiit.scopes[0].declare(twice, named: "twice")
     let source = "let t = Task { await twice { $0 + 1 } }; let u = Task { await twice { $0 * 2 } }; [await t.value, await u.value]"
     let start = Date()
-    #expect(try onLargeStack { try swish.evaluate(source) } == .list([.int(12), .int(40)]))
+    #expect(try onLargeStack { try swiit.evaluate(source) } == .list([.int(12), .int(40)]))
     // Not timed closely: CI's machines are slow to start threads and tasks.
     #expect(Date().timeIntervalSince(start) < 10)
     #expect(typeError("func g() -> Int { 1 }; g()") == nil)

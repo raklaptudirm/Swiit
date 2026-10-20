@@ -24,7 +24,7 @@ private final class Stub: Callable {
     #expect(Value.function(stub).description == "stub")
 }
 
-/// Text that stands for a String where one is wanted, as a command's output does in the shell.
+/// Text that stands for a String where one is wanted, as a command's output does in a host.
 private struct Shout: StandsForText, Sendable {
     var text: String
 }

@@ -55,7 +55,7 @@ extension Value {
     func conforming(to type: TypeAnnotation) -> Value? {
         switch (type, self) {
         // What stands for text is the text where a String is wanted, and a
-        // Swift sequence of Strings (a command's output) is the list of them where a list is.
+        // Swift sequence of Strings (a host type's text) is the list of them where a list is.
         case (.string, .object) where text != nil:
             return .string(text!)
         case (.list(.string), .object(let box as SwiftValue)) where box.value is any Sequence && Interpreter.items(of: self).map({ $0.allSatisfy { if case .string = $0 { true } else { false } } }) == true:
@@ -106,7 +106,7 @@ extension Value {
 }
 
 extension Value {
-    /// A list's items, or a Swift sequence's (a command's output is its lines): what sequence methods work on.
+    /// A list's items, or a Swift sequence's (a host type's lines): what sequence methods work on.
     var sequenceItems: [Value]? {
         switch self {
         case .list(let items): items

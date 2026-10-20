@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: What a host exports
 
-/// A function described as data: a name, parameters, a result, and a body. The way to offer commands whose shape is
+/// A function described as data: a name, parameters, a result, and a body. The way to offer functions whose shape is
 /// known only at run time. It is checked like any function the script declares.
 public struct HostFunction: Sendable {
     public struct Parameter: Sendable {
@@ -31,7 +31,7 @@ public struct HostFunction: Sendable {
         var enums: [EnumType]
         var documentation: String?
         /// A default only Swift can compute, like `Date()`: the argument is left out and the function uses its own.
-        /// Its source, for `--help`.
+        /// Its source, for help.
         var defaultSource: String?
         /// What is given is shown as interpolation shows a value.
         var showsByType = false
@@ -87,7 +87,7 @@ public struct HostFunction: Sendable {
         self.init(name: name, summary: summary, parameters: parameters, returns: ValueType(returns), isThrowing: isThrowing, body: body)
     }
 
-    /// As the host's commands are described: a body taking the arguments by name.
+    /// As the host's functions are described: a body taking the arguments by name.
     init(
         name: String, summary: String? = nil, parameters: [Parameter], returnType: ValueType?, isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
@@ -239,7 +239,7 @@ extension String: ValueConvertible {
         switch swiitValue {
         case .string(let value): self = value
         default:
-            // What stands for text (a command's output) is its text.
+            // What stands for text (a host type's text) is its text.
             guard let text = swiitValue.text else { throw SwiitError.expected("String", swiitValue) }
             self = text
         }
@@ -275,7 +275,7 @@ extension Array: ValueConvertible where Element: ValueConvertible {
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
         case .list(let items): self = try items.map(Element.init(_:))
-        // A Swift sequence Swiit holds (a command's output is its lines).
+        // A Swift sequence Swiit holds (a host type's lines).
         case .object(let box as SwiftValue) where box.value is any Sequence:
             self = try SwiftValue.elements(of: box.value).map { try Element(Value(reflecting: $0)) }
         default: throw SwiitError.expected("[\(Element.valueType)]", swiitValue)
@@ -351,7 +351,7 @@ func swiitParameterType<T: HostObject>(_ type: T.Type) -> ValueType { .any }
 func swiitParameterEnums<T: ValueConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
 func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [EnumType] { [] }
 
-/// What a function returns, for signatures and `--help`.
+/// What a function returns, for signatures and help.
 func swiitReturnType(_ type: Any.Type) -> ValueType {
     (type as? any ValueConvertible.Type)?.valueType ?? .any
 }

@@ -1,11 +1,10 @@
 import SwiftSyntax
 
 /// Highlighting from SwiftParser's tree: each token's kind, from what it is
-/// and where it stands, and the spans the plug-in recorded where it read the
-/// layer's syntax. Half-typed input has a tree too, so a line is colored as
+/// and where it stands. Half-typed input has a tree too, so a line is colored as
 /// it is typed.
 extension Lowering {
-    /// The spans of the source, in characters, as the layer records them.
+    /// The spans of the source, in characters.
     func highlightSpans() -> [Span] {
         let classifier = TokenClassifier()
         classifier.walk(tree)
@@ -18,7 +17,7 @@ extension Lowering {
     }
 }
 
-/// Spans in bytes, for the tokens outside what the plug-in read.
+/// Spans in bytes, for the tokens.
 private final class TokenClassifier: SyntaxVisitor {
     var spans: [Span] = []
 
@@ -167,7 +166,7 @@ private final class TokenClassifier: SyntaxVisitor {
         }
         if parent.is(IdentifierTypeSyntax.self) || parent.is(MemberTypeSyntax.self) { return .type }
         if parent.is(StructDeclSyntax.self) || parent.is(EnumDeclSyntax.self) { return .type }
-        if parent.is(FunctionDeclSyntax.self) { return .command }
+        if parent.is(FunctionDeclSyntax.self) { return .function }
         if parent.is(EnumCaseElementSyntax.self) { return .constant }
         if parent.is(IdentifierPatternSyntax.self) { return .variable }
         // A parameter's names are left plain.

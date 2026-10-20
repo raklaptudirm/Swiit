@@ -1,5 +1,4 @@
 import Foundation
-import SwiitStandardLibrary
 
 // Swift's `Task`, bridged by hand: its operation is Swiit code, which runs as
 // a task of the interpreter's (InterpreterLock.swift), not on Swift's

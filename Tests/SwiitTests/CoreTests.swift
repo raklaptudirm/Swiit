@@ -1,10 +1,10 @@
 @testable import Swiit
 import Testing
 
-// The core on its own: the target builds and runs without the shell.
+// The core on its own: the target builds and runs without the host.
 
 /// What a script wrote and how it ended, run on an `Interpreter` alone: no
-/// `Shell`, no layer, only a host that collects output.
+/// No layer, only a host that collects output.
 private func runOnTheCore(_ source: String) -> (output: String, problem: String?) {
     let captured = Capture()
     var output: String { captured.text }
@@ -45,19 +45,19 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 }
 
 @Test func theCoreRefusesWhatItWasNotGiven() {
-    // Shell syntax doesn't parse, and there is no environment to read.
-    // Two words are two statements, as in Swift: a command is the shell's.
+    // A host's syntax doesn't parse, and there is no environment to read.
+    // Two words are two statements, as in Swift: a command is the host's.
     #expect(runOnTheCore("git status").problem?.contains("expected ';'") == true)
-    #expect(runOnTheCore("let h = $(echo hi)").problem?.contains("runs commands") == true)
+    #expect(runOnTheCore("let h = $(echo hi)").problem != nil)
     #expect(runOnTheCore(#"let h = env.HOME"#).problem?.contains("env") == true)
 }
 
-@Test func theCoreHasTheStandardLibraryButNotTheShellsFunctions() {
+@Test func theCoreHasTheStandardLibraryButNotAHostsFunctions() {
     // Members of Swift's types are the core's; functions that reach the file
-    // system, the process or a pipeline's data are the shell's.
-    let (output, problem) = runOnTheCore(#"[1, 2].map { $0 * 2 }; [1, 1, 2].uniqued()"#)
+    // system, the process or a pipeline's data are the host's.
+    let (output, problem) = runOnTheCore(#"[1, 2].map { $0 * 2 }; [1, 2].enumerated().map { $0.offset }"#)
     #expect(problem == nil)
-    #expect(output == "[2, 4]\n[1, 2]\n")
+    #expect(output == "[2, 4]\n[0, 1]\n")
     for name in ["ls", "ps", "pwd", "history", "readLine", "from", "to", "table", "list", "help"] {
         #expect(runOnTheCore("\(name)()").problem?.contains("no function named '\(name)'") == true, "\(name)")
     }
@@ -65,7 +65,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 
 @Test func theCorePreludeIsTheLanguagesOwn() {
     // What a `catch` binds is the language's; `members`, `select`, `help` and
-    // `JSON` are declared by the shell.
+    // `JSON` are declared by the host.
     let (output, problem) = runOnTheCore(#"do { 1 / 0 } catch { print(error.localizedDescription) }"#)
     #expect(problem == nil)
     #expect(output == "division by zero\n")
@@ -77,12 +77,12 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
 /// A closure keeps only the variables it names, not the scopes around it:
 /// keeping the scope it's stored in was a cycle, leaked on every call.
 @Test func closuresKeepOnlyWhatTheyUse() throws {
-    let swish = Interpreter()
+    let swiit = Interpreter()
     let value = try onLargeStack {
-        try swish.evaluate("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
+        try swiit.evaluate("func f(_ i: Int) -> () -> Int { let g = { i + 1 }; let unused = [1, 2]; return g }; let h = f(1); h()")
     }
     #expect(value == .int(2))
-    guard case .function(let closure as Function)? = swish.lookup("h")?.value else {
+    guard case .function(let closure as Function)? = swiit.lookup("h")?.value else {
         Issue.record("h isn't a closure")
         return
     }

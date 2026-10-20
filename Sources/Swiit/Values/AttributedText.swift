@@ -4,8 +4,7 @@ import Foundation
 // it, so `help`, and anything else that shows text with emphasis, hands
 // Swiit a standard type. Foundation alone has no colors (they're in AppKit,
 // UIKit and SwiftUI), so the host's own are one attribute: a style by what
-// the text is, which the terminal turns into a color when it's shown. (Nor
-// does Foundation on Linux parse Markdown, so documentation's is read here.)
+// the text is, which the terminal turns into a color when it's shown. 
 
 /// The style a run of text is in: `DisplayStyle`'s roles (a keyword, a type,
 /// a flag…), not a color, so what a color is, or whether there is one, is
@@ -47,14 +46,6 @@ extension AttributedString {
         String(characters)
     }
 
-    /// Text written in Markdown, as documentation is: its code, strong text,
-    /// emphasis and links as styles, which show where there are colors, and
-    /// the plain words anywhere else. Only the inline syntax, which is what a
-    /// description is made of; see `InlineMarkdown`.
-    public init(documentation text: String) {
-        self = InlineMarkdown(Array(text)).parse(0..<text.count, style: nil)
-    }
-
     /// With the terminal's escapes for each style.
     public var colored: String {
         var result = ""
@@ -78,5 +69,4 @@ extension AttributedString {
 extension AttributedString: StandsForText, SwiitDisplayed {
     public var text: String { plain }
     public var swiitDescription: String { plain }
-    public var swiitColored: String? { colored }
 }

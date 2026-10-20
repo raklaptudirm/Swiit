@@ -1,7 +1,7 @@
 #!/bin/bash
 # Tags a release of Swiit once the commit at HEAD is pushed and its CI run has succeeded:
 #   Scripts/release 0.9.8
-# Then Swish builds on it: put the version in Swish's .swiit-version and push that.
+# Then hosts can pin that version.
 # The GitHub CLI is `gh`, or the program in $GH if that is set.
 set -euo pipefail
 cd "$(dirname "$0")/.."

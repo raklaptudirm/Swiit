@@ -37,7 +37,6 @@ extension Lowering {
                     body: Program(statements: [.expression(body)], lines: [line(of: node)]), names: NamesUsed(names: ["$0", "$1"])
                 ))
             }
-            try checkKnown(node, calling: false)
             return reference(node)
         }
         if let node = expr.as(MemberAccessExprSyntax.self) { return try member(node) }
@@ -292,9 +291,6 @@ extension Lowering {
                node.arguments.count == 1, node.arguments.first?.label == nil, names()["Optional"] == nil || names()["Optional"] == .type {
                 // `Optional(x)`: x, as an optional.
                 callee = .variable(InternalName.some)
-            } else if let reference = node.calledExpression.as(DeclReferenceExprSyntax.self), strictNames {
-                try checkKnown(reference, calling: true)
-                callee = self.reference(reference)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self), member.declName.baseName.text == "init",
                       let base = member.base, !base.is(SuperExprSyntax.self), base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self" {
                 // `Point.init(x: 1)` is `Point(x: 1)`.
@@ -315,16 +311,6 @@ extension Lowering {
             return .caseLiteral(member.declName.baseName.text, arguments)
         }
         return .call(callee!, arguments)
-    }
-
-    /// Where names have to be bound (`strictNames`): a name that isn't is not an
-    /// expression, which the layer takes for a command's word.
-    mutating func checkKnown(_ node: DeclReferenceExprSyntax, calling: Bool) throws {
-        guard strictNames else { return }
-        let name = node.baseName.text
-        if name == "self" || name == "_" || names()[name] != nil { return }
-        failedAt = node.endPositionBeforeTrailingTrivia.utf8Offset
-        throw SyntaxError(calling ? "no function named '\(name)'" : "no variable named '\(name)'")
     }
 
     /// The `x?` a postfix chain starts from, and how many links (members, subscripts, `!`; a call with its method counts once) are after it.
@@ -497,7 +483,7 @@ extension Lowering {
     }
 
     private mutating func infix(_ node: InfixOperatorExprSyntax) throws -> Expr {
-        // Left to right, as it is read: a name that isn't bound is found before an operator that isn't Swish's.
+        // Left to right, as it is read: a name that isn't bound is found before an operator that isn't Swift's.
         let left = try expression(node.leftOperand)
         if node.operator.is(AssignmentExprSyntax.self) { throw unsupported("an assignment in an expression", node) }
         guard let op = node.operator.as(BinaryOperatorExprSyntax.self) else {

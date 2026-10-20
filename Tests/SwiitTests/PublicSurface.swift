@@ -6,7 +6,7 @@ import Foundation
 enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "ValueDictionary", "Callable", "ValueType", "HostObject", "DynamicObject",
-        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation", "TypeDescription", "TaskHandle", "Awaiting", "Record", "EnumValue", "EnumType",
+        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation", "TypeDescription", "TaskHandle", "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle", "DisplayStyleAttribute", "StandsForText", "SwiitDisplayed",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

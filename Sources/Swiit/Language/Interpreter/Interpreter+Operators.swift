@@ -106,7 +106,7 @@ extension Interpreter {
             if let result = try userOperator(op.rawValue, [lhs, rhs]) { return result }
             if let result = try derivedOperator(op, lhs, rhs) { return result }
         }
-        // What stands for text (a command's output) compares as its text;
+        // What stands for text (a host type's text) compares as its text;
         // other String operations go through `.text`.
         let isComparison = op.isComparison
         if case .object = lhs, let text = lhs.text, isComparison {

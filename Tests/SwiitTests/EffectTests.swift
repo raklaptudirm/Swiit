@@ -55,40 +55,40 @@ private func typeError(_ source: String) -> String? {
 // Tasks on threads, one at a time behind the interpreter's lock.
 
 @Test func aTaskRunsWhenTheLockIsLetGoAndIsJoined() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     let value = try onLargeStack {
-        try swish.lock.withLock { () throws -> Value in
-            let task = try swish.startTask(host: nil) { .int(21 * 2) }
+        try swiit.lock.withLock { () throws -> Value in
+            let task = try swiit.startTask(host: nil) { .int(21 * 2) }
             // Joining lets go of the lock, so the task can run.
-            return try swish.join(task)
+            return try swiit.join(task)
         }
     }
     #expect(value == .int(42))
 }
 
 @Test func aTasksErrorIsWhatJoiningThrows() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     #expect(throws: Diagnostic.self) {
         try onLargeStack {
-            try swish.lock.withLock { () throws -> Value in
-                let task = try swish.startTask(host: nil) { throw RuntimeError("no") }
-                return try swish.join(task)
+            try swiit.lock.withLock { () throws -> Value in
+                let task = try swiit.startTask(host: nil) { throw RuntimeError("no") }
+                return try swiit.join(task)
             }
         }
     }
 }
 
 @Test func closingAScopeCancelsAndWaitsForItsTasks() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     try onLargeStack {
-        try swish.withMainTask {
-            let task = try swish.startTask(host: nil) {
+        try swiit.withMainTask {
+            let task = try swiit.startTask(host: nil) {
                 // It never ends on its own; it stops when it's cancelled.
-                while true { try swish.checkInterrupt() }
+                while true { try swiit.checkInterrupt() }
             }
-            #expect(swish.task.children.count == 1)
-            swish.closeTasks(above: -1)
-            #expect(swish.task.children.isEmpty)
+            #expect(swiit.task.children.count == 1)
+            swiit.closeTasks(above: -1)
+            #expect(swiit.task.children.isEmpty)
             #expect(task.isFinished)
         }
     }
@@ -97,16 +97,16 @@ private func typeError(_ source: String) -> String? {
 // A function that waits, a plugin's, lets the lock go through SwiitKit's
 // `Waiting` (Docs/async.md, step 6).
 @Test func waitingLetsTheLockGo() {
-    let swish = interpreter()
-    #expect(Waiting.host == nil || Waiting.host !== swish)
-    swish.withMainTask {
-        #expect(Waiting.host === swish)
-        #expect(swish.lock.isHeldByCurrentThread)
-        let held = Waiting.whileWaiting { swish.lock.isHeldByCurrentThread }
+    let swiit = interpreter()
+    #expect(Waiting.host == nil || Waiting.host !== swiit)
+    swiit.withMainTask {
+        #expect(Waiting.host === swiit)
+        #expect(swiit.lock.isHeldByCurrentThread)
+        let held = Waiting.whileWaiting { swiit.lock.isHeldByCurrentThread }
         #expect(!held)
-        #expect(swish.lock.isHeldByCurrentThread)
+        #expect(swiit.lock.isHeldByCurrentThread)
         // A read with no host saying whose turn it is just reads.
         #expect(Waiting.forInput { "line" } == "line")
     }
-    #expect(Waiting.host !== swish)
+    #expect(Waiting.host !== swiit)
 }

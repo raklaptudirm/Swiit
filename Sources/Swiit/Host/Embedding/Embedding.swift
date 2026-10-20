@@ -27,7 +27,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
             self.site = site
         }
     }
-    /// For a run-time error: the status the failure gives (a failed command's own, for a host).
+    /// For a run-time error: the status the failure gives (a host's failed process's own, say).
     public var status: Int32 = 1
     /// The host reported it already (`ScriptError.isReported`).
     public var isReported = false
@@ -274,7 +274,7 @@ public final class Cancellation: @unchecked Sendable { // safe: every access hol
 
 extension Interpreter {
     /// An interpreter with Swift's syntax, the standard library and nothing
-    /// else: no commands, no environment, no files. What a script can name
+    /// else: no processes, no environment, no files. What a script can name
     /// is what the host registers.
     public convenience init(host: Interpreter.Host = Interpreter.Host(), limits: Interpreter.Limits = Interpreter.Limits()) {
         let counter = OutputCounter()
@@ -357,8 +357,15 @@ extension Interpreter {
         do {
             return try inCurrentTask { () throws -> Value in
                 // A Swift type's method by that name, when arguments are given: `count { … }` is a method, not the property `count`.
-                if let receiver, !arguments.isEmpty, let methods = bridgedMethods(name, of: receiver) {
-                    return try self.evaluate(.call(.literal(methods), written))
+                // Where the prelude has a sequence method of the name too, Swift's wins if it takes these arguments, as it does
+                // when a script is checked.
+                if let receiver, let methods = bridgedMethods(name, of: receiver),
+                   !arguments.isEmpty || sequenceMethods[name] != nil {
+                    var fits = true
+                    if sequenceMethods[name] != nil, case .function(let set as OverloadSet) = methods {
+                        fits = set.candidates.contains { (try? self.bind(written, to: $0)) != nil }
+                    }
+                    if fits { return try self.evaluate(.call(.literal(methods), written)) }
                 }
                 let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
                 return try self.evaluate(.call(callee, written))

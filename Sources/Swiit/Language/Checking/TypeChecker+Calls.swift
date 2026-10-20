@@ -172,7 +172,7 @@ extension TypeChecker {
                                         narrowing: ofAValue, mutating: ofAValue ? baseExpr : nil)
             return description.kind == .protocolType ? substitute(result, [:]) : result
         }
-        // Swift's own methods first; then what the prelude adds for shells,
+        // Swift's own methods first; then what the prelude adds for sequences,
         // like `sorted(by: \.size)`.
         var bridgedError: TypeError?
         if let (bridgedType, bindings) = bridged(base), bridgedType.members.contains(where: { $0.kind == .method && !$0.isStatic && $0.name == name }) {

@@ -17,18 +17,18 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 
 @Test func printWritesToTheHostsOutput() throws {
     let log = Log()
-    let swish = interpreter(log: log)
-    _ = try swish.evaluate(#"print("hello", 1 + 1); print([1, 2])"#)
+    let swiit = interpreter(log: log)
+    _ = try swiit.evaluate(#"print("hello", 1 + 1); print([1, 2])"#)
     #expect(log.text == "hello 2\n[1, 2]\n")
 }
 
 @Test func evalGivesTheValueOfTheLastExpression() throws {
-    let swish = interpreter()
-    #expect(try swish.evaluate("1 + 2") == 3)
-    #expect(try swish.evaluate("let xs = [3, 1, 2]; xs.sorted()") == [1, 2, 3])
+    let swiit = interpreter()
+    #expect(try swiit.evaluate("1 + 2") == 3)
+    #expect(try swiit.evaluate("let xs = [3, 1, 2]; xs.sorted()") == [1, 2, 3])
     // A declaration gives nothing, and stays for the next call.
-    #expect(try swish.evaluate("let answer = 42") == .null)
-    #expect(try swish.evaluate("answer * 2") == 84)
+    #expect(try swiit.evaluate("let answer = 42") == .null)
+    #expect(try swiit.evaluate("answer * 2") == 84)
     // A value statement shows nothing: values come back from eval.
     let log = Log()
     _ = try interpreter(log: log).evaluate("1; 2; 3")
@@ -36,9 +36,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 }
 
 @Test func errorsAreDiagnosticsWithAKind() {
-    let swish = interpreter()
+    let swiit = interpreter()
     func diagnostic(_ source: String) -> Diagnostic? {
-        do { _ = try swish.evaluate(source); return nil } catch { return error as? Diagnostic }
+        do { _ = try swiit.evaluate(source); return nil } catch { return error as? Diagnostic }
     }
     #expect(diagnostic("let = 1")?.kind == .syntax)
     #expect(diagnostic("let x: Int = \"a\"")?.kind == .type)
@@ -49,16 +49,16 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 }
 
 @Test func aRegisteredClosureIsAnOrdinaryFunction() throws {
-    let swish = interpreter()
-    swish.register("clamp") { (x: Int, lo: Int, hi: Int) in min(max(x, lo), hi) }
-    swish.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
-    swish.register("twice") { (xs: [Int]) in xs + xs }
-    #expect(try swish.evaluate("clamp(15, 0, 10)") == 10)
-    #expect(try swish.evaluate(#"greet(name: "Rak")"#) == "hello, Rak")
-    #expect(try swish.evaluate("twice([1, 2]).count") == 4)
+    let swiit = interpreter()
+    swiit.register("clamp") { (x: Int, lo: Int, hi: Int) in min(max(x, lo), hi) }
+    swiit.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
+    swiit.register("twice") { (xs: [Int]) in xs + xs }
+    #expect(try swiit.evaluate("clamp(15, 0, 10)") == 10)
+    #expect(try swiit.evaluate(#"greet(name: "Rak")"#) == "hello, Rak")
+    #expect(try swiit.evaluate("twice([1, 2]).count") == 4)
     // A wrong argument is the usual type error.
     do {
-        _ = try swish.evaluate(#"clamp("a", 0, 10)"#)
+        _ = try swiit.evaluate(#"clamp("a", 0, 10)"#)
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .type)
@@ -68,14 +68,14 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 
 @Test func aRegisteredClosureThatThrowsIsARuntimeDiagnostic() throws {
     struct Refused: Error, CustomStringConvertible { var description: String { "refused" } }
-    let swish = interpreter()
-    swish.register("check", throwing: true) { (x: Int) throws -> Int in
+    let swiit = interpreter()
+    swiit.register("check", throwing: true) { (x: Int) throws -> Int in
         if x < 0 { throw Refused() }
         return x
     }
-    #expect(try swish.evaluate("try check(1)") == 1)
+    #expect(try swiit.evaluate("try check(1)") == 1)
     do {
-        _ = try swish.evaluate("try check(-1)")
+        _ = try swiit.evaluate("try check(-1)")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .runtime)
@@ -85,18 +85,18 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 
 @Test func valuesSetByTheHostAreReadByTheScript() throws {
     struct Config: Encodable { var volume = 7; var name = "main" }
-    let swish = interpreter()
-    swish["config"] = try Value(encoding: Config())
-    swish["limit"] = 10
-    #expect(try swish.evaluate("config.volume * 2") == 14)
-    #expect(try swish.evaluate("limit + 1") == 11)
-    #expect(swish["limit"] == 10)
+    let swiit = interpreter()
+    swiit["config"] = try Value(encoding: Config())
+    swiit["limit"] = 10
+    #expect(try swiit.evaluate("config.volume * 2") == 14)
+    #expect(try swiit.evaluate("limit + 1") == 11)
+    #expect(swiit["limit"] == 10)
 }
 
 @Test func theSandboxRefusesWhatItWasNotGiven() {
-    let swish = interpreter()
+    let swiit = interpreter()
     func message(_ source: String) -> String? {
-        do { _ = try swish.evaluate(source); return nil } catch { return (error as? Diagnostic)?.message }
+        do { _ = try swiit.evaluate(source); return nil } catch { return (error as? Diagnostic)?.message }
     }
     // Commands and `$(…)` aren't syntax here; files, the process and the
     // environment aren't names.
@@ -108,9 +108,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 }
 
 @Test func anInfiniteLoopStopsAtItsLimit() {
-    let swish = interpreter(limits: Interpreter.Limits(steps: 10_000))
+    let swiit = interpreter(limits: Interpreter.Limits(steps: 10_000))
     do {
-        _ = try swish.evaluate("var n = 0; while true { n += 1 }")
+        _ = try swiit.evaluate("var n = 0; while true { n += 1 }")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .limit)
@@ -119,13 +119,13 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
         Issue.record("\(error)")
     }
     // The interpreter is still usable afterward.
-    #expect((try? swish.evaluate("1 + 1")) == 2)
+    #expect((try? swiit.evaluate("1 + 1")) == 2)
 }
 
 @Test func aScriptCannotCatchALimit() {
-    let swish = interpreter(limits: Interpreter.Limits(steps: 1_000))
+    let swiit = interpreter(limits: Interpreter.Limits(steps: 1_000))
     do {
-        _ = try swish.evaluate("do { while true {} } catch { 0 }")
+        _ = try swiit.evaluate("do { while true {} } catch { 0 }")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .limit)
@@ -135,9 +135,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 }
 
 @Test func deepRecursionStopsAtTheDepthLimit() {
-    let swish = interpreter(limits: Interpreter.Limits(depth: 200))
+    let swiit = interpreter(limits: Interpreter.Limits(depth: 200))
     do {
-        _ = try swish.evaluate("func down(_ n: Int) -> Int { down(n + 1) }; down(0)")
+        _ = try swiit.evaluate("func down(_ n: Int) -> Int { down(n + 1) }; down(0)")
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.message.contains("maximum call depth (200)"))
@@ -171,9 +171,9 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
 }
 
 @Test func cancellingFromAnotherThreadStopsARun() {
-    let swish = interpreter()
+    let swiit = interpreter()
     // The run is on another thread; this one waits for it and cancels it.
-    nonisolated(unsafe) let running = swish
+    nonisolated(unsafe) let running = swiit
     nonisolated(unsafe) var result: Diagnostic?
     let done = DispatchSemaphore(value: 0)
     let thread = Thread {
@@ -182,7 +182,7 @@ private func interpreter(limits: Interpreter.Limits = Interpreter.Limits(), log:
     }
     thread.start()
     Thread.sleep(forTimeInterval: 0.1)
-    swish.cancel()
+    swiit.cancel()
     done.wait()
     #expect(result?.kind == .cancelled)
 }
@@ -215,40 +215,40 @@ private final class Settings: DynamicObject, @unchecked Sendable {
 }
 
 @Test func aDynamicObjectAnswersForItsOwnMembers() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     let settings = Settings()
-    swish["settings"] = Value(settings)
-    #expect(try swish.evaluate("settings.volume") == 7)
-    #expect(try swish.evaluate(#"settings["volume"]"#) == 7)
-    #expect(try swish.evaluate("settings.missing") == .null)
+    swiit["settings"] = Value(settings)
+    #expect(try swiit.evaluate("settings.volume") == 7)
+    #expect(try swiit.evaluate(#"settings["volume"]"#) == 7)
+    #expect(try swiit.evaluate("settings.missing") == .null)
     // Assigned through a `let`, as a class would be; nil removes.
-    _ = try swish.evaluate("settings.brightness = 3; settings.volume = settings.volume! + 1")
+    _ = try swiit.evaluate("settings.brightness = 3; settings.volume = settings.volume! + 1")
     #expect(settings.values == ["volume": 8, "brightness": 3])
-    _ = try swish.evaluate(#"settings["volume"] = nil"#)
+    _ = try swiit.evaluate(#"settings["volume"] = nil"#)
     #expect(settings.values == ["brightness": 3])
     // The checker knows the members' type.
     do {
-        _ = try swish.evaluate(#"settings.volume = "loud""#)
+        _ = try swiit.evaluate(#"settings.volume = "loud""#)
         Issue.record("expected a diagnostic")
     } catch let error {
         #expect(error.kind == .type)
     }
-    #expect((try? swish.evaluate("let v: String = settings.volume")) == nil)
+    #expect((try? swiit.evaluate("let v: String = settings.volume")) == nil)
 }
 
 @Test func interpretersOnDifferentThreadsDontShareKeyPathReads() {
-    // `sorted(by: \.n)` reads fields through a reader set for the length of
+    // `map(\.n)` reads fields through a reader set for the length of
     // the call; two runs at once must each have their own.
-    let program = #"[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }"#
-    let expected: Value = ["a", "b", "c"]
+    let program = #"[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].map(\.s)"#
+    let expected: Value = ["c", "a", "b"]
     nonisolated(unsafe) var wrong = 0
     let lock = NSLock()
     let group = DispatchGroup()
     for _ in 0..<4 {
         group.enter()
         Thread {
-            let swish = interpreter()
-            for _ in 0..<150 where (try? swish.evaluate(program)) != expected {
+            let swiit = interpreter()
+            for _ in 0..<150 where (try? swiit.evaluate(program)) != expected {
                 lock.withLock { wrong += 1 }
             }
             group.leave()
@@ -262,19 +262,19 @@ private final class Settings: DynamicObject, @unchecked Sendable {
 
 
 @Test func anExtensionAddsAStaticMethodToAnEnum() throws {
-    let swish = interpreter()
-    #expect(try swish.evaluate("enum Namespace {}; extension Namespace { static func answer() -> Int { 42 } }; Namespace.answer()") == 42)
+    let swiit = interpreter()
+    #expect(try swiit.evaluate("enum Namespace {}; extension Namespace { static func answer() -> Int { 42 } }; Namespace.answer()") == 42)
     // Declared by separate evaluations, and beside a case.
-    _ = try swish.evaluate("enum Level { case low }")
-    _ = try swish.evaluate("extension Level { static func make() -> Level { .low } }")
-    #expect(try swish.evaluate("Level.make() == .low") == true)
+    _ = try swiit.evaluate("enum Level { case low }")
+    _ = try swiit.evaluate("extension Level { static func make() -> Level { .low } }")
+    #expect(try swiit.evaluate("Level.make() == .low") == true)
 }
 
 @Test func aNestedTypeIsReachedByALaterEvaluation() throws {
-    let swish = interpreter()
-    _ = try swish.evaluate("struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }")
-    #expect(try swish.evaluate("Code.Size.bigger()") == 2)
-    #expect(try swish.evaluate("Code.Kind.a == .a") == true)
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Code { struct Size { static func bigger() -> Int { 2 } }; enum Kind { case a } }")
+    #expect(try swiit.evaluate("Code.Size.bigger()") == 2)
+    #expect(try swiit.evaluate("Code.Kind.a == .a") == true)
 }
 
 private final class HostNode: HostObject, @unchecked Sendable {
@@ -291,89 +291,89 @@ private final class HostNode: HostObject, @unchecked Sendable {
 
 @Test func aHostObjectIsTypedByTheTypeThatIsRegisteredForIt() throws {
     let log = Log()
-    let swish = interpreter(log: log)
-    swish["nodes"] = [Value(HostNode("a")), Value(HostNode("b"))]
-    swish.register(HostNode.type)
+    let swiit = interpreter(log: log)
+    swiit["nodes"] = [Value(HostNode("a")), Value(HostNode("b"))]
+    swiit.register(HostNode.type)
     // It is used as the protocol says, and passes where one is asked for.
-    #expect(try swish.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
-    #expect(try swish.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == "a")
-    #expect(try swish.evaluate("let kept: [Node] = nodes; kept.count") == 2)
+    #expect(try swiit.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
+    #expect(try swiit.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == "a")
+    #expect(try swiit.evaluate("let kept: [Node] = nodes; kept.count") == 2)
     // A mistake is found before anything runs.
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran1"); nodes.map { $0.nosuch }"#) }
+    #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran1"); nodes.map { $0.nosuch }"#) }
     #expect(log.text == "")
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran2"); nodes.map { $0.label + 1 }"#) }
+    #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran2"); nodes.map { $0.label + 1 }"#) }
     #expect(log.text == "")
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran3"); nodes[0].shout(1)"#) }
+    #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran3"); nodes[0].shout(1)"#) }
     #expect(log.text == "")
 }
 
 @Test func aDictionaryIsAParameterAndAResult() throws {
-    let swish = interpreter()
-    swish.register("shout") { (words: [String: String]) in words.mapValues { $0.uppercased() } }
-    #expect(try swish.evaluate(#"shout(["a": "x"])["a"]"#) == "X")
+    let swiit = interpreter()
+    swiit.register("shout") { (words: [String: String]) in words.mapValues { $0.uppercased() } }
+    #expect(try swiit.evaluate(#"shout(["a": "x"])["a"]"#) == "X")
     // The checker knows its type: a wrong one is found before the script runs.
-    #expect(throws: (any Error).self) { try swish.evaluate(#"shout(["a": 1])"#) }
-    #expect(throws: (any Error).self) { try swish.evaluate("shout([1, 2])") }
+    #expect(throws: (any Error).self) { try swiit.evaluate(#"shout(["a": 1])"#) }
+    #expect(throws: (any Error).self) { try swiit.evaluate("shout([1, 2])") }
 }
 
 @Test func aHostCanListTheSymbolsAScriptCanName() throws {
-    let swish = interpreter()
-    swish.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
-    swish.register("check", throwing: true) { (x: Int) throws -> Int in x }
-    _ = try swish.evaluate("func area(width: Int, height: Int = 1) -> Int { width * height }")
-    let names = Set(swish.symbols().map(\.name))
+    let swiit = interpreter()
+    swiit.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
+    swiit.register("check", throwing: true) { (x: Int) throws -> Int in x }
+    _ = try swiit.evaluate("func area(width: Int, height: Int = 1) -> Int { width * height }")
+    let names = Set(swiit.symbols().map(\.name))
     #expect(names.isSuperset(of: ["area", "check", "greet"]))
     #expect(names.contains("print"))
-    let area = try #require(swish.symbols(named: "area").first)
+    let area = try #require(swiit.symbols(named: "area").first)
     let function = try #require(area.function)
     #expect(function.parameters.map(\.label) == ["width", "height"])
     #expect(function.parameters.map(\.hasDefault) == [false, true])
     #expect(function.returns == .int)
-    #expect(try #require(swish.symbols(named: "check").first?.function).isThrowing)
+    #expect(try #require(swiit.symbols(named: "check").first?.function).isThrowing)
     // The interpreter's own are found by name, not listed.
-    #expect(!swish.symbols(named: "print").isEmpty)
-    #expect(swish.symbols(named: "nosuch").isEmpty)
+    #expect(!swiit.symbols(named: "print").isEmpty)
+    #expect(swiit.symbols(named: "nosuch").isEmpty)
 }
 
 @Test func aHostAsksWhatAMembersAreAndWhichOverloadACallMeans() throws {
-    let swish = interpreter()
-    _ = try swish.evaluate("""
+    let swiit = interpreter()
+    _ = try swiit.evaluate("""
     struct Point { var x: Int; func scaled(by k: Int) -> Point { Point(x: x * k) }; func scaled(by k: Double) -> Double { Double(x) * k } }
     func f(_ n: Int) -> String { "int" }
     func f(_ s: String) -> String { "string" }
     """)
-    let members = swish.symbols(of: .named("Point"))
+    let members = swiit.symbols(of: .named("Point"))
     #expect(Set(members.map(\.name)) == ["x", "scaled"])
-    #expect(try swish.valueType(of: "Point(x: 1)") == .named("Point"))
-    #expect(try swish.valueType(of: "[1, 2].map { $0 + 1 }") == .list(.int))
-    let overloads = swish.symbols(named: "f")
-    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .string)]).function?.returns == .string)
-    #expect(try swish.resolveOverload(among: overloads, arguments: [.init(type: .int)]).function?.parameters.first?.type == .int)
-    #expect(throws: Diagnostic.self) { try swish.resolveOverload(among: overloads, arguments: [.init(type: .bool)]) }
-    let sorted = swish.symbols(named: "sorted", of: .list(.int))
+    #expect(try swiit.valueType(of: "Point(x: 1)") == .named("Point"))
+    #expect(try swiit.valueType(of: "[1, 2].map { $0 + 1 }") == .list(.int))
+    let overloads = swiit.symbols(named: "f")
+    #expect(try swiit.resolveOverload(among: overloads, arguments: [.init(type: .string)]).function?.returns == .string)
+    #expect(try swiit.resolveOverload(among: overloads, arguments: [.init(type: .int)]).function?.parameters.first?.type == .int)
+    #expect(throws: Diagnostic.self) { try swiit.resolveOverload(among: overloads, arguments: [.init(type: .bool)]) }
+    let sorted = swiit.symbols(named: "sorted", of: .list(.int))
     #expect(!sorted.isEmpty)
 }
 
 @Test func aWaitThatSaysHowToWakeEndsWhenTheScriptIsCancelled() throws {
-    let swish = interpreter()
-    swish.register("block") { () -> Int in
+    let swiit = interpreter()
+    swiit.register("block") { () -> Int in
         let gate = DispatchSemaphore(value: 0)
         return Interpreter.whileWaiting(wake: { gate.signal() }) { gate.wait(timeout: .now() + 10) == .timedOut ? 0 : 1 }
     }
-    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { swish.cancel() }
+    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { swiit.cancel() }
     let start = Date()
-    _ = try? swish.evaluate("block()")
+    _ = try? swiit.evaluate("block()")
     #expect(Date().timeIntervalSince(start) < 5)
 }
 
 @Test func aHostObjectsMembersAreTheRegisteredOnes() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     let node = HostNode("a")
-    swish["node"] = Value(node)
-    swish.register(HostNode.type)
+    swiit["node"] = Value(node)
+    swiit.register(HostNode.type)
     #expect(node.memberNames == ["label", "shout"])
-    #expect(try swish.evaluate("node.shout()") == "A")
-    #expect(throws: (any Error).self) { try swish.evaluate("node.nosuch") }
+    #expect(try swiit.evaluate("node.shout()") == "A")
+    #expect(throws: (any Error).self) { try swiit.evaluate("node.nosuch") }
 }
 
 private final class Preferences: DynamicObject, @unchecked Sendable {
@@ -390,20 +390,20 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
 }
 
 @Test func aDynamicObjectHasTheMembersTheHostDescribedTyped() throws {
-    let swish = interpreter()
-    swish["settings"] = Value(Preferences())
+    let swiit = interpreter()
+    swiit["settings"] = Value(Preferences())
     // Every member has the one type, until some are described.
-    #expect(try swish.evaluate("settings.theme") == "dark")
-    #expect(throws: (any Error).self) { try swish.evaluate("settings.count + 1") }
-    swish.register(NativeType.Builder<Preferences>("Preferences").property("count", \.count))
-    #expect(try swish.evaluate("settings.count + 1") == 3)
-    #expect(try swish.evaluate("settings.theme") == "dark")
+    #expect(try swiit.evaluate("settings.theme") == "dark")
+    #expect(throws: (any Error).self) { try swiit.evaluate("settings.count + 1") }
+    swiit.register(NativeType.Builder<Preferences>("Preferences").property("count", \.count))
+    #expect(try swiit.evaluate("settings.count + 1") == 3)
+    #expect(try swiit.evaluate("settings.theme") == "dark")
 }
 
 @Test func evaluateCanBeAwaitedAndIsCancelledWithItsTask() async throws {
-    let swish = interpreter()
-    #expect(try await swish.evaluate("1 + 2") == 3)
-    let running = Task { try await swish.evaluate("var n = 0; while true { n += 1 }") }
+    let swiit = interpreter()
+    #expect(try await swiit.evaluate("1 + 2") == 3)
+    let running = Task { try await swiit.evaluate("var n = 0; while true { n += 1 }") }
     try await Task.sleep(for: .milliseconds(150))
     running.cancel()
     do {
@@ -431,96 +431,96 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
 
 @Test func aStructuredValueIsReadAsItsEntries() throws {
     struct Row: Encodable { var name = "a"; var size = 3; var kind = "file" }
-    let swish = interpreter()
-    swish["row"] = try Value(encoding: Row())
+    let swiit = interpreter()
+    swiit["row"] = try Value(encoding: Row())
     // A script reads the fields by name; a host reads them in order.
-    #expect(try swish.evaluate("row.size + 1") == 4)
-    let entries = try #require(try swish.evaluate("row").entries)
+    #expect(try swiit.evaluate("row.size + 1") == 4)
+    let entries = try #require(try swiit.evaluate("row").entries)
     #expect(entries.keys == ["name", "size", "kind"])
-    #expect(try swish.evaluate("(a: 1, b: 2)").entries?.keys == ["a", "b"])
-    #expect(try swish.evaluate("[\"b\": 1, \"a\": 2]").entries?.keys.count == 2)
+    #expect(try swiit.evaluate("(a: 1, b: 2)").entries?.keys == ["a", "b"])
+    #expect(try swiit.evaluate("[\"b\": 1, \"a\": 2]").entries?.keys.count == 2)
     #expect(Value(1).entries == nil)
 }
 
 @Test func aHostReadsAValueByItsKindAndCastsItToATypeItExpects() throws {
-    let swish = interpreter()
-    _ = try swish.evaluate("""
+    let swiit = interpreter()
+    _ = try swiit.evaluate("""
     struct Point { var x: Int; var y: Int }
     enum Level: Int { case low = 1, high }
     func twice(_ n: Int) -> Int { n * 2 }
     """)
-    #expect(try swish.evaluate("3").kind == .int)
-    #expect(try swish.evaluate("[1, 2]").kind == .list)
-    #expect(try swish.evaluate("(a: 1, b: 2)").kind == .tuple)
-    #expect(try swish.evaluate("Point(x: 1, y: 2)").kind == .structure)
-    #expect(try swish.evaluate("Level.high").kind == .enumeration)
-    #expect(try swish.evaluate("twice").kind == .function)
+    #expect(try swiit.evaluate("3").kind == .int)
+    #expect(try swiit.evaluate("[1, 2]").kind == .list)
+    #expect(try swiit.evaluate("(a: 1, b: 2)").kind == .tuple)
+    #expect(try swiit.evaluate("Point(x: 1, y: 2)").kind == .structure)
+    #expect(try swiit.evaluate("Level.high").kind == .enumeration)
+    #expect(try swiit.evaluate("twice").kind == .function)
     #expect(Value.null.kind == .nothing)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
-    let three = try swish.evaluate("3")
+    let three = try swiit.evaluate("3")
     #expect(three.cast(to: Int.self) == 3)
     #expect(three.cast(to: Double.self) == nil)
     #expect(three.cast(to: String.self) == nil)
-    #expect(try swish.evaluate("[1, 2]").cast(to: [Int].self) == [1, 2])
-    #expect(try swish.evaluate(#"let mixed: [Any] = [1, "a"]; mixed"#).cast(to: [Int].self) == nil)
+    #expect(try swiit.evaluate("[1, 2]").cast(to: [Int].self) == [1, 2])
+    #expect(try swiit.evaluate(#"let mixed: [Any] = [1, "a"]; mixed"#).cast(to: [Int].self) == nil)
     // `try T(value)` is the throwing form, which converts as a call does.
     #expect(try Double(three) == 3)
     #expect(throws: (any Error).self) { try String(three) }
     // A script type by name, and a structured type by shape.
-    let point = try swish.evaluate("Point(x: 1, y: 2)")
+    let point = try swiit.evaluate("Point(x: 1, y: 2)")
     #expect(point.cast(to: .named("Point")) != nil)
     #expect(point.cast(to: .named("Level")) == nil)
-    #expect(try swish.evaluate("[1, 2]").cast(to: .list(.int)) != nil)
-    #expect(try swish.evaluate("[1, 2]").cast(to: .list(.string)) == nil)
-    #expect(try swish.evaluate("(a: 1, b: 2)").cast(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)])) != nil)
+    #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.int)) != nil)
+    #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.string)) == nil)
+    #expect(try swiit.evaluate("(a: 1, b: 2)").cast(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)])) != nil)
     // An enum's case, and the declaration kind of a type.
-    let high = try #require(try swish.evaluate("Level.high").enumCase)
+    let high = try #require(try swiit.evaluate("Level.high").enumCase)
     #expect(high.type == "Level" && high.name == "high")
-    #expect(swish.symbols(named: "Point").first?.declaration == .type(.structure))
-    #expect(swish.symbols(named: "Level").first?.declaration == .type(.enumeration))
-    #expect(swish.symbols(named: "twice").first?.function != nil)
-    swish["limit"] = 3
-    #expect(swish.symbols(named: "limit").first?.declaration == .variable(.int, isSettable: false))
+    #expect(swiit.symbols(named: "Point").first?.declaration == .type(.structure))
+    #expect(swiit.symbols(named: "Level").first?.declaration == .type(.enumeration))
+    #expect(swiit.symbols(named: "twice").first?.function != nil)
+    swiit["limit"] = 3
+    #expect(swiit.symbols(named: "limit").first?.declaration == .variable(.int, isSettable: false))
 }
 
 @Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     #expect(ValueType.list(.int) == .named("Array", [.int]))
     #expect(ValueType.optional(.string) == .named("Optional", [.string]))
     #expect(ValueType.list(.optional(.int)).description == "[Int?]")
-    #expect(try swish.valueType(of: "[1, 2]") == .list(.int))
-    #expect(try swish.valueType(of: #"["a": 1]"#) == .dictionary(.string, .int))
-    #expect(try swish.valueType(of: "(a: 1, b: \"x\")") == .tuple([.init(label: "a", type: .int), .init(label: "b", type: .string)]))
-    _ = try swish.evaluate("func twice(_ n: Int) -> Int { n * 2 }")
-    #expect(try swish.valueType(of: "twice") == .function(parameters: [.int], returns: .int))
+    #expect(try swiit.valueType(of: "[1, 2]") == .list(.int))
+    #expect(try swiit.valueType(of: #"["a": 1]"#) == .dictionary(.string, .int))
+    #expect(try swiit.valueType(of: "(a: 1, b: \"x\")") == .tuple([.init(label: "a", type: .int), .init(label: "b", type: .string)]))
+    _ = try swiit.evaluate("func twice(_ n: Int) -> Int { n * 2 }")
+    #expect(try swiit.valueType(of: "twice") == .function(parameters: [.int], returns: .int))
 }
 
 @Test func aSwiftHostNamesTypesWithMetatypes() throws {
     #expect(ValueType(Int.self) == .int)
     #expect(ValueType([String].self) == .list(.string))
     #expect(ValueType([String: Int].self) == .dictionary(.string, .int))
-    let swish = interpreter()
-    swish.register(HostFunction(
+    let swiit = interpreter()
+    swiit.register(HostFunction(
         name: "scale", summary: "Multiplies.", parameters: [.init(name: "n", type: Int.self), .init(label: "by", name: "k", type: Int.self)],
         returns: Int.self
     ) { arguments in
         Value((arguments[0].cast(to: Int.self) ?? 0) * (arguments[1].cast(to: Int.self) ?? 0))
     })
-    #expect(try swish.evaluate("scale(3, by: 4)") == 12)
-    #expect(throws: Diagnostic.self) { try swish.evaluate(#"scale("a", by: 4)"#) }
-    let scale = try #require(swish.symbols(named: "scale").first)
+    #expect(try swiit.evaluate("scale(3, by: 4)") == 12)
+    #expect(throws: Diagnostic.self) { try swiit.evaluate(#"scale("a", by: 4)"#) }
+    let scale = try #require(swiit.symbols(named: "scale").first)
     #expect(scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int)
-    #expect(!swish.symbols(named: "sorted", of: [Int].self).isEmpty)
-    #expect(try swish.resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]).name == "scale")
+    #expect(!swiit.symbols(named: "sorted", of: [Int].self).isEmpty)
+    #expect(try swiit.resolveOverload(among: [scale], arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]).name == "scale")
     // A function symbol is also a function type, and a call's arguments are the elements of a tuple type.
     #expect(scale.type == .function(parameters: [.int, .int], returns: .int))
 }
 
 @Test func aRunCancelledBeforeItStartsDoesNotRun() async throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     // Cancelled at once, whichever of the request and the start of the run comes first.
     for _ in 0..<20 {
-        let running = Task { try await swish.evaluate("var n = 0; while true { n += 1 }") }
+        let running = Task { try await swiit.evaluate("var n = 0; while true { n += 1 }") }
         running.cancel()
         do {
             _ = try await running.value
@@ -579,41 +579,41 @@ struct Bytes: Comparable, Hashable, Sendable {
 extension URL: ValueConvertible {}
 
 @Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
-    let swish = interpreter()
-    swish.register(NativeType.Builder<URL>()
+    let swiit = interpreter()
+    swiit.register(NativeType.Builder<URL>()
         .property("host", \.host)
         .property("path", \.path)
         .method("appending", labels: [nil], URL.appendingPathComponent(_:))
         .initializer(labels: ["string"]) { (text: String) in URL(string: text)! })
-    #expect(try swish.evaluate(#"URL(string: "https://example.com/a").appending("b").path"#) == "/a/b")
-    #expect(try swish.evaluate(#"URL(string: "https://example.com/a").host"#) == "example.com")
-    #expect(throws: Diagnostic.self) { try swish.evaluate(#"URL(string: "x").nosuch"#) }
+    #expect(try swiit.evaluate(#"URL(string: "https://example.com/a").appending("b").path"#) == "/a/b")
+    #expect(try swiit.evaluate(#"URL(string: "https://example.com/a").host"#) == "example.com")
+    #expect(throws: Diagnostic.self) { try swiit.evaluate(#"URL(string: "x").nosuch"#) }
 }
 
 @Test func aCallByNameChoosesTheOverloadAsAScriptsCallWould() throws {
-    let swish = interpreter()
-    _ = try swish.evaluate("""
+    let swiit = interpreter()
+    _ = try swiit.evaluate("""
     struct Point { var x: Int; func scaled(by k: Int) -> Point { Point(x: x * k) }; static func origin() -> Point { Point(x: 0) } }
     func f(_ n: Int) -> String { "int" }
     func f(_ s: String) -> String { "string" }
     func g(a: Int, b: Int = 10) -> Int { a + b }
     """)
-    #expect(try swish.call("f", arguments: [(nil, Value(1))]) == "int")
-    #expect(try swish.call("f", arguments: [(nil, Value("x"))]) == "string")
-    #expect(try swish.call("g", arguments: [("a", Value(1))]) == 11)
-    let point = try swish.evaluate("Point(x: 3)")
-    #expect(try swish.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6)
-    #expect(try swish.call("origin", on: swish["Point"]!).entries?[Value("x")] == 0)
-    #expect(try swish.call("uppercased", on: Value("ab")) == "AB")
-    #expect(try swish.call("sorted", on: [3, 1, 2]) == [1, 2, 3])
-    #expect(throws: Diagnostic.self) { try swish.call("f", arguments: [(nil, Value(true))]) }
-    #expect(throws: Diagnostic.self) { try swish.call("nosuch") }
+    #expect(try swiit.call("f", arguments: [(nil, Value(1))]) == "int")
+    #expect(try swiit.call("f", arguments: [(nil, Value("x"))]) == "string")
+    #expect(try swiit.call("g", arguments: [("a", Value(1))]) == 11)
+    let point = try swiit.evaluate("Point(x: 3)")
+    #expect(try swiit.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6)
+    #expect(try swiit.call("origin", on: swiit["Point"]!).entries?[Value("x")] == 0)
+    #expect(try swiit.call("uppercased", on: Value("ab")) == "AB")
+    #expect(try swiit.call("sorted", on: [3, 1, 2]) == [1, 2, 3])
+    #expect(throws: Diagnostic.self) { try swiit.call("f", arguments: [(nil, Value(true))]) }
+    #expect(throws: Diagnostic.self) { try swiit.call("nosuch") }
 }
 
 @Test func aCheckFindsMistakesAndRunsNothing() throws {
     let log = Log()
-    let swish = interpreter(log: log)
-    let declared = try swish.check("""
+    let swiit = interpreter(log: log)
+    let declared = try swiit.check("""
     print("ran")
     /// Says f.
     func f(a: Int, b: Bool = false) -> String { "x" }
@@ -626,51 +626,51 @@ extension URL: ValueConvertible {}
     let f = declared.symbols.first { $0.name == "f" }?.function
     #expect(f?.parameters.map(\.label) == ["a", "b"])
     #expect(f?.parameters[1].defaultValue == false)
-    #expect(throws: Diagnostic.self) { try swish.check(#"print("ran"); let x: Int = "s""#) }
+    #expect(throws: Diagnostic.self) { try swiit.check(#"print("ran"); let x: Int = "s""#) }
     #expect(log.text == "")
     // Nothing was declared by checking.
-    #expect(swish.symbols(named: "f").isEmpty)
+    #expect(swiit.symbols(named: "f").isEmpty)
 }
 
 @Test func wordsAndValuesConvertToTheTypeAParameterNames() throws {
-    let swish = interpreter()
-    _ = try swish.evaluate("enum Kind { case file, directory }")
-    #expect(swish.value(fromWord: "5", as: .int) == 5)
-    #expect(swish.value(fromWord: "x", as: .int) == nil)
-    #expect(swish.value(fromWord: "x", as: .string) == "x")
-    #expect(swish.value(fromWord: ".directory", as: .named("Kind"))?.enumCase?.name == "directory")
-    #expect(swish.value(fromWord: "nope", as: .named("Kind")) == nil)
-    #expect(swish.value(fromWord: "x", as: .optional(.string)) == "x")
-    #expect(swish.value(fromWord: "x", as: .named("Element")) == "x")
-    #expect(swish.value(ofCase: "file", in: "Kind")?.enumCase?.name == "file")
-    #expect(swish.value(ofCase: "nope", in: "Kind") == nil)
-    #expect(swish.convert(Value(3), to: .int) == 3)
-    #expect(swish.convert(Value("3"), to: .int) == nil)
-    #expect(swish.valueType(of: Value(3)) == .int)
-    #expect(swish.valueType(of: [1, 2]) == .list(.int))
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum Kind { case file, directory }")
+    #expect(swiit.value(fromWord: "5", as: .int) == 5)
+    #expect(swiit.value(fromWord: "x", as: .int) == nil)
+    #expect(swiit.value(fromWord: "x", as: .string) == "x")
+    #expect(swiit.value(fromWord: ".directory", as: .named("Kind"))?.enumCase?.name == "directory")
+    #expect(swiit.value(fromWord: "nope", as: .named("Kind")) == nil)
+    #expect(swiit.value(fromWord: "x", as: .optional(.string)) == "x")
+    #expect(swiit.value(fromWord: "x", as: .named("Element")) == "x")
+    #expect(swiit.value(ofCase: "file", in: "Kind")?.enumCase?.name == "file")
+    #expect(swiit.value(ofCase: "nope", in: "Kind") == nil)
+    #expect(swiit.convert(Value(3), to: .int) == 3)
+    #expect(swiit.convert(Value("3"), to: .int) == nil)
+    #expect(swiit.valueType(of: Value(3)) == .int)
+    #expect(swiit.valueType(of: [1, 2]) == .list(.int))
 }
 
 private struct Stop: Unwinding {}
 
 @Test func aHostFunctionFailsWithAScriptErrorOrUnwinds() throws {
     let log = Log()
-    let swish = interpreter(log: log)
-    swish.register(HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
+    let swiit = interpreter(log: log)
+    swiit.register(HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
         throw ScriptError("nope", status: 3, value: Value(struct: "Failure", fields: ["code": Value(7)]))
     })
-    swish.register(HostFunction(name: "told", isThrowing: true) { _ in throw ScriptError("already said", isReported: true) })
-    swish.register(HostFunction(name: "stop", isThrowing: true) { _ in throw Stop() })
+    swiit.register(HostFunction(name: "told", isThrowing: true) { _ in throw ScriptError("already said", isReported: true) })
+    swiit.register(HostFunction(name: "stop", isThrowing: true) { _ in throw Stop() })
     // A script can catch a script error, and what it carries.
-    _ = try swish.evaluate("struct Failure: Error { let code: Int }")
-    #expect(try swish.evaluate("var r = -1; do { _ = try fail() } catch let f as Failure { r = f.code } catch { r = -2 }; r") == 7)
-    #expect(try swish.evaluate("(try? fail()) == nil") == true)
-    let failure = #expect(throws: Diagnostic.self) { try swish.evaluate("try fail()") }
+    _ = try swiit.evaluate("struct Failure: Error { let code: Int }")
+    #expect(try swiit.evaluate("var r = -1; do { _ = try fail() } catch let f as Failure { r = f.code } catch { r = -2 }; r") == 7)
+    #expect(try swiit.evaluate("(try? fail()) == nil") == true)
+    let failure = #expect(throws: Diagnostic.self) { try swiit.evaluate("try fail()") }
     #expect(failure?.status == 3 && failure?.message == "nope")
-    let told = #expect(throws: Diagnostic.self) { try swish.evaluate("try told()") }
+    let told = #expect(throws: Diagnostic.self) { try swiit.evaluate("try told()") }
     #expect(told?.isReported == true)
     // An unwinding error is not caught, runs the defers, and reaches the host.
     let stopped = #expect(throws: Diagnostic.self) {
-        try swish.evaluate(#"func f() throws { defer { print("deferred") }; try stop() }; do { try f() } catch { print("caught") }"#)
+        try swiit.evaluate(#"func f() throws { defer { print("deferred") }; try stop() }; do { try f() } catch { print("caught") }"#)
     }
     #expect(stopped?.cause is Stop)
     #expect(log.text == "deferred\n")
@@ -682,19 +682,19 @@ private final class Mark: @unchecked Sendable {
 }
 
 @Test func theHostKeepsStateForEachTask() throws {
-    let swish = interpreter()
-    swish.host.makeTaskState = { Mark("task") }
-    swish.taskState = Mark("main")
-    nonisolated(unsafe) let running = swish
-    swish.register("who") { () -> String in (running.taskState as? Mark)?.label ?? "none" }
-    #expect(try swish.evaluate("who()") == "main")
-    #expect(try swish.evaluate("await Task { who() }.value") == "task")
-    #expect((swish.taskState as? Mark)?.label == "main")
+    let swiit = interpreter()
+    swiit.host.makeTaskState = { Mark("task") }
+    swiit.taskState = Mark("main")
+    nonisolated(unsafe) let running = swiit
+    swiit.register("who") { () -> String in (running.taskState as? Mark)?.label ?? "none" }
+    #expect(try swiit.evaluate("who()") == "main")
+    #expect(try swiit.evaluate("await Task { who() }.value") == "task")
+    #expect((swiit.taskState as? Mark)?.label == "main")
 }
 
 @Test func aHostDeclaresWhatItAddsToTheLanguage() throws {
-    let swish = interpreter()
-    try swish.prelude("""
+    let swiit = interpreter()
+    try swiit.prelude("""
     /// A counter the host runs.
     struct Counter {
         let start: Int
@@ -721,35 +721,35 @@ private final class Mark: @unchecked Sendable {
         },
         "hello": { arguments in Value("hello, " + (arguments["name"]?.description ?? "")) },
     ])
-    #expect(try swish.evaluate("Counter(start: 4).next()") == 5)
-    #expect(try swish.evaluate("[7, 8, 9].firsts(2)") == [7, 8])
-    #expect(try swish.evaluate("3.doubled") == 6)
-    #expect(try swish.evaluate(#"hello("you")"#) == "hello, you")
+    #expect(try swiit.evaluate("Counter(start: 4).next()") == 5)
+    #expect(try swiit.evaluate("[7, 8, 9].firsts(2)") == [7, 8])
+    #expect(try swiit.evaluate("3.doubled") == 6)
+    #expect(try swiit.evaluate(#"hello("you")"#) == "hello, you")
     // What the host declared is the host's.
-    #expect(swish.symbols(named: "hello").first?.isBuiltin == true)
-    #expect(!swish.symbols(named: "firsts", of: .list(.int)).isEmpty)
+    #expect(swiit.symbols(named: "hello").first?.isBuiltin == true)
+    #expect(!swiit.symbols(named: "firsts", of: .list(.int)).isEmpty)
 }
 
 
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
-    let swish = interpreter()
-    swish.register(NativeType.Builder<Bytes>("Bytes", conformances: ["Equatable", "Hashable", "Comparable"])
+    let swiit = interpreter()
+    swiit.register(NativeType.Builder<Bytes>("Bytes", conformances: ["Equatable", "Hashable", "Comparable"])
         .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
         .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } })
-    #expect(try swish.evaluate(#"Bytes("5") != nil"#) == true)
-    #expect(try swish.evaluate(#"Bytes("x") == nil"#) == true)
-    #expect(try swish.evaluate("Bytes(count: 1) < Bytes(count: 2)") == true)
-    #expect(try swish.evaluate("Bytes(count: 3) >= Bytes(count: 2)") == true)
-    #expect(try swish.evaluate("Bytes(count: 3) != Bytes(count: 2)") == true)
-    #expect(try swish.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)") == true)
-    #expect(try swish.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true)
+    #expect(try swiit.evaluate(#"Bytes("5") != nil"#) == true)
+    #expect(try swiit.evaluate(#"Bytes("x") == nil"#) == true)
+    #expect(try swiit.evaluate("Bytes(count: 1) < Bytes(count: 2)") == true)
+    #expect(try swiit.evaluate("Bytes(count: 3) >= Bytes(count: 2)") == true)
+    #expect(try swiit.evaluate("Bytes(count: 3) != Bytes(count: 2)") == true)
+    #expect(try swiit.evaluate("[Bytes(count: 3), Bytes(count: 1)].sorted().first == Bytes(count: 1)") == true)
+    #expect(try swiit.evaluate("(Bytes(count: 1)...Bytes(count: 3)).contains(Bytes(count: 2))") == true)
 }
 
 @Test func theHostIsToldAsStatementsFinish() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     nonisolated(unsafe) var told: [String] = []
-    swish.host.statementFinished = { value, caught in told.append(caught ? "caught" : value.map { $0.description } ?? "-") }
-    _ = try swish.evaluate("""
+    swiit.host.statementFinished = { value, caught in told.append(caught ? "caught" : value.map { $0.description } ?? "-") }
+    _ = try swiit.evaluate("""
     let x = 1
     x + 1
     func f() -> Int { 7 }
@@ -769,25 +769,25 @@ private final class Handle: HostObject, @unchecked Sendable {
 }
 
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
-    let swish = interpreter()
-    nonisolated(unsafe) let running = swish
-    swish.register(HostFunction(name: "spawn", returns: .named("Handle")) { _ in
+    let swiit = interpreter()
+    nonisolated(unsafe) let running = swiit
+    swiit.register(HostFunction(name: "spawn", returns: .named("Handle")) { _ in
         Value(Handle(try running.startTask(state: nil) { Value(42) }))
     })
-    swish.register(computed: "clock", type: .int) { Value(7) }
-    swish.register(Awaiting(operand: .named("Handle"), result: .int, isHandle: { $0.cast(to: Handle.self) != nil }) { value, _ in
+    swiit.register(computed: "clock", type: .int) { Value(7) }
+    swiit.register(Awaiting(operand: .named("Handle"), result: .int, isHandle: { $0.cast(to: Handle.self) != nil }) { value, _ in
         guard let handle = value?.cast(to: Handle.self) else { throw ScriptError("nothing to await") }
         return try running.join(handle.task)
     })
-    #expect(try swish.evaluate("clock + clock") == 14)
-    #expect(try swish.evaluate("await spawn()") == 42)
-    swish.finishTasks()
+    #expect(try swiit.evaluate("clock + clock") == 14)
+    #expect(try swiit.evaluate("await spawn()") == 42)
+    swiit.finishTasks()
 }
 
 @Test func aReplHostIsToldTheValueOfEachExpressionStatement() throws {
-    let swish = interpreter()
+    let swiit = interpreter()
     nonisolated(unsafe) var seen: [String] = []
-    try swish.execute("""
+    try swiit.execute("""
     let x = 2
     x * 3
     true
@@ -798,13 +798,13 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(seen == ["6", "[3, 4]", "5 (await)"])
     // A failure stops the run, unless the host says to go on.
     seen = []
-    #expect(throws: Diagnostic.self) { try swish.execute("1\n2 / 0\n3", observing: { seen.append($0.value.description) }) }
+    #expect(throws: Diagnostic.self) { try swiit.execute("1\n2 / 0\n3", observing: { seen.append($0.value.description) }) }
     #expect(seen == ["1"])
     seen = []
     nonisolated(unsafe) var errors: [String] = []
     // A `try!` that fails is fatal: the host is told, and the run ends.
     #expect(throws: Diagnostic.self) {
-        try swish.execute("struct E: Error {}\nfunc boom() throws { throw E() }\n1\n2 / 0\n3\ntry! boom()\n4", observing: { seen.append($0.value.description) },
+        try swiit.execute("struct E: Error {}\nfunc boom() throws { throw E() }\n1\n2 / 0\n3\ntry! boom()\n4", observing: { seen.append($0.value.description) },
                           onError: { errors.append($0.message + ($0.isFatal ? " (fatal)" : "")); return !$0.isFatal })
     }
     #expect(seen == ["1", "3"])
@@ -812,34 +812,34 @@ private final class Handle: HostObject, @unchecked Sendable {
 }
 
 @Test func removingAGlobalRemovesIt() throws {
-    let swish = interpreter()
-    swish["settings"] = Value(Preferences())
-    #expect(try swish.evaluate("settings.theme") == "dark")
-    swish["settings"] = nil
-    #expect(throws: Diagnostic.self) { try swish.evaluate("settings.theme") }
+    let swiit = interpreter()
+    swiit["settings"] = Value(Preferences())
+    #expect(try swiit.evaluate("settings.theme") == "dark")
+    swiit["settings"] = nil
+    #expect(throws: Diagnostic.self) { try swiit.evaluate("settings.theme") }
 }
 
 @Test func aCallByNameFindsTheBridgedOverloadByItsArguments() throws {
-    let swish = interpreter()
-    #expect(try swish.call("contains", on: [1, 2], arguments: [(nil, Value(2))]) == true)
-    #expect(try swish.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b")
+    let swiit = interpreter()
+    #expect(try swiit.call("contains", on: [1, 2], arguments: [(nil, Value(2))]) == true)
+    #expect(try swiit.call("joined", on: ["a", "b"], arguments: [("separator", Value("-"))]) == "a-b")
 }
 
 @Test func aSequenceNativeTypeHasWhatAListHasOverItsItems() throws {
     struct Lines: Sequence, Sendable, Hashable { var lines: [String]; func makeIterator() -> IndexingIterator<[String]> { lines.makeIterator() } }
-    let swish = interpreter()
-    swish.register(NativeType.Builder<Lines>("Lines", conformances: ["Equatable", "Hashable", "Sequence"], associatedTypes: ["Element": .string])
+    let swiit = interpreter()
+    swiit.register(NativeType.Builder<Lines>("Lines", conformances: ["Equatable", "Hashable", "Sequence"], associatedTypes: ["Element": .string])
         .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) })
-    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
-    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).count"#) == 2)
-    #expect(try swish.evaluate(#"Lines(lines: ["b", "a"]).map { $0 + "!" }"#) == ["b!", "a!"])
-    #expect(try swish.call("sorted", on: swish.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"])
+    #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
+    #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).count"#) == 2)
+    #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).map { $0 + "!" }"#) == ["b!", "a!"])
+    #expect(try swiit.call("sorted", on: swiit.evaluate(#"Lines(lines: ["b", "a"])"#)) == ["a", "b"])
 }
 
 @Test func aCallWithArgumentsMeansTheMethodNotTheProperty() throws {
-    let swish = interpreter()
-    #expect(try swish.call("count", on: [1, 2, 3], arguments: [("where", try swish.evaluate("{ $0 > 1 }"))]) == 2)
-    #expect(try swish.call("reduce", on: [1, 2, 3], arguments: [(nil, Value(0)), (nil, try swish.evaluate("{ $0 + $1 }"))]) == 6)
-    let reduce = swish.symbols(named: "reduce", of: .list(.int))
-    #expect(try swish.resolveOverload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)]).name == "reduce")
+    let swiit = interpreter()
+    #expect(try swiit.call("count", on: [1, 2, 3], arguments: [("where", try swiit.evaluate("{ $0 > 1 }"))]) == 2)
+    #expect(try swiit.call("reduce", on: [1, 2, 3], arguments: [(nil, Value(0)), (nil, try swiit.evaluate("{ $0 + $1 }"))]) == 6)
+    let reduce = swiit.symbols(named: "reduce", of: .list(.int))
+    #expect(try swiit.resolveOverload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)]).name == "reduce")
 }

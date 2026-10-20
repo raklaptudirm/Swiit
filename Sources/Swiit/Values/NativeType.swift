@@ -2,7 +2,7 @@ import Foundation
 
 /// A Swift value type scripts can hold, compare and call the members of, without the host writing a script-side declaration for
 /// it: a `FileSize`, a `URL`. A script sees an ordinary type: its members are checked before the script runs, `==`, `<` and
-/// hashing go by the Swift value's own, and a word on a command line becomes one through `parse`.
+/// hashing go by the Swift value's own, and a word of text becomes one through `parse`.
 public struct NativeType: Sendable {
     /// What a member is. A `setter` is a property's other half, for `size.unit = …`.
     public enum MemberKind: Sendable { case method, property, initializer, setter }
@@ -29,7 +29,7 @@ public struct NativeType: Sendable {
     /// What its associated types are: `Element` is `String` for a sequence of text.
     public var associatedTypes: [String: ValueType]
     public var members: [Member]
-    /// A value from text, where a command line gives a word and the type is wanted.
+    /// A value from text, where text gives a word and the type is wanted.
     public var parse: (@Sendable (String) -> Value?)?
     /// A value from a text literal, where a script writes `"…"` and the type is wanted (`let column: DisplayColumn = "name"`).
     public var literal: (@Sendable (String) -> Value?)?

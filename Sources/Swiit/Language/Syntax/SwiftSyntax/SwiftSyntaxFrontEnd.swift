@@ -36,8 +36,7 @@ struct SwiftSyntaxFrontEnd: SyntaxFrontEnd {
     }
 
     /// A lowering of the source, SwiftParser's tree folded: what it lowers by
-    /// is its names and its layer. What operators don't fold is kept in it, as
-    /// a problem only outside what the layer reads.
+    /// is its names. What operators don't fold is kept in it, as a problem.
     func lowering(of source: String, bound: [String: NameKind]) throws(SyntaxError) -> Lowering {
         let parsed = SwiftSyntaxFrontEnd.parse(source)
         var problems: [(message: String, offset: Int)] = []

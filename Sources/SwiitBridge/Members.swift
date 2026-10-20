@@ -192,9 +192,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let argumentList = declaration.parameters.map { parameter -> String in
         let type = parameters.first { $0.0.name == parameter.name }!.1
         let value = "args[\(quoted(parameter.name))]"
-        var expr = fromSwish("\(value)!", type)
+        var expr = fromValue("\(value)!", type)
         if let text = parameter.defaultText, literalDefault(text) == nil {
-            expr = "(\(value) == nil ? \(text) : \(fromSwish("\(value)!", type)))"
+            expr = "(\(value) == nil ? \(text) : \(fromValue("\(value)!", type)))"
         }
         return (parameter.label.map { "\($0): " } ?? "") + expr
     }
@@ -229,11 +229,11 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         // The result, and the receiver as the call left it, for the host to
         // put back where it came from.
         body += isVoid ? "\(tryPrefix)\(target)\n                " : "let result\(resultType) = \(tryPrefix)\(target)\n                "
-        body += "return .list([\(isVoid ? ".nothing" : toSwish("result", returns)), mover == nil ? \(toSwish("receiver", receiverType)) : .nothing])"
+        body += "return .list([\(isVoid ? ".nothing" : toValue("result", returns)), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
     } else {
-        body += "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toSwish("result", returns))"
+        body += "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toValue("result", returns))"
     }
     let kind = declaration.kind == .initializer ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
     // `var extension: String? { get set }`: a setter too, which changes a
@@ -249,9 +249,9 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
                     discardableResult: false, summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
-                        var receiver: \(swiftType) = \(fromSwish("args[\"self\"]!", receiverType))
-                        receiver.\(swiftName(declaration.name)) = \(fromSwish("args[\"newValue\"]!", returns))
-                        return .list([.nothing, \(toSwish("receiver", receiverType))])
+                        var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
+                        receiver.\(swiftName(declaration.name)) = \(fromValue("args[\"newValue\"]!", returns))
+                        return .list([.nothing, \(toValue("receiver", receiverType))])
                     }
                 )
 """
@@ -289,13 +289,13 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
 /// box, moved out of its variable so nothing else holds it while it changes (a collection would be copied whole on every
 /// call), and the box gets it back, however the call ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
-    guard mutating else { return "let receiver: \(swiftType) = \(fromSwish("args[\"self\"]!", receiverType))\n                " }
+    guard mutating else { return "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                " }
     var body = "let mover = ReceiverBox.of(args[\"self\"]!)\n                let taken = mover?.take() ?? args[\"self\"]!\n                "
     // Used once, `taken` ends there, so the receiver holds the only reference to a collection.
-    var conversion = fromSwish("taken", receiverType)
+    var conversion = fromValue("taken", receiverType)
     if conversion.components(separatedBy: "taken").count == 2 { conversion = conversion.replacingOccurrences(of: "taken", with: "consume taken") }
     body += "var receiver: \(swiftType) = \(conversion)\n                "
-    body += "defer { mover?.put(\(toSwish("receiver", receiverType))) }\n                "
+    body += "defer { mover?.put(\(toValue("receiver", receiverType))) }\n                "
     return body
 }
 

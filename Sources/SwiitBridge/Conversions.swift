@@ -49,7 +49,7 @@ func isLeaf(_ type: SType) -> Bool {
 }
 
 /// Swift code turning the Swiit value `value` into a `type`.
-func fromSwish(_ value: String, _ type: SType) -> String {
+func fromValue(_ value: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.from(value) ?? value
     case .named("KeyPath", let arguments) where arguments.count == 2: return "try bridgeKeyPath(\(value))"
@@ -57,47 +57,47 @@ func fromSwish(_ value: String, _ type: SType) -> String {
         let box = "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
         guard arguments.contains(where: isLeaf) else { return box }
         switch name {
-        case "Range", "ClosedRange": return "try bridge\(name)(\(value)) { \(fromSwish("$0", arguments[0])) }"
-        default: return "\(spelling(type))(\(box).map { \(fromSwish("$0", arguments[0])) })"
+        case "Range", "ClosedRange": return "try bridge\(name)(\(value)) { \(fromValue("$0", arguments[0])) }"
+        default: return "\(spelling(type))(\(box).map { \(fromValue("$0", arguments[0])) })"
         }
     case .array(let element), .someSequence(let element):
         let items = if case .array = type { "try bridgeList(\(value))" } else { "try bridgeSequence(\(value))" }
         if case .named(let name, []) = element, leaves[name] == nil { return items }
-        return "\(items).map { \(fromSwish("$0", element)) }"
+        return "\(items).map { \(fromValue("$0", element)) }"
     case .optional(let wrapped):
         // A value that is a call (a closure's result) is made once, not once to
         // test and again to convert.
         guard !value.contains("(") else {
             // The `try` is for the closure; what is inside the parentheses has its own.
-            let converted = fromSwish("$0", wrapped)
+            let converted = fromValue("$0", wrapped)
             return "\(converted.contains("try") ? "try " : "")bridgeOptional(\(value)) { \(converted) }"
         }
-        return "(\(value) == .nothing ? nil : \(fromSwish(value, wrapped)))"
+        return "(\(value) == .nothing ? nil : \(fromValue(value, wrapped)))"
     case .dictionary(let key, let value2):
         guard isLeaf(key) || isLeaf(value2) else { return "try bridgeDictionary(\(value))" }
-        return "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromSwish("$0.key", key)), \(fromSwish("$0.value", value2))) })"
+        return "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromValue("$0.key", key)), \(fromValue("$0.value", value2))) })"
     case .tuple(let elements):
         let labels = elements.map { $0.label.map(quoted) ?? "nil" }.joined(separator: ", ")
         let parts = elements.enumerated().map { index, element in
-            (element.label.map { "\($0): " } ?? "") + fromSwish("t[\(index)]", element.type)
+            (element.label.map { "\($0): " } ?? "") + fromValue("t[\(index)]", element.type)
         }
         return "try bridgeTuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
     case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
-        let arguments = zip(names, parameters).map { toSwish($0, $1) }.joined(separator: ", ")
+        let arguments = zip(names, parameters).map { toValue($0, $1) }.joined(separator: ", ")
         let typed = zip(names, parameters).map { "\($0): \(spelling($1))" }.joined(separator: ", ")
         // A closure Swift calls as `async` runs on a thread of the interpreter's
         // (`bridgeAsyncClosure`), as the task that passed it.
         let call = isAsync ? "(try await bridgeAsyncClosure(interpreter, \(value))([\(arguments)]))" : "try bridgeClosure(interpreter, \(value))([\(arguments)])"
         let effects = isAsync ? "async throws" : "throws"
         if case .tuple(let elements) = result, elements.isEmpty { return "{ (\(typed)) \(effects) -> Void in _ = \(call) }" }
-        return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromSwish(call, result)) }"
+        return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromValue(call, result)) }"
     case .member: fatalError("unsupported \(type)")
     }
 }
 
 /// Swift code turning `swift`, a `type`, into a Swiit value.
-func toSwish(_ swift: String, _ type: SType) -> String {
+func toValue(_ swift: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.to(swift) ?? swift
     case .named(let name, let arguments):
@@ -106,22 +106,22 @@ func toSwish(_ swift: String, _ type: SType) -> String {
         let bound = arguments[0]
         switch name {
         case "Range", "ClosedRange":
-            return "bridgeBox(\(swift), as: \(typeName)) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toSwish("r.lowerBound", bound)), upper: \(toSwish("r.upperBound", bound)))) }"
+            return "bridgeBox(\(swift), as: \(typeName)) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toValue("r.lowerBound", bound)), upper: \(toValue("r.upperBound", bound)))) }"
         default:
-            return "bridgeBox(\(swift), as: \(typeName)) { \(canonical(name, arguments))($0.map { \(toSwish("$0", bound)) }) }"
+            return "bridgeBox(\(swift), as: \(typeName)) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
         if case .named(let name, []) = element, leaves[name] == nil { return ".list(\(swift))" }
-        return ".list(\(swift).map { \(toSwish("$0", element)) })"
-    case .optional(let wrapped): return "(\(swift).map { \(toSwish("$0", wrapped)) } ?? .nothing)"
+        return ".list(\(swift).map { \(toValue("$0", element)) })"
+    case .optional(let wrapped): return "(\(swift).map { \(toValue("$0", wrapped)) } ?? .nothing)"
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.
         guard isLeaf(key) || isLeaf(value) else { return "bridgeDictionary(\(swift))" }
-        return "bridgeDictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toSwish("$0.key", key)), \(toSwish("$0.value", value))) }))"
+        return "bridgeDictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toValue("$0.key", key)), \(toValue("$0.value", value))) }))"
     case .tuple(let elements):
         if elements.isEmpty { return ".nothing" }
         let parts = elements.enumerated().map { index, element in
-            "(\(element.label.map(quoted) ?? "nil"), \(toSwish("t.\(index)", element.type)))"
+            "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
         }
         return "bridgeTuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
     case .someSequence, .function, .member: fatalError("unsupported \(type)")

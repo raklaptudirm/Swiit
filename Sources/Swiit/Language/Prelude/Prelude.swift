@@ -1,83 +1,8 @@
 import Foundation
 
-/// The builtins' types and signatures, written in Swiit and read when the
-/// host starts. The checker works from these; the bodies are in Swift
-/// (StructuredBuiltins.swift), found by name. Doc comments are what `help`
-/// and `--help` show.
+/// The builtins' types and signatures are Resources/Prelude.swift, embedded in the target by Package.swift.
 extension Interpreter {
-    static let prelude = #"""
-    /// What `catch` binds: any error, which tells what went wrong. Cast it to
-    /// get at more, as in Swift: `if let failure = error as? CommandFailure`.
-    struct Error {
-        let localizedDescription: String
-    }
-
-    /// What has no values: a `Task<Int, Never>` can't fail.
-    enum Never {}
-
-    /// A value, or the error that kept it from being made.
-    enum Result<Success, Failure: Error> {
-        case success(Success)
-        case failure(Failure)
-
-        init(catching body: () throws -> Success) {
-            do { self = Result.success(try body()) } catch { self = Result.failure(error) }
-        }
-
-        /// The value, or throws the error.
-        func get() throws -> Success {
-            switch self {
-            case .success(let value): return value
-            case .failure(let error): throw error
-            }
-        }
-
-        func map<NewSuccess>(_ transform: (Success) -> NewSuccess) -> Result<NewSuccess, Failure> {
-            switch self {
-            case .success(let value): return .success(transform(value))
-            case .failure(let error): return .failure(error)
-            }
-        }
-
-        func mapError<NewFailure: Error>(_ transform: (Failure) -> NewFailure) -> Result<Success, NewFailure> {
-            switch self {
-            case .success(let value): return .success(value)
-            case .failure(let error): return .failure(transform(error))
-            }
-        }
-
-        func flatMap<NewSuccess>(_ transform: (Success) -> Result<NewSuccess, Failure>) -> Result<NewSuccess, Failure> {
-            switch self {
-            case .success(let value): return transform(value)
-            case .failure(let error): return .failure(error)
-            }
-        }
-    }
-
-    /// What `Mirror(reflecting:)` shows of a value: its stored properties, in order.
-    struct Mirror {
-        let children: [(label: String?, value: Any)]
-
-        init(reflecting subject: Any) {
-            children = __mirrorChildren(subject)
-        }
-    }
-
-    /// The type of no value, for `Void.self` where a type is passed.
-    enum Void {}
-
-    /// What a task that was asked to stop throws, from `Task.checkCancellation()`
-    /// or `Task.sleep`.
-    struct CancellationError: Error {
-        let localizedDescription: String
-    }
-
-    """#
-
-    /// The prelude as source: the language's own, then each library's types and declarations.
-    var preludeSource: String {
-        ([Interpreter.prelude] + libraries.flatMap { [$0.types, $0.declarations] }).joined(separator: "\n")
-    }
+    static let prelude = String(decoding: PackageResources.Prelude_swift, as: UTF8.self)
 
     /// Reads the prelude, binding its types, functions and sequence
     /// methods in the outermost scope with their Swift bodies.
@@ -87,11 +12,11 @@ extension Interpreter {
         let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
         let program: Program
         do {
-            program = try PreludeCache.program(for: preludeSource, bound: bridgedTypeNames)
+            program = try PreludeCache.program(for: Interpreter.prelude, bound: bridgedTypeNames)
         } catch {
             preconditionFailure("the prelude doesn't parse: \(error)")
         }
-        do { return try declarePrelude(program, natives: builtinBodies()) } catch { preconditionFailure("the prelude: \(error)") }
+        do { return try declarePrelude(program, natives: [:]) } catch { preconditionFailure("the prelude: \(error)") }
     }
 
     /// Declares a prelude's statements with the Swift bodies found by name; the additions to types are returned, to be
@@ -115,15 +40,35 @@ extension Interpreter {
                 try declare(decl)
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings.removeValue(forKey: decl.name)
             case .function(let decl):
-                guard let native = natives[decl.name] else { throw RuntimeError("no body for \(decl.name)") }
-                let function = builtinFunction(decl, native.body, input: nil)
+                // Written with a body, it is Swiit's; without, Swift's by name.
+                let function: Function
+                if let native = natives[decl.name] {
+                    function = builtinFunction(decl, native.body, input: nil)
+                } else if !decl.body.statements.isEmpty {
+                    function = builtinFunction(decl, .swiit(decl.body), input: nil)
+                } else {
+                    throw RuntimeError("no body for \(decl.name)")
+                }
                 scopes[0].declare(function, named: decl.name)
             case .extensionDecl(_, let methods):
                 for method in methods {
-                    guard let native = natives["Sequence." + method.name] else {
+                    let function: Function
+                    if let native = natives["Sequence." + method.name] {
+                        function = builtinFunction(method, native.body, input: native.input)
+                    } else if !method.body.statements.isEmpty {
+                        // The sequence, as a list, is `self`; the body is checked as a function's is, so that what it calls is resolved.
+                        let receiver = Parameter(label: nil, name: "self", type: .list(.parameter("Element")))
+                        var written = method
+                        written.parameters = [receiver] + method.parameters
+                        written.generics["Element", default: []] += []
+                        let checked = try checkedSequenceMethod(written)
+                        guard case .function(let resolved)? = checked.statements.first else { throw RuntimeError("Sequence.\(method.name)") }
+                        var shaped = resolved
+                        shaped.parameters.removeFirst()
+                        function = builtinFunction(shaped, .swiit(resolved.body), input: receiver)
+                    } else {
                         throw RuntimeError("no body for Sequence.\(method.name)")
                     }
-                    let function = builtinFunction(method, native.body, input: native.input)
                     let existing = sequenceMethods[method.name]?.candidates ?? []
                     sequenceMethods[method.name] = OverloadSet(name: method.name, candidates: existing + [function])
                 }
@@ -159,6 +104,15 @@ extension Interpreter {
             throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
         } catch {
             throw Diagnostic.of(error)
+        }
+    }
+
+    /// A sequence method written in Swiit, with what its body calls resolved.
+    private func checkedSequenceMethod(_ method: FunctionDecl) throws -> Program {
+        do {
+            return try TypeChecker(interpreter: self).check(Program(statements: [.function(method)]))
+        } catch {
+            throw RuntimeError("Sequence.\(method.name): \(error)")
         }
     }
 

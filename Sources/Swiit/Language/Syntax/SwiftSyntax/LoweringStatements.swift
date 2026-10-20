@@ -110,7 +110,6 @@ extension Lowering {
             } else {
                 // `if let x`, `guard let x`: shorthand for `x = x`.
                 let reference = DeclReferenceExprSyntax(baseName: identifier.identifier)
-                try checkKnown(reference, calling: false)
                 lowered = self.reference(reference)
             }
             bind(identifier.identifier.text)
