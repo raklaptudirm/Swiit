@@ -32,7 +32,7 @@ import SwiitStandardLibrary
         condition.unlock()
         let shell = shell
         do {
-            let handle = try shell.startTask(host: shell.newTaskHost?(), structured: false) { [self] in
+            let handle = try shell.startTask(host: shell.host.makeTaskState(), structured: false) { [self] in
                 let result = Result { try shell.call(operation, with: []) }
                 condition.lock()
                 finished.append(result)

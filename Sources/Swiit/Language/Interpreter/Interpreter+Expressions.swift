@@ -142,7 +142,7 @@ extension Interpreter {
             ))
         case .childTask(let literal):
             let operation = try evaluate(.closure(literal))
-            let handle = try startTask(host: newTaskHost?()) { [unowned self] in try call(operation, with: []) }
+            let handle = try startTask(host: host.makeTaskState()) { [unowned self] in try call(operation, with: []) }
             return SwiftValue.make(TaskBox(handle), as: "Task")
         case .inoutArgument(let inner):
             return try evaluate(inner)

@@ -477,6 +477,16 @@ extension Value {
         }
     }
 
+    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's. Nil for anything else.
+    public var flow: Flow<Value>? { Interpreter.flow(of: self) }
+
+    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a command's output, a flow), one at
+    /// a time, so a range of a billion never becomes a list; nil for anything else.
+    public var items: AnySequence<Value>? {
+        guard Interpreter.items(of: self) != nil else { return nil }
+        return AnySequence { Interpreter.items(of: self)! }
+    }
+
     /// A described function as a value, for a host object's method to give: `.function(...)` of its own making.
     public init(_ function: HostFunction) {
         self = .function(NativeFunction(function))

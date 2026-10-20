@@ -14,6 +14,24 @@ extension Interpreter {
         inCurrentTask { word(text, as: TypeAnnotation(type)) }
     }
 
+    /// Whether a word can be a value of `type` at all: an enum, a Swift type text can be, a key path, or anything text satisfies.
+    /// (`value(fromWord:as:)` says whether one word is.)
+    public func acceptsWords(as type: ValueType) -> Bool {
+        inCurrentTask { acceptsWords(TypeAnnotation(type)) }
+    }
+
+    private func acceptsWords(_ type: TypeAnnotation) -> Bool {
+        switch type {
+        case .any, .unknown, .parameter, .keyPath: return true
+        case .optional(let wrapped): return acceptsWords(wrapped)
+        case .named(let name) where enumType(named: name) != nil: return true
+        case .named(let name) where lookup(name) == nil && Bridge.types[name] == nil: return true
+        default:
+            guard let (bridged, _) = Bridge.type(of: type) else { return false }
+            return bridged.parse != nil || bridged.literal != nil
+        }
+    }
+
     /// The type a value has in a script.
     public func valueType(of value: Value) -> ValueType {
         inCurrentTask { ValueType(TypeChecker(interpreter: self).type(of: value)) }

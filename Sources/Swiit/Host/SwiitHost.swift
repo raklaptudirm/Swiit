@@ -83,6 +83,17 @@ extension Interpreter {
         /// for the interpreter's recursion; by default, one the core makes.
         @_spi(Layer) public var startThread: @Sendable (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
 
+        /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host keeps for it, as a shell keeps
+        /// its output and status. Read back as `Interpreter.taskState` while that task runs.
+        public var makeTaskState: @Sendable () -> AnyObject? = { nil }
+        /// Told when the task running waits for another to end (`await`), with the state of the one awaited, before it does;
+        /// what it gives back is called once the wait is over. A shell brings the awaited task forward meanwhile.
+        public var willAwait: @Sendable (_ awaited: AnyObject?) -> () -> Void = { _ in {} }
+        /// How a read of the host's input (`Interpreter.whileWaitingForInput`) waits for the running task's turn at it, as a
+        /// shell's task in the background waits until it is awaited; then it runs the read, or doesn't, if the task is
+        /// cancelled first. Without it a read runs at once.
+        public var inputTurn: (@Sendable (_ read: () -> Void) -> Void)?
+
         public init(output: OutputSink = .discard, error: OutputSink = .discard, shouldStop: @escaping @Sendable () -> Bool = { false }) {
             self.output = output
             self.error = error

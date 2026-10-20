@@ -12,10 +12,7 @@ import Foundation
     /// The functions it unwound out of, innermost first, and where each was called.
     public var calls: [Call] = []
 
-    public struct Call: Sendable {
-        public var function: String
-        public var site: SourceRange?
-    }
+    public typealias Call = Diagnostic.Call
 
     public init(_ description: String, status: Int32 = 1, thrown: Value? = nil) {
         self.description = description

@@ -49,7 +49,7 @@ extension Bridge {
     /// it isn't cancelled when the scope that made it ends.
     private static func start(_ shell: Interpreter, _ arguments: [String: Value]) throws -> Value {
         let operation = arguments["operation"]!
-        let handle = try shell.startTask(host: shell.newTaskHost?(), structured: false) {
+        let handle = try shell.startTask(host: shell.host.makeTaskState(), structured: false) {
             try shell.call(operation, with: [])
         }
         return SwiftValue.make(TaskBox(handle), as: "Task")

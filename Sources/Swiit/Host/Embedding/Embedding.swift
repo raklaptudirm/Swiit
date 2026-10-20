@@ -15,7 +15,18 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// Where it is in the source: the statement a type or run-time error is in, the token a syntax error is at.
     public var range: SourceRange?
     /// For a run-time error: the calls it came out of, innermost first, with where each was made.
-    @_spi(Layer) public var calls: [RuntimeError.Call] = []
+    public var calls: [Call] = []
+
+    /// A function a run-time error came out of, and where it was called.
+    public struct Call: Sendable {
+        public var function: String
+        public var site: SourceRange?
+
+        public init(function: String, site: SourceRange?) {
+            self.function = function
+            self.site = site
+        }
+    }
     /// For a run-time error: the status the failure gives (a failed command's own, for a shell).
     public var status: Int32 = 1
     /// The host reported it already (`ScriptError.isReported`).
@@ -23,7 +34,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
     public var cause: (any Error)?
 
-    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [RuntimeError.Call] = [],
+    @_spi(Layer) public init(kind: Kind, message: String, line: Int? = nil, range: SourceRange? = nil, calls: [Call] = [],
                              status: Int32 = 1, isReported: Bool = false, cause: (any Error)? = nil) {
         self.kind = kind
         self.message = message
@@ -199,7 +210,8 @@ extension Interpreter {
 }
 
 /// A request to stop, from any thread.
-@_spi(Layer) public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
+/// A request to stop a task, which a host can ask about before it waits.
+public final class Cancellation: @unchecked Sendable { // safe: every access holds its own lock
     private let lock = NSLock()
     private var set = false
     /// What `isSet` reads without the lock, which every step of every script asks. It is a word written under the lock and
@@ -216,7 +228,7 @@ extension Interpreter {
     private var wakers: [Int: () -> Void] = [:]
     private var nextWaker = 0
 
-    public init() {}
+    @_spi(Layer) public init() {}
 
     public var isSet: Bool { readFlag() != 0 }
 
@@ -234,7 +246,7 @@ extension Interpreter {
         wake.forEach { $0() }
     }
 
-    public func clear() { lock.withLock { set = false; flag.pointee = 0 } }
+    @_spi(Layer) public func clear() { lock.withLock { set = false; flag.pointee = 0 } }
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
@@ -248,7 +260,7 @@ extension Interpreter {
         return token
     }
 
-    public func remove(_ token: Int) {
+    @_spi(Layer) public func remove(_ token: Int) {
         lock.withLock { _ = wakers.removeValue(forKey: token) }
     }
 }

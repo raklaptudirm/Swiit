@@ -47,6 +47,17 @@
 }
 
 extension Interpreter {
+    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main task's is set by the host), or
+    /// for the main task from outside a run.
+    public var taskState: AnyObject? {
+        get { (lock.isHeldByCurrentThread ? task : mainTask).host }
+        set { (lock.isHeldByCurrentThread ? task : mainTask).host = newValue }
+    }
+
+    /// Whether the task running now has been asked to stop; ask it before a wait and keep the answer for after, since the
+    /// task running changes while one waits.
+    public var cancellation: Cancellation { task.cancellation }
+
     /// The current task's scopes, innermost last.
     @_spi(Layer) public var scopes: [Scope] {
         _read { yield task.scopes }
@@ -71,8 +82,6 @@ extension Interpreter {
         _modify { yield &task.itemErrorCount }
     }
 
-    /// Asks the current task to stop, from any thread.
-    @_spi(Layer) public var cancellation: Cancellation { task.cancellation }
 }
 
 extension Interpreter {
@@ -138,6 +147,6 @@ extension Interpreter {
     }
 
     @_spi(Layer) public func waitForInput(_ body: () -> Void) {
-        if let inputTurn { inputTurn(body) } else { suspend { body() } }
+        if let inputTurn = host.inputTurn { inputTurn(body) } else { suspend { body() } }
     }
 }

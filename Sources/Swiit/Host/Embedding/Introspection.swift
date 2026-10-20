@@ -124,7 +124,12 @@ extension Interpreter {
     public func symbols(named name: String? = nil, of type: ValueType? = nil) -> [Symbol] {
         withMainTask {
             guard let type else { return globalSymbols(named: name) }
-            return memberSymbols(named: name, of: TypeAnnotation(type))
+            var annotation = TypeAnnotation(type)
+            // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
+            if case .named(let typeName) = annotation, let generic = Bridge.types[typeName]?.genericParameters, !generic.isEmpty {
+                annotation = .generic(typeName, generic.map { _ in .unknown })
+            }
+            return memberSymbols(named: name, of: annotation)
         }
     }
 
@@ -233,7 +238,11 @@ extension Interpreter {
                 if case .type = $0.declaration { true } else { false }
             }
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }.compactMap { name, binding -> Symbol? in
-                if case .object(is BridgedTypeName) = binding.value { Symbol(name: name, declaration: .type(.structure)) } else { nil }
+                if case .object(is BridgedTypeName) = binding.value {
+                    var symbol = Symbol(name: name, declaration: .type(.structure))
+                    symbol.isBuiltin = true
+                    return symbol
+                } else { return nil }
             }
             return declared + bridged
         }

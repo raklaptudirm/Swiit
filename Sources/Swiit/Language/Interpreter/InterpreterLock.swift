@@ -164,8 +164,8 @@ extension Interpreter {
     @_spi(Layer) public func join(_ handle: TaskHandle) throws -> Value {
         let waiter = task.cancellation
         // The host may bring it forward while it's awaited (the shell: to the foreground).
-        let restore = awaitingTask?(handle)
-        defer { restore?() }
+        let restore = host.willAwait(handle.context.host)
+        defer { restore() }
         guard let result = suspend(wake: { handle.poke() }, { handle.wait(unless: waiter) }) else {
             // The task waiting was cancelled: it stops, and leaves the other running.
             throw Cancelled()

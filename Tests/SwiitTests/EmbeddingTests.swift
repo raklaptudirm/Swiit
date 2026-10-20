@@ -669,3 +669,19 @@ private struct Stop: Unwinding {}
     #expect(stopped?.cause is Stop)
     #expect(log.text == "deferred\n")
 }
+
+private final class Mark: @unchecked Sendable {
+    let label: String
+    init(_ label: String) { self.label = label }
+}
+
+@Test func theHostKeepsStateForEachTask() throws {
+    let swish = interpreter()
+    swish.host.makeTaskState = { Mark("task") }
+    swish.taskState = Mark("main")
+    nonisolated(unsafe) let running = swish
+    swish.register("who") { () -> String in (running.taskState as? Mark)?.label ?? "none" }
+    #expect(try swish.evaluate("who()") == "main")
+    #expect(try swish.evaluate("await Task { who() }.value") == "task")
+    #expect((swish.taskState as? Mark)?.label == "main")
+}
