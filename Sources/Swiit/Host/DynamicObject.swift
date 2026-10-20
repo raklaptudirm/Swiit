@@ -112,3 +112,20 @@ extension Value {
         return false
     }
 }
+
+extension Interpreter {
+    /// Types plain values as one of the host's own, read by name or position, as parsed JSON is: a value of the type `name` is
+    /// whatever it parsed as (lists, structs, scalars), and `value.port` is the host function `field(value, "port")`, which gives
+    /// the member, or nil. `value.port?.int` is a view: `views["int"]` names a function that gives the value as that type, or
+    /// nil. Each access is checked as the optional of the type, so a script reads a field it is not sure is there.
+    public func registerDynamic(named name: String, field: String, views: [String: (function: String, type: ValueType)]) {
+        let type = TypeAnnotation.named(name)
+        withMainTask {
+            dynamicTypes[name] = DynamicType(read: .optional(type), write: .optional(type), plain: PlainDynamic(
+                field: field,
+                views: views.mapValues { PlainDynamic.View(function: $0.function, type: TypeAnnotation($0.type)) },
+                element: type
+            ))
+        }
+    }
+}
