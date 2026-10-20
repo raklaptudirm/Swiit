@@ -281,30 +281,29 @@ private final class HostNode: HostObject, @unchecked Sendable {
     let label: String
     init(_ label: String) { self.label = label }
     var typeName: String { "Node" }
-    var memberNames: [String] { ["label", "shout"] }
-    func member(_ name: String) -> Value? {
-        switch name {
-        case "label": Value(label)
-        case "shout": Value(HostFunction(name: "shout", returns: .string) { [label] _ in Value(label.uppercased()) })
-        default: nil
-        }
-    }
     var description: String { "Node(\(label))" }
+    func shout() -> String { label.uppercased() }
+
+    static let type = NativeType.Builder<HostNode>("Node")
+        .property("label", \.label)
+        .method("shout", HostNode.shout)
 }
 
-@Test func aHostObjectIsTypedByTheProtocolThatDescribesIt() throws {
+@Test func aHostObjectIsTypedByTheTypeThatIsRegisteredForIt() throws {
     let log = Log()
     let swish = interpreter(log: log)
     swish["nodes"] = [Value(HostNode("a")), Value(HostNode("b"))]
-    _ = try swish.evaluate("protocol Node { var label: String { get }; func shout() -> String }")
+    swish.register(HostNode.type)
     // It is used as the protocol says, and passes where one is asked for.
     #expect(try swish.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
     #expect(try swish.evaluate("func first(_ node: Node) -> String { node.label }; first(nodes[0])") == "a")
     #expect(try swish.evaluate("let kept: [Node] = nodes; kept.count") == 2)
     // A mistake is found before anything runs.
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran"); nodes.map { $0.nosuch }"#) }
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran"); nodes.map { $0.label + 1 }"#) }
-    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran"); nodes[0].shout(1)"#) }
+    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran1"); nodes.map { $0.nosuch }"#) }
+    #expect(log.text == "")
+    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran2"); nodes.map { $0.label + 1 }"#) }
+    #expect(log.text == "")
+    #expect(throws: (any Error).self) { try swish.evaluate(#"print("ran3"); nodes[0].shout(1)"#) }
     #expect(log.text == "")
 }
 
@@ -366,14 +365,12 @@ private final class HostNode: HostObject, @unchecked Sendable {
     #expect(Date().timeIntervalSince(start) < 5)
 }
 
-@Test func aHostTypeIsDescribedAndTheDescriptionChecked() throws {
+@Test func aHostObjectsMembersAreTheRegisteredOnes() throws {
     let swish = interpreter()
     let node = HostNode("a")
     swish["node"] = Value(node)
-    // Until it is described, nothing is known of the object, so nothing is missing.
-    #expect(swish.missingMembers(of: node) == [])
-    try swish.describe(type: "Node", as: "var label: String { get }; func shout() -> String; func missing() -> Int")
-    #expect(swish.missingMembers(of: node) == ["missing"])
+    swish.register(HostNode.type)
+    #expect(node.memberNames == ["label", "shout"])
     #expect(try swish.evaluate("node.shout()") == "A")
     #expect(throws: (any Error).self) { try swish.evaluate("node.nosuch") }
 }
@@ -381,6 +378,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
 private final class Preferences: DynamicObject, @unchecked Sendable {
     var values: [String: Value] = ["count": 2, "theme": "dark"]
     var typeName: String { "Preferences" }
+    var count: Int { (try? Int(values["count"] ?? .null)) ?? 0 }
     var memberNames: [String] { values.keys.sorted() }
     func member(_ name: String) -> Value? { values[name] }
     var description: String { "Preferences" }
@@ -396,7 +394,7 @@ private final class Preferences: DynamicObject, @unchecked Sendable {
     // Every member has the one type, until some are described.
     #expect(try swish.evaluate("settings.theme") == "dark")
     #expect(throws: (any Error).self) { try swish.evaluate("settings.count + 1") }
-    try swish.describe(type: "Preferences", as: "var count: Int { get }")
+    swish.register(NativeType.Builder<Preferences>("Preferences").property("count", \.count))
     #expect(try swish.evaluate("settings.count + 1") == 3)
     #expect(try swish.evaluate("settings.theme") == "dark")
 }

@@ -26,14 +26,16 @@ public enum Value: Sendable {
     @_spi(Layer) case function(any Callable)
 }
 
-/// A live value that answers for its own members, properties and methods
-/// alike (a method is a function value). Objects compare by identity.
+/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which the checker reads, so a
+/// script's use of one is checked before it runs; `member(_:)` is for the few a host answers for at run time. Objects compare
+/// by identity.
 public protocol HostObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
     /// The name `members` and error messages use, like `Job`.
     var typeName: String { get }
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
-    /// The member called `name`, or nil if it has none.
+    /// A member answered at run time, after the registered ones; nil if there is none. Optional: most objects have only the
+    /// registered members.
     func member(_ name: String) -> Value?
 }
 
@@ -77,8 +79,14 @@ extension ObjectDetails {
 }
 
 extension HostObject {
-    /// A host's object has no members to list unless it says.
-    public var memberNames: [String] { [] }
+    /// The registered members of its type, unless it says.
+    public var memberNames: [String] {
+        var seen = Set<String>()
+        return (Bridge.types[typeName]?.members ?? []).filter { !$0.isStatic && ($0.kind == .method || $0.kind == .property) }
+            .map(\.name).filter { seen.insert($0).inserted }
+    }
+
+    public func member(_ name: String) -> Value? { nil }
 
     @_spi(Layer) public var objectFields: Record? {
         if let details = self as? any ObjectDetails { return details.fields }

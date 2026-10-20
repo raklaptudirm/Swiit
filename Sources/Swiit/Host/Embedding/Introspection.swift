@@ -265,24 +265,3 @@ extension Interpreter {
         }
     }
 }
-
-extension Interpreter {
-    // MARK: Host types
-
-    /// Describes the objects whose `typeName` is `name`, for the checker: the protocol they are used as.
-    /// `describe(type: "Node", as: "var label: String { get }; func rename(to: String) throws")` lets a script use a
-    /// `Node` with its members checked before it runs, and pass one where a `Node` is asked for. The description is
-    /// the host's promise; `missingMembers(of:)` checks an object against it.
-    public func describe(type name: String, as members: String) throws(Diagnostic) {
-        _ = try evaluate("protocol \(name) { \(members) }")
-    }
-
-    /// What the description of `object`'s type asks that the object doesn't have (the names of its members), or
-    /// nothing if it has them all or its type hasn't been described.
-    public func missingMembers(of object: some HostObject) -> [String] {
-        guard let description = protocolType(named: object.typeName)?.declaration else { return [] }
-        let required = description.properties.map(\.name) + description.methods.map(\.name)
-        let present = Set(object.memberNames)
-        return required.filter { !present.contains($0) }
-    }
-}

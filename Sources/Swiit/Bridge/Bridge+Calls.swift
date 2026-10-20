@@ -67,6 +67,8 @@ extension Interpreter {
         case .list: "Array"
         case .dictionary: "Dictionary"
         case .object(let box as SwiftValue): box.typeName
+        // A host's object, if its type was registered.
+        case .object(let object) where !(object is LanguageObject): object.typeName
         default: nil
         }
         guard let typeName, let member = Bridge.types[typeName]?.members.first(where: {
@@ -87,6 +89,8 @@ extension Interpreter {
         case .list: "Array"
         case .dictionary: "Dictionary"
         case .object(let box as SwiftValue): box.typeName
+        // A host's object, if its type was registered.
+        case .object(let object) where !(object is LanguageObject): object.typeName
         default: nil
         }
         guard let typeName else { return nil }

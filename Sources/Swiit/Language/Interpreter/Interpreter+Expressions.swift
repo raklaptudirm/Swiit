@@ -431,8 +431,8 @@ extension Interpreter {
         // An unset environment variable is nil, not a missing field.
         if case .object(let object as DynamicObject) = value { return try object.read(name) }
         if case .object(let object) = value, name != "description" && name != "debugDescription" {
-            if object is SwiftValue, let property = try bridgedProperty(name, of: value) { return property }
-            if object is SwiftValue, let method = bridgedMethods(name, of: value) { return method }
+            if let property = try bridgedProperty(name, of: value) { return property }
+            if let method = bridgedMethods(name, of: value) { return method }
             guard let member = object.member(name) else {
                 throw RuntimeError("\(object.typeName) has no member '\(name)'")
             }

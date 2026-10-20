@@ -201,6 +201,8 @@ extension Interpreter {
             if dynamicTypes[name]?.plain?.standsForAnything == true { return value }
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
+            // A host's object is of the type it registered.
+            if case .object(let object) = value, isHostObject(object), object.typeName == name, Bridge.types[name] != nil { return value }
             // A Character is held as the one-letter String it is.
             if name == "Character", case .string(let text) = value, text.count == 1 { return value }
             if case .record(let record) = value, record.typeName == name, structType(named: name) != nil {
