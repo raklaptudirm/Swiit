@@ -24,12 +24,15 @@ public struct TypeDescription {
         /// As Swift writes it: `count: Int`, `uppercased() -> String`.
         public let signature: AttributedString
         public let summary: String
-    
-        public init(name: String, kind: Kind, signature: AttributedString, summary: String) {
+        /// For an enum's case: whether it carries associated values.
+        public let hasPayload: Bool
+
+        public init(name: String, kind: Kind, signature: AttributedString, summary: String, hasPayload: Bool = false) {
             self.name = name
             self.kind = kind
             self.signature = signature
             self.summary = summary
+            self.hasPayload = hasPayload
         }
     }
 
@@ -135,7 +138,8 @@ extension Interpreter {
                 let isText = if case .string = raw { true } else { false }
                 signature += [.init(" = "), .init(raw.debugDescription, isText ? .string : .constant)]
             }
-            return .init(name: enumCase.name, kind: .case, signature: AttributedString(joining: signature), summary: "")
+            return .init(name: enumCase.name, kind: .case, signature: AttributedString(joining: signature), summary: "",
+                         hasPayload: !enumCase.labels.isEmpty)
         }
         return TypeDescription(name: type.name, kind: "enum", members: members)
     }
