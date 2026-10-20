@@ -39,14 +39,12 @@ Host/DynamicObject.swift	Layer struct PlainDynamic
 Host/Embedding/Embedding.swift	Layer class OutputCounter
 Host/Embedding/Embedding.swift	Layer func clear
 Host/Embedding/Embedding.swift	Layer func remove
-Host/Embedding/Embedding.swift	Layer func rendered
 Host/Embedding/Embedding.swift	Layer func reset
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer init init
 Host/Embedding/Embedding.swift	Layer struct Cancelled
 Host/Embedding/Embedding.swift	Layer struct LimitExceeded
-Host/Embedding/Embedding.swift	Layer struct Style
 Host/Embedding/Introspection.swift	Layer init init
 Host/Embedding/LargeStack.swift	Layer func onLargeStack
 Host/Embedding/LargeStack.swift	Layer func startLargeStackThread

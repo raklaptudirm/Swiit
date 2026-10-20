@@ -143,8 +143,9 @@ extension Interpreter {
     ) throws(Diagnostic) {
         do {
             try withMainTask {
-                let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
-                let program = try PreludeCache.program(for: source, bound: bridgedTypeNames)
+                // The names it may use are those declared already, and Swift's own types.
+                let names = globalNames()
+                let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: names)
                 // A method every sequence has gets the sequence, as a list, in `self`.
                 let natives = Dictionary(uniqueKeysWithValues: bodies.map { name, call in
                     (name, (body: FunctionBody.native { _, arguments in

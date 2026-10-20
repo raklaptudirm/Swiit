@@ -83,7 +83,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     /// How a diagnostic is styled, for a host that shows it on a terminal: the escape for each
     /// character of a source text, what the frame of the excerpt and the marks are written in,
     /// and what ends a style.
-    @_spi(Layer) public struct Style: Sendable {
+    public struct Style: Sendable {
         /// Plain ANSI: the frame in bold blue, the marks in bold red, the source as it is.
         public static let ansi = Style(source: { Array(repeating: nil, count: $0.count) }, frame: { "\u{1B}[1;34m\($0)\u{1B}[0m" },
                                        mark: { "\u{1B}[1;31m\($0)\u{1B}[0m" }, reset: "\u{1B}[0m")
@@ -111,7 +111,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 
     /// As above, styled as a host says (a shell's syntax highlighting).
-    @_spi(Layer) public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
+    public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
         if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) { text.removeSubrange(match) }
