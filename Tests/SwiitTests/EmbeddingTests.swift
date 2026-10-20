@@ -707,15 +707,13 @@ private final class Mark: @unchecked Sendable {
     /// Says hello.
     func hello(_ name: String) -> String
     """, bodies: [
-        "Counter.next": HostFunction(name: "next", parameters: [.init(name: "self")], returns: .int) { arguments in
-            Value((arguments[0].entries?[Value("start")].flatMap { $0.cast(to: Int.self) } ?? 0) + 1)
+        "Counter.next": { arguments in
+            Value((arguments["self"]?.entries?[Value("start")].flatMap { $0.cast(to: Int.self) } ?? 0) + 1)
         },
-        "Sequence.firsts": HostFunction(name: "firsts", parameters: [.init(name: "self"), .init(name: "count", type: .int)]) { arguments in
-            Value(Array((arguments[0].items.map(Array.init) ?? []).prefix(arguments[1].cast(to: Int.self) ?? 0)))
+        "Sequence.firsts": { arguments in
+            Value(Array((arguments["self"]?.items.map(Array.init) ?? []).prefix(arguments["count"]?.cast(to: Int.self) ?? 0)))
         },
-        "hello": HostFunction(name: "hello", parameters: [.init(name: "name", type: .string)], returns: .string) { arguments in
-            Value("hello, " + arguments[0].description)
-        },
+        "hello": { arguments in Value("hello, " + (arguments["name"]?.description ?? "")) },
     ])
     #expect(try swish.evaluate("Counter(start: 4).next()") == 5)
     #expect(try swish.evaluate("[7, 8, 9].firsts(2)") == [7, 8])

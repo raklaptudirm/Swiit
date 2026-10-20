@@ -138,14 +138,18 @@ extension Interpreter {
     /// Swift declarations whose bodies are in Swift too. A function or method written without a body (`func next() -> Int`)
     /// takes the body registered under its name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations may overload it.
-    public func prelude(_ source: String, bodies: [String: HostFunction] = [:]) throws(Diagnostic) {
+    public func prelude(
+        _ source: String, bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]
+    ) throws(Diagnostic) {
         do {
             try withMainTask {
                 let bridgedTypeNames = Dictionary(uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) })
                 let program = try PreludeCache.program(for: source, bound: bridgedTypeNames)
                 // A method every sequence has gets the sequence, as a list, in `self`.
-                let natives = Dictionary(uniqueKeysWithValues: bodies.map { name, function in
-                    (name, (body: hostFunction(function).body, input: name.hasPrefix("Sequence.")
+                let natives = Dictionary(uniqueKeysWithValues: bodies.map { name, call in
+                    (name, (body: FunctionBody.native { _, arguments in
+                        do { return try call(arguments) } catch let error as Diagnostic { throw RuntimeError(error.message, status: error.status) }
+                    }, input: name.hasPrefix("Sequence.")
                         ? Parameter(label: nil, name: "self", type: .list(.parameter("Element")), isInput: true) : nil))
                 })
                 try declarePreludeExtensions(try declarePrelude(program, natives: natives))
