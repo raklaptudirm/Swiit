@@ -7,7 +7,8 @@ import Foundation
 /// first; Docs/boundaries.md). The shell owns one.
 public final class Interpreter: @unchecked Sendable { // safe: every public method holds the interpreter's lock
     /// How this interpreter is run: where its output goes, how to tell it to stop.
-    @_spi(Layer) public var host: Interpreter.Host
+    /// Where its output goes and how it is told to stop; a host may change it between runs.
+    public var host: Interpreter.Host
 
     /// What runs this interpreter, if it is more than an embedder's call: the
     /// shell, whose nodes reach it from here. Weak, as the owner holds the

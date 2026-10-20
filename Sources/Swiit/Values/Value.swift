@@ -280,7 +280,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     /// The entries sorted by key: numbers by value, strings as Swift sorts
     /// them, an enum's cases in declared order, and anything else by how
     /// it's written.
-    @_spi(Layer) public var sortedForDisplay: [(key: Value, value: Value)] {
+    public var sortedForDisplay: [(key: Value, value: Value)] {
         storage.sorted { Value.displaysBefore($0.key, $1.key) }
     }
 
@@ -466,12 +466,13 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral, Expre
 }
 
 extension Value {
-    /// The entries of a structured value in order: a dictionary's, or the fields of a tuple or a struct value by name (a
-    /// tuple's unlabeled ones by position, "0", "1"). Nil for any other value.
+    /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a struct value by name (a
+    /// tuple's unlabeled ones by position, "0", "1"), or the fields of a host's object that is data. Nil for any other value.
     public var entries: ValueDictionary? {
         switch self {
         case .dictionary(let dictionary): dictionary
         case .record(let record): ValueDictionary(record.map { (Value.string($0.key), $0.value) })
+        case .object(let object): object.fields
         default: nil
         }
     }
@@ -479,6 +480,12 @@ extension Value {
     /// A described function as a value, for a host object's method to give: `.function(...)` of its own making.
     public init(_ function: HostFunction) {
         self = .function(NativeFunction(function))
+    }
+
+    /// A struct's value, with its fields in order and every one present (an absent optional is `nil`): `Value(struct: "Point",
+    /// fields: ["x": Value(1), "y": Value(2)])`. With no name it is a tuple, whose unlabeled elements are named by position.
+    public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
+        self = .record(Record(fields, typeName: typeName))
     }
 
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift type, or `name` if one is given.
@@ -576,9 +583,9 @@ extension Value {
         }
     }
 
-    /// The case of a script enum: its type's name, the case's name and its payload.
-    public var enumCase: (type: String, name: String, values: [Value])? {
+    /// The case of a script enum: its type's name, the case's name, its payload and the labels the payload is declared with.
+    public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
         guard case .enumValue(let value) = self else { return nil }
-        return (value.type.name, value.name, value.values)
+        return (value.type.name, value.name, value.values, value.definition?.labels ?? [])
     }
 }

@@ -1,27 +1,27 @@
 
-/// What an output stream can show, so values are laid out for it: a terminal
-/// gets tables fitted to its width and in color, a file or a pipe gets every
-/// character, plain.
-@_spi(Layer) public struct StreamTraits: Sendable {
-    public var isTerminal: Bool
-    /// Its width in columns, when it has one.
-    public var width: Int?
-    /// Whether to color what's written to it.
-    public var styled: Bool
-
-    public static let plain = StreamTraits(isTerminal: false, width: nil, styled: false)
-
-    public init(isTerminal: Bool, width: Int? = nil, styled: Bool) {
-        self.isTerminal = isTerminal
-        self.width = width
-        self.styled = styled
-    }
-}
-
 /// Where one of the interpreter's output streams goes.
 public struct OutputSink: Sendable {
+    /// What a stream can show, so values are laid out for it: a terminal gets tables fitted to its width and in color, a
+    /// file or a pipe gets every character, plain.
+    public struct Traits: Sendable {
+        public var isTerminal: Bool
+        /// Its width in columns, when it has one.
+        public var width: Int?
+        /// Whether to color what's written to it.
+        public var styled: Bool
+
+        public static let plain = Traits(isTerminal: false, width: nil, styled: false)
+
+        public init(isTerminal: Bool, width: Int? = nil, styled: Bool) {
+            self.isTerminal = isTerminal
+            self.width = width
+            self.styled = styled
+        }
+    }
+
     private let send: @Sendable (String) -> Bool
-    @_spi(Layer) public let traits: @Sendable () -> StreamTraits
+    /// Asked each time, since where output goes can change while a script runs.
+    public let traits: @Sendable () -> Traits
 
     /// `write` says whether the text went: false once the reader has gone, as
     /// with a closed pipe.
@@ -30,15 +30,17 @@ public struct OutputSink: Sendable {
         traits = { .plain }
     }
 
-    /// `traits` is asked each time, since where output goes can change while a script runs.
-    @_spi(Layer) public init(write: @escaping (String) -> Bool, traits: @escaping () -> StreamTraits = { .plain }) {
+    /// `traits` is asked each time, since where output goes can change while a script runs. The closures are called safely
+    /// by the host: only holding the interpreter's lock, or from its own thread.
+    public init(write: @escaping (String) -> Bool, traits: @escaping () -> Traits = { .plain }) {
         // The shell's sinks write to the shell's own descriptors, from whichever thread holds the interpreter.
         let write = UncheckedSendable(write), traits = UncheckedSendable(traits)
         send = { write.value($0) }
         self.traits = { traits.value() }
     }
 
-    @_spi(Layer) @discardableResult
+    /// Writes `text`; false once the reader has gone.
+    @discardableResult
     public func write(_ text: String) -> Bool {
         send(text)
     }
@@ -105,3 +107,6 @@ struct UncheckedSendable<T>: @unchecked Sendable {
     let value: T
     init(_ value: T) { self.value = value }
 }
+
+/// Internal name for the traits a stream has.
+typealias StreamTraits = OutputSink.Traits

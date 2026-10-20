@@ -284,6 +284,17 @@ extension Interpreter {
         }
     }
 
+    /// A member of a value as a script reads it: `value(of: "columns", in: type)` is `Type.columns`.
+    public func value(of member: String, in value: Value) throws(Diagnostic) -> Value {
+        do {
+            return try withMainTask { try self.member(member, of: value) }
+        } catch let error as RuntimeError {
+            throw Diagnostic(kind: .runtime, message: error.description)
+        } catch {
+            throw Diagnostic(kind: .runtime, message: "\(error)")
+        }
+    }
+
     // MARK: Functions
 
     /// Makes a described function one scripts can call, checked like any they declare.
