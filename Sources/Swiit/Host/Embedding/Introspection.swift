@@ -257,7 +257,7 @@ extension Interpreter {
     public func highlight(_ source: String) -> [Highlight] {
         let bound = withMainTask { globalNames() }
         return frontEnd.highlight(source, bound: bound).map { span in
-            Highlight(range: span.range, kind: switch span.kind {
+            let kind: Highlight.Kind = switch span.kind {
             case .keyword: .keyword
             case .command: .command
             case .flag: .flag
@@ -268,7 +268,8 @@ extension Interpreter {
             case .comment: .comment
             case .type: .type
             case .punctuation: .punctuation
-            })
+            }
+            return Highlight(range: span.range, kind: kind)
         }
     }
 
