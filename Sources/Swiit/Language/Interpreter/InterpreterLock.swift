@@ -168,7 +168,7 @@ extension Interpreter {
     /// what it gave or throws what it threw.
     func joinTask(_ handle: TaskHandle) throws -> Value {
         let waiter = task.cancellation
-        // The host may bring it forward while it's awaited (the shell: to the foreground).
+        // The host may bring it forward while it's awaited (the host: to the foreground).
         let restore = host.willAwait(handle.context.host)
         defer { restore() }
         guard let result = suspend(wake: { handle.poke() }, { handle.wait(unless: waiter) }) else {

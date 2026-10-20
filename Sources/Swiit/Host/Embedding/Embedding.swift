@@ -3,7 +3,7 @@ import Foundation
 // The embedding API (Docs/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.
 
-/// What went wrong in a run, as a value: its kind, the message the shell
+/// What went wrong in a run, as a value: its kind, the message the host
 /// would print, and where in the source it is when that is known.
 public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public enum Kind: Sendable { case syntax, type, runtime, limit, cancelled }
@@ -27,7 +27,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
             self.site = site
         }
     }
-    /// For a run-time error: the status the failure gives (a failed command's own, for a shell).
+    /// For a run-time error: the status the failure gives (a failed command's own, for a host).
     public var status: Int32 = 1
     /// The host reported it already (`ScriptError.isReported`).
     public var isReported = false
@@ -110,7 +110,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         rendered(in: source, path: path, style: color ? .ansi : nil)
     }
 
-    /// As above, styled as a host says (a shell's syntax highlighting).
+    /// As above, styled as a host says (a host's syntax highlighting).
     public func rendered(in source: String, path: String? = nil, style: Style?) -> String {
         // A syntax error's own text says its line, which the excerpt shows.
         var text = message
@@ -223,7 +223,7 @@ public final class Cancellation: @unchecked Sendable { // safe: every access hol
     private var set = false
     /// What `isSet` reads without the lock, which every step of every script asks. It is a word written under the lock and
     /// read by whoever is running: a stale read only delays the stop by a step, and a load of a word is atomic where this
-    /// runs (arm64 and x86-64), as the SIGINT flag in the shell's spawn code is.
+    /// runs (arm64 and x86-64), as the SIGINT flag in the host's spawn code is.
     nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
         let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
         pointer.initialize(to: 0)

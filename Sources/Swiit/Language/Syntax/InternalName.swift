@@ -1,5 +1,5 @@
 // Names the lowering and the runtime use between them. Each begins with `$`, which no name a program writes does (a `$0` is
-// a closure's argument, and `$name` is shell syntax, refused in Swift-only code), so they never collide with its own.
+// a closure's argument, and `$name` is host syntax, refused in Swift-only code), so they never collide with its own.
 // Kept here so that each is spelled once: a misspelling in either place would otherwise find nothing, and say nothing.
 
 enum InternalName {

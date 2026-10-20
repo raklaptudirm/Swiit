@@ -162,9 +162,6 @@ struct SwiftPrinter {
             else if parameter.label == nil { text = "_ \(parameter.name)" }
             else if parameter.label == parameter.name { text = parameter.name }
             else { text = "\(parameter.label!) \(parameter.name)" }
-            // What a command line makes of a parameter is part of the declaration.
-            if parameter.isInput { text = "@input " + text }
-            if let flag = parameter.shortFlag { text = "@flag(\"\(flag)\") " + text }
             if closure ? (parameter.type != .any || parameter.variadic) : true { text += ": \(parameter.type)" + (parameter.variadic ? "..." : "") }
             if let value = parameter.defaultValue { text += " = \(expression(value))" }
             return text

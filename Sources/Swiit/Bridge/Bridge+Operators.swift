@@ -2,7 +2,7 @@ import Foundation
 
 /// Operators a bridged Swift type declares (`static func + (lhs: FileSize, rhs:
 /// FileSize)`), used for operands of that type, as Swift does. Swiit's own
-/// Int, Double, String and Bool keep their operators in the shell, so the
+/// Int, Double, String and Bool keep their operators in the host, so the
 /// bridge leaves out those the standard library declares.
 extension Bridge {
     /// The members of the types of `typeNames` that are the operator

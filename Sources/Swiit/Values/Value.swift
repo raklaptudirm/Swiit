@@ -5,7 +5,7 @@ import Foundation
 /// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
 public enum Value: Sendable {
-    // The representation is the interpreter's and the shell's (SPI). A host builds a value with its initializers and literals and
+    // The representation is the interpreter's and the host's (SPI). A host builds a value with its initializers and literals and
     // reads one with `kind`, `cast(to:)`, `entries` and `enumCase`, so a new representation never breaks it.
     case nothing
     case bool(Bool)

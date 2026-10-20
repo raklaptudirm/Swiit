@@ -8,7 +8,7 @@ public struct Awaiting {
     var perform: (_ handle: Value?, _ throwing: Bool) throws -> Value
     /// Whether a value is one of its handles; `await` of anything else is an `async` call's, and gives the value.
     var isHandle: (Value) -> Bool
-    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a shell's `Job<Int>` gives an
+    /// What awaiting a handle of this type gives, where it depends on what the handle holds (a host's `Job<Int>` gives an
     /// Int); `result` else.
     var resultOf: (ValueType) -> ValueType?
 
@@ -35,7 +35,7 @@ extension Interpreter {
         withMainTask { self.awaiting = made }
     }
 
-    /// Makes `name` a global worked out each time it is read, of the type given: a shell's `jobs`.
+    /// Makes `name` a global worked out each time it is read, of the type given: a host's `jobs`.
     public func register(computed name: String, type: ValueType, _ read: @escaping @Sendable () -> Value) {
         withMainTask {
             scopes[0].bindings[name] = Binding(computed: read)
@@ -63,7 +63,7 @@ extension Interpreter {
     }
 
     /// Cancels the tasks the script has started and not joined, and waits for them, as the scope that started them closing
-    /// would: how a shell ends a script.
+    /// would: how a host ends a script.
     public func finishTasks() {
         inCurrentTask { closeTasks(above: -1) }
     }

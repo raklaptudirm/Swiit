@@ -31,7 +31,7 @@ enum Boundaries {
         // What a command gives back, and the files it lists.
         ("results", #"\b(Output|Status|FileEntry|FileType)\b"#),
         // How a terminal shows values: color, styles, tables.
-        ("display", #"\b(colorOutput|styled|TextStyle|Tabular|DisplayColumn|DisplayRegistry)\b"#),
+        ("display", #"\b(colorOutput|TextStyle|Tabular|DisplayColumn|DisplayRegistry)\b"#),
         ("commands", #"\b(shellBuiltins|findExecutable|commandFunctions|callCommand)\b|\bcommandLine\w*"#),
     ]
 

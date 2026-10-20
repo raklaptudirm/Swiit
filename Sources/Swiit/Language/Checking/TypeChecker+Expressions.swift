@@ -187,7 +187,7 @@ extension TypeChecker {
                     return type
                 }
             }
-            // `await job`, or `await` alone: the host's handles (the shell's
+            // `await job`, or `await` alone: the host's handles (the host's
             // jobs), joined by blocking, anywhere.
             guard let awaiting = interpreter.awaiting else { throw TypeError("there is nothing to await here") }
             if throwing { try throwingSite("awaiting a job") }
@@ -554,7 +554,7 @@ extension TypeChecker {
                 .named(box.typeName)
             }
         case .object(let object):
-            // The host registered its type under its name (or, as the shell's jobs are, a program declared a protocol of it).
+            // The host registered its type under its name (or, as the host's jobs are, a program declared a protocol of it).
             if interpreter.isHostObject(object), Bridge.types[object.typeName] != nil { .named(object.typeName) }
             else if interpreter.isHostObject(object), case .protocolType? = lookup(object.typeName) { .named(object.typeName) }
             else { .unknown }

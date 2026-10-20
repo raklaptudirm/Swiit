@@ -4,9 +4,6 @@ enum FunctionBody {
     case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
     case native((Interpreter, [String: Value]) throws -> Value)
-    /// A builtin that transforms its `@input` stream lazily, so `first 5`
-    /// can stop pulling after five items.
-    case stream((Interpreter, ValueStream, [String: Value]) throws -> ValueStream)
 }
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
@@ -76,13 +73,9 @@ final class Function: Callable, @unchecked Sendable { // safe: its state is touc
         return copy
     }
 
-    public var inputParameter: Parameter? {
-        parameters.first(where: \.isInput)
-    }
-
     /// Whether a new declaration would replace this one rather than overload it.
     public func hasSameSignature(as other: Function) -> Bool {
-        let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)", "\(p.isInput)"] }
+        let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)"] }
         return parameters.map(signature) == other.parameters.map(signature) && generics == other.generics
     }
 

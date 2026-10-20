@@ -3,7 +3,7 @@ import Foundation
 extension Interpreter {
     // MARK: Statements
 
-    /// Runs a program. A host that shows what a program gives, as the shell
+    /// Runs a program. A host that shows what a program gives, as the host
     /// does at the prompt and in scripts, passes an `observer`: it is told the
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
@@ -310,7 +310,7 @@ extension Interpreter {
 /// Told each simple statement as it finishes: the statement, an expression
 /// statement's value, and whether a per-item error was reported while it ran.
 /// An `if`, a loop, a `switch` and a `do` are told as they start, with no
-/// value; the statements in them are told as they run. The shell keeps the
+/// value; the statements in them are told as they run. The host keeps the
 /// exit status from these.
 typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemErrors: Bool) -> Void
 

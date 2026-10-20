@@ -2,7 +2,7 @@ import Foundation
 
 /// Runs `body` on a thread with a large stack and waits for it. Swiit code
 /// recurses in the interpreter, so a run happens on such a thread: the
-/// embedder needs no stack setup, and the shell uses it for the same reason.
+/// embedder needs no stack setup, and the host uses it for the same reason.
 /// This is the one place the core makes threads.
 func onLargeStack<T>(_ body: @escaping () throws -> T) throws -> T {
     // The caller waits for the thread, so nothing runs at the same time.

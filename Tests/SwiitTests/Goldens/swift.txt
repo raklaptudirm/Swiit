@@ -499,28 +499,7 @@ try? (1 / 0) == nil#169(try? [1][5]) == nil
 (try? 1 / 0) == nil#171func f() -> Int {
     [1][9]
 }
-(try? f()) ?? 0#177Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#181func double(@input _ n: Int) -> Int {
-    n * 2
-}
-func total(@input _ xs: [Int]) -> Int {
-    var t = 0
-    for x in xs {
-        t = t + x
-    }
-    return t
-}
-func evens(@input _ n: Int) -> Int? {
-    if (n % 2) == 0 {
-        return n
-    }
-    return nil
-}
-var calls = 0
-func counted(@input _ n: Int) -> Int {
-    calls = calls + 1
-    return n
-}
-[1, 2, 3] | double#184let r = 1 ... 5
+(try? f()) ?? 0#177Command("true").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#184let r = 1 ... 5
 r
 r.count
 r.contains(3)
@@ -936,28 +915,7 @@ s.remove(1)
 var t = "ab"
 t.append("c")
 s
-t#419func double(@input _ n: Int) -> Int {
-    n * 2
-}
-func total(@input _ xs: [Int]) -> Int {
-    var t = 0
-    for x in xs {
-        t = t + x
-    }
-    return t
-}
-func evens(@input _ n: Int) -> Int? {
-    if (n % 2) == 0 {
-        return n
-    }
-    return nil
-}
-var calls = 0
-func counted(@input _ n: Int) -> Int {
-    calls = calls + 1
-    return n
-}
-[] | total#424jobs | table#425struct S {
+t#424jobs | table#425struct S {
     var xs: [Int]
 }
 var s = S(xs: [])
@@ -1138,28 +1096,7 @@ let x = .a#508struct Temp {
     }
 }
 var t = Temp(celsius: 1)
-t.celsius = 2#510func f(@flag("n") times: Int = 1, color: Bool = true) {}#514func double(@input _ n: Int) -> Int {
-    n * 2
-}
-func total(@input _ xs: [Int]) -> Int {
-    var t = 0
-    for x in xs {
-        t = t + x
-    }
-    return t
-}
-func evens(@input _ n: Int) -> Int? {
-    if (n % 2) == 0 {
-        return n
-    }
-    return nil
-}
-var calls = 0
-func counted(@input _ n: Int) -> Int {
-    calls = calls + 1
-    return n
-}
-(double | cat) | double#516let c = 1
+t.celsius = 2#516let c = 1
 c = 2#517let zzvalue = 1#519fg#5211 / 0#523bg#525[1][5]#526Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("false").run() }#527enum Result {
     case ok
     case failed(code: Int, String)

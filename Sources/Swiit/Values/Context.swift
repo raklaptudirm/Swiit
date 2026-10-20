@@ -2,8 +2,8 @@ import Foundation
 
 // MARK: Fields by name
 
-/// How a value's field is read by name, set by the shell for the length of a
-/// call that takes a key path: the shell knows what a record, a struct or an
+/// How a value's field is read by name, set by the host for the length of a
+/// call that takes a key path: the host knows what a record, a struct or an
 /// object has.
 ///
 /// It belongs to the thread that set it, because a call runs on one thread

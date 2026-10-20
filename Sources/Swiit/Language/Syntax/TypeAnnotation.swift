@@ -8,7 +8,7 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
     case record
     /// `()`: what a function without `->` returns.
     case void
-    /// A struct or enum, declared in Swiit or by the shell, like `FileType`.
+    /// A struct or enum, declared in Swiit or by the host, like `FileType`.
     case named(String)
     case list(TypeAnnotation)
     /// `[K: V]`.
@@ -135,7 +135,7 @@ extension TypeAnnotation {
 
 /// Whether a function is `async`, as `throws` says whether it throws
 /// (Docs/async.md, "Types and effects"). Only Swift's own `async`: a
-/// layer's waits, like the shell's `$(…)`, are blocking calls, not effects.
+/// layer's waits, like the host's `$(…)`, are blocking calls, not effects.
 enum Effect: Equatable, Sendable {
     case sync
     /// Declared `async`: a call to it is marked with `await`, in an async context.

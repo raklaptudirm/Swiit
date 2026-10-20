@@ -150,13 +150,8 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     }
     for parameter in allGenerics where generics[parameter] == nil { generics[parameter] = [] }
 
-    // A parameter of type HostContext is lent by the host: not Swiit's.
-    func isContext(_ parameter: Parameter) -> Bool {
-        if case .named("HostContext", []) = parameter.type { return true }
-        return false
-    }
     var parameters: [(Parameter, SType)] = []
-    for parameter in declaration.parameters where !isContext(parameter) {
+    for parameter in declaration.parameters {
         guard let type = resolve(parameter.type, context), supported(type, generics: allGenerics, asParameter: true),
               !resultOnly.contains(where: { annotation(type).contains("\(quoted($0))") }) else {
             throw Unsupported(reason: "parameter \(parameter.type)")
@@ -164,17 +159,10 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
         parameters.append((parameter, type))
     }
     var returns: SType = .tuple([])
-    var partial = false
     if declaration.kind == .initializer {
         returns = selfType(owner)
         if declaration.isFailable { returns = .optional(returns) }
-    } else if var declared = declaration.returns {
-        // `Partial<T>`: a result and the errors met making it, which the
-        // shell reports as errors in items, then goes on with the result.
-        if case .named("Partial", let inner) = declared, inner.count == 1 {
-            declared = inner[0]
-            partial = true
-        }
+    } else if let declared = declaration.returns {
         guard let type = resolve(declared, context), supported(type, generics: allGenerics, asParameter: false) else {
             throw Unsupported(reason: "result \(declared)")
         }
@@ -194,21 +182,14 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     // The signature.
     let parameterCode = parameters.map { parameter, type in
         // In the order `Parameter` declares them.
-        // `@Rest` on an array: Swiit's variadic parameter, of the element's type.
-        var valueType = type
-        if parameter.isRest, case .array(let element) = type { valueType = element }
-        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(valueType))"]
-        if parameter.isRest { fields.append("variadic: true") }
+        var fields = ["label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))", "type: \(annotation(type))"]
         let literal = parameter.defaultText.flatMap(literalDefault)
         if let literal { fields.append("defaultValue: \(literal)") }
-        if parameter.isInput { fields.append("isInput: true") }
-        if let flag = parameter.shortFlag { fields.append("shortFlag: \(quoted(String(flag)))") }
-        if let text = parameter.defaultText, literal == nil, !parameter.isRest { fields.append("externalDefault: \(quoted(text))") }
+        if let text = parameter.defaultText, literal == nil { fields.append("externalDefault: \(quoted(text))") }
         return "Parameter(\(fields.joined(separator: ", ")))"
     }
     // The glue.
     let argumentList = declaration.parameters.map { parameter -> String in
-        if isContext(parameter) { return (parameter.label.map { "\($0): " } ?? "") + "shell.context" }
         let type = parameters.first { $0.0.name == parameter.name }!.1
         let value = "args[\(quoted(parameter.name))]"
         var expr = fromSwish("\(value)!", type)
@@ -245,15 +226,12 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     let resultType: String
     if case .array = returns { resultType = ": \(spelling(returns))" } else { resultType = "" }
     if declaration.isMutating {
-        // The result, and the receiver as the call left it, for the shell to
-        // put back where it came from (see `Shell.runBridged`).
+        // The result, and the receiver as the call left it, for the host to
+        // put back where it came from.
         body += isVoid ? "\(tryPrefix)\(target)\n                " : "let result\(resultType) = \(tryPrefix)\(target)\n                "
         body += "return .list([\(isVoid ? ".nothing" : toSwish("result", returns)), mover == nil ? \(toSwish("receiver", receiverType)) : .nothing])"
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
-    } else if partial {
-        body += "let partial = \(tryPrefix)\(target)\n                for error in partial.errors { shell.reportItemError(\"\\(\(quoted(declaration.name))): \\(error)\") }\n"
-        body += "                let result\(resultType) = partial.value\n                return \(toSwish("result", returns))"
     } else {
         body += "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toSwish("result", returns))"
     }
@@ -269,8 +247,8 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         var receiver: \(swiftType) = \(fromSwish("args[\"self\"]!", receiverType))
                         receiver.\(swiftName(declaration.name)) = \(fromSwish("args[\"newValue\"]!", returns))
                         return .list([.nothing, \(toSwish("receiver", receiverType))])
@@ -285,11 +263,11 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
     // An `async` one is waited for in `suspend`, letting other tasks run.
     if declaration.isAsync {
         if declaration.isMutating { throw Unsupported(reason: "async mutating") }
-        body = "return try bridgeAsync(shell) { () async throws -> Value in\n\(body)\n                }"
+        body = "return try bridgeAsync(interpreter) { () async throws -> Value in\n\(body)\n                }"
     }
-    // A key path reads fields as the shell reads them, for as long as the call.
+    // A key path reads fields as the host reads them, for as long as the call.
     if parameters.contains(where: { annotation($0.1).hasPrefix(".keyPath") }) {
-        body = "return try withFieldReader(shell) { () throws -> Value in\n\(body)\n                }"
+        body = "return try withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
     }
     let member = """
                 BridgedMember(
@@ -298,8 +276,8 @@ func bridge(_ symbol: Symbol, of original: BridgedType, given conditions: [Const
                     returns: \(annotation(returns)), generics: \(genericsCode),
                     isThrowing: \(declaration.throwing), isRethrowing: \(declaration.rethrowing), isMutating: \(declaration.isMutating),
                     discardableResult: \(text.contains("@discardableResult")), summary: \(quoted(symbol.summary)),
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         \(body)
                     }\(parameterDocs)\(declaration.isAsync ? ",\n                    effect: .async" : "")
                 )

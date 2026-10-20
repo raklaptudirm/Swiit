@@ -18,10 +18,9 @@ final class OverloadSet: Callable, @unchecked Sendable { // safe: its state is t
 
 extension Parameter {
     /// As a declaration writes it: `_ name: String`, `by key: Int`,
-    /// `@input items: [Int]`, `paths: FilePath...`.
+    /// `paths: FilePath...`.
     public var declaration: [AttributedString] {
         var pieces: [AttributedString] = []
-        if isInput { pieces += [.init("@input", .keyword), .init(" ")] }
         if label == name {
             pieces.append(.init(name, .variable))
         } else {
@@ -49,7 +48,7 @@ extension Function {
     /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`.
     /// A Swift member's receiver, as a stage's input, isn't written.
     public var signature: String {
-        AttributedString(joining: declaration { $0.isInput && $0.name == "self" }).text
+        AttributedString(joining: declaration { $0.name == "self" }).text
     }
 
     public func declaration(hiding hidden: (Parameter) -> Bool) -> [AttributedString] {
@@ -100,22 +99,5 @@ extension Function {
             name: name, parameters: parameters, returnType: nil, body: body,
             documentation: Documentation(summary: summary, parameters: docs)
         )
-    }
-}
-
-extension Parameter {
-    /// An argument by position.
-    public static func positional(_ name: String, _ type: TypeAnnotation, default value: Value? = nil, variadic: Bool = false) -> Parameter {
-        Parameter(label: nil, name: name, type: type, variadic: variadic, defaultValue: value.map(Expr.literal))
-    }
-
-    /// A labeled argument: a flag on the command line.
-    public static func option(_ label: String, _ type: TypeAnnotation, default value: Value? = nil, short: Character? = nil) -> Parameter {
-        Parameter(label: label, name: label, type: type, defaultValue: value.map(Expr.literal), shortFlag: short)
-    }
-
-    /// What's piped in.
-    public static func input(_ name: String, _ type: TypeAnnotation) -> Parameter {
-        Parameter(label: nil, name: name, type: type, isInput: true)
     }
 }

@@ -33,7 +33,7 @@ public struct OutputSink: Sendable {
     /// `traits` is asked each time, since where output goes can change while a script runs. The closures are called safely
     /// by the host: only holding the interpreter's lock, or from its own thread.
     public init(write: @escaping (String) -> Bool, traits: @escaping () -> Traits) {
-        // The shell's sinks write to the shell's own descriptors, from whichever thread holds the interpreter.
+        // The host's sinks write to the host's own descriptors, from whichever thread holds the interpreter.
         let write = UncheckedSendable(write), traits = UncheckedSendable(traits)
         send = { write.value($0) }
         self.traits = { traits.value() }
@@ -50,7 +50,7 @@ public struct OutputSink: Sendable {
 }
 
 /// Why the host asked the program to stop. The interpreter only carries it:
-/// whoever asked reads it back from the `Interrupted` error. (The shell's is
+/// whoever asked reads it back from the `Interrupted` error. (The host's is
 /// the signal number, so it can end by that signal.)
 struct StopReason: Sendable {
     public var code: Int32
@@ -83,19 +83,19 @@ extension Interpreter {
         /// for the interpreter's recursion; by default, one the core makes.
         var startThread: @Sendable (_ body: @escaping @Sendable () -> Void) -> Void = startLargeStackThread
 
-        /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host keeps for it, as a shell keeps
+        /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host keeps for it, as a host keeps
         /// its output and status. Read back as `Interpreter.taskState` while that task runs.
         /// Told as each statement finishes, wherever it is nested: with the value of an expression statement (nil for any other),
         /// and whether it was a `try?` that caught an error. An `if`, a loop, a `switch` and a `do` are told as they start,
-        /// with no value; the statements in them are told as they run. A shell keeps its exit status from these. What a `defer`
+        /// with no value; the statements in them are told as they run. A host keeps its exit status from these. What a `defer`
         /// runs is not told: cleaning up doesn't change how the block went.
         public var statementFinished: (@Sendable (_ value: Value?, _ caughtError: Bool) -> Void)?
         public var makeTaskState: @Sendable () -> AnyObject? = { nil }
         /// Told when the task running waits for another to end (`await`), with the state of the one awaited, before it does;
-        /// what it gives back is called once the wait is over. A shell brings the awaited task forward meanwhile.
+        /// what it gives back is called once the wait is over. A host brings the awaited task forward meanwhile.
         public var willAwait: @Sendable (_ awaited: AnyObject?) -> () -> Void = { _ in {} }
         /// How a read of the host's input (`Interpreter.whileWaitingForInput`) waits for the running task's turn at it, as a
-        /// shell's task in the background waits until it is awaited; then it runs the read, or doesn't, if the task is
+        /// host's task in the background waits until it is awaited; then it runs the read, or doesn't, if the task is
         /// cancelled first. Without it a read runs at once.
         public var inputTurn: (@Sendable (_ read: () -> Void) -> Void)?
 

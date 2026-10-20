@@ -27,7 +27,7 @@ extension TypeChecker {
     func sequenceSignatures(_ methods: OverloadSet) -> [Signature] {
         methods.candidates.enumerated().map { index, method in
             var signature = signature(method)
-            signature.parameters.removeAll(where: \.isInput)
+            signature.parameters.removeAll(where: { $0.name == "self" })
             signature.index = index
             return signature
         }

@@ -11,10 +11,10 @@ extension Bridge {
                      Parameter(label: nil, name: "updateAccumulatingResult",
                                type: .functionType([.inOut(.parameter("R")), .parameter("Element")], .void))],
         returns: .parameter("R"), generics: ["R": []],
-        summary: "Combines the items into one value that each step changes in place.") { shell, arguments in
+        summary: "Combines the items into one value that each step changes in place.") { interpreter, arguments in
         guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else { throw RuntimeError("reduce needs a sequence") }
         var result = arguments["initialResult"] ?? .nothing
-        for item in items { result = try shell.callChangingFirst(arguments["updateAccumulatingResult"]!, result, item) }
+        for item in items { result = try interpreter.callChangingFirst(arguments["updateAccumulatingResult"]!, result, item) }
         return result
     }
 
@@ -157,18 +157,18 @@ extension Bridge {
                 return try flow.read() ?? .nothing
             },
             member(.method, "first", parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool))],
-                   returns: .optional(.parameter("Element")), summary: "The first item the predicate accepts.") { shell, arguments in
+                   returns: .optional(.parameter("Element")), summary: "The first item the predicate accepts.") { interpreter, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing, let flow = box.value as? Flow<Value> else { return .nothing }
                 while let item = try flow.read() {
-                    if try shell.call(arguments["predicate"]!, with: [item]) == .bool(true) { return item }
+                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) { return item }
                 }
                 return .nothing
             },
             member(.method, "contains", parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool))],
-                   returns: .bool, summary: "Whether the predicate accepts an item.") { shell, arguments in
+                   returns: .bool, summary: "Whether the predicate accepts an item.") { interpreter, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing, let flow = box.value as? Flow<Value> else { return .bool(false) }
                 while let item = try flow.read() {
-                    if try shell.call(arguments["predicate"]!, with: [item]) == .bool(true) { return .bool(true) }
+                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) { return .bool(true) }
                 }
                 return .bool(false)
             },
@@ -177,8 +177,8 @@ extension Bridge {
             member(.initializer, "init", isStatic: true,
                    parameters: [Parameter(label: nil, name: "value", type: .parameter("T"))], returns: .string,
                    generics: ["T": ["CustomStringConvertible"]],
-                   summary: "The text of a value that has one: String(5), String(2.5).") { shell, arguments in
-                .string(try shell.describing(arguments["value"] ?? .nothing))
+                   summary: "The text of a value that has one: String(5), String(2.5).") { interpreter, arguments in
+                .string(try interpreter.describing(arguments["value"] ?? .nothing))
             },
         ],
         "Int": [
@@ -192,12 +192,12 @@ extension Bridge {
                    parameters: [Parameter(label: "grouping", name: "values", type: .someSequence(.parameter("E"))),
                                 Parameter(label: "by", name: "keyForValue", type: .functionType([.parameter("E")], .parameter("K")))],
                    returns: .dictionary(.parameter("K"), .list(.parameter("E"))), generics: ["E": [], "K": ["Hashable"]],
-                   summary: "The values in lists, by the key each gives.") { shell, arguments in
+                   summary: "The values in lists, by the key each gives.") { interpreter, arguments in
                 guard let items = Interpreter.items(of: arguments["values"] ?? .nothing) else { throw RuntimeError("grouping needs a sequence") }
                 var order: [Value] = []
                 var groups: [Value: [Value]] = [:]
                 for item in items {
-                    let key = try shell.call(arguments["keyForValue"]!, with: [item])
+                    let key = try interpreter.call(arguments["keyForValue"]!, with: [item])
                     if groups[key] == nil { order.append(key) }
                     groups[key, default: []].append(item)
                 }

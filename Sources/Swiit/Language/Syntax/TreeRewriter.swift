@@ -3,9 +3,9 @@ import Foundation
 /// Rewrites a tree bottom-up: every child is rewritten before its parent is
 /// offered to `expr`, which returns what stands in its place (the same node,
 /// if there is nothing to do). A layer over the core
-/// that adds its own nodes (the shell's, held opaquely in `.extended`) sees
+/// that adds its own nodes (the host's, held opaquely in `.extended`) sees
 /// them here and rewrites what is inside them itself, with `program`,
-/// `expression` and the rest. This is how the shell's constructs become Swift
+/// `expression` and the rest. This is how the host's constructs become Swift
 /// (Swish's Docs/Design/desugaring.md).
 struct TreeRewriter {
     var expr: (Expr) -> Expr

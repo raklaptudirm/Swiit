@@ -12,13 +12,13 @@ func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
 }
 
 /// Runs `body`, which reads fields through key paths, with fields read as the
-/// shell reads them; the first failure (a field that isn't there) is thrown
+/// host reads them; the first failure (a field that isn't there) is thrown
 /// after it, since a key path can't throw.
-func withFieldReader<T>(_ shell: Interpreter, _ body: () throws -> T) throws -> T {
+func withFieldReader<T>(_ interpreter: Interpreter, _ body: () throws -> T) throws -> T {
     var failure: Error?
     let saved = FieldAccess.reader
     FieldAccess.reader = { value, name in
-        do { return try shell.member(name, of: value) } catch {
+        do { return try interpreter.member(name, of: value) } catch {
             failure = failure ?? error
             return .nothing
         }
@@ -115,7 +115,7 @@ func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value 
 
 /// The items of any sequence, for a Swift parameter that takes one: a
 /// String's Characters, a dictionary's (key, value) pairs, or what
-/// `Shell.items(of:)` gives.
+/// `items(of:)` gives.
 func bridgeSequence(_ value: Value) throws -> [Value] {
     switch value {
     case .string(let text):

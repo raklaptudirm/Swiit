@@ -23,8 +23,8 @@ struct TypeError: Error, CustomStringConvertible {
 
 /// Works out the type of every expression and checks it fits where it's
 /// used, as Swift does: local, two-way inference, with every function's
-/// signature written. Names already bound in the shell (from earlier
-/// entries at the prompt, and the builtins) come from the shell; those the
+/// signature written. Names already bound in the host (from earlier
+/// entries at the prompt, and the builtins) come from the host; those the
 /// program declares come from the program.
 ///
 /// It also decides what the interpreter would otherwise decide as it runs,
@@ -127,7 +127,7 @@ final class TypeChecker {
     /// written into a lookup that runs.
     var lastMemberBase: TypeAnnotation?
 
-    /// What the program declares, innermost last, on top of the shell's names.
+    /// What the program declares, innermost last, on top of the host's names.
     var scopes: [[String: Symbol]] = [[:]]
     var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]

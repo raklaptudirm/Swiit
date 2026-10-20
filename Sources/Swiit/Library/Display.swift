@@ -2,7 +2,7 @@ import Foundation
 
 /// How a type says it's shown: the styles and shapes the printers read.
 
-/// A style for text: bold, dim, or a color, and the roles the shell gives
+/// A style for text: bold, dim, or a color, and the roles the host gives
 /// them, so a string or a type looks the same typed, shown and in help. Its
 /// raw value is the terminal's code for it.
 public enum DisplayStyle: String, Sendable {

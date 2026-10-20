@@ -32,8 +32,8 @@ extension Bridge {
                     returns: .generic("ClosedRange", [.named("Date")]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a closed range that contains both of its bounds.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ... (try SwiftValue.unbox(Date.self, args["maximum"]!))
                 return bridgeBox(result, as: "ClosedRange") { r in ClosedRange<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
                     }
@@ -45,8 +45,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the value of the first argument is greater than that of the second argument.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) > (try SwiftValue.unbox(Date.self, args["rhs"]!))
                 return result.value
                     }
@@ -58,8 +58,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the value of the first argument is less than or equal to that of the second argument.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) <= (try SwiftValue.unbox(Date.self, args["rhs"]!))
                 return result.value
                     }
@@ -71,8 +71,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the value of the first argument is greater than or equal to that of the second argument.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) >= (try SwiftValue.unbox(Date.self, args["rhs"]!))
                 return result.value
                     }
@@ -84,8 +84,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) != (try SwiftValue.unbox(Date.self, args["rhs"]!))
                 return result.value
                     }
@@ -97,8 +97,8 @@ extension Bridge {
                     returns: .generic("Range", [.named("Date")]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a half-open range that contains its lower bound but not its upper bound.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ..< (try SwiftValue.unbox(Date.self, args["maximum"]!))
                 return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
                     }
@@ -110,8 +110,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["x"]!)) < (try SwiftValue.unbox(Date.self, args["y"]!))
                 return result.value
                     }
@@ -123,8 +123,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["x"]!)) == (try SwiftValue.unbox(Date.self, args["y"]!))
                 return result.value
                     }
@@ -136,8 +136,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date.timeIntervalBetween1970AndReferenceDate
                 return result.value
                     }
@@ -149,8 +149,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date.timeIntervalSinceReferenceDate
                 return result.value
                     }
@@ -162,8 +162,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized to the current date and time.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date()
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -175,8 +175,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized relative to the current date and time by a given number of seconds.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date(timeIntervalSinceNow: try Double(args["timeIntervalSinceNow"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -188,8 +188,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date(timeIntervalSince1970: try Double(args["timeIntervalSince1970"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -201,8 +201,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized relative to another given date by a given number of seconds.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date(timeInterval: try Double(args["timeInterval"]!), since: try SwiftValue.unbox(Date.self, args["date"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -214,8 +214,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date(timeIntervalSinceReferenceDate: try Double(args["ti"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -227,8 +227,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns the interval between the date object and 00:00:00 UTC on 1 January 2001.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.timeIntervalSinceReferenceDate
                 return result.value
@@ -241,8 +241,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns the interval between the receiver and another given date.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.timeIntervalSince(try SwiftValue.unbox(Date.self, args["date"]!))
                 return result.value
@@ -255,8 +255,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "The time interval between the date and the current date and time.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.timeIntervalSinceNow
                 return result.value
@@ -269,8 +269,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "The interval between the date object and 00:00:00 UTC on 1 January 1970.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.timeIntervalSince1970
                 return result.value
@@ -283,8 +283,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Return a new `Date` by adding a `TimeInterval` to this `Date`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.addingTimeInterval(try Double(args["timeInterval"]!))
                 return SwiftValue.make(result, as: "Date")
@@ -297,8 +297,8 @@ extension Bridge {
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     discardableResult: false, summary: "Add a `TimeInterval` to this `Date`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
                 let taken = mover?.take() ?? args["self"]!
                 var receiver: Date = try SwiftValue.unbox(Date.self, consume taken)
@@ -314,8 +314,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Creates and returns a Date value representing a date in the distant future.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date.distantFuture
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -327,8 +327,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Creates and returns a Date value representing a date in the distant past.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date.distantPast
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -340,8 +340,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` initialized to the current date and time.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date.now
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -353,8 +353,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` with a specified amount of time added to it.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) + (try Double(args["rhs"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -366,8 +366,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a `Date` with a specified amount of time subtracted from it.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try Double(args["rhs"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -379,8 +379,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "A textual representation of this instance, suitable for debugging.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.debugDescription
                 return result.value
@@ -393,8 +393,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns the distance from this value to the given value, expressed as a stride.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.distance(to: try SwiftValue.unbox(Date.self, args["other"]!))
                 return result.value
@@ -407,8 +407,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a value that is offset the specified distance from this value.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.advanced(by: try Double(args["n"]!))
                 return SwiftValue.make(result, as: "Date")
@@ -421,8 +421,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
                 let result = receiver.description
                 return result.value
@@ -435,8 +435,8 @@ extension Bridge {
                     returns: .optional(.named("Date")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "A date written as ISO 8601 text, like `2026-09-27T14:03:00Z`; nil for anything else.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = Date(try String(args["text"]!))
                 return (result.map { SwiftValue.make($0, as: "Date") } ?? .nothing)
                     }
@@ -448,8 +448,8 @@ extension Bridge {
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "How many seconds apart two dates are: `later - earlier`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try SwiftValue.unbox(Date.self, args["rhs"]!))
                 return result.value
                     }
@@ -461,8 +461,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "A date some whole seconds later or earlier, as `date + 60`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) + (try Int(args["rhs"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -474,8 +474,8 @@ extension Bridge {
                     returns: .named("Date"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try Int(args["rhs"]!))
                 return SwiftValue.make(result, as: "Date")
                     }
@@ -487,8 +487,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "A textual representation of this instance.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
                 let result = receiver.description
                 return result.value
@@ -501,8 +501,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) != (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
                 return result.value
                     }
@@ -514,8 +514,8 @@ extension Bridge {
                     returns: .named("AttributedString"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = AttributedString()
                 return SwiftValue.make(result, as: "AttributedString")
                     }
@@ -527,8 +527,8 @@ extension Bridge {
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) == (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
                 return result.value
                     }
@@ -540,8 +540,8 @@ extension Bridge {
                     returns: .named("AttributedString"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Creates an instance initialized to the given string value.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = AttributedString(stringLiteral: try String(args["value"]!))
                 return SwiftValue.make(result, as: "AttributedString")
                     }
@@ -553,8 +553,8 @@ extension Bridge {
                     returns: .named("AttributedString"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) + (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
                 return SwiftValue.make(result, as: "AttributedString")
                     }
@@ -566,8 +566,8 @@ extension Bridge {
                     returns: .named("AttributedString"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Pieces one after the other.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = AttributedString(joining: try bridgeList(args["pieces"]!).map { try SwiftValue.unbox(AttributedString.self, $0) })
                 return SwiftValue.make(result, as: "AttributedString")
                     }
@@ -579,8 +579,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Without the styles.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
                 let result = receiver.plain
                 return result.value
@@ -593,8 +593,8 @@ extension Bridge {
                     returns: .named("AttributedString"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "Text written in Markdown, as documentation is: its code, strong text, emphasis and links as styles, which show where there are colors, and the plain words anywhere else. Only the inline syntax, which is what a description is made of; see `InlineMarkdown`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let result = AttributedString(documentation: try String(args["text"]!))
                 return SwiftValue.make(result, as: "AttributedString")
                     }
@@ -606,8 +606,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "With the terminal's escapes for each style.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
                 let result = receiver.colored
                 return result.value
@@ -620,8 +620,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "As a String: with the terminal's escapes if `styled`.",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
                 let result = receiver.rendered(try Bool(args["styled"]!))
                 return result.value
@@ -634,8 +634,8 @@ extension Bridge {
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     discardableResult: false, summary: "",
-                    body: .native { shell, args in
-                        _ = shell
+                    body: .native { interpreter, args in
+                        _ = interpreter
                         let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
                 let result = receiver.text
                 return result.value

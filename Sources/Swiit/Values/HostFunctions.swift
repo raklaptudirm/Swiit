@@ -27,12 +27,8 @@ public struct HostFunction: Sendable {
             self.enums = T.swiitEnums
         }
 
-        /// The enums its type uses, which the shell learns by name.
+        /// The enums its type uses, which the host learns by name.
         var enums: [EnumType]
-        /// `@Input`: receives what's piped in.
-        var isInput = false
-        /// `@Flag("n")`.
-        var shortFlag: Character?
         var documentation: String?
         /// A default only Swift can compute, like `Date()`: the argument is left out and the function uses its own.
         /// Its source, for `--help`.
@@ -41,8 +37,8 @@ public struct HostFunction: Sendable {
         var showsByType = false
 
         init(
-            label: String?, name: String, type: ValueType, enums: [EnumType] = [], variadic: Bool = false, isInput: Bool = false,
-            shortFlag: Character? = nil, documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil,
+            label: String?, name: String, type: ValueType, enums: [EnumType] = [], variadic: Bool = false,
+            documentation: String? = nil, defaultValue: Value? = nil, defaultSource: String? = nil,
             showsByType: Bool = false
         ) {
             self.showsByType = showsByType
@@ -51,8 +47,6 @@ public struct HostFunction: Sendable {
             self.type = type
             self.enums = enums
             self.isVariadic = variadic
-            self.isInput = isInput
-            self.shortFlag = shortFlag
             self.documentation = documentation
             self.defaultValue = defaultValue
             self.defaultSource = defaultSource
@@ -93,7 +87,7 @@ public struct HostFunction: Sendable {
         self.init(name: name, summary: summary, parameters: parameters, returns: ValueType(returns), isThrowing: isThrowing, body: body)
     }
 
-    /// As the shell's commands are described: a body taking the arguments by name.
+    /// As the host's commands are described: a body taking the arguments by name.
     init(
         name: String, summary: String? = nil, parameters: [Parameter], returnType: ValueType?, isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
@@ -166,7 +160,7 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
 }
 
 /// A host's function or method as a value, as `repo.log` gives it. The
-/// shell calls it like any other function.
+/// host calls it like any other function.
 final class NativeFunction: Callable, @unchecked Sendable { // safe: its state is touched only holding the interpreter lock
     public let function: HostFunction
 
@@ -180,7 +174,7 @@ final class NativeFunction: Callable, @unchecked Sendable { // safe: its state i
 }
 
 /// A failure in converting between Swift and Swiit values, or one a host's function
-/// throws to report a problem the way the shell's own errors read.
+/// throws to report a problem the way the host's own errors read.
 struct SwiitError: Error, CustomStringConvertible {
     public let description: String
 
@@ -191,8 +185,8 @@ struct SwiitError: Error, CustomStringConvertible {
 
 // MARK: Converting values
 
-/// A Swift type that can be a parameter: the shell hands it a `Value`, and
-/// it says what type the shell should check for.
+/// A Swift type that can be a parameter: the host hands it a `Value`, and
+/// it says what type the host should check for.
 public protocol ValueConvertible {
     static var valueType: ValueType { get }
     init(_ swiitValue: Value) throws
@@ -349,7 +343,7 @@ extension Value {
     }
 }
 
-/// What the shell checks a parameter's arguments against.
+/// What the host checks a parameter's arguments against.
 func swiitParameterType<T: ValueConvertible>(_ type: T.Type) -> ValueType { T.valueType }
 /// An exported object: anything, checked when it's converted.
 func swiitParameterType<T: HostObject>(_ type: T.Type) -> ValueType { .any }
@@ -390,7 +384,7 @@ func swiitArgument<T: ValueConvertible>(
 ///
 ///     public enum Level: String, CaseIterable, ScriptEnum { case low, high }
 ///
-/// The shell learns it by name from the functions that take it.
+/// The host learns it by name from the functions that take it.
 public protocol ScriptEnum: ValueConvertible, CaseIterable {
     /// Its cases and raw values, as Swiit sees them; one instance per type,
     /// so values compare equal across calls.

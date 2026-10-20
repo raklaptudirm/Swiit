@@ -8,7 +8,7 @@
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath), on the interpreter's own SwiitStandardLibrary, which also
 // adds to the standard library's types; a client with a library of its own
-// (the shell's SwishShellLibrary) runs it on that. A member is bridged only if every
+// (the host's SwishShellLibrary) runs it on that. A member is bridged only if every
 // type in its signature is one Swiit can pass or hold (see `supported`); the
 // rest are left out, and counted on stderr.
 //
@@ -79,7 +79,7 @@ struct BridgedModule {
     let external: [String]
     /// Structs Swiit declares itself, made from the Swift value as a record.
     let records: [String]
-    /// Generated into the shell's target, not the core's.
+    /// Generated into the host's target, not the core's.
     let outsideCore: Bool
     /// Types of other modules that this one adds members to, with extensions (`String.styled`): only the added members are made.
     let extending: [String]
@@ -109,11 +109,11 @@ let modules: [String: BridgedModule] = [
     "SystemPackage": BridgedModule("system", [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])], nil, [], [], false),
     // Foundation's types Swiit holds as Swift's: a date.
     "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, [], [], false),
-    // The shell's own functions: every public free function. Their types are
+    // The host's own functions: every public free function. Their types are
     // Swift's (bridged from the other modules, so held here as they are).
     "SwiitStandardLibrary": BridgedModule("", [], "standardFunctions", ["FilePath", "Date"], [], false),
-    // The shell's: the part of the library that reaches the process, the file
-    // system and the session. It is generated into the shell's target.
+    // The host's: the part of the library that reaches the process, the file
+    // system and the session. It is generated into the host's target.
     "SwishShellLibrary": BridgedModule("shellBridged", [("FileSize", []), ("DisplayColumn", []), ("Output", [])], "shellFunctions", ["FilePath", "Date"], ["Status"], true, extending: ["String"]),
 ]
 guard let module = modules[graph.module.name] else {
@@ -121,8 +121,8 @@ guard let module = modules[graph.module.name] else {
     exit(2)
 }
 let bridgedTypeNames = module.types
-/// How the generated tables are visible: the interpreter's to the shell as SPI,
-/// the shell's own within the shell's package.
+/// How the generated tables are visible: the interpreter's to the host as SPI,
+/// the host's own within the host's package.
 let access = module.outsideCore ? "package" : "internal"
 // A library outside the core takes Swiit's own value as it is (the standard library's Dictionary has a generic `Value` of its own).
 if module.outsideCore { leaves["Value"] = Leaf(".any", { $0 }, { $0 }) }
@@ -151,7 +151,7 @@ var styleSources: [String] = []
 // A struct Swiit declares itself, whose Swift value is made a record.
 for name in module.records {
     resultOnly.insert(name)
-    leaves[name] = Leaf(".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") }, { "bridgeRecord(shell, \($0))" })
+    leaves[name] = Leaf(".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") }, { "bridgeRecord(interpreter, \($0))" })
 }
 // A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read, which may be of it.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
@@ -180,7 +180,7 @@ do {
             styleSources.append("\(quoted(name)): { name in \(name).allCases.first { \"\\($0)\" == name }?.displayStyle }")
         }
         leaves[name] = Leaf(".named(\(quoted(name)))", { iterable ? "try bridgeCase(\(name).self, \($0))" : "fatalError()" },
-                        { "shell.declaredCase(\(quoted(name)), String(describing: \($0)))" })
+                        { "interpreter.declaredCase(\(quoted(name)), String(describing: \($0)))" })
     }
     for symbol in publicTypes where symbol.kind.identifier == "swift.struct" {
         let name = symbol.pathComponents[0]
@@ -206,7 +206,7 @@ do {
         resultOnly.insert(name)
         let patchesCode = patches.isEmpty ? "" : ", patches: [\(patches.joined(separator: ", "))]"
         leaves[name] = Leaf(".named(\(quoted(name)))", { _ in fatalError("a record is a result, not an argument") },
-                        { "bridgeRecord(shell, \($0)\(patchesCode))" })
+                        { "bridgeRecord(interpreter, \($0)\(patchesCode))" })
     }
 }
 // Other types that aren't generic, Swiit having no value of its own for
@@ -338,7 +338,7 @@ for (name, _) in bridgedTypeNames + module.extending.map({ ($0, [String]()) }) {
         guard kinds.contains(symbol.kind.identifier), symbol.accessLevel == "public", available(symbol) else { continue }
         let title = symbol.pathComponents.last!
         // Operators of a type from another module: the standard library's
-        // (Int, String…) are the shell's own, which doesn't ask Swift.
+        // (Int, String…) are the host's own, which doesn't ask Swift.
         let isOperator = symbol.kind.identifier == "swift.func.op"
         guard !title.hasPrefix("_"), title.first?.isLetter ?? false || isOperator && graph.module.name != "Swift" else { continue }
         // The interpreter's own hooks a type adopts (`swiitCell`), not for Swiit code.
@@ -424,10 +424,10 @@ if !module.types.isEmpty || !module.extending.isEmpty { output += "    ]\n" }
 if let list = module.functions {
     output += "    /// The module's structs, as Swiit source: declared with the prelude.\n"
     // What the module is called in the names of its tables: `standard` for
-    // `standardFunctions`, `shell` for `shellFunctions`.
+    // `standardFunctions`, `host` for `shellFunctions`.
     let prefix = String(list.dropLast("Functions".count))
     output += "    \(access) static let \(prefix)Types = #\"\"\"\n" + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
-    // Tables are the shell's: a module generated into the shell's target says how its types show in one.
+    // Tables are the host's: a module generated into the host's target says how its types show in one.
     if module.outsideCore {
         output += "    /// How the module's structs say which columns a table starts with.\n"
         output += "    \(access) static let \(prefix)Columns: [String: [DisplayColumn]] = [\(columnSources.isEmpty ? ":" : columnSources.joined(separator: ", "))]\n\n"

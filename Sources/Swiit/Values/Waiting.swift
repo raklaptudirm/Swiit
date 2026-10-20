@@ -20,7 +20,7 @@ extension WaitingHost {
 /// For a function that waits, as a host's or a library's may: a blocking
 /// read, a network call, a long computation that touches no Swiit values.
 /// Wrapped in `whileWaiting`, it lets other Swiit tasks run meanwhile, as
-/// the shell's own waits do; unwrapped, it holds every task up while it waits.
+/// the host's own waits do; unwrapped, it holds every task up while it waits.
 ///
 /// A wait that ends only when `body` returns runs to its end even if the task is cancelled. One that can be cut
 /// short (a sleep, a child process, a network call with a cancel handle) says how with `wake`, which is called when

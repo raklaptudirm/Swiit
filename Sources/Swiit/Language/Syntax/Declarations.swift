@@ -288,13 +288,8 @@ struct Parameter: Equatable, Sendable {
     var type: TypeAnnotation = .any
     var variadic = false
     var defaultValue: Expr?
-    /// `@input`: receives pipeline input; per item, or the whole stream
-    /// if its type is a list.
-    var isInput = false
     /// `@Builder content: () -> V`: a closure given for it is made by the result builder.
     var resultBuilder: String?
-    /// `@flag("n")`: a short flag in command mode.
-    var shortFlag: Character?
     /// `inout`: the argument is passed as `&place`, and the place gets the
     /// parameter's value back when the function ends.
     var isInout = false
@@ -311,7 +306,7 @@ struct Parameter: Equatable, Sendable {
 
     init(
         label: String? = nil, name: String, type: TypeAnnotation = .any, variadic: Bool = false,
-        defaultValue: Expr? = nil, isInput: Bool = false, shortFlag: Character? = nil, externalDefault: String? = nil,
+        defaultValue: Expr? = nil, externalDefault: String? = nil,
         isInout: Bool = false, isAutoclosure: Bool = false
     ) {
         self.isAutoclosure = isAutoclosure
@@ -321,8 +316,6 @@ struct Parameter: Equatable, Sendable {
         self.type = type
         self.variadic = variadic
         self.defaultValue = defaultValue
-        self.isInput = isInput
-        self.shortFlag = shortFlag
         self.externalDefault = externalDefault
     }
 }

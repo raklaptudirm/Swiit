@@ -1,7 +1,7 @@
 
 /// A library of functions and types written in Swift and bridged by
 /// `swiit-bridge`, with the Swiit declarations a host adds to the prelude: the
-/// core's own is `Library.standard`; a host has others (the shell's `ls` and
+/// core's own is `Library.standard`; a host has others (the host's `ls` and
 /// `ps` are `SwishShellLibrary`).
 struct Library {
     /// Its structs and enums, as Swiit source, declared with the prelude.

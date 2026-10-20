@@ -2,7 +2,7 @@ import Foundation
 
 /// What a type has, for `help Type` and `members`: a Swift type's members
 /// from the bridge (with Swiit's own extensions, and for a sequence the
-/// shell's additions), a struct's or enum's from its declaration. One
+/// host's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
 public struct TypeDescription {
     /// What a member is; the order of the cases is the order `help` shows
@@ -81,7 +81,7 @@ extension Interpreter {
                 summary: member.summary
             )
         }
-        // A sequence has the shell's additions too: `select`, `get`, …
+        // A sequence has the host's additions too: `select`, `get`, …
         if type.conformances["Sequence"] != nil {
             for (name, methods) in sequenceMethods.sorted(by: { $0.key < $1.key }) {
                 for method in methods.candidates {
@@ -166,7 +166,7 @@ extension TypeDescription {
     /// what it's called on, so it isn't shown.
     static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
-                   + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.isInput })
+                   + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.name == "self" })
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed

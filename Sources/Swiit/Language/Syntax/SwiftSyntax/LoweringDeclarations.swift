@@ -243,21 +243,10 @@ extension Lowering {
         return parameters
     }
 
-    /// What a signature can't say, as the layer's attributes make it: which parameter is
-    /// the piped input, and which short flags there are. As in Swift, what follows
-    /// a variadic needs a label, so it's clear where the variadic ends.
+    /// As in Swift, what follows a variadic needs a label, so it's clear where the variadic ends.
     private func validate(_ parameters: [Parameter], in node: some SyntaxProtocol) throws {
         var seen: Set<String> = []
-        var shortFlags: Set<Character> = []
-        if parameters.filter(\.isInput).count > 1 { throw SyntaxError("only one parameter can be @input (line \(line(of: node)))") }
         for (index, parameter) in parameters.enumerated() {
-            if parameter.isInput && parameter.variadic {
-                throw SyntaxError("an @input parameter can't be variadic; use a list type for the whole stream (line \(line(of: node)))")
-            }
-            if let flag = parameter.shortFlag {
-                guard parameter.label != nil else { throw SyntaxError("@flag needs a labeled parameter (line \(line(of: node)))") }
-                guard shortFlags.insert(flag).inserted else { throw SyntaxError("duplicate short flag -\(flag) (line \(line(of: node)))") }
-            }
             if parameter.name != "_" && !seen.insert(parameter.name).inserted {
                 throw SyntaxError("duplicate parameter '\(parameter.name)' (line \(line(of: node)))")
             }
@@ -272,8 +261,6 @@ extension Lowering {
 
     private mutating func lowerParameters(_ clause: FunctionParameterClauseSyntax) throws -> [Parameter] {
         try clause.parameters.map { parameter in
-            var shortFlag: Character?
-            var isInput = false
             var resultBuilder: String?
             // `inout Int`: a specifier before the type.
             let isInout = parameter.type.as(AttributedTypeSyntax.self)?.specifiers.contains { specifier in
@@ -287,16 +274,6 @@ extension Lowering {
             for attribute in parameter.attributes {
                 guard case .attribute(let attribute) = attribute else { throw unsupported("this attribute", parameter) }
                 switch attribute.attributeName.trimmedDescription {
-                case "flag", "Flag":
-                    guard case .argumentList(let arguments)? = attribute.arguments, arguments.count == 1,
-                          let literal = arguments.first?.expression.as(StringLiteralExprSyntax.self),
-                          let flag = literal.representedLiteralValue, flag.count == 1, let character = flag.first,
-                          character.isLetter || character.isNumber else {
-                        throw SyntaxError("@flag needs a single letter or digit, like @flag(\"n\") (line \(line(of: attribute)))")
-                    }
-                    shortFlag = character
-                case "input", "Input":
-                    isInput = true
                 case let name where facts.resultBuilders.contains(name):
                     resultBuilder = name
                 default:
@@ -314,7 +291,7 @@ extension Lowering {
             let defaultValue = try parameter.defaultValue.map { try expression($0.value) }
             return Parameter(
                 label: first == "_" ? nil : first, name: name, type: type, variadic: variadic, defaultValue: defaultValue,
-                isInput: isInput, shortFlag: shortFlag, isInout: isInout, isAutoclosure: isAutoclosure
+                isInout: isInout, isAutoclosure: isAutoclosure
             ).withBuilder(resultBuilder)
         }
     }

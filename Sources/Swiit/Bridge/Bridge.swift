@@ -17,7 +17,7 @@ enum Bridge {
         ($0.name, $0.conforming(to: conformancesDeclaredHere[$0.name] ?? []).adding(additions[$0.name] ?? []))
     })
 
-    /// Adds the types a library bridges (the shell's `FileSize`), which the core does not know, and the members it adds to types the
+    /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and the members it adds to types the
     /// core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
         lock.withLock {
@@ -151,7 +151,7 @@ struct BridgedMember {
     public let isThrowing: Bool
     public let isRethrowing: Bool
     /// Changes its receiver, like `append`. Its glue gives the result and
-    /// the changed receiver, which the shell puts back.
+    /// the changed receiver, which the host puts back.
     public let isMutating: Bool
     /// `@discardableResult`, like `removeLast()`: a statement that's just
     /// the call doesn't show what it gives.

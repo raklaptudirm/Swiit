@@ -2,7 +2,7 @@
 /// A line of execution through Swiit code: its own call stack (the scopes
 /// of the calls and blocks it is in, under the global ones every task
 /// shares), its own cancellation flag, and what its host keeps for it, as the
-/// shell does its standard output. The prompt is the first task, and for now
+/// host does its standard output. The prompt is the first task, and for now
 /// the only one (Docs/async.md, step 1); the interpreter's own state of
 /// these names is the current task's.
 final class TaskContext {
@@ -28,9 +28,9 @@ final class TaskContext {
     var calledSuperInit = false
     /// Asks the task to stop, from any thread.
     public let cancellation = Cancellation()
-    /// What the host keeps for the task (the shell: its output, its status).
+    /// What the host keeps for the task (the host: its output, its status).
     public var host: AnyObject?
-    /// Whether the host's interrupts (the shell's ^C) stop it: the task in the
+    /// Whether the host's interrupts (the host's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
     var receivesInterrupts = true
     /// The tasks it started and hasn't seen end, with how deep in its calls

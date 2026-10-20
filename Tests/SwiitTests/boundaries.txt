@@ -9,23 +9,5 @@
 # No file here may reach the operating system directly (stdoutFD, getenv,
 # waitpid, …); that goes through SwiitHost, and has no allowance.
 
-# Most groups are empty: the core names nothing of the shell's there.
-
-# What a command line is made of (flags, piped input), what a command gives
-# back and the files it lists, and how a terminal shows values. Each exits
-# when it moves to the shell (the agenda's "command-line vocabulary" item).
-allow	Language/Prelude/Prelude.swift	commandline	1
-allow	Language/Syntax/Declarations.swift	commandline	8
-allow	Language/Syntax/SwiftPrinter.swift	commandline	4
-allow	Language/Syntax/TypeAnnotation.swift	display	14
-allow	Language/Syntax/SwiftSyntax/LoweringDeclarations.swift	commandline	16
-allow	Language/Checking/TypeChecker+Members.swift	commandline	1
-allow	Language/Interpreter/Callables.swift	commandline	5
-allow	Language/Interpreter/Callables.swift	display	2
-allow	Language/Interpreter/Function.swift	commandline	3
-allow	Language/Interpreter/Interpreter+Calls.swift	commandline	6
-allow	Language/Interpreter/Interpreter+SequenceMethods.swift	commandline	1
-allow	Language/Interpreter/Interpreter.swift	display	6
-allow	Language/Reflection/TypeMembers.swift	commandline	1
-allow	Language/Reflection/TypeMembers.swift	display	4
-allow	Host/SwiitHost.swift	display	5
+# Every group is empty: the core names nothing of the shell's. A line would be
+# a decision to let one in.

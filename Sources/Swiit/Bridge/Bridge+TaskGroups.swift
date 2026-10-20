@@ -6,7 +6,7 @@ import SwiitStandardLibrary
 
 /// A task group's state: the children's results as they end, and how many are still going.
 final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its own lock
-    nonisolated(unsafe) let shell: Interpreter // safe: an interpreter is touched only holding its lock
+    nonisolated(unsafe) let interpreter: Interpreter // safe: an interpreter is touched only holding its lock
     let isThrowing: Bool
     private let condition = NSCondition()
     private var finished: [Result<Value, any Error>] = []
@@ -14,8 +14,8 @@ final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its 
     private var handles: [TaskHandle] = []
     var isCancelled = false
 
-    init(_ shell: Interpreter, isThrowing: Bool) {
-        self.shell = shell
+    init(_ interpreter: Interpreter, isThrowing: Bool) {
+        self.interpreter = interpreter
         self.isThrowing = isThrowing
     }
 
@@ -30,10 +30,10 @@ final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its 
         condition.lock()
         pending += 1
         condition.unlock()
-        let shell = shell
+        let interpreter = interpreter
         do {
-            let handle = try shell.startTask(host: shell.host.makeTaskState(), structured: false) { [self] in
-                let result = Result { try shell.call(operation, with: []) }
+            let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) { [self] in
+                let result = Result { try interpreter.call(operation, with: []) }
                 condition.lock()
                 finished.append(result)
                 condition.broadcast()
@@ -52,8 +52,8 @@ final class TaskGroupBox: @unchecked Sendable { // safe: every access holds its 
 
     /// The next child's result, in the order they end; nil when none is left.
     func next() throws -> Value? {
-        let cancellation = shell.task.cancellation
-        let outcome: Result<Value, any Error>? = shell.suspend(wake: { [self] in
+        let cancellation = interpreter.task.cancellation
+        let outcome: Result<Value, any Error>? = interpreter.suspend(wake: { [self] in
             condition.lock()
             condition.broadcast()
             condition.unlock()
@@ -148,11 +148,11 @@ extension Bridge {
                 Parameter(label: nil, name: "body", type: .functionType([.generic(typeName, [.unknown])], .parameter("Result"), throws: isThrowing, async: .async)),
             ],
             returnType: .parameter("Result"),
-            body: .native { shell, arguments in
-                let box = TaskGroupBox(shell, isThrowing: isThrowing)
+            body: .native { interpreter, arguments in
+                let box = TaskGroupBox(interpreter, isThrowing: isThrowing)
                 let value = SwiftValue.make(box, as: typeName)
                 do {
-                    let result = try shell.call(arguments["body"]!, with: [value])
+                    let result = try interpreter.call(arguments["body"]!, with: [value])
                     try box.waitForAll()
                     return result
                 } catch {

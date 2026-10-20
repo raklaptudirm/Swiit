@@ -68,7 +68,7 @@ extension TypeChecker {
         }
 
         // A closure may `await`, which makes it async, as in Swift; one that
-        // waits only through the shell's constructs is implicitly async.
+        // waits only through the host's constructs is implicitly async.
         let (result, effects) = try withEffects(allowsAwait: true) { () throws -> TypeAnnotation in
             if implicitTryAwait { awaitDepth = 1 }
             if var expr = implicitReturn(closure.body) {

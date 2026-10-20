@@ -7,12 +7,6 @@ struct Parameter {
     let name: String
     let type: SType
     let defaultText: String?
-    /// `@Flag("a")`: a short flag on the command line.
-    var shortFlag: Character?
-    /// `@Input`: what's piped in.
-    var isInput = false
-    /// `@Rest`: an array that takes all the remaining arguments.
-    var isRest = false
 }
 
 /// A member's declaration, as far as its text says; its constraints come
@@ -116,30 +110,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         var parameters: [Parameter] = []
         if reader.consume(")") { return parameters }
         repeat {
-            // SwiitKit's `@Flag("a")` and `@Input`, which mark a parameter.
-            var shortFlag: Character?
-            var firstLetter = false
-            var isInput = false
-            var isRest = false
             reader.skipSpaces()
-            while reader.consume("@") {
-                switch reader.identifier() {
-                case "Flag":
-                    // `@Flag("a")`, or `@Flag` alone: the parameter's first letter.
-                    if reader.consume("(") {
-                        guard reader.consume("\""), let letter = reader.peek() else { throw Unsupported(reason: "@Flag") }
-                        reader.pos += 1
-                        guard reader.consume("\""), reader.consume(")") else { throw Unsupported(reason: "@Flag") }
-                        shortFlag = letter
-                    } else {
-                        firstLetter = true
-                    }
-                case "Input": isInput = true
-                case "Rest": isRest = true
-                default: throw Unsupported(reason: "attribute")
-                }
-                reader.skipSpaces()
-            }
             guard let first = reader.identifier() else { throw Unsupported(reason: "parameter") }
             var name = first
             var label: String? = first
@@ -161,8 +132,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
                 }
                 defaultText = text.trimmingCharacters(in: .whitespaces)
             }
-            if firstLetter { shortFlag = (label ?? name).first }
-            parameters.append(Parameter(label: label, name: name, type: type, defaultText: defaultText, shortFlag: shortFlag, isInput: isInput, isRest: isRest))
+            parameters.append(Parameter(label: label, name: name, type: type, defaultText: defaultText))
         } while reader.consume(",")
         guard reader.consume(")") else { throw Unsupported(reason: "parameters end") }
         return parameters

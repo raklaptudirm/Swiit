@@ -3,19 +3,19 @@ import Foundation
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
-/// runs only Swift (a layer over it, like the shell, rewrites its own syntax
-/// first; Docs/boundaries.md). The shell owns one.
+/// runs only Swift (a layer over it, like the host, rewrites its own syntax
+/// first; Docs/boundaries.md). The host owns one.
 public final class Interpreter: @unchecked Sendable { // safe: every public method holds the interpreter's lock
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     /// Where its output goes and how it is told to stop; a host may change it between runs.
     public var host: Interpreter.Host
 
     /// What runs this interpreter, if it is more than an embedder's call: the
-    /// shell, whose nodes reach it from here. Weak, as the owner holds the
+    /// host, whose nodes reach it from here. Weak, as the owner holds the
     /// interpreter.
     weak var owner: AnyObject?
     /// The members, by name, of the host's object types that Swift doesn't
-    /// declare (the shell's `Job`), for the checker.
+    /// declare (the host's `Job`), for the checker.
     /// The bridged libraries installed: the core's, and the host's.
     var libraries: [Library] = []
     /// The types of dynamic objects' members (`DynamicObject`), by type name.
@@ -25,7 +25,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
     var task: TaskContext
-    /// The first task: the host's own (the shell's prompt, an embedder's `eval`).
+    /// The first task: the host's own (the host's prompt, an embedder's `eval`).
     let mainTask = TaskContext(globals: [Scope(), Scope()])
     /// What Swiit code runs under, one task at a time (InterpreterLock.swift).
     let lock = InterpreterLock()
@@ -62,7 +62,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// without `await`, for the redefinition rule (TypeChecker+Effects.swift).
     var unawaitedCallers: [String: Set<String>] = [:]
     /// Told each simple statement as it finishes, for a host that keeps an
-    /// exit status, as the shell does.
+    /// exit status, as the host does.
     /// Whether the host is told as statements finish; not while a `defer` cleans up.
     var observesStatements = true
 

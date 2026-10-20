@@ -47,10 +47,10 @@ extension Bridge {
 
     /// Runs `operation` as an unstructured task, as Swift's `Task { }` does:
     /// it isn't cancelled when the scope that made it ends.
-    private static func start(_ shell: Interpreter, _ arguments: [String: Value]) throws -> Value {
+    private static func start(_ interpreter: Interpreter, _ arguments: [String: Value]) throws -> Value {
         let operation = arguments["operation"]!
-        let handle = try shell.startTask(host: shell.host.makeTaskState(), structured: false) {
-            try shell.call(operation, with: [])
+        let handle = try interpreter.startTask(host: interpreter.host.makeTaskState(), structured: false) {
+            try interpreter.call(operation, with: [])
         }
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
@@ -66,10 +66,10 @@ extension Bridge {
                returns: .generic("Task", [.parameter("Success"), .named("Error")]), generics: ["Success": []],
                summary: "Runs the throwing operation as a task of its own, which goes on while the code that started it does.", start),
         member(.property, "value", returns: .parameter("Success"), effect: .async, typedThrows: "Failure",
-               summary: "What the task gives, once it has ended; what it threw, if it threw.") { shell, arguments in
+               summary: "What the task gives, once it has ended; what it threw, if it threw.") { interpreter, arguments in
             let handle = try task(arguments["self"])
             do {
-                return try shell.joinTask(handle)
+                return try interpreter.joinTask(handle)
             } catch is Cancelled {
                 // The task, not the one waiting, was cancelled.
                 if case .failure(let error)? = handle.rawResult, error is Cancelled { throw cancellationError() }
@@ -84,24 +84,24 @@ extension Bridge {
             .bool(try task(arguments["self"]).context.cancellation.isSet)
         },
         member(.property, "isCancelled", isStatic: true, returns: .bool,
-               summary: "Whether the task running this has been asked to stop.") { shell, _ in
-            .bool(shell.task.cancellation.isSet)
+               summary: "Whether the task running this has been asked to stop.") { interpreter, _ in
+            .bool(interpreter.task.cancellation.isSet)
         },
         member(.method, "checkCancellation", isStatic: true, returns: .void, throwing: true,
-               summary: "Throws a CancellationError if the task running this has been asked to stop.") { shell, _ in
-            if shell.task.cancellation.isSet { throw cancellationError() }
+               summary: "Throws a CancellationError if the task running this has been asked to stop.") { interpreter, _ in
+            if interpreter.task.cancellation.isSet { throw cancellationError() }
             return .nothing
         },
         member(.method, "sleep", isStatic: true, parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
                returns: .void, throwing: true, effect: .async,
-               summary: "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.") { shell, arguments in
+               summary: "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.") { interpreter, arguments in
             let nanoseconds = try Int(arguments["duration"]!)
-            try shell.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
+            try interpreter.sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },
         member(.method, "yield", isStatic: true, returns: .void, effect: .async,
-               summary: "Lets other tasks run before this one goes on.") { shell, _ in
-            _ = shell.suspend { sched_yield() }
+               summary: "Lets other tasks run before this one goes on.") { interpreter, _ in
+            _ = interpreter.suspend { sched_yield() }
             return .nothing
         },
     ]
@@ -132,7 +132,7 @@ extension Interpreter {
 
 /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
 /// cancelling the task cancels it.
-func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
+func bridgeAsync(_ interpreter: Interpreter, _ operation: @escaping () async throws -> Value) throws -> Value {
     // Set by the operation's task, read by this thread once it's set.
     final class Outcome: @unchecked Sendable { // safe: every access holds its own lock
         let operation: () async throws -> Value
@@ -158,28 +158,28 @@ func bridgeAsync(_ shell: Interpreter, _ operation: @escaping () async throws ->
     let running = Task.detached {
         do { outcome.finish(.success(try await outcome.operation())) } catch { outcome.finish(.failure(error)) }
     }
-    let result = shell.suspend(wake: { running.cancel() }) { outcome.wait() }
+    let result = interpreter.suspend(wake: { running.cancel() }) { outcome.wait() }
     if case .failure(is CancellationError) = result { throw cancellationError() }
     return try result.get()
 }
 
 /// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
 /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
-func bridgeAsyncClosure(_ shell: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
-    nonisolated(unsafe) let shell = shell // safe: runs holding the interpreter lock
-    nonisolated(unsafe) let caller = shell.task // safe: runs holding the interpreter lock
+func bridgeAsyncClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) async throws -> Value {
+    nonisolated(unsafe) let interpreter = interpreter // safe: runs holding the interpreter lock
+    nonisolated(unsafe) let caller = interpreter.task // safe: runs holding the interpreter lock
     let function = function
     return { arguments in
         let arguments = arguments
         return try await withCheckedThrowingContinuation { continuation in
-            shell.host.startThread {
-                shell.lock.acquire()
-                let previous = shell.task
-                shell.task = caller
-                Waiting.host = shell
-                let result = Result { try shell.call(function, with: arguments) }
-                shell.task = previous
-                shell.lock.release()
+            interpreter.host.startThread {
+                interpreter.lock.acquire()
+                let previous = interpreter.task
+                interpreter.task = caller
+                Waiting.host = interpreter
+                let result = Result { try interpreter.call(function, with: arguments) }
+                interpreter.task = previous
+                interpreter.lock.release()
                 continuation.resume(with: result)
             }
         }

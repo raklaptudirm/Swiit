@@ -94,9 +94,9 @@ extension Interpreter {
             parameters: [Parameter(label: nil, name: "base", type: .optional(.parameter("T"))),
                          Parameter(label: nil, name: "rest", type: .functionType([.parameter("T")], .parameter("R"), throws: true))],
             returnType: .optional(.parameter("R")),
-            body: .native { shell, arguments in
+            body: .native { interpreter, arguments in
                 guard let base = arguments["base"], base != .nothing else { return .nothing }
-                return try shell.call(arguments["rest"]!, with: [base])
+                return try interpreter.call(arguments["rest"]!, with: [base])
             },
             documentation: Documentation(summary: "The rest of an optional chain.", parameters: [:]), isRethrowing: true, generics: ["T": [], "R": []],
             flattensResult: true

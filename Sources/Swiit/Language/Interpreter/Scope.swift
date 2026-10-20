@@ -16,7 +16,7 @@ struct Binding {
     public let mutable: Bool
     /// Its value is worked out on each read; looking at its type reads nothing.
     var isComputed: Bool { cell.isComputed }
-    /// Declared with `func`, which makes it callable in command mode.
+    /// Declared with `func`.
     public var isFunction = false
     var special: Special?
 
@@ -31,7 +31,7 @@ struct Binding {
         self.special = special
     }
 
-    /// A name whose value is worked out each time it is read, like the shell's
+    /// A name whose value is worked out each time it is read, like the host's
     /// `jobs`, and can't be assigned.
     public init(computed value: @escaping () -> Value) {
         cell = Cell(compute: value)

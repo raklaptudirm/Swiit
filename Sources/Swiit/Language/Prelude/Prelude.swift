@@ -1,7 +1,7 @@
 import Foundation
 
 /// The builtins' types and signatures, written in Swiit and read when the
-/// shell starts. The checker works from these; the bodies are in Swift
+/// host starts. The checker works from these; the bodies are in Swift
 /// (StructuredBuiltins.swift), found by name. Doc comments are what `help`
 /// and `--help` show.
 extension Interpreter {
@@ -151,7 +151,7 @@ extension Interpreter {
                     (name, (body: FunctionBody.native { interpreter, arguments in
                         do { return try call(arguments) } catch { throw interpreter.hostFailure(error, in: name) }
                     }, input: name.hasPrefix("Sequence.")
-                        ? Parameter(label: nil, name: "self", type: .list(.parameter("Element")), isInput: true) : nil))
+                        ? Parameter(label: nil, name: "self", type: .list(.parameter("Element"))) : nil))
                 })
                 try declarePreludeExtensions(try declarePrelude(program, natives: natives))
             }
@@ -162,7 +162,7 @@ extension Interpreter {
         }
     }
 
-    /// A builtin as the shell's functions are: the prelude's signature, a
+    /// A builtin as the host's functions are: the prelude's signature, a
     /// Swift body, and for a sequence method, the `@input` it reads the
     /// sequence from (each item, or all of them).
     private func builtinFunction(_ decl: FunctionDecl, _ body: FunctionBody, input: Parameter?) -> Function {

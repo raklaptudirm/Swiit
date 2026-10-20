@@ -3,7 +3,7 @@
 // effects"): a call to an `async` function is marked with `await`, and
 // `await` is written in an async context (the top level, an `async`
 // function, or a closure, which becomes async). A layer's waits, like the
-// shell's `$(…)`, are blocking calls and bring no effect.
+// host's `$(…)`, are blocking calls and bring no effect.
 
 extension TypeChecker {
     /// A function's, a closure's, or the top level's effects so far.

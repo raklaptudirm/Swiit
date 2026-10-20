@@ -28,13 +28,6 @@ extension Interpreter {
             var arguments = arguments
             arguments["self"] = receiver.value
             return try body(self, arguments)
-        case .stream(let transform):
-            // Called directly: the input is a list, and so is the result.
-            let input = function.inputParameter.flatMap { arguments[$0.name] } ?? .list([])
-            let output = try transform(self, .elements(of: input), arguments)
-            var items: [Value] = []
-            while let item = try output.next() { items.append(item) }
-            return .list(items)
         case .swiit:
             break
         }
@@ -125,7 +118,7 @@ extension Interpreter {
     func bindPlainly(_ arguments: [Argument], to function: Function) throws -> Scope? {
         guard case .swiit = function.body, function.parameters.count == arguments.count else { return nil }
         for (parameter, argument) in zip(function.parameters, arguments) {
-            if parameter.variadic || parameter.isInout || parameter.isInput || argument.label != parameter.label { return nil }
+            if parameter.variadic || parameter.isInout || argument.label != parameter.label { return nil }
             if case .inoutArgument = argument.value { return nil }
         }
         var table = BindingTable(capacity: arguments.count + 1)
@@ -296,7 +289,7 @@ extension Interpreter {
             var made = Parameter(
                 label: parameter.label, name: parameter.name, type: TypeAnnotation(parameter.type),
                 variadic: parameter.variadic, defaultValue: parameter.defaultValue.map(Expr.literal),
-                isInput: parameter.isInput, shortFlag: parameter.shortFlag, externalDefault: parameter.defaultSource
+                externalDefault: parameter.defaultSource
             )
             made.showsByType = parameter.showsByType
             return made

@@ -407,8 +407,8 @@ private final class LayerSyntaxFinder: SyntaxVisitor {
     override func visit(_ node: FunctionCallExprSyntax) -> SyntaxVisitorContinueKind {
         guard let callee = node.calledExpression.as(DeclReferenceExprSyntax.self) else { return .visitChildren }
         switch callee.baseName.text {
-        case "$": return refuse("$(…) runs commands, which are shell syntax, and isn't available in Swift-only code", node)
-        case "async": return refuse("'async' starts a command in the background, which is shell syntax; Swift-only code has no async yet", node)
+        case "$": return refuse("$(…) runs commands, which are interpreter syntax, and isn't available in Swift-only code", node)
+        case "async": return refuse("'async' starts a command in the background, which is interpreter syntax; Swift-only code has no async yet", node)
         default: return .visitChildren
         }
     }
@@ -416,9 +416,9 @@ private final class LayerSyntaxFinder: SyntaxVisitor {
     override func visit(_ node: DeclReferenceExprSyntax) -> SyntaxVisitorContinueKind {
         let name = node.baseName.text
         if name.hasPrefix("$"), name.count > 1, Int(name.dropFirst()) == nil {
-            return refuse("$name reads the environment, which is shell syntax, and isn't available in Swift-only code", node)
+            return refuse("$name reads the environment, which is interpreter syntax, and isn't available in Swift-only code", node)
         }
-        if name == "async" { return refuse("'async' starts a command in the background, which is shell syntax; Swift-only code has no async yet", node) }
+        if name == "async" { return refuse("'async' starts a command in the background, which is interpreter syntax; Swift-only code has no async yet", node) }
         return .visitChildren
     }
 

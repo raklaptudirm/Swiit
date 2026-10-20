@@ -37,7 +37,7 @@ private final class TokenClassifier: SyntaxVisitor {
         return .skipChildren
     }
 
-    // `@flag("n")`: the attribute is a keyword, its letter a string.
+    // An attribute is a keyword, its arguments highlighted as written.
     override func visit(_ node: AttributeSyntax) -> SyntaxVisitorContinueKind {
         let start = node.atSign.positionAfterSkippingLeadingTrivia.utf8Offset
         do {

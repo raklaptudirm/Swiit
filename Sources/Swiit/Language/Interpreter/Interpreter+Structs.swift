@@ -303,11 +303,11 @@ extension Interpreter {
         // `let f = p.describe`: the method with `p` as `self`.
         let bound = methods.candidates.map { method in
             Function(name: method.name, parameters: method.parameters, returnType: method.returnType,
-                     body: .native { shell, arguments in
+                     body: .native { interpreter, arguments in
                          guard !method.isMutating else {
                              throw RuntimeError("mutating method '\(name)' must be called on a variable, as in p.\(name)(…)")
                          }
-                         return try shell.invoke(method, with: arguments, receiver: Receiver(.record(record), mutable: false))
+                         return try interpreter.invoke(method, with: arguments, receiver: Receiver(.record(record), mutable: false))
                      }, documentation: method.documentation, isMutating: method.isMutating)
         }
         return .function(OverloadSet(name: name, candidates: bound))

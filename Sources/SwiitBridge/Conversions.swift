@@ -88,7 +88,7 @@ func fromSwish(_ value: String, _ type: SType) -> String {
         let typed = zip(names, parameters).map { "\($0): \(spelling($1))" }.joined(separator: ", ")
         // A closure Swift calls as `async` runs on a thread of the interpreter's
         // (`bridgeAsyncClosure`), as the task that passed it.
-        let call = isAsync ? "(try await bridgeAsyncClosure(shell, \(value))([\(arguments)]))" : "try bridgeClosure(shell, \(value))([\(arguments)])"
+        let call = isAsync ? "(try await bridgeAsyncClosure(interpreter, \(value))([\(arguments)]))" : "try bridgeClosure(interpreter, \(value))([\(arguments)])"
         let effects = isAsync ? "async throws" : "throws"
         if case .tuple(let elements) = result, elements.isEmpty { return "{ (\(typed)) \(effects) -> Void in _ = \(call) }" }
         return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromSwish(call, result)) }"

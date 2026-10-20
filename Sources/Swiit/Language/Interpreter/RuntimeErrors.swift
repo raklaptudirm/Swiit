@@ -5,7 +5,7 @@ struct RuntimeError: Error, CustomStringConvertible {
     /// The status the failure gives: a failed command's own, for `$(…)`.
     public var status: Int32 = 1
     /// What `catch` binds when the thrower has more to say than a message: the
-    /// shell's failed command carries its status and text.
+    /// host's failed command carries its status and text.
     public var thrown: Value?
     /// The statement it happened in, once the run knows it.
     public var range: SourceRange?
@@ -36,7 +36,7 @@ struct FatalError: Error {
     }
 }
 
-/// ^C while the shell itself was running code.
+/// ^C while the host itself was running code.
 /// ^C, or in a script SIGTERM or SIGHUP: stops what's running.
 struct Interrupted: Error, Unwinding {
     public var reason: StopReason
