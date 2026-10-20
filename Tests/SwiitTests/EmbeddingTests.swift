@@ -808,3 +808,11 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(seen == ["1", "3"])
     #expect(errors.count == 2 && errors[1].hasSuffix("(fatal)"))
 }
+
+@Test func removingAGlobalRemovesIt() throws {
+    let swish = interpreter()
+    swish["settings"] = Value(Preferences())
+    #expect(try swish.evaluate("settings.theme") == "dark")
+    swish["settings"] = nil
+    #expect(throws: Diagnostic.self) { try swish.evaluate("settings.theme") }
+}

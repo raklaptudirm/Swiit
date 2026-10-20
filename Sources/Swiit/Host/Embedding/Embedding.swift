@@ -328,7 +328,9 @@ extension Interpreter {
                     scopes[1].bindings[name] = nil
                     return
                 }
-                if case .object(let object as any DynamicObject) = newValue { bind(name, to: object) }
+                if case .object(let object as any DynamicObject) = newValue {
+                    dynamicTypes[object.typeName] = DynamicType(read: TypeAnnotation(object.readType), write: TypeAnnotation(object.writeType))
+                }
                 scopes[1].bindings[name] = Binding(value: newValue, mutable: false)
             }
         }
