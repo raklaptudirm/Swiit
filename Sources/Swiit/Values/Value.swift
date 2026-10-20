@@ -248,7 +248,7 @@ public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvert
     }
 
     /// In the order given. A later entry with the same key replaces the value of the earlier one, which keeps its place.
-    @_spi(Layer) public init(_ entries: [(Value, Value)]) {
+    public init(_ entries: [(Value, Value)]) {
         storage = [:]
         order = []
         for (key, value) in entries { self[key] = value }

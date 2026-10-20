@@ -68,7 +68,7 @@ private func typeError(_ source: String) -> String? {
 
 @Test func aTasksErrorIsWhatJoiningThrows() throws {
     let swish = interpreter()
-    #expect(throws: RuntimeError.self) {
+    #expect(throws: Diagnostic.self) {
         try onLargeStack {
             try swish.lock.withLock { () throws -> Value in
                 let task = try swish.startTask(host: nil) { throw RuntimeError("no") }

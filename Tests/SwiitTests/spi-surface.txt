@@ -33,8 +33,6 @@ Bridge/Bridge.swift	Layer func textLiteral
 Bridge/Bridge.swift	Layer struct BridgedMember
 Bridge/Bridge.swift	Layer struct BridgedType
 Bridge/Bridge.swift	Layer var description
-Host/Awaiting.swift	Layer func bind
-Host/Awaiting.swift	Layer struct Awaiting
 Host/DynamicObject.swift	Layer func bind
 Host/DynamicObject.swift	Layer struct DynamicType
 Host/DynamicObject.swift	Layer struct PlainDynamic
@@ -172,7 +170,6 @@ Language/Interpreter/Interpreter.swift	Layer init init
 Language/Interpreter/Interpreter.swift	Layer let lock
 Language/Interpreter/Interpreter.swift	Layer let mainTask
 Language/Interpreter/Interpreter.swift	Layer let outputCounter
-Language/Interpreter/Interpreter.swift	Layer var awaiting
 Language/Interpreter/Interpreter.swift	Layer var contextProvider
 Language/Interpreter/Interpreter.swift	Layer var dynamicTypes
 Language/Interpreter/Interpreter.swift	Layer var file
@@ -185,9 +182,8 @@ Language/Interpreter/Interpreter.swift	Layer var sequenceMethods
 Language/Interpreter/Interpreter.swift	Layer var staticTypes
 Language/Interpreter/Interpreter.swift	Layer var task
 Language/Interpreter/InterpreterLock.swift	Layer class InterpreterLock
-Language/Interpreter/InterpreterLock.swift	Layer class TaskHandle
-Language/Interpreter/InterpreterLock.swift	Layer func join
-Language/Interpreter/InterpreterLock.swift	Layer func startTask
+Language/Interpreter/InterpreterLock.swift	Layer let context
+Language/Interpreter/InterpreterLock.swift	Layer var rawResult
 Language/Interpreter/RuntimeErrors.swift	Layer struct AlreadyReported
 Language/Interpreter/RuntimeErrors.swift	Layer struct FatalError
 Language/Interpreter/RuntimeErrors.swift	Layer struct Interrupted
@@ -386,7 +382,6 @@ Values/Value.swift	Layer func date
 Values/Value.swift	Layer func isPosition
 Values/Value.swift	Layer func quoted
 Values/Value.swift	Layer func takeValue
-Values/Value.swift	Layer init init
 Values/Value.swift	Layer init init
 Values/Value.swift	Layer init init
 Values/Value.swift	Layer protocol LanguageObject

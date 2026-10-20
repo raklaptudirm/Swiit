@@ -21,7 +21,7 @@ public final class Interpreter: @unchecked Sendable { // safe: every public meth
     /// The types of dynamic objects' members (`DynamicObject`), by type name.
     @_spi(Layer) public var dynamicTypes: [String: DynamicType] = [:]
     /// What `await` waits for, if the host has anything to wait for.
-    @_spi(Layer) public var awaiting: Awaiting?
+    var awaiting: Awaiting?
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
     @_spi(Layer) public var task: TaskContext

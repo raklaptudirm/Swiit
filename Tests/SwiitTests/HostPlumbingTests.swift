@@ -19,7 +19,7 @@ private func interpreter() -> Interpreter {
 @Test func aComputedGlobalIsReadFreshAndCannotBeAssigned() throws {
     let swish = interpreter()
     nonisolated(unsafe) var reads = 0
-    swish.bind(computed: "counter", type: .int) { reads += 1; return .int(reads) }
+    swish.register(computed: "counter", type: .int) { reads += 1; return .int(reads) }
     #expect(try swish.evaluate("counter") == .int(1))
     #expect(try swish.evaluate("counter + counter") == .int(5)) // 2 + 3: read each time
     do {
@@ -38,6 +38,6 @@ private func interpreter() -> Interpreter {
     } catch let error {
         #expect(error.message.contains("nothing to await"))
     }
-    swish.awaiting = Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) }
+    swish.register(Awaiting(operand: .int, result: .int) { value, _ in .int((value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2) })
     #expect(try swish.evaluate("await 21") == .int(42))
 }

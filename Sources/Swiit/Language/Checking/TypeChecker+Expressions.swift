@@ -178,7 +178,7 @@ extension TypeChecker {
                 operand = awaited
                 // `await f()`: what an `async` call gives, in an async context.
                 handleType = type
-                let isHandle = interpreter.awaiting.map { type == .unknown || fits(type, $0.operand) } ?? false
+                let isHandle = interpreter.awaiting.map { type == .unknown || fits(type, TypeAnnotation($0.operand)) } ?? false
                 if !isHandle {
                     // Swift only warns of an `await` with nothing async in it; Swiit has no warnings.
                     guard asyncSites > sitesBefore else { throw TypeError("there is nothing to await here: no async call, and no job") }
@@ -192,7 +192,7 @@ extension TypeChecker {
             guard let awaiting = interpreter.awaiting else { throw TypeError("there is nothing to await here") }
             if throwing { try throwingSite("awaiting a job") }
             expr = .await(operand, throwing: throwing)
-            return handleType.flatMap(awaiting.resultOf) ?? awaiting.result
+            return handleType.flatMap { awaiting.resultOf(ValueType($0)).map(TypeAnnotation.init) } ?? TypeAnnotation(awaiting.result)
         case .childTask(var closure):
             let (result, throwing) = try childTaskType(&closure)
             expr = .childTask(closure)

@@ -69,10 +69,10 @@ extension Bridge {
                summary: "What the task gives, once it has ended; what it threw, if it threw.") { shell, arguments in
             let handle = try task(arguments["self"])
             do {
-                return try shell.join(handle)
+                return try shell.joinTask(handle)
             } catch is Cancelled {
                 // The task, not the one waiting, was cancelled.
-                if case .failure(let error)? = handle.result, error is Cancelled { throw cancellationError() }
+                if case .failure(let error)? = handle.rawResult, error is Cancelled { throw cancellationError() }
                 throw Cancelled()
             }
         },

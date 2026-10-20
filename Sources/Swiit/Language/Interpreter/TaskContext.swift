@@ -103,7 +103,7 @@ extension Interpreter {
             closing.append(task.children.removeLast().handle)
         }
         closing.forEach { $0.cancel() }
-        for handle in closing { _ = try? join(handle) }
+        for handle in closing { _ = try? joinTask(handle) }
     }
 }
 

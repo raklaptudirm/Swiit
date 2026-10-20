@@ -77,8 +77,8 @@ import Foundation
 
 /// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
-@_spi(Layer) public final class TaskHandle: @unchecked Sendable { // safe: every access holds its own lock
-    public let context: TaskContext
+public final class TaskHandle: @unchecked Sendable { // safe: every access holds its own lock
+    @_spi(Layer) public let context: TaskContext
     private let condition = NSCondition()
     private var outcome: Result<Value, any Error>?
 
@@ -87,13 +87,18 @@ import Foundation
     }
 
     /// How it ended, once it has.
-    public var result: Result<Value, any Error>? {
+    @_spi(Layer) public var rawResult: Result<Value, any Error>? {
         condition.lock()
         defer { condition.unlock() }
         return outcome
     }
 
-    public var isFinished: Bool { result != nil }
+    /// How it ended, once it has: what it gave, or why it failed.
+    public var result: Result<Value, Diagnostic>? {
+        rawResult.map { $0.mapError { Diagnostic.of($0) } }
+    }
+
+    public var isFinished: Bool { rawResult != nil }
 
     /// Asks it to stop: it notices at its next interrupt check.
     public func cancel() { context.cancellation.request() }
@@ -129,8 +134,8 @@ extension Interpreter {
     /// interrupts of the host's; it stops when it's cancelled. A structured
     /// task ends with the scope that started it (`closeTasks`); Swift's
     /// `Task { }` isn't one.
-    @_spi(Layer) public func startTask(host taskHost: AnyObject?, structured: Bool = true,
-                                       _ body: @escaping () throws -> Value) throws -> TaskHandle {
+    func startTask(host taskHost: AnyObject?, structured: Bool = true,
+                   _ body: @escaping () throws -> Value) throws -> TaskHandle {
         guard runningTasks < limits.tasks else {
             throw RuntimeError("there are already \(limits.tasks) tasks running")
         }
@@ -161,7 +166,7 @@ extension Interpreter {
 
     /// Waits for a task to end, letting go of the lock meanwhile, and gives
     /// what it gave or throws what it threw.
-    @_spi(Layer) public func join(_ handle: TaskHandle) throws -> Value {
+    func joinTask(_ handle: TaskHandle) throws -> Value {
         let waiter = task.cancellation
         // The host may bring it forward while it's awaited (the shell: to the foreground).
         let restore = host.willAwait(handle.context.host)

@@ -757,3 +757,26 @@ private final class Mark: @unchecked Sendable {
     // Values of the expression statements, in order; `if` is told as it starts, and what is in it as it runs.
     #expect(told.filter { $0 != "-" } == ["2", "7", "caught", "11"])
 }
+
+private final class Handle: HostObject, @unchecked Sendable {
+    let task: TaskHandle
+    init(_ task: TaskHandle) { self.task = task }
+    var typeName: String { "Handle" }
+    var description: String { "Handle" }
+}
+
+@Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
+    let swish = interpreter()
+    nonisolated(unsafe) let running = swish
+    swish.register(HostFunction(name: "spawn", returns: .named("Handle")) { _ in
+        Value(Handle(try running.startTask(state: nil) { Value(42) }))
+    })
+    swish.register(computed: "clock", type: .int) { Value(7) }
+    swish.register(Awaiting(operand: .named("Handle"), result: .int, isHandle: { $0.cast(to: Handle.self) != nil }) { value, _ in
+        guard let handle = value?.cast(to: Handle.self) else { throw ScriptError("nothing to await") }
+        return try running.join(handle.task)
+    })
+    #expect(try swish.evaluate("clock + clock") == 14)
+    #expect(try swish.evaluate("await spawn()") == 42)
+    swish.finishTasks()
+}
