@@ -8,7 +8,7 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
-    @_spi(Layer) public func run(_ program: Program, observing observer: ValueObserver? = nil) throws {
+    @_spi(Layer) public func run(_ program: Program, observing observer: ValueObserver? = nil, onError handle: ((Diagnostic) -> Bool)? = nil) throws {
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
@@ -26,14 +26,20 @@ extension Interpreter {
                 } else {
                     try run(statement)
                 }
-            } catch var error as RuntimeError where index < program.ranges.count {
-                if error.range == nil {
-                    // The innermost statement is where it happened.
-                    error.range = program.ranges[index]
-                } else if let last = error.calls.indices.last, error.calls[last].site == nil {
-                    // The statement the function was called from.
-                    error.calls[last].site = program.ranges[index]
+            } catch let caught {
+                var error = caught
+                if var runtime = error as? RuntimeError, index < program.ranges.count {
+                    if runtime.range == nil {
+                        // The innermost statement is where it happened.
+                        runtime.range = program.ranges[index]
+                    } else if let last = runtime.calls.indices.last, runtime.calls[last].site == nil {
+                        // The statement the function was called from.
+                        runtime.calls[last].site = program.ranges[index]
+                    }
+                    error = runtime
                 }
+                // The host may carry on with the next statement after an error a script could have caught.
+                if let handle, error is RuntimeError || error is AlreadyReported || error is FatalError, handle(Diagnostic.of(error)) { continue }
                 throw error
             }
         }

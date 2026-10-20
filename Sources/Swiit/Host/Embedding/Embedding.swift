@@ -31,6 +31,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var status: Int32 = 1
     /// The host reported it already (`ScriptError.isReported`).
     public var isReported = false
+    /// A `try!` failed: it stops a script, not just its own statement.
+    public var isFatal = false
     /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
     public var cause: (any Error)?
 
@@ -58,7 +60,8 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         case let error as TypeError: Diagnostic(kind: .type, message: error.message, line: error.line, range: error.spot ?? error.range)
         case let error as RuntimeError: Diagnostic(runtime: error)
         case let reported as AlreadyReported: Diagnostic(runtime: reported.error, isReported: true)
-        case let fatal as FatalError: Diagnostic(runtime: fatal.error)
+        case let fatal as FatalError:
+            { () -> Diagnostic in var diagnostic = Diagnostic(runtime: fatal.error); diagnostic.isFatal = true; return diagnostic }()
         case let limit as LimitExceeded: Diagnostic(kind: .limit, message: limit.description)
         case is Cancelled: Diagnostic(kind: .cancelled, message: "cancelled")
         case is Interrupted: Diagnostic(kind: .cancelled, message: "interrupted")
@@ -459,18 +462,28 @@ extension Interpreter {
         public var isAwait: Bool
     }
 
-    /// As `evaluate`, and tells `observe` the value of each of the program's own expression statements as it runs (not
-    /// those in blocks, like the body of a `for`: use `print` for those), except a bare `true` or `false`. Nothing is
-    /// given back: what the observer was told is the result.
-    public func evaluate(_ source: String, observing observe: @escaping (Observation) throws -> Void) throws(Diagnostic) {
+    /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of it comes through the closures.
+    ///
+    /// - `observing` is told the value of each of the program's own expression statements as it runs (not those in blocks,
+    ///   like the body of a `for`: use `print` for those), except a bare `true` or `false`.
+    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the next one (a script reports
+    ///   an error and carries on); without it, the first stops the run. A stop, a limit and an `Unwinding` error always end it.
+    ///
+    /// A mistake in the program's types or syntax is found before any statement runs.
+    public func execute(
+        _ source: String, observing observe: ((Observation) throws -> Void)? = nil, onError handle: ((Diagnostic) -> Bool)? = nil
+    ) throws(Diagnostic) {
         nonisolated(unsafe) let interpreter = self // safe: runs holding the interpreter lock
         nonisolated(unsafe) let observe = observe // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let handle = handle // safe: runs holding the interpreter lock
         do {
             _ = try onLargeStack {
                 try interpreter.withMainTask {
-                    try interpreter.runSource(source, observer: { value, expression, discarded in
-                        try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
-                    }, alreadyCancelled: { false })
+                    try interpreter.runSource(source, observer: observe.map { observe in
+                        { value, expression, discarded in
+                            try observe(Observation(value: value, isDiscardable: discarded, isAwait: expression.isAwait))
+                        }
+                    } ?? { _, _, _ in }, onError: handle, alreadyCancelled: { false })
                 }
             }
         } catch {
@@ -498,7 +511,7 @@ extension Interpreter {
         return try outcome.get()
     }
 
-    private func runSource(_ source: String, observer: ValueObserver? = nil, alreadyCancelled: () -> Bool) throws -> Value {
+    private func runSource(_ source: String, observer: ValueObserver? = nil, onError: ((Diagnostic) -> Bool)? = nil, alreadyCancelled: () -> Bool) throws -> Value {
         steps = 0
         outputCounter.reset()
         deadline = limits.time.map { ContinuousClock.now + $0 }
@@ -522,7 +535,7 @@ extension Interpreter {
                 if checked.ranges.count > checked.statements.count { checked.ranges.removeLast() }
                 if checked.spots.count > checked.statements.count { checked.spots.removeLast() }
             }
-            try run(checked, observing: observer)
+            try run(checked, observing: observer, onError: onError)
             do {
                 return try last.map { try evaluate($0) } ?? .nothing
             } catch var error as RuntimeError {

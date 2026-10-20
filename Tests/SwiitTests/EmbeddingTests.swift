@@ -784,7 +784,7 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func aReplHostIsToldTheValueOfEachExpressionStatement() throws {
     let swish = interpreter()
     nonisolated(unsafe) var seen: [String] = []
-    try swish.evaluate("""
+    try swish.execute("""
     let x = 2
     x * 3
     true
@@ -793,6 +793,17 @@ private final class Handle: HostObject, @unchecked Sendable {
     for i in 1...2 { i }
     """, observing: { seen.append($0.value.description + ($0.isAwait ? " (await)" : "")) })
     #expect(seen == ["6", "[3, 4]", "5 (await)"])
-    // A failure still stops the run.
-    #expect(throws: Diagnostic.self) { try swish.evaluate("1\n2 / 0\n3", observing: { _ in }) }
+    // A failure stops the run, unless the host says to go on.
+    seen = []
+    #expect(throws: Diagnostic.self) { try swish.execute("1\n2 / 0\n3", observing: { seen.append($0.value.description) }) }
+    #expect(seen == ["1"])
+    seen = []
+    nonisolated(unsafe) var errors: [String] = []
+    // A `try!` that fails is fatal: the host is told, and the run ends.
+    #expect(throws: Diagnostic.self) {
+        try swish.execute("struct E: Error {}\nfunc boom() throws { throw E() }\n1\n2 / 0\n3\ntry! boom()\n4", observing: { seen.append($0.value.description) },
+                          onError: { errors.append($0.message + ($0.isFatal ? " (fatal)" : "")); return !$0.isFatal })
+    }
+    #expect(seen == ["1", "3"])
+    #expect(errors.count == 2 && errors[1].hasSuffix("(fatal)"))
 }
