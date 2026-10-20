@@ -4,7 +4,7 @@ import Foundation
 /// from the bridge (with Swiit's own extensions, and for a sequence the
 /// shell's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
-@_spi(Layer) public struct TypeDescription {
+public struct TypeDescription {
     /// What a member is; the order of the cases is the order `help` shows
     /// them in.
     public enum Kind: String, CaseIterable {
@@ -47,7 +47,7 @@ import Foundation
 
 extension Interpreter {
     /// The type named `name`, if Swiit knows one by that name.
-    @_spi(Layer) public func typeDescription(named name: String) -> TypeDescription? {
+    public func typeDescription(named name: String) -> TypeDescription? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
         case .object(let type as StructType)?: return describe(type)
@@ -57,7 +57,7 @@ extension Interpreter {
     }
 
     /// The name `typeDescription` knows a value's type by.
-    @_spi(Layer) public func describedTypeName(of value: Value) -> String? {
+    public func describedTypeName(of value: Value) -> String? {
         if case .record(let record) = value { return record.typeName }
         return TypeChecker(interpreter: self).type(of: value).swiftType?.name
     }
@@ -139,30 +139,11 @@ extension Interpreter {
         }
         return TypeDescription(name: type.name, kind: "enum", members: members)
     }
-
-    /// What `help Type` shows: its members, grouped by kind, each with its
-    /// signature (highlighted as Swift) and, on the line below, what its
-    /// documentation says.
-    @_spi(Layer) public func helpLines(for type: TypeDescription) -> [AttributedString] {
-        var lines = [AttributedString(joining: [.init(type.kind, DisplayStyle.keyword), .init(" "), .init(type.name, DisplayStyle.type)])]
-        let groups = Dictionary(grouping: type.members, by: \.kind)
-        for kind in TypeDescription.Kind.allCases {
-            guard let members = groups[kind], !members.isEmpty else { continue }
-            lines += [AttributedString(""), HelpStyle.heading("\(kind.heading):")]
-            for (index, member) in members.sorted(by: { $0.name < $1.name }).enumerated() {
-                // A blank line between them, so a signature and its description read as one.
-                if index > 0 { lines.append(AttributedString("")) }
-                lines.append(AttributedString(joining: [AttributedString("  "), member.signature]))
-                if !member.summary.isEmpty { lines.append(AttributedString("    ") + AttributedString(documentation: member.summary)) }
-            }
-        }
-        return lines
-    }
 }
 
 extension TypeDescription {
     /// A bridged member as Swift declares it, in pieces by what each is.
-    public static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
+    @_spi(Layer) public static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
         var pieces: [AttributedString] = []
         switch member.kind {
         case .initializer:
@@ -179,14 +160,14 @@ extension TypeDescription {
 
     /// A Swiit function as a member, under `name` if given: its input is
     /// what it's called on, so it isn't shown.
-    public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
+    @_spi(Layer) public static func signature(_ function: Function, as name: String? = nil) -> AttributedString {
         AttributedString(joining: (function.isMutating ? [AttributedString("mutating", .keyword), .init(" ")] : [])
                    + function.declaration(as: name, nameStyle: name == "init" ? .keyword : .command) { $0.isInput })
     }
 
     /// `let x: Int`, `var x: Int`, or with no `mutable`, a computed
     /// `var x: Int { get }`.
-    public static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
+    @_spi(Layer) public static func property(_ name: String, _ type: TypeAnnotation, mutable: Bool?) -> [AttributedString] {
         [.init(mutable == false ? "let" : "var", .keyword), .init(" "), .init(name, .command), .init(": ")] + type.styled
             + (mutable == nil ? [.init(" { "), .init("get", .keyword), .init(" }")] : [])
     }

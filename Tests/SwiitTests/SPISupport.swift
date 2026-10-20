@@ -82,7 +82,7 @@ enum SPISurface {
 enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "ValueDictionary", "Callable", "ValueType", "HostObject", "DynamicObject",
-        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation",
+        "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation", "TypeDescription",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

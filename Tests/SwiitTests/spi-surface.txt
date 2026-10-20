@@ -210,11 +210,9 @@ Language/Interpreter/TaskContext.swift	Layer var scopes
 Language/Interpreter/Value+Operations.swift	Layer func conforming
 Language/Interpreter/Value+Operations.swift	Layer func order
 Language/Interpreter/ValueStream.swift	Layer class ValueStream
-Language/Reflection/HelpStyle.swift	Layer enum HelpStyle
-Language/Reflection/TypeMembers.swift	Layer func describedTypeName
-Language/Reflection/TypeMembers.swift	Layer func helpLines
-Language/Reflection/TypeMembers.swift	Layer func typeDescription
-Language/Reflection/TypeMembers.swift	Layer struct TypeDescription
+Language/Reflection/TypeMembers.swift	Layer func property
+Language/Reflection/TypeMembers.swift	Layer func signature
+Language/Reflection/TypeMembers.swift	Layer func signature
 Language/Syntax/Declarations.swift	Layer func ==
 Language/Syntax/Declarations.swift	Layer init init
 Language/Syntax/Declarations.swift	Layer init init
