@@ -243,7 +243,7 @@ extension ValueConvertible {
     /// The enums `valueType` names.
     static var swiitEnums: [EnumType] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
-        if let script = self as? any ScriptEnum.Type { return [script.swiitEnumType] }
+        if let enumeration = self as? any CaseIterable.Type { return [EnumType.of(enumeration)] }
         return []
     }
 }
@@ -431,25 +431,37 @@ func swiitArgument<T: ValueConvertible>(
     }
 }
 
-/// A Swift enum Swiit can use: as a parameter (`volume .high`, or
-/// `volume(.high)`), a result, and in `switch`. Conforming is all it takes,
-/// for an enum without associated values:
+/// A Swift enum without associated values is an enum scripts can use (as a parameter, `volume .high`
+/// or `volume(.high)`, a result, and in `switch`) by saying it converts:
 ///
-///     public enum Level: String, CaseIterable, ScriptEnum { case low, high }
+///     public enum Level: String, CaseIterable, ValueConvertible { case low, high }
 ///
 /// The host learns it by name from the functions that take it.
-public protocol ScriptEnum: ValueConvertible, CaseIterable {
-    /// Its cases and raw values, as Swiit sees them; one instance per type,
-    /// so values compare equal across calls.
-    static var swiitEnumType: EnumType { get }
+extension ValueConvertible where Self: CaseIterable & Hashable & Sendable {
+    public static var valueType: ValueType { .named(EnumType.of(Self.self).name) }
+
+    public init(_ swiitValue: Value) throws {
+        guard case .enumValue(let value) = swiitValue, value.type === EnumType.of(Self.self),
+            let found = Self.allCases.first(where: { String(describing: $0) == value.name })
+        else {
+            throw SwiitError.expected(EnumType.of(Self.self).name, swiitValue)
+        }
+        self = found
+    }
+
+    public var value: Value {
+        .enumValue(EnumValue(type: EnumType.of(Self.self), name: String(describing: self)))
+    }
 }
 
-extension ScriptEnum {
-    static var swiitEnumType: EnumType {
-        EnumRegistry.shared.type(for: Self.self) {
+extension EnumType {
+    /// The enum a Swift enum is, with its cases and raw values as Swiit sees them; one instance
+    /// per type, so values compare equal across calls.
+    static func of<E: CaseIterable>(_ type: E.Type) -> EnumType {
+        EnumRegistry.shared.type(for: type) {
             EnumType(
-                name: String(describing: Self.self),
-                cases: allCases.map { value in
+                name: String(describing: type),
+                cases: type.allCases.map { value in
                     let raw = (value as? any RawRepresentable)?.rawValue
                     return EnumType.Case(
                         name: String(describing: value),
@@ -465,24 +477,9 @@ extension ScriptEnum {
             )
         }
     }
-
-    public static var valueType: ValueType { .named(swiitEnumType.name) }
-
-    public init(_ swiitValue: Value) throws {
-        guard case .enumValue(let value) = swiitValue, value.type === Self.swiitEnumType,
-            let found = Self.allCases.first(where: { String(describing: $0) == value.name })
-        else {
-            throw SwiitError.expected(Self.swiitEnumType.name, swiitValue)
-        }
-        self = found
-    }
-
-    public var value: Value {
-        .enumValue(EnumValue(type: Self.swiitEnumType, name: String(describing: self)))
-    }
 }
 
-/// Each `ScriptEnum`'s `EnumType`, made once.
+/// Each Swift enum's `EnumType`, made once.
 final class EnumRegistry: @unchecked Sendable {  // safe: every access holds its own lock
     static let shared = EnumRegistry()
     private let lock = NSLock()

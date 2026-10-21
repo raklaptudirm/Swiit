@@ -2,7 +2,7 @@ import Testing
 
 @testable import Swiit
 
-private enum Level: String, CaseIterable, ScriptEnum {
+private enum Level: String, CaseIterable, ValueConvertible {
     case low, high
 }
 
@@ -25,8 +25,8 @@ private struct Entry: Encodable {
 }
 
 @Test func scriptEnumsBridgeTheirCases() throws {
-    let type = Level.swiitEnumType
-    #expect(type === Level.swiitEnumType)  // One type, so values compare equal.
+    let type = EnumType.of(Level.self)
+    #expect(type === EnumType.of(Level.self))  // One type, so values compare equal.
     #expect(type.name == "Level")
     #expect(type.cases.map(\.name) == ["low", "high"])
     #expect(type.cases.map(\.rawValue) == [.string("low"), .string("high")])
