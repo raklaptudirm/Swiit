@@ -11,7 +11,7 @@ enum PublicSurface {
         "Symbol",
         "NativeType", "ScriptError", "Unwinding", "Cancellation",
         "TypeDescription", "TaskHandle",
-        "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
+        "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
         "DisplayStyleAttribute",
     ]
 

@@ -195,39 +195,18 @@ extension TypeChecker {
                 return .optional(type)
             }
         case .await(var operand, let throwing):
-            var handleType: TypeAnnotation?
-            if var awaited = operand {
-                let sitesBefore = asyncSites
-                awaitDepth += 1
-                let type = try typeOf(&awaited, expecting: nil)
-                awaitDepth -= 1
-                operand = awaited
-                // `await f()`: what an `async` call gives, in an async context.
-                handleType = type
-                let isHandle =
-                    interpreter.awaiting.map {
-                        type == .unknown || fits(type, TypeAnnotation($0.operand))
-                    } ?? false
-                if !isHandle {
-                    // Swift only warns of an `await` with nothing async in it; Swiit has no
-                    // warnings.
-                    guard asyncSites > sitesBefore else {
-                        throw TypeError("there is nothing to await here: no async call, and no job")
-                    }
-                    try checkAwaitAllowed()
-                    expr = .await(awaited, throwing: throwing)
-                    return type
-                }
+            let sitesBefore = asyncSites
+            awaitDepth += 1
+            let type = try typeOf(&operand, expecting: nil)
+            awaitDepth -= 1
+            // `await f()`: what an `async` call gives, in an async context. Swift only warns of an
+            // `await` with nothing async in it; Swiit has no warnings.
+            guard asyncSites > sitesBefore else {
+                throw TypeError("there is nothing to await here: no async call")
             }
-            // `await job`, or `await` alone: the host's handles (the host's
-            // jobs), joined by blocking, anywhere.
-            guard let awaiting = interpreter.awaiting else {
-                throw TypeError("there is nothing to await here")
-            }
-            if throwing { try throwingSite("awaiting a job") }
+            try checkAwaitAllowed()
             expr = .await(operand, throwing: throwing)
-            return handleType.flatMap { awaiting.resultOf(ValueType($0)).map(TypeAnnotation.init) }
-                ?? TypeAnnotation(awaiting.result)
+            return type
         case .childTask(var closure):
             let (result, throwing) = try childTaskType(&closure)
             expr = .childTask(closure)

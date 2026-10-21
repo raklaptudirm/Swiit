@@ -37,7 +37,7 @@ private func interpreter() -> Interpreter {
     }
 }
 
-@Test func awaitNeedsAHostThatHasSomethingToWaitFor() throws {
+@Test func awaitNeedsSomethingAsyncToWaitFor() throws {
     let swiit = interpreter()
     do {
         _ = try swiit.evaluate("await 1")
@@ -45,12 +45,4 @@ private func interpreter() -> Interpreter {
     } catch let error {
         #expect(error.message.contains("nothing to await"))
     }
-    swiit.register(
-        Awaiting(operand: .int, result: .int) { value, _ in
-            .int(
-                (value.flatMap { v -> Int? in if case .int(let n) = v { n } else { nil } } ?? 0) * 2
-            )
-        }
-    )
-    #expect(try swiit.evaluate("await 21") == .int(42))
 }

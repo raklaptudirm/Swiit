@@ -43,7 +43,7 @@ indirect enum Expr: Equatable, Sendable {
     case attempt(Expr, TryKind)
     /// `await job`, or a bare `await` for the most recent job. Under `try`
     /// (`throwing`), a job that failed throws.
-    case await(Expr?, throwing: Bool)
+    case await(Expr, throwing: Bool)
     case list([Expr])
     case record([RecordEntry])
     case closure(ClosureLiteral)

@@ -109,12 +109,9 @@ extension Interpreter {
             } catch let error as RuntimeError {
                 throw FatalError(error: error)
             }
-        case .await(let target, let throwing):
-            let value = try target.map { try evaluate($0) }
+        case .await(let target, _):
             // `await f()`: what the call gave. (The interpreter waits at every wait anyway.)
-            if let value, awaiting?.isHandle(value) != true { return value }
-            guard let awaiting else { throw RuntimeError("there is nothing to await here") }
-            return try awaiting.perform(value, throwing)
+            return try evaluate(target)
         default:
             preconditionFailure("this was sent to the wrong group")
         }

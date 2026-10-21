@@ -18,7 +18,6 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     /// The types of dynamic objects' members (an object's `readType`), by type name.
     var dynamicTypes: [String: DynamicType] = [:]
     /// What `await` waits for, if the host has anything to wait for.
-    var awaiting: Awaiting?
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).
     var task: TaskContext

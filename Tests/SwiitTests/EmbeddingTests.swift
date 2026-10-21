@@ -910,20 +910,25 @@ private final class Handle: HostObject, @unchecked Sendable {
         }
     )
     swiit.register(computed: "clock", type: .int) { Value(7) }
+    // A handle is awaited by its `async` member, as Swift says it.
     swiit.register(
-        Awaiting(
-            operand: .named("Handle"),
-            result: .int,
-            isHandle: { $0.cast(to: Handle.self) != nil }
-        ) { value, _ in
-            guard let handle = value?.cast(to: Handle.self) else {
-                throw ScriptError("nothing to await")
-            }
-            return try running.join(handle.task)
-        }
+        NativeType(
+            name: "Handle",
+            members: [
+                .init(
+                    "wait",
+                    .method(Symbol.Function(returns: .int, isAsync: true)) { receiver, _ in
+                        guard let handle = receiver.cast(to: Handle.self) else {
+                            throw ScriptError("nothing to await")
+                        }
+                        return try running.join(handle.task)
+                    }
+                )
+            ]
+        )
     )
     #expect(try swiit.evaluate("clock + clock") == 14)
-    #expect(try swiit.evaluate("await spawn()") == 42)
+    #expect(try swiit.evaluate("await spawn().wait()") == 42)
     swiit.finishTasks()
 }
 

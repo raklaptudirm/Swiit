@@ -297,7 +297,7 @@ size(0)
 size(3)
 size(100)
 size(5000)
-size(500)#28Command("true").run().and { Command("true").run() }.or { Command("false").run() }#30Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])#31let prefixVariable = 1#33let o: Int? = 4
+size(500)#27let v = $SURELY_NOT_SET_ANYWHERE#28Command("true").run().and { Command("true").run() }.or { Command("false").run() }#30Dictionary(uniqueKeysWithValues: [("x", 1), ("y", 2)])#31let prefixVariable = 1#33let o: Int? = 4
 o.map { $0 + 1 }
 let n: Int? = nil
 n.map { $0 + 1 } ?? 0#38"abc".reversed()
@@ -321,7 +321,8 @@ Array([1, 2, 3].suffix(2))#52(prefix ^(true) && prefix ^(false)) || prefix ^(t
 x!#57let o = Command("echo", "hi").output()
 print(o.text)
 print(o.status.succeeded)#58[[1, 2], [3]].flatMap { $0 }
-[1, 2].elementsEqual([1, 2])#64Command("true").run().and { Command("false").run() }.or { Command("true").run() }#65let o = Command("sh", "-c", "echo partial; exit 2").output()
+[1, 2].elementsEqual([1, 2])#59let n = 3
+let m = $n#63let h = $HOME#64Command("true").run().and { Command("false").run() }.or { Command("true").run() }#65let o = Command("sh", "-c", "echo partial; exit 2").output()
 print(o.text)
 print(o.status.code)#67enum Level: Int {
     case low = 1
@@ -415,7 +416,8 @@ n#125"a" + "b"
 xs.sorted(by: \.n).map(\.s)
 xs.map(\.n)#135let p: FilePath = "/usr/local/bin/swish.tar.gz"
 p == FilePath("/usr/local/bin/swish.tar.gz")
-p.starts(with: "/usr")#137struct Point {
+p.starts(with: "/usr")#136let x = try? $(false)
+x == nil#137struct Point {
     var x: Int
     var y: Int = 0
     var lengthSquared: Int {
@@ -437,7 +439,7 @@ var p = Point(x: 3, y: 4)
 p.move(by: 1)
 p
 p.reset()
-p#141String("x")
+p#140(try? $(false)) ?? "fallback"#141String("x")
 let c: Character = "z"
 String(c)#144struct Point {
     var x: Int
@@ -494,7 +496,8 @@ var c = C(n: 1)
 c.bump()#154let d = pwd().removingLastComponent()
 ls(d).first!.path.starts(with: d)
 ls("/").count > 0#157Command("echo", "*.swift", "$HOME", "~").run()
-print(Command("echo", "a b").words.count)#165try? [1][5] == nil
+print(Command("echo", "a b").words.count)#162if let h = try? $(false) {}
+h#165try? [1][5] == nil
 try? (1 / 0) == nil#169(try? [1][5]) == nil
 (try? 1 / 0) == nil#171func f() -> Int {
     [1][9]
@@ -802,7 +805,15 @@ greet("b", times: 2)#372enum K: Comparable {
     case b
     case a
 }
-[K.a, K.b] | sorted#375func half(_ x: Double) -> Double {
+[K.a, K.b] | sorted#373func build() throws {
+    try $(true)
+}
+func fail() throws {
+    try $(false)
+}
+(try? build()) != nil
+(try? fail()) != nil
+try? build()#375func half(_ x: Double) -> Double {
     x / 2
 }
 half(3)#376Command("false").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#378func sum(_ xs: Int...) -> Int {
@@ -1010,7 +1021,11 @@ xs.sorted(by: \.s).map { $0.n }#450[3, 1, 2].sorted()
 [3, 1, 2].prefix(2)#4511 + 2.5
 let d: Double = 1
 d#452[1, 2, 3].count(where: { $0 > 1 })
-[1, 2, 3].count#459let r = 1 ... 9000000000000
+[1, 2, 3].count#457func f() throws {
+    defer {
+        try $(false)
+    }
+}#459let r = 1 ... 9000000000000
 r.count#461for i in 3 ... 1 {}#462umask#465let xs = [(a: 1, b: "x"), (a: 22, b: "y")]
 xs | list#469Command("sh", "-c", "exit 3").run().and { Command("true").run() }.or { Command("sh", "-c", "exit 3").run() }#474false
 status#476await 5#487enum Result {
@@ -1046,7 +1061,7 @@ enum K {
         break
     }
     print(i)
-}#494Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("true").run() }#495struct Temp {
+}#492let x = try $(false)#494Command("sh", "-c", "exit 3").run().and { Command("false").run() }.or { Command("true").run() }#495struct Temp {
     let celsius: Double
     var fahrenheit: Double {
         ((self.celsius * 9) / 5) + 32
@@ -1138,7 +1153,7 @@ Date(timeIntervalSince1970: 0).timeIntervalSince1970#543Command("sh", "-c", "e
     1 / 0
 } catch {
     error.message
-}#551await#553Date("someday") == nil#554Command("nope-not-a-program").run()#555struct S {
+}#553Date("someday") == nil#554Command("nope-not-a-program").run()#555struct S {
     static let k = 1
     func f() -> Int {
         k
@@ -1219,12 +1234,15 @@ let d: Double = if true {
 } else {
     2.5
 }
-d#583let n = 41#584n + 1#586func names() -> [String] {
+d#580let o: Int? = 3
+o?.description
+let t = try? $(true)
+t != nil#583let n = 41#584n + 1#586func names() -> [String] {
     ["a", "b"]
 }
 names
 names()
-names | cat#590func none() -> [Int] {
+names | cat#589try? $(false) ?? "fallback"#590func none() -> [Int] {
     []
 }
 none#592let h = env.HOME
@@ -1259,7 +1277,8 @@ nil ?? (nil ?? 3)#619[3, 1, 2].contains(2)
 [3, 1, 2].firstIndex(of: 1)
 [3, 1, 2].max()
 [1, 2, 3].reduce(0) { $0 + $1 }
-[1, 2].map { $0 * 2 }#623Int.max#628func f(_ x: Int, label: String = "d") -> Int {
+[1, 2].map { $0 * 2 }#623Int.max#625$(true).isEmpty
+$(true).count#628func f(_ x: Int, label: String = "d") -> Int {
     x
 }
 f()#629Command("sh", "-c", "exit 3").run().and { Command("sh", "-c", "exit 3").run() }.or { Command("false").run() }#630func f(_ x: Int, label: String = "d") -> Int {
@@ -1414,7 +1433,7 @@ a.x#675[3, 1, 3, 2].uniqued().sorted()#682jobs.count#686try check(1)#688
 down(0)#697clamp("a", 0, 10)#698let a = 1
 leps()#699Int = "x"#700let shared = 1#7011 + 2#702pwd()#703shared#704settings.volume#705let xs = [3, 1, 2]
 xs.sorted()#706only(1)#707history()#708settings["volume"]#709only(shared)#710members([1])#711readLine()#712[["a": 1]].select("a")#713from()#714settings.missing#715[(n: 3, s: "c"), (n: 1, s: "a"), (n: 2, s: "b")].sorted(by: \.n).map { $0.s }#716let answer = 42#717to()#719settings.brightness = 3
-settings.volume = settings.volume! + 1#720table()#721answer * 2#722await 1#723list()#724await 21#725help()#726settings["volume"] = nil#727settings.volume = "loud"#728while true {}#729let v: String = settings.volume#732.HOME#734func sum(_ n: Int) -> Int {
+settings.volume = settings.volume! + 1#720table()#721answer * 2#722await 1#723list()#724await 21#725help()#726settings["volume"] = nil#727settings.volume = "loud"#728while true {}#729let v: String = settings.volume#732.HOME#733$(date)#734func sum(_ n: Int) -> Int {
     if n == 0 {
     0
 } else {

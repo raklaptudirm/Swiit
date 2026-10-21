@@ -380,7 +380,7 @@ struct SwiftPrinter {
                 }
             return "try\(mark) \(expression(inner))"
         case .await(let target, let throwing):
-            return (throwing ? "try " : "") + "await" + (target.map { " \(operand($0))" } ?? "")
+            return (throwing ? "try " : "") + "await \(operand(target))"
         case .list(let items): return "[" + items.map(expression).joined(separator: ", ") + "]"
         case .record(let entries):
             if entries.isEmpty { return "[:]" }

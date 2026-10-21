@@ -101,11 +101,8 @@ extension Lowering {
             return .attempt(try expression(node.expression), kind)
         }
         if let node = expr.as(AwaitExprSyntax.self) {
-            // A bare `await` waits for the jobs in the background, so the
-            // expression SwiftParser finds missing is not a problem.
             if node.expression.is(MissingExprSyntax.self) {
-                accepted.insert(node.expression.id)
-                return .await(nil, throwing: tryDepth > 0)
+                throw SyntaxError("await needs something to wait for (line \(line(of: node)))")
             }
             return .await(try expression(node.expression), throwing: tryDepth > 0)
         }
