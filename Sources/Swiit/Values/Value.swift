@@ -106,15 +106,18 @@ extension HostObject {
             return Value(
                 HostFunction(
                     name: name,
-                    parameters: member.parameters.map {
-                        HostFunction.Parameter(
-                            label: $0.label,
-                            name: $0.name,
-                            type: ValueType($0.type)
-                        )
-                    },
-                    returnType: ValueType(member.returns),
-                    isThrowing: member.isThrowing,
+                    summary: member.summary,
+                    signature: Symbol.Function(
+                        parameters: member.parameters.map {
+                            Symbol.Parameter(
+                                label: $0.label,
+                                name: $0.name,
+                                type: ValueType($0.type)
+                            )
+                        },
+                        returns: ValueType(member.returns),
+                        isThrowing: member.isThrowing
+                    ),
                     call: { arguments in
                         var arguments = arguments
                         arguments["self"] = receiver

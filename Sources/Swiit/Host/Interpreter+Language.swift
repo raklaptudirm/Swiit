@@ -8,8 +8,8 @@ extension Interpreter {
         func declare(_ export: HostFunction) {
             scopes[0].declare(hostFunction(export), named: export.name)
         }
-        let condition = HostFunction.Parameter(label: nil, name: "condition", type: .bool)
-        let message = HostFunction.Parameter(
+        let condition = Symbol.Parameter(label: nil, name: "condition", type: .bool)
+        let message = Symbol.Parameter(
             label: nil,
             name: "message",
             type: .string,
@@ -270,7 +270,7 @@ extension Interpreter {
                 HostFunction(
                     name: name,
                     summary: "\(name) of a Double.",
-                    parameters: [HostFunction.Parameter(label: nil, name: "x", type: .double)],
+                    parameters: [Symbol.Parameter(label: nil, name: "x", type: .double)],
                     returnType: .double,
                     isThrowing: false,
                     call: { arguments in .double(function(arguments["x"]?.asDouble ?? 0)) }
@@ -286,8 +286,8 @@ extension Interpreter {
                     name: name,
                     summary: "\(name) of two Doubles.",
                     parameters: [
-                        HostFunction.Parameter(label: nil, name: "x", type: .double),
-                        HostFunction.Parameter(label: nil, name: "y", type: .double),
+                        Symbol.Parameter(label: nil, name: "x", type: .double),
+                        Symbol.Parameter(label: nil, name: "y", type: .double),
                     ],
                     returnType: .double,
                     isThrowing: false,
@@ -306,8 +306,8 @@ extension Interpreter {
                 name: "zip",
                 summary: "Pairs of the items of two sequences, up to the end of the shorter.",
                 parameters: [
-                    HostFunction.Parameter(label: nil, name: "first", type: .any),
-                    HostFunction.Parameter(label: nil, name: "second", type: .any),
+                    Symbol.Parameter(label: nil, name: "first", type: .any),
+                    Symbol.Parameter(label: nil, name: "second", type: .any),
                 ],
                 returnType: .list(.any),
                 isThrowing: false,
@@ -339,7 +339,7 @@ extension Interpreter {
                 HostFunction(
                     name: "abs",
                     summary: "The magnitude of an \(name).",
-                    parameters: [HostFunction.Parameter(label: nil, name: "x", type: type)],
+                    parameters: [Symbol.Parameter(label: nil, name: "x", type: type)],
                     returnType: type,
                     isThrowing: false,
                     call: { arguments in
@@ -361,9 +361,9 @@ extension Interpreter {
                         name: name,
                         summary: "The \(picksLess ? "smallest" : "largest") of its arguments.",
                         parameters: [
-                            HostFunction.Parameter(label: nil, name: "x", type: type),
-                            HostFunction.Parameter(label: nil, name: "y", type: type),
-                            HostFunction.Parameter(
+                            Symbol.Parameter(label: nil, name: "x", type: type),
+                            Symbol.Parameter(label: nil, name: "y", type: type),
+                            Symbol.Parameter(
                                 label: nil,
                                 name: "rest",
                                 type: type,
@@ -403,9 +403,9 @@ extension Interpreter {
                         summary:
                             "The values from `from` to `\(end)` `\(end == "to" ? "(not including it)" : "")`, `by` apart, as \(name)s.",
                         parameters: [
-                            HostFunction.Parameter(label: "from", name: "from", type: type),
-                            HostFunction.Parameter(label: end, name: end, type: type),
-                            HostFunction.Parameter(label: "by", name: "by", type: type),
+                            Symbol.Parameter(label: "from", name: "from", type: type),
+                            Symbol.Parameter(label: end, name: end, type: type),
+                            Symbol.Parameter(label: "by", name: "by", type: type),
                         ],
                         returnType: .list(type),
                         isThrowing: false,

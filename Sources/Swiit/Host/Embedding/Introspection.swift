@@ -72,6 +72,8 @@ public struct Symbol: Sendable, Hashable {
         var annotation: TypeAnnotation?
         /// What a `- Parameter name:` line of its documentation says.
         public var documentation: String?
+        /// What is given is shown as interpolation shows a value (`print`).
+        var showsByType = false
 
         /// How many arguments a parameter takes.
         public enum Arity: Sendable, Hashable {
@@ -345,7 +347,9 @@ extension Interpreter {
                                         made.annotation = substituted
                                         return made
                                     },
-                                    returns: ValueType(checker.substitute(member.returns, bindings)),
+                                    returns: ValueType(
+                                        checker.substitute(member.returns, bindings)
+                                    ),
                                     isThrowing: member.isThrowing,
                                     isAsync: member.effect != .sync,
                                     isMutating: member.isMutating,

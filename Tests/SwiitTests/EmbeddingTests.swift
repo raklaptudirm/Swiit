@@ -610,38 +610,32 @@ struct Bytes: Comparable, Hashable, Sendable {
             conformances: ["Equatable", "Hashable", "Comparable"],
             members: [
                 .init(
-                    .initializer,
-                    HostFunction(
-                        name: "init",
-                        parameters: [.init(label: "count", name: "count", type: Int.self)],
-                        returns: ValueType.named("Bytes")
-                    ) {
-                        box(Bytes(count: try Int($0[0])))
-                    }
+                    "init",
+                    .initializer(
+                        Symbol.Function(
+                            parameters: [.init(label: "count", name: "count", type: Int.self)],
+                            returns: .named("Bytes")
+                        )
+                    ) { box(Bytes(count: try Int($0[0]))) }
                 ),
                 .init(
-                    .property,
-                    HostFunction(
-                        name: "count",
-                        parameters: [.init(name: "self", type: .named("Bytes"))],
-                        returns: Int.self
-                    ) {
-                        try $0[0].unboxed(Bytes.self).count.value
-                    }
+                    "count",
+                    .property(
+                        .int,
+                        .readOnly { try $0.unboxed(Bytes.self).count.value }
+                    )
                 ),
                 .init(
-                    .method,
-                    isStatic: true,
-                    HostFunction(
-                        name: "<",
-                        parameters: [
-                            .init(name: "lhs", type: .named("Bytes")),
-                            .init(name: "rhs", type: .named("Bytes")),
-                        ],
-                        returns: Bool.self
-                    ) {
-                        (try $0[0].unboxed(Bytes.self) < $0[1].unboxed(Bytes.self)).value
-                    }
+                    "<",
+                    .staticMethod(
+                        Symbol.Function(
+                            parameters: [
+                                .init(name: "lhs", type: .named("Bytes")),
+                                .init(name: "rhs", type: .named("Bytes")),
+                            ],
+                            returns: .bool
+                        )
+                    ) { (try $0[0].unboxed(Bytes.self) < $0[1].unboxed(Bytes.self)).value }
                 ),
             ]
         )

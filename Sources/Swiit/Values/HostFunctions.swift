@@ -2,109 +2,40 @@ import Foundation
 
 // MARK: What a host exports
 
-/// A function described as data: a name, parameters, a result, and a body. The way to offer
-/// functions whose shape is known only at run time. It is checked like any function the script
-/// declares.
+/// A function described as data: a name, a signature, and a body. The way to offer functions whose
+/// shape is known only at run time. It is checked like any function the script declares, and what
+/// `symbols(named:)` says of it is its `signature`.
 public struct HostFunction: Sendable {
-    public struct Parameter: Sendable {
-        public var label: String?
-        public var name: String
-        public var type: ValueType
-        public var defaultValue: Value?
-        public var isVariadic: Bool
-
-        public init(
-            label: String? = nil,
-            name: String,
-            type: ValueType = .any,
-            defaultValue: Value? = nil,
-            isVariadic: Bool = false
-        ) {
-            self.label = label
-            self.name = name
-            self.type = type
-            self.defaultValue = defaultValue
-            self.isVariadic = isVariadic
-            self.enums = []
-        }
-
-        /// A parameter of a Swift type: `Parameter(name: "count", type: Int.self)`.
-        public init<T: ValueConvertible>(
-            label: String? = nil,
-            name: String,
-            type: T.Type,
-            defaultValue: Value? = nil,
-            isVariadic: Bool = false
-        ) {
-            self.init(
-                label: label,
-                name: name,
-                type: ValueType(type),
-                defaultValue: defaultValue,
-                isVariadic: isVariadic
-            )
-            self.enums = T.swiitEnums
-        }
-
-        /// The enums its type uses, which the host learns by name.
-        var enums: [EnumType]
-        var documentation: String?
-        /// A default only Swift can compute, like `Date()`: the argument is left out and the
-        /// function uses its own. Its source, for help.
-        var defaultSource: String?
-        /// What is given is shown as interpolation shows a value.
-        var showsByType = false
-
-        init(
-            label: String?,
-            name: String,
-            type: ValueType,
-            enums: [EnumType] = [],
-            variadic: Bool = false,
-            documentation: String? = nil,
-            defaultValue: Value? = nil,
-            defaultSource: String? = nil,
-            showsByType: Bool = false
-        ) {
-            self.showsByType = showsByType
-            self.label = label
-            self.name = name
-            self.type = type
-            self.enums = enums
-            self.isVariadic = variadic
-            self.documentation = documentation
-            self.defaultValue = defaultValue
-            self.defaultSource = defaultSource
-        }
-
-        var variadic: Bool { isVariadic }
-    }
-
     public let name: String
     /// The line `help` shows.
-    public let summary: String?
-    public let parameters: [Parameter]
-    public let returns: ValueType?
-    /// Declared `throws`: a call to it needs `try`.
-    public let isThrowing: Bool
+    public let summary: String
+    /// Its parameters, what it gives back, and whether it throws.
+    public let signature: Symbol.Function
     /// Called with every argument bound, by parameter name, except ones left to a Swift default.
     let call: @Sendable ([String: Value]) throws -> Value
 
     /// `body` is called with its arguments in declared order, defaults filled in.
     public init(
         name: String,
-        summary: String? = nil,
-        parameters: [Parameter] = [],
-        returns: ValueType? = nil,
+        summary: String = "",
+        parameters: [Symbol.Parameter] = [],
+        returns: ValueType = .void,
         isThrowing: Bool = false,
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.name = name
         self.summary = summary
-        self.parameters = parameters
-        self.returns = returns
-        self.isThrowing = isThrowing
-        let defaults = parameters.map { ($0.name, $0.defaultValue) }
+        self.signature = Symbol.Function(
+            parameters: parameters,
+            returns: returns,
+            isThrowing: isThrowing
+        )
+        let defaults = parameters.map { parameter -> (String, Value?) in
+            if case .defaulted(.value(let value)) = parameter.arity {
+                return (parameter.name, value)
+            }
+            return (parameter.name, nil)
+        }
         self.call = { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }
 
@@ -112,8 +43,8 @@ public struct HostFunction: Sendable {
     /// `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
     public init<T: ValueConvertible>(
         name: String,
-        summary: String? = nil,
-        parameters: [Parameter] = [],
+        summary: String = "",
+        parameters: [Symbol.Parameter] = [],
         returns: T.Type,
         isThrowing: Bool = false,
         body: @escaping @Sendable ([Value]) throws -> Value
@@ -131,21 +62,72 @@ public struct HostFunction: Sendable {
     /// As the host's functions are described: a body taking the arguments by name.
     init(
         name: String,
-        summary: String? = nil,
-        parameters: [Parameter],
-        returnType: ValueType?,
-        isThrowing: Bool = false,
+        summary: String = "",
+        signature: Symbol.Function,
         call: @escaping @Sendable ([String: Value]) throws -> Value
     ) {
         self.name = name
         self.summary = summary
-        self.parameters = parameters
-        self.returns = returnType
-        self.isThrowing = isThrowing
+        self.signature = signature
         self.call = call
     }
+}
 
-    var returnType: ValueType? { returns }
+extension HostFunction {
+    /// As the language's own builtins are described: a body taking the arguments by name.
+    init(
+        name: String,
+        summary: String = "",
+        parameters: [Symbol.Parameter],
+        returnType: ValueType?,
+        isThrowing: Bool = false,
+        call: @escaping @Sendable ([String: Value]) throws -> Value
+    ) {
+        self.init(
+            name: name,
+            summary: summary,
+            signature: Symbol.Function(
+                parameters: parameters,
+                returns: returnType ?? .void,
+                isThrowing: isThrowing
+            ),
+            call: call
+        )
+    }
+}
+
+extension Symbol.Parameter {
+    /// As the language's own builtins describe one.
+    init(
+        label: String?,
+        name: String,
+        type: ValueType,
+        variadic: Bool = false,
+        documentation: String? = nil,
+        defaultValue: Value? = nil,
+        showsByType: Bool = false
+    ) {
+        self.init(
+            label: label,
+            name: name,
+            type: type,
+            arity: variadic ? .variadic : defaultValue.map { .defaulted(.value($0)) } ?? .required,
+            documentation: documentation
+        )
+        self.showsByType = showsByType
+    }
+}
+
+extension Symbol.Parameter {
+    /// A parameter of a Swift type: `Symbol.Parameter(name: "count", type: Int.self)`.
+    public init<T: ValueConvertible>(
+        label: String? = nil,
+        name: String,
+        type: T.Type,
+        arity: Arity = .required
+    ) {
+        self.init(label: label, name: name, type: ValueType(type), arity: arity)
+    }
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`,

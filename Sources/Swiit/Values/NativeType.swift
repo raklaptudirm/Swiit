@@ -5,28 +5,61 @@ import Foundation
 /// members are checked before the script runs, `==`, `<` and hashing go by the Swift value's own,
 /// and a word of text becomes one through `parse`.
 public struct NativeType: Sendable {
-    /// What a member is. A `setter` is a property's other half, for `size.unit = …`.
-    public enum MemberKind: Sendable { case method, property, initializer, setter }
-
-    /// A member of the type. Its `function` is called with the arguments in declared order; an
-    /// instance member's first parameter is named `self` and receives the value, and scripts do not
-    /// see it.
+    /// A member of the type. Scripts see its name and signature, which the checker reads, so a use
+    /// of it is checked before it runs; what each kind carries is what that kind has.
     public struct Member: Sendable {
-        public var kind: MemberKind
-        public var isStatic: Bool
-        public var isMutating: Bool
-        public var function: HostFunction
+        public var name: String
+        /// The line `help` shows.
+        public var summary: String
+        public var kind: Kind
 
-        public init(
-            _ kind: MemberKind,
-            isStatic: Bool = false,
-            isMutating: Bool = false,
-            _ function: HostFunction
-        ) {
+        public init(_ name: String, summary: String = "", _ kind: Kind) {
+            self.name = name
+            self.summary = summary
             self.kind = kind
-            self.isStatic = isStatic
-            self.isMutating = isMutating
-            self.function = function
+        }
+
+        /// What a member is. A body is called with its arguments in declared order, defaults filled
+        /// in; an instance member's also with the receiver, which scripts do not see as a parameter.
+        public enum Kind: Sendable {
+            case method(
+                Symbol.Function,
+                body: @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
+            )
+            /// A method that changes its receiver, like `append`: it gives its result and the
+            /// receiver as it is now.
+            case mutatingMethod(
+                Symbol.Function,
+                body:
+                    @Sendable (_ receiver: Value, _ arguments: [Value]) throws
+                    -> (result: Value, receiver: Value)
+            )
+            case staticMethod(
+                Symbol.Function,
+                body: @Sendable (_ arguments: [Value]) throws -> Value
+            )
+            case property(ValueType, Access)
+            case staticProperty(ValueType, get: @Sendable () throws -> Value)
+            case initializer(
+                Symbol.Function,
+                body: @Sendable (_ arguments: [Value]) throws -> Value
+            )
+            /// An initializer that can fail, which a script sees as one that gives an optional:
+            /// the body gives nothing for a failure.
+            case failableInitializer(
+                Symbol.Function,
+                body: @Sendable (_ arguments: [Value]) throws -> Value
+            )
+        }
+
+        /// What a script can do with a property.
+        public enum Access: Sendable {
+            case readOnly(get: @Sendable (_ receiver: Value) throws -> Value)
+            /// A setter gives the receiver as it is now, which is how a value type changes.
+            case readWrite(
+                get: @Sendable (_ receiver: Value) throws -> Value,
+                set: @Sendable (_ receiver: Value, _ newValue: Value) throws -> Value
+            )
         }
     }
 
@@ -84,7 +117,7 @@ extension Interpreter {
             bridged = bridged.adding(
                 itemMembers(
                     of: TypeAnnotation(element),
-                    excluding: Set(type.members.map { $0.function.name })
+                    excluding: Set(type.members.map(\.name))
                 )
             )
         }
@@ -157,63 +190,151 @@ extension BridgedType {
             parse: type.parse,
             literal: type.literal,
             arrayLiteral: nil,
-            members: type.members.map(BridgedMember.init)
+            members: type.members.flatMap { BridgedMember.members(of: $0, in: type.name) }
         )
     }
 }
 
 extension BridgedMember {
-    init(_ member: NativeType.Member) {
-        let function = member.function
-        let hasReceiver = !member.isStatic && member.kind != .initializer
-        let parameters = function.parameters.filter { !(hasReceiver && $0.name == "self") }
-            .map { parameter in
-                Parameter(
+    /// What a script can call, from what a host wrote: a read-write property is a property and its
+    /// setter.
+    static func members(of member: NativeType.Member, in typeName: String) -> [BridgedMember] {
+        func parameters(_ function: Symbol.Function) -> [Parameter] {
+            function.parameters.map { parameter in
+                var made = Parameter(
                     label: parameter.label,
                     name: parameter.name,
-                    type: TypeAnnotation(parameter.type),
-                    variadic: parameter.isVariadic,
-                    defaultValue: parameter.defaultValue.map(Expr.literal)
+                    type: TypeAnnotation(parameter.type)
                 )
-            }
-        let call = function.call
-        let names = parameters.map(\.name)
-        self.init(
-            kind: {
-                switch member.kind {
-                case .method: .method
-                case .property: .property
-                case .initializer: .initializer
-                case .setter: .setter
+                switch parameter.arity {
+                case .required: break
+                case .variadic: made.variadic = true
+                case .defaulted(.value(let value)): made.defaultValue = .literal(value)
+                case .defaulted(.computed): made.externalDefault = "…"
                 }
-            }(),
-            name: member.kind == .initializer ? "init" : function.name,
-            isStatic: member.isStatic || member.kind == .initializer,
-            parameters: parameters,
-            returns: function.returns.map(TypeAnnotation.init) ?? .void,
-            generics: [:],
-            isThrowing: function.isThrowing,
-            isRethrowing: false,
-            isMutating: member.isMutating,
-            discardableResult: false,
-            summary: function.summary ?? "",
-            body: .native { _, arguments in
-                var named = Dictionary(
-                    uniqueKeysWithValues: names.compactMap { name in
-                        arguments[name].map { (name, $0) }
-                    }
-                )
-                if hasReceiver, let receiver = arguments["self"] { named["self"] = receiver }
-                return try call(named)
+                return made
             }
-        )
-        plain = { arguments in
-            var named = Dictionary(
-                uniqueKeysWithValues: names.compactMap { name in arguments[name].map { (name, $0) }
+        }
+        /// The arguments in declared order, from what a call bound by name.
+        func ordered(_ function: Symbol.Function) -> @Sendable ([String: Value]) -> [Value] {
+            let slots = function.parameters.map { parameter -> (String, Value) in
+                if case .defaulted(.value(let value)) = parameter.arity {
+                    return (parameter.name, value)
                 }
+                return (parameter.name, .nothing)
+            }
+            return { arguments in slots.map { arguments[$0.0] ?? $0.1 } }
+        }
+        func make(
+            _ kind: BridgedMember.Kind,
+            isStatic: Bool = false,
+            name: String? = nil,
+            parameters: [Parameter] = [],
+            returns: TypeAnnotation,
+            function: Symbol.Function? = nil,
+            isMutating: Bool = false,
+            call: @escaping @Sendable ([String: Value]) throws -> Value
+        ) -> BridgedMember {
+            var made = BridgedMember(
+                kind: kind,
+                name: name ?? member.name,
+                isStatic: isStatic,
+                parameters: parameters,
+                returns: returns,
+                generics: function?.generics ?? [:],
+                isThrowing: function?.isThrowing ?? false,
+                isRethrowing: false,
+                isMutating: isMutating,
+                discardableResult: false,
+                summary: member.summary,
+                body: .native { _, arguments in try call(arguments) },
+                effect: function?.isAsync == true ? .async : .sync
             )
-            if hasReceiver, let receiver = arguments["self"] { named["self"] = receiver }
-            return try call(named)
+            made.plain = call
+            return made
+        }
+        switch member.kind {
+        case .method(let function, let body):
+            let order = ordered(function)
+            return [
+                make(
+                    .method,
+                    parameters: parameters(function),
+                    returns: TypeAnnotation(function.returns),
+                    function: function
+                ) { try body($0["self"] ?? .nothing, order($0)) }
+            ]
+        case .mutatingMethod(let function, let body):
+            let order = ordered(function)
+            return [
+                make(
+                    .method,
+                    parameters: parameters(function),
+                    returns: TypeAnnotation(function.returns),
+                    function: function,
+                    isMutating: true
+                ) {
+                    let (result, receiver) = try body($0["self"] ?? .nothing, order($0))
+                    return .list([result, receiver])
+                }
+            ]
+        case .staticMethod(let function, let body):
+            let order = ordered(function)
+            return [
+                make(
+                    .method,
+                    isStatic: true,
+                    parameters: parameters(function),
+                    returns: TypeAnnotation(function.returns),
+                    function: function
+                ) { try body(order($0)) }
+            ]
+        case .property(let type, .readOnly(let get)):
+            return [
+                make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) }
+            ]
+        case .property(let type, .readWrite(let get, let set)):
+            return [
+                make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) },
+                make(
+                    .setter,
+                    parameters: [
+                        Parameter(label: nil, name: "newValue", type: TypeAnnotation(type))
+                    ],
+                    returns: .void,
+                    isMutating: true
+                ) {
+                    .list([.nothing, try set($0["self"] ?? .nothing, $0["newValue"] ?? .nothing)])
+                },
+            ]
+        case .staticProperty(let type, let get):
+            return [
+                make(.property, isStatic: true, returns: TypeAnnotation(type)) { _ in try get() }
+            ]
+        case .initializer(let function, let body):
+            let order = ordered(function)
+            return [
+                make(
+                    .initializer,
+                    isStatic: true,
+                    name: "init",
+                    parameters: parameters(function),
+                    returns: .named(typeName),
+                    function: function
+                ) { try body(order($0)) }
+            ]
+        case .failableInitializer(let function, let body):
+            let order = ordered(function)
+            return [
+                make(
+                    .initializer,
+                    isStatic: true,
+                    name: "init",
+                    parameters: parameters(function),
+                    returns: .optional(.named(typeName)),
+                    function: function
+                ) { try body(order($0)) }
+            ]
         }
     }
 }
@@ -249,36 +370,26 @@ extension NativeType {
             }
         }
 
-        private var name: String { type.name }
-
         fileprivate static func box(_ value: T, as name: String) -> Value {
             if let object = value as? any HostObject { return Value(object) }
             return Value(boxing: value, as: name)
         }
 
-        private var receiver: HostFunction.Parameter { .init(name: "self", type: .named(name)) }
-
-        private func adding(
-            _ kind: MemberKind,
-            isStatic: Bool = false,
-            _ function: HostFunction
-        ) -> Builder {
+        private func adding(_ member: Member) -> Builder {
             var copy = self
-            copy.type.members.append(Member(kind, isStatic: isStatic, function))
+            copy.type.members.append(member)
             return copy
         }
-
-        fileprivate mutating func append(_ member: Member) { type.members.append(member) }
 
         fileprivate static func parameters<each Argument: ValueConvertible>(
             _: repeat (each Argument).Type,
             labels: [String?]
-        ) -> [HostFunction.Parameter] {
-            var made: [HostFunction.Parameter] = []
+        ) -> [Symbol.Parameter] {
+            var made: [Symbol.Parameter] = []
             func add<A: ValueConvertible>(_: A.Type) {
                 let label = labels.indices.contains(made.count) ? labels[made.count] : nil
                 made.append(
-                    HostFunction.Parameter(
+                    Symbol.Parameter(
                         label: label,
                         name: label ?? "argument\(made.count)",
                         type: A.self
@@ -295,11 +406,13 @@ extension NativeType {
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
             adding(
-                .property,
-                HostFunction(name: name, summary: nil, parameters: [receiver], returns: V.valueType)
-                { arguments in
-                    try arguments[0].unboxed(T.self)[keyPath: keyPath].value
-                }
+                Member(
+                    name,
+                    .property(
+                        V.valueType,
+                        .readOnly { try $0.unboxed(T.self)[keyPath: keyPath].value }
+                    )
+                )
             )
         }
 
@@ -312,21 +425,26 @@ extension NativeType {
             _ function: @escaping @Sendable (T) -> (repeat each Argument) throws -> Result
         ) -> Builder {
             adding(
-                .method,
-                HostFunction(
-                    name: name,
-                    parameters: [receiver]
-                        + Self.parameters(repeat (each Argument).self, labels: labels),
-                    returns: Result.valueType,
-                    isThrowing: throwing
-                ) { arguments in
-                    var index = 1
-                    func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return try function(arguments[0].unboxed(T.self))(
-                        repeat try (each Argument)(next())
-                    )
-                    .value
-                }
+                Member(
+                    name,
+                    .method(
+                        Symbol.Function(
+                            parameters: Self.parameters(
+                                repeat (each Argument).self,
+                                labels: labels
+                            ),
+                            returns: Result.valueType,
+                            isThrowing: throwing
+                        )
+                    ) { receiver, arguments in
+                        var index = 0
+                        func next() -> Value { defer { index += 1 }; return arguments[index] }
+                        return try function(receiver.unboxed(T.self))(
+                            repeat try (each Argument)(next())
+                        )
+                        .value
+                    }
+                )
             )
         }
 
@@ -338,18 +456,23 @@ extension NativeType {
             _ function: @escaping @Sendable (repeat each Argument) throws -> Result
         ) -> Builder {
             adding(
-                .method,
-                isStatic: true,
-                HostFunction(
-                    name: name,
-                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
-                    returns: Result.valueType,
-                    isThrowing: throwing
-                ) { arguments in
-                    var index = 0
-                    func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return try function(repeat try (each Argument)(next())).value
-                }
+                Member(
+                    name,
+                    .staticMethod(
+                        Symbol.Function(
+                            parameters: Self.parameters(
+                                repeat (each Argument).self,
+                                labels: labels
+                            ),
+                            returns: Result.valueType,
+                            isThrowing: throwing
+                        )
+                    ) { arguments in
+                        var index = 0
+                        func next() -> Value { defer { index += 1 }; return arguments[index] }
+                        return try function(repeat try (each Argument)(next())).value
+                    }
+                )
             )
         }
 
@@ -359,51 +482,57 @@ extension NativeType {
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T
         ) -> Builder {
-            let name = name
+            let name = type.name
             return adding(
-                .initializer,
-                HostFunction(
-                    name: "init",
-                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
-                    returns: .named(name),
-                    isThrowing: throwing
-                ) { arguments in
-                    var index = 0
-                    func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return Self.box(try make(repeat try (each Argument)(next())), as: name)
-                }
+                Member(
+                    "init",
+                    .initializer(
+                        Symbol.Function(
+                            parameters: Self.parameters(
+                                repeat (each Argument).self,
+                                labels: labels
+                            ),
+                            returns: .named(name),
+                            isThrowing: throwing
+                        )
+                    ) { arguments in
+                        var index = 0
+                        func next() -> Value { defer { index += 1 }; return arguments[index] }
+                        return Self.box(try make(repeat try (each Argument)(next())), as: name)
+                    }
+                )
             )
         }
-    }
-}
 
-extension NativeType.Builder {
-    /// An initializer that can fail, which a script sees as one that gives an optional:
-    /// `.failableInitializer(URL.init(string:))`.
-    public func failableInitializer<each Argument: ValueConvertible>(
-        labels: [String?] = [],
-        throwing: Bool = false,
-        _ make: @escaping @Sendable (repeat each Argument) throws -> T?
-    ) -> NativeType.Builder<T> {
-        let name = type.name
-        var copy = self
-        copy.append(
-            .init(
-                .initializer,
-                HostFunction(
-                    name: "init",
-                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
-                    returns: .optional(.named(name)),
-                    isThrowing: throwing
-                ) { arguments in
-                    var index = 0
-                    func next() -> Value { defer { index += 1 }; return arguments[index] }
-                    return try make(repeat try (each Argument)(next()))
-                        .map { Self.box($0, as: name) } ?? .null
-                }
+        /// An initializer that can fail, which a script sees as one that gives an optional:
+        /// `.failableInitializer(URL.init(string:))`.
+        public func failableInitializer<each Argument: ValueConvertible>(
+            labels: [String?] = [],
+            throwing: Bool = false,
+            _ make: @escaping @Sendable (repeat each Argument) throws -> T?
+        ) -> Builder {
+            let name = type.name
+            return adding(
+                Member(
+                    "init",
+                    .failableInitializer(
+                        Symbol.Function(
+                            parameters: Self.parameters(
+                                repeat (each Argument).self,
+                                labels: labels
+                            ),
+                            returns: .optional(.named(name)),
+                            isThrowing: throwing
+                        )
+                    ) { arguments in
+                        var index = 0
+                        func next() -> Value { defer { index += 1 }; return arguments[index] }
+                        return try make(repeat try (each Argument)(next()))
+                            .map { Self.box($0, as: name) } ?? .null
+                    }
+                )
             )
-        )
-        return copy
+        }
     }
 }
 

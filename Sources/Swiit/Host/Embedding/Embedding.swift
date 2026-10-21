@@ -395,20 +395,20 @@ extension Interpreter {
                 name: "print",
                 summary: "Writes its arguments to the output, separated by spaces, then a newline.",
                 parameters: [
-                    HostFunction.Parameter(
+                    Symbol.Parameter(
                         label: nil,
                         name: "items",
                         type: .any,
                         variadic: true,
                         showsByType: true
                     ),
-                    HostFunction.Parameter(
+                    Symbol.Parameter(
                         label: "separator",
                         name: "separator",
                         type: .string,
                         defaultValue: .string(" ")
                     ),
-                    HostFunction.Parameter(
+                    Symbol.Parameter(
                         label: "terminator",
                         name: "terminator",
                         type: .string,
@@ -590,11 +590,10 @@ extension Interpreter {
         let parameters = parameterTypes.enumerated()
             .map { index, entry in
                 let label = labels.indices.contains(index) ? labels[index] : nil
-                return HostFunction.Parameter(
+                return Symbol.Parameter(
                     label: label,
                     name: label ?? "argument\(index)",
-                    type: entry.0,
-                    enums: entry.1
+                    type: entry.0
                 )
             }
         let names = parameters.map(\.name)

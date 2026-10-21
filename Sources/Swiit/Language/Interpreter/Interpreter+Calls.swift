@@ -382,20 +382,24 @@ extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
     func hostFunction(_ export: HostFunction) -> Function {
-        let parameters = export.parameters.map { parameter -> Parameter in
+        let signature = export.signature
+        let parameters = signature.parameters.map { parameter -> Parameter in
             var made = Parameter(
                 label: parameter.label,
                 name: parameter.name,
-                type: TypeAnnotation(parameter.type),
-                variadic: parameter.variadic,
-                defaultValue: parameter.defaultValue.map(Expr.literal),
-                externalDefault: parameter.defaultSource
+                type: TypeAnnotation(parameter.type)
             )
+            switch parameter.arity {
+            case .required: break
+            case .variadic: made.variadic = true
+            case .defaulted(.value(let value)): made.defaultValue = .literal(value)
+            case .defaulted(.computed): made.externalDefault = "…"
+            }
             made.showsByType = parameter.showsByType
             return made
         }
         var docs: [String: String] = [:]
-        for parameter in export.parameters {
+        for parameter in signature.parameters {
             if let doc = parameter.documentation { docs[parameter.name] = doc }
         }
         let name = export.name
@@ -403,7 +407,7 @@ extension Interpreter {
         return Function(
             name: name,
             parameters: parameters,
-            returnType: export.returnType.map(TypeAnnotation.init),
+            returnType: signature.returns == .void ? nil : TypeAnnotation(signature.returns),
             body: .native { interpreter, arguments in
                 do {
                     return try call(arguments)
@@ -411,8 +415,8 @@ extension Interpreter {
                     throw interpreter.hostFailure(error, in: name)
                 }
             },
-            documentation: Documentation(summary: export.summary ?? "", parameters: docs),
-            isThrowing: export.isThrowing
+            documentation: Documentation(summary: export.summary, parameters: docs),
+            isThrowing: signature.isThrowing
         )
     }
 }
