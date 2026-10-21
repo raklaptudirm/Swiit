@@ -55,16 +55,6 @@ extension Value {
     /// Double, as an integer literal would in Swift.
     func conforming(to type: TypeAnnotation) -> Value? {
         switch (type, self) {
-        // What stands for text is the text where a String is wanted, and a
-        // Swift sequence of Strings (a host type's text) is the list of them where a list is.
-        case (.string, .object) where text != nil:
-            return .string(text!)
-        case (.list(.string), .object(let box as SwiftValue))
-        where box.value is any Sequence
-            && Interpreter.items(of: self)
-                .map({ $0.allSatisfy { if case .string = $0 { true } else { false } } })
-                == true:
-            return .list(Array(Interpreter.items(of: self)!))
         // A key path is a function of one value, as in Swift, and no other kind.
         case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
             return parameters.count == 1 ? self : nil
@@ -130,9 +120,6 @@ extension Value {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }
-        // What stands for text sorts as its text.
-        if case .object = self, let a = text { return Value.string(a).order(comparedTo: other) }
-        if case .object = other, let b = other.text { return order(comparedTo: .string(b)) }
         switch (self, other) {
         case (.bool(let a), .bool(let b)): return compare(a ? 1 : 0, b ? 1 : 0)
         case (.int, .int), (.int, .double), (.double, .int), (.double, .double):

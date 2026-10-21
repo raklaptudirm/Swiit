@@ -55,7 +55,7 @@ extension Function {
     /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`.
     /// A Swift member's receiver, as a stage's input, isn't written.
     public var signature: String {
-        AttributedString(joining: declaration { $0.name == "self" }).text
+        AttributedString(joining: declaration { $0.name == "self" }).plain
     }
 
     public func declaration(hiding hidden: (Parameter) -> Bool) -> [AttributedString] {

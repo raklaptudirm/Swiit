@@ -130,18 +130,6 @@ extension Interpreter {
             if let result = try userOperator(op.rawValue, [lhs, rhs]) { return result }
             if let result = try derivedOperator(op, lhs, rhs) { return result }
         }
-        // What stands for text (a host type's text) compares as its text;
-        // other String operations go through `.text`.
-        let isComparison = op.isComparison
-        if case .object = lhs, let text = lhs.text, isComparison {
-            return try apply(op, .string(text), rhs)
-        }
-        if case .object = rhs, let text = rhs.text, isComparison {
-            return try apply(op, lhs, .string(text))
-        }
-        if case .object = lhs, lhs.text != nil, op == .add {
-            throw RuntimeError("'+' needs the text of a \(lhs.typeName): use .text")
-        }
         if op == .equal || op == .notEqual {
             if case .enumValue(let value) = lhs, case .string(let text) = rhs {
                 throw RuntimeError(
@@ -152,6 +140,15 @@ extension Interpreter {
                 throw RuntimeError(
                     "can't compare a String with \(value.type.name); compare with a case, like .\(text)"
                 )
+            }
+        }
+        // A Swift type compared with text through an operator it declares (`==` of an `Output` and a
+        // `String`).
+        if op == .equal || op == .notEqual {
+            switch (lhs, rhs) {
+            case (.object(is SwiftValue), .string), (.string, .object(is SwiftValue)):
+                if let result = try bridgedOperator(op.rawValue, [lhs, rhs]) { return result }
+            default: break
             }
         }
         switch (op, lhs, rhs) {

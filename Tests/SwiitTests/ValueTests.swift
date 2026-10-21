@@ -25,18 +25,6 @@ private final class Stub: Callable {
     #expect(Value.function(stub).description == "stub")
 }
 
-/// Text that stands for a String where one is wanted, as a command's output does in a host.
-private struct Shout: StandsForText, Sendable {
-    var text: String
-}
-
-@Test func whatStandsForTextIsItsText() {
-    let value = SwiftValue.make(Shout(text: "hi"), as: "Shout")
-    #expect(value.text == "hi")
-    #expect(Value.string("x").text == "x")
-    #expect(Value.int(1).text == nil)
-}
-
 private final class Thing: HostObject {
     var typeName: String { "Thing" }
     var memberNames: [String] { ["size"] }

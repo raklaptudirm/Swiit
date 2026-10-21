@@ -87,24 +87,12 @@ extension TypeChecker {
         // A struct's value is a record, as builtins that take any record see it.
         case (.named(let name), .record): return structInfo(named: name) != nil
         case (.tuple, .record): return true
-        // What stands for text (an Output) is its text where a String is
-        // wanted, and its lines where a [String] is.
-        case (_, .string) where standsForText(actual),
-            (_, .list(.string)) where standsForText(actual):
-            return true
         default: return false
         }
     }
 }
 
 extension TypeChecker {
-    /// Whether a type stands for text where a String is wanted: a Swift type
-    /// that says so (`StandsForText`), as an Output does.
-    func standsForText(_ type: TypeAnnotation) -> Bool {
-        guard let (name, _) = type.swiftType else { return false }
-        return Bridge.types[name]?.conformances["StandsForText"] != nil
-    }
-
     // MARK: Protocols
 
     /// Whether `type` conforms to `proto`: as in Swift for the builtin types;

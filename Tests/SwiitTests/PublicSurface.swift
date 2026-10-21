@@ -12,7 +12,7 @@ enum PublicSurface {
         "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation",
         "TypeDescription", "TaskHandle",
         "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
-        "DisplayStyleAttribute", "StandsForText",
+        "DisplayStyleAttribute",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()

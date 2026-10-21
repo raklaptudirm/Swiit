@@ -437,9 +437,6 @@ extension Interpreter {
                     "can't compare \(value.typeName) with a String; match a case like .\(expected)"
                 )
             }
-            if case .object = value, let text = value.text {
-                return Value.string(text).isEqual(to: expected)
-            }
             return value.isEqual(to: expected)
         case .cast(let inner, let type):
             guard let converted = conform(value, to: type) else { return false }

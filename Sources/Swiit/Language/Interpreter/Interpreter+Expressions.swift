@@ -273,11 +273,6 @@ extension Interpreter {
         case .coalesce:
             let value = try evaluate(lhs)
             if value == .nothing { return try evaluate(rhs) }
-            // `(try? $(git config x)) ?? "vi"` is a String: the checker types
-            // it so, so the Output gives its text.
-            if case .object = value, let text = value.text, rhs.isStringExpression {
-                return .string(text)
-            }
             return value
         case .closedRange, .halfOpenRange:
             return try makeRange(op, try evaluate(lhs), try evaluate(rhs))

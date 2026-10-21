@@ -280,15 +280,10 @@ extension Double: ValueConvertible {
 extension String: ValueConvertible {
     public static var valueType: ValueType { .string }
     public init(_ swiitValue: Value) throws {
-        switch swiitValue {
-        case .string(let value): self = value
-        default:
-            // What stands for text (a host type's text) is its text.
-            guard let text = swiitValue.text else {
-                throw SwiitError.expected("String", swiitValue)
-            }
-            self = text
+        guard case .string(let value) = swiitValue else {
+            throw SwiitError.expected("String", swiitValue)
         }
+        self = value
     }
     public var value: Value { .string(self) }
 }

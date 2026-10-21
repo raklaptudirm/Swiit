@@ -68,10 +68,6 @@ extension AttributedString {
     }
 }
 
-extension AttributedString: StandsForText {
-    public var text: String { plain }
-}
-
 extension AttributedString {
     /// What a script can read of rich text: its words, and how they show (as its words, plain, or with
     /// the terminal's escapes for each style).

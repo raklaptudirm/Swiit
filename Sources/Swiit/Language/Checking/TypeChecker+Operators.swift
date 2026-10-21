@@ -23,8 +23,6 @@ extension TypeChecker {
             }
             let right = try typeOf(&rhs, expecting: wrapped == .unknown ? expected : wrapped)
             if wrapped == .unknown { return right }
-            // An Output or some text: the Output's text.
-            if standsForText(wrapped), right == .string, rhs.isStringExpression { return .string }
             if fits(right, wrapped) { return wrapped }
             if fits(right, left) { return left }
             throw TypeError("'??' needs a \(wrapped) on its right, not \(right)")
@@ -32,8 +30,8 @@ extension TypeChecker {
             // A `.case` on one side takes the other side's type.
             let (left, right) = try operandTypes(&lhs, &rhs)
             guard
-                fits(left, right) || fits(right, left) || standsForText(left) && right == .string
-                    || left == .string && standsForText(right)
+                fits(left, right) || fits(right, left)
+                    || bridgedOperatorType(op.rawValue, [left, right]) != nil
             else {
                 throw TypeError("can't compare \(left) with \(right)")
             }

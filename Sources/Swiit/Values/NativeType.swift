@@ -368,7 +368,6 @@ extension NativeType {
             if T.self is any CustomStringConvertible.Type {
                 found.append("CustomStringConvertible")
             }
-            if T.self is any StandsForText.Type { found.append("StandsForText") }
             if T.self is any ExpressibleByStringLiteral.Type {
                 found.append("ExpressibleByStringLiteral")
             }

@@ -48,7 +48,7 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         }
     }
 
-    public var description: String { AttributedString(joining: styled).text }
+    public var description: String { AttributedString(joining: styled).plain }
 
     /// As Swift writes it, in pieces by what each is (the name of a type, a
     /// label, a keyword, or punctuation), so help can color it and no one has
