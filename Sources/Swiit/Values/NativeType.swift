@@ -64,32 +64,23 @@ public struct NativeType: Sendable {
     }
 
     public var name: String
-    /// The protocols it conforms to, of those Swiit knows: `Equatable`, `Hashable`, `Comparable`,
-    /// `Sequence`.
-    public var conformances: [String]
-    /// What its associated types are: `Element` is `String` for a sequence of text.
-    public var associatedTypes: [String: ValueType]
     public var members: [Member]
+    /// The protocols its Swift type conforms to, of those Swiit knows: `Equatable`, `Hashable`,
+    /// `Comparable`, `Sequence`. A builder finds them from the type.
+    var conformances: [String] = []
+    /// What its associated types are: `Element` is `String` for a sequence of text.
+    var associatedTypes: [String: ValueType] = [:]
     /// A value from text, where text gives a word and the type is wanted.
-    public var parse: (@Sendable (String) -> Value?)?
+    var parse: (@Sendable (String) -> Value?)?
     /// A value from a text literal, where a script writes `"…"` and the type is wanted
     /// (`let column: DisplayColumn = "name"`).
-    public var literal: (@Sendable (String) -> Value?)?
+    var literal: (@Sendable (String) -> Value?)?
 
-    public init(
-        name: String,
-        conformances: [String] = [],
-        associatedTypes: [String: ValueType] = [:],
-        members: [Member] = [],
-        parse: (@Sendable (String) -> Value?)? = nil,
-        literal: (@Sendable (String) -> Value?)? = nil
-    ) {
+    /// A type described by hand, from its members alone. `NativeType.Builder` also finds what the
+    /// Swift type says of itself: its conformances, how text becomes one.
+    public init(name: String, members: [Member] = []) {
         self.name = name
-        self.conformances = conformances
-        self.associatedTypes = associatedTypes
         self.members = members
-        self.parse = parse
-        self.literal = literal
     }
 }
 
@@ -351,23 +342,63 @@ extension NativeType {
     public struct Builder<T: Sendable>: Sendable {
         public private(set) var type: NativeType
 
-        public init(
-            _ name: String? = nil,
-            conformances: [String] = [],
-            associatedTypes: [String: ValueType] = [:],
-            parse: (@Sendable (String) -> T?)? = nil,
-            literal: (@Sendable (String) -> T?)? = nil
-        ) {
+        /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
+        /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
+        /// `Element`), `Encodable` and `CustomStringConvertible`, a word of text that is one
+        /// (`LosslessStringConvertible`), and a string literal that is one
+        /// (`ExpressibleByStringLiteral`).
+        public init(_ name: String? = nil) {
             let name = name ?? String(describing: T.self)
-            self.type = NativeType(
-                name: name,
-                conformances: conformances,
-                associatedTypes: associatedTypes
-            )
-            if let parse { type.parse = { text in parse(text).map { Self.box($0, as: name) } } }
-            if let literal {
-                type.literal = { text in literal(text).map { Self.box($0, as: name) } }
+            self.type = NativeType(name: name)
+            type.conformances = Self.conformances()
+            if let element = Self.sequenceElement() {
+                type.associatedTypes["Element"] = element
             }
+            type.parse = Self.parser(named: name)
+            type.literal = Self.literalMaker(named: name)
+        }
+
+        private static func conformances() -> [String] {
+            var found: [String] = []
+            if T.self is any Equatable.Type { found.append("Equatable") }
+            if T.self is any Hashable.Type { found.append("Hashable") }
+            if T.self is any Comparable.Type { found.append("Comparable") }
+            if T.self is any Sequence.Type { found.append("Sequence") }
+            if T.self is any Encodable.Type { found.append("Encodable") }
+            if T.self is any CustomStringConvertible.Type {
+                found.append("CustomStringConvertible")
+            }
+            if T.self is any StandsForText.Type { found.append("StandsForText") }
+            if T.self is any ExpressibleByStringLiteral.Type {
+                found.append("ExpressibleByStringLiteral")
+            }
+            return found
+        }
+
+        private static func sequenceElement() -> ValueType? {
+            func element<S: Sequence>(_: S.Type) -> ValueType {
+                (S.Element.self as? any ValueConvertible.Type)?.valueType ?? .any
+            }
+            guard let sequence = T.self as? any Sequence.Type else { return nil }
+            return element(sequence)
+        }
+
+        private static func parser(named name: String) -> (@Sendable (String) -> Value?)? {
+            func parser<L: LosslessStringConvertible>(_: L.Type) -> @Sendable (String) -> Value? {
+                { text in L(text).map { box($0 as! T, as: name) } }
+            }
+            guard let lossless = T.self as? any LosslessStringConvertible.Type else { return nil }
+            return parser(lossless)
+        }
+
+        private static func literalMaker(named name: String) -> (@Sendable (String) -> Value?)? {
+            func maker<L: ExpressibleByStringLiteral>(_: L.Type) -> @Sendable (String) -> Value? {
+                { text in
+                    (text as? L.StringLiteralType).map { box(L(stringLiteral: $0) as! T, as: name) }
+                }
+            }
+            guard let literal = T.self as? any ExpressibleByStringLiteral.Type else { return nil }
+            return maker(literal)
         }
 
         fileprivate static func box(_ value: T, as name: String) -> Value {

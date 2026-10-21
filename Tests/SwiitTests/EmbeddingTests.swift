@@ -607,7 +607,6 @@ struct Bytes: Comparable, Hashable, Sendable {
         @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b, as: "Bytes") }
         return NativeType(
             name: "Bytes",
-            conformances: ["Equatable", "Hashable", "Comparable"],
             members: [
                 .init(
                     "init",
@@ -856,7 +855,7 @@ private final class Mark: @unchecked Sendable {
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
     let swiit = interpreter()
     swiit.register(
-        NativeType.Builder<Bytes>("Bytes", conformances: ["Equatable", "Hashable", "Comparable"])
+        NativeType.Builder<Bytes>("Bytes")
             .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
             .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } }
     )
@@ -988,12 +987,8 @@ private final class Handle: HostObject, @unchecked Sendable {
     }
     let swiit = interpreter()
     swiit.register(
-        NativeType.Builder<Lines>(
-            "Lines",
-            conformances: ["Equatable", "Hashable", "Sequence"],
-            associatedTypes: ["Element": .string]
-        )
-        .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
+        NativeType.Builder<Lines>("Lines")
+            .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
     )
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).count"#) == 2)
