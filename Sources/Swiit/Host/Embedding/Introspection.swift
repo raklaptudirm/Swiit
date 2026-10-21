@@ -65,32 +65,42 @@ public struct Symbol: Sendable, Hashable {
         /// The name the function's body uses.
         public var name: String
         public var type: ValueType
-        /// Whether a call may leave it out.
-        public var hasDefault: Bool
-        public var isVariadic: Bool
+        /// Whether a call must give it, may leave it out, or may give any number.
+        public var arity: Arity
         /// The type as the checker has it, which tells a type parameter from a type of the same
         /// name.
         var annotation: TypeAnnotation?
-        /// What it is when the call leaves it out, if that is a plain value: `false`, `10`, `"-"`.
-        public var defaultValue: Value?
         /// What a `- Parameter name:` line of its documentation says.
         public var documentation: String?
+
+        /// How many arguments a parameter takes.
+        public enum Arity: Sendable, Hashable {
+            case required
+            /// A call may leave it out.
+            case defaulted(Default)
+            /// A call may give any number, as `FilePath...` does.
+            case variadic
+
+            /// What it is when the call leaves it out.
+            public enum Default: Sendable, Hashable {
+                /// A plain value: `false`, `10`, `"-"`.
+                case value(Value)
+                /// Only Swift can make it, like `Date()`.
+                case computed
+            }
+        }
 
         public init(
             label: String? = nil,
             name: String,
             type: ValueType = .any,
-            hasDefault: Bool = false,
-            isVariadic: Bool = false,
-            defaultValue: Value? = nil,
+            arity: Arity = .required,
             documentation: String? = nil
         ) {
             self.label = label
             self.name = name
             self.type = type
-            self.hasDefault = hasDefault
-            self.isVariadic = isVariadic
-            self.defaultValue = defaultValue
+            self.arity = arity
             self.documentation = documentation
         }
     }
@@ -250,9 +260,10 @@ extension Interpreter {
             label: parameter.label,
             name: parameter.name,
             type: ValueType(parameter.type),
-            hasDefault: parameter.defaultValue != nil || parameter.externalDefault != nil,
-            isVariadic: parameter.variadic,
-            defaultValue: plain,
+            arity: parameter.variadic
+                ? .variadic
+                : parameter.defaultValue != nil || parameter.externalDefault != nil
+                    ? .defaulted(plain.map { .value($0) } ?? .computed) : .required,
             documentation: documentation
         )
         made.annotation = parameter.type
@@ -327,9 +338,11 @@ extension Interpreter {
                                             label: $0.label,
                                             name: $0.name,
                                             type: ValueType(substituted),
-                                            hasDefault: $0.defaultValue != nil
-                                                || $0.externalDefault != nil,
-                                            isVariadic: $0.variadic,
+                                            arity: $0.variadic
+                                                ? .variadic
+                                                : $0.defaultValue != nil
+                                                    || $0.externalDefault != nil
+                                                    ? .defaulted(.computed) : .required,
                                             documentation: member.parameterDocs[$0.name]
                                         )
                                         made.annotation = substituted
@@ -485,7 +498,7 @@ extension Interpreter {
                     let index = parameters[next...]
                         .firstIndex(where: { $0.label == argument.label })
                         ?? parameters.firstIndex(where: {
-                            $0.isVariadic && $0.label == argument.label
+                            $0.arity == .variadic && $0.label == argument.label
                         })
                 else { return nil }
                 let parameter = parameters[index]
@@ -496,12 +509,11 @@ extension Interpreter {
                 guard checker.fits(actual, expected) else { return nil }
                 if expected == .any || expected == .unknown { cost += 1 }
                 given.insert(parameter.name)
-                next = parameter.isVariadic ? index : index + 1
+                next = parameter.arity == .variadic ? index : index + 1
             }
             // What is left out must have a default.
             for parameter in parameters
-            where !given.contains(parameter.name) && !parameter.hasDefault && !parameter.isVariadic
-            { return nil }
+            where !given.contains(parameter.name) && parameter.arity == .required { return nil }
             return cost
         }
         let fitting = candidates.compactMap { candidate in

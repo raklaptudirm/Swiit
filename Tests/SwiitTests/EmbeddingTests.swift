@@ -353,7 +353,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
     let area = try #require(swiit.symbols(named: "area").first)
     let function = try #require(area.function)
     #expect(function.parameters.map(\.label) == ["width", "height"])
-    #expect(function.parameters.map(\.hasDefault) == [false, true])
+    #expect(function.parameters.map(\.arity) == [.required, .defaulted(.value(1))])
     #expect(function.returns == .int)
     #expect(try #require(swiit.symbols(named: "check").first?.function).isThrowing)
     // The interpreter's own are found by name, not listed.
@@ -727,7 +727,7 @@ extension URL: ValueConvertible {}
     #expect(declared.symbols.first { $0.name == "f" }?.summary == "Says f.")
     let f = declared.symbols.first { $0.name == "f" }?.function
     #expect(f?.parameters.map(\.label) == ["a", "b"])
-    #expect(f?.parameters[1].defaultValue == false)
+    #expect(f?.parameters[1].arity == .defaulted(.value(false)))
     #expect(throws: Diagnostic.self) { try swiit.check(#"print("ran"); let x: Int = "s""#) }
     #expect(log.text == "")
     // Nothing was declared by checking.
