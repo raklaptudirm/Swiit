@@ -29,8 +29,8 @@ public struct Symbol: Sendable, Hashable {
 
     public struct Function: Sendable, Hashable {
         public var parameters: [Parameter]
-        /// What it gives back, nil when nothing.
-        public var returns: ValueType?
+        /// What it gives back; `.void` when nothing.
+        public var returns: ValueType
         public var isThrowing: Bool
         public var isAsync: Bool
         /// A method that changes its value.
@@ -41,7 +41,7 @@ public struct Symbol: Sendable, Hashable {
 
         public init(
             parameters: [Parameter] = [],
-            returns: ValueType? = nil,
+            returns: ValueType = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
             isMutating: Bool = false,
@@ -218,9 +218,7 @@ extension Interpreter {
                                     documentation: function.documentation?.parameters[$0.name]
                                 )
                             },
-                            returns: function.returnType.flatMap {
-                                $0 == .void ? nil : ValueType($0)
-                            },
+                            returns: function.returnType.map(ValueType.init) ?? .void,
                             isThrowing: function.isThrowing,
                             isAsync: function.effect != .sync,
                             isMutating: function.isMutating,
@@ -282,8 +280,7 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: parameters.map { parameter($0) },
-                            returns: signature.returns == .void
-                                ? nil : ValueType(signature.returns),
+                            returns: ValueType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating,
@@ -348,9 +345,7 @@ extension Interpreter {
                                         made.annotation = substituted
                                         return made
                                     },
-                                    returns: member.returns == .void
-                                        ? nil
-                                        : ValueType(checker.substitute(member.returns, bindings)),
+                                    returns: ValueType(checker.substitute(member.returns, bindings)),
                                     isThrowing: member.isThrowing,
                                     isAsync: member.effect != .sync,
                                     isMutating: member.isMutating,
@@ -629,8 +624,7 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: signature.returns == .void
-                                ? nil : ValueType(signature.returns),
+                            returns: ValueType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating

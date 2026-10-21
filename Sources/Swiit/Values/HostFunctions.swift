@@ -184,6 +184,8 @@ public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
     public static let int = ValueType.named("Int")
     public static let double = ValueType.named("Double")
     public static let string = ValueType.named("String")
+    /// The type of nothing: what a function that gives nothing gives.
+    public static let void = ValueType.tuple([])
     /// A function whose signature is not said.
     public static let callable = ValueType.named("Function")
 
