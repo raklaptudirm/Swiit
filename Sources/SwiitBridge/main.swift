@@ -399,7 +399,7 @@ for (name, _) in bridgedTypeNames {
         else {
             continue
         }
-        // The interpreter's own hooks a type adopts (`swiitDescription`), not for Swiit code.
+        // The interpreter's own, which a host does not call.
         if title.hasPrefix("swiit") { continue }
         if isOperator && graph.module.name == "Swift" { continue }
         if swiitOwn[name]?.contains(title) ?? false { continue }

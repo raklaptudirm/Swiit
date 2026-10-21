@@ -128,17 +128,20 @@ struct BridgedType {
     public var arrayLiteral: (([Value]) -> Value)?
     public let members: [BridgedMember]
 
-    /// It, with members written by hand too, where the generator can't make them.
+    /// It, with members written by hand too, where the generator can't make them. A host's own member
+    /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
+    /// host says how a type shows; one registered twice is not added again.
     func adding(_ extra: [BridgedMember]) -> BridgedType {
-        // A member already there (a library registered twice) is not added again.
-        let extra = extra.filter { new in
-            !members.contains {
-                $0.kind == new.kind && $0.name == new.name && $0.isStatic == new.isStatic
-                    && $0.parameters.map(\.label) == new.parameters.map(\.label)
-                    && $0.parameters.map(\.type) == new.parameters.map(\.type)
-            }
+        func same(_ a: BridgedMember, _ b: BridgedMember) -> Bool {
+            a.kind == b.kind && a.name == b.name && a.isStatic == b.isStatic
+                && a.parameters.map(\.label) == b.parameters.map(\.label)
+                && a.parameters.map(\.type) == b.parameters.map(\.type)
         }
-        guard !extra.isEmpty else { return self }
+        let kept = members.filter { old in
+            !extra.contains { new in new.plain != nil && old.plain == nil && same(old, new) }
+        }
+        let extra = extra.filter { new in !kept.contains { same($0, new) } }
+        guard !extra.isEmpty || kept.count != members.count else { return self }
         return BridgedType(
             name: name,
             genericParameters: genericParameters,
@@ -147,7 +150,7 @@ struct BridgedType {
             parse: parse,
             literal: literal,
             arrayLiteral: arrayLiteral,
-            members: members + extra
+            members: kept + extra
         )
     }
 

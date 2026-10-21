@@ -296,32 +296,6 @@ extension Bridge {
         "Set": [reduceInto, lazyMember(.parameter("Element"))],
         "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))],
         "Range": [reduceInto, lazyMember(.parameter("Bound"))],
-        "AttributedString": [
-            member(.property, "text", returns: .string, summary: "The words, without the styles.") {
-                _,
-                arguments in
-                .string(
-                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain
-                )
-            },
-            member(.property, "plain", returns: .string, summary: "The words, without the styles.")
-            { _, arguments in
-                .string(
-                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing).plain
-                )
-            },
-            member(
-                .property,
-                "colored",
-                returns: .string,
-                summary: "The words with the terminal's escapes for each style."
-            ) { _, arguments in
-                .string(
-                    try SwiftValue.unbox(AttributedString.self, arguments["self"] ?? .nothing)
-                        .colored
-                )
-            },
-        ],
         "Unicode.Scalar": [
             member(
                 .property,

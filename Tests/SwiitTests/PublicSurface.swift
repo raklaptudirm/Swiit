@@ -13,7 +13,6 @@ enum PublicSurface {
         "TypeDescription", "TaskHandle",
         "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
         "DisplayStyleAttribute", "StandsForText",
-        "SwiitDisplayed",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()

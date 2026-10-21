@@ -45,14 +45,3 @@ extension String {
         return style.escape + self + DisplayStyle.reset
     }
 }
-
-/// A Swift type that shows in Swiit other than as its `description`: a date
-/// in local time, to the second.
-public protocol SwiitDisplayed {
-    var swiitDescription: String { get }
-    var swiitDebugDescription: String { get }
-}
-
-extension SwiitDisplayed {
-    public var swiitDebugDescription: String { swiitDescription }
-}

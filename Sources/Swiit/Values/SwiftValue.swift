@@ -82,10 +82,24 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
     public var fields: ValueDictionary? { nil }
+    /// What the type registered as its `description` property, which is how a type that Swift
+    /// cannot say it in (a `Date` in the local time zone) says how it shows; else Swift's own.
     public var description: String {
-        (value as? any SwiitDisplayed)?.swiitDescription ?? String(describing: value)
+        registered("description") ?? String(describing: value)
     }
     public var debugDescription: String {
-        (value as? any SwiitDisplayed)?.swiitDebugDescription ?? String(reflecting: value)
+        registered("debugDescription") ?? String(reflecting: value)
+    }
+
+    private func registered(_ property: String) -> String? {
+        guard
+            let member = Bridge.types[typeName]?.members
+                .first(where: {
+                    $0.name == property && !$0.isStatic && $0.kind == .property
+                }),
+            let read = member.plain,
+            case .string(let text)? = try? read(["self": .object(self)])
+        else { return nil }
+        return text
     }
 }

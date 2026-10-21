@@ -68,7 +68,17 @@ extension AttributedString {
     }
 }
 
-extension AttributedString: StandsForText, SwiitDisplayed {
+extension AttributedString: StandsForText {
     public var text: String { plain }
-    public var swiitDescription: String { plain }
+}
+
+extension AttributedString {
+    /// What a script can read of rich text: its words, and how they show (as its words, plain, or with
+    /// the terminal's escapes for each style).
+    static let native = NativeType.Builder<AttributedString>("AttributedString")
+        .property("text", \.plain)
+        .property("plain", \.plain)
+        .property("description", \.plain)
+        .property("debugDescription", \.plain)
+        .property("colored", \.colored)
 }
