@@ -78,7 +78,6 @@ final class StructType: LanguageObject, @unchecked Sendable {  // safe: its stat
     public var typeName: String { "struct" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
     var description: String { "struct \(name)" }
 }
 

@@ -40,14 +40,6 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     /// A member answered at run time, after the registered ones; nil if there is none. Optional:
     /// most objects have only the registered members.
     func member(_ name: String) -> Value?
-    /// Its data as named fields, which tables, `select` and `to json` use; nil for an object that
-    /// isn't data. By default every member that isn't a method.
-    var fields: ValueDictionary? { get }
-    /// How it prints in the debug form, in pieces to color, if it has a form of its own (a job
-    /// reads `[1] running make`); nil to print as its fields.
-    var displaySegments: [DisplaySegment]? { get }
-    /// What equality and hashing go by: the object itself, by default.
-    var identity: AnyHashable { get }
     /// What reading any member gives, when its members are not declared one by one (`env`, whose
     /// members are the process's variables), so `env.HOME` is a `String?`. nil, by default, for an
     /// object that has only its registered members. With it, a member or an index by a `String`
@@ -62,9 +54,6 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     /// as with a class in Swift.
     func write(_ name: String, _ value: Value) throws
 }
-
-/// A piece of text and the style it's shown in.
-public typealias DisplaySegment = (text: String, style: DisplayStyle?)
 
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
 /// as it is), as opposed to one a host hands in. The checker types the language's by what they are,
@@ -129,12 +118,11 @@ extension HostObject {
         }
     }
 
-    public var identity: AnyHashable { AnyHashable(ObjectIdentifier(self)) }
-
-    public var displaySegments: [DisplaySegment]? { nil }
-
-    /// Every member that isn't a method, in `memberNames` order.
-    public var fields: ValueDictionary? {
+    /// Its data as named fields, which tables, `select` and `to json` use: every member that isn't
+    /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
+    /// has none: it is one value, like a `FileSize`.
+    var dataFields: ValueDictionary? {
+        if self is any LanguageObject { return nil }
         var fields = ValueDictionary()
         for name in memberNames {
             guard let value = member(name) else { continue }
@@ -144,15 +132,19 @@ extension HostObject {
         return fields
     }
 
-    /// `fields` as the language's record of the object's type.
+    /// `dataFields` as the language's record of the object's type.
     var objectFields: Record? {
-        guard let fields else { return nil }
+        guard let fields = dataFields else { return nil }
         var record = Record(typeName: typeName)
         for (key, value) in fields { if case .string(let name) = key { record[name] = value } }
         return record
     }
-    var objectDisplaySegments: [DisplaySegment]? { displaySegments }
-    var objectIdentity: AnyHashable { identity }
+
+    /// What equality and hashing go by: the object itself, and for a Swift value held as it is,
+    /// the value (when it is `Hashable`).
+    var objectIdentity: AnyHashable {
+        (self as? SwiftValue)?.identity ?? AnyHashable(ObjectIdentifier(self))
+    }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
     /// description, for an object that isn't data.
@@ -495,7 +487,6 @@ final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its sta
     public var typeName: String { "receiver" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
     public var description: String { "\(value)" }
 }
 
@@ -524,7 +515,7 @@ extension Value {
         switch self {
         case .dictionary(let dictionary): dictionary
         case .record(let record): ValueDictionary(record.map { (Value.string($0.key), $0.value) })
-        case .object(let object): object.fields
+        case .object(let object): object.dataFields
         default: nil
         }
     }

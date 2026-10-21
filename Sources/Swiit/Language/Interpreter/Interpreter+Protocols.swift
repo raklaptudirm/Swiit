@@ -17,7 +17,6 @@ final class ProtocolType: LanguageObject, @unchecked Sendable {  // safe: its st
     public var typeName: String { "protocol" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
     public var description: String { "protocol \(name)" }
 }
 

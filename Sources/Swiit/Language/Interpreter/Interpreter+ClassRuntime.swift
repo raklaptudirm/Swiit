@@ -7,7 +7,6 @@ final class WeakReference: LanguageObject, @unchecked Sendable {  // safe: its s
     var typeName: String { "weak" }
     var memberNames: [String] { [] }
     func member(_ name: String) -> Value? { nil }
-    var fields: ValueDictionary? { nil }
     var description: String { target.map { "\($0)" } ?? "nil" }
 }
 

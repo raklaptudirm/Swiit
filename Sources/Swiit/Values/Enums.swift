@@ -58,7 +58,6 @@ public final class EnumType: LanguageObject, @unchecked Sendable {  // safe: its
     }
 
     /// A type, not data: it shows as `enum Name`.
-    public var fields: ValueDictionary? { nil }
 
     public var description: String { "enum \(name)" }
 }

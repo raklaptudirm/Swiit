@@ -9,7 +9,7 @@ enum PublicSurface {
 
         "ValueConvertible", "ScriptEnum", "HostFunction", "Diagnostic", "SourceRange", "OutputSink",
         "Symbol",
-        "NativeType", "DisplaySegment", "ScriptError", "Unwinding", "Cancellation",
+        "NativeType", "ScriptError", "Unwinding", "Cancellation",
         "TypeDescription", "TaskHandle",
         "Awaiting", "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
         "DisplayStyleAttribute",

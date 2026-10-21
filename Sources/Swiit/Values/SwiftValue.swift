@@ -76,14 +76,17 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
         return SwiftValue.lessThan(comparable, other.value)
     }
 
-    public var identity: AnyHashable {
-        (value as? any Hashable).map { AnyHashable($0) } ?? AnyHashable(ObjectIdentifier(self))
+    /// What equality and hashing go by: the value, when it is `Hashable`; the instance, for a class;
+    /// else this box.
+    var identity: AnyHashable {
+        if let hashable = value as? any Hashable { return AnyHashable(hashable) }
+        if type(of: value) is AnyObject.Type {
+            return AnyHashable(ObjectIdentifier(value as AnyObject))
+        }
+        return AnyHashable(ObjectIdentifier(self))
     }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
-    /// What the type registered as its `description` property, which is how a type that Swift
-    /// cannot say it in (a `Date` in the local time zone) says how it shows; else Swift's own.
     public var description: String {
         registered("description") ?? String(describing: value)
     }

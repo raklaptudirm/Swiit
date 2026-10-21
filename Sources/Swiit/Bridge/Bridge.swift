@@ -102,7 +102,6 @@ final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its
     public var typeName: String { "type" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
     var description: String { name }
 }
 

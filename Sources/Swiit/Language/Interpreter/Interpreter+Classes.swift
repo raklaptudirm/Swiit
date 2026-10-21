@@ -94,7 +94,6 @@ final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state
     public var typeName: String { "class" }
     public var memberNames: [String] { [] }
     public func member(_ name: String) -> Value? { nil }
-    public var fields: ValueDictionary? { nil }
     var description: String { name }
 }
 
