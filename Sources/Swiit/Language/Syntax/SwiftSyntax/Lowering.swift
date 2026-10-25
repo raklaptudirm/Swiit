@@ -45,8 +45,6 @@ struct Lowering {
     let byteOf: [Int]
     /// The source's characters, made once: each cursor shares them.
     let characters: [Character]
-    /// Where each line of them starts.
-    let lineStarts: [Int]
     /// Nodes SwiftParser found something missing in that the core reads as
     /// they are, as a bare `await`.
     var accepted: Set<SyntaxIdentifier> = []
@@ -109,7 +107,6 @@ struct Lowering {
         self.byteOf = byteOf
         let characters = Array(source.replacingOccurrences(of: "\r\n", with: "\n"))
         self.characters = characters
-        self.lineStarts = [0] + characters.indices.filter { characters[$0] == "\n" }.map { $0 + 1 }
     }
 
     func unsupported(_ what: String, _ node: some SyntaxProtocol) -> SyntaxError {
@@ -131,24 +128,15 @@ struct Lowering {
         )
     }
 
-    /// Where bytes are: lines and columns in characters.
+    /// Where bytes are: SwiftSyntax's location of each, with the line counted from where this source
+    /// starts in the whole.
     func range(fromByte start: Int, toByte end: Int) -> SourceRange {
-        func place(_ byte: Int) -> (line: Int, column: Int) {
-            let character = characterOf[max(0, min(byte, characterOf.count - 1))]
-            var low = 0, high = lineStarts.count
-            while low + 1 < high {
-                let middle = (low + high) / 2
-                if lineStarts[middle] <= character { low = middle } else { high = middle }
-            }
-            return (low + 1 + lineOffset, character - lineStarts[low] + 1)
+        func place(_ byte: Int) -> SourceLocation {
+            var location = converter.location(for: AbsolutePosition(utf8Offset: max(0, byte)))
+            location.line += lineOffset
+            return location
         }
-        let from = place(start), to = place(max(start, end))
-        return SourceRange(
-            startLine: from.line,
-            startColumn: from.column,
-            endLine: to.line,
-            endColumn: to.column
-        )
+        return SourceRange(start: place(start), end: place(max(start, end)))
     }
 
     /// The line a byte offset is on, in the whole source.

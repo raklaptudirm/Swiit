@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 
 extension TypeChecker {
     // MARK: Expressions

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 
 /// A mistake in types, found before anything runs: the statement (or, in a
 /// script, the whole script) doesn't run. See Docs/types.md.

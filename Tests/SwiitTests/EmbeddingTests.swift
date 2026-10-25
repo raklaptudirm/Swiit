@@ -55,7 +55,7 @@ private func interpreter(
     #expect(diagnostic("1 / 0")?.isRuntime == true)
     #expect(diagnostic("1 / 0")?.message == "division by zero")
     // A multi-line program says which line.
-    #expect(diagnostic("let a = 1\nlet b: Int = \"x\"")?.range?.startLine == 2)
+    #expect(diagnostic("let a = 1\nlet b: Int = \"x\"")?.range?.start.line == 2)
 }
 
 @Test func aRegisteredClosureIsAnOrdinaryFunction() throws {

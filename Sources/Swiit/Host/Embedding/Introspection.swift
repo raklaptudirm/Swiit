@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 
 // What a host can ask of the names a script can use: the functions, methods, properties, variables
 // and types there are, which overload a call means, and the type of an expression. One lookup for

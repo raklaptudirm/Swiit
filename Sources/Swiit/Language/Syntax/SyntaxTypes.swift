@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 
 /// What a name refers to, which decides the mode of a statement starting
 /// with it: a variable starts an expression, a function starts a command

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 import Synchronization
 
 // The embedding API (Docs/embedding.md): make an interpreter, give it
@@ -200,7 +201,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     }
 
     public var description: String {
-        range.map { "line \($0.startLine): \(message)" } ?? message
+        range.map { "line \($0.start.line): \(message)" } ?? message
     }
 
     /// How a diagnostic is styled, for a host that shows it on a terminal: the escape for each
@@ -294,30 +295,41 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     ) -> String? {
         let lines = source.replacingOccurrences(of: "\r\n", with: "\n")
             .split(separator: "\n", omittingEmptySubsequences: false)
-        guard place.startLine >= 1, place.startLine <= lines.count else { return nil }
-        let shown = String(lines[place.startLine - 1])
+        let line = place.start.line
+        guard line >= 1, line <= lines.count else { return nil }
+        let shown = String(lines[line - 1])
         let characters = Array(shown)
+        // A column counts UTF-8 bytes, as SwiftSyntax's do; the line is marked in characters.
+        func index(ofColumn column: Int) -> Int {
+            var bytes = 0
+            var index = 0
+            while index < characters.count, bytes < column - 1 {
+                bytes += String(characters[index]).utf8.count
+                index += 1
+            }
+            return index
+        }
         // From the start column to the end of the range, or of the line if it goes on; a whole-line
         // mark is the line's text.
-        var from = max(place.startColumn - 1, 0)
-        var to = place.endLine == place.startLine ? place.endColumn - 1 : characters.count
-        if place.startColumn == 1, place.endColumn == 1, place.endLine == place.startLine {
+        var from = index(ofColumn: place.start.column)
+        var to = place.end.line == line ? index(ofColumn: place.end.column) : characters.count
+        if place.start.column == 1, place.end.column == 1, place.end.line == line {
             from = characters.firstIndex { $0 != " " && $0 != "\t" } ?? 0
             to = characters.count
         }
         from = min(from, characters.count)
         to = min(max(to, from + 1), max(characters.count, from + 1))
-        let number = String(place.startLine)
+        let number = String(line)
         let gutter = String(repeating: " ", count: number.count)
         let indent = characters.prefix(from).map { $0 == "\t" ? "\t" : " " }.joined()
         let marks = String(repeating: "^", count: max(to - from, 1))
-        let location = (path.map { "\($0):" } ?? "") + "\(place.startLine):\(from + 1)"
+        let location = (path.map { "\($0):" } ?? "") + "\(line):\(from + 1)"
         func frame(_ text: String) -> String { style?.frame(text) ?? text }
         // The line in the colors it has where it is written: the styles are by character of the
         // whole source.
         var body = shown
         if let styles {
-            let before = lines[..<(place.startLine - 1)].reduce(0) { $0 + $1.count + 1 }
+            let before = lines[..<(line - 1)].reduce(0) { $0 + $1.count + 1 }
             body = ""
             var current: String?
             for (index, character) in characters.enumerated() {

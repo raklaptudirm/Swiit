@@ -1,4 +1,5 @@
 import Foundation
+import SwiftSyntax
 
 struct RuntimeError: Error, CustomStringConvertible {
     public let description: String

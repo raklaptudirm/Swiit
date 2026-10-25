@@ -15,7 +15,10 @@ private func diagnostic(_ source: String) -> Diagnostic? {
 @Test func aTypeErrorPointsAtTheValueThatIsWrong() throws {
     let source = "let a = 1\nlet x: Int = \"hi\"\nprint(x)"
     let found = try #require(diagnostic(source))
-    #expect(found.range == SourceRange(startLine: 2, startColumn: 14, endLine: 2, endColumn: 18))
+    #expect(
+        found.range?.start.line == 2 && found.range?.start.column == 14
+            && found.range?.end.line == 2 && found.range?.end.column == 18
+    )
     #expect(
         found.rendered(in: source) == """
             error: the value must be Int, not String
@@ -27,17 +30,33 @@ private func diagnostic(_ source: String) -> Diagnostic? {
     )
 }
 
+@Test func aColumnCountsBytesAndTheMarkCountsCharacters() throws {
+    // SwiftSyntax's columns are UTF-8 bytes (`é` is two), but the mark is laid out in characters.
+    let source = "let s = \"héllo\"; let x: Int = \"hi\""
+    let found = try #require(diagnostic(source))
+    #expect(found.range?.start.column == 32)
+    #expect(
+        found.rendered(in: source) == """
+            error: the value must be Int, not String
+             --> 1:31
+              |
+            1 | let s = "héllo"; let x: Int = "hi"
+              |                               ^^^^
+            """
+    )
+}
+
 @Test func anArgumentIsWhatAnArgumentErrorPointsAt() throws {
     let source = "func f(_ n: Int) -> Int { n }\nlet r = 1 + f(\"a\")"
     let found = try #require(diagnostic(source))
-    #expect(found.range?.startLine == 2 && found.range?.startColumn == 15)
+    #expect(found.range?.start.line == 2 && found.range?.start.column == 15)
 }
 
 @Test func aRuntimeErrorPointsAtTheStatementItHappenedIn() throws {
     let source = "func f(_ d: Int) -> Int {\n    let z = 10 / d\n    return z\n}\nprint(f(0))"
     let found = try #require(diagnostic(source))
     #expect(found.isRuntime)
-    #expect(found.range?.startLine == 2 && found.range?.startColumn == 5)
+    #expect(found.range?.start.line == 2 && found.range?.start.column == 5)
     #expect(found.rendered(in: source).contains("2 |     let z = 10 / d"))
 }
 
@@ -45,7 +64,7 @@ private func diagnostic(_ source: String) -> Diagnostic? {
     let source = "func f() {\n    print(1\n}\nf()"
     let found = try #require(diagnostic(source))
     #expect(found.isSyntax)
-    #expect(found.range?.startLine == 2)
+    #expect(found.range?.start.line == 2)
     let text = found.rendered(in: source)
     #expect(text.hasPrefix("syntax error: expected ')'"))
     #expect(!text.contains("(line"))
