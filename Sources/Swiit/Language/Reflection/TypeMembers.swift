@@ -56,7 +56,7 @@ public struct TypeInfo {
 
 extension Interpreter {
     /// The type named `name`, if Swiit knows one by that name.
-    public func typeDescription(named name: String) -> TypeInfo? {
+    public func typeInfo(named name: String) -> TypeInfo? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
         case .object(let type as StructType)?: return describe(type)
@@ -65,7 +65,7 @@ extension Interpreter {
         }
     }
 
-    /// The name `typeDescription` knows a value's type by.
+    /// The name `typeInfo` knows a value's type by.
     public func describedTypeName(of value: Value) -> String? {
         if case .record(let record) = value { return record.typeName }
         return TypeChecker(interpreter: self).type(of: value).swiftType?.name
