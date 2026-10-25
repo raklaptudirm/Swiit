@@ -40,19 +40,6 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     /// A member answered at run time, after the registered ones; nil if there is none. Optional:
     /// most objects have only the registered members.
     func member(_ name: String) -> Value?
-    /// What reading any member gives, when its members are not declared one by one (`env`, whose
-    /// members are the process's variables), so `env.HOME` is a `String?`. nil, by default, for an
-    /// object that has only its registered members. With it, a member or an index by a `String`
-    /// asks `read(_:)`, and the checker types every one the same.
-    var readType: ValueType? { get }
-    /// What assigning to such a member takes (`env.PAGER = "less"`; nil removes it, if that makes
-    /// sense); the read type, by default.
-    var writeType: ValueType? { get }
-    /// The member called `name` of an object with a `readType`; nothing when it has none.
-    func read(_ name: String) throws -> Value
-    /// Sets that member. An object is a reference: assigning through a `let` binding is allowed,
-    /// as with a class in Swift.
-    func write(_ name: String, _ value: Value) throws
 }
 
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
@@ -61,17 +48,6 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
 protocol LanguageObject: HostObject {}
 
 extension HostObject {
-    public var readType: ValueType? { nil }
-    public var writeType: ValueType? { readType }
-
-    public func read(_ name: String) throws -> Value {
-        throw Diagnostic.runtime("\(typeName) has no member '\(name)'")
-    }
-
-    public func write(_ name: String, _ value: Value) throws {
-        throw Diagnostic.runtime("cannot assign to '\(name)' of \(typeName)")
-    }
-
     /// The registered members of its type, unless it says.
     public var memberNames: [String] {
         var seen = Set<String>()

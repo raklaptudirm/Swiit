@@ -559,7 +559,7 @@ extension Interpreter {
     // MARK: Values
 
     /// A global of the script: what `name` is bound to, if anything. Setting one makes it a
-    /// constant for scripts to read; an object with a `readType` is described to the checker as it is set.
+    /// constant for scripts to read.
     public subscript(name: String) -> Value? {
         get { withMainTask { lookup(name)?.value } }
         set {
@@ -567,12 +567,6 @@ extension Interpreter {
                 guard let newValue else {
                     scopes[1].bindings[name] = nil
                     return
-                }
-                if case .object(let object) = newValue, let readType = object.readType {
-                    dynamicTypes[object.typeName] = DynamicType(
-                        read: TypeAnnotation(readType),
-                        write: TypeAnnotation(object.writeType ?? readType)
-                    )
                 }
                 scopes[1].bindings[name] = Binding(value: newValue, mutable: false)
             }

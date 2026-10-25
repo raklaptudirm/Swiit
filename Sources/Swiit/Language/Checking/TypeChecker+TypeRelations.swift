@@ -108,8 +108,6 @@ extension TypeChecker {
         if proto.hasPrefix("=") {
             return type == .unknown || type.description == String(proto.dropFirst())
         }
-        // A plain dynamic type (JSON) stands in for whatever it parsed as (see `conform`).
-        if plainType(of: type)?.plain.standsForAnything == true { return true }
         // A Swift type conforms as it declares: Int, [T] where T does,
         // ClosedRange<Int>.
         if let (bridgedType, bindings) = bridged(type) {

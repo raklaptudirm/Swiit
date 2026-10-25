@@ -359,20 +359,17 @@ extension TypeChecker {
                     expr = bridgedExpr
                     return type
                 }
-                lastMemberBase = nil
                 try actorSite(baseType, base, name)
                 if let (arguments, type) = try dynamicMember(of: baseType, name) {
                     expr = .subscripted(base, arguments)
                     return type
                 }
                 let type = try memberType(of: baseType, name)
-                expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
+                expr = .member(base, name)
                 return type
             }
-            lastMemberBase = nil
             let type = try memberType(&base, name)
-            // A plain dynamic type's (JSON's) fields are looked up when it runs, nil if missing.
-            expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
+            expr = .member(base, name)
             return type
         case .caseLiteral(let name, var arguments):
             // `.none` and `.some(x)`, where an optional is wanted. An optional is not an enum at
@@ -436,9 +433,8 @@ extension TypeChecker {
             expr = .binary(op, lhs, rhs)
             return type
         case .index(var base, var index):
-            lastMemberBase = nil
             let type = try indexType(&base, &index)
-            expr = plainIndex(lastMemberBase, base, index) ?? .index(base, index)
+            expr = .index(base, index)
             return type
         case .subscripted(var base, var arguments):
             let baseType = try typeOf(&base)
@@ -507,7 +503,7 @@ extension TypeChecker {
                 if case .optional = type { return type }
                 return type == .unknown ? .unknown : .optional(type)
             }
-            expr = plainAccess(wrapped, base, name) ?? .optionalMember(base, name)
+            expr = .optionalMember(base, name)
             let member = try memberType(of: wrapped, name)
             if case .optional = member { return member }
             return member == .unknown ? .unknown : .optional(member)
@@ -523,11 +519,6 @@ extension TypeChecker {
             return element == .unknown ? .unknown : .optional(element)
         case .optionalIndex(var base, var index):
             let wrapped = try optionalBase(&base)
-            if let (dynamic, _) = plainType(of: wrapped) {
-                _ = try typeOf(&index)
-                expr = plainIndex(wrapped, base, index)!
-                return dynamic.read
-            }
             // Typed as `base![index]` would be, then made optional.
             let element = try indexType(of: wrapped, &index)
             expr = .optionalIndex(base, index)

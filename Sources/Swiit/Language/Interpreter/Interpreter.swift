@@ -15,8 +15,6 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     weak var owner: AnyObject?
     /// The members, by name, of the host's object types that Swift doesn't
     /// declare (the host's `Job`), for the checker.
-    /// The types of dynamic objects' members (an object's `readType`), by type name.
-    var dynamicTypes: [String: DynamicType] = [:]
     /// What `await` waits for, if the host has anything to wait for.
 
     /// The task running now: its call stack and cancellation (TaskContext.swift).

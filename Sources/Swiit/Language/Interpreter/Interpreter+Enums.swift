@@ -261,8 +261,6 @@ extension Interpreter {
             if protocolType(named: name) != nil {
                 return self.value(value, conformsTo: name) ? value : nil
             }
-            // A plain dynamic type (parsed JSON) is whatever it parsed as.
-            if dynamicTypes[name]?.plain?.standsForAnything == true { return value }
             // A Swift value, boxed, is of its Swift type.
             if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
             // A host's object is of the type it registered.

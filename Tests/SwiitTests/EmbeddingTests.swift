@@ -214,45 +214,6 @@ private func interpreter(
     #expect(try a.evaluate("only(shared)") == 1)
 }
 
-/// A bag of settings: every member is an Int, assigned through a `let`.
-private final class Settings: HostObject, @unchecked Sendable {
-    var values: [String: Int] = ["volume": 7]
-
-    var typeName: String { "Settings" }
-    var readType: ValueType? { .optional(.int) }
-    var writeType: ValueType? { .optional(.int) }
-    var memberNames: [String] { values.keys.sorted() }
-    var description: String { "Settings" }
-    func member(_ name: String) -> Value? { values[name].map { Value($0) } }
-    func read(_ name: String) throws -> Value { values[name].map { Value($0) } ?? .null }
-    func write(_ name: String, _ value: Value) throws {
-        guard let number = value.cast(to: Int.self) else { values[name] = nil; return }
-        values[name] = number
-    }
-}
-
-@Test func anObjectWithAReadTypeAnswersForItsOwnMembers() throws {
-    let swiit = interpreter()
-    let settings = Settings()
-    swiit["settings"] = Value(settings)
-    #expect(try swiit.evaluate("settings.volume") == 7)
-    #expect(try swiit.evaluate(#"settings["volume"]"#) == 7)
-    #expect(try swiit.evaluate("settings.missing") == .null)
-    // Assigned through a `let`, as a class would be; nil removes.
-    _ = try swiit.evaluate("settings.brightness = 3; settings.volume = settings.volume! + 1")
-    #expect(settings.values == ["volume": 8, "brightness": 3])
-    _ = try swiit.evaluate(#"settings["volume"] = nil"#)
-    #expect(settings.values == ["brightness": 3])
-    // The checker knows the members' type.
-    do {
-        _ = try swiit.evaluate(#"settings.volume = "loud""#)
-        Issue.record("expected a diagnostic")
-    } catch let error {
-        #expect(error.kind == .type)
-    }
-    #expect((try? swiit.evaluate("let v: String = settings.volume")) == nil)
-}
-
 @Test func interpretersOnDifferentThreadsDontShareKeyPathReads() {
     // `map(\.n)` reads fields through a reader set for the length of
     // the call; two runs at once must each have their own.
@@ -416,30 +377,6 @@ private final class HostNode: HostObject, @unchecked Sendable {
     #expect(node.memberNames == ["label", "shout"])
     #expect(try swiit.evaluate("node.shout()") == "A")
     #expect(throws: (any Error).self) { try swiit.evaluate("node.nosuch") }
-}
-
-private final class Preferences: HostObject, @unchecked Sendable {
-    var values: [String: Value] = ["count": 2, "theme": "dark"]
-    var typeName: String { "Preferences" }
-    var count: Int { (try? Int(values["count"] ?? .null)) ?? 0 }
-    var memberNames: [String] { values.keys.sorted() }
-    func member(_ name: String) -> Value? { values[name] }
-    var description: String { "Preferences" }
-    var readType: ValueType? { .string }
-    var writeType: ValueType? { .string }
-    func read(_ name: String) throws -> Value { values[name] ?? .null }
-    func write(_ name: String, _ value: Value) throws { values[name] = value }
-}
-
-@Test func anObjectWithAReadTypeHasTheMembersTheHostDescribedTyped() throws {
-    let swiit = interpreter()
-    swiit["settings"] = Value(Preferences())
-    // Every member has the one type, until some are described.
-    #expect(try swiit.evaluate("settings.theme") == "dark")
-    #expect(throws: (any Error).self) { try swiit.evaluate("settings.count + 1") }
-    swiit.register(NativeType.Builder<Preferences>("Preferences").property("count", \.count))
-    #expect(try swiit.evaluate("settings.count + 1") == 3)
-    #expect(try swiit.evaluate("settings.theme") == "dark")
 }
 
 @Test func evaluateCanBeAwaitedAndIsCancelledWithItsTask() async throws {
@@ -998,10 +935,10 @@ private final class Handle: HostObject, @unchecked Sendable {
 
 @Test func removingAGlobalRemovesIt() throws {
     let swiit = interpreter()
-    swiit["settings"] = Value(Preferences())
-    #expect(try swiit.evaluate("settings.theme") == "dark")
-    swiit["settings"] = nil
-    #expect(throws: Diagnostic.self) { try swiit.evaluate("settings.theme") }
+    swiit["answer"] = Value(42)
+    #expect(try swiit.evaluate("answer") == 42)
+    swiit["answer"] = nil
+    #expect(throws: Diagnostic.self) { try swiit.evaluate("answer") }
 }
 
 @Test func aCallByNameFindsTheBridgedOverloadByItsArguments() throws {

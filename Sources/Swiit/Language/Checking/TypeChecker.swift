@@ -138,7 +138,6 @@ final class TypeChecker {
     unowned let interpreter: Interpreter
     /// The type whose member was last looked up, so a JSON field can be
     /// written into a lookup that runs.
-    var lastMemberBase: TypeAnnotation?
 
     /// What the program declares, innermost last, on top of the host's names.
     var scopes: [[String: Symbol]] = [[:]]

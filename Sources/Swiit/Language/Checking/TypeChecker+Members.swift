@@ -55,7 +55,6 @@ extension TypeChecker {
         if case .generic = type { return bridgedElement(type) }
         return switch type {
         case .list(let element): element
-        case .named where plainType(of: type) != nil: plainType(of: type)!.plain.element  // An array's elements, or the value itself.
         case .unknown: .unknown
         default: nil
         }
@@ -292,15 +291,6 @@ extension TypeChecker {
 
     func memberType(of written: TypeAnnotation, _ name: String) throws -> TypeAnnotation {
         let base = erased(written)
-        // A dynamic object's members have the one type it says, but those the host also described
-        // have their own.
-        if let dynamic = dynamicType(of: base), !describesMember(name, of: base) {
-            return dynamic.read
-        }
-        lastMemberBase = base
-        if let (dynamic, plain) = plainType(of: base) {
-            return plain.views[name]?.type ?? dynamic.read
-        }
         // What the type declares, or an extension (or a protocol's default) adds.
         let description = describe(base)
         let bindings = elementBindings(for: base)
@@ -499,20 +489,6 @@ extension TypeChecker {
 
     /// Indexing a value of type `base` with `index`.
     func indexType(of base: TypeAnnotation, _ index: inout Expr) throws -> TypeAnnotation {
-        lastMemberBase = base
-        if let dynamic = dynamicType(of: base) {
-            try expect(&index, .string, "\(base)'s member name")
-            return dynamic.read
-        }
-        if let (dynamic, _) = plainType(of: base) {
-            let key = try typeOf(&index)
-            guard key == .string || key == .int || key == .unknown else {
-                throw TypeError(
-                    "\(base) is indexed by a String (a field) or an Int (an element), not \(key)"
-                )
-            }
-            return dynamic.read
-        }
         if case .named(let structName) = base, let info = structInfo(named: structName),
             !info.subscripts.isEmpty
         {

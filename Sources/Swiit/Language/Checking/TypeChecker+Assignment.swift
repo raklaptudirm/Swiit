@@ -37,8 +37,7 @@ extension TypeChecker {
                 }
             }()
             guard
-                mutable || dynamicType(of: rootType) != nil
-                    || (isReference && !assignment.path.isEmpty)
+                mutable || (isReference && !assignment.path.isEmpty)
             else {
                 if assignment.root == "self" {
                     throw TypeError(
@@ -53,9 +52,7 @@ extension TypeChecker {
             let last = index == assignment.path.count - 1
             switch assignment.path[index] {
             case .member:
-                if let dynamic = dynamicType(of: type) {
-                    type = dynamic.write
-                } else if case .member(let name) = assignment.path[index],
+                if case .member(let name) = assignment.path[index],
                     case .named(let structName) = type,
                     let description = describe(type),
                     [.structure, .classType, .actor].contains(description.kind)
@@ -130,9 +127,6 @@ extension TypeChecker {
                 }
             case .index(var indexExpr):
                 switch type {
-                case .named where dynamicType(of: type) != nil:
-                    try expect(&indexExpr, .string, "\(type)'s member name")
-                    type = dynamicType(of: type)!.write
                 case .named(let structName)
                 where structInfo(named: structName)?.subscripts.isEmpty == false:
                     var arguments = [Argument(value: indexExpr)]
