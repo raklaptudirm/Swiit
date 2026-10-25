@@ -199,12 +199,10 @@ extension TypeChecker {
             awaitDepth += 1
             let type = try typeOf(&operand, expecting: nil)
             awaitDepth -= 1
-            // `await f()`: what an `async` call gives, in an async context. Swift only warns of an
-            // `await` with nothing async in it; Swiit has no warnings.
-            guard asyncSites > sitesBefore else {
-                throw TypeError("there is nothing to await here: no async call")
-            }
-            try checkAwaitAllowed()
+            // `await f()`: what an `async` call gives, in an async context. An `await` with nothing
+            // async in it is no more than a warning in Swift, which Swiit has none of: it gives the
+            // value, and may be written anywhere.
+            if asyncSites > sitesBefore { try checkAwaitAllowed() }
             expr = .await(operand, throwing: throwing)
             return type
         case .childTask(var closure):

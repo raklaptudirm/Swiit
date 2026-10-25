@@ -8,6 +8,38 @@ extension TypeChecker {
         _ arguments: inout [Argument],
         expected: TypeAnnotation?
     ) throws -> TypeAnnotation {
+        // A call typed before, which named the overload it chose (an argument is typed more than
+        // once, by each candidate of the call it is in): typed again as that one, so what choosing
+        // it asks of the call (an `await`, a `try`) is asked again.
+        var written = callee
+        var types: [TypeArgument]?
+        if case .specialized(let inner, let given) = written {
+            written = inner
+            types = given
+        }
+        if case .chosen(let inner, let overload) = written, case .variable(let name) = inner,
+            case .functions(let overloads)? = lookup(name)
+        {
+            let narrowed = overloads.filter { $0.index == overload }
+            if !narrowed.isEmpty {
+                var plain = inner
+                let result = try call(
+                    narrowed,
+                    callee: &plain,
+                    &arguments,
+                    name: name,
+                    expected: expected
+                )
+                if case .specialized(let named, let solved) = plain {
+                    callee = .specialized(.chosen(named, overload: overload), solved)
+                } else if let types {
+                    callee = .specialized(.chosen(plain, overload: overload), types)
+                } else {
+                    callee = .chosen(plain, overload: overload)
+                }
+                return result
+            }
+        }
         // `Point(x: 1)`, `Level(rawValue: 2)`, `f(x)`.
         if case .variable(let name) = callee, let symbol = lookup(name) {
             switch symbol {

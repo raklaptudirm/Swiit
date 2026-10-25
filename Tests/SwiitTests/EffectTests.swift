@@ -54,8 +54,8 @@ private func typeError(_ source: String) -> String? {
         typeError(source + "let c = { await f() }; c()")
             == "c is async, but isn't marked with 'await'"
     )
-    // Nothing async in it: nothing to await.
-    #expect(typeError("await 1")?.hasPrefix("there is nothing to await here") == true)
+    // Nothing async in it: as in Swift, no more than a warning, which Swiit has none of.
+    #expect(typeError("await 1") == nil)
 }
 
 @Test func anAsyncFunctionIsntPassedWhereASyncOneIsWanted() {

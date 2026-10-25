@@ -290,6 +290,9 @@ extension Interpreter {
             // A generic enum of the program's: its arguments say what its cases hold, and it is its
             // name.
             if enumType(named: name) != nil { return conform(value, to: .named(name)) }
+            // A generic protocol of the program's (`Job<Int>`): a value whose type conforms; what it
+            // holds is the checker's to say, since a value does not carry it.
+            if protocolType(named: name) != nil { return conform(value, to: .named(name)) }
             return nil
         case .someSequence:
             // Any sequence; the glue takes its items.

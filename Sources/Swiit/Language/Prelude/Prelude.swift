@@ -164,16 +164,21 @@ extension Interpreter {
         _ body: FunctionBody,
         input: Parameter?
     ) -> Function {
-        Function(
+        let function = Function(
             name: decl.name,
             parameters: (input.map { [$0] } ?? []) + decl.parameters,
             returnType: decl.returnType,
             body: body,
+            // What it is written in sees the globals, as a function a script declares does.
+            captured: Array(scopes.prefix(1)),
             documentation: decl.documentation,
             isThrowing: decl.isThrowing,
             isRethrowing: decl.isRethrowing,
+            effect: decl.effect,
             generics: decl.generics
         )
+        function.isPrelude = true
+        return function
     }
 }
 

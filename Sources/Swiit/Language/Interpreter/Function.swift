@@ -107,8 +107,12 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     /// As Swift shows any function: by what it is, not its name.
     public var description: String { "(Function)" }
 
+    /// Declared by a prelude (the language's, or a host's), though its body is Swiit's.
+    var isPrelude = false
+
     public var isBuiltin: Bool {
-        if case .swiit = body { false } else { true }
+        if isPrelude { return true }
+        if case .swiit = body { return false } else { return true }
     }
 
     /// A body that is a single expression returns its value, as in Swift:

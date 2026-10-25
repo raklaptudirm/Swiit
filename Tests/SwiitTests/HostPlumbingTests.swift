@@ -37,12 +37,7 @@ private func interpreter() -> Interpreter {
     }
 }
 
-@Test func awaitNeedsSomethingAsyncToWaitFor() throws {
-    let swiit = interpreter()
-    do {
-        _ = try swiit.evaluate("await 1")
-        Issue.record("expected a diagnostic")
-    } catch let error {
-        #expect(error.message.contains("nothing to await"))
-    }
+@Test func anAwaitWithNothingAsyncInItGivesTheValue() throws {
+    // Swift only warns of it, as of one in a function that is not async.
+    #expect(try interpreter().evaluate("func f() -> Int { await 1 }; f()") == .int(1))
 }
