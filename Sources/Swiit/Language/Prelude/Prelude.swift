@@ -140,7 +140,11 @@ extension Interpreter {
                 try declarePreludeExtensions(try declarePrelude(program, natives: natives))
             }
         } catch let error as SyntaxError {
-            throw Diagnostic(kind: .syntax, message: error.description, range: error.range)
+            throw Diagnostic(
+                kind: .syntax(isIncomplete: false),
+                message: error.description,
+                range: error.range
+            )
         } catch {
             throw Diagnostic.of(error)
         }

@@ -65,11 +65,11 @@ extension HostObject {
     public var writeType: ValueType? { readType }
 
     public func read(_ name: String) throws -> Value {
-        throw ScriptError("\(typeName) has no member '\(name)'")
+        throw Diagnostic.runtime("\(typeName) has no member '\(name)'")
     }
 
     public func write(_ name: String, _ value: Value) throws {
-        throw ScriptError("cannot assign to '\(name)' of \(typeName)")
+        throw Diagnostic.runtime("cannot assign to '\(name)' of \(typeName)")
     }
 
     /// The registered members of its type, unless it says.

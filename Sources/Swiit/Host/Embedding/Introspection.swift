@@ -545,10 +545,9 @@ extension Interpreter {
                 switch parse(source) {
                 case .failure(let error):
                     throw Diagnostic(
-                        kind: .syntax,
+                        kind: .syntax(isIncomplete: error.incomplete),
                         message: error.description,
-                        range: error.range,
-                        isIncomplete: error.incomplete
+                        range: error.range
                     )
                 case .success(let program):
                     let checker = TypeChecker(interpreter: self)
@@ -558,8 +557,8 @@ extension Interpreter {
                         throw Diagnostic(
                             kind: .type,
                             message: error.message,
-                            line: error.line,
                             range: error.spot ?? error.range
+                                ?? error.line.map { SourceRange(line: $0) }
                         )
                     }
                     // The doc comments of the functions it declares, in the order it declares them.
@@ -655,10 +654,9 @@ extension Interpreter {
                 switch parse(expression) {
                 case .failure(let error):
                     throw Diagnostic(
-                        kind: .syntax,
+                        kind: .syntax(isIncomplete: error.incomplete),
                         message: error.description,
-                        range: error.range,
-                        isIncomplete: error.incomplete
+                        range: error.range
                     )
                 case .success(let program):
                     guard program.statements.count == 1,
@@ -675,8 +673,8 @@ extension Interpreter {
                         throw Diagnostic(
                             kind: .type,
                             message: error.message,
-                            line: error.line,
                             range: error.spot ?? error.range
+                                ?? error.line.map { SourceRange(line: $0) }
                         )
                     }
                 }

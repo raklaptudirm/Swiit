@@ -2,8 +2,8 @@ import Foundation
 
 struct RuntimeError: Error, CustomStringConvertible {
     public let description: String
-    /// The status the failure gives: a host's own, for a failed process.
-    public var status: Int32 = 1
+    /// Who raised it: the language, or a host function with an error of its own to read back.
+    public var origin: Diagnostic.Failure.Origin = .language
     /// What `catch` binds when the thrower has more to say than a message: the
     /// host's failed command carries its status and text.
     public var thrown: Value?
@@ -14,9 +14,13 @@ struct RuntimeError: Error, CustomStringConvertible {
 
     public typealias Call = Diagnostic.Call
 
-    public init(_ description: String, status: Int32 = 1, thrown: Value? = nil) {
+    public init(
+        _ description: String,
+        origin: Diagnostic.Failure.Origin = .language,
+        thrown: Value? = nil
+    ) {
         self.description = description
-        self.status = status
+        self.origin = origin
         self.thrown = thrown
     }
 
@@ -27,7 +31,8 @@ struct RuntimeError: Error, CustomStringConvertible {
     }
 }
 
-/// A runtime error under `try!`: it stops a script, not just the line.
+/// An error that ends the run, which a script's `catch` does not see: a runtime error under `try!`,
+/// or a host function ending the script.
 struct FatalError: Error {
     public let error: RuntimeError
 
@@ -62,3 +67,6 @@ struct AlreadyReported: Error {
 
     public init(error: RuntimeError) { self.error = error }
 }
+
+/// An error that passes a script's `catch` and ends the run: what the language raises to stop it.
+protocol Unwinding: Error {}

@@ -3,23 +3,96 @@ import Foundation
 // The embedding API (Docs/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.
 
-/// What went wrong in a run, as a value: its kind, the message the host
-/// would print, and where in the source it is when that is known.
+/// What went wrong in a run, as a value: what kind of failure it was, the message the host would
+/// print, and where in the source it is when that is known. What a kind carries is what that kind
+/// has: only a run-time failure has a thrown value for a script to catch, and only a syntax error
+/// can be a program that is not finished.
 public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
-    public enum Kind: Sendable { case syntax, type, runtime, limit, cancelled }
-
-    public var kind: Kind
     public var message: String
-    /// 1-based, for a type error in a multi-line program.
-    public var line: Int?
+    public var kind: Kind
     /// Where it is in the source: the statement a type or run-time error is in, the token a syntax
     /// error is at.
     public var range: SourceRange?
-    /// For a run-time error: the calls it came out of, innermost first, with where each was made.
-    public var calls: [Call] = []
+
+    public enum Kind: Sendable, Equatable {
+        /// A syntax error. `isIncomplete`: the source ends too soon, and more of it may make it a
+        /// program (a prompt asks for another line).
+        case syntax(isIncomplete: Bool)
+        case type
+        /// A failure a script's `catch` sees, from the language or from a host function.
+        case runtime(Failure)
+        /// A failure that ends the run, which a script's `catch` does not see and its `defer`s
+        /// run for: a failed `try!`, or a host function ending the script (a shell's `exit`).
+        case fatal(Failure)
+        /// A limit of the run (`Limits`) was reached.
+        case limit
+        case cancelled
+
+        public static func == (lhs: Kind, rhs: Kind) -> Bool {
+            switch (lhs, rhs) {
+            case (.syntax(let a), .syntax(let b)): a == b
+            case (.type, .type), (.limit, .limit), (.cancelled, .cancelled): true
+            case (.runtime(let a), .runtime(let b)), (.fatal(let a), .fatal(let b)): a == b
+            default: false
+            }
+        }
+    }
+
+    /// What a failure that ran has beyond its message.
+    public struct Failure: Sendable, Equatable {
+        /// What a script's `catch` binds.
+        public var thrown: Thrown
+        /// Who raised it.
+        public var origin: Origin
+        /// The functions it came out of, innermost first, with where each was called.
+        public var calls: [Call]
+        /// The host told the person already (until the runtime prints what it raises).
+        public var isReported: Bool
+
+        public init(
+            thrown: Thrown = .message,
+            origin: Origin = .language,
+            calls: [Call] = [],
+            isReported: Bool = false
+        ) {
+            self.thrown = thrown
+            self.origin = origin
+            self.calls = calls
+            self.isReported = isReported
+        }
+
+        public enum Thrown: Sendable, Equatable {
+            /// An `Error` whose description is the message.
+            case message
+            /// A value the host built: a struct with the failure's fields.
+            case value(Value)
+        }
+
+        public enum Origin: Sendable, Equatable {
+            /// The language: division by zero, an index out of range.
+            case language
+            /// A host function, with nothing of its own attached.
+            case host
+            /// A host function, with an error of its own, which the host reads back (a status, a
+            /// stop it asked for).
+            case hostError(any Error)
+
+            public static func == (lhs: Origin, rhs: Origin) -> Bool {
+                switch (lhs, rhs) {
+                case (.language, .language), (.host, .host): true
+                case (.hostError(let a), .hostError(let b)): "\(a)" == "\(b)"
+                default: false
+                }
+            }
+        }
+
+        public static func == (lhs: Failure, rhs: Failure) -> Bool {
+            lhs.thrown == rhs.thrown && lhs.origin == rhs.origin && lhs.isReported == rhs.isReported
+        }
+    }
 
     /// A function a run-time error came out of, and where it was called.
-    public struct Call: Sendable {
+    public struct Call: Sendable, Equatable {
         public var function: String
         public var site: SourceRange?
 
@@ -28,50 +101,64 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
             self.site = site
         }
     }
-    /// For a run-time error: the status the failure gives (a host's failed process's own, say).
-    public var status: Int32 = 1
-    /// The host reported it already (`ScriptError.isReported`).
-    public var isReported = false
-    /// A `try!` failed: it stops a script, not just its own statement.
-    public var isFatal = false
-    /// A syntax error because the source ends too soon: more of it may make it a program (a prompt
-    /// asks for another line).
-    public var isIncomplete = false
-    /// What a host function threw to end the run (`Unwinding`), or the `ScriptError` it threw.
-    public var cause: (any Error)?
 
-    /// A diagnostic of a host's own making: its front end's syntax error, say.
-    public init(
-        kind: Kind,
-        message: String,
-        line: Int? = nil,
-        range: SourceRange? = nil,
-        calls: [Call] = [],
-        status: Int32 = 1,
-        isReported: Bool = false,
-        isIncomplete: Bool = false,
-        cause: (any Error)? = nil
-    ) {
-        self.isIncomplete = isIncomplete
+    public init(kind: Kind, message: String, range: SourceRange? = nil) {
         self.kind = kind
         self.message = message
-        self.line = line ?? range?.startLine
         self.range = range
-        self.calls = calls
-        self.status = status
-        self.isReported = isReported
-        self.cause = cause
     }
 
-    /// A diagnostic is `Sendable` and the error it carries is whatever the host threw.
+    /// How a host function fails so a script can see it: the message is what is reported, and a
+    /// script's `catch` binds an `Error` of it, or `thrown` when there is more to say. `cause` is
+    /// the host's own error, for the host to read back.
+    public static func runtime(
+        _ message: String,
+        thrown: Value? = nil,
+        cause: (any Error)? = nil,
+        isReported: Bool = false
+    ) -> Diagnostic {
+        Diagnostic(
+            kind: .runtime(
+                Failure(
+                    thrown: thrown.map { .value($0) } ?? .message,
+                    origin: cause.map { .hostError($0) } ?? .host,
+                    isReported: isReported
+                )
+            ),
+            message: message
+        )
+    }
+
+    /// How a host function ends the run: a script's `catch` and `try?` let it go by, its `defer`s
+    /// run, and it reaches the host as this diagnostic.
+    public static func fatal(_ message: String, cause: (any Error)? = nil) -> Diagnostic {
+        Diagnostic(
+            kind: .fatal(Failure(origin: cause.map { .hostError($0) } ?? .host)),
+            message: message
+        )
+    }
+
+    /// What a failure that ran has, for a kind that can: nil for the others.
+    public var failure: Failure? {
+        switch kind {
+        case .runtime(let failure), .fatal(let failure): failure
+        default: nil
+        }
+    }
+
+    /// The language's own run-time error, as a diagnostic.
     init(runtime error: RuntimeError, isReported: Bool = false) {
         self.init(
-            kind: .runtime,
+            kind: .runtime(
+                Failure(
+                    thrown: error.thrown.map { .value($0) } ?? .message,
+                    origin: error.origin,
+                    calls: error.calls,
+                    isReported: isReported
+                )
+            ),
             message: error.description,
-            range: error.range,
-            calls: error.calls,
-            status: error.status,
-            isReported: isReported
+            range: error.range
         )
     }
 
@@ -83,37 +170,32 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
             Diagnostic(
                 kind: .type,
                 message: error.message,
-                line: error.line,
-                range: error.spot ?? error.range
+                range: error.spot ?? error.range ?? error.line.map { SourceRange(line: $0) }
             )
         case let error as RuntimeError: Diagnostic(runtime: error)
         case let reported as AlreadyReported: Diagnostic(runtime: reported.error, isReported: true)
         case let fatal as FatalError:
             { () -> Diagnostic in
-                var diagnostic = Diagnostic(runtime: fatal.error); diagnostic.isFatal = true;
+                var diagnostic = Diagnostic(runtime: fatal.error)
+                if case .runtime(let failure) = diagnostic.kind {
+                    diagnostic.kind = .fatal(failure)
+                }
                 return diagnostic
             }()
         case let limit as LimitExceeded: Diagnostic(kind: .limit, message: limit.description)
         case is Cancelled: Diagnostic(kind: .cancelled, message: "cancelled")
         case is Interrupted: Diagnostic(kind: .cancelled, message: "interrupted")
-        case let error as ScriptError:
-            Diagnostic(
-                kind: .runtime,
-                message: error.message,
-                status: error.status,
-                isReported: error.isReported,
-                cause: error
-            )
-        default: Diagnostic(kind: .runtime, message: "\(error)", cause: error)
+        default: Diagnostic.runtime("\(error)", cause: error)
         }
     }
 
     public static func == (lhs: Diagnostic, rhs: Diagnostic) -> Bool {
-        lhs.kind == rhs.kind && lhs.message == rhs.message && lhs.line == rhs.line
-            && lhs.range == rhs.range
+        lhs.kind == rhs.kind && lhs.message == rhs.message && lhs.range == rhs.range
     }
 
-    public var description: String { line.map { "line \($0): \(message)" } ?? message }
+    public var description: String {
+        range.map { "line \($0.startLine): \(message)" } ?? message
+    }
 
     /// How a diagnostic is styled, for a host that shows it on a terminal: the escape for each
     /// character of a source text, what the frame of the excerpt and the marks are written in,
@@ -160,8 +242,13 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         if let match = text.range(of: #" \(line \d+\)$"#, options: .regularExpression) {
             text.removeSubrange(match)
         }
-        let heading = (kind == .syntax ? "syntax error: " : "error: ") + text
-        let place = range ?? line.map { SourceRange(line: $0) }
+        let heading: String
+        if case .syntax = kind {
+            heading = "syntax error: " + text
+        } else {
+            heading = "error: " + text
+        }
+        let place = range
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n")
         let styles = style?.source(normalized)
         guard let place,
@@ -175,7 +262,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         else { return heading }
         var result = heading + "\n" + first
         // Where the functions it came out of were called from.
-        for call in calls {
+        for call in failure?.calls ?? [] {
             guard let site = call.site,
                 let shown = Diagnostic.excerpt(
                     of: site,
@@ -769,10 +856,9 @@ extension Interpreter {
         switch parse(source) {
         case .failure(let error):
             throw Diagnostic(
-                kind: .syntax,
+                kind: .syntax(isIncomplete: error.incomplete),
                 message: error.description,
-                range: error.range,
-                isIncomplete: error.incomplete
+                range: error.range
             )
         case .success(let parsed): program = parsed
         }

@@ -36,7 +36,7 @@ private func diagnostic(_ source: String) -> Diagnostic? {
 @Test func aRuntimeErrorPointsAtTheStatementItHappenedIn() throws {
     let source = "func f(_ d: Int) -> Int {\n    let z = 10 / d\n    return z\n}\nprint(f(0))"
     let found = try #require(diagnostic(source))
-    #expect(found.kind == .runtime)
+    #expect(found.isRuntime)
     #expect(found.range?.startLine == 2 && found.range?.startColumn == 5)
     #expect(found.rendered(in: source).contains("2 |     let z = 10 / d"))
 }
@@ -44,7 +44,7 @@ private func diagnostic(_ source: String) -> Diagnostic? {
 @Test func aSyntaxErrorPointsAtTheToken() throws {
     let source = "func f() {\n    print(1\n}\nf()"
     let found = try #require(diagnostic(source))
-    #expect(found.kind == .syntax)
+    #expect(found.isSyntax)
     #expect(found.range?.startLine == 2)
     let text = found.rendered(in: source)
     #expect(text.hasPrefix("syntax error: expected ')'"))

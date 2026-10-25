@@ -50,9 +50,9 @@ private func interpreter(
     func diagnostic(_ source: String) -> Diagnostic? {
         do { _ = try swiit.evaluate(source); return nil } catch { return error as? Diagnostic }
     }
-    #expect(diagnostic("let = 1")?.kind == .syntax)
+    #expect(diagnostic("let = 1")?.isSyntax == true)
     #expect(diagnostic("let x: Int = \"a\"")?.kind == .type)
-    #expect(diagnostic("1 / 0")?.kind == .runtime)
+    #expect(diagnostic("1 / 0")?.isRuntime == true)
     #expect(diagnostic("1 / 0")?.message == "division by zero")
     // A multi-line program says which line.
     #expect(diagnostic("let a = 1\nlet b: Int = \"x\"")?.range?.startLine == 2)
@@ -88,7 +88,9 @@ private func interpreter(
         _ = try swiit.evaluate("try check(-1)")
         Issue.record("expected a diagnostic")
     } catch let error {
-        #expect(error.kind == .runtime)
+        guard case .runtime = error.kind else {
+            Issue.record("expected a run-time failure"); return
+        }
         #expect(error.message.contains("refused"))
     }
 }
@@ -745,26 +747,31 @@ extension URL: ValueConvertible {}
     #expect(swiit.valueType(of: [1, 2]) == .list(.int))
 }
 
-private struct Stop: Unwinding {}
+private struct Stop: Error {}
+private struct Status: Error { var code: Int32 }
 
-@Test func aHostFunctionFailsWithAScriptErrorOrUnwinds() throws {
+@Test func aHostFunctionFailsWithADiagnosticOrEndsTheRun() throws {
     let log = Log()
     let swiit = interpreter(log: log)
     swiit.register(
         HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
-            throw ScriptError(
+            throw Diagnostic.runtime(
                 "nope",
-                status: 3,
-                value: Value(struct: "Failure", fields: ["code": Value(7)])
+                thrown: Value(struct: "Failure", fields: ["code": Value(7)]),
+                cause: Status(code: 3)
             )
         }
     )
     swiit.register(
         HostFunction(name: "told", isThrowing: true) { _ in
-            throw ScriptError("already said", isReported: true)
+            throw Diagnostic.runtime("already said", isReported: true)
         }
     )
-    swiit.register(HostFunction(name: "stop", isThrowing: true) { _ in throw Stop() })
+    swiit.register(
+        HostFunction(name: "stop", isThrowing: true) { _ in
+            throw Diagnostic.fatal("stopped", cause: Stop())
+        }
+    )
     // A script can catch a script error, and what it carries.
     _ = try swiit.evaluate("struct Failure: Error { let code: Int }")
     #expect(
@@ -774,16 +781,25 @@ private struct Stop: Unwinding {}
     )
     #expect(try swiit.evaluate("(try? fail()) == nil") == true)
     let failure = #expect(throws: Diagnostic.self) { try swiit.evaluate("try fail()") }
-    #expect(failure?.status == 3 && failure?.message == "nope")
+    #expect(failure?.message == "nope")
+    guard case .runtime(let ran)? = failure?.kind, case .hostError(let own) = ran.origin else {
+        Issue.record("expected a run-time failure with an error of the host's own")
+        return
+    }
+    #expect((own as? Status)?.code == 3)
     let told = #expect(throws: Diagnostic.self) { try swiit.evaluate("try told()") }
-    #expect(told?.isReported == true)
-    // An unwinding error is not caught, runs the defers, and reaches the host.
+    #expect(told?.failure?.isReported == true)
+    // A fatal failure is not caught, runs the defers, and reaches the host.
     let stopped = #expect(throws: Diagnostic.self) {
         try swiit.evaluate(
             #"func f() throws { defer { print("deferred") }; try stop() }; do { try f() } catch { print("caught") }"#
         )
     }
-    #expect(stopped?.cause is Stop)
+    guard case .fatal(let ended)? = stopped?.kind, case .hostError(let cause) = ended.origin else {
+        Issue.record("expected a fatal failure with an error of the host's own")
+        return
+    }
+    #expect(cause is Stop)
     #expect(log.text == "deferred\n")
 }
 
@@ -919,7 +935,7 @@ private final class Handle: HostObject, @unchecked Sendable {
                     "wait",
                     .method(Symbol.Function(returns: .int, isAsync: true)) { receiver, _ in
                         guard let handle = receiver.cast(to: Handle.self) else {
-                            throw ScriptError("nothing to await")
+                            throw Diagnostic.runtime("nothing to await")
                         }
                         return try running.join(handle.task)
                     }

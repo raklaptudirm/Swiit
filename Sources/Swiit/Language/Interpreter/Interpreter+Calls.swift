@@ -423,22 +423,30 @@ extension Interpreter {
 
 extension Interpreter {
     /// What a script sees of an error a host function threw: a failure it can catch, or one that
-    /// unwinds it.
+    /// ends the run.
     func hostFailure(_ error: any Error, in function: String) -> any Error {
         switch error {
-        case is RuntimeError: error
-        case let error as ScriptError:
-            { () -> any Error in
-                let failure = RuntimeError(error.message, status: error.status, thrown: error.value)
-                return error.isReported ? AlreadyReported(error: failure) : failure
-            }()
-        case let diagnostic as Diagnostic:
-            { () -> any Error in
-                let failure = RuntimeError(diagnostic.message, status: diagnostic.status)
-                return diagnostic.isReported ? AlreadyReported(error: failure) : failure
-            }()
-        case is Unwinding: error
-        default: RuntimeError("\(function): \(error)")
+        case is RuntimeError, is Unwinding: error
+        case let diagnostic as Diagnostic: failure(of: diagnostic)
+        default: RuntimeError("\(function): \(error)", origin: .hostError(error))
+        }
+    }
+
+    /// A diagnostic a host function threw, as the error it is to the script.
+    private func failure(of diagnostic: Diagnostic) -> any Error {
+        func error(_ failure: Diagnostic.Failure) -> RuntimeError {
+            var made = RuntimeError(diagnostic.message, origin: failure.origin)
+            if case .value(let value) = failure.thrown { made.thrown = value }
+            made.calls = failure.calls
+            return made
+        }
+        switch diagnostic.kind {
+        case .runtime(let failure):
+            return failure.isReported ? AlreadyReported(error: error(failure)) : error(failure)
+        case .fatal(let failure): return FatalError(error: error(failure))
+        case .limit: return LimitExceeded(diagnostic.message)
+        case .cancelled: return Cancelled()
+        case .syntax, .type: return RuntimeError(diagnostic.message)
         }
     }
 }
