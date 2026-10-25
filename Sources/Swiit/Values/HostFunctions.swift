@@ -24,6 +24,7 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: ScriptType = .void,
         isThrowing: Bool = false,
+        generics: [Symbol.GenericParameter] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
@@ -33,7 +34,8 @@ public struct HostFunction: Sendable {
         self.signature = Symbol.Function(
             parameters: parameters,
             returns: returns,
-            isThrowing: isThrowing
+            isThrowing: isThrowing,
+            generics: generics
         )
         let defaults = parameters.map { parameter -> (String, Value?) in
             if case .defaulted(.value(let value)) = parameter.arity {
@@ -52,6 +54,7 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: T.Type,
         isThrowing: Bool = false,
+        generics: [Symbol.GenericParameter] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
@@ -61,6 +64,7 @@ public struct HostFunction: Sendable {
             parameters: parameters,
             returns: ScriptType(returns),
             isThrowing: isThrowing,
+            generics: generics,
             attributes: attributes,
             body: body
         )
@@ -143,7 +147,9 @@ extension Symbol.Parameter {
 /// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
 /// `Flow<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
 /// class is a fact about its declaration: `symbols(named:)` says.
-public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
+public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
+    ExpressibleByStringLiteral
+{
     case named(String, [ScriptType] = [])
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
     case function(
@@ -194,6 +200,11 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// `Wrapped?`, which is `Optional<Wrapped>`.
     public static func optional(_ wrapped: ScriptType) -> ScriptType {
         .named("Optional", [wrapped])
+    }
+
+    /// A type by its name, with no generic arguments: `"Int"`.
+    public init(stringLiteral name: String) {
+        self = .named(name)
     }
 
     public var description: String {

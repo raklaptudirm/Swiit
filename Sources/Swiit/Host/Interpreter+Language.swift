@@ -68,7 +68,7 @@ extension Interpreter {
                         interpreter.typeObject(of: arguments["value"] ?? .nothing)
                     },
                     documentation: Documentation(summary: "The type of a value.", parameters: [:]),
-                    generics: ["T": []]
+                    generics: ["T"]
                 ),
                 named: "type"
             )
@@ -170,7 +170,7 @@ extension Interpreter {
                         summary: "A weak variable's initial value.",
                         parameters: [:]
                     ),
-                    generics: ["T": []]
+                    generics: ["T"]
                 ),
                 named: InternalName.weak
             )
@@ -214,7 +214,7 @@ extension Interpreter {
                         parameters: [:]
                     ),
                     isRethrowing: true,
-                    generics: ["T": [], "R": []],
+                    generics: ["T", "R"],
                     flattensResult: true
                 ),
                 named: InternalName.chain
@@ -228,7 +228,7 @@ extension Interpreter {
                     returnType: .optional(.parameter("T")),
                     body: .native { _, arguments in arguments["x"] ?? .nothing },
                     documentation: Documentation(summary: "Optional(x).", parameters: [:]),
-                    generics: ["T": []]
+                    generics: ["T"]
                 ),
                 named: InternalName.some
             )

@@ -9,7 +9,7 @@ extension Bridge {
 
         BridgedType(
             name: "FilePath", genericParameters: [],
-            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:]],
+            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
             associatedTypes: [:],
             parse: nil, literal: { textLiteral(FilePath.self, $0).map { SwiftValue.make($0, as: "FilePath") } }, arrayLiteral: nil,
             members: [
@@ -18,7 +18,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "FilePath.Component", genericParameters: [],
-            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:]],
+            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
             associatedTypes: [:],
             parse: { FilePath.Component($0).map { SwiftValue.make($0, as: "FilePath.Component") } }, literal: { textLiteral(FilePath.Component.self, $0).map { SwiftValue.make($0, as: "FilePath.Component") } }, arrayLiteral: nil,
             members: [
@@ -27,7 +27,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "FilePath.ComponentView", genericParameters: [],
-            conformances: ["Encodable": [:], "Equatable": [:], "Hashable": [:], "Sequence": [:]],
+            conformances: ["Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []],
             associatedTypes: ["Element": .named("FilePath.Component")],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -38,7 +38,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath")), Parameter(label: nil, name: "rhs", type: .named("FilePath"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are not equal.",
                     body: .native { interpreter, args in
@@ -51,7 +51,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member1: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty, null-terminated path.",
                     body: .native { interpreter, args in
@@ -64,7 +64,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member2: BridgedMember =                 BridgedMember(
                     kind: .property, name: "length", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The length of the file path, excluding the null terminator.",
                     body: .native { interpreter, args in
@@ -78,7 +78,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member3: BridgedMember =                 BridgedMember(
                     kind: .property, name: "components", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath.ComponentView"), generics: [:],
+                    returns: .named("FilePath.ComponentView"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "View the non-root components that make up this path.",
                     body: .native { interpreter, args in
@@ -92,7 +92,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member4: BridgedMember =                 BridgedMember(
                     kind: .setter, name: "components", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newValue", type: .named("FilePath.ComponentView"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -106,7 +106,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member5: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a file path from a string literal.",
                     body: .native { interpreter, args in
@@ -119,7 +119,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member6: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "string", type: .string)],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a file path from a string.",
                     body: .native { interpreter, args in
@@ -132,7 +132,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member7: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the file path.",
                     body: .native { interpreter, args in
@@ -146,7 +146,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member8: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the file path, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -160,7 +160,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member9: BridgedMember =                 BridgedMember(
                     kind: .property, name: "string", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a string by interpreting the path’s content as UTF-8 on Unix and UTF-16 on Windows.",
                     body: .native { interpreter, args in
@@ -174,7 +174,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member10: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isAbsolute", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns true if this path uniquely identifies the location of a file without reference to an additional starting location.",
                     body: .native { interpreter, args in
@@ -188,7 +188,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member11: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isRelative", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns true if this path is not absolute (see `isAbsolute`).",
                     body: .native { interpreter, args in
@@ -202,7 +202,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member12: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .named("FilePath"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns whether `other` is a prefix of `self`, only considering whole path components.",
                     body: .native { interpreter, args in
@@ -216,7 +216,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member13: BridgedMember =                 BridgedMember(
                     kind: .method, name: "ends", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .named("FilePath"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns whether `other` is a suffix of `self`, only considering whole path components.",
                     body: .native { interpreter, args in
@@ -230,7 +230,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member14: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Whether this path is empty",
                     body: .native { interpreter, args in
@@ -244,7 +244,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member15: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removingRoot", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new path containing just the components, i.e. everything after `root`.",
                     body: .native { interpreter, args in
@@ -258,7 +258,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member16: BridgedMember =                 BridgedMember(
                     kind: .property, name: "lastComponent", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the final component of the path. Returns `nil` if the path is empty or only contains a root.",
                     body: .native { interpreter, args in
@@ -272,7 +272,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member17: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removingLastComponent", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new path with everything up to but not including `lastComponent`.",
                     body: .native { interpreter, args in
@@ -286,7 +286,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member18: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLastComponent", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "In-place mutating variant of `removingLastComponent`.",
                     body: .native { interpreter, args in
@@ -303,7 +303,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member19: BridgedMember =                 BridgedMember(
                     kind: .property, name: "extension", isStatic: false,
                     parameters: [],
-                    returns: .optional(.string), generics: [:],
+                    returns: .optional(.string), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The extension of the file or directory last component.",
                     body: .native { interpreter, args in
@@ -317,7 +317,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member20: BridgedMember =                 BridgedMember(
                     kind: .setter, name: "extension", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newValue", type: .optional(.string))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -331,7 +331,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member21: BridgedMember =                 BridgedMember(
                     kind: .property, name: "stem", isStatic: false,
                     parameters: [],
-                    returns: .optional(.string), generics: [:],
+                    returns: .optional(.string), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The non-extension portion of the file or directory last component.",
                     body: .native { interpreter, args in
@@ -345,7 +345,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member22: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isLexicallyNormal", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Whether the path is in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks).",
                     body: .native { interpreter, args in
@@ -359,7 +359,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member23: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicallyNormalize", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).",
                     body: .native { interpreter, args in
@@ -376,7 +376,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member24: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicallyNormalized", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a copy of `self` in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks). See `lexicallyNormalize`",
                     body: .native { interpreter, args in
@@ -390,7 +390,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member25: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicallyResolving", isStatic: false,
                     parameters: [Parameter(label: nil, name: "subpath", type: .named("FilePath"))],
-                    returns: .optional(.named("FilePath")), generics: [:],
+                    returns: .optional(.named("FilePath")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Create a new `FilePath` by resolving `subpath` relative to `self`, ensuring that the result is lexically contained within `self`.",
                     body: .native { interpreter, args in
@@ -404,7 +404,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removePrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .named("FilePath"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.",
                     body: .native { interpreter, args in
@@ -421,7 +421,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "component", type: .named("FilePath.Component"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Append a `component` on to the end of this path.",
                     body: .native { interpreter, args in
@@ -438,7 +438,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member28: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Append the contents of `other`, ignoring any spurious leading separators.",
                     body: .native { interpreter, args in
@@ -455,7 +455,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member29: BridgedMember =                 BridgedMember(
                     kind: .method, name: "appending", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("FilePath.Component"))],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Non-mutating version of `append(_:Component)`.",
                     body: .native { interpreter, args in
@@ -469,7 +469,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
                     kind: .method, name: "appending", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Non-mutating version of `append(_:String)`.",
                     body: .native { interpreter, args in
@@ -483,7 +483,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
                     kind: .method, name: "push", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("FilePath"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.",
                     body: .native { interpreter, args in
@@ -500,7 +500,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
                     kind: .method, name: "pushing", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("FilePath"))],
-                    returns: .named("FilePath"), generics: [:],
+                    returns: .named("FilePath"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Non-mutating version of `push()`.",
                     body: .native { interpreter, args in
@@ -514,7 +514,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepingCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Remove the contents of the path, keeping the null terminator.",
                     body: .native { interpreter, args in
@@ -531,7 +531,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Reserve enough storage space to store `minimumCapacity` platform characters.",
                     body: .native { interpreter, args in
@@ -548,7 +548,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
                     kind: .method, name: "==", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.Component")), Parameter(label: nil, name: "rhs", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are equal.",
                     body: .native { interpreter, args in
@@ -561,7 +561,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member36: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.Component")), Parameter(label: nil, name: "rhs", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are not equal.",
                     body: .native { interpreter, args in
@@ -574,7 +574,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member37: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)],
-                    returns: .named("FilePath.Component"), generics: [:],
+                    returns: .named("FilePath.Component"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Create a file path component from a string literal.",
                     body: .native { interpreter, args in
@@ -587,7 +587,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member38: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "string", type: .string)],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Create a file path component from a string.",
                     body: .native { interpreter, args in
@@ -600,7 +600,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member39: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the path component.",
                     body: .native { interpreter, args in
@@ -614,7 +614,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member40: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the path component, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -628,7 +628,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member41: BridgedMember =                 BridgedMember(
                     kind: .property, name: "string", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a string by interpreting the component’s content as UTF-8 on Unix and UTF-16 on Windows.",
                     body: .native { interpreter, args in
@@ -642,7 +642,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member42: BridgedMember =                 BridgedMember(
                     kind: .property, name: "extension", isStatic: false,
                     parameters: [],
-                    returns: .optional(.string), generics: [:],
+                    returns: .optional(.string), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The extension of this file or directory component.",
                     body: .native { interpreter, args in
@@ -656,7 +656,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member43: BridgedMember =                 BridgedMember(
                     kind: .property, name: "stem", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The non-extension portion of this file or directory  component.",
                     body: .native { interpreter, args in
@@ -670,7 +670,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member44: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["T": []],
+                    returns: .list(.parameter("T")), generics: ["T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -684,7 +684,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member45: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -698,7 +698,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member46: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -712,7 +712,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member47: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("FilePath.Component")), generics: [:],
+                    returns: .list(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -726,7 +726,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member48: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.ComponentView")), Parameter(label: nil, name: "rhs", type: .named("FilePath.ComponentView"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are not equal.",
                     body: .native { interpreter, args in
@@ -739,7 +739,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member49: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("FilePath.Component")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .named("FilePath.ComponentView"), generics: [:],
+                    returns: .named("FilePath.ComponentView"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
@@ -752,7 +752,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member50: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .named("FilePath.ComponentView"), generics: [:],
+                    returns: .named("FilePath.ComponentView"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
@@ -765,7 +765,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member51: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("FilePath.Component"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
@@ -782,7 +782,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member52: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
@@ -799,7 +799,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member53: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
@@ -816,7 +816,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member54: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath.Component"), generics: [:],
+                    returns: .named("FilePath.Component"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
@@ -833,7 +833,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member55: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
@@ -850,7 +850,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member56: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
@@ -867,7 +867,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member57: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -884,7 +884,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member58: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
-                    returns: .named("FilePath.Component"), generics: [:],
+                    returns: .named("FilePath.Component"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -901,7 +901,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member59: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
@@ -918,7 +918,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member60: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .named("FilePath.ComponentView"), generics: [:],
+                    returns: .named("FilePath.ComponentView"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -932,7 +932,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member61: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -949,7 +949,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member62: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("FilePath.Component")], .void, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -963,7 +963,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member63: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -977,7 +977,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member64: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -991,7 +991,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member65: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -1005,7 +1005,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member66: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("FilePath.Component"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -1019,7 +1019,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member67: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -1033,7 +1033,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member68: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("FilePath.Component"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["OtherSequence.Element": []],
+                    returns: .bool, generics: ["OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -1047,7 +1047,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member69: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -1061,7 +1061,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member70: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("FilePath.Component"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -1075,7 +1075,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member71: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -1089,7 +1089,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member72: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -1103,7 +1103,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member73: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
@@ -1117,7 +1117,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member74: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("FilePath.Component")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Result": []],
+                    returns: .parameter("Result"), generics: ["Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -1131,7 +1131,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member75: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -1145,7 +1145,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member76: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -1159,7 +1159,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member77: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .list(.named("FilePath.Component")), generics: [:],
+                    returns: .list(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -1173,7 +1173,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member78: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1190,7 +1190,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member79: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -1207,7 +1207,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member80: BridgedMember =                 BridgedMember(
                     kind: .method, name: "==", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.ComponentView")), Parameter(label: nil, name: "rhs", type: .named("FilePath.ComponentView"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are equal.",
                     body: .native { interpreter, args in
@@ -1220,7 +1220,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member81: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -1234,7 +1234,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member82: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -1248,7 +1248,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member83: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
@@ -1262,7 +1262,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member84: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [:],
+                    returns: .optional(.named("FilePath.Component")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -1276,7 +1276,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member85: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -1290,7 +1290,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member86: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -1304,7 +1304,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member87: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .named("FilePath.ComponentView"), generics: [:],
+                    returns: .named("FilePath.ComponentView"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new, empty collection.",
                     body: .native { interpreter, args in

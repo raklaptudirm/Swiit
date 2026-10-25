@@ -1023,6 +1023,47 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(bump?.attributes.contains(named: "discardableResult") == true)
 }
 
+@Test func typeParametersCarryTheirConstraintsAsTypes() throws {
+    let swiit = interpreter()
+    // A host function's own type parameters, with and without constraints.
+    swiit.register(
+        HostFunction(
+            name: "pick",
+            parameters: [
+                Symbol.Parameter(name: "a", type: "T"), Symbol.Parameter(name: "b", type: "U"),
+            ],
+            returns: "T",
+            generics: [
+                Symbol.GenericParameter(
+                    name: "T",
+                    constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")]
+                ),
+                "U",
+            ],
+            body: { $0[0] }
+        )
+    )
+    let pick = swiit.symbols(named: "pick").first?.function
+    #expect(
+        pick?.generics == [
+            Symbol.GenericParameter(
+                name: "T",
+                constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")]
+            ),
+            "U",
+        ]
+    )
+    // A Swift member's, with what it asks of its type: `sorted()` needs a Comparable element.
+    let sorted = swiit.symbols(named: "sorted", in: .list(.int)).compactMap(\.function)
+    #expect(
+        sorted.contains {
+            $0.generics.contains {
+                $0.name == "Element" && $0.constraints.contains(.conforms(to: "Comparable"))
+            }
+        }
+    )
+}
+
 @Test func evaluateGivesBackTheLastValueWhateverIsWatching() throws {
     let swiit = interpreter()
     nonisolated(unsafe) var seen: [String] = []

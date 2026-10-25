@@ -215,7 +215,7 @@ extension Bridge {
             ),
             isThrowing: isThrowing,
             effect: .async,
-            generics: ["Result": []]
+            generics: ["Result"]
         )
     }
 }

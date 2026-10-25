@@ -449,13 +449,7 @@ for (name, _) in bridgedTypeNames {
         .sorted()
     let conformances = owner.conformances.sorted { $0.key < $1.key }
         .map { proto, needs in
-            let needsCode =
-                needs.isEmpty
-                ? "[:]"
-                : "["
-                    + needs.sorted { $0.key < $1.key }
-                    .map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }
-                    .joined(separator: ", ") + "]"
+            let needsCode = genericParametersCode(needs)
             return "\(quoted(proto)): \(needsCode)"
         }
     // Text as one of these, from the type's own declarations. `parse`: a

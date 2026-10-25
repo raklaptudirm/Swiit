@@ -82,7 +82,9 @@ extension Interpreter {
                         )
                         var written = method
                         written.parameters = [receiver] + method.parameters
-                        written.generics["Element", default: []] += []
+                        if !written.generics.contains(where: { $0.name == "Element" }) {
+                            written.generics.append("Element")
+                        }
                         let checked = try checkedSequenceMethod(written)
                         guard case .function(let resolved)? = checked.statements.first else {
                             throw RuntimeError("Sequence.\(method.name)")

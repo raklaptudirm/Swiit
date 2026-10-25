@@ -9,7 +9,7 @@ extension Bridge {
 
         BridgedType(
             name: "String", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:], "Sequence": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": [], "Sequence": []],
             associatedTypes: ["CharacterView": .string, "Element": .named("Character"), "ExtendedGraphemeClusterLiteralType": .string, "IndexDistance": .int, "StringLiteralType": .string, "SubSequence": .named("Substring"), "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(String.self, $0).map { $0.value } }, arrayLiteral: nil,
             members: [
@@ -18,7 +18,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Substring", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:], "Sequence": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": [], "Sequence": []],
             associatedTypes: ["CharacterView": .named("Substring"), "Element": .named("Character"), "ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "SubSequence": .named("Substring"), "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(Substring.self, $0).map { SwiftValue.make($0, as: "Substring") } }, arrayLiteral: nil,
             members: [
@@ -27,7 +27,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Character", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["ExtendedGraphemeClusterLiteralType": .named("Character"), "UnicodeScalarLiteralType": .named("Character")],
             parse: nil, literal: { textLiteral(Character.self, $0).map { SwiftValue.make($0, as: "Character") } }, arrayLiteral: nil,
             members: [
@@ -36,7 +36,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Unicode.Scalar", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["UnicodeScalarLiteralType": .named("Unicode.Scalar")],
             parse: { Unicode.Scalar($0).map { SwiftValue.make($0, as: "Unicode.Scalar") } }, literal: { textLiteral(Unicode.Scalar.self, $0).map { SwiftValue.make($0, as: "Unicode.Scalar") } }, arrayLiteral: nil,
             members: [
@@ -45,7 +45,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Int", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["IntegerLiteralType": .int, "SIMDMaskScalar": .int, "Stride": .int],
             parse: { Int($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
@@ -54,7 +54,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Double", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["Exponent": .int, "FloatLiteralType": .double, "Magnitude": .double, "Stride": .double],
             parse: { Double($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
@@ -63,7 +63,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Bool", genericParameters: [],
-            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["BooleanLiteralType": .bool],
             parse: { Bool($0).map { $0.value } }, literal: nil, arrayLiteral: nil,
             members: [
@@ -72,7 +72,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Array", genericParameters: ["Element"],
-            conformances: ["CustomStringConvertible": [:], "Encodable": ["Element": ["Encodable"]], "Equatable": ["Element": ["Equatable"]], "Hashable": ["Element": ["Hashable"]], "Sequence": [:]],
+            conformances: ["CustomStringConvertible": [], "Encodable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Encodable")])], "Equatable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])], "Hashable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])], "Sequence": []],
             associatedTypes: ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .generic("Range", [.int]), "SubSequence": .generic("ArraySlice", [.parameter("Element")])],
             parse: nil, literal: nil, arrayLiteral: { .list([Value]($0)) },
             members: [
@@ -81,7 +81,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "ArraySlice", genericParameters: ["Element"],
-            conformances: ["CustomStringConvertible": [:], "Equatable": ["Element": ["Equatable"]], "Hashable": ["Element": ["Hashable"]], "Sequence": [:]],
+            conformances: ["CustomStringConvertible": [], "Equatable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])], "Hashable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])], "Sequence": []],
             associatedTypes: ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .generic("Range", [.int]), "SubSequence": .generic("ArraySlice", [.parameter("Element")])],
             parse: nil, literal: nil, arrayLiteral: { SwiftValue.make(ArraySlice<Value>($0), as: "ArraySlice") },
             members: [
@@ -90,7 +90,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Set", genericParameters: ["Element"],
-            conformances: ["CustomStringConvertible": ["Element": ["Hashable"]], "Encodable": ["Element": ["Encodable", "Hashable"]], "Equatable": ["Element": ["Hashable"]], "Hashable": ["Element": ["Hashable"]], "Sequence": ["Element": ["Hashable"]]],
+            conformances: ["CustomStringConvertible": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])], "Encodable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Encodable"), .conforms(to: "Hashable")])], "Equatable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])], "Hashable": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])], "Sequence": [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])]],
             associatedTypes: ["ArrayLiteralElement": .parameter("Element")],
             parse: nil, literal: nil, arrayLiteral: { SwiftValue.make(Set<Value>($0), as: "Set") },
             members: [
@@ -99,7 +99,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Dictionary", genericParameters: ["Key", "Value"],
-            conformances: ["CustomStringConvertible": ["Key": ["Hashable"]], "Encodable": ["Key": ["Encodable", "Hashable"], "Value": ["Encodable"]], "Equatable": ["Key": ["Hashable"], "Value": ["Equatable"]], "Hashable": ["Key": ["Hashable"], "Value": ["Hashable"]], "Sequence": ["Key": ["Hashable"]]],
+            conformances: ["CustomStringConvertible": [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")])], "Encodable": [GenericParameter(name: "Key", constraints: [.conforms(to: "Encodable"), .conforms(to: "Hashable")]), GenericParameter(name: "Value", constraints: [.conforms(to: "Encodable")])], "Equatable": [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), GenericParameter(name: "Value", constraints: [.conforms(to: "Equatable")])], "Hashable": [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), GenericParameter(name: "Value", constraints: [.conforms(to: "Hashable")])], "Sequence": [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")])]],
             associatedTypes: ["Element": .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -108,7 +108,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Optional", genericParameters: ["Wrapped"],
-            conformances: ["Encodable": ["Wrapped": ["Encodable"]], "Equatable": ["Wrapped": ["Equatable"]], "Hashable": ["Wrapped": ["Hashable"]]],
+            conformances: ["Encodable": [GenericParameter(name: "Wrapped", constraints: [.conforms(to: "Encodable")])], "Equatable": [GenericParameter(name: "Wrapped", constraints: [.conforms(to: "Equatable")])], "Hashable": [GenericParameter(name: "Wrapped", constraints: [.conforms(to: "Hashable")])]],
             associatedTypes: [:],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -117,7 +117,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "Range", genericParameters: ["Bound"],
-            conformances: ["CustomStringConvertible": ["Bound": ["Comparable"]], "Encodable": ["Bound": ["Comparable", "Encodable"]], "Equatable": ["Bound": ["Comparable"]], "Hashable": ["Bound": ["Comparable", "Hashable"]], "Sequence": ["Bound": ["=Int"]]],
+            conformances: ["CustomStringConvertible": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])], "Encodable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Encodable")])], "Equatable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])], "Hashable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")])], "Sequence": [GenericParameter(name: "Bound", constraints: [.equals("Int")])]],
             associatedTypes: ["Element": .parameter("Bound"), "Index": .parameter("Bound"), "Indices": .generic("Range", [.parameter("Bound")]), "SubSequence": .generic("Range", [.parameter("Bound")])],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -126,7 +126,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "ClosedRange", genericParameters: ["Bound"],
-            conformances: ["CustomStringConvertible": ["Bound": ["Comparable"]], "Encodable": ["Bound": ["Comparable", "Encodable"]], "Equatable": ["Bound": ["Comparable"]], "Hashable": ["Bound": ["Comparable", "Hashable"]], "Sequence": ["Bound": ["=Int"]]],
+            conformances: ["CustomStringConvertible": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])], "Encodable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Encodable")])], "Equatable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])], "Hashable": [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")])], "Sequence": [GenericParameter(name: "Bound", constraints: [.equals("Int")])]],
             associatedTypes: ["Element": .parameter("Bound")],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -137,7 +137,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "c", type: .named("Character"))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a string containing the given character.",
                     body: .native { interpreter, args in
@@ -150,7 +150,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member1: BridgedMember =                 BridgedMember(
                     kind: .method, name: "write", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Appends the given string to this string.",
                     body: .native { interpreter, args in
@@ -167,7 +167,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member2: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -181,7 +181,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member3: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
@@ -195,7 +195,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member4: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
@@ -209,7 +209,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member5: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["T": []],
+                    returns: .list(.parameter("T")), generics: ["T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -223,7 +223,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member6: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
@@ -237,7 +237,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member7: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
@@ -251,7 +251,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member8: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
@@ -265,7 +265,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member9: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
@@ -279,7 +279,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member10: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .list(.named("Substring")), generics: [:],
+                    returns: .list(.named("Substring")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
@@ -293,7 +293,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member11: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .named("Character")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.named("Substring")), generics: [:],
+                    returns: .list(.named("Substring")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -307,7 +307,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member12: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -321,7 +321,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member13: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -335,7 +335,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member14: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -349,7 +349,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member15: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("Character")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
@@ -362,7 +362,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member16: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("Character")))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
@@ -375,7 +375,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member17: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("Character"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
@@ -392,7 +392,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member18: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("Character")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
@@ -409,7 +409,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member19: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
@@ -426,7 +426,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member20: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
@@ -443,7 +443,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member21: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
@@ -460,7 +460,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member22: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
@@ -477,7 +477,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member23: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -494,7 +494,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member24: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -511,7 +511,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member25: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
@@ -528,7 +528,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -542,7 +542,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -559,7 +559,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member28: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("Character")], .void, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -573,7 +573,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member29: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -587,7 +587,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -601,7 +601,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -615,7 +615,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -629,7 +629,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -643,7 +643,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -657,7 +657,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -671,7 +671,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member36: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["OtherSequence.Element": []],
+                    returns: .bool, generics: ["OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -685,7 +685,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member37: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -699,7 +699,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member38: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -713,7 +713,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member39: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -727,7 +727,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member40: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -741,7 +741,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member41: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -755,7 +755,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member42: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .named("Character"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
@@ -769,7 +769,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member43: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -783,7 +783,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member44: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("Character")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Result": []],
+                    returns: .parameter("Result"), generics: ["Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -797,7 +797,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member45: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -811,7 +811,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member46: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -825,7 +825,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member47: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -839,7 +839,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member48: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -853,7 +853,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member49: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -867,7 +867,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member50: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -881,7 +881,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member51: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -895,7 +895,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member52: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty string.",
                     body: .native { interpreter, args in
@@ -908,7 +908,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member53: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "scalar", type: .named("Unicode.Scalar"))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -921,7 +921,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member54: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the given string value.",
                     body: .native { interpreter, args in
@@ -934,7 +934,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member55: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A representation of the string that is suitable for debugging.",
                     body: .native { interpreter, args in
@@ -948,7 +948,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member56: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a lowercase version of the string.",
                     body: .native { interpreter, args in
@@ -962,7 +962,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member57: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an uppercase version of the string.",
                     body: .native { interpreter, args in
@@ -976,7 +976,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member58: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The value of this string.",
                     body: .native { interpreter, args in
@@ -990,7 +990,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member59: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of characters in a string.",
                     body: .native { interpreter, args in
@@ -1004,7 +1004,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member60: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isContiguousUTF8", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
                     body: .native { interpreter, args in
@@ -1018,7 +1018,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member61: BridgedMember =                 BridgedMember(
                     kind: .method, name: "makeContiguousUTF8", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "If this string is not contiguous, make it so. If this mutates the string, it will invalidate any pre-existing indices.",
                     body: .native { interpreter, args in
@@ -1035,7 +1035,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member62: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .string), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new string representing the given string repeated the specified number of times.",
                     body: .native { interpreter, args in
@@ -1048,7 +1048,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member63: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether a string has no characters.",
                     body: .native { interpreter, args in
@@ -1062,7 +1062,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member64: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1076,7 +1076,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member65: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasSuffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1090,7 +1090,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member66: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Appends the given string to this string.",
                     body: .native { interpreter, args in
@@ -1107,7 +1107,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member67: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .string)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1124,7 +1124,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member68: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .named("Substring"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1141,7 +1141,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member69: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
-                    returns: .parameter("T"), generics: ["T": ["Comparable"]],
+                    returns: .parameter("T"), generics: [GenericParameter(name: "T", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1155,7 +1155,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member70: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
-                    returns: .parameter("T"), generics: ["T": ["Comparable"]],
+                    returns: .parameter("T"), generics: [GenericParameter(name: "T", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1169,7 +1169,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member71: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "substring", type: .named("Substring"))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new string from the given substring.",
                     body: .native { interpreter, args in
@@ -1182,7 +1182,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member72: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "describing", name: "instance", type: .parameter("Subject"))],
-                    returns: .string, generics: ["Subject": []],
+                    returns: .string, generics: ["Subject"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a string representing the given value.",
                     body: .native { interpreter, args in
@@ -1195,7 +1195,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member73: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "reflecting", name: "subject", type: .parameter("Subject"))],
-                    returns: .string, generics: ["Subject": []],
+                    returns: .string, generics: ["Subject"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a string with a detailed representation of the given value, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -1208,7 +1208,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member74: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -1222,7 +1222,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member75: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1236,7 +1236,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member76: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1250,7 +1250,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member77: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1264,7 +1264,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member78: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -1281,7 +1281,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member79: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -1295,7 +1295,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member80: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -1312,7 +1312,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member81: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isContiguousUTF8", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
                     body: .native { interpreter, args in
@@ -1326,7 +1326,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member82: BridgedMember =                 BridgedMember(
                     kind: .method, name: "makeContiguousUTF8", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "If this string is not contiguous, make it so. If this mutates the substring, it will invalidate any pre-existing indices.",
                     body: .native { interpreter, args in
@@ -1343,7 +1343,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member83: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
@@ -1357,7 +1357,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member84: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
@@ -1371,7 +1371,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member85: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["T": []],
+                    returns: .list(.parameter("T")), generics: ["T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -1385,7 +1385,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member86: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
@@ -1399,7 +1399,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member87: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
@@ -1413,7 +1413,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member88: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
@@ -1427,7 +1427,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member89: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
@@ -1441,7 +1441,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member90: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .list(.named("Substring")), generics: [:],
+                    returns: .list(.named("Substring")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
@@ -1455,7 +1455,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member91: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .named("Character")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.named("Substring")), generics: [:],
+                    returns: .list(.named("Substring")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -1469,7 +1469,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member92: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -1483,7 +1483,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member93: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -1497,7 +1497,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member94: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -1511,7 +1511,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member95: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("Character")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
@@ -1524,7 +1524,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member96: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("Character")))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
@@ -1537,7 +1537,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member97: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("Character"))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
@@ -1554,7 +1554,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member98: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("Character")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
@@ -1571,7 +1571,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member99: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
@@ -1588,7 +1588,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member100: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
@@ -1605,7 +1605,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member101: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
@@ -1622,7 +1622,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member102: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
@@ -1639,7 +1639,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member103: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -1656,7 +1656,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member104: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -1673,7 +1673,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member105: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
@@ -1690,7 +1690,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member106: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -1707,7 +1707,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member107: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("Character")], .void, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -1721,7 +1721,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member108: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -1735,7 +1735,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member109: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -1749,7 +1749,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member110: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -1763,7 +1763,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member111: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -1777,7 +1777,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member112: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -1791,7 +1791,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member113: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -1805,7 +1805,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member114: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -1819,7 +1819,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member115: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["OtherSequence.Element": []],
+                    returns: .bool, generics: ["OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -1833,7 +1833,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member116: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -1847,7 +1847,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member117: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -1861,7 +1861,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member118: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -1875,7 +1875,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member119: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -1889,7 +1889,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member120: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -1903,7 +1903,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member121: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .named("Character"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
@@ -1917,7 +1917,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member122: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -1931,7 +1931,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member123: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("Character")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Result": []],
+                    returns: .parameter("Result"), generics: ["Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -1945,7 +1945,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member124: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -1959,7 +1959,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member125: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -1973,7 +1973,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member126: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -1987,7 +1987,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member127: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -2001,7 +2001,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member128: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -2015,7 +2015,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member129: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
@@ -2029,7 +2029,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member130: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.named("Character")), generics: [:],
+                    returns: .optional(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -2043,7 +2043,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member131: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -2057,7 +2057,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member132: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -2071,7 +2071,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member133: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty substring.",
                     body: .native { interpreter, args in
@@ -2084,7 +2084,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member134: BridgedMember =                 BridgedMember(
                     kind: .property, name: "base", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the underlying string from which this substring was derived.",
                     body: .native { interpreter, args in
@@ -2098,7 +2098,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member135: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -2112,7 +2112,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member136: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this instance.",
                     body: .native { interpreter, args in
@@ -2126,7 +2126,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member137: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this instance, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -2140,7 +2140,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member138: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "content", type: .string)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { interpreter, args in
@@ -2153,7 +2153,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member139: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2167,7 +2167,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member140: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2181,7 +2181,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member141: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2195,7 +2195,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member142: BridgedMember =                 BridgedMember(
                     kind: .method, name: "write", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Appends the given string to the stream.",
                     body: .native { interpreter, args in
@@ -2212,7 +2212,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member143: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "unicodeScalarLiteral", name: "value", type: .string)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the given value.",
                     body: .native { interpreter, args in
@@ -2225,7 +2225,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member144: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .string)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the given value.",
                     body: .native { interpreter, args in
@@ -2238,7 +2238,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member145: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the given string value.",
                     body: .native { interpreter, args in
@@ -2251,7 +2251,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member146: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.named("Character")), generics: [:],
+                    returns: .list(.named("Character")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -2265,7 +2265,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member147: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2279,7 +2279,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member148: BridgedMember =                 BridgedMember(
                     kind: .method, name: "hasSuffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2293,7 +2293,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member149: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2307,7 +2307,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member150: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2321,7 +2321,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member151: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2335,7 +2335,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member152: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -2352,7 +2352,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member153: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
-                    returns: .named("Substring"), generics: [:],
+                    returns: .named("Substring"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -2366,7 +2366,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member154: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -2383,7 +2383,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member155: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "content", type: .named("Unicode.Scalar"))],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a character containing the given Unicode scalar value.",
                     body: .native { interpreter, args in
@@ -2396,7 +2396,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member156: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .named("Character"))],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a character with the specified value.",
                     body: .native { interpreter, args in
@@ -2409,7 +2409,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member157: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "s", type: .string)],
-                    returns: .named("Character"), generics: [:],
+                    returns: .named("Character"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a character from a single-character string.",
                     body: .native { interpreter, args in
@@ -2422,7 +2422,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member158: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this instance.",
                     body: .native { interpreter, args in
@@ -2436,7 +2436,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member159: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the character, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -2450,7 +2450,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member160: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -2464,7 +2464,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member161: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isASCII", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this is an ASCII character.",
                     body: .native { interpreter, args in
@@ -2478,7 +2478,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member162: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isWhitespace", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents whitespace, including newlines.",
                     body: .native { interpreter, args in
@@ -2492,7 +2492,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member163: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNewline", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a newline.",
                     body: .native { interpreter, args in
@@ -2506,7 +2506,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member164: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNumber", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a number.",
                     body: .native { interpreter, args in
@@ -2520,7 +2520,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member165: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isWholeNumber", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a whole number.",
                     body: .native { interpreter, args in
@@ -2534,7 +2534,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member166: BridgedMember =                 BridgedMember(
                     kind: .property, name: "wholeNumberValue", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: [:],
+                    returns: .optional(.int), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The numeric value this character represents, if it represents a whole number.",
                     body: .native { interpreter, args in
@@ -2548,7 +2548,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member167: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isHexDigit", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a hexadecimal digit.",
                     body: .native { interpreter, args in
@@ -2562,7 +2562,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member168: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hexDigitValue", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: [:],
+                    returns: .optional(.int), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The numeric value this character represents, if it is a hexadecimal digit.",
                     body: .native { interpreter, args in
@@ -2576,7 +2576,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member169: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isLetter", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character is a letter.",
                     body: .native { interpreter, args in
@@ -2590,7 +2590,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member170: BridgedMember =                 BridgedMember(
                     kind: .method, name: "uppercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an uppercased version of this character.",
                     body: .native { interpreter, args in
@@ -2604,7 +2604,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member171: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lowercased", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a lowercased version of this character.",
                     body: .native { interpreter, args in
@@ -2618,7 +2618,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member172: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isUppercase", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character is considered uppercase.",
                     body: .native { interpreter, args in
@@ -2632,7 +2632,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member173: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isLowercase", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character is considered lowercase.",
                     body: .native { interpreter, args in
@@ -2646,7 +2646,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member174: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCased", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character changes under any form of case conversion.",
                     body: .native { interpreter, args in
@@ -2660,7 +2660,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member175: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSymbol", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a symbol.",
                     body: .native { interpreter, args in
@@ -2674,7 +2674,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member176: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isMathSymbol", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a symbol that naturally appears in mathematical contexts.",
                     body: .native { interpreter, args in
@@ -2688,7 +2688,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member177: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCurrencySymbol", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents a currency symbol.",
                     body: .native { interpreter, args in
@@ -2702,7 +2702,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member178: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isPunctuation", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this character represents punctuation.",
                     body: .native { interpreter, args in
@@ -2716,7 +2716,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member179: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "unicodeScalarLiteral", name: "value", type: .named("Unicode.Scalar"))],
-                    returns: .named("Unicode.Scalar"), generics: [:],
+                    returns: .named("Unicode.Scalar"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a Unicode scalar with the specified value.",
                     body: .native { interpreter, args in
@@ -2729,7 +2729,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member180: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "v", type: .named("Unicode.Scalar"))],
-                    returns: .named("Unicode.Scalar"), generics: [:],
+                    returns: .named("Unicode.Scalar"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a duplicate of the given Unicode scalar.",
                     body: .native { interpreter, args in
@@ -2742,7 +2742,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member181: BridgedMember =                 BridgedMember(
                     kind: .method, name: "escaped", isStatic: false,
                     parameters: [Parameter(label: "asASCII", name: "forceASCII", type: .bool)],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a string representation of the Unicode scalar.",
                     body: .native { interpreter, args in
@@ -2756,7 +2756,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member182: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isASCII", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the Unicode scalar is an ASCII character.",
                     body: .native { interpreter, args in
@@ -2770,7 +2770,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member183: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the Unicode scalar.",
                     body: .native { interpreter, args in
@@ -2784,7 +2784,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member184: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "An escaped textual representation of the Unicode scalar, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -2798,7 +2798,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member185: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
-                    returns: .optional(.named("Unicode.Scalar")), generics: [:],
+                    returns: .optional(.named("Unicode.Scalar")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { interpreter, args in
@@ -2811,7 +2811,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member186: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -2825,7 +2825,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member187: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "v", type: .int)],
-                    returns: .optional(.named("Unicode.Scalar")), generics: [:],
+                    returns: .optional(.named("Unicode.Scalar")), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a Unicode scalar with the specified numeric value.",
                     body: .native { interpreter, args in
@@ -2838,7 +2838,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member188: BridgedMember =                 BridgedMember(
                     kind: .method, name: "negate", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replaces this value with its additive inverse.",
                     body: .native { interpreter, args in
@@ -2855,7 +2855,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member189: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new value equal to zero.",
                     body: .native { interpreter, args in
@@ -2868,7 +2868,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member190: BridgedMember =                 BridgedMember(
                     kind: .method, name: "quotientAndRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "rhs", type: .int)],
-                    returns: .tuple([.init(label: "quotient", type: .int), .init(label: "remainder", type: .int)]), generics: [:],
+                    returns: .tuple([.init(label: "quotient", type: .int), .init(label: "remainder", type: .int)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the quotient and remainder of this value divided by the given value.",
                     body: .native { interpreter, args in
@@ -2882,7 +2882,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member191: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this value.",
                     body: .native { interpreter, args in
@@ -2896,7 +2896,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member192: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
-                    returns: .optional(.int), generics: [:],
+                    returns: .optional(.int), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new integer value from the given string.",
                     body: .native { interpreter, args in
@@ -2909,7 +2909,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member193: BridgedMember =                 BridgedMember(
                     kind: .property, name: "zero", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The zero value.",
                     body: .native { interpreter, args in
@@ -2922,7 +2922,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member194: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bitWidth", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of bits in the current binary representation of this value.",
                     body: .native { interpreter, args in
@@ -2936,7 +2936,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member195: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "littleEndian", name: "value", type: .int)],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an integer from its little-endian representation, changing the byte order if necessary.",
                     body: .native { interpreter, args in
@@ -2949,7 +2949,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member196: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "bigEndian", name: "value", type: .int)],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an integer from its big-endian representation, changing the byte order if necessary.",
                     body: .native { interpreter, args in
@@ -2962,7 +2962,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member197: BridgedMember =                 BridgedMember(
                     kind: .property, name: "littleEndian", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The little-endian representation of this integer.",
                     body: .native { interpreter, args in
@@ -2976,7 +2976,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member198: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bigEndian", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The big-endian representation of this integer.",
                     body: .native { interpreter, args in
@@ -2990,7 +2990,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member199: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [Parameter(label: "in", name: "range", type: .generic("Range", [.int]))],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random value within the specified range.",
                     body: .native { interpreter, args in
@@ -3003,7 +3003,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member200: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [Parameter(label: "in", name: "range", type: .generic("ClosedRange", [.int]))],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random value within the specified range.",
                     body: .native { interpreter, args in
@@ -3016,7 +3016,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member201: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSigned", isStatic: true,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this type is a signed integer type.",
                     body: .native { interpreter, args in
@@ -3029,7 +3029,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member202: BridgedMember =                 BridgedMember(
                     kind: .property, name: "max", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The maximum representable integer in this type.",
                     body: .native { interpreter, args in
@@ -3042,7 +3042,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member203: BridgedMember =                 BridgedMember(
                     kind: .property, name: "min", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The minimum representable integer in this type.",
                     body: .native { interpreter, args in
@@ -3055,7 +3055,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member204: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isMultiple", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .int)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns `true` if this value is a multiple of the given value, and `false` otherwise.",
                     body: .native { interpreter, args in
@@ -3069,7 +3069,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member205: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "source", type: .double)],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an integer from the given floating-point value, rounding toward zero.",
                     body: .native { interpreter, args in
@@ -3082,7 +3082,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member206: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "exactly", name: "source", type: .double)],
-                    returns: .optional(.int), generics: [:],
+                    returns: .optional(.int), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an integer from the given floating-point value, if it can be represented exactly.",
                     body: .native { interpreter, args in
@@ -3095,7 +3095,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member207: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addingReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
-                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
+                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the sum of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
@@ -3109,7 +3109,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member208: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtractingReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
-                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
+                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the difference obtained by subtracting the given value from this value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
@@ -3123,7 +3123,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member209: BridgedMember =                 BridgedMember(
                     kind: .method, name: "multipliedReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
-                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
+                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the product of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
@@ -3137,7 +3137,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member210: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dividedReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
-                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
+                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the quotient obtained by dividing this value by the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
@@ -3151,7 +3151,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member211: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remainderReportingOverflow", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .int)],
-                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
+                    returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the remainder after dividing this value by the given value, along with a Boolean value indicating whether overflow occurred during division.",
                     body: .native { interpreter, args in
@@ -3165,7 +3165,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member212: BridgedMember =                 BridgedMember(
                     kind: .property, name: "bitWidth", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of bits used for the underlying binary representation of values of this type.",
                     body: .native { interpreter, args in
@@ -3178,7 +3178,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member213: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leadingZeroBitCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of leading zeros in this value's binary representation.",
                     body: .native { interpreter, args in
@@ -3192,7 +3192,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member214: BridgedMember =                 BridgedMember(
                     kind: .property, name: "trailingZeroBitCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of trailing zeros in this value's binary representation.",
                     body: .native { interpreter, args in
@@ -3206,7 +3206,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member215: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nonzeroBitCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of bits equal to 1 in this value's binary representation.",
                     body: .native { interpreter, args in
@@ -3220,7 +3220,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member216: BridgedMember =                 BridgedMember(
                     kind: .property, name: "byteSwapped", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A representation of this integer with the byte order swapped.",
                     body: .native { interpreter, args in
@@ -3234,7 +3234,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member217: BridgedMember =                 BridgedMember(
                     kind: .method, name: "signum", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns `-1` if this value is negative and `1` if it's positive; otherwise, `0`.",
                     body: .native { interpreter, args in
@@ -3248,7 +3248,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member218: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -3262,7 +3262,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member219: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .int)],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { interpreter, args in
@@ -3276,7 +3276,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member220: BridgedMember =                 BridgedMember(
                     kind: .method, name: "advanced", isStatic: false,
                     parameters: [Parameter(label: "by", name: "n", type: .int)],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { interpreter, args in
@@ -3290,7 +3290,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member221: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "text", type: .named("Substring"))],
-                    returns: .optional(.double), generics: [:],
+                    returns: .optional(.double), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -3303,7 +3303,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member222: BridgedMember =                 BridgedMember(
                     kind: .property, name: "ulpOfOne", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The unit in the last place of 1.0.",
                     body: .native { interpreter, args in
@@ -3316,7 +3316,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member223: BridgedMember =                 BridgedMember(
                     kind: .method, name: "rounded", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -3330,7 +3330,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member224: BridgedMember =                 BridgedMember(
                     kind: .method, name: "round", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -3347,7 +3347,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member225: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nextDown", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The greatest representable value that compares less than this value.",
                     body: .native { interpreter, args in
@@ -3361,7 +3361,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member226: BridgedMember =                 BridgedMember(
                     kind: .method, name: "truncatingRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the remainder of this value divided by the given value using truncating division.",
                     body: .native { interpreter, args in
@@ -3375,7 +3375,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member227: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the remainder of this value divided by the given value.",
                     body: .native { interpreter, args in
@@ -3389,7 +3389,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member228: BridgedMember =                 BridgedMember(
                     kind: .method, name: "squareRoot", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the square root of the value, rounded to a representable value.",
                     body: .native { interpreter, args in
@@ -3403,7 +3403,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member229: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addingProduct", isStatic: false,
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.",
                     body: .native { interpreter, args in
@@ -3417,7 +3417,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member230: BridgedMember =                 BridgedMember(
                     kind: .method, name: "minimum", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the lesser of the two given values.",
                     body: .native { interpreter, args in
@@ -3430,7 +3430,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member231: BridgedMember =                 BridgedMember(
                     kind: .method, name: "maximum", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the greater of the two given values.",
                     body: .native { interpreter, args in
@@ -3443,7 +3443,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member232: BridgedMember =                 BridgedMember(
                     kind: .method, name: "minimumMagnitude", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the value with lesser magnitude.",
                     body: .native { interpreter, args in
@@ -3456,7 +3456,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member233: BridgedMember =                 BridgedMember(
                     kind: .method, name: "maximumMagnitude", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the value with greater magnitude.",
                     body: .native { interpreter, args in
@@ -3469,7 +3469,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member234: BridgedMember =                 BridgedMember(
                     kind: .property, name: "radix", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The radix, or base of exponentiation, for a floating-point type.",
                     body: .native { interpreter, args in
@@ -3482,7 +3482,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member235: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "signOf", name: "signOf", type: .double), Parameter(label: "magnitudeOf", name: "magnitudeOf", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new floating-point value using the sign of one value and the magnitude of another.",
                     body: .native { interpreter, args in
@@ -3495,7 +3495,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member236: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isTotallyOrdered", isStatic: false,
                     parameters: [Parameter(label: "belowOrEqualTo", name: "other", type: .double)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.",
                     body: .native { interpreter, args in
@@ -3509,7 +3509,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member237: BridgedMember =                 BridgedMember(
                     kind: .property, name: "zero", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The zero value.",
                     body: .native { interpreter, args in
@@ -3522,7 +3522,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member238: BridgedMember =                 BridgedMember(
                     kind: .method, name: "negate", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replaces this value with its additive inverse.",
                     body: .native { interpreter, args in
@@ -3539,7 +3539,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member239: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -3552,7 +3552,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member240: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the value.",
                     body: .native { interpreter, args in
@@ -3566,7 +3566,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member241: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the value, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -3580,7 +3580,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member242: BridgedMember =                 BridgedMember(
                     kind: .property, name: "exponentBitCount", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of bits used to represent the type's exponent.",
                     body: .native { interpreter, args in
@@ -3593,7 +3593,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member243: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significandBitCount", isStatic: true,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The available number of fractional significand bits.",
                     body: .native { interpreter, args in
@@ -3606,7 +3606,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member244: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isCanonical", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance's representation is in its canonical form.",
                     body: .native { interpreter, args in
@@ -3620,7 +3620,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member245: BridgedMember =                 BridgedMember(
                     kind: .property, name: "infinity", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Positive infinity.",
                     body: .native { interpreter, args in
@@ -3633,7 +3633,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member246: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nan", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A quiet NaN (\"not a number\").",
                     body: .native { interpreter, args in
@@ -3646,7 +3646,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member247: BridgedMember =                 BridgedMember(
                     kind: .property, name: "signalingNaN", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A signaling NaN (\"not a number\").",
                     body: .native { interpreter, args in
@@ -3659,7 +3659,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member248: BridgedMember =                 BridgedMember(
                     kind: .property, name: "greatestFiniteMagnitude", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The greatest finite number representable by this type.",
                     body: .native { interpreter, args in
@@ -3672,7 +3672,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member249: BridgedMember =                 BridgedMember(
                     kind: .property, name: "pi", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The mathematical constant pi (π), approximately equal to 3.14159.",
                     body: .native { interpreter, args in
@@ -3685,7 +3685,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member250: BridgedMember =                 BridgedMember(
                     kind: .property, name: "ulp", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The unit in the last place of this value.",
                     body: .native { interpreter, args in
@@ -3699,7 +3699,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member251: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leastNormalMagnitude", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The least positive normal number.",
                     body: .native { interpreter, args in
@@ -3712,7 +3712,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member252: BridgedMember =                 BridgedMember(
                     kind: .property, name: "leastNonzeroMagnitude", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The least positive number.",
                     body: .native { interpreter, args in
@@ -3725,7 +3725,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member253: BridgedMember =                 BridgedMember(
                     kind: .property, name: "exponent", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The exponent of the floating-point value.",
                     body: .native { interpreter, args in
@@ -3739,7 +3739,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member254: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significand", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The significand of the floating-point value.",
                     body: .native { interpreter, args in
@@ -3753,7 +3753,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member255: BridgedMember =                 BridgedMember(
                     kind: .property, name: "nextUp", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The least representable value that compares greater than this value.",
                     body: .native { interpreter, args in
@@ -3767,7 +3767,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member256: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replaces this value with the remainder of itself divided by the given value.",
                     body: .native { interpreter, args in
@@ -3784,7 +3784,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member257: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formTruncatingRemainder", isStatic: false,
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replaces this value with the remainder of itself divided by the given value using truncating division.",
                     body: .native { interpreter, args in
@@ -3801,7 +3801,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member258: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSquareRoot", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replaces this value with its square root, rounded to a representable value.",
                     body: .native { interpreter, args in
@@ -3818,7 +3818,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member259: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addProduct", isStatic: false,
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the product of the two given values to this value in place, computed without intermediate rounding.",
                     body: .native { interpreter, args in
@@ -3835,7 +3835,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member260: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isEqual", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this instance is equal to the given value.",
                     body: .native { interpreter, args in
@@ -3849,7 +3849,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member261: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isLess", isStatic: false,
                     parameters: [Parameter(label: "than", name: "other", type: .double)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this instance is less than the given value.",
                     body: .native { interpreter, args in
@@ -3863,7 +3863,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member262: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isLessThanOrEqualTo", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this instance is less than or equal to the given value.",
                     body: .native { interpreter, args in
@@ -3877,7 +3877,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member263: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNormal", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this instance is normal.",
                     body: .native { interpreter, args in
@@ -3891,7 +3891,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member264: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isFinite", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether this instance is finite.",
                     body: .native { interpreter, args in
@@ -3905,7 +3905,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member265: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isZero", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance is equal to zero.",
                     body: .native { interpreter, args in
@@ -3919,7 +3919,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member266: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSubnormal", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance is subnormal.",
                     body: .native { interpreter, args in
@@ -3933,7 +3933,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member267: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isInfinite", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance is infinite.",
                     body: .native { interpreter, args in
@@ -3947,7 +3947,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member268: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isNaN", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance is NaN (\"not a number\").",
                     body: .native { interpreter, args in
@@ -3961,7 +3961,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member269: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isSignalingNaN", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the instance is a signaling NaN.",
                     body: .native { interpreter, args in
@@ -3975,7 +3975,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member270: BridgedMember =                 BridgedMember(
                     kind: .property, name: "binade", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.",
                     body: .native { interpreter, args in
@@ -3989,7 +3989,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member271: BridgedMember =                 BridgedMember(
                     kind: .property, name: "significandWidth", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of bits required to represent the value's significand.",
                     body: .native { interpreter, args in
@@ -4003,7 +4003,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member272: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "floatLiteral", name: "value", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the specified floating-point value.",
                     body: .native { interpreter, args in
@@ -4016,7 +4016,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member273: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -4030,7 +4030,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member274: BridgedMember =                 BridgedMember(
                     kind: .property, name: "magnitude", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The magnitude of this value.",
                     body: .native { interpreter, args in
@@ -4044,7 +4044,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member275: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "v", type: .int)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new value, rounded to the closest possible representation.",
                     body: .native { interpreter, args in
@@ -4057,7 +4057,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member276: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance initialized to the given value.",
                     body: .native { interpreter, args in
@@ -4070,7 +4070,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member277: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "exactly", name: "other", type: .double)],
-                    returns: .optional(.double), generics: [:],
+                    returns: .optional(.double), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance initialized to the given value, if it can be represented without rounding.",
                     body: .native { interpreter, args in
@@ -4083,7 +4083,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member278: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { interpreter, args in
@@ -4097,7 +4097,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member279: BridgedMember =                 BridgedMember(
                     kind: .method, name: "advanced", isStatic: false,
                     parameters: [Parameter(label: "by", name: "amount", type: .double)],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { interpreter, args in
@@ -4111,7 +4111,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member280: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to `false`.",
                     body: .native { interpreter, args in
@@ -4124,7 +4124,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member281: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "value", type: .bool)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance equal to the given Boolean value.",
                     body: .native { interpreter, args in
@@ -4137,7 +4137,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member282: BridgedMember =                 BridgedMember(
                     kind: .method, name: "random", isStatic: true,
                     parameters: [],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random Boolean value.",
                     body: .native { interpreter, args in
@@ -4150,7 +4150,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member283: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "booleanLiteral", name: "value", type: .bool)],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the specified Boolean literal.",
                     body: .native { interpreter, args in
@@ -4163,7 +4163,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member284: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the Boolean value.",
                     body: .native { interpreter, args in
@@ -4177,7 +4177,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member285: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: [:],
+                    returns: .int, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -4191,7 +4191,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member286: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
-                    returns: .optional(.bool), generics: [:],
+                    returns: .optional(.bool), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new Boolean value from the given string.",
                     body: .native { interpreter, args in
@@ -4204,7 +4204,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member287: BridgedMember =                 BridgedMember(
                     kind: .method, name: "toggle", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Toggles the Boolean variable's value.",
                     body: .native { interpreter, args in
@@ -4221,7 +4221,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member288: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -4235,7 +4235,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member289: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
@@ -4249,7 +4249,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member290: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
@@ -4263,7 +4263,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member291: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
+                    returns: .list(.parameter("T")), generics: ["Element", "T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -4277,7 +4277,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member292: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
@@ -4291,7 +4291,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member293: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
@@ -4305,7 +4305,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member294: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
@@ -4319,7 +4319,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member295: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
@@ -4333,7 +4333,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member296: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
@@ -4347,7 +4347,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member297: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
@@ -4361,7 +4361,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member298: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
@@ -4375,7 +4375,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member299: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
@@ -4389,7 +4389,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member300: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -4403,7 +4403,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member301: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -4417,7 +4417,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member302: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -4431,7 +4431,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member303: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
@@ -4445,7 +4445,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member304: BridgedMember =                 BridgedMember(
                     kind: .method, name: "partition", isStatic: false,
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { interpreter, args in
@@ -4462,7 +4462,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member305: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -4476,7 +4476,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member306: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffle", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Shuffles the collection in place.",
                     body: .native { interpreter, args in
@@ -4493,7 +4493,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member307: BridgedMember =                 BridgedMember(
                     kind: .method, name: "swapAt", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { interpreter, args in
@@ -4510,7 +4510,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member308: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
@@ -4523,7 +4523,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member309: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
@@ -4536,7 +4536,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member310: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
@@ -4553,7 +4553,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member311: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
@@ -4570,7 +4570,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member312: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { interpreter, args in
@@ -4587,7 +4587,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member313: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
@@ -4604,7 +4604,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member314: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeSubrange", isStatic: false,
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { interpreter, args in
@@ -4621,7 +4621,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member315: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
@@ -4638,7 +4638,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member316: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
@@ -4655,7 +4655,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member317: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
@@ -4672,7 +4672,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member318: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
@@ -4689,7 +4689,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member319: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -4706,7 +4706,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member320: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -4723,7 +4723,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member321: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
@@ -4740,7 +4740,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member322: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -4757,7 +4757,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member323: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reverse", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Reverses the elements of the collection in place.",
                     body: .native { interpreter, args in
@@ -4774,7 +4774,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member324: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -4788,7 +4788,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member325: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -4802,7 +4802,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member326: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -4816,7 +4816,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member327: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -4830,7 +4830,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member328: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["Element", "PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -4844,7 +4844,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member329: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
+                    returns: .bool, generics: ["Element", "OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -4858,7 +4858,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member330: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -4872,7 +4872,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member331: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -4886,7 +4886,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member332: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -4900,7 +4900,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member333: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -4914,7 +4914,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member334: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Element": [], "Result": []],
+                    returns: .parameter("Result"), generics: ["Element", "Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -4928,7 +4928,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member335: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element", "SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -4942,7 +4942,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member336: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["Element", "ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -4956,7 +4956,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member337: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -4970,7 +4970,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member338: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -4987,7 +4987,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member339: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -5001,7 +5001,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member340: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
@@ -5015,7 +5015,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member341: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -5029,7 +5029,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member342: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -5043,7 +5043,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member343: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -5057,7 +5057,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member344: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -5071,7 +5071,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member345: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -5085,7 +5085,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member346: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .list(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -5099,7 +5099,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member347: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": ["Comparable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Sorts the collection in place.",
                     body: .native { interpreter, args in
@@ -5116,7 +5116,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member348: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -5130,7 +5130,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member349: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
-                    returns: .optional(.int), generics: ["Element": ["Equatable"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -5144,7 +5144,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member350: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
-                    returns: .optional(.int), generics: ["Element": ["Equatable"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -5158,7 +5158,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member351: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -5172,7 +5172,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member352: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -5186,7 +5186,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member353: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
@@ -5200,7 +5200,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member354: BridgedMember =                 BridgedMember(
                     kind: .method, name: "joined", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
-                    returns: .string, generics: ["Element": ["=String"]],
+                    returns: .string, generics: [GenericParameter(name: "Element", constraints: [.equals("String")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { interpreter, args in
@@ -5214,7 +5214,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member355: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The total number of elements that the array can contain without allocating new storage.",
                     body: .native { interpreter, args in
@@ -5228,7 +5228,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member356: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The position of the first element in a nonempty array.",
                     body: .native { interpreter, args in
@@ -5242,7 +5242,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member357: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
@@ -5256,7 +5256,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member358: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
@@ -5270,7 +5270,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member359: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
@@ -5284,7 +5284,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member360: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
@@ -5298,7 +5298,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member361: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
@@ -5312,7 +5312,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member362: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
@@ -5326,7 +5326,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member363: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the array.",
                     body: .native { interpreter, args in
@@ -5340,7 +5340,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member364: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new, empty array.",
                     body: .native { interpreter, args in
@@ -5353,7 +5353,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member365: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -5367,7 +5367,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member366: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
-                    returns: .generic("Range", [.int]), generics: ["Element": []],
+                    returns: .generic("Range", [.int]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The indices that are valid for subscripting the collection, in ascending order.",
                     body: .native { interpreter, args in
@@ -5381,7 +5381,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member367: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -5395,7 +5395,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member368: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -5409,7 +5409,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member369: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -5426,7 +5426,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member370: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -5440,7 +5440,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member371: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Equatable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -5457,7 +5457,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member372: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -5471,7 +5471,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member373: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
@@ -5485,7 +5485,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member374: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
@@ -5499,7 +5499,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member375: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
+                    returns: .list(.parameter("T")), generics: ["Element", "T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -5513,7 +5513,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member376: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
@@ -5527,7 +5527,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member377: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
@@ -5541,7 +5541,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member378: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
@@ -5555,7 +5555,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member379: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
@@ -5569,7 +5569,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member380: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
@@ -5583,7 +5583,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member381: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
@@ -5597,7 +5597,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member382: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
@@ -5611,7 +5611,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member383: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
@@ -5625,7 +5625,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member384: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -5639,7 +5639,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member385: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -5653,7 +5653,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member386: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -5667,7 +5667,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member387: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
@@ -5681,7 +5681,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member388: BridgedMember =                 BridgedMember(
                     kind: .method, name: "partition", isStatic: false,
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { interpreter, args in
@@ -5698,7 +5698,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member389: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -5712,7 +5712,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member390: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffle", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Shuffles the collection in place.",
                     body: .native { interpreter, args in
@@ -5729,7 +5729,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member391: BridgedMember =                 BridgedMember(
                     kind: .method, name: "swapAt", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { interpreter, args in
@@ -5746,7 +5746,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member392: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
@@ -5759,7 +5759,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member393: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
@@ -5772,7 +5772,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member394: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
@@ -5789,7 +5789,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member395: BridgedMember =                 BridgedMember(
                     kind: .method, name: "append", isStatic: false,
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
@@ -5806,7 +5806,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member396: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { interpreter, args in
@@ -5823,7 +5823,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member397: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
@@ -5840,7 +5840,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member398: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeSubrange", isStatic: false,
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { interpreter, args in
@@ -5857,7 +5857,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member399: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
@@ -5874,7 +5874,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member400: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
@@ -5891,7 +5891,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member401: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
@@ -5908,7 +5908,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member402: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
@@ -5925,7 +5925,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member403: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popLast", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -5942,7 +5942,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member404: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Element"), generics: ["Element": []],
+                    returns: .parameter("Element"), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
@@ -5959,7 +5959,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member405: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
@@ -5976,7 +5976,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member406: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -5993,7 +5993,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member407: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reverse", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Reverses the elements of the collection in place.",
                     body: .native { interpreter, args in
@@ -6010,7 +6010,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member408: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -6024,7 +6024,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member409: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -6038,7 +6038,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member410: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6052,7 +6052,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member411: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6066,7 +6066,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member412: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["Element", "PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -6080,7 +6080,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member413: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
+                    returns: .bool, generics: ["Element", "OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -6094,7 +6094,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member414: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -6108,7 +6108,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member415: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -6122,7 +6122,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member416: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -6136,7 +6136,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member417: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -6150,7 +6150,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member418: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Element": [], "Result": []],
+                    returns: .parameter("Result"), generics: ["Element", "Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -6164,7 +6164,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member419: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element", "SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -6178,7 +6178,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member420: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["Element", "ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -6192,7 +6192,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member421: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6206,7 +6206,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member422: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6223,7 +6223,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member423: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -6237,7 +6237,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member424: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
@@ -6251,7 +6251,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member425: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -6265,7 +6265,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member426: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -6279,7 +6279,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member427: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -6293,7 +6293,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member428: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -6307,7 +6307,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member429: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -6321,7 +6321,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member430: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .list(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -6335,7 +6335,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member431: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sort", isStatic: false,
                     parameters: [],
-                    returns: .void, generics: ["Element": ["Comparable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Sorts the collection in place.",
                     body: .native { interpreter, args in
@@ -6352,7 +6352,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member432: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -6366,7 +6366,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member433: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
-                    returns: .optional(.int), generics: ["Element": ["Equatable"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -6380,7 +6380,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member434: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
-                    returns: .optional(.int), generics: ["Element": ["Equatable"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -6394,7 +6394,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member435: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -6408,7 +6408,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member436: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -6422,7 +6422,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member437: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
@@ -6436,7 +6436,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member438: BridgedMember =                 BridgedMember(
                     kind: .method, name: "joined", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
-                    returns: .string, generics: ["Element": ["=String"]],
+                    returns: .string, generics: [GenericParameter(name: "Element", constraints: [.equals("String")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { interpreter, args in
@@ -6450,7 +6450,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member439: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The total number of elements that the array can contain without allocating new storage.",
                     body: .native { interpreter, args in
@@ -6464,7 +6464,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member440: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The position of the first element in a nonempty array.",
                     body: .native { interpreter, args in
@@ -6478,7 +6478,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member441: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
@@ -6492,7 +6492,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member442: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
@@ -6506,7 +6506,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member443: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
@@ -6520,7 +6520,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member444: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
@@ -6534,7 +6534,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member445: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
-                    returns: .optional(.int), generics: ["Element": []],
+                    returns: .optional(.int), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
@@ -6548,7 +6548,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member446: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
@@ -6562,7 +6562,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member447: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the array.",
                     body: .native { interpreter, args in
@@ -6576,7 +6576,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member448: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new, empty array.",
                     body: .native { interpreter, args in
@@ -6589,7 +6589,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member449: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Element": []],
+                    returns: .string, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the array and its elements.",
                     body: .native { interpreter, args in
@@ -6603,7 +6603,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member450: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Element": []],
+                    returns: .string, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the array and its elements, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -6617,7 +6617,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member451: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -6631,7 +6631,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member452: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
-                    returns: .generic("Range", [.int]), generics: ["Element": []],
+                    returns: .generic("Range", [.int]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The indices that are valid for subscripting the collection, in ascending order.",
                     body: .native { interpreter, args in
@@ -6645,7 +6645,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member453: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -6659,7 +6659,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member454: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -6673,7 +6673,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member455: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "",
                     body: .native { interpreter, args in
@@ -6690,7 +6690,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member456: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
+                    returns: .generic("ArraySlice", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -6704,7 +6704,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member457: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Equatable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -6721,7 +6721,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member458: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
+                    returns: .list(.parameter("T")), generics: ["Element", "T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -6735,7 +6735,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member459: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -6749,7 +6749,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member460: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -6763,7 +6763,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member461: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -6777,7 +6777,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member462: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6791,7 +6791,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member463: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6805,7 +6805,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member464: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
+                    returns: .bool, generics: ["Element", "PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -6819,7 +6819,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member465: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -6833,7 +6833,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member466: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
+                    returns: .bool, generics: ["Element", "OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -6847,7 +6847,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member467: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Equatable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -6861,7 +6861,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member468: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -6875,7 +6875,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member469: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -6889,7 +6889,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member470: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Element": []],
+                    returns: .bool, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -6903,7 +6903,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member471: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -6917,7 +6917,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member472: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Element": [], "Result": []],
+                    returns: .parameter("Result"), generics: ["Element", "Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -6931,7 +6931,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member473: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -6945,7 +6945,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member474: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element", "SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -6959,7 +6959,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member475: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["Element", "ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -6973,7 +6973,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member476: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -6987,7 +6987,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member477: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -7001,7 +7001,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member478: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": []],
+                    returns: .optional(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -7015,7 +7015,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member479: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": []],
+                    returns: .int, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -7029,7 +7029,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member480: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "sequence", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": []],
+                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new set from a finite sequence of items.",
                     body: .native { interpreter, args in
@@ -7042,7 +7042,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member481: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtract", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .void, generics: ["Element": []],
+                    returns: .void, generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements of the given set from this set.",
                     body: .native { interpreter, args in
@@ -7059,7 +7059,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member482: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -7073,7 +7073,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member483: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -7087,7 +7087,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member484: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -7101,7 +7101,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member485: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
+                    returns: .list(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -7115,7 +7115,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member486: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty set with preallocated space for at least the specified number of elements.",
                     body: .native { interpreter, args in
@@ -7128,7 +7128,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member487: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the given element exists in the set.",
                     body: .native { interpreter, args in
@@ -7142,7 +7142,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member488: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new set containing the elements of the set that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -7156,7 +7156,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member489: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the set.",
                     body: .native { interpreter, args in
@@ -7170,7 +7170,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member490: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value that indicates whether the set is empty.",
                     body: .native { interpreter, args in
@@ -7184,7 +7184,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member491: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -7198,7 +7198,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member492: BridgedMember =                 BridgedMember(
                     kind: .method, name: "insert", isStatic: false,
                     parameters: [Parameter(label: nil, name: "newMember", type: .parameter("Element"))],
-                    returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), generics: ["Element": ["Hashable"]],
+                    returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Inserts the given element in the set if it is not already present.",
                     body: .native { interpreter, args in
@@ -7215,7 +7215,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member493: BridgedMember =                 BridgedMember(
                     kind: .method, name: "update", isStatic: false,
                     parameters: [Parameter(label: "with", name: "newMember", type: .parameter("Element"))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Inserts the given element into the set unconditionally.",
                     body: .native { interpreter, args in
@@ -7232,7 +7232,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member494: BridgedMember =                 BridgedMember(
                     kind: .method, name: "remove", isStatic: false,
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the specified element from the set.",
                     body: .native { interpreter, args in
@@ -7249,7 +7249,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member495: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all members from the set.",
                     body: .native { interpreter, args in
@@ -7266,7 +7266,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member496: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeFirst", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Element"), generics: ["Element": ["Hashable"]],
+                    returns: .parameter("Element"), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the first element of the set.",
                     body: .native { interpreter, args in
@@ -7283,7 +7283,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member497: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty set.",
                     body: .native { interpreter, args in
@@ -7296,7 +7296,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member498: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleSuperset", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a subset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7310,7 +7310,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member499: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleStrictSuperset", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7324,7 +7324,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member500: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleSubset", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a superset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7338,7 +7338,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member501: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "possibleStrictSubset", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7352,7 +7352,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member502: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isDisjoint", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set has no members in common with the given sequence.",
                     body: .native { interpreter, args in
@@ -7366,7 +7366,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member503: BridgedMember =                 BridgedMember(
                     kind: .method, name: "union", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set with the elements of both this set and the given sequence.",
                     body: .native { interpreter, args in
@@ -7380,7 +7380,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member504: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formUnion", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Inserts the elements of the given sequence into the set.",
                     body: .native { interpreter, args in
@@ -7397,7 +7397,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member505: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtracting", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set containing the elements of this set that do not occur in the given sequence.",
                     body: .native { interpreter, args in
@@ -7411,7 +7411,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member506: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtract", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements of the given sequence from the set.",
                     body: .native { interpreter, args in
@@ -7428,7 +7428,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member507: BridgedMember =                 BridgedMember(
                     kind: .method, name: "intersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
                     body: .native { interpreter, args in
@@ -7442,7 +7442,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member508: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formIntersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements of the set that aren't also in the given sequence.",
                     body: .native { interpreter, args in
@@ -7459,7 +7459,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member509: BridgedMember =                 BridgedMember(
                     kind: .method, name: "symmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set with the elements that are either in this set or in the given sequence, but not in both.",
                     body: .native { interpreter, args in
@@ -7473,7 +7473,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member510: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSymmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Replace this set with the elements contained in this set or the given set, but not both.",
                     body: .native { interpreter, args in
@@ -7490,7 +7490,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member511: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Element": ["Hashable"]],
+                    returns: .string, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A string that represents the contents of the set.",
                     body: .native { interpreter, args in
@@ -7504,7 +7504,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member512: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Element": ["Hashable"]],
+                    returns: .string, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A string that represents the contents of the set, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -7518,7 +7518,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member513: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether this set is a subset of the given set.",
                     body: .native { interpreter, args in
@@ -7532,7 +7532,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member514: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether this set is a superset of the given set.",
                     body: .native { interpreter, args in
@@ -7546,7 +7546,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member515: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isDisjoint", isStatic: false,
                     parameters: [Parameter(label: "with", name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether this set has no members in common with the given set.",
                     body: .native { interpreter, args in
@@ -7560,7 +7560,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member516: BridgedMember =                 BridgedMember(
                     kind: .method, name: "subtracting", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set containing the elements of this set that do not occur in the given set.",
                     body: .native { interpreter, args in
@@ -7574,7 +7574,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member517: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSuperset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7588,7 +7588,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member518: BridgedMember =                 BridgedMember(
                     kind: .method, name: "isStrictSubset", isStatic: false,
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .bool, generics: ["Element": ["Hashable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
                     body: .native { interpreter, args in
@@ -7602,7 +7602,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member519: BridgedMember =                 BridgedMember(
                     kind: .method, name: "intersection", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
+                    returns: .generic("Set", [.parameter("Element")]), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
                     body: .native { interpreter, args in
@@ -7616,7 +7616,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member520: BridgedMember =                 BridgedMember(
                     kind: .method, name: "formSymmetricDifference", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.",
                     body: .native { interpreter, args in
@@ -7633,7 +7633,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member521: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popFirst", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
+                    returns: .optional(.parameter("Element")), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the first element of the set.",
                     body: .native { interpreter, args in
@@ -7650,7 +7650,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member522: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Element": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The total number of elements that the set can contain without allocating new storage.",
                     body: .native { interpreter, args in
@@ -7664,7 +7664,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member523: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
-                    returns: .void, generics: ["Element": ["Hashable"]],
+                    returns: .void, generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Reserves enough space to store the specified number of elements.",
                     body: .native { interpreter, args in
@@ -7681,7 +7681,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member524: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: [GenericParameter(name: "Element", constraints: [.conforms(to: "Equatable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -7695,7 +7695,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member525: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
+                    returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
                     body: .native { interpreter, args in
@@ -7709,7 +7709,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member526: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
@@ -7723,7 +7723,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member527: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
@@ -7737,7 +7737,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member528: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
-                    returns: .list(.parameter("Element")), generics: ["Element": []],
+                    returns: .list(.parameter("Element")), generics: ["Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -7751,7 +7751,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member529: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Key": [], "T": [], "Value": []],
+                    returns: .list(.parameter("T")), generics: ["Key", "T", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -7765,7 +7765,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member530: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -7779,7 +7779,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member531: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .void, throws: true))],
-                    returns: .void, generics: ["Key": [], "Value": []],
+                    returns: .void, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -7793,7 +7793,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member532: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -7807,7 +7807,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member533: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -7821,7 +7821,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member534: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -7835,7 +7835,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member535: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Key": [], "PossiblePrefix.Element": [], "Value": []],
+                    returns: .bool, generics: ["Key", "PossiblePrefix.Element", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -7849,7 +7849,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member536: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Key": [], "OtherSequence.Element": [], "Value": []],
+                    returns: .bool, generics: ["Key", "OtherSequence.Element", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -7863,7 +7863,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member537: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .bool, generics: ["Key": [], "Value": []],
+                    returns: .bool, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -7877,7 +7877,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member538: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .bool, generics: ["Key": [], "Value": []],
+                    returns: .bool, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -7891,7 +7891,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member539: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .bool, generics: ["Key": [], "Value": []],
+                    returns: .bool, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -7905,7 +7905,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member540: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .int, generics: ["Key": [], "Value": []],
+                    returns: .int, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -7919,7 +7919,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member541: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Key": [], "Result": [], "Value": []],
+                    returns: .parameter("Result"), generics: ["Key", "Result", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -7933,7 +7933,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member542: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -7947,7 +7947,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member543: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Key": [], "SegmentOfResult.Element": [], "Value": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Key", "SegmentOfResult.Element", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -7961,7 +7961,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member544: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": [], "Key": [], "Value": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult", "Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -7975,7 +7975,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member545: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -7989,7 +7989,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member546: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -8003,7 +8003,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member547: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -8017,7 +8017,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member548: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Key": [], "Value": []],
+                    returns: .int, generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -8031,7 +8031,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member549: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty dictionary.",
                     body: .native { interpreter, args in
@@ -8044,7 +8044,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member550: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.",
                     body: .native { interpreter, args in
@@ -8057,7 +8057,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member551: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates a new dictionary from the key-value pairs in the given sequence.",
                     body: .native { interpreter, args in
@@ -8070,7 +8070,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member552: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
@@ -8083,7 +8083,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member553: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -8097,7 +8097,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member554: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .int, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of key-value pairs in the dictionary.",
                     body: .native { interpreter, args in
@@ -8111,7 +8111,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member555: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .bool, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value that indicates whether the dictionary is empty.",
                     body: .native { interpreter, args in
@@ -8125,7 +8125,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member556: BridgedMember =                 BridgedMember(
                     kind: .method, name: "mapValues", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .parameter("T"), throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("T")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "T", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.",
                     body: .native { interpreter, args in
@@ -8139,7 +8139,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member557: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMapValues", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .optional(.parameter("T")), throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("T")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "T", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.",
                     body: .native { interpreter, args in
@@ -8153,7 +8153,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member558: BridgedMember =                 BridgedMember(
                     kind: .method, name: "updateValue", isStatic: false,
                     parameters: [Parameter(label: nil, name: "value", type: .parameter("Value")), Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
-                    returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .optional(.parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
                     body: .native { interpreter, args in
@@ -8170,7 +8170,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member559: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merge", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
-                    returns: .void, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .void, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
@@ -8187,7 +8187,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member560: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merge", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
-                    returns: .void, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .void, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: true,
                     summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
@@ -8204,7 +8204,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member561: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merging", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.",
                     body: .native { interpreter, args in
@@ -8218,7 +8218,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member562: BridgedMember =                 BridgedMember(
                     kind: .method, name: "merging", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
-                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.",
                     body: .native { interpreter, args in
@@ -8232,7 +8232,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member563: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeValue", isStatic: false,
                     parameters: [Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
-                    returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .optional(.parameter("Value")), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the given key and its associated value from the dictionary.",
                     body: .native { interpreter, args in
@@ -8249,7 +8249,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member564: BridgedMember =                 BridgedMember(
                     kind: .method, name: "removeAll", isStatic: false,
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .void, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes all key-value pairs from the dictionary.",
                     body: .native { interpreter, args in
@@ -8266,7 +8266,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member565: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Key": ["Hashable"], "Value": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), GenericParameter(name: "Value", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -8280,7 +8280,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member566: BridgedMember =                 BridgedMember(
                     kind: .method, name: "popFirst", isStatic: false,
                     parameters: [],
-                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.",
                     body: .native { interpreter, args in
@@ -8297,7 +8297,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member567: BridgedMember =                 BridgedMember(
                     kind: .property, name: "capacity", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .int, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The total number of key-value pairs that the dictionary can contain without allocating new storage.",
                     body: .native { interpreter, args in
@@ -8311,7 +8311,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member568: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reserveCapacity", isStatic: false,
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
-                    returns: .void, generics: ["Key": ["Hashable"], "Value": []],
+                    returns: .void, generics: [GenericParameter(name: "Key", constraints: [.conforms(to: "Hashable")]), "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Reserves enough space to store the specified number of key-value pairs.",
                     body: .native { interpreter, args in
@@ -8328,7 +8328,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member569: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
@@ -8342,7 +8342,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member570: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
@@ -8356,7 +8356,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member571: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
-                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
+                    returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key", "Value"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -8370,7 +8370,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member572: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "nilLiteral", name: "nilLiteral", type: .void)],
-                    returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
+                    returns: .optional(.parameter("Wrapped")), generics: ["Wrapped"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized with `nil`.",
                     body: .native { interpreter, args in
@@ -8383,7 +8383,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member573: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .parameter("U"), throws: true))],
-                    returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
+                    returns: .optional(.parameter("U")), generics: ["U", "Wrapped"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
                     body: .native { interpreter, args in
@@ -8397,7 +8397,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member574: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .optional(.parameter("U")), throws: true))],
-                    returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
+                    returns: .optional(.parameter("U")), generics: ["U", "Wrapped"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
                     body: .native { interpreter, args in
@@ -8411,7 +8411,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member575: BridgedMember =                 BridgedMember(
                     kind: .property, name: "unsafelyUnwrapped", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Wrapped"), generics: ["Wrapped": []],
+                    returns: .parameter("Wrapped"), generics: ["Wrapped"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The wrapped value of this instance, unwrapped without checking whether the instance is `nil`.",
                     body: .native { interpreter, args in
@@ -8425,7 +8425,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member576: BridgedMember =                 BridgedMember(
                     kind: .method, name: "take", isStatic: false,
                     parameters: [],
-                    returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
+                    returns: .optional(.parameter("Wrapped")), generics: ["Wrapped"],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Takes the wrapped value being stored in this instance and returns it while also setting the instance to `nil`. If there is no value being stored in this instance, this returns `nil` instead.",
                     body: .native { interpreter, args in
@@ -8442,7 +8442,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member577: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Wrapped": ["Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Wrapped", constraints: [.conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -8456,7 +8456,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member578: BridgedMember =                 BridgedMember(
                     kind: .property, name: "lowerBound", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Bound"), generics: ["Bound": []],
+                    returns: .parameter("Bound"), generics: ["Bound"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The range's lower bound.",
                     body: .native { interpreter, args in
@@ -8470,7 +8470,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member579: BridgedMember =                 BridgedMember(
                     kind: .property, name: "upperBound", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Bound"), generics: ["Bound": []],
+                    returns: .parameter("Bound"), generics: ["Bound"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The range's upper bound.",
                     body: .native { interpreter, args in
@@ -8484,7 +8484,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member580: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
-                    returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
+                    returns: .generic("Range", [.parameter("Bound")]), generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance with the given bounds.",
                     body: .native { interpreter, args in
@@ -8497,7 +8497,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member581: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
                     body: .native { interpreter, args in
@@ -8511,7 +8511,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member582: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Bound": []],
+                    returns: .bool, generics: ["Bound"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the range contains no elements.",
                     body: .native { interpreter, args in
@@ -8525,7 +8525,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member583: BridgedMember =                 BridgedMember(
                     kind: .property, name: "startIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The position of the first element in a nonempty collection.",
                     body: .native { interpreter, args in
@@ -8539,7 +8539,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member584: BridgedMember =                 BridgedMember(
                     kind: .property, name: "endIndex", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
@@ -8553,7 +8553,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member585: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
@@ -8567,7 +8567,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member586: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
@@ -8581,7 +8581,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member587: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "n", type: .int)],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
@@ -8595,7 +8595,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member588: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
@@ -8609,7 +8609,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member589: BridgedMember =                 BridgedMember(
                     kind: .property, name: "indices", isStatic: false,
                     parameters: [],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The indices that are valid for subscripting the range, in ascending order.",
                     body: .native { interpreter, args in
@@ -8623,7 +8623,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member590: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.int]))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance equivalent to the given `ClosedRange`.",
                     body: .native { interpreter, args in
@@ -8636,7 +8636,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member591: BridgedMember =                 BridgedMember(
                     kind: .method, name: "clamped", isStatic: false,
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("Range", [.parameter("Bound")]))],
-                    returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
+                    returns: .generic("Range", [.parameter("Bound")]), generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a copy of this range clamped to the given limiting range.",
                     body: .native { interpreter, args in
@@ -8650,7 +8650,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member592: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Bound": ["Comparable"]],
+                    returns: .string, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the range.",
                     body: .native { interpreter, args in
@@ -8664,7 +8664,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member593: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Bound": ["Comparable"]],
+                    returns: .string, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the range, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -8678,7 +8678,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member594: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -8692,7 +8692,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member595: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
                     body: .native { interpreter, args in
@@ -8706,7 +8706,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member596: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
                     body: .native { interpreter, args in
@@ -8720,7 +8720,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member597: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given range is contained within this range.",
                     body: .native { interpreter, args in
@@ -8734,7 +8734,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member598: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given closed range is contained within this range.",
                     body: .native { interpreter, args in
@@ -8748,7 +8748,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member599: BridgedMember =                 BridgedMember(
                     kind: .method, name: "index", isStatic: false,
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
@@ -8762,7 +8762,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member600: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
@@ -8776,7 +8776,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member601: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
@@ -8790,7 +8790,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member602: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -8804,7 +8804,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member603: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -8818,7 +8818,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member604: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -8832,7 +8832,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member605: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -8846,7 +8846,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member606: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
+                    returns: .list(.parameter("T")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -8860,7 +8860,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member607: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropFirst", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
@@ -8874,7 +8874,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member608: BridgedMember =                 BridgedMember(
                     kind: .method, name: "drop", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
@@ -8888,7 +8888,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member609: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
@@ -8902,7 +8902,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member610: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
@@ -8916,7 +8916,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member611: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
@@ -8930,7 +8930,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member612: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
@@ -8944,7 +8944,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member613: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
@@ -8958,7 +8958,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member614: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
-                    returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
+                    returns: .list(.generic("Range", [.int])), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
@@ -8972,7 +8972,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member615: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
+                    returns: .list(.generic("Range", [.int])), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -8986,7 +8986,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member616: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -9000,7 +9000,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member617: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -9014,7 +9014,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member618: BridgedMember =                 BridgedMember(
                     kind: .method, name: "firstIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9028,7 +9028,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member619: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9042,7 +9042,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member620: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
@@ -9056,7 +9056,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member621: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lastIndex", isStatic: false,
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
@@ -9070,7 +9070,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member622: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -9084,7 +9084,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member623: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -9098,7 +9098,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member624: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
-                    returns: .void, generics: ["Bound": ["=Int"]],
+                    returns: .void, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -9112,7 +9112,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member625: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9126,7 +9126,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member626: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -9140,7 +9140,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member627: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -9154,7 +9154,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member628: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -9168,7 +9168,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member629: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -9182,7 +9182,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member630: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -9196,7 +9196,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member631: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -9210,7 +9210,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member632: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -9224,7 +9224,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member633: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -9238,7 +9238,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member634: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -9252,7 +9252,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member635: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -9266,7 +9266,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member636: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9280,7 +9280,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member637: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -9294,7 +9294,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member638: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -9308,7 +9308,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member639: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
+                    returns: .parameter("Result"), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -9322,7 +9322,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member640: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -9336,7 +9336,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member641: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -9350,7 +9350,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member642: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -9364,7 +9364,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member643: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -9378,7 +9378,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member644: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -9392,7 +9392,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member645: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -9406,7 +9406,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member646: BridgedMember =                 BridgedMember(
                     kind: .method, name: "trimmingPrefix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.int))],
-                    returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("Range", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
@@ -9420,7 +9420,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member647: BridgedMember =                 BridgedMember(
                     kind: .property, name: "lowerBound", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Bound"), generics: ["Bound": []],
+                    returns: .parameter("Bound"), generics: ["Bound"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The range's lower bound.",
                     body: .native { interpreter, args in
@@ -9434,7 +9434,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member648: BridgedMember =                 BridgedMember(
                     kind: .property, name: "upperBound", isStatic: false,
                     parameters: [],
-                    returns: .parameter("Bound"), generics: ["Bound": []],
+                    returns: .parameter("Bound"), generics: ["Bound"],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The range's upper bound.",
                     body: .native { interpreter, args in
@@ -9448,7 +9448,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member649: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
-                    returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
+                    returns: .generic("ClosedRange", [.parameter("Bound")]), generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance with the given bounds.",
                     body: .native { interpreter, args in
@@ -9461,7 +9461,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member650: BridgedMember =                 BridgedMember(
                     kind: .property, name: "isEmpty", isStatic: false,
                     parameters: [],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A Boolean value indicating whether the range contains no elements.",
                     body: .native { interpreter, args in
@@ -9475,7 +9475,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member651: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
                     body: .native { interpreter, args in
@@ -9489,7 +9489,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member652: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.",
                     body: .native { interpreter, args in
@@ -9503,7 +9503,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member653: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the given closed range is contained within this closed range.",
                     body: .native { interpreter, args in
@@ -9517,7 +9517,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member654: BridgedMember =                 BridgedMember(
                     kind: .property, name: "hashValue", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The hash value.",
                     body: .native { interpreter, args in
@@ -9531,7 +9531,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member655: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Bound": ["Comparable"]],
+                    returns: .string, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the range.",
                     body: .native { interpreter, args in
@@ -9545,7 +9545,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member656: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: ["Bound": ["Comparable"]],
+                    returns: .string, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of the range, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -9559,7 +9559,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member657: BridgedMember =                 BridgedMember(
                     kind: .method, name: "clamped", isStatic: false,
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("ClosedRange", [.parameter("Bound")]))],
-                    returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
+                    returns: .generic("ClosedRange", [.parameter("Bound")]), generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a copy of this range clamped to the given limiting range.",
                     body: .native { interpreter, args in
@@ -9573,7 +9573,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member658: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
-                    returns: .generic("ClosedRange", [.int]), generics: ["Bound": ["=Int"]],
+                    returns: .generic("ClosedRange", [.int]), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance equivalent to the given `Range`.",
                     body: .native { interpreter, args in
@@ -9586,7 +9586,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member659: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
                     body: .native { interpreter, args in
@@ -9600,7 +9600,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member660: BridgedMember =                 BridgedMember(
                     kind: .method, name: "overlaps", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
-                    returns: .bool, generics: ["Bound": ["Comparable"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.conforms(to: "Comparable")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
                     body: .native { interpreter, args in
@@ -9614,7 +9614,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member661: BridgedMember =                 BridgedMember(
                     kind: .property, name: "count", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -9628,7 +9628,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member662: BridgedMember =                 BridgedMember(
                     kind: .method, name: "randomElement", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
@@ -9642,7 +9642,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member663: BridgedMember =                 BridgedMember(
                     kind: .property, name: "first", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The first element of the collection.",
                     body: .native { interpreter, args in
@@ -9656,7 +9656,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member664: BridgedMember =                 BridgedMember(
                     kind: .property, name: "underestimatedCount", isStatic: false,
                     parameters: [],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
@@ -9670,7 +9670,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member665: BridgedMember =                 BridgedMember(
                     kind: .method, name: "map", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
+                    returns: .list(.parameter("T")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "T"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
@@ -9684,7 +9684,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member666: BridgedMember =                 BridgedMember(
                     kind: .property, name: "last", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The last element of the collection.",
                     body: .native { interpreter, args in
@@ -9698,7 +9698,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member667: BridgedMember =                 BridgedMember(
                     kind: .method, name: "last", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9712,7 +9712,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member668: BridgedMember =                 BridgedMember(
                     kind: .method, name: "shuffled", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
@@ -9726,7 +9726,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member669: BridgedMember =                 BridgedMember(
                     kind: .method, name: "filter", isStatic: false,
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -9740,7 +9740,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member670: BridgedMember =                 BridgedMember(
                     kind: .method, name: "forEach", isStatic: false,
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
-                    returns: .void, generics: ["Bound": ["=Int"]],
+                    returns: .void, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
@@ -9754,7 +9754,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member671: BridgedMember =                 BridgedMember(
                     kind: .method, name: "first", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9768,7 +9768,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member672: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
-                    returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
+                    returns: .list(.generic("ArraySlice", [.int])), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
@@ -9782,7 +9782,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member673: BridgedMember =                 BridgedMember(
                     kind: .method, name: "split", isStatic: false,
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
-                    returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
+                    returns: .list(.generic("ArraySlice", [.int])), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
                     body: .native { interpreter, args in
@@ -9796,7 +9796,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member674: BridgedMember =                 BridgedMember(
                     kind: .method, name: "suffix", isStatic: false,
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
@@ -9810,7 +9810,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member675: BridgedMember =                 BridgedMember(
                     kind: .method, name: "dropLast", isStatic: false,
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
@@ -9824,7 +9824,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member676: BridgedMember =                 BridgedMember(
                     kind: .method, name: "prefix", isStatic: false,
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -9838,7 +9838,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member677: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -9852,7 +9852,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member678: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
@@ -9866,7 +9866,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member679: BridgedMember =                 BridgedMember(
                     kind: .method, name: "min", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
@@ -9880,7 +9880,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member680: BridgedMember =                 BridgedMember(
                     kind: .method, name: "max", isStatic: false,
                     parameters: [],
-                    returns: .optional(.int), generics: ["Bound": ["=Int"]],
+                    returns: .optional(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
@@ -9894,7 +9894,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member681: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "PossiblePrefix.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -9908,7 +9908,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member682: BridgedMember =                 BridgedMember(
                     kind: .method, name: "starts", isStatic: false,
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
@@ -9922,7 +9922,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member683: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "OtherSequence.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
@@ -9936,7 +9936,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member684: BridgedMember =                 BridgedMember(
                     kind: .method, name: "elementsEqual", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
@@ -9950,7 +9950,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member685: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
@@ -9964,7 +9964,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member686: BridgedMember =                 BridgedMember(
                     kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
@@ -9978,7 +9978,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member687: BridgedMember =                 BridgedMember(
                     kind: .method, name: "contains", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
@@ -9992,7 +9992,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member688: BridgedMember =                 BridgedMember(
                     kind: .method, name: "allSatisfy", isStatic: false,
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .bool, generics: ["Bound": ["=Int"]],
+                    returns: .bool, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
@@ -10006,7 +10006,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member689: BridgedMember =                 BridgedMember(
                     kind: .method, name: "count", isStatic: false,
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
-                    returns: .int, generics: ["Bound": ["=Int"]],
+                    returns: .int, generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
@@ -10020,7 +10020,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member690: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reduce", isStatic: false,
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
+                    returns: .parameter("Result"), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "Result"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
@@ -10034,7 +10034,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member691: BridgedMember =                 BridgedMember(
                     kind: .method, name: "reversed", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
@@ -10048,7 +10048,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member692: BridgedMember =                 BridgedMember(
                     kind: .method, name: "flatMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
+                    returns: .list(.parameter("SegmentOfResult.Element")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "SegmentOfResult.Element"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -10062,7 +10062,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member693: BridgedMember =                 BridgedMember(
                     kind: .method, name: "compactMap", isStatic: false,
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
+                    returns: .list(.parameter("ElementOfResult")), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")]), "ElementOfResult"],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
@@ -10076,7 +10076,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member694: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
@@ -10090,7 +10090,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member695: BridgedMember =                 BridgedMember(
                     kind: .method, name: "sorted", isStatic: false,
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
-                    returns: .list(.int), generics: ["Bound": ["=Int"]],
+                    returns: .list(.int), generics: [GenericParameter(name: "Bound", constraints: [.equals("Int")])],
                     isThrowing: false, isRethrowing: true, isMutating: false,
                     summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in

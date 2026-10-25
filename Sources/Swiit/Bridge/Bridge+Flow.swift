@@ -33,7 +33,7 @@ extension Bridge {
                     )
                 ],
                 returns: flow(element),
-                generics: ["Element": []],
+                generics: ["Element"],
                 summary: ""
             ) { interpreter, arguments in
                 make(
@@ -50,7 +50,7 @@ extension Bridge {
                 isStatic: true,
                 parameters: [Parameter(label: nil, name: "items", type: .someSequence(element))],
                 returns: flow(element),
-                generics: ["Element": []],
+                generics: ["Element"],
                 summary: "The items of any sequence."
             ) { _, arguments in
                 make(Flow<Value>(try bridgeSequence(arguments["items"]!)))
@@ -66,7 +66,7 @@ extension Bridge {
                     )
                 ],
                 returns: flow(element),
-                generics: ["Element": []],
+                generics: ["Element"],
                 summary: "The items for which the predicate returns true."
             ) { interpreter, arguments in
                 let predicate = bridgeClosure(interpreter, arguments["isIncluded"]!)
@@ -83,7 +83,7 @@ extension Bridge {
                     )
                 ],
                 returns: flow(.parameter("T")),
-                generics: ["Element": [], "T": []],
+                generics: ["Element", "T"],
                 summary: "Each item transformed, nil results included, as Swift's map."
             ) { interpreter, arguments in
                 let transform = bridgeClosure(interpreter, arguments["transform"]!)
@@ -100,7 +100,7 @@ extension Bridge {
                     )
                 ],
                 returns: flow(.parameter("T")),
-                generics: ["Element": [], "T": []],
+                generics: ["Element", "T"],
                 summary: "Each item transformed, nil results dropped."
             ) { interpreter, arguments in
                 let transform = bridgeClosure(interpreter, arguments["transform"]!)
@@ -121,7 +121,7 @@ extension Bridge {
                     )
                 ],
                 returns: flow(element),
-                generics: ["Element": []],
+                generics: ["Element"],
                 summary: "The first items; stops reading after them."
             ) { _, arguments in
                 make(try receiver(arguments).prefix(try Int(arguments["maxLength"]!)))

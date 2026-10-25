@@ -222,9 +222,14 @@ struct SwiftPrinter {
         if !decl.generics.isEmpty {
             text +=
                 "<"
-                + decl.generics.sorted { $0.key < $1.key }
-                .map { name, protocols in
-                    protocols.isEmpty ? name : "\(name): \(protocols.joined(separator: " & "))"
+                + decl.generics
+                .map { parameter in
+                    let protocols = parameter.constraints.compactMap { constraint -> String? in
+                        if case .conforms(let proto) = constraint { proto.description } else { nil }
+                    }
+                    return protocols.isEmpty
+                        ? parameter.name
+                        : "\(parameter.name): \(protocols.joined(separator: " & "))"
                 }
                 .joined(separator: ", ") + ">"
         }

@@ -26,7 +26,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     /// `async` if declared so.
     public let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
-    public let generics: [String: [String]]
+    public let generics: [GenericParameter]
     /// Of those, the ones its body names: a call binds them (`specialized`).
     public let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
@@ -53,7 +53,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
         isThrowing: Bool = false,
         isRethrowing: Bool = false,
         effect: Effect = .sync,
-        generics: [String: [String]] = [:],
+        generics: [GenericParameter] = [],
         isFailable: Bool = false,
         isConvenience: Bool = false,
         typeParameters: Set<String> = [],

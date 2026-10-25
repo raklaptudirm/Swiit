@@ -9,7 +9,7 @@ extension Bridge {
 
         BridgedType(
             name: "Date", genericParameters: [],
-            conformances: ["Comparable": [:], "CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "Hashable": [:]],
+            conformances: ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []],
             associatedTypes: ["Stride": .double],
             parse: nil, literal: nil, arrayLiteral: nil,
             members: [
@@ -18,7 +18,7 @@ extension Bridge {
         ),
         BridgedType(
             name: "AttributedString", genericParameters: [],
-            conformances: ["CustomStringConvertible": [:], "Encodable": [:], "Equatable": [:], "ExpressibleByStringLiteral": [:], "Hashable": [:]],
+            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
             associatedTypes: ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string],
             parse: nil, literal: { textLiteral(AttributedString.self, $0).map { SwiftValue.make($0, as: "AttributedString") } }, arrayLiteral: nil,
             members: [
@@ -29,7 +29,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
                     kind: .method, name: "...", isStatic: true,
                     parameters: [Parameter(label: nil, name: "minimum", type: .named("Date")), Parameter(label: nil, name: "maximum", type: .named("Date"))],
-                    returns: .generic("ClosedRange", [.named("Date")]), generics: [:],
+                    returns: .generic("ClosedRange", [.named("Date")]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a closed range that contains both of its bounds.",
                     body: .native { interpreter, args in
@@ -42,7 +42,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member1: BridgedMember =                 BridgedMember(
                     kind: .method, name: ">", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the value of the first argument is greater than that of the second argument.",
                     body: .native { interpreter, args in
@@ -55,7 +55,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member2: BridgedMember =                 BridgedMember(
                     kind: .method, name: "<=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the value of the first argument is less than or equal to that of the second argument.",
                     body: .native { interpreter, args in
@@ -68,7 +68,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member3: BridgedMember =                 BridgedMember(
                     kind: .method, name: ">=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the value of the first argument is greater than or equal to that of the second argument.",
                     body: .native { interpreter, args in
@@ -81,7 +81,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member4: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are not equal.",
                     body: .native { interpreter, args in
@@ -94,7 +94,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member5: BridgedMember =                 BridgedMember(
                     kind: .method, name: "..<", isStatic: true,
                     parameters: [Parameter(label: nil, name: "minimum", type: .named("Date")), Parameter(label: nil, name: "maximum", type: .named("Date"))],
-                    returns: .generic("Range", [.named("Date")]), generics: [:],
+                    returns: .generic("Range", [.named("Date")]), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a half-open range that contains its lower bound but not its upper bound.",
                     body: .native { interpreter, args in
@@ -107,7 +107,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member6: BridgedMember =                 BridgedMember(
                     kind: .method, name: "<", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .named("Date")), Parameter(label: nil, name: "y", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.",
                     body: .native { interpreter, args in
@@ -120,7 +120,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member7: BridgedMember =                 BridgedMember(
                     kind: .method, name: "==", isStatic: true,
                     parameters: [Parameter(label: nil, name: "x", type: .named("Date")), Parameter(label: nil, name: "y", type: .named("Date"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are equal.",
                     body: .native { interpreter, args in
@@ -133,7 +133,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member8: BridgedMember =                 BridgedMember(
                     kind: .property, name: "timeIntervalBetween1970AndReferenceDate", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.",
                     body: .native { interpreter, args in
@@ -146,7 +146,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member9: BridgedMember =                 BridgedMember(
                     kind: .property, name: "timeIntervalSinceReferenceDate", isStatic: true,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.",
                     body: .native { interpreter, args in
@@ -159,7 +159,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member10: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized to the current date and time.",
                     body: .native { interpreter, args in
@@ -172,7 +172,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member11: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "timeIntervalSinceNow", name: "timeIntervalSinceNow", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized relative to the current date and time by a given number of seconds.",
                     body: .native { interpreter, args in
@@ -185,7 +185,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member12: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "timeIntervalSince1970", name: "timeIntervalSince1970", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.",
                     body: .native { interpreter, args in
@@ -198,7 +198,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member13: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "timeInterval", name: "timeInterval", type: .double), Parameter(label: "since", name: "date", type: .named("Date"))],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized relative to another given date by a given number of seconds.",
                     body: .native { interpreter, args in
@@ -211,7 +211,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member14: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "timeIntervalSinceReferenceDate", name: "ti", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.",
                     body: .native { interpreter, args in
@@ -224,7 +224,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member15: BridgedMember =                 BridgedMember(
                     kind: .property, name: "timeIntervalSinceReferenceDate", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the interval between the date object and 00:00:00 UTC on 1 January 2001.",
                     body: .native { interpreter, args in
@@ -238,7 +238,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member16: BridgedMember =                 BridgedMember(
                     kind: .method, name: "timeIntervalSince", isStatic: false,
                     parameters: [Parameter(label: nil, name: "date", type: .named("Date"))],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the interval between the receiver and another given date.",
                     body: .native { interpreter, args in
@@ -252,7 +252,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member17: BridgedMember =                 BridgedMember(
                     kind: .property, name: "timeIntervalSinceNow", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The time interval between the date and the current date and time.",
                     body: .native { interpreter, args in
@@ -266,7 +266,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member18: BridgedMember =                 BridgedMember(
                     kind: .property, name: "timeIntervalSince1970", isStatic: false,
                     parameters: [],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The interval between the date object and 00:00:00 UTC on 1 January 1970.",
                     body: .native { interpreter, args in
@@ -280,7 +280,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member19: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addingTimeInterval", isStatic: false,
                     parameters: [Parameter(label: nil, name: "timeInterval", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Return a new `Date` by adding a `TimeInterval` to this `Date`.",
                     body: .native { interpreter, args in
@@ -294,7 +294,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member20: BridgedMember =                 BridgedMember(
                     kind: .method, name: "addTimeInterval", isStatic: false,
                     parameters: [Parameter(label: nil, name: "timeInterval", type: .double)],
-                    returns: .void, generics: [:],
+                    returns: .void, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: true,
                     summary: "Add a `TimeInterval` to this `Date`.",
                     body: .native { interpreter, args in
@@ -311,7 +311,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member21: BridgedMember =                 BridgedMember(
                     kind: .property, name: "distantFuture", isStatic: true,
                     parameters: [],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates and returns a Date value representing a date in the distant future.",
                     body: .native { interpreter, args in
@@ -324,7 +324,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member22: BridgedMember =                 BridgedMember(
                     kind: .property, name: "distantPast", isStatic: true,
                     parameters: [],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates and returns a Date value representing a date in the distant past.",
                     body: .native { interpreter, args in
@@ -337,7 +337,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member23: BridgedMember =                 BridgedMember(
                     kind: .property, name: "now", isStatic: true,
                     parameters: [],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` initialized to the current date and time.",
                     body: .native { interpreter, args in
@@ -350,7 +350,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member24: BridgedMember =                 BridgedMember(
                     kind: .method, name: "+", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` with a specified amount of time added to it.",
                     body: .native { interpreter, args in
@@ -363,7 +363,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member25: BridgedMember =                 BridgedMember(
                     kind: .method, name: "-", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a `Date` with a specified amount of time subtracted from it.",
                     body: .native { interpreter, args in
@@ -376,7 +376,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
                     kind: .property, name: "debugDescription", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this instance, suitable for debugging.",
                     body: .native { interpreter, args in
@@ -390,7 +390,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
                     kind: .method, name: "distance", isStatic: false,
                     parameters: [Parameter(label: "to", name: "other", type: .named("Date"))],
-                    returns: .double, generics: [:],
+                    returns: .double, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { interpreter, args in
@@ -404,7 +404,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member28: BridgedMember =                 BridgedMember(
                     kind: .method, name: "advanced", isStatic: false,
                     parameters: [Parameter(label: "by", name: "n", type: .double)],
-                    returns: .named("Date"), generics: [:],
+                    returns: .named("Date"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { interpreter, args in
@@ -418,7 +418,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member29: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.",
                     body: .native { interpreter, args in
@@ -432,7 +432,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
                     kind: .property, name: "description", isStatic: false,
                     parameters: [],
-                    returns: .string, generics: [:],
+                    returns: .string, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "A textual representation of this instance.",
                     body: .native { interpreter, args in
@@ -446,7 +446,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
                     kind: .method, name: "!=", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are not equal.",
                     body: .native { interpreter, args in
@@ -459,7 +459,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [],
-                    returns: .named("AttributedString"), generics: [:],
+                    returns: .named("AttributedString"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in
@@ -472,7 +472,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
                     kind: .method, name: "==", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .bool, generics: [:],
+                    returns: .bool, generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Returns a Boolean value indicating whether two values are equal.",
                     body: .native { interpreter, args in
@@ -485,7 +485,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
                     kind: .initializer, name: "init", isStatic: true,
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
-                    returns: .named("AttributedString"), generics: [:],
+                    returns: .named("AttributedString"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "Creates an instance initialized to the given string value.",
                     body: .native { interpreter, args in
@@ -498,7 +498,7 @@ extension Bridge {
     nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
                     kind: .method, name: "+", isStatic: true,
                     parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .named("AttributedString"), generics: [:],
+                    returns: .named("AttributedString"), generics: [],
                     isThrowing: false, isRethrowing: false, isMutating: false,
                     summary: "",
                     body: .native { interpreter, args in

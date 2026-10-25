@@ -176,7 +176,7 @@ extension BridgedType {
         self.init(
             name: type.name,
             genericParameters: [],
-            conformances: Dictionary(uniqueKeysWithValues: type.conformances.map { ($0, [:]) }),
+            conformances: Dictionary(uniqueKeysWithValues: type.conformances.map { ($0, []) }),
             associatedTypes: type.associatedTypes.mapValues(TypeAnnotation.init),
             parse: type.parse,
             literal: type.literal,
@@ -232,7 +232,7 @@ extension BridgedMember {
                 isStatic: isStatic,
                 parameters: parameters,
                 returns: returns,
-                generics: function?.generics ?? [:],
+                generics: function?.generics ?? [],
                 isThrowing: function?.isThrowing ?? false,
                 isRethrowing: false,
                 isMutating: isMutating,

@@ -119,9 +119,12 @@ extension TypeChecker {
         if narrowed.count == 1 { return narrowed[0] }
         // `a` refines `b` when each of b's constraints is among what a's constraints take in.
         func refines(_ a: Signature, _ b: Signature) -> Bool {
-            b.generics.allSatisfy { parameter, protocols in
-                let have = Set((a.generics[parameter] ?? []).flatMap(protocolClosure))
-                return protocols.allSatisfy { have.contains($0) }
+            b.generics.allSatisfy { parameter in
+                let have = Set(
+                    (a.generics.first { $0.name == parameter.name }?.constraints ?? [])
+                        .flatMap { protocolClosure($0.refinementKey) }
+                )
+                return parameter.constraints.allSatisfy { have.contains($0.refinementKey) }
             }
         }
         let best = narrowed.filter { a in narrowed.allSatisfy { b in refines(a, b) } }
@@ -269,11 +272,16 @@ extension TypeChecker {
             error.isArity = true
             throw error
         }
-        for (parameter, protocols) in signature.generics {
-            guard let bound = bindings[parameter], bound != .unknown else { continue }
-            for proto in protocols where !conforms(bound, to: proto) {
+        for parameter in signature.generics {
+            guard let bound = bindings[parameter.name], bound != .unknown else { continue }
+            for constraint in parameter.constraints where !satisfies(bound, constraint) {
+                let wanted: String =
+                    switch constraint {
+                    case .conforms(let proto): proto.description
+                    case .equals(let exact): exact.description
+                    }
                 throw TypeError(
-                    "\(name) needs \(parameter) to be \(proto.hasPrefix("=") ? String(proto.dropFirst()) : proto), and \(bound) isn't"
+                    "\(name) needs \(parameter.name) to be \(wanted), and \(bound) isn't"
                 )
             }
         }

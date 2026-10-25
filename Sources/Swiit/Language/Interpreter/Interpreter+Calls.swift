@@ -418,7 +418,8 @@ extension Interpreter {
             },
             documentation: Documentation(summary: export.summary, parameters: docs),
             attributes: export.attributes,
-            isThrowing: signature.isThrowing
+            isThrowing: signature.isThrowing,
+            generics: signature.generics
         )
     }
 }

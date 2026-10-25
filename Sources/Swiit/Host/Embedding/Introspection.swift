@@ -107,20 +107,54 @@ public struct Symbol: Sendable, Hashable {
         public var isAsync: Bool
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
-        public var generics: [String: [String]]
+        public var generics: [GenericParameter]
 
         public init(
             parameters: [Parameter] = [],
             returns: ScriptType = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
-            generics: [String: [String]] = [:]
+            generics: [GenericParameter] = []
         ) {
             self.generics = generics
             self.parameters = parameters
             self.returns = returns
             self.isThrowing = isThrowing
             self.isAsync = isAsync
+        }
+    }
+
+    /// A type parameter of a function, with what it asks of the type given for it:
+    /// `sorted<Element: Comparable>`.
+    public struct GenericParameter: Sendable, Hashable, ExpressibleByStringLiteral {
+        public var name: String
+        public var constraints: [Constraint]
+
+        /// What a type must be to be given for a type parameter.
+        public enum Constraint: Sendable, Hashable {
+            /// It conforms to a protocol: `Comparable`, `Hashable`, or one a script declares.
+            case conforms(to: ScriptType)
+            /// It is exactly this type, as `where Element == Int` says.
+            case equals(ScriptType)
+
+            /// What one constraint is among others when they are compared: a protocol by its name,
+            /// an exact type by that name after an `=`.
+            var refinementKey: String {
+                switch self {
+                case .conforms(let proto): proto.description
+                case .equals(let exact): "=" + exact.description
+                }
+            }
+        }
+
+        public init(name: String, constraints: [Constraint] = []) {
+            self.name = name
+            self.constraints = constraints
+        }
+
+        /// A type parameter with no constraints, by its name.
+        public init(stringLiteral name: String) {
+            self.init(name: name)
         }
     }
 
@@ -265,6 +299,8 @@ extension ScriptType {
             }
     }
 }
+
+typealias GenericParameter = Symbol.GenericParameter
 
 extension Interpreter {
     /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all

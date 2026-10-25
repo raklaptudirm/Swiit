@@ -492,20 +492,32 @@ extension Lowering {
     func genericParameters(
         _ clause: GenericParameterClauseSyntax?,
         where whereClause: GenericWhereClauseSyntax? = nil
-    ) -> [String: [String]] {
-        var generics: [String: [String]] = [:]
+    ) -> [GenericParameter] {
+        var generics: [GenericParameter] = []
         for parameter in clause?.parameters ?? [] {
-            generics[parameter.name.text, default: []] +=
-                parameter.inheritedType.map { [$0.trimmedDescription] } ?? []
+            generics.append(
+                GenericParameter(
+                    name: parameter.name.text,
+                    constraints: parameter.inheritedType.map(constraints(of:)) ?? []
+                )
+            )
         }
         for requirement in whereClause?.requirements ?? [] {
             guard case .conformanceRequirement(let conformance) = requirement.requirement,
                 let left = conformance.leftType.as(IdentifierTypeSyntax.self),
-                generics[left.name.text] != nil
+                let index = generics.firstIndex(where: { $0.name == left.name.text })
             else { continue }
-            generics[left.name.text, default: []].append(conformance.rightType.trimmedDescription)
+            generics[index].constraints += constraints(of: conformance.rightType)
         }
         return generics
+    }
+
+    /// What `Comparable` or `Comparable & Hashable` asks of a type: it conforms to each.
+    private func constraints(of type: TypeSyntax) -> [GenericParameter.Constraint] {
+        if let composition = type.as(CompositionTypeSyntax.self) {
+            return composition.elements.flatMap { constraints(of: $0.type) }
+        }
+        return [.conforms(to: .named(type.trimmedDescription))]
     }
 
     mutating func function(
@@ -518,7 +530,7 @@ extension Lowering {
             where: node.genericWhereClause
         )
         let outerParameters = typeParameters
-        typeParameters.formUnion(generics.keys)
+        typeParameters.formUnion(generics.map(\.name))
         defer { typeParameters = outerParameters }
         let effects = node.signature.effectSpecifiers
         var parameters = try parameters(node.signature.parameterClause)
@@ -605,7 +617,8 @@ extension Lowering {
         }
         let outerParameters = typeParameters
         typeParameters.formUnion(
-            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause)
+                .map(\.name)
         )
         defer { typeParameters = outerParameters }
         let parameters = try parameters(node.signature.parameterClause)
@@ -657,7 +670,9 @@ extension Lowering {
                 throw unsupported("'\(member.decl.kind)' in an extension", member)
             }
             var lowered = try function(method, isMember: true)
-            lowered.generics["Element", default: []] += []
+            if !lowered.generics.contains(where: { $0.name == "Element" }) {
+                lowered.generics.append("Element")
+            }
             methods.append(lowered)
         }
         return .extensionDecl(name: "Sequence", methods: methods)
@@ -705,7 +720,7 @@ extension Lowering {
         node: some SyntaxProtocol
     ) throws -> ClassDecl {
         let outerParameters = typeParameters
-        typeParameters.formUnion(genericParameters(generics, where: whereClause).keys)
+        typeParameters.formUnion(genericParameters(generics, where: whereClause).map(\.name))
         defer { typeParameters = outerParameters }
         // `Base<String>` is Base: its arguments only say what it holds.
         let inherited =
@@ -823,7 +838,8 @@ extension Lowering {
     private mutating func structure(_ node: StructDeclSyntax) throws -> StructDecl {
         let outerParameters = typeParameters
         typeParameters.formUnion(
-            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause)
+                .map(\.name)
         )
         defer { typeParameters = outerParameters }
         let conformances =
@@ -908,7 +924,7 @@ extension Lowering {
                     where: method.genericWhereClause
                 )
                 let methodParameters = typeParameters
-                typeParameters.formUnion(generics.keys)
+                typeParameters.formUnion(generics.map(\.name))
                 defer { typeParameters = methodParameters }
                 let effects = method.signature.effectSpecifiers
                 let lowered = FunctionDecl(
@@ -1211,7 +1227,8 @@ extension Lowering {
     private mutating func enumeration(_ node: EnumDeclSyntax) throws -> EnumDecl {
         let outerParameters = typeParameters
         typeParameters.formUnion(
-            genericParameters(node.genericParameterClause, where: node.genericWhereClause).keys
+            genericParameters(node.genericParameterClause, where: node.genericWhereClause)
+                .map(\.name)
         )
         defer { typeParameters = outerParameters }
         var rawType: TypeAnnotation?

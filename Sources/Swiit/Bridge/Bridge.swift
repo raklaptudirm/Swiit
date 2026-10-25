@@ -115,7 +115,7 @@ struct BridgedType: Sendable {
     /// The protocols it conforms to, of those Swiit knows, each with what
     /// its generic parameters must be for it: a ClosedRange is a Sequence
     /// when its Bound is Int (`["Bound": ["=Int"]]`).
-    public let conformances: [String: [String: [String]]]
+    public let conformances: [String: [GenericParameter]]
     /// Its associated types: `Element` is `Character` for String.
     public let associatedTypes: [String: TypeAnnotation]
     /// Text as one, through the type's failable initializer from text
@@ -159,7 +159,7 @@ struct BridgedType: Sendable {
     func conforming(to protocols: [String]) -> BridgedType {
         guard !protocols.isEmpty else { return self }
         var all = conformances
-        for name in protocols { all[name] = [:] }
+        for name in protocols { all[name] = [] }
         return BridgedType(
             name: name,
             genericParameters: genericParameters,
@@ -175,7 +175,7 @@ struct BridgedType: Sendable {
     public init(
         name: String,
         genericParameters: [String],
-        conformances: [String: [String: [String]]],
+        conformances: [String: [GenericParameter]],
         associatedTypes: [String: TypeAnnotation],
         parse: (@Sendable (String) -> Value?)? = nil,
         literal: (@Sendable (String) -> Value?)? = nil,
@@ -202,7 +202,7 @@ struct BridgedMember: Sendable {
     public let isStatic: Bool
     public let parameters: [Parameter]
     public let returns: TypeAnnotation
-    public let generics: [String: [String]]
+    public let generics: [GenericParameter]
     public let isThrowing: Bool
     public let isRethrowing: Bool
     /// Changes its receiver, like `append`. Its glue gives the result and
@@ -233,7 +233,7 @@ struct BridgedMember: Sendable {
         isStatic: Bool,
         parameters: [Parameter],
         returns: TypeAnnotation,
-        generics: [String: [String]],
+        generics: [GenericParameter],
         isThrowing: Bool,
         isRethrowing: Bool,
         isMutating: Bool,

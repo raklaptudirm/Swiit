@@ -92,7 +92,7 @@ extension TypeChecker {
         }
         // A type parameter is a value in the body too (`T()`, `T.self`), of a type that isn't known
         // there.
-        for parameter in decl.generics.keys where names[parameter] == nil {
+        for parameter in decl.generics.map(\.name) where names[parameter] == nil {
             names[parameter] = .variable(.unknown, mutable: false)
         }
         if let selfType { names["self"] = .variable(selfType, mutable: mutating || initializing) }

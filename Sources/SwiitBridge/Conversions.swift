@@ -226,3 +226,25 @@ func attributesCode(of declaration: String) -> String {
     }
     return made.isEmpty ? "" : "attributes: [\(made.joined(separator: ", "))], "
 }
+
+/// The type parameters of a declaration with what each is constrained to, as the code that makes
+/// them (`["Element", GenericParameter(name: "K", constraints: [.conforms(to: "Hashable")])]`). A
+/// constraint is a protocol, or `=Type` for exactly that type.
+func genericParametersCode(_ generics: [String: [String]]) -> String {
+    func constraint(_ text: String) -> [String] {
+        text.components(separatedBy: " & ")
+            .map {
+                $0.hasPrefix("=")
+                    ? ".equals(\(quoted(String($0.dropFirst()))))" : ".conforms(to: \(quoted($0)))"
+            }
+    }
+    return "["
+        + generics.sorted { $0.key < $1.key }
+        .map { name, constraints in
+            constraints.isEmpty
+                ? quoted(name)
+                : "GenericParameter(name: \(quoted(name)), constraints: ["
+                    + constraints.flatMap(constraint).joined(separator: ", ") + "])"
+        }
+        .joined(separator: ", ") + "]"
+}

@@ -320,7 +320,7 @@ func bridge(
                             BridgedMember(
                                 kind: .setter, name: \(quoted(declaration.name)), isStatic: false,
                                 parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
-                                returns: .void, generics: [:],
+                                returns: .void, generics: [],
                                 isThrowing: false, isRethrowing: false, isMutating: true,
                                 summary: "",
                                 body: .native { interpreter, args in
@@ -341,14 +341,7 @@ func bridge(
             + docs.sorted { $0.key < $1.key }.map { "\(quoted($0.key)): \(quoted($0.value))" }
             .joined(separator: ", ")
             + "]"
-    let genericsCode =
-        generics.isEmpty
-        ? "[:]"
-        : "["
-            + generics.sorted { $0.key < $1.key }
-            .map { "\(quoted($0.key)): [\($0.value.map(quoted).joined(separator: ", "))]" }
-            .joined(separator: ", ")
-            + "]"
+    let genericsCode = genericParametersCode(generics)
     // An `async` one is waited for in `suspend`, letting other tasks run.
     if declaration.isAsync {
         if declaration.isMutating { throw Unsupported(reason: "async mutating") }

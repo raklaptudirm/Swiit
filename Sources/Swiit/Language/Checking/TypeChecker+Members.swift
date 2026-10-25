@@ -101,8 +101,10 @@ extension TypeChecker {
         guard let needs = bridgedType.conformances[proto] else {
             return proto == "CustomStringConvertible"
         }
-        return needs.allSatisfy { parameter, protocols in
-            protocols.allSatisfy { conforms(bindings[parameter] ?? .unknown, to: $0) }
+        return needs.allSatisfy { parameter in
+            parameter.constraints.allSatisfy {
+                satisfies(bindings[parameter.name] ?? .unknown, $0)
+            }
         }
     }
 

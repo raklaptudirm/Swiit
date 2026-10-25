@@ -16,7 +16,7 @@ extension Bridge {
             ),
         ],
         returns: .parameter("R"),
-        generics: ["R": []],
+        generics: ["R"],
         summary: "Combines the items into one value that each step changes in place."
     ) { interpreter, arguments in
         guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else {
@@ -37,7 +37,7 @@ extension Bridge {
     nonisolated(unsafe) static let stringIndex = BridgedType(  // safe: set once, before anything reads it
         name: "String.Index",
         genericParameters: [],
-        conformances: ["Comparable": [:], "Equatable": [:], "Hashable": [:]],
+        conformances: ["Comparable": [], "Equatable": [], "Hashable": []],
         associatedTypes: [:],
         members: []
     )
@@ -430,7 +430,12 @@ extension Bridge {
                 isStatic: true,
                 parameters: [Parameter(label: nil, name: "value", type: .parameter("T"))],
                 returns: .string,
-                generics: ["T": ["CustomStringConvertible"]],
+                generics: [
+                    GenericParameter(
+                        name: "T",
+                        constraints: [.conforms(to: "CustomStringConvertible")]
+                    )
+                ],
                 summary: "The text of a value that has one: String(5), String(2.5)."
             ) { interpreter, arguments in
                 .string(try interpreter.describing(arguments["value"] ?? .nothing))
@@ -467,7 +472,9 @@ extension Bridge {
                     ),
                 ],
                 returns: .dictionary(.parameter("K"), .list(.parameter("E"))),
-                generics: ["E": [], "K": ["Hashable"]],
+                generics: [
+                    "E", GenericParameter(name: "K", constraints: [.conforms(to: "Hashable")]),
+                ],
                 summary: "The values in lists, by the key each gives."
             ) { interpreter, arguments in
                 guard let items = Interpreter.items(of: arguments["values"] ?? .nothing) else {

@@ -38,7 +38,7 @@ extension Bridge {
             BridgedType(
                 name: "Task",
                 genericParameters: ["Success", "Failure"],
-                conformances: ["Hashable": [:], "Equatable": [:]],
+                conformances: ["Hashable": [], "Equatable": []],
                 associatedTypes: [:],
                 members: taskMembers
             )
@@ -50,7 +50,7 @@ extension Bridge {
         isStatic: Bool = false,
         parameters: [Parameter] = [],
         returns: TypeAnnotation,
-        generics: [String: [String]] = [:],
+        generics: [GenericParameter] = [],
         throwing: Bool = false,
         effect: Effect = .sync,
         typedThrows: String? = nil,
@@ -108,7 +108,7 @@ extension Bridge {
                 )
             ],
             returns: .generic("Task", [.parameter("Success"), .named("Never")]),
-            generics: ["Success": []],
+            generics: ["Success"],
             summary:
                 "Runs the operation as a task of its own, which goes on while the code that started it does.",
             start
@@ -125,7 +125,7 @@ extension Bridge {
                 )
             ],
             returns: .generic("Task", [.parameter("Success"), .named("Error")]),
-            generics: ["Success": []],
+            generics: ["Success"],
             summary:
                 "Runs the throwing operation as a task of its own, which goes on while the code that started it does.",
             start
