@@ -7,8 +7,8 @@ import Foundation
 
 /// A `Task`'s value: the interpreter's task it started.
 final class TaskBox: @unchecked Sendable {  // safe: only immutable state
-    public let handle: TaskHandle
-    init(_ handle: TaskHandle) { self.handle = handle }
+    public let handle: ScriptTask
+    init(_ handle: ScriptTask) { self.handle = handle }
 }
 
 /// What `Task.checkCancellation()`, `Task.sleep` and a cancelled task's
@@ -75,7 +75,7 @@ extension Bridge {
         )
     }
 
-    private static func task(_ value: Value?) throws -> TaskHandle {
+    private static func task(_ value: Value?) throws -> ScriptTask {
         try SwiftValue.unbox(TaskBox.self, value ?? .nothing).handle
     }
 

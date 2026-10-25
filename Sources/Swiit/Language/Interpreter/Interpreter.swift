@@ -66,7 +66,7 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     var limits = Interpreter.Limits()
     var steps = 0
     var deadline: ContinuousClock.Instant?
-    /// What a run has written, against `limits.output`.
+    /// What a run has written, against `limits.maxOutputBytes`.
     let outputCounter: OutputCounter
 
     init(host: Interpreter.Host, outputCounter: OutputCounter) {
@@ -79,7 +79,7 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
 extension Interpreter {
     /// Reports an error, to wherever standard error is redirected.
     func report(_ message: String) {
-        let styled = host.error.traits().styled
+        let styled = host.error.traits().isStyled
         if message.hasPrefix("error: ") {
             host.error.write(
                 "\(host.name): error:".styled(DisplayStyle.error, styled) + message.dropFirst(6)

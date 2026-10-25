@@ -4,7 +4,7 @@ import Foundation
 /// from the bridge (with Swiit's own extensions, and for a sequence the
 /// host's additions), a struct's or enum's from its declaration. One
 /// description, so what's shown is what can be called.
-public struct TypeDescription {
+public struct TypeInfo {
     /// What a member is; the order of the cases is the order `help` shows
     /// them in.
     public enum Kind: String, CaseIterable {
@@ -56,7 +56,7 @@ public struct TypeDescription {
 
 extension Interpreter {
     /// The type named `name`, if Swiit knows one by that name.
-    public func typeDescription(named name: String) -> TypeDescription? {
+    public func typeDescription(named name: String) -> TypeInfo? {
         if let bridged = Bridge.types[name] { return describe(bridged) }
         switch lookup(name)?.value {
         case .object(let type as StructType)?: return describe(type)
@@ -71,22 +71,22 @@ extension Interpreter {
         return TypeChecker(interpreter: self).type(of: value).swiftType?.name
     }
 
-    private func describe(_ type: BridgedType) -> TypeDescription {
+    private func describe(_ type: BridgedType) -> TypeInfo {
         var members = type.members.filter { $0.kind != .setter }
             .map { member in
                 let settable =
                     member.kind == .property
                     && type.members.contains { $0.kind == .setter && $0.name == member.name }
-                let kind: TypeDescription.Kind =
+                let kind: TypeInfo.Kind =
                     switch member.kind {
                     case .initializer: .initializer
                     case .property, .setter: member.isStatic ? .staticProperty : .property
                     case .method: member.isStatic ? .staticMethod : .method
                     }
-                return TypeDescription.Member(
+                return TypeInfo.Member(
                     name: member.kind == .initializer ? "init" : member.name,
                     kind: kind,
-                    signature: TypeDescription.signature(member, settable: settable),
+                    signature: TypeInfo.signature(member, settable: settable),
                     summary: member.summary
                 )
             }
@@ -98,25 +98,25 @@ extension Interpreter {
                         .init(
                             name: name,
                             kind: .method,
-                            signature: TypeDescription.signature(method),
+                            signature: TypeInfo.signature(method),
                             summary: method.documentation?.summary.firstLine ?? ""
                         )
                     )
                 }
             }
         }
-        return TypeDescription(name: type.name, kind: "Swift type", members: members)
+        return TypeInfo(name: type.name, kind: "Swift type", members: members)
     }
 
-    private func describe(_ type: StructType) -> TypeDescription {
-        var members: [TypeDescription.Member] = []
+    private func describe(_ type: StructType) -> TypeInfo {
+        var members: [TypeInfo.Member] = []
         let initializers = type.initializers?.candidates ?? [type.memberwise]
         for initializer in initializers {
             members.append(
                 .init(
                     name: "init",
                     kind: .initializer,
-                    signature: TypeDescription.signature(initializer, as: "init"),
+                    signature: TypeInfo.signature(initializer, as: "init"),
                     summary: initializer.documentation?.summary.firstLine ?? ""
                 )
             )
@@ -127,7 +127,7 @@ extension Interpreter {
                     name: property.name,
                     kind: .property,
                     signature: AttributedString(
-                        joining: TypeDescription.property(
+                        joining: TypeInfo.property(
                             property.name,
                             property.type ?? .any,
                             mutable: property.mutable
@@ -143,7 +143,7 @@ extension Interpreter {
                     name: name,
                     kind: .property,
                     signature: AttributedString(
-                        joining: TypeDescription.property(
+                        joining: TypeInfo.property(
                             name,
                             getter.returnType ?? .any,
                             mutable: nil
@@ -159,18 +159,18 @@ extension Interpreter {
                     .init(
                         name: name,
                         kind: .method,
-                        signature: TypeDescription.signature(method),
+                        signature: TypeInfo.signature(method),
                         summary: method.documentation?.summary.firstLine ?? ""
                     )
                 )
             }
         }
-        return TypeDescription(name: type.name, kind: "struct", members: members)
+        return TypeInfo(name: type.name, kind: "struct", members: members)
     }
 
-    private func describe(_ type: EnumType) -> TypeDescription {
+    private func describe(_ type: EnumType) -> TypeInfo {
         let payloads = enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
-        let members = type.cases.map { enumCase -> TypeDescription.Member in
+        let members = type.cases.map { enumCase -> TypeInfo.Member in
             var signature: [AttributedString] = [
                 .init("case", .keyword), .init(" "), .init(enumCase.name, .function),
             ]
@@ -198,11 +198,11 @@ extension Interpreter {
                 hasPayload: !enumCase.labels.isEmpty
             )
         }
-        return TypeDescription(name: type.name, kind: "enum", members: members)
+        return TypeInfo(name: type.name, kind: "enum", members: members)
     }
 }
 
-extension TypeDescription {
+extension TypeInfo {
     /// A bridged member as Swift declares it, in pieces by what each is.
     static func signature(_ member: BridgedMember, settable: Bool) -> AttributedString {
         var pieces: [AttributedString] = []

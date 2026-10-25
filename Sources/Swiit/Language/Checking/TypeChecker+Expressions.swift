@@ -447,13 +447,13 @@ extension TypeChecker {
             return type
         case .indexDefault(var base, var key, var fallback):
             let baseType = try typeOf(&base)
-            guard case .dictionary(let keyType, let valueType) = baseType else {
+            guard case .dictionary(let keyType, let scriptType) = baseType else {
                 throw TypeError("'default:' goes with a dictionary's key, not \(baseType)'s index")
             }
             try expect(&key, keyType, "the key")
-            try expect(&fallback, valueType, "the default")
+            try expect(&fallback, scriptType, "the default")
             expr = .indexDefault(base, key, fallback)
-            return valueType
+            return scriptType
         default:
             preconditionFailure("typeOfExpression sent this to the wrong group")
         }

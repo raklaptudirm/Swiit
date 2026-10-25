@@ -27,7 +27,7 @@ public enum Value: Sendable {
     case function(any Callable)
 }
 
-/// A live object a host hands scripts. Its members are the ones its `NativeType` registers, which
+/// A live object a host hands scripts. Its members are the ones its `HostType` registers, which
 /// the checker reads, so a script's use of one is checked before it runs; `member(_:)` is for the
 /// few a host answers for at run time. Objects compare by identity.
 public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
@@ -77,10 +77,10 @@ extension HostObject {
                             Symbol.Parameter(
                                 label: $0.label,
                                 name: $0.name,
-                                type: ValueType($0.type)
+                                type: ScriptType($0.type)
                             )
                         },
-                        returns: ValueType(member.returns),
+                        returns: ScriptType(member.returns),
                         isThrowing: member.isThrowing
                     ),
                     call: { arguments in
@@ -543,8 +543,6 @@ extension Value {
 // MARK: What a host does with a value
 
 extension Value {
-    /// The absence of a value, a script's `nil`.
-    public static let null = Value.nothing
     public init(_ value: Bool) { self = .bool(value) }
     public init(_ value: Int) { self = .int(value) }
     public init(_ value: Double) { self = .double(value) }
@@ -579,7 +577,7 @@ extension Value {
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
     /// script's call does.
-    public func cast<T: ValueConvertible>(to type: T.Type = T.self) -> T? {
+    public func cast<T: ScriptConvertible>(to type: T.Type = T.self) -> T? {
         guard let result = try? T(self), result.value == self else { return nil }
         return result
     }
@@ -592,11 +590,11 @@ extension Value {
 
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
     /// optional string), else nil.
-    public func cast(to type: ValueType) -> Value? {
+    public func cast(to type: ScriptType) -> Value? {
         matches(type) ? self : nil
     }
 
-    private func matches(_ type: ValueType) -> Bool {
+    private func matches(_ type: ScriptType) -> Bool {
         switch type {
         case .named("Any", _): return true
         case .named("Bool", _): return kind == .bool

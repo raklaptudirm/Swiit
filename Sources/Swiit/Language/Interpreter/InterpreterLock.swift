@@ -77,7 +77,7 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
 
 /// A task running Swiit code on a thread of its own, from
 /// `Interpreter.startTask`: joined by `Interpreter.join`, which waits for it.
-public final class TaskHandle: @unchecked Sendable {  // safe: every access holds its own lock
+public final class ScriptTask: @unchecked Sendable {  // safe: every access holds its own lock
     let context: TaskContext
     private let condition = NSCondition()
     private var outcome: Result<Value, any Error>?
@@ -138,13 +138,13 @@ extension Interpreter {
         host taskHost: AnyObject?,
         structured: Bool = true,
         _ body: @escaping () throws -> Value
-    ) throws -> TaskHandle {
-        guard runningTasks < limits.tasks else {
-            throw RuntimeError("there are already \(limits.tasks) tasks running")
+    ) throws -> ScriptTask {
+        guard runningTasks < limits.maxTasks else {
+            throw RuntimeError("there are already \(limits.maxTasks) tasks running")
         }
         let context = TaskContext(globals: Array(scopes.prefix(2)), host: taskHost)
         context.receivesInterrupts = false
-        let handle = TaskHandle(context: context)
+        let handle = ScriptTask(context: context)
         runningTasks += 1
         if structured { task.children.append((callDepth, handle)) }
         // The interpreter and the task are touched only holding the lock,
@@ -171,7 +171,7 @@ extension Interpreter {
 
     /// Waits for a task to end, letting go of the lock meanwhile, and gives
     /// what it gave or throws what it threw.
-    func joinTask(_ handle: TaskHandle) throws -> Value {
+    func joinTask(_ handle: ScriptTask) throws -> Value {
         let waiter = task.cancellation
         // The host may bring it forward while it's awaited (the host: to the foreground).
         let restore = host.willAwait(handle.context.host)

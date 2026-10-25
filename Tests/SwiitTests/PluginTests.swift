@@ -2,7 +2,7 @@ import Testing
 
 @testable import Swiit
 
-private enum Level: String, CaseIterable, ValueConvertible {
+private enum Level: String, CaseIterable, ScriptConvertible {
     case low, high
 }
 
@@ -20,7 +20,7 @@ private struct Entry: Encodable {
             "a", "b",
         ]
     )
-    #expect([String].valueType == .list(.string))
+    #expect([String].scriptType == .list(.string))
     #expect(throws: SwiitError.self) { try Int(.string("x")) }
 }
 

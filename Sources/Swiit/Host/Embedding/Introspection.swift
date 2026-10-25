@@ -19,7 +19,7 @@ public struct Symbol: Sendable, Hashable {
         /// A function, or a method of a type.
         case function(Function)
         /// A global or a property: its type, and whether a script can assign to it.
-        case variable(ValueType, isSettable: Bool)
+        case variable(ScriptType, isSettable: Bool)
         /// A type, and how it was declared.
         case type(TypeKind)
     }
@@ -27,7 +27,7 @@ public struct Symbol: Sendable, Hashable {
     public struct Function: Sendable, Hashable {
         public var parameters: [Parameter]
         /// What it gives back; `.void` when nothing.
-        public var returns: ValueType
+        public var returns: ScriptType
         public var isThrowing: Bool
         public var isAsync: Bool
         /// A method that changes its value.
@@ -38,7 +38,7 @@ public struct Symbol: Sendable, Hashable {
 
         public init(
             parameters: [Parameter] = [],
-            returns: ValueType = .void,
+            returns: ScriptType = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
             isMutating: Bool = false,
@@ -61,7 +61,7 @@ public struct Symbol: Sendable, Hashable {
         public var label: String?
         /// The name the function's body uses.
         public var name: String
-        public var type: ValueType
+        public var type: ScriptType
         /// Whether a call must give it, may leave it out, or may give any number.
         public var arity: Arity
         /// The type as the checker has it, which tells a type parameter from a type of the same
@@ -92,7 +92,7 @@ public struct Symbol: Sendable, Hashable {
         public init(
             label: String? = nil,
             name: String,
-            type: ValueType = .any,
+            type: ScriptType = .any,
             arity: Arity = .required,
             documentation: String? = nil
         ) {
@@ -117,7 +117,7 @@ public struct Symbol: Sendable, Hashable {
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names.
-    public var type: ValueType {
+    public var type: ScriptType {
         switch declaration {
         case .function(let function):
             .function(
@@ -130,7 +130,7 @@ public struct Symbol: Sendable, Hashable {
     }
 }
 
-extension ValueType {
+extension ScriptType {
     /// The type an annotation names.
     init(_ annotation: TypeAnnotation) {
         self =
@@ -142,18 +142,18 @@ extension ValueType {
             case .function: .callable
             case .record: .named("Record")
             case .named(let name): .named(name)
-            case .list(let element): .list(ValueType(element))
-            case .dictionary(let key, let value): .dictionary(ValueType(key), ValueType(value))
-            case .optional(let wrapped): .optional(ValueType(wrapped))
-            case .generic(let name, let arguments): .named(name, arguments.map(ValueType.init))
+            case .list(let element): .list(ScriptType(element))
+            case .dictionary(let key, let value): .dictionary(ScriptType(key), ScriptType(value))
+            case .optional(let wrapped): .optional(ScriptType(wrapped))
+            case .generic(let name, let arguments): .named(name, arguments.map(ScriptType.init))
             case .tuple(let elements):
                 .tuple(
-                    elements.map { ValueType.Element(label: $0.label, type: ValueType($0.type)) }
+                    elements.map { ScriptType.Element(label: $0.label, type: ScriptType($0.type)) }
                 )
             case .functionType(let parameters, let returns, _, _):
-                .function(parameters: parameters.map(ValueType.init), returns: ValueType(returns))
+                .function(parameters: parameters.map(ScriptType.init), returns: ScriptType(returns))
             case .keyPath(let root, let value):
-                .named("KeyPath", [ValueType(root), ValueType(value)])
+                .named("KeyPath", [ScriptType(root), ScriptType(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
             case .parameter(let name): .named(name)
             case .void: .tuple([])
@@ -167,7 +167,7 @@ extension Interpreter {
     /// of them without a `name`, the core's builtins too); with one, the members a value of that
     /// type has (a struct's or host object's methods and properties, a bridged type's, the sequence
     /// methods of a list).
-    public func symbols(named name: String? = nil, of type: ValueType? = nil) -> [Symbol] {
+    public func symbols(named name: String? = nil, in type: ScriptType? = nil) -> [Symbol] {
         withMainTask {
             guard let type else { return globalSymbols(named: name) }
             var annotation = TypeAnnotation(type)
@@ -183,9 +183,11 @@ extension Interpreter {
     }
 
     /// The members a Swift type has for scripts: `symbols(named: "sorted", of: [Int].self)`.
-    public func symbols<T: ValueConvertible>(named name: String? = nil, of type: T.Type) -> [Symbol]
-    {
-        symbols(named: name, of: ValueType(type))
+    public func symbols<T: ScriptConvertible>(
+        named name: String? = nil,
+        in type: T.Type
+    ) -> [Symbol] {
+        symbols(named: name, in: ScriptType(type))
     }
 
     private func globalSymbols(named name: String?) -> [Symbol] {
@@ -217,7 +219,7 @@ extension Interpreter {
                                     documentation: function.documentation?.parameters[$0.name]
                                 )
                             },
-                            returns: function.returnType.map(ValueType.init) ?? .void,
+                            returns: function.returnType.map(ScriptType.init) ?? .void,
                             isThrowing: function.isThrowing,
                             isAsync: function.effect != .sync,
                             isMutating: function.isMutating,
@@ -239,7 +241,7 @@ extension Interpreter {
                 Symbol(
                     name: name,
                     declaration: .variable(
-                        ValueType(checker.type(of: binding.value)),
+                        ScriptType(checker.type(of: binding.value)),
                         isSettable: binding.mutable
                     )
                 )
@@ -256,7 +258,7 @@ extension Interpreter {
         var made = Symbol.Parameter(
             label: parameter.label,
             name: parameter.name,
-            type: ValueType(parameter.type),
+            type: ScriptType(parameter.type),
             arity: parameter.variadic
                 ? .variadic
                 : parameter.defaultValue != nil || parameter.externalDefault != nil
@@ -279,7 +281,7 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: parameters.map { parameter($0) },
-                            returns: ValueType(signature.returns),
+                            returns: ScriptType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating,
@@ -305,7 +307,7 @@ extension Interpreter {
                     Symbol(
                         name: member,
                         declaration: .variable(
-                            ValueType(property.type),
+                            ScriptType(property.type),
                             isSettable: property.isSettable
                         )
                     )
@@ -333,7 +335,7 @@ extension Interpreter {
                                         var made = Symbol.Parameter(
                                             label: $0.label,
                                             name: $0.name,
-                                            type: ValueType(substituted),
+                                            type: ScriptType(substituted),
                                             arity: $0.variadic
                                                 ? .variadic
                                                 : $0.defaultValue != nil
@@ -344,7 +346,7 @@ extension Interpreter {
                                         made.annotation = substituted
                                         return made
                                     },
-                                    returns: ValueType(
+                                    returns: ScriptType(
                                         checker.substitute(member.returns, bindings)
                                     ),
                                     isThrowing: member.isThrowing,
@@ -361,7 +363,7 @@ extension Interpreter {
                             name: member.name,
                             summary: member.summary.isEmpty ? nil : member.summary,
                             declaration: .variable(
-                                ValueType(checker.substitute(member.returns, bindings)),
+                                ScriptType(checker.substitute(member.returns, bindings)),
                                 isSettable: settable.contains(member.name)
                             )
                         )
@@ -395,7 +397,7 @@ extension Interpreter {
 
     /// How to color Swift source, in characters, which may be half typed: what it reads before a
     /// problem is colored as it reads it.
-    public func highlight(_ source: String) -> [Highlight] {
+    public func highlighting(of source: String) -> [Highlight] {
         let bound = withMainTask { globalNames() }
         return frontEnd.highlight(source, bound: bound)
             .map { span in
@@ -426,7 +428,7 @@ extension Interpreter {
 
     /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
-    public func types() -> [Symbol] {
+    public var types: [Symbol] {
         withMainTask {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
                 .flatMap { symbols(of: $0.key, binding: $0.value) }
@@ -449,7 +451,7 @@ extension Interpreter {
 
     /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`,
     /// `Sequence`, or one a script declares), as the checker reads it.
-    public func conforms(_ type: ValueType, to protocolName: String) -> Bool {
+    public func conforms(_ type: ScriptType, to protocolName: String) -> Bool {
         inCurrentTask {
             TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName)
         }
@@ -458,9 +460,9 @@ extension Interpreter {
     /// Which of the candidates a call with these arguments means: by their labels and types, the
     /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
     /// or several do.
-    public func resolveOverload(
+    public func overload(
         among candidates: [Symbol],
-        arguments: [ValueType.Element]
+        arguments: [ScriptType.Element]
     ) throws(Diagnostic) -> Symbol {
         guard !candidates.isEmpty else {
             throw Diagnostic(kind: .type, message: "there is nothing to call")
@@ -607,7 +609,7 @@ extension Interpreter {
                     declaration: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: ValueType(signature.returns),
+                            returns: ScriptType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync,
                             isMutating: signature.isMutating
@@ -620,7 +622,7 @@ extension Interpreter {
         case .protocolType: return [Symbol(name: name, declaration: .type(.protocol))]
         case .variable(let type, let mutable):
             return [
-                Symbol(name: name, declaration: .variable(ValueType(type), isSettable: mutable))
+                Symbol(name: name, declaration: .variable(ScriptType(type), isSettable: mutable))
             ]
         case .swiftType, .asyncLet: return []
         }
@@ -628,9 +630,9 @@ extension Interpreter {
 
     /// The type of an expression written at the top level: the globals are in scope, a script's
     /// locals are not.
-    public func valueType(of expression: String) throws(Diagnostic) -> ValueType {
+    public func scriptType(ofExpression expression: String) throws(Diagnostic) -> ScriptType {
         do {
-            return try withMainTask { () throws -> ValueType in
+            return try withMainTask { () throws -> ScriptType in
                 switch parse(expression) {
                 case .failure(let error):
                     throw Diagnostic(
@@ -644,11 +646,11 @@ extension Interpreter {
                     else {
                         throw Diagnostic(
                             kind: .type,
-                            message: "valueType(of:) takes one expression"
+                            message: "scriptType(of:) takes one expression"
                         )
                     }
                     do {
-                        return ValueType(try TypeChecker(interpreter: self).typeOf(&expr))
+                        return ScriptType(try TypeChecker(interpreter: self).typeOf(&expr))
                     } catch let error as TypeError {
                         throw Diagnostic(
                             kind: .type,

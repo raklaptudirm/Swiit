@@ -347,13 +347,13 @@ extension Interpreter {
         if steps & 15 == 0, task.receivesInterrupts, let reason = host.interrupt() {
             throw Interrupted(reason: reason)
         }
-        if let maximum = limits.steps, steps > maximum {
+        if let maximum = limits.maxSteps, steps > maximum {
             throw LimitExceeded("step limit (\(maximum)) exceeded")
         }
         if let deadline, ContinuousClock.now > deadline {
             throw LimitExceeded("time limit exceeded")
         }
-        if let maximum = limits.output, outputCounter.written > maximum {
+        if let maximum = limits.maxOutputBytes, outputCounter.written > maximum {
             throw LimitExceeded("output limit (\(maximum) bytes) exceeded")
         }
     }
@@ -371,9 +371,9 @@ typealias StatementObserver = (_ statement: Statement, _ value: Value?, _ itemEr
 
 extension Interpreter {
     /// Tells the host a statement finished, if it is watching
-    /// (`Interpreter.Host.statementFinished`).
+    /// (`Interpreter.Host.didFinishStatement`).
     func finished(_ statement: Statement, _ value: Value?) {
-        guard observesStatements, let observer = host.statementFinished else { return }
+        guard observesStatements, let observer = host.didFinishStatement else { return }
         // A `try?` that caught an error gave nil because it failed; other nils, like a function
         // that returns nothing, didn't.
         var caught = false

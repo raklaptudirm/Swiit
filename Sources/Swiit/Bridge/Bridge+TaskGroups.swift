@@ -10,7 +10,7 @@ final class TaskGroupBox: @unchecked Sendable {  // safe: every access holds its
     private let condition = NSCondition()
     private var finished: [Result<Value, any Error>] = []
     private var pending = 0
-    private var handles: [TaskHandle] = []
+    private var handles: [ScriptTask] = []
     var isCancelled = false
 
     init(_ interpreter: Interpreter, isThrowing: Bool) {

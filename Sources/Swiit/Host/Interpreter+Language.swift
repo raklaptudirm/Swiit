@@ -334,7 +334,7 @@ extension Interpreter {
             )
         )
         // `abs`, `min` and `max`, for the numbers and strings there are.
-        for (type, name) in [(ValueType.int, "Int"), (ValueType.double, "Double")] {
+        for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
             declare(
                 HostFunction(
                     name: "abs",
@@ -354,7 +354,7 @@ extension Interpreter {
                 )
             )
         }
-        for type in [ValueType.int, .double, .string] {
+        for type in [ScriptType.int, .double, .string] {
             for (name, picksLess) in [("min", true), ("max", false)] {
                 declare(
                     HostFunction(
@@ -396,7 +396,7 @@ extension Interpreter {
         }
         // `stride(from:to:by:)` and `stride(from:through:by:)`, for Int and Double.
         for (end, inclusive) in [("to", false), ("through", true)] {
-            for (type, name) in [(ValueType.int, "Int"), (ValueType.double, "Double")] {
+            for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
                 declare(
                     HostFunction(
                         name: "stride",

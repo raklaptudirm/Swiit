@@ -78,10 +78,10 @@ extension Value {
                 converted[element.label ?? field.key] = value
             }
             return .record(converted)
-        case (.dictionary(let keyType, let valueType), .dictionary(let dictionary)):
+        case (.dictionary(let keyType, let scriptType), .dictionary(let dictionary)):
             var converted = ValueDictionary()
             for (key, value) in dictionary {
-                guard let k = key.conforming(to: keyType), let v = value.conforming(to: valueType)
+                guard let k = key.conforming(to: keyType), let v = value.conforming(to: scriptType)
                 else { return nil }
                 converted[k] = v
             }

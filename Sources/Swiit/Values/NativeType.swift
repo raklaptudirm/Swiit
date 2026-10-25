@@ -4,7 +4,7 @@ import Foundation
 /// script-side declaration for it: a `FileSize`, a `URL`. A script sees an ordinary type: its
 /// members are checked before the script runs, `==`, `<` and hashing go by the Swift value's own,
 /// and a word of text becomes one through `parse`.
-public struct NativeType: Sendable {
+public struct HostType: Sendable {
     /// A member of the type. Scripts see its name and signature, which the checker reads, so a use
     /// of it is checked before it runs; what each kind carries is what that kind has.
     public struct Member: Sendable {
@@ -38,8 +38,8 @@ public struct NativeType: Sendable {
                 Symbol.Function,
                 body: @Sendable (_ arguments: [Value]) throws -> Value
             )
-            case property(ValueType, Access)
-            case staticProperty(ValueType, get: @Sendable () throws -> Value)
+            case property(ScriptType, Access)
+            case staticProperty(ScriptType, get: @Sendable () throws -> Value)
             case initializer(
                 Symbol.Function,
                 body: @Sendable (_ arguments: [Value]) throws -> Value
@@ -69,14 +69,14 @@ public struct NativeType: Sendable {
     /// `Comparable`, `Sequence`. A builder finds them from the type.
     var conformances: [String] = []
     /// What its associated types are: `Element` is `String` for a sequence of text.
-    var associatedTypes: [String: ValueType] = [:]
+    var associatedTypes: [String: ScriptType] = [:]
     /// A value from text, where text gives a word and the type is wanted.
     var parse: (@Sendable (String) -> Value?)?
     /// A value from a text literal, where a script writes `"…"` and the type is wanted
     /// (`let column: DisplayColumn = "name"`).
     var literal: (@Sendable (String) -> Value?)?
 
-    /// A type described by hand, from its members alone. `NativeType.Builder` also finds what the
+    /// A type described by hand, from its members alone. `HostType.Builder` also finds what the
     /// Swift type says of itself: its conformances, how text becomes one.
     public init(name: String, members: [Member] = []) {
         self.name = name
@@ -85,7 +85,7 @@ public struct NativeType: Sendable {
 }
 
 extension Value {
-    /// A Swift value, held as it is, of a type registered as `NativeType` named `typeName`. Scripts
+    /// A Swift value, held as it is, of a type registered as `HostType` named `typeName`. Scripts
     /// compare and hash it as Swift does when the type is `Equatable`, `Hashable` or `Comparable`.
     public init<T>(boxing value: T, as typeName: String) {
         self = SwiftValue.make(value, as: typeName)
@@ -100,7 +100,7 @@ extension Value {
 extension Interpreter {
     /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
     /// lacks.
-    public func register(_ type: NativeType) {
+    public func register(_ type: HostType) {
         var bridged = BridgedType(type)
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
@@ -172,7 +172,7 @@ extension Interpreter {
 }
 
 extension BridgedType {
-    init(_ type: NativeType) {
+    init(_ type: HostType) {
         self.init(
             name: type.name,
             genericParameters: [],
@@ -189,7 +189,7 @@ extension BridgedType {
 extension BridgedMember {
     /// What a script can call, from what a host wrote: a read-write property is a property and its
     /// setter.
-    static func members(of member: NativeType.Member, in typeName: String) -> [BridgedMember] {
+    static func members(of member: HostType.Member, in typeName: String) -> [BridgedMember] {
         func parameters(_ function: Symbol.Function) -> [Parameter] {
             function.parameters.map { parameter in
                 var made = Parameter(
@@ -332,15 +332,15 @@ extension BridgedMember {
 
 // MARK: Writing one
 
-extension NativeType {
+extension HostType {
     /// A type written from the Swift type itself: members are key paths and method references, so
     /// each one's types are the compiler's and none is spelled twice.
     ///
-    ///     interpreter.register(NativeType.Builder<URL>()
+    ///     interpreter.register(HostType.Builder<URL>()
     ///         .property("host", \.host)
     ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
     public struct Builder<T: Sendable>: Sendable {
-        public private(set) var type: NativeType
+        public private(set) var type: HostType
 
         /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
         /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
@@ -349,7 +349,7 @@ extension NativeType {
         /// (`ExpressibleByStringLiteral`).
         public init(_ name: String? = nil) {
             let name = name ?? String(describing: T.self)
-            self.type = NativeType(name: name)
+            self.type = HostType(name: name)
             type.conformances = Self.conformances()
             if let element = Self.sequenceElement() {
                 type.associatedTypes["Element"] = element
@@ -374,9 +374,9 @@ extension NativeType {
             return found
         }
 
-        private static func sequenceElement() -> ValueType? {
-            func element<S: Sequence>(_: S.Type) -> ValueType {
-                (S.Element.self as? any ValueConvertible.Type)?.valueType ?? .any
+        private static func sequenceElement() -> ScriptType? {
+            func element<S: Sequence>(_: S.Type) -> ScriptType {
+                (S.Element.self as? any ScriptConvertible.Type)?.scriptType ?? .any
             }
             guard let sequence = T.self as? any Sequence.Type else { return nil }
             return element(sequence)
@@ -411,12 +411,12 @@ extension NativeType {
             return copy
         }
 
-        fileprivate static func parameters<each Argument: ValueConvertible>(
+        fileprivate static func parameters<each Argument: ScriptConvertible>(
             _: repeat (each Argument).Type,
             labels: [String?]
         ) -> [Symbol.Parameter] {
             var made: [Symbol.Parameter] = []
-            func add<A: ValueConvertible>(_: A.Type) {
+            func add<A: ScriptConvertible>(_: A.Type) {
                 let label = labels.indices.contains(made.count) ? labels[made.count] : nil
                 made.append(
                     Symbol.Parameter(
@@ -431,7 +431,7 @@ extension NativeType {
         }
 
         /// A property that reads a key path: `.property("host", \.host)`.
-        public func property<V: ValueConvertible>(
+        public func property<V: ScriptConvertible>(
             _ name: String,
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
@@ -439,7 +439,7 @@ extension NativeType {
                 Member(
                     name,
                     .property(
-                        V.valueType,
+                        V.scriptType,
                         .readOnly { try $0.unboxed(T.self)[keyPath: keyPath].value }
                     )
                 )
@@ -448,7 +448,7 @@ extension NativeType {
 
         /// A method, as a reference to it:
         /// `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
-        public func method<each Argument: ValueConvertible, Result: ValueConvertible>(
+        public func method<each Argument: ScriptConvertible, Result: ScriptConvertible>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -463,7 +463,7 @@ extension NativeType {
                                 repeat (each Argument).self,
                                 labels: labels
                             ),
-                            returns: Result.valueType,
+                            returns: Result.scriptType,
                             isThrowing: throwing
                         )
                     ) { receiver, arguments in
@@ -479,7 +479,7 @@ extension NativeType {
         }
 
         /// A function of the type itself: `.static("now", Date.init)`.
-        public func `static`<each Argument: ValueConvertible, Result: ValueConvertible>(
+        public func `static`<each Argument: ScriptConvertible, Result: ScriptConvertible>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -494,7 +494,7 @@ extension NativeType {
                                 repeat (each Argument).self,
                                 labels: labels
                             ),
-                            returns: Result.valueType,
+                            returns: Result.scriptType,
                             isThrowing: throwing
                         )
                     ) { arguments in
@@ -507,7 +507,7 @@ extension NativeType {
         }
 
         /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
-        public func initializer<each Argument: ValueConvertible>(
+        public func initializer<each Argument: ScriptConvertible>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T
@@ -536,7 +536,7 @@ extension NativeType {
 
         /// An initializer that can fail, which a script sees as one that gives an optional:
         /// `.failableInitializer(URL.init(string:))`.
-        public func failableInitializer<each Argument: ValueConvertible>(
+        public func failableInitializer<each Argument: ScriptConvertible>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T?
@@ -558,7 +558,7 @@ extension NativeType {
                         var index = 0
                         func next() -> Value { defer { index += 1 }; return arguments[index] }
                         return try make(repeat try (each Argument)(next()))
-                            .map { Self.box($0, as: name) } ?? .null
+                            .map { Self.box($0, as: name) } ?? .nothing
                     }
                 )
             )
@@ -567,14 +567,14 @@ extension NativeType {
 }
 
 extension Interpreter {
-    public func register<T>(_ builder: NativeType.Builder<T>) { register(builder.type) }
+    public func register<T>(_ builder: HostType.Builder<T>) { register(builder.type) }
 }
 
 /// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function
-/// can take and give by saying so: `extension URL: ValueConvertible {}`. It is held as it is, under
+/// can take and give by saying so: `extension URL: ScriptConvertible {}`. It is held as it is, under
 /// its Swift name.
-extension ValueConvertible where Self: Hashable & Sendable {
-    public static var valueType: ValueType { .named(String(describing: Self.self)) }
+extension ScriptConvertible where Self: Hashable & Sendable {
+    public static var scriptType: ScriptType { .named(String(describing: Self.self)) }
     public init(_ swiitValue: Value) throws { self = try swiitValue.unboxed(Self.self) }
     public var value: Value { Value(boxing: self, as: String(describing: Self.self)) }
 }

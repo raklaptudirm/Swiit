@@ -20,7 +20,7 @@ public struct HostFunction: Sendable {
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ValueType = .void,
+        returns: ScriptType = .void,
         isThrowing: Bool = false,
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
@@ -42,7 +42,7 @@ public struct HostFunction: Sendable {
 
     /// A function whose result is a Swift type:
     /// `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
-    public init<T: ValueConvertible>(
+    public init<T: ScriptConvertible>(
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
@@ -54,7 +54,7 @@ public struct HostFunction: Sendable {
             name: name,
             summary: summary,
             parameters: parameters,
-            returns: ValueType(returns),
+            returns: ScriptType(returns),
             isThrowing: isThrowing,
             body: body
         )
@@ -80,7 +80,7 @@ extension HostFunction {
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter],
-        returnType: ValueType?,
+        returnType: ScriptType?,
         isThrowing: Bool = false,
         call: @escaping @Sendable ([String: Value]) throws -> Value
     ) {
@@ -102,7 +102,7 @@ extension Symbol.Parameter {
     init(
         label: String?,
         name: String,
-        type: ValueType,
+        type: ScriptType,
         variadic: Bool = false,
         documentation: String? = nil,
         defaultValue: Value? = nil,
@@ -121,65 +121,67 @@ extension Symbol.Parameter {
 
 extension Symbol.Parameter {
     /// A parameter of a Swift type: `Symbol.Parameter(name: "count", type: Int.self)`.
-    public init<T: ValueConvertible>(
+    public init<T: ScriptConvertible>(
         label: String? = nil,
         name: String,
         type: T.Type,
         arity: Arity = .required
     ) {
-        self.init(label: label, name: name, type: ValueType(type), arity: arity)
+        self.init(label: label, name: name, type: ScriptType(type), arity: arity)
     }
 }
 
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`,
-/// `resolveOverload` and `valueType(of:)` speak. Swift's type grammar is small and closed, and so
+/// `overload` and `scriptType(of:)` speak. Swift's type grammar is small and closed, and so
 /// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
 /// `Flow<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
 /// class is a fact about its declaration: `symbols(named:)` says.
-public indirect enum ValueType: Sendable, Hashable, CustomStringConvertible {
-    case named(String, [ValueType] = [])
-    case function(parameters: [ValueType], returns: ValueType)
+public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
+    case named(String, [ScriptType] = [])
+    case function(parameters: [ScriptType], returns: ScriptType)
     case tuple([Element])
 
     /// An element of a tuple type, labeled or not.
     public struct Element: Sendable, Hashable {
         public var label: String?
-        public var type: ValueType
-        public init(label: String? = nil, type: ValueType) {
+        public var type: ScriptType
+        public init(label: String? = nil, type: ScriptType) {
             self.label = label
             self.type = type
         }
 
         /// An element of a Swift type: `Element(label: "by", type: String.self)`.
-        public init<T: ValueConvertible>(label: String? = nil, type: T.Type) {
-            self.init(label: label, type: ValueType(type))
+        public init<T: ScriptConvertible>(label: String? = nil, type: T.Type) {
+            self.init(label: label, type: ScriptType(type))
         }
     }
 
-    /// The type of a Swift type a script can use: `ValueType(Int.self)`,
-    /// `ValueType([String].self)`; any `ValueConvertible`.
-    public init<T: ValueConvertible>(_ type: T.Type) {
-        self = T.valueType
+    /// The type of a Swift type a script can use: `ScriptType(Int.self)`,
+    /// `ScriptType([String].self)`; any `ScriptConvertible`.
+    public init<T: ScriptConvertible>(_ type: T.Type) {
+        self = T.scriptType
     }
 
-    public static let any = ValueType.named("Any")
-    public static let bool = ValueType.named("Bool")
-    public static let int = ValueType.named("Int")
-    public static let double = ValueType.named("Double")
-    public static let string = ValueType.named("String")
+    public static let any = ScriptType.named("Any")
+    public static let bool = ScriptType.named("Bool")
+    public static let int = ScriptType.named("Int")
+    public static let double = ScriptType.named("Double")
+    public static let string = ScriptType.named("String")
     /// The type of nothing: what a function that gives nothing gives.
-    public static let void = ValueType.tuple([])
+    public static let void = ScriptType.tuple([])
     /// A function whose signature is not said.
-    public static let callable = ValueType.named("Function")
+    public static let callable = ScriptType.named("Function")
 
     /// `[Element]`, which is `Array<Element>`.
-    public static func list(_ element: ValueType) -> ValueType { .named("Array", [element]) }
+    public static func list(_ element: ScriptType) -> ScriptType { .named("Array", [element]) }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
-    public static func dictionary(_ key: ValueType, _ value: ValueType) -> ValueType {
+    public static func dictionary(_ key: ScriptType, _ value: ScriptType) -> ScriptType {
         .named("Dictionary", [key, value])
     }
     /// `Wrapped?`, which is `Optional<Wrapped>`.
-    public static func optional(_ wrapped: ValueType) -> ValueType { .named("Optional", [wrapped]) }
+    public static func optional(_ wrapped: ScriptType) -> ScriptType {
+        .named("Optional", [wrapped])
+    }
 
     public var description: String {
         switch self {
@@ -229,19 +231,19 @@ struct SwiitError: Error, CustomStringConvertible {
 
 /// A Swift type that can be a parameter: the host hands it a `Value`, and
 /// it says what type the host should check for.
-public protocol ValueConvertible {
-    static var valueType: ValueType { get }
+public protocol ScriptConvertible {
+    static var scriptType: ScriptType { get }
     init(_ swiitValue: Value) throws
     var value: Value { get }
 }
 
-/// A type that names enums in its `valueType`, which scripts learn by name: containers hold their
+/// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their
 /// elements'. An SPI refinement, because a requirement only the module can see cannot be satisfied
 /// by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [EnumType] { get } }
 
-extension ValueConvertible {
-    /// The enums `valueType` names.
+extension ScriptConvertible {
+    /// The enums `scriptType` names.
     static var swiitEnums: [EnumType] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
         if let enumeration = self as? any CaseIterable.Type { return [EnumType.of(enumeration)] }
@@ -249,14 +251,14 @@ extension ValueConvertible {
     }
 }
 
-extension Value: ValueConvertible {
-    public static var valueType: ValueType { .any }
+extension Value: ScriptConvertible {
+    public static var scriptType: ScriptType { .any }
     public init(_ swiitValue: Value) { self = swiitValue }
     public var value: Value { self }
 }
 
-extension Int: ValueConvertible {
-    public static var valueType: ValueType { .int }
+extension Int: ScriptConvertible {
+    public static var scriptType: ScriptType { .int }
     public init(_ swiitValue: Value) throws {
         guard case .int(let value) = swiitValue else {
             throw SwiitError.expected("Int", swiitValue)
@@ -266,8 +268,8 @@ extension Int: ValueConvertible {
     public var value: Value { .int(self) }
 }
 
-extension Double: ValueConvertible {
-    public static var valueType: ValueType { .double }
+extension Double: ScriptConvertible {
+    public static var scriptType: ScriptType { .double }
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
         case .double(let value): self = value
@@ -278,8 +280,8 @@ extension Double: ValueConvertible {
     public var value: Value { .double(self) }
 }
 
-extension String: ValueConvertible {
-    public static var valueType: ValueType { .string }
+extension String: ScriptConvertible {
+    public static var scriptType: ScriptType { .string }
     public init(_ swiitValue: Value) throws {
         guard case .string(let value) = swiitValue else {
             throw SwiitError.expected("String", swiitValue)
@@ -289,8 +291,8 @@ extension String: ValueConvertible {
     public var value: Value { .string(self) }
 }
 
-extension Bool: ValueConvertible {
-    public static var valueType: ValueType { .bool }
+extension Bool: ScriptConvertible {
+    public static var scriptType: ScriptType { .bool }
     public init(_ swiitValue: Value) throws {
         guard case .bool(let value) = swiitValue else {
             throw SwiitError.expected("Bool", swiitValue)
@@ -300,8 +302,8 @@ extension Bool: ValueConvertible {
     public var value: Value { .bool(self) }
 }
 
-extension Date: ValueConvertible {
-    public static var valueType: ValueType { .named("Date") }
+extension Date: ScriptConvertible {
+    public static var scriptType: ScriptType { .named("Date") }
     public init(_ swiitValue: Value) throws {
         guard let value = swiitValue.date else { throw SwiitError.expected("Date", swiitValue) }
         self = value
@@ -309,12 +311,12 @@ extension Date: ValueConvertible {
     public var value: Value { .date(self) }
 }
 
-extension Array: ValueEnums where Element: ValueConvertible {}
-extension Dictionary: ValueEnums where Key: ValueConvertible, Value: ValueConvertible {}
-extension Optional: ValueEnums where Wrapped: ValueConvertible {}
+extension Array: ValueEnums where Element: ScriptConvertible {}
+extension Dictionary: ValueEnums where Key: ScriptConvertible, Value: ScriptConvertible {}
+extension Optional: ValueEnums where Wrapped: ScriptConvertible {}
 
-extension Array: ValueConvertible where Element: ValueConvertible {
-    public static var valueType: ValueType { .list(Element.valueType) }
+extension Array: ScriptConvertible where Element: ScriptConvertible {
+    public static var scriptType: ScriptType { .list(Element.scriptType) }
     static var enumTypes: [EnumType] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
@@ -322,18 +324,18 @@ extension Array: ValueConvertible where Element: ValueConvertible {
         // A Swift sequence Swiit holds (a host type's lines).
         case .object(let box as SwiftValue) where box.value is any Sequence:
             self = try SwiftValue.elements(of: box.value).map { try Element(Value(reflecting: $0)) }
-        default: throw SwiitError.expected("[\(Element.valueType)]", swiitValue)
+        default: throw SwiitError.expected("[\(Element.scriptType)]", swiitValue)
         }
     }
     public var value: Value { .list(map(\.value)) }
 }
 
-extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: ValueConvertible {
-    public static var valueType: ValueType { .dictionary(Key.valueType, Value.valueType) }
+extension Dictionary: ScriptConvertible where Key: ScriptConvertible, Value: ScriptConvertible {
+    public static var scriptType: ScriptType { .dictionary(Key.scriptType, Value.scriptType) }
     static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue else {
-            throw SwiitError.expected("[\(Key.valueType): \(Value.valueType)]", swiitValue)
+            throw SwiitError.expected("[\(Key.scriptType): \(Value.scriptType)]", swiitValue)
         }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
     }
@@ -342,8 +344,8 @@ extension Dictionary: ValueConvertible where Key: ValueConvertible, Value: Value
     }
 }
 
-extension Optional: ValueConvertible where Wrapped: ValueConvertible {
-    public static var valueType: ValueType { .optional(Wrapped.valueType) }
+extension Optional: ScriptConvertible where Wrapped: ScriptConvertible {
+    public static var scriptType: ScriptType { .optional(Wrapped.scriptType) }
     static var enumTypes: [EnumType] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {
         self = swiitValue == .nothing ? nil : try Wrapped(swiitValue)
@@ -380,7 +382,7 @@ extension Value {
     init(returning result: Any) throws {
         switch result {
         case is Void: self = .nothing
-        case let value as any ValueConvertible: self = value.value
+        case let value as any ScriptConvertible: self = value.value
         case let object as any HostObject: self = .object(object)
         case let objects as [any HostObject]: self = .list(objects.map(Value.object))
         case let data as any Encodable: self = try ValueEncoder().encode(data)
@@ -390,16 +392,16 @@ extension Value {
 }
 
 /// What the host checks a parameter's arguments against.
-func swiitParameterType<T: ValueConvertible>(_ type: T.Type) -> ValueType { T.valueType }
+func swiitParameterType<T: ScriptConvertible>(_ type: T.Type) -> ScriptType { T.scriptType }
 /// An exported object: anything, checked when it's converted.
-func swiitParameterType<T: HostObject>(_ type: T.Type) -> ValueType { .any }
+func swiitParameterType<T: HostObject>(_ type: T.Type) -> ScriptType { .any }
 
-func swiitParameterEnums<T: ValueConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
+func swiitParameterEnums<T: ScriptConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
 func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [EnumType] { [] }
 
 /// What a function returns, for signatures and help.
-func swiitReturnType(_ type: Any.Type) -> ValueType {
-    (type as? any ValueConvertible.Type)?.valueType ?? .any
+func swiitReturnType(_ type: Any.Type) -> ScriptType {
+    (type as? any ScriptConvertible.Type)?.scriptType ?? .any
 }
 
 /// An object argument: one of the host's own classes, held as a live object.
@@ -419,7 +421,7 @@ func swiitArgument<T: HostObject>(
 
 /// An argument the macro-generated code converts: a clear message naming
 /// the function and parameter when it doesn't fit.
-func swiitArgument<T: ValueConvertible>(
+func swiitArgument<T: ScriptConvertible>(
     _ arguments: [String: Value],
     _ name: String,
     of function: String,
@@ -435,11 +437,11 @@ func swiitArgument<T: ValueConvertible>(
 /// A Swift enum without associated values is an enum scripts can use (as a parameter, `volume .high`
 /// or `volume(.high)`, a result, and in `switch`) by saying it converts:
 ///
-///     public enum Level: String, CaseIterable, ValueConvertible { case low, high }
+///     public enum Level: String, CaseIterable, ScriptConvertible { case low, high }
 ///
 /// The host learns it by name from the functions that take it.
-extension ValueConvertible where Self: CaseIterable & Hashable & Sendable {
-    public static var valueType: ValueType { .named(EnumType.of(Self.self).name) }
+extension ScriptConvertible where Self: CaseIterable & Hashable & Sendable {
+    public static var scriptType: ScriptType { .named(EnumType.of(Self.self).name) }
 
     public init(_ swiitValue: Value) throws {
         guard case .enumValue(let value) = swiitValue, value.type === EnumType.of(Self.self),

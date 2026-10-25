@@ -23,8 +23,8 @@ extension Interpreter {
         with arguments: [String: Value],
         receiver: Receiver? = nil
     ) throws -> Value {
-        guard callDepth < limits.depth else {
-            throw RuntimeError("maximum call depth (\(limits.depth)) exceeded")
+        guard callDepth < limits.maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
         }
         try checkInterrupt()
         switch function.body {
@@ -453,7 +453,7 @@ extension Interpreter {
 }
 
 extension TypeAnnotation {
-    init(_ type: ValueType) {
+    init(_ type: ScriptType) {
         switch type {
         case .named("Any", _): self = .any
         case .named("Bool", _): self = .bool

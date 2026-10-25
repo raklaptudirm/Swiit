@@ -7,14 +7,14 @@ public struct OutputSink: Sendable {
         /// Its width in columns, when it has one.
         public var width: Int?
         /// Whether to color what's written to it.
-        public var styled: Bool
+        public var isStyled: Bool
 
-        public static let plain = Traits(isTerminal: false, width: nil, styled: false)
+        public static let plain = Traits(isTerminal: false, width: nil, isStyled: false)
 
-        public init(isTerminal: Bool, width: Int? = nil, styled: Bool) {
+        public init(isTerminal: Bool, width: Int? = nil, isStyled: Bool) {
             self.isTerminal = isTerminal
             self.width = width
-            self.styled = styled
+            self.isStyled = isStyled
         }
     }
 
@@ -93,7 +93,7 @@ extension Interpreter {
         /// they start, with no value; the statements in them are told as they run. A host keeps its
         /// exit status from these. What a `defer` runs is not told: cleaning up doesn't change how
         /// the block went.
-        public var statementFinished: (@Sendable (_ value: Value?, _ caughtError: Bool) -> Void)?
+        public var didFinishStatement: (@Sendable (_ value: Value?, _ caughtError: Bool) -> Void)?
         public var makeTaskState: @Sendable () -> AnyObject? = { nil }
         /// Told when the task running waits for another to end (`await`), with the state of the one
         /// awaited, before it does; what it gives back is called once the wait is over. A host
@@ -103,7 +103,7 @@ extension Interpreter {
         /// running task's turn at it, as a host's task in the background waits until it is awaited;
         /// then it runs the read, or doesn't, if the task is cancelled first. Without it a read
         /// runs at once.
-        public var inputTurn: (@Sendable (_ read: () -> Void) -> Void)?
+        public var withInputTurn: (@Sendable (_ read: () -> Void) -> Void)?
 
         public init(
             output: OutputSink = .discard,

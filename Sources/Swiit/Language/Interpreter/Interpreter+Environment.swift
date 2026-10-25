@@ -46,12 +46,12 @@ extension Interpreter {
                     .joined(separator: ", ")
                     + "]"
             }
-        case .dictionary(let keyType, let valueType)?:
+        case .dictionary(let keyType, let scriptType)?:
             if case .dictionary(let dictionary) = value {
                 guard !dictionary.isEmpty else { return "[:]" }
                 return "["
                     + (try dictionary.sortedForDisplay.map {
-                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: valueType))"
+                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: scriptType))"
                     })
                     .joined(separator: ", ") + "]"
             }

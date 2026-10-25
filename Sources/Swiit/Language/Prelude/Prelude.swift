@@ -112,8 +112,8 @@ extension Interpreter {
     /// name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
     /// may overload it.
-    public func prelude(
-        _ source: String,
+    public func declare(
+        prelude source: String,
         bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]
     ) throws(Diagnostic) {
         do {

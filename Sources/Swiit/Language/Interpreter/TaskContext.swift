@@ -35,7 +35,7 @@ final class TaskContext {
     /// The tasks it started and hasn't seen end, with how deep in its calls
     /// it was: each belongs to the scope that started it, which cancels and
     /// waits for it as it closes.
-    public var children: [(depth: Int, handle: TaskHandle)] = []
+    public var children: [(depth: Int, handle: ScriptTask)] = []
 
     public init(globals: [Scope], host: AnyObject? = nil) {
         self.scopes = globals
@@ -97,7 +97,7 @@ extension Interpreter {
     /// Closes the scopes deeper than `depth` in the current task: the tasks
     /// they started are cancelled and waited for, as a scope closing does.
     func closeTasks(above depth: Int) {
-        var closing: [TaskHandle] = []
+        var closing: [ScriptTask] = []
         while let last = task.children.last, last.depth > depth {
             closing.append(task.children.removeLast().handle)
         }
@@ -127,7 +127,7 @@ extension Interpreter {
 
 /// A function that waits (a host's, a library's) lets other tasks run: a
 /// plain wait is a `suspend`, and a read of the input waits first for the
-/// task's turn at it, which the host says (`inputTurn`).
+/// task's turn at it, which the host says (`withInputTurn`).
 extension Interpreter: WaitingHost {
     func wait(_ body: () -> Void) {
         suspend { body() }
@@ -138,6 +138,10 @@ extension Interpreter: WaitingHost {
     }
 
     func waitForInput(_ body: () -> Void) {
-        if let inputTurn = host.inputTurn { inputTurn(body) } else { suspend { body() } }
+        if let withInputTurn = host.withInputTurn {
+            withInputTurn(body)
+        } else {
+            suspend { body() }
+        }
     }
 }

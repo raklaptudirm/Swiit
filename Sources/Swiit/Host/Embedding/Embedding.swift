@@ -342,27 +342,27 @@ extension Interpreter {
     /// limited: a script that builds a huge list is bounded only by steps and time.
     public struct Limits: Sendable {
         /// Statements and calls. Nil is no limit.
-        public var steps: Int?
+        public var maxSteps: Int?
         /// Nested Swiit function calls.
-        public var depth: Int
-        public var time: Duration?
+        public var maxCallDepth: Int
+        public var timeLimit: Duration?
         /// Bytes written to the host's output and error.
-        public var output: Int?
+        public var maxOutputBytes: Int?
         /// Tasks running at once, each on a thread of its own.
-        public var tasks: Int
+        public var maxTasks: Int
 
         public init(
-            steps: Int? = nil,
-            depth: Int = 10_000,
-            time: Duration? = nil,
-            output: Int? = nil,
-            tasks: Int = 256
+            maxSteps: Int? = nil,
+            maxCallDepth: Int = 10_000,
+            timeLimit: Duration? = nil,
+            maxOutputBytes: Int? = nil,
+            maxTasks: Int = 256
         ) {
-            self.steps = steps
-            self.depth = depth
-            self.time = time
-            self.output = output
-            self.tasks = tasks
+            self.maxSteps = maxSteps
+            self.maxCallDepth = maxCallDepth
+            self.timeLimit = timeLimit
+            self.maxOutputBytes = maxOutputBytes
+            self.maxTasks = maxTasks
         }
     }
 }
@@ -578,7 +578,7 @@ extension Interpreter {
 
     /// A member of a value as a script reads it: `value(of: "columns", in: type)` is
     /// `Type.columns`.
-    public func value(of member: String, in value: Value) throws(Diagnostic) -> Value {
+    public func value(forMember member: String, of value: Value) throws(Diagnostic) -> Value {
         do {
             return try withMainTask { try self.member(member, of: value) }
         } catch {
@@ -636,10 +636,10 @@ extension Interpreter {
     }
 
     /// Makes a Swift closure a function scripts can call. Its parameters and
-    /// result convert as SwiitKit's `ValueConvertible` says, and a script
+    /// result convert as SwiitKit's `ScriptConvertible` says, and a script
     /// sees an ordinary function: `labels` are its argument labels (`nil`
     /// or missing for none), and a wrong argument is the usual type error.
-    public func register<each Argument: ValueConvertible, Result: ValueConvertible>(
+    public func register<each Argument: ScriptConvertible, Result: ScriptConvertible>(
         _ name: String,
         labels: [String?] = [],
         throwing: Bool = false,
@@ -649,7 +649,7 @@ extension Interpreter {
             name,
             labels: labels,
             throwing: throwing,
-            returns: Result.valueType,
+            returns: Result.scriptType,
             enums: Result.swiitEnums,
             parameterTypes: Self.types(repeat (each Argument).self)
         ) { arguments in
@@ -663,7 +663,7 @@ extension Interpreter {
     }
 
     /// As above, for a closure that returns nothing.
-    public func register<each Argument: ValueConvertible>(
+    public func register<each Argument: ScriptConvertible>(
         _ name: String,
         labels: [String?] = [],
         throwing: Bool = false,
@@ -687,11 +687,11 @@ extension Interpreter {
         }
     }
 
-    private static func types<each Argument: ValueConvertible>(
+    private static func types<each Argument: ScriptConvertible>(
         _: repeat (each Argument).Type
-    ) -> [(ValueType, [EnumType])] {
-        var types: [(ValueType, [EnumType])] = []
-        func add<T: ValueConvertible>(_: T.Type) { types.append((T.valueType, T.swiitEnums)) }
+    ) -> [(ScriptType, [EnumType])] {
+        var types: [(ScriptType, [EnumType])] = []
+        func add<T: ScriptConvertible>(_: T.Type) { types.append((T.scriptType, T.swiitEnums)) }
         repeat add((each Argument).self)
         return types
     }
@@ -700,9 +700,9 @@ extension Interpreter {
         _ name: String,
         labels: [String?],
         throwing: Bool,
-        returns: ValueType?,
+        returns: ScriptType?,
         enums: [EnumType],
-        parameterTypes: [(ValueType, [EnumType])],
+        parameterTypes: [(ScriptType, [EnumType])],
         call: @escaping @Sendable ([Value]) throws -> Value
     ) {
         let parameters = parameterTypes.enumerated()
@@ -783,22 +783,22 @@ extension Interpreter {
     /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of
     /// it comes through the closures.
     ///
-    /// - `observing` is told the value of each of the program's own expression statements as it
+    /// - `onValue` is told the value of each of the program's own expression statements as it
     ///   runs (not those in blocks, like the body of a `for`: use `print` for those), except a bare
     ///   `true` or `false`.
     /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
     ///   next one (a script reports an error and carries on); without it, the first stops the run.
     ///   A stop, a limit and an `Unwinding` error always end it.
     ///
-    /// - `finish` runs after the last statement and before the program's own top-level `defer`s,
+    /// - `completion` runs after the last statement and before the program's own top-level `defer`s,
     ///   which run when it is all over.
     ///
     /// A mistake in the program's types or syntax is found before any statement runs.
     public func execute(
         _ source: String,
-        observing observe: ((Observation) throws -> Void)? = nil,
+        onValue observe: ((Observation) throws -> Void)? = nil,
         onError handle: ((Diagnostic) -> Bool)? = nil,
-        then finish: (() -> Void)? = nil
+        completion finish: (() -> Void)? = nil
     ) throws(Diagnostic) {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         nonisolated(unsafe) let observe = observe  // safe: runs holding the interpreter lock
@@ -879,7 +879,7 @@ extension Interpreter {
         if !nested {
             steps = 0
             outputCounter.reset()
-            deadline = limits.time.map { ContinuousClock.now + $0 }
+            deadline = limits.timeLimit.map { ContinuousClock.now + $0 }
             cancellation.clear()
             if alreadyCancelled() { cancellation.request() }
         }

@@ -504,8 +504,8 @@ extension Interpreter {
             (target as? OverloadSet).flatMap { $0.candidates.count == 1 ? $0.candidates[0] : nil }
             ?? (target as? Function)
         guard let only, let scope = try bindPlainly(arguments, to: only) else { return nil }
-        guard callDepth < limits.depth else {
-            throw RuntimeError("maximum call depth (\(limits.depth)) exceeded")
+        guard callDepth < limits.maxCallDepth else {
+            throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
         }
         try checkInterrupt()
         return try runSwiit(only, in: scope)

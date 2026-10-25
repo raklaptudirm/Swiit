@@ -183,24 +183,24 @@ extension TypeChecker {
                     throw TypeError("'!' needs an optional, not \(type)")
                 }
             case .indexDefault(var key, var fallback):
-                guard case .dictionary(let keyType, let valueType) = type else {
+                guard case .dictionary(let keyType, let scriptType) = type else {
                     throw TypeError("'default:' goes with a dictionary's key, not \(type)'s index")
                 }
                 try expect(&key, keyType, "the key")
-                try expect(&fallback, valueType, "the default")
-                type = valueType
+                try expect(&fallback, scriptType, "the default")
+                type = scriptType
                 assignment.path[index] = .indexDefault(key, fallback)
             }
         }
         if let op = assignment.op {
-            let valueType = try typeOf(&assignment.value, expecting: type)
+            let scriptType = try typeOf(&assignment.value, expecting: type)
             // `a += b` through a `+=` the type defines.
             if case .named(let typeName) = type,
                 describe(named: typeName)?.staticMethods(named: "\(op.rawValue)=").isEmpty == false
             {
                 return
             }
-            let result = try binaryType(op, type, valueType)
+            let result = try binaryType(op, type, scriptType)
             guard fits(result, type) else {
                 throw TypeError("'\(op.rawValue)=' would make \(type) a \(result)")
             }
