@@ -100,8 +100,6 @@ extension Interpreter {
                 return try evaluate(operand)
             } catch is RuntimeError {
                 return .nothing
-            } catch is AlreadyReported {
-                return .nothing
             }
         case .attempt(let operand, .forced):
             do {

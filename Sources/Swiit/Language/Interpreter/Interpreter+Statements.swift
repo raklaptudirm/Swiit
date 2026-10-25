@@ -47,7 +47,7 @@ extension Interpreter {
                 // The host may carry on with the next statement after an error a script could have
                 // caught.
                 if let handle,
-                    error is RuntimeError || error is AlreadyReported || error is FatalError,
+                    error is RuntimeError || error is FatalError,
                     handle(Diagnostic.of(error))
                 {
                     continue
@@ -194,17 +194,6 @@ extension Interpreter {
                 guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error")
                 else {
                     throw error
-                }
-                try runBlock(clauses[index].body, declaring: bindings)
-            } catch let reported as AlreadyReported {
-                guard
-                    let (index, bindings) = try firstMatch(
-                        clauses,
-                        reported.error.value,
-                        anyName: "error"
-                    )
-                else {
-                    throw reported
                 }
                 try runBlock(clauses[index].body, declaring: bindings)
             }

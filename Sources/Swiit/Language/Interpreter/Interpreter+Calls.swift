@@ -438,11 +438,12 @@ extension Interpreter {
             var made = RuntimeError(diagnostic.message, origin: failure.origin)
             if case .value(let value) = failure.thrown { made.thrown = value }
             made.calls = failure.calls
+            made.destination = failure.destination
             return made
         }
         switch diagnostic.kind {
         case .runtime(let failure):
-            return failure.isReported ? AlreadyReported(error: error(failure)) : error(failure)
+            return error(failure)
         case .fatal(let failure): return FatalError(error: error(failure))
         case .limit: return LimitExceeded(diagnostic.message)
         case .cancelled: return Cancelled()

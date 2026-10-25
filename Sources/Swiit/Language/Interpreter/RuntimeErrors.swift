@@ -11,6 +11,8 @@ struct RuntimeError: Error, CustomStringConvertible {
     public var range: SourceRange?
     /// The functions it unwound out of, innermost first, and where each was called.
     public var calls: [Call] = []
+    /// Where the host prints it, stamped by the scope it was raised in.
+    var destination: Diagnostic.Failure.Destination = .standard
 
     public typealias Call = Diagnostic.Call
 
@@ -34,7 +36,7 @@ struct RuntimeError: Error, CustomStringConvertible {
 /// An error that ends the run, which a script's `catch` does not see: a runtime error under `try!`,
 /// or a host function ending the script.
 struct FatalError: Error {
-    public let error: RuntimeError
+    public var error: RuntimeError
 
     public init(error: RuntimeError) {
         self.error = error
@@ -59,13 +61,6 @@ enum ControlFlow: Error {
     case breakLoop(String?)
     case continueLoop(String?)
     case fallthroughCase
-}
-
-/// A runtime error that has been reported already; it still fails the input.
-struct AlreadyReported: Error {
-    public let error: RuntimeError
-
-    public init(error: RuntimeError) { self.error = error }
 }
 
 /// An error that passes a script's `catch` and ends the run: what the language raises to stop it.
