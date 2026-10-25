@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 import SystemPackage
 
 /// Swift's own types and members, as Swiit sees them: read from the
@@ -10,37 +11,45 @@ import SystemPackage
 enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
-    public static var types: [String: BridgedType] { lock.withLock { table } }
+    public static var types: [String: BridgedType] { table.withLock { $0 }.types }
 
-    private static let lock = NSLock()
-    nonisolated(unsafe) private static var table: [String: BridgedType] = Dictionary(
-        uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
-            stringIndex, flowType,
-        ])
-        .map {  // safe: read and changed only holding the lock
-            (
-                $0.name,
-                $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
-                    .adding(additions[$0.name] ?? [])
+    /// The table, which holds closures that only read what they are given.
+    private struct Table: @unchecked Sendable {
+        var types: [String: BridgedType]
+    }
+
+    private static let table = Mutex(
+        Table(
+            types: Dictionary(
+                uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
+                    stringIndex, flowType,
+                ])
+                .map {
+                    (
+                        $0.name,
+                        $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
+                            .adding(additions[$0.name] ?? [])
+                    )
+                }
             )
-        }
+        )
     )
 
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
     /// the members it adds to types the core has. Registering one again is no change.
     public static func register(_ more: [BridgedType]) {
-        lock.withLock {
+        table.withLock { table in
             for type in more {
-                if let existing = table[type.name] {
+                if let existing = table.types[type.name] {
                     // A library adds members to a type the core has (`String.styled`), as an
                     // extension does.
                     var extended = existing.adding(type.members)
                     // How text becomes one, if the type did not have a way.
                     if extended.parse == nil { extended.parse = type.parse }
                     if extended.literal == nil { extended.literal = type.literal }
-                    table[type.name] = extended
+                    table.types[type.name] = extended
                 } else {
-                    table[type.name] =
+                    table.types[type.name] =
                         type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
                         .adding(additions[type.name] ?? [])
                 }

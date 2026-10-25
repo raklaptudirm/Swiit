@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 // MARK: What a host exports
 
@@ -480,17 +481,16 @@ extension EnumType {
 }
 
 /// Each Swift enum's `EnumType`, made once.
-final class EnumRegistry: @unchecked Sendable {  // safe: every access holds its own lock
+final class EnumRegistry: Sendable {
     static let shared = EnumRegistry()
-    private let lock = NSLock()
-    private var types: [ObjectIdentifier: EnumType] = [:]
+    private let types = Mutex<[ObjectIdentifier: EnumType]>([:])
 
     func type(for key: Any.Type, _ make: () -> EnumType) -> EnumType {
-        lock.lock()
-        defer { lock.unlock() }
-        if let type = types[ObjectIdentifier(key)] { return type }
-        let type = make()
-        types[ObjectIdentifier(key)] = type
-        return type
+        types.withLock { types in
+            if let type = types[ObjectIdentifier(key)] { return type }
+            let type = make()
+            types[ObjectIdentifier(key)] = type
+            return type
+        }
     }
 }

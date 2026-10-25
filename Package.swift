@@ -4,7 +4,7 @@ import PackageDescription
 // The interpreter. It knows nothing of the programs that host it.
 let package = Package(
     name: "Swiit",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v15)],
     products: [
         .library(name: "Swiit", targets: ["Swiit"]),
         // Reads Swift's symbol graphs and writes the glue that bridges them

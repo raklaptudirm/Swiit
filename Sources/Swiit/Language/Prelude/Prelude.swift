@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// The builtins' types and signatures are Resources/Prelude.swift, embedded in the target by
 /// Package.swift.
@@ -194,8 +195,7 @@ extension Interpreter {
 /// interpreter that starts often should pay, and the tree is a value, so
 /// interpreters with the same libraries share one reading.
 private enum PreludeCache {
-    nonisolated(unsafe) private static var programs: [String: Program] = [:]  // safe: guarded by `lock`
-    private static let lock = NSLock()
+    private static let programs = Mutex<[String: Program]>([:])
 
     /// `keyed`: what the names bound are is part of what is read, so part of the key.
     static func program(
@@ -205,13 +205,9 @@ private enum PreludeCache {
     ) throws(SyntaxError) -> Program {
         // The names a type may be spelled with come from the bridge, which doesn't change.
         let key = keyed ? source + "\u{0}" + bound.keys.sorted().joined(separator: ",") : source
-        lock.lock()
-        if let known = programs[key] { lock.unlock(); return known }
-        lock.unlock()
+        if let known = programs.withLock({ $0[key] }) { return known }
         let program = try SwiftSyntaxFrontEnd().parsePrelude(source, bound: bound)
-        lock.lock()
-        programs[key] = program
-        lock.unlock()
+        programs.withLock { $0[key] = program }
         return program
     }
 }

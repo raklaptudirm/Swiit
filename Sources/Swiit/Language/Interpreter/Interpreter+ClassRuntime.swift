@@ -351,18 +351,17 @@ extension Interpreter {
     /// interpreter may be in the middle of changing its scopes.
     private func release(_ released: ClassInstance) {
         let clone = ClassInstance(type: released.type, storage: released.storage)
-        deinitLock.lock()
-        pendingDeinits.append(clone)
-        hasPendingDeinits = true
-        deinitLock.unlock()
+        pendingDeinits.withLock {
+            $0.append(clone)
+            hasPendingDeinits = true
+        }
     }
 
     func runPendingDeinits() {
-        deinitLock.lock()
-        let pending = pendingDeinits
-        pendingDeinits = []
-        hasPendingDeinits = false
-        deinitLock.unlock()
+        let pending = pendingDeinits.withLock { instances in
+            defer { instances = []; hasPendingDeinits = false }
+            return instances
+        }
         for instance in pending {
             for type in instance.type.chain {
                 guard let deinitializer = type.deinitializer else { continue }

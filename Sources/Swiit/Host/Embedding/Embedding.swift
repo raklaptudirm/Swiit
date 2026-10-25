@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 // The embedding API (Docs/embedding.md): make an interpreter, give it
 // functions and values, run source, and get a value or a diagnostic back.
@@ -374,22 +375,27 @@ struct LimitExceeded: Error, Unwinding, CustomStringConvertible {
 struct Cancelled: Error, Unwinding {}
 
 /// Bytes written so far, for the output limit.
-final class OutputCounter: @unchecked Sendable {  // safe: every access holds its own lock
-    private let lock = NSLock()
-    private var count = 0
+final class OutputCounter: Sendable {
+    private let count = Mutex(0)
 
     public init() {}
 
-    public var written: Int { lock.withLock { count } }
-    public func add(_ bytes: Int) { lock.withLock { count += bytes } }
-    func reset() { lock.withLock { count = 0 } }
+    public var written: Int { count.withLock { $0 } }
+    public func add(_ bytes: Int) { count.withLock { $0 += bytes } }
+    func reset() { count.withLock { $0 = 0 } }
 }
 
 /// A request to stop, from any thread.
 /// A request to stop a task, which a host can ask about before it waits.
-public final class Cancellation: @unchecked Sendable {  // safe: every access holds its own lock
-    private let lock = NSLock()
-    private var set = false
+public final class Cancellation: @unchecked Sendable {  // safe: the state is in a `Mutex`; the flag is a word, below
+    private struct State {
+        var isRequested = false
+        /// What wakes the waits going on now, so a request ends them early.
+        var wakers: [Int: UncheckedSendable<() -> Void>] = [:]
+        var nextWaker = 0
+    }
+
+    private let state = Mutex(State())
     /// What `isSet` reads without the lock, which every step of every script asks. It is a word
     /// written under the lock and read by whoever is running: a stale read only delays the stop by
     /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
@@ -401,9 +407,6 @@ public final class Cancellation: @unchecked Sendable {  // safe: every access ho
     }()
 
     deinit { flag.deallocate() }
-    /// What wakes the waits going on now, so a request ends them early.
-    private var wakers: [Int: () -> Void] = [:]
-    private var nextWaker = 0
 
     init() {}
 
@@ -415,34 +418,34 @@ public final class Cancellation: @unchecked Sendable {  // safe: every access ho
 
     /// Asks for the stop, and wakes what is waiting.
     func request() {
-        let wake = lock.withLock { () -> [() -> Void] in
-            set = true
+        let wake = state.withLock { state -> [() -> Void] in
+            state.isRequested = true
             flag.pointee = 1
-            return Array(wakers.values)
+            return state.wakers.values.map(\.value)
         }
         wake.forEach { $0() }
     }
 
     func clear() {
-        lock.withLock {
-            set = false; flag.pointee = 0
+        state.withLock { state in
+            state.isRequested = false; flag.pointee = 0
         }
     }
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
     func onRequest(_ wake: @escaping () -> Void) -> Int {
-        let (token, already) = lock.withLock { () -> (Int, Bool) in
-            nextWaker += 1
-            wakers[nextWaker] = wake
-            return (nextWaker, set)
+        let (token, already) = state.withLock { state -> (Int, Bool) in
+            state.nextWaker += 1
+            state.wakers[state.nextWaker] = UncheckedSendable(wake)  // woken from the requesting thread
+            return (state.nextWaker, state.isRequested)
         }
         if already { wake() }
         return token
     }
 
     func remove(_ token: Int) {
-        lock.withLock { _ = wakers.removeValue(forKey: token) }
+        state.withLock { _ = $0.wakers.removeValue(forKey: token) }
     }
 }
 
@@ -926,9 +929,8 @@ extension Interpreter {
 
 /// Whether the task running an `async` evaluation has been cancelled, which the thread asks as it
 /// starts.
-private final class CancelFlag: @unchecked Sendable {  // safe: every access holds the lock
-    private let lock = NSLock()
-    private var value = false
-    var isSet: Bool { lock.withLock { value } }
-    func set() { lock.withLock { value = true } }
+private final class CancelFlag: Sendable {
+    private let value = Mutex(false)
+    var isSet: Bool { value.withLock { $0 } }
+    func set() { value.withLock { $0 = true } }
 }
