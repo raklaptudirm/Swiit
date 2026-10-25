@@ -556,6 +556,7 @@ extension Lowering {
                 isAsync: effects?.asyncSpecifier != nil,
                 isRethrowing: isRethrowing
             )
+            .withAttributes(attributes(of: node.attributes))
         }
         locals.append(Set(parameters.map(\.name)))
         let outer = (tryDepth, leaving)
@@ -590,6 +591,7 @@ extension Lowering {
                 }
                 .first
         )
+        .withAttributes(attributes(of: node.attributes))
         .withThrown(thrownType)
         .withModifiers(
             override: node.modifiers.contains { $0.name.tokenKind == .keyword(.override) },
@@ -849,6 +851,20 @@ extension Lowering {
         )
         declaration.isDynamicMemberLookup = hasAttribute("dynamicMemberLookup", node.attributes)
         return declaration
+    }
+
+    /// The attributes written on a declaration, as written.
+    private func attributes(of list: AttributeListSyntax) -> [Attribute] {
+        list.compactMap { element in
+            guard case .attribute(let attribute) = element else { return nil }
+            var arguments: [String] = []
+            switch attribute.arguments {
+            case .argumentList(let list)?: arguments = list.map { $0.trimmedDescription }
+            case let other?: arguments = [other.trimmedDescription]
+            case nil: break
+            }
+            return Attribute(name: attribute.attributeName.trimmedDescription, arguments: arguments)
+        }
     }
 
     /// Whether a declaration is marked with `@name`.

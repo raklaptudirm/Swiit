@@ -732,111 +732,77 @@ extension Interpreter {
 
     // MARK: Running
 
-    /// Runs source and gives the value of its last statement if that is an
-    /// expression (nothing otherwise). Runs on a thread with a large stack.
-    /// Declarations and values stay for the next call.
+    /// Runs source and gives the value of its last statement if that is an expression that ran
+    /// (nothing otherwise). Runs on a thread with a large stack. Declarations and values stay for
+    /// the next call.
+    ///
+    /// A prompt or a script runner passes the closures:
+    ///
+    /// - `onValue` is told the value of each of the program's own expression statements as it
+    ///   runs (not those in blocks, like the body of a `for`: use `print` for those), except a bare
+    ///   `true` or `false`, with the function the statement called when it is a call: its
+    ///   `attributes` say, for one, that Swift lets its result go (`@discardableResult`). The last
+    ///   one is told too, and given back as well.
+    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
+    ///   next one (a script reports an error and carries on); without it, the first stops the run.
+    ///   A stop, a limit and an `Unwinding` error always end it.
+    /// - `completion` runs after the last statement and before the program's own top-level
+    ///   `defer`s, which run when it is all over.
+    ///
+    /// A mistake in the program's types or syntax is found before any statement runs.
     @discardableResult
-    public func evaluate(_ source: String) throws(Diagnostic) -> Value {
-        try evaluate(source, alreadyCancelled: { false })
+    public func evaluate(
+        _ source: String,
+        onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)? = nil,
+        onError: ((Diagnostic) -> Bool)? = nil,
+        completion: (() -> Void)? = nil
+    ) throws(Diagnostic) -> Value {
+        try evaluate(
+            source,
+            onValue: onValue,
+            onError: onError,
+            completion: completion,
+            alreadyCancelled: { false }
+        )
     }
 
     /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that
     /// is not lost.
     private func evaluate(
         _ source: String,
+        onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)?,
+        onError: ((Diagnostic) -> Bool)?,
+        completion: (() -> Void)?,
         alreadyCancelled: @escaping () -> Bool
     ) throws(Diagnostic) -> Value {
         // Nothing else runs on this interpreter meanwhile.
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let onValue = onValue  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let onError = onError  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let completion = completion  // safe: runs holding the interpreter lock
+        let observer: ValueObserver? = onValue
         do {
             // From a host function, in a run already, it carries on where it is. Otherwise Swiit
             // code runs holding the lock, which a task it starts waits for.
             if interpreter.lock.isHeldByCurrentThread {
                 return try interpreter.runSource(
                     source,
+                    observer: observer,
+                    onError: onError,
+                    finish: completion,
                     nested: true,
                     alreadyCancelled: alreadyCancelled
                 )
             }
             return try onLargeStack {
                 try interpreter.withMainTask {
-                    try interpreter.runSource(source, alreadyCancelled: alreadyCancelled)
-                }
-            }
-        } catch {
-            throw Diagnostic.of(error)
-        }
-    }
-
-    /// What a host that shows the values of a program, as a REPL does, is told of an expression
-    /// statement.
-    public struct Observation: Sendable {
-        /// What the expression gave.
-        public var value: Value
-        /// Swift lets it go without a mention, as the result of a call marked `@discardableResult`
-        /// is.
-        public var isDiscardable: Bool
-        /// It is an `await`, or `try await`.
-        public var isAwait: Bool
-    }
-
-    /// Runs a program as a script or a prompt does. Nothing is given back: what the host wants of
-    /// it comes through the closures.
-    ///
-    /// - `onValue` is told the value of each of the program's own expression statements as it
-    ///   runs (not those in blocks, like the body of a `for`: use `print` for those), except a bare
-    ///   `true` or `false`.
-    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
-    ///   next one (a script reports an error and carries on); without it, the first stops the run.
-    ///   A stop, a limit and an `Unwinding` error always end it.
-    ///
-    /// - `completion` runs after the last statement and before the program's own top-level `defer`s,
-    ///   which run when it is all over.
-    ///
-    /// A mistake in the program's types or syntax is found before any statement runs.
-    public func execute(
-        _ source: String,
-        onValue observe: ((Observation) throws -> Void)? = nil,
-        onError handle: ((Diagnostic) -> Bool)? = nil,
-        completion finish: (() -> Void)? = nil
-    ) throws(Diagnostic) {
-        nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let observe = observe  // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let handle = handle  // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let finish = finish  // safe: runs holding the interpreter lock
-        let observer: ValueObserver =
-            observe.map { observe in
-                { value, expression, discarded in
-                    try observe(
-                        Observation(
-                            value: value,
-                            isDiscardable: discarded,
-                            isAwait: expression.isAwait
-                        )
+                    try interpreter.runSource(
+                        source,
+                        observer: observer,
+                        onError: onError,
+                        finish: completion,
+                        alreadyCancelled: alreadyCancelled
                     )
-                }
-            } ?? { _, _, _ in }
-        do {
-            if interpreter.lock.isHeldByCurrentThread {
-                _ = try interpreter.runSource(
-                    source,
-                    observer: observer,
-                    onError: handle,
-                    finish: finish,
-                    nested: true,
-                    alreadyCancelled: { false }
-                )
-            } else {
-                _ = try onLargeStack {
-                    try interpreter.withMainTask {
-                        try interpreter.runSource(
-                            source,
-                            observer: observer,
-                            onError: handle,
-                            finish: finish,
-                            alreadyCancelled: { false }
-                        )
-                    }
                 }
             }
         } catch {
@@ -845,16 +811,31 @@ extension Interpreter {
     }
 
     /// As `evaluate`, on a thread of the interpreter's own, and cancelled when the calling task is.
+    /// The closures run on that thread.
     @discardableResult
-    public func evaluate(_ source: String) async throws(Diagnostic) -> Value {
+    public func evaluate(
+        _ source: String,
+        onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)? = nil,
+        onError: ((Diagnostic) -> Bool)? = nil,
+        completion: (() -> Void)? = nil
+    ) async throws(Diagnostic) -> Value {
         let cancelled = CancelFlag()
+        nonisolated(unsafe) let onValue = onValue  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let onError = onError  // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let completion = completion  // safe: runs holding the interpreter lock
         let outcome: Result<Value, Diagnostic> = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
                 nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
                 startLargeStackThread {
                     continuation.resume(
                         returning: Result { () throws(Diagnostic) -> Value in
-                            try interpreter.evaluate(source, alreadyCancelled: { cancelled.isSet })
+                            try interpreter.evaluate(
+                                source,
+                                onValue: onValue,
+                                onError: onError,
+                                completion: completion,
+                                alreadyCancelled: { cancelled.isSet }
+                            )
                         }
                     )
                 }
@@ -895,32 +876,11 @@ extension Interpreter {
         }
         do {
             let checker = TypeChecker(interpreter: self)
-            var checked = try checker.check(program)
+            let checked = try checker.check(program)
             // What the program declared is typed as written for the next run: `var x: Int? = nil`
             // is an optional Int.
             staticTypes.merge(checker.declaredGlobals) { $1 }
-            var last: Expr?
-            var lastRange: SourceRange?
-            // An observer is told of the last expression too, and it is not given back.
-            if observer == nil, case .expression(let expr)? = checked.statements.last {
-                last = expr
-                lastRange = checked.ranges.last
-                checked.statements.removeLast()
-                if checked.lines.count > checked.statements.count { checked.lines.removeLast() }
-                if checked.ranges.count > checked.statements.count { checked.ranges.removeLast() }
-                if checked.spots.count > checked.statements.count { checked.spots.removeLast() }
-            }
-            try run(checked, observing: observer, onError: onError, finish: finish)
-            do {
-                return try last.map { try evaluate($0) } ?? .nothing
-            } catch var error as RuntimeError {
-                if error.range == nil {
-                    error.range = lastRange
-                } else if let last = error.calls.indices.last, error.calls[last].site == nil {
-                    error.calls[last].site = lastRange
-                }
-                throw error
-            }
+            return try run(checked, observing: observer, onError: onError, finish: finish)
         } catch {
             throw Diagnostic.of(error)
         }

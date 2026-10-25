@@ -101,6 +101,7 @@ extension Interpreter {
                             body: .swiit(method.body),
                             captured: captureScopes(method.names),
                             documentation: method.documentation,
+                            attributes: method.attributes,
                             isThrowing: method.isThrowing,
                             effect: method.effect
                         )
@@ -178,6 +179,7 @@ extension Interpreter {
                             body: .swiit(method.body),
                             captured: captureScopes(method.names),
                             documentation: method.documentation,
+                            attributes: method.attributes,
                             isThrowing: method.isThrowing
                         )
                     )
@@ -425,7 +427,8 @@ extension Interpreter {
                         receiver: Receiver(.object(instance), mutable: true)
                     )
                 },
-                documentation: method.documentation
+                documentation: method.documentation,
+                attributes: method.attributes
             )
         }
         return .function(OverloadSet(name: name, candidates: bound))

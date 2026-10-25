@@ -504,6 +504,7 @@ extension Interpreter {
             (target as? OverloadSet).flatMap { $0.candidates.count == 1 ? $0.candidates[0] : nil }
             ?? (target as? Function)
         guard let only, let scope = try bindPlainly(arguments, to: only) else { return nil }
+        defer { task.lastCallee = only }
         guard callDepth < limits.maxCallDepth else {
             throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
         }

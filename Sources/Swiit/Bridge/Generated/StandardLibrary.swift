@@ -139,7 +139,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "c", type: .named("Character"))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a string containing the given character.",
+                    summary: "Creates a string containing the given character.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(try SwiftValue.unbox(Character.self, args["c"]!))
@@ -152,7 +152,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Appends the given string to this string.",
+                    summary: "Appends the given string to this string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -169,7 +169,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -183,7 +183,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
+                    summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -197,7 +197,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -211,7 +211,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -225,7 +225,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
+                    summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -239,7 +239,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
+                    summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -253,7 +253,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
+                    summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -267,7 +267,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
+                    summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -281,7 +281,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .list(.named("Substring")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -295,7 +295,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .named("Character")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.named("Substring")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -309,7 +309,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -323,7 +323,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -337,7 +337,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -351,7 +351,7 @@ extension Bridge {
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("Character")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
+                    summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(args["count"]!))
@@ -364,7 +364,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("Character")))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance of a collection containing the elements of a sequence.",
+                    summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(try bridgeSequence(args["elements"]!).map { try SwiftValue.unbox(Character.self, $0) })
@@ -377,7 +377,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("Character"))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds an element to the end of the collection.",
+                    summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -394,7 +394,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
+                    summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -411,7 +411,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
+                    summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -428,7 +428,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the first element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -445,7 +445,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all elements from the collection.",
+                    summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -462,7 +462,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
+                    summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -479,7 +479,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the last element of the collection.",
+                    summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -496,7 +496,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the last element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -513,7 +513,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
+                    summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -530,7 +530,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
+                    summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -544,7 +544,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
+                    summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -561,7 +561,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("Character")], .void, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -575,7 +575,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -589,7 +589,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -603,7 +603,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -617,7 +617,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -631,7 +631,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -645,7 +645,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -659,7 +659,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -673,7 +673,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -687,7 +687,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -701,7 +701,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -715,7 +715,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -729,7 +729,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -743,7 +743,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -757,7 +757,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .named("Character"))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -771,7 +771,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -785,7 +785,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("Character")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -799,7 +799,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -813,7 +813,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -827,7 +827,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -841,7 +841,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -855,7 +855,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -869,7 +869,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -883,7 +883,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -897,7 +897,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty string.",
+                    summary: "Creates an empty string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String()
@@ -910,7 +910,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "scalar", type: .named("Unicode.Scalar"))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(try SwiftValue.unbox(Unicode.Scalar.self, args["scalar"]!))
@@ -923,7 +923,7 @@ extension Bridge {
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the given string value.",
+                    summary: "Creates an instance initialized to the given string value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(stringLiteral: try String(args["value"]!))
@@ -936,7 +936,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A representation of the string that is suitable for debugging.",
+                    summary: "A representation of the string that is suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -950,7 +950,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a lowercase version of the string.",
+                    summary: "Returns a lowercase version of the string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -964,7 +964,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an uppercase version of the string.",
+                    summary: "Returns an uppercase version of the string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -978,7 +978,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The value of this string.",
+                    summary: "The value of this string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -992,7 +992,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of characters in a string.",
+                    summary: "The number of characters in a string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1006,7 +1006,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
+                    summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1020,7 +1020,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "If this string is not contiguous, make it so. If this mutates the string, it will invalidate any pre-existing indices.",
+                    summary: "If this string is not contiguous, make it so. If this mutates the string, it will invalidate any pre-existing indices.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1037,7 +1037,7 @@ extension Bridge {
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .string), Parameter(label: "count", name: "count", type: .int)],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new string representing the given string repeated the specified number of times.",
+                    summary: "Creates a new string representing the given string repeated the specified number of times.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(repeating: try String(args["repeatedValue"]!), count: try Int(args["count"]!))
@@ -1050,7 +1050,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether a string has no characters.",
+                    summary: "A Boolean value indicating whether a string has no characters.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1064,7 +1064,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1078,7 +1078,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1092,7 +1092,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Appends the given string to this string.",
+                    summary: "Appends the given string to this string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1109,7 +1109,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .string)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1126,7 +1126,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .named("Substring"))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1143,7 +1143,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
                     returns: .parameter("T"), generics: ["T": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1157,7 +1157,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T")), Parameter(label: nil, name: "y", type: .parameter("T"))],
                     returns: .parameter("T"), generics: ["T": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1171,7 +1171,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "substring", type: .named("Substring"))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new string from the given substring.",
+                    summary: "Creates a new string from the given substring.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(try SwiftValue.unbox(Substring.self, args["substring"]!))
@@ -1184,7 +1184,7 @@ extension Bridge {
                     parameters: [Parameter(label: "describing", name: "instance", type: .parameter("Subject"))],
                     returns: .string, generics: ["Subject": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a string representing the given value.",
+                    summary: "Creates a string representing the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(describing: args["instance"]!)
@@ -1197,7 +1197,7 @@ extension Bridge {
                     parameters: [Parameter(label: "reflecting", name: "subject", type: .parameter("Subject"))],
                     returns: .string, generics: ["Subject": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a string with a detailed representation of the given value, suitable for debugging.",
+                    summary: "Creates a string with a detailed representation of the given value, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = String(reflecting: args["subject"]!)
@@ -1210,7 +1210,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1224,7 +1224,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1238,7 +1238,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1252,7 +1252,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1266,7 +1266,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1283,7 +1283,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
+                    summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1297,7 +1297,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
+                    summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1314,7 +1314,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
+                    summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1328,7 +1328,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "If this string is not contiguous, make it so. If this mutates the substring, it will invalidate any pre-existing indices.",
+                    summary: "If this string is not contiguous, make it so. If this mutates the substring, it will invalidate any pre-existing indices.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1345,7 +1345,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
+                    summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1359,7 +1359,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1373,7 +1373,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1387,7 +1387,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
+                    summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1401,7 +1401,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
+                    summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1415,7 +1415,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
+                    summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1429,7 +1429,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
+                    summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1443,7 +1443,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .list(.named("Substring")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1457,7 +1457,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .named("Character")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.named("Substring")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1471,7 +1471,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1485,7 +1485,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1499,7 +1499,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1513,7 +1513,7 @@ extension Bridge {
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("Character")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
+                    summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(repeating: try SwiftValue.unbox(Character.self, args["repeatedValue"]!), count: try Int(args["count"]!))
@@ -1526,7 +1526,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance of a collection containing the elements of a sequence.",
+                    summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(try bridgeSequence(args["elements"]!).map { try SwiftValue.unbox(Character.self, $0) })
@@ -1539,7 +1539,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .named("Character"))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds an element to the end of the collection.",
+                    summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1556,7 +1556,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
+                    summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1573,7 +1573,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
+                    summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1590,7 +1590,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the first element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1607,7 +1607,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all elements from the collection.",
+                    summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1624,7 +1624,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
+                    summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1641,7 +1641,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the last element of the collection.",
+                    summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1658,7 +1658,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the last element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1675,7 +1675,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
+                    summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1692,7 +1692,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
+                    summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1709,7 +1709,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("Character")], .void, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1723,7 +1723,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1737,7 +1737,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1751,7 +1751,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1765,7 +1765,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1779,7 +1779,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1793,7 +1793,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1807,7 +1807,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1821,7 +1821,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("Character"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1835,7 +1835,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1849,7 +1849,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1863,7 +1863,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("Character")))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1877,7 +1877,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1891,7 +1891,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1905,7 +1905,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .named("Character"))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1919,7 +1919,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1933,7 +1933,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("Character")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1947,7 +1947,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1961,7 +1961,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("Character")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1975,7 +1975,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1989,7 +1989,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2003,7 +2003,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2017,7 +2017,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the collection is empty.",
+                    summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2031,7 +2031,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2045,7 +2045,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2059,7 +2059,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the collection.",
+                    summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2073,7 +2073,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty substring.",
+                    summary: "Creates an empty substring.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring()
@@ -2086,7 +2086,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the underlying string from which this substring was derived.",
+                    summary: "Returns the underlying string from which this substring was derived.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2100,7 +2100,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2114,7 +2114,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of this instance.",
+                    summary: "A textual representation of this instance.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2128,7 +2128,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of this instance, suitable for debugging.",
+                    summary: "A textual representation of this instance, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2142,7 +2142,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "content", type: .string)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Instantiates an instance of the conforming type from a string representation.",
+                    summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(try String(args["content"]!))
@@ -2155,7 +2155,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2169,7 +2169,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2183,7 +2183,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2197,7 +2197,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Appends the given string to the stream.",
+                    summary: "Appends the given string to the stream.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -2214,7 +2214,7 @@ extension Bridge {
                     parameters: [Parameter(label: "unicodeScalarLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the given value.",
+                    summary: "Creates an instance initialized to the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(unicodeScalarLiteral: try String(args["value"]!))
@@ -2227,7 +2227,7 @@ extension Bridge {
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the given value.",
+                    summary: "Creates an instance initialized to the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(extendedGraphemeClusterLiteral: try String(args["value"]!))
@@ -2240,7 +2240,7 @@ extension Bridge {
                     parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the given string value.",
+                    summary: "Creates an instance initialized to the given string value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Substring(stringLiteral: try String(args["value"]!))
@@ -2253,7 +2253,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2267,7 +2267,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2281,7 +2281,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "suffix", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2295,7 +2295,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .string)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2309,7 +2309,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .named("Substring"))],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2323,7 +2323,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2337,7 +2337,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("Character")], .bool, throws: true))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -2354,7 +2354,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .named("Substring"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
+                    summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -2368,7 +2368,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("Character")))],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
+                    summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -2385,7 +2385,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "content", type: .named("Unicode.Scalar"))],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a character containing the given Unicode scalar value.",
+                    summary: "Creates a character containing the given Unicode scalar value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Character(try SwiftValue.unbox(Unicode.Scalar.self, args["content"]!))
@@ -2398,7 +2398,7 @@ extension Bridge {
                     parameters: [Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .named("Character"))],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a character with the specified value.",
+                    summary: "Creates a character with the specified value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Character(extendedGraphemeClusterLiteral: try SwiftValue.unbox(Character.self, args["value"]!))
@@ -2411,7 +2411,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "s", type: .string)],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a character from a single-character string.",
+                    summary: "Creates a character from a single-character string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Character(try String(args["s"]!))
@@ -2424,7 +2424,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of this instance.",
+                    summary: "A textual representation of this instance.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2438,7 +2438,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the character, suitable for debugging.",
+                    summary: "A textual representation of the character, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2452,7 +2452,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2466,7 +2466,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this is an ASCII character.",
+                    summary: "A Boolean value indicating whether this is an ASCII character.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2480,7 +2480,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents whitespace, including newlines.",
+                    summary: "A Boolean value indicating whether this character represents whitespace, including newlines.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2494,7 +2494,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a newline.",
+                    summary: "A Boolean value indicating whether this character represents a newline.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2508,7 +2508,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a number.",
+                    summary: "A Boolean value indicating whether this character represents a number.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2522,7 +2522,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a whole number.",
+                    summary: "A Boolean value indicating whether this character represents a whole number.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2536,7 +2536,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The numeric value this character represents, if it represents a whole number.",
+                    summary: "The numeric value this character represents, if it represents a whole number.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2550,7 +2550,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a hexadecimal digit.",
+                    summary: "A Boolean value indicating whether this character represents a hexadecimal digit.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2564,7 +2564,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The numeric value this character represents, if it is a hexadecimal digit.",
+                    summary: "The numeric value this character represents, if it is a hexadecimal digit.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2578,7 +2578,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character is a letter.",
+                    summary: "A Boolean value indicating whether this character is a letter.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2592,7 +2592,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an uppercased version of this character.",
+                    summary: "Returns an uppercased version of this character.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2606,7 +2606,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a lowercased version of this character.",
+                    summary: "Returns a lowercased version of this character.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2620,7 +2620,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character is considered uppercase.",
+                    summary: "A Boolean value indicating whether this character is considered uppercase.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2634,7 +2634,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character is considered lowercase.",
+                    summary: "A Boolean value indicating whether this character is considered lowercase.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2648,7 +2648,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character changes under any form of case conversion.",
+                    summary: "A Boolean value indicating whether this character changes under any form of case conversion.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2662,7 +2662,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a symbol.",
+                    summary: "A Boolean value indicating whether this character represents a symbol.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2676,7 +2676,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a symbol that naturally appears in mathematical contexts.",
+                    summary: "A Boolean value indicating whether this character represents a symbol that naturally appears in mathematical contexts.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2690,7 +2690,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents a currency symbol.",
+                    summary: "A Boolean value indicating whether this character represents a currency symbol.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2704,7 +2704,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this character represents punctuation.",
+                    summary: "A Boolean value indicating whether this character represents punctuation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Character = try SwiftValue.unbox(Character.self, args["self"]!)
@@ -2718,7 +2718,7 @@ extension Bridge {
                     parameters: [Parameter(label: "unicodeScalarLiteral", name: "value", type: .named("Unicode.Scalar"))],
                     returns: .named("Unicode.Scalar"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a Unicode scalar with the specified value.",
+                    summary: "Creates a Unicode scalar with the specified value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Unicode.Scalar(unicodeScalarLiteral: try SwiftValue.unbox(Unicode.Scalar.self, args["value"]!))
@@ -2731,7 +2731,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "v", type: .named("Unicode.Scalar"))],
                     returns: .named("Unicode.Scalar"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a duplicate of the given Unicode scalar.",
+                    summary: "Creates a duplicate of the given Unicode scalar.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Unicode.Scalar(try SwiftValue.unbox(Unicode.Scalar.self, args["v"]!))
@@ -2744,7 +2744,7 @@ extension Bridge {
                     parameters: [Parameter(label: "asASCII", name: "forceASCII", type: .bool)],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a string representation of the Unicode scalar.",
+                    summary: "Returns a string representation of the Unicode scalar.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
@@ -2758,7 +2758,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the Unicode scalar is an ASCII character.",
+                    summary: "A Boolean value indicating whether the Unicode scalar is an ASCII character.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
@@ -2772,7 +2772,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the Unicode scalar.",
+                    summary: "A textual representation of the Unicode scalar.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
@@ -2786,7 +2786,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "An escaped textual representation of the Unicode scalar, suitable for debugging.",
+                    summary: "An escaped textual representation of the Unicode scalar, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
@@ -2800,7 +2800,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
                     returns: .optional(.named("Unicode.Scalar")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Instantiates an instance of the conforming type from a string representation.",
+                    summary: "Instantiates an instance of the conforming type from a string representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Unicode.Scalar(try String(args["description"]!))
@@ -2813,7 +2813,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Unicode.Scalar = try SwiftValue.unbox(Unicode.Scalar.self, args["self"]!)
@@ -2827,7 +2827,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "v", type: .int)],
                     returns: .optional(.named("Unicode.Scalar")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a Unicode scalar with the specified numeric value.",
+                    summary: "Creates a Unicode scalar with the specified numeric value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Unicode.Scalar(try Int(args["v"]!))
@@ -2840,7 +2840,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replaces this value with its additive inverse.",
+                    summary: "Replaces this value with its additive inverse.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -2857,7 +2857,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new value equal to zero.",
+                    summary: "Creates a new value equal to zero.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int()
@@ -2870,7 +2870,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "rhs", type: .int)],
                     returns: .tuple([.init(label: "quotient", type: .int), .init(label: "remainder", type: .int)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the quotient and remainder of this value divided by the given value.",
+                    summary: "Returns the quotient and remainder of this value divided by the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -2884,7 +2884,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of this value.",
+                    summary: "A textual representation of this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -2898,7 +2898,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
                     returns: .optional(.int), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new integer value from the given string.",
+                    summary: "Creates a new integer value from the given string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int(try String(args["description"]!))
@@ -2911,7 +2911,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The zero value.",
+                    summary: "The zero value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.zero
@@ -2924,7 +2924,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of bits in the current binary representation of this value.",
+                    summary: "The number of bits in the current binary representation of this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -2938,7 +2938,7 @@ extension Bridge {
                     parameters: [Parameter(label: "littleEndian", name: "value", type: .int)],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an integer from its little-endian representation, changing the byte order if necessary.",
+                    summary: "Creates an integer from its little-endian representation, changing the byte order if necessary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int(littleEndian: try Int(args["value"]!))
@@ -2951,7 +2951,7 @@ extension Bridge {
                     parameters: [Parameter(label: "bigEndian", name: "value", type: .int)],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an integer from its big-endian representation, changing the byte order if necessary.",
+                    summary: "Creates an integer from its big-endian representation, changing the byte order if necessary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int(bigEndian: try Int(args["value"]!))
@@ -2964,7 +2964,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The little-endian representation of this integer.",
+                    summary: "The little-endian representation of this integer.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -2978,7 +2978,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The big-endian representation of this integer.",
+                    summary: "The big-endian representation of this integer.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -2992,7 +2992,7 @@ extension Bridge {
                     parameters: [Parameter(label: "in", name: "range", type: .generic("Range", [.int]))],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random value within the specified range.",
+                    summary: "Returns a random value within the specified range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.random(in: try bridgeRange(args["range"]!) { try Int($0) })
@@ -3005,7 +3005,7 @@ extension Bridge {
                     parameters: [Parameter(label: "in", name: "range", type: .generic("ClosedRange", [.int]))],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random value within the specified range.",
+                    summary: "Returns a random value within the specified range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.random(in: try bridgeClosedRange(args["range"]!) { try Int($0) })
@@ -3018,7 +3018,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this type is a signed integer type.",
+                    summary: "A Boolean value indicating whether this type is a signed integer type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.isSigned
@@ -3031,7 +3031,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The maximum representable integer in this type.",
+                    summary: "The maximum representable integer in this type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.max
@@ -3044,7 +3044,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The minimum representable integer in this type.",
+                    summary: "The minimum representable integer in this type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.min
@@ -3057,7 +3057,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "other", type: .int)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns `true` if this value is a multiple of the given value, and `false` otherwise.",
+                    summary: "Returns `true` if this value is a multiple of the given value, and `false` otherwise.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3071,7 +3071,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "source", type: .double)],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an integer from the given floating-point value, rounding toward zero.",
+                    summary: "Creates an integer from the given floating-point value, rounding toward zero.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int(try Double(args["source"]!))
@@ -3084,7 +3084,7 @@ extension Bridge {
                     parameters: [Parameter(label: "exactly", name: "source", type: .double)],
                     returns: .optional(.int), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an integer from the given floating-point value, if it can be represented exactly.",
+                    summary: "Creates an integer from the given floating-point value, if it can be represented exactly.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int(exactly: try Double(args["source"]!))
@@ -3097,7 +3097,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the sum of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
+                    summary: "Returns the sum of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3111,7 +3111,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the difference obtained by subtracting the given value from this value, along with a Boolean value indicating whether overflow occurred in the operation.",
+                    summary: "Returns the difference obtained by subtracting the given value from this value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3125,7 +3125,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the product of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
+                    summary: "Returns the product of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3139,7 +3139,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the quotient obtained by dividing this value by the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
+                    summary: "Returns the quotient obtained by dividing this value by the given value, along with a Boolean value indicating whether overflow occurred in the operation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3153,7 +3153,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .int)],
                     returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the remainder after dividing this value by the given value, along with a Boolean value indicating whether overflow occurred during division.",
+                    summary: "Returns the remainder after dividing this value by the given value, along with a Boolean value indicating whether overflow occurred during division.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3167,7 +3167,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of bits used for the underlying binary representation of values of this type.",
+                    summary: "The number of bits used for the underlying binary representation of values of this type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Int.bitWidth
@@ -3180,7 +3180,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of leading zeros in this value's binary representation.",
+                    summary: "The number of leading zeros in this value's binary representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3194,7 +3194,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of trailing zeros in this value's binary representation.",
+                    summary: "The number of trailing zeros in this value's binary representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3208,7 +3208,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of bits equal to 1 in this value's binary representation.",
+                    summary: "The number of bits equal to 1 in this value's binary representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3222,7 +3222,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A representation of this integer with the byte order swapped.",
+                    summary: "A representation of this integer with the byte order swapped.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3236,7 +3236,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns `-1` if this value is negative and `1` if it's positive; otherwise, `0`.",
+                    summary: "Returns `-1` if this value is negative and `1` if it's positive; otherwise, `0`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3250,7 +3250,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3264,7 +3264,7 @@ extension Bridge {
                     parameters: [Parameter(label: "to", name: "other", type: .int)],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the distance from this value to the given value, expressed as a stride.",
+                    summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3278,7 +3278,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "n", type: .int)],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a value that is offset the specified distance from this value.",
+                    summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Int = try Int(args["self"]!)
@@ -3292,7 +3292,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "text", type: .named("Substring"))],
                     returns: .optional(.double), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(try SwiftValue.unbox(Substring.self, args["text"]!))
@@ -3305,7 +3305,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The unit in the last place of 1.0.",
+                    summary: "The unit in the last place of 1.0.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.ulpOfOne
@@ -3318,7 +3318,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3332,7 +3332,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3349,7 +3349,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The greatest representable value that compares less than this value.",
+                    summary: "The greatest representable value that compares less than this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3363,7 +3363,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the remainder of this value divided by the given value using truncating division.",
+                    summary: "Returns the remainder of this value divided by the given value using truncating division.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3377,7 +3377,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the remainder of this value divided by the given value.",
+                    summary: "Returns the remainder of this value divided by the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3391,7 +3391,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the square root of the value, rounded to a representable value.",
+                    summary: "Returns the square root of the value, rounded to a representable value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3405,7 +3405,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.",
+                    summary: "Returns the result of adding the product of the two given values to this value, computed without intermediate rounding.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3419,7 +3419,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the lesser of the two given values.",
+                    summary: "Returns the lesser of the two given values.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.minimum(try Double(args["x"]!), try Double(args["y"]!))
@@ -3432,7 +3432,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the greater of the two given values.",
+                    summary: "Returns the greater of the two given values.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.maximum(try Double(args["x"]!), try Double(args["y"]!))
@@ -3445,7 +3445,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the value with lesser magnitude.",
+                    summary: "Returns the value with lesser magnitude.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.minimumMagnitude(try Double(args["x"]!), try Double(args["y"]!))
@@ -3458,7 +3458,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "x", type: .double), Parameter(label: nil, name: "y", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the value with greater magnitude.",
+                    summary: "Returns the value with greater magnitude.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.maximumMagnitude(try Double(args["x"]!), try Double(args["y"]!))
@@ -3471,7 +3471,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The radix, or base of exponentiation, for a floating-point type.",
+                    summary: "The radix, or base of exponentiation, for a floating-point type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.radix
@@ -3484,7 +3484,7 @@ extension Bridge {
                     parameters: [Parameter(label: "signOf", name: "signOf", type: .double), Parameter(label: "magnitudeOf", name: "magnitudeOf", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new floating-point value using the sign of one value and the magnitude of another.",
+                    summary: "Creates a new floating-point value using the sign of one value and the magnitude of another.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(signOf: try Double(args["signOf"]!), magnitudeOf: try Double(args["magnitudeOf"]!))
@@ -3497,7 +3497,7 @@ extension Bridge {
                     parameters: [Parameter(label: "belowOrEqualTo", name: "other", type: .double)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.",
+                    summary: "Returns a Boolean value indicating whether this instance should precede or tie positions with the given value in an ascending sort.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3511,7 +3511,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The zero value.",
+                    summary: "The zero value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.zero
@@ -3524,7 +3524,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replaces this value with its additive inverse.",
+                    summary: "Replaces this value with its additive inverse.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3541,7 +3541,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double()
@@ -3554,7 +3554,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the value.",
+                    summary: "A textual representation of the value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3568,7 +3568,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the value, suitable for debugging.",
+                    summary: "A textual representation of the value, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3582,7 +3582,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of bits used to represent the type's exponent.",
+                    summary: "The number of bits used to represent the type's exponent.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.exponentBitCount
@@ -3595,7 +3595,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The available number of fractional significand bits.",
+                    summary: "The available number of fractional significand bits.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.significandBitCount
@@ -3608,7 +3608,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance's representation is in its canonical form.",
+                    summary: "A Boolean value indicating whether the instance's representation is in its canonical form.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3622,7 +3622,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Positive infinity.",
+                    summary: "Positive infinity.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.infinity
@@ -3635,7 +3635,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A quiet NaN (\"not a number\").",
+                    summary: "A quiet NaN (\"not a number\").",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.nan
@@ -3648,7 +3648,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A signaling NaN (\"not a number\").",
+                    summary: "A signaling NaN (\"not a number\").",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.signalingNaN
@@ -3661,7 +3661,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The greatest finite number representable by this type.",
+                    summary: "The greatest finite number representable by this type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.greatestFiniteMagnitude
@@ -3674,7 +3674,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The mathematical constant pi (π), approximately equal to 3.14159.",
+                    summary: "The mathematical constant pi (π), approximately equal to 3.14159.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.pi
@@ -3687,7 +3687,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The unit in the last place of this value.",
+                    summary: "The unit in the last place of this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3701,7 +3701,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The least positive normal number.",
+                    summary: "The least positive normal number.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.leastNormalMagnitude
@@ -3714,7 +3714,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The least positive number.",
+                    summary: "The least positive number.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double.leastNonzeroMagnitude
@@ -3727,7 +3727,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The exponent of the floating-point value.",
+                    summary: "The exponent of the floating-point value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3741,7 +3741,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The significand of the floating-point value.",
+                    summary: "The significand of the floating-point value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3755,7 +3755,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The least representable value that compares greater than this value.",
+                    summary: "The least representable value that compares greater than this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3769,7 +3769,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replaces this value with the remainder of itself divided by the given value.",
+                    summary: "Replaces this value with the remainder of itself divided by the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3786,7 +3786,7 @@ extension Bridge {
                     parameters: [Parameter(label: "dividingBy", name: "other", type: .double)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replaces this value with the remainder of itself divided by the given value using truncating division.",
+                    summary: "Replaces this value with the remainder of itself divided by the given value using truncating division.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3803,7 +3803,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replaces this value with its square root, rounded to a representable value.",
+                    summary: "Replaces this value with its square root, rounded to a representable value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3820,7 +3820,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "lhs", type: .double), Parameter(label: nil, name: "rhs", type: .double)],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds the product of the two given values to this value in place, computed without intermediate rounding.",
+                    summary: "Adds the product of the two given values to this value in place, computed without intermediate rounding.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -3837,7 +3837,7 @@ extension Bridge {
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is equal to the given value.",
+                    summary: "Returns a Boolean value indicating whether this instance is equal to the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3851,7 +3851,7 @@ extension Bridge {
                     parameters: [Parameter(label: "than", name: "other", type: .double)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is less than the given value.",
+                    summary: "Returns a Boolean value indicating whether this instance is less than the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3865,7 +3865,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this instance is less than or equal to the given value.",
+                    summary: "Returns a Boolean value indicating whether this instance is less than or equal to the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3879,7 +3879,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this instance is normal.",
+                    summary: "A Boolean value indicating whether this instance is normal.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3893,7 +3893,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether this instance is finite.",
+                    summary: "A Boolean value indicating whether this instance is finite.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3907,7 +3907,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance is equal to zero.",
+                    summary: "A Boolean value indicating whether the instance is equal to zero.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3921,7 +3921,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance is subnormal.",
+                    summary: "A Boolean value indicating whether the instance is subnormal.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3935,7 +3935,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance is infinite.",
+                    summary: "A Boolean value indicating whether the instance is infinite.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3949,7 +3949,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance is NaN (\"not a number\").",
+                    summary: "A Boolean value indicating whether the instance is NaN (\"not a number\").",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3963,7 +3963,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the instance is a signaling NaN.",
+                    summary: "A Boolean value indicating whether the instance is a signaling NaN.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3977,7 +3977,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.",
+                    summary: "The floating-point value with the same sign and exponent as this value, but with a significand of 1.0.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -3991,7 +3991,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of bits required to represent the value's significand.",
+                    summary: "The number of bits required to represent the value's significand.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -4005,7 +4005,7 @@ extension Bridge {
                     parameters: [Parameter(label: "floatLiteral", name: "value", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the specified floating-point value.",
+                    summary: "Creates an instance initialized to the specified floating-point value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(floatLiteral: try Double(args["value"]!))
@@ -4018,7 +4018,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -4032,7 +4032,7 @@ extension Bridge {
                     parameters: [],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The magnitude of this value.",
+                    summary: "The magnitude of this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -4046,7 +4046,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "v", type: .int)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new value, rounded to the closest possible representation.",
+                    summary: "Creates a new value, rounded to the closest possible representation.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(try Int(args["v"]!))
@@ -4059,7 +4059,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance initialized to the given value.",
+                    summary: "Creates a new instance initialized to the given value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(try Double(args["other"]!))
@@ -4072,7 +4072,7 @@ extension Bridge {
                     parameters: [Parameter(label: "exactly", name: "other", type: .double)],
                     returns: .optional(.double), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance initialized to the given value, if it can be represented without rounding.",
+                    summary: "Creates a new instance initialized to the given value, if it can be represented without rounding.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Double(exactly: try Double(args["other"]!))
@@ -4085,7 +4085,7 @@ extension Bridge {
                     parameters: [Parameter(label: "to", name: "other", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the distance from this value to the given value, expressed as a stride.",
+                    summary: "Returns the distance from this value to the given value, expressed as a stride.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -4099,7 +4099,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "amount", type: .double)],
                     returns: .double, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a value that is offset the specified distance from this value.",
+                    summary: "Returns a value that is offset the specified distance from this value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Double = try Double(args["self"]!)
@@ -4113,7 +4113,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to `false`.",
+                    summary: "Creates an instance initialized to `false`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Bool()
@@ -4126,7 +4126,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "value", type: .bool)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance equal to the given Boolean value.",
+                    summary: "Creates an instance equal to the given Boolean value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Bool(try Bool(args["value"]!))
@@ -4139,7 +4139,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random Boolean value.",
+                    summary: "Returns a random Boolean value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Bool.random()
@@ -4152,7 +4152,7 @@ extension Bridge {
                     parameters: [Parameter(label: "booleanLiteral", name: "value", type: .bool)],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized to the specified Boolean literal.",
+                    summary: "Creates an instance initialized to the specified Boolean literal.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Bool(booleanLiteral: try Bool(args["value"]!))
@@ -4165,7 +4165,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the Boolean value.",
+                    summary: "A textual representation of the Boolean value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Bool = try Bool(args["self"]!)
@@ -4179,7 +4179,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Bool = try Bool(args["self"]!)
@@ -4193,7 +4193,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "description", type: .string)],
                     returns: .optional(.bool), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new Boolean value from the given string.",
+                    summary: "Creates a new Boolean value from the given string.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Bool(try String(args["description"]!))
@@ -4206,7 +4206,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Toggles the Boolean variable's value.",
+                    summary: "Toggles the Boolean variable's value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4223,7 +4223,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4237,7 +4237,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
+                    summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4251,7 +4251,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4265,7 +4265,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4279,7 +4279,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
+                    summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4293,7 +4293,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
+                    summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4307,7 +4307,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
+                    summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4321,7 +4321,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
+                    summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4335,7 +4335,7 @@ extension Bridge {
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
+                    summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4349,7 +4349,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the specified position to the end of the collection.",
+                    summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4363,7 +4363,7 @@ extension Bridge {
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection through the specified position.",
+                    summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4377,7 +4377,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4391,7 +4391,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4405,7 +4405,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
+                    summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4419,7 +4419,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4433,7 +4433,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the index of the last element in the collection that matches the given predicate.",
+                    summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4447,7 +4447,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
+                    summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4464,7 +4464,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4478,7 +4478,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Shuffles the collection in place.",
+                    summary: "Shuffles the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4495,7 +4495,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Exchanges the values at the specified indices of the collection.",
+                    summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4512,7 +4512,7 @@ extension Bridge {
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
+                    summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result: [Value] = [Value](repeating: args["repeatedValue"]!, count: try Int(args["count"]!))
@@ -4525,7 +4525,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance of a collection containing the elements of a sequence.",
+                    summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result: [Value] = [Value](try bridgeSequence(args["elements"]!))
@@ -4538,7 +4538,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds an element to the end of the collection.",
+                    summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4555,7 +4555,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
+                    summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4572,7 +4572,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Inserts a new element into the collection at the specified position.",
+                    summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4589,7 +4589,7 @@ extension Bridge {
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the element at the specified position.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4606,7 +4606,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements in the specified subrange from the collection.",
+                    summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4623,7 +4623,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
+                    summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4640,7 +4640,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the first element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4657,7 +4657,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all elements from the collection.",
+                    summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4674,7 +4674,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
+                    summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4691,7 +4691,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the last element of the collection.",
+                    summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4708,7 +4708,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the last element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4725,7 +4725,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
+                    summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4742,7 +4742,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
+                    summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4759,7 +4759,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Reverses the elements of the collection in place.",
+                    summary: "Reverses the elements of the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4776,7 +4776,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4790,7 +4790,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4804,7 +4804,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4818,7 +4818,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4832,7 +4832,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4846,7 +4846,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4860,7 +4860,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4874,7 +4874,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4888,7 +4888,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4902,7 +4902,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4916,7 +4916,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4930,7 +4930,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4944,7 +4944,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4958,7 +4958,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4972,7 +4972,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
+                    summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4989,7 +4989,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5003,7 +5003,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the collection is empty.",
+                    summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5017,7 +5017,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5031,7 +5031,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5045,7 +5045,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5059,7 +5059,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5073,7 +5073,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5087,7 +5087,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5101,7 +5101,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Sorts the collection in place.",
+                    summary: "Sorts the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5118,7 +5118,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5132,7 +5132,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index where the specified value appears in the collection.",
+                    summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5146,7 +5146,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the last index where the specified value appears in the collection.",
+                    summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5160,7 +5160,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5174,7 +5174,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5188,7 +5188,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5202,7 +5202,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
                     returns: .string, generics: ["Element": ["=String"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
+                    summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [String] = try bridgeList(args["self"]!).map { try String($0) }
@@ -5216,7 +5216,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The total number of elements that the array can contain without allocating new storage.",
+                    summary: "The total number of elements that the array can contain without allocating new storage.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5230,7 +5230,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The position of the first element in a nonempty array.",
+                    summary: "The position of the first element in a nonempty array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5244,7 +5244,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
+                    summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5258,7 +5258,7 @@ extension Bridge {
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately after the given index.",
+                    summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5272,7 +5272,7 @@ extension Bridge {
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately before the given index.",
+                    summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5286,7 +5286,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index.",
+                    summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5300,7 +5300,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
+                    summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5314,7 +5314,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the distance between two indices.",
+                    summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5328,7 +5328,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the array.",
+                    summary: "The number of elements in the array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5342,7 +5342,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new, empty array.",
+                    summary: "Creates a new, empty array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result: [Value] = [Value]()
@@ -5355,7 +5355,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5369,7 +5369,7 @@ extension Bridge {
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The indices that are valid for subscripting the collection, in ascending order.",
+                    summary: "The indices that are valid for subscripting the collection, in ascending order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5383,7 +5383,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5397,7 +5397,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5411,7 +5411,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5428,7 +5428,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
+                    summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5442,7 +5442,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
+                    summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5459,7 +5459,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5473,7 +5473,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
+                    summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5487,7 +5487,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5501,7 +5501,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5515,7 +5515,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
+                    summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5529,7 +5529,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
+                    summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5543,7 +5543,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
+                    summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5557,7 +5557,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
+                    summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5571,7 +5571,7 @@ extension Bridge {
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
+                    summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5585,7 +5585,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the specified position to the end of the collection.",
+                    summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5599,7 +5599,7 @@ extension Bridge {
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection through the specified position.",
+                    summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5613,7 +5613,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5627,7 +5627,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5641,7 +5641,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
+                    summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5655,7 +5655,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5669,7 +5669,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the index of the last element in the collection that matches the given predicate.",
+                    summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5683,7 +5683,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "belongsInSecondPartition", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
+                    summary: "Reorders the elements of the collection such that all the elements that match the given predicate are after all the elements that don't match.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5700,7 +5700,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -5714,7 +5714,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Shuffles the collection in place.",
+                    summary: "Shuffles the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5731,7 +5731,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: nil, name: "j", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Exchanges the values at the specified indices of the collection.",
+                    summary: "Exchanges the values at the specified indices of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5748,7 +5748,7 @@ extension Bridge {
                     parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Parameter(label: "count", name: "count", type: .int)],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new collection containing the specified number of a single, repeated value.",
+                    summary: "Creates a new collection containing the specified number of a single, repeated value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = ArraySlice<Value>(repeating: args["repeatedValue"]!, count: try Int(args["count"]!))
@@ -5761,7 +5761,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new instance of a collection containing the elements of a sequence.",
+                    summary: "Creates a new instance of a collection containing the elements of a sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = ArraySlice<Value>(try bridgeSequence(args["elements"]!))
@@ -5774,7 +5774,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element"))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds an element to the end of the collection.",
+                    summary: "Adds an element to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5791,7 +5791,7 @@ extension Bridge {
                     parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Adds the elements of a sequence or collection to the end of this collection.",
+                    summary: "Adds the elements of a sequence or collection to the end of this collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5808,7 +5808,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newElement", type: .parameter("Element")), Parameter(label: "at", name: "i", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Inserts a new element into the collection at the specified position.",
+                    summary: "Inserts a new element into the collection at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5825,7 +5825,7 @@ extension Bridge {
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the element at the specified position.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5842,7 +5842,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "bounds", type: .generic("Range", [.int]))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements in the specified subrange from the collection.",
+                    summary: "Removes the elements in the specified subrange from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5859,7 +5859,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the beginning of the collection.",
+                    summary: "Removes the specified number of elements from the beginning of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5876,7 +5876,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the first element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5893,7 +5893,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all elements from the collection.",
+                    summary: "Removes all elements from the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5910,7 +5910,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "n", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
+                    summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5927,7 +5927,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the last element of the collection.",
+                    summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5944,7 +5944,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes and returns the last element of the collection.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5961,7 +5961,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the specified number of elements from the end of the collection.",
+                    summary: "Removes the specified number of elements from the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5978,7 +5978,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Removes all the elements that satisfy the given predicate.",
+                    summary: "Removes all the elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5995,7 +5995,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Reverses the elements of the collection in place.",
+                    summary: "Reverses the elements of the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6012,7 +6012,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6026,7 +6026,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6040,7 +6040,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6054,7 +6054,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6068,7 +6068,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6082,7 +6082,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6096,7 +6096,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6110,7 +6110,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6124,7 +6124,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6138,7 +6138,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6152,7 +6152,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6166,7 +6166,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6180,7 +6180,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6194,7 +6194,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6208,7 +6208,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
+                    summary: "Sorts the collection in place, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6225,7 +6225,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6239,7 +6239,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the collection is empty.",
+                    summary: "A Boolean value indicating whether the collection is empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6253,7 +6253,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6267,7 +6267,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6281,7 +6281,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6295,7 +6295,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6309,7 +6309,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6323,7 +6323,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6337,7 +6337,7 @@ extension Bridge {
                     parameters: [],
                     returns: .void, generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Sorts the collection in place.",
+                    summary: "Sorts the collection in place.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6354,7 +6354,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6368,7 +6368,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index where the specified value appears in the collection.",
+                    summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6382,7 +6382,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .parameter("Element"))],
                     returns: .optional(.int), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the last index where the specified value appears in the collection.",
+                    summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6396,7 +6396,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6410,7 +6410,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6424,7 +6424,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6438,7 +6438,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .string, defaultValue: .literal(.string("")))],
                     returns: .string, generics: ["Element": ["=String"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
+                    summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<String> = ArraySlice<String>(try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!).map { try String($0) })
@@ -6452,7 +6452,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The total number of elements that the array can contain without allocating new storage.",
+                    summary: "The total number of elements that the array can contain without allocating new storage.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6466,7 +6466,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The position of the first element in a nonempty array.",
+                    summary: "The position of the first element in a nonempty array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6480,7 +6480,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
+                    summary: "The array's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6494,7 +6494,7 @@ extension Bridge {
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately after the given index.",
+                    summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6508,7 +6508,7 @@ extension Bridge {
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately before the given index.",
+                    summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6522,7 +6522,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index.",
+                    summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6536,7 +6536,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
+                    summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6550,7 +6550,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the distance between two indices.",
+                    summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6564,7 +6564,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the array.",
+                    summary: "The number of elements in the array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6578,7 +6578,7 @@ extension Bridge {
                     parameters: [],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new, empty array.",
+                    summary: "Creates a new, empty array.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = ArraySlice<Value>()
@@ -6591,7 +6591,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the array and its elements.",
+                    summary: "A textual representation of the array and its elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6605,7 +6605,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the array and its elements, suitable for debugging.",
+                    summary: "A textual representation of the array and its elements, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6619,7 +6619,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6633,7 +6633,7 @@ extension Bridge {
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The indices that are valid for subscripting the collection, in ascending order.",
+                    summary: "The indices that are valid for subscripting the collection, in ascending order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6647,7 +6647,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6661,7 +6661,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6675,7 +6675,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6692,7 +6692,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .generic("ArraySlice", [.parameter("Element")]), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
+                    summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6706,7 +6706,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes `prefix` from the start of the collection.",
+                    summary: "Removes `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6723,7 +6723,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Element": [], "T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6737,7 +6737,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6751,7 +6751,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.parameter("Element")], .void, throws: true))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6765,7 +6765,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6779,7 +6779,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6793,7 +6793,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6807,7 +6807,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6821,7 +6821,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6835,7 +6835,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.parameter("Element"), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": [], "OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6849,7 +6849,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6863,7 +6863,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6877,7 +6877,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6891,7 +6891,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6905,7 +6905,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6919,7 +6919,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .parameter("Element")], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Element": [], "Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6933,7 +6933,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6947,7 +6947,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Element": [], "SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6961,7 +6961,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Element")], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Element": [], "ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6975,7 +6975,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6989,7 +6989,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7003,7 +7003,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7017,7 +7017,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7031,7 +7031,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "sequence", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new set from a finite sequence of items.",
+                    summary: "Creates a new set from a finite sequence of items.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Set<Value>(try bridgeSequence(args["sequence"]!))
@@ -7044,7 +7044,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .void, generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements of the given set from this set.",
+                    summary: "Removes the elements of the given set from this set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7061,7 +7061,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7075,7 +7075,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7089,7 +7089,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7103,7 +7103,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7117,7 +7117,7 @@ extension Bridge {
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty set with preallocated space for at least the specified number of elements.",
+                    summary: "Creates an empty set with preallocated space for at least the specified number of elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Set<Value>(minimumCapacity: try Int(args["minimumCapacity"]!))
@@ -7130,7 +7130,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the given element exists in the set.",
+                    summary: "Returns a Boolean value that indicates whether the given element exists in the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7144,7 +7144,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set containing the elements of the set that satisfy the given predicate.",
+                    summary: "Returns a new set containing the elements of the set that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7158,7 +7158,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the set.",
+                    summary: "The number of elements in the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7172,7 +7172,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value that indicates whether the set is empty.",
+                    summary: "A Boolean value that indicates whether the set is empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7186,7 +7186,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7200,7 +7200,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newMember", type: .parameter("Element"))],
                     returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Inserts the given element in the set if it is not already present.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Inserts the given element in the set if it is not already present.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7217,7 +7217,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "newMember", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Inserts the given element into the set unconditionally.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Inserts the given element into the set unconditionally.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7234,7 +7234,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes the specified element from the set.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the specified element from the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7251,7 +7251,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all members from the set.",
+                    summary: "Removes all members from the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7268,7 +7268,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes the first element of the set.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the first element of the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7285,7 +7285,7 @@ extension Bridge {
                     parameters: [],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty set.",
+                    summary: "Creates an empty set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Set<Value>()
@@ -7298,7 +7298,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "possibleSuperset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a subset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a subset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7312,7 +7312,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "possibleStrictSuperset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7326,7 +7326,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "possibleSubset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a superset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a superset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7340,7 +7340,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "possibleStrictSubset", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7354,7 +7354,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set has no members in common with the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set has no members in common with the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7368,7 +7368,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set with the elements of both this set and the given sequence.",
+                    summary: "Returns a new set with the elements of both this set and the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7382,7 +7382,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Inserts the elements of the given sequence into the set.",
+                    summary: "Inserts the elements of the given sequence into the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7399,7 +7399,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set containing the elements of this set that do not occur in the given sequence.",
+                    summary: "Returns a new set containing the elements of this set that do not occur in the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7413,7 +7413,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements of the given sequence from the set.",
+                    summary: "Removes the elements of the given sequence from the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7430,7 +7430,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
+                    summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7444,7 +7444,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements of the set that aren't also in the given sequence.",
+                    summary: "Removes the elements of the set that aren't also in the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7461,7 +7461,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set with the elements that are either in this set or in the given sequence, but not in both.",
+                    summary: "Returns a new set with the elements that are either in this set or in the given sequence, but not in both.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7475,7 +7475,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("Element")))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Replace this set with the elements contained in this set or the given set, but not both.",
+                    summary: "Replace this set with the elements contained in this set or the given set, but not both.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7492,7 +7492,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A string that represents the contents of the set.",
+                    summary: "A string that represents the contents of the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7506,7 +7506,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A string that represents the contents of the set, suitable for debugging.",
+                    summary: "A string that represents the contents of the set, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7520,7 +7520,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether this set is a subset of the given set.",
+                    summary: "Returns a Boolean value that indicates whether this set is a subset of the given set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7534,7 +7534,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether this set is a superset of the given set.",
+                    summary: "Returns a Boolean value that indicates whether this set is a superset of the given set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7548,7 +7548,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether this set has no members in common with the given set.",
+                    summary: "Returns a Boolean value that indicates whether this set has no members in common with the given set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7562,7 +7562,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set containing the elements of this set that do not occur in the given set.",
+                    summary: "Returns a new set containing the elements of this set that do not occur in the given set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7576,7 +7576,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7590,7 +7590,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .bool, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
+                    summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7604,7 +7604,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .generic("Set", [.parameter("Element")]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
+                    summary: "Returns a new set with the elements that are common to both this set and the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7618,7 +7618,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Set", [.parameter("Element")]))],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.",
+                    summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7635,7 +7635,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the first element of the set.",
+                    summary: "Removes and returns the first element of the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7652,7 +7652,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The total number of elements that the set can contain without allocating new storage.",
+                    summary: "The total number of elements that the set can contain without allocating new storage.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7666,7 +7666,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
                     returns: .void, generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Reserves enough space to store the specified number of elements.",
+                    summary: "Reserves enough space to store the specified number of elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7683,7 +7683,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .parameter("Element")), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": ["Equatable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7697,7 +7697,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.parameter("Element")])), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
+                    summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7711,7 +7711,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7725,7 +7725,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing all but the given number of final elements.",
+                    summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7739,7 +7739,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.parameter("Element")], .bool, throws: true))],
                     returns: .list(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
+                    summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7753,7 +7753,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Key": [], "T": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7767,7 +7767,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7781,7 +7781,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .void, throws: true))],
                     returns: .void, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7795,7 +7795,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7809,7 +7809,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7823,7 +7823,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7837,7 +7837,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "PossiblePrefix.Element": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7851,7 +7851,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "OtherSequence.Element": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7865,7 +7865,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7879,7 +7879,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7893,7 +7893,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .bool, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7907,7 +7907,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .int, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7921,7 +7921,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Key": [], "Result": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7935,7 +7935,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7949,7 +7949,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Key": [], "SegmentOfResult.Element": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7963,7 +7963,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult": [], "Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7977,7 +7977,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7991,7 +7991,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8005,7 +8005,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8019,7 +8019,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8033,7 +8033,7 @@ extension Bridge {
                     parameters: [],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty dictionary.",
+                    summary: "Creates an empty dictionary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = [Value: Value]()
@@ -8046,7 +8046,7 @@ extension Bridge {
                     parameters: [Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.",
+                    summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = [Value: Value](minimumCapacity: try Int(args["minimumCapacity"]!))
@@ -8059,7 +8059,7 @@ extension Bridge {
                     parameters: [Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates a new dictionary from the key-value pairs in the given sequence.",
+                    summary: "Creates a new dictionary from the key-value pairs in the given sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = [Value: Value](uniqueKeysWithValues: try bridgeSequence(args["keysAndValues"]!).map { try bridgeTuple($0, [nil, nil]) { t in (t[0], t[1]) } })
@@ -8072,7 +8072,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "keysAndValues", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.",
+                    summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = try [Value: Value](try bridgeSequence(args["keysAndValues"]!).map { try bridgeTuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try bridgeClosure(interpreter, args["combine"]!)([a0, a1]) })
@@ -8085,7 +8085,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.",
+                    summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8099,7 +8099,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of key-value pairs in the dictionary.",
+                    summary: "The number of key-value pairs in the dictionary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8113,7 +8113,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value that indicates whether the dictionary is empty.",
+                    summary: "A Boolean value that indicates whether the dictionary is empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8127,7 +8127,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .parameter("T"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.",
+                    summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8141,7 +8141,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Value")], .optional(.parameter("T")), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("T")), generics: ["Key": ["Hashable"], "T": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.",
+                    summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8155,7 +8155,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "value", type: .parameter("Value")), Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8172,7 +8172,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.",
+                    summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8189,7 +8189,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: true,
-                    discardableResult: false, summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.",
+                    summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8206,7 +8206,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))]))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.",
+                    summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8220,7 +8220,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Parameter(label: "uniquingKeysWith", name: "combine", type: .functionType([.parameter("Value"), .parameter("Value")], .parameter("Value"), throws: true))],
                     returns: .dictionary(.parameter("Key"), .parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.",
+                    summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8234,7 +8234,7 @@ extension Bridge {
                     parameters: [Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: true, summary: "Removes the given key and its associated value from the dictionary.",
+                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the given key and its associated value from the dictionary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8251,7 +8251,7 @@ extension Bridge {
                     parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes all key-value pairs from the dictionary.",
+                    summary: "Removes all key-value pairs from the dictionary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8268,7 +8268,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8282,7 +8282,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.",
+                    summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8299,7 +8299,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The total number of key-value pairs that the dictionary can contain without allocating new storage.",
+                    summary: "The total number of key-value pairs that the dictionary can contain without allocating new storage.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8313,7 +8313,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
                     returns: .void, generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Reserves enough space to store the specified number of key-value pairs.",
+                    summary: "Reserves enough space to store the specified number of key-value pairs.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8330,7 +8330,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8344,7 +8344,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing all but the given number of final elements.",
+                    summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8358,7 +8358,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
+                    summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8372,7 +8372,7 @@ extension Bridge {
                     parameters: [Parameter(label: "nilLiteral", name: "nilLiteral", type: .void)],
                     returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance initialized with `nil`.",
+                    summary: "Creates an instance initialized with `nil`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Value?(nilLiteral: try bridgeTuple(args["nilLiteral"]!, []) { t in () })
@@ -8385,7 +8385,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .parameter("U"), throws: true))],
                     returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
+                    summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
@@ -8399,7 +8399,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.parameter("Wrapped")], .optional(.parameter("U")), throws: true))],
                     returns: .optional(.parameter("U")), generics: ["U": [], "Wrapped": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
+                    summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
@@ -8413,7 +8413,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Wrapped"), generics: ["Wrapped": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The wrapped value of this instance, unwrapped without checking whether the instance is `nil`.",
+                    summary: "The wrapped value of this instance, unwrapped without checking whether the instance is `nil`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
@@ -8427,7 +8427,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Wrapped")), generics: ["Wrapped": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    discardableResult: false, summary: "Takes the wrapped value being stored in this instance and returns it while also setting the instance to `nil`. If there is no value being stored in this instance, this returns `nil` instead.",
+                    summary: "Takes the wrapped value being stored in this instance and returns it while also setting the instance to `nil`. If there is no value being stored in this instance, this returns `nil` instead.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8444,7 +8444,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Wrapped": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Value? = (args["self"]! == .nothing ? nil : args["self"]!)
@@ -8458,7 +8458,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The range's lower bound.",
+                    summary: "The range's lower bound.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8472,7 +8472,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The range's upper bound.",
+                    summary: "The range's upper bound.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8486,7 +8486,7 @@ extension Bridge {
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
                     returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance with the given bounds.",
+                    summary: "Creates an instance with the given bounds.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Range<Value>(uncheckedBounds: try bridgeTuple(args["bounds"]!, ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
@@ -8499,7 +8499,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
+                    summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8513,7 +8513,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Bound": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the range contains no elements.",
+                    summary: "A Boolean value indicating whether the range contains no elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8527,7 +8527,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The position of the first element in a nonempty collection.",
+                    summary: "The position of the first element in a nonempty collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8541,7 +8541,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
+                    summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8555,7 +8555,7 @@ extension Bridge {
                     parameters: [Parameter(label: "after", name: "i", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately after the given index.",
+                    summary: "Returns the position immediately after the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8569,7 +8569,7 @@ extension Bridge {
                     parameters: [Parameter(label: "before", name: "i", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the position immediately before the given index.",
+                    summary: "Returns the position immediately before the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8583,7 +8583,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "n", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index.",
+                    summary: "Returns an index that is the specified distance from the given index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8597,7 +8597,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int), Parameter(label: "to", name: "end", type: .int)],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the distance between two indices.",
+                    summary: "Returns the distance between two indices.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8611,7 +8611,7 @@ extension Bridge {
                     parameters: [],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The indices that are valid for subscripting the range, in ascending order.",
+                    summary: "The indices that are valid for subscripting the range, in ascending order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8625,7 +8625,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.int]))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance equivalent to the given `ClosedRange`.",
+                    summary: "Creates an instance equivalent to the given `ClosedRange`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = Range<Int>(try bridgeClosedRange(args["other"]!) { try Int($0) })
@@ -8638,7 +8638,7 @@ extension Bridge {
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .generic("Range", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a copy of this range clamped to the given limiting range.",
+                    summary: "Returns a copy of this range clamped to the given limiting range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8652,7 +8652,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the range.",
+                    summary: "A textual representation of the range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8666,7 +8666,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the range, suitable for debugging.",
+                    summary: "A textual representation of the range, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8680,7 +8680,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8694,7 +8694,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
+                    summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8708,7 +8708,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
+                    summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8722,7 +8722,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given range is contained within this range.",
+                    summary: "Returns a Boolean value indicating whether the given range is contained within this range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8736,7 +8736,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given closed range is contained within this range.",
+                    summary: "Returns a Boolean value indicating whether the given closed range is contained within this range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Value> = try SwiftValue.unbox(Range<Value>.self, args["self"]!)
@@ -8750,7 +8750,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "i", type: .int), Parameter(label: "offsetBy", name: "distance", type: .int), Parameter(label: "limitedBy", name: "limit", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
+                    summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8764,7 +8764,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the specified number of final elements.",
+                    summary: "Returns a subsequence containing all but the specified number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8778,7 +8778,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8792,7 +8792,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the collection.",
+                    summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8806,7 +8806,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8820,7 +8820,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8834,7 +8834,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8848,7 +8848,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8862,7 +8862,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing all but the given number of initial elements.",
+                    summary: "Returns a subsequence containing all but the given number of initial elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8876,7 +8876,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
+                    summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8890,7 +8890,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
+                    summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8904,7 +8904,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
+                    summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8918,7 +8918,7 @@ extension Bridge {
                     parameters: [Parameter(label: "upTo", name: "end", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
+                    summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8932,7 +8932,7 @@ extension Bridge {
                     parameters: [Parameter(label: "from", name: "start", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the specified position to the end of the collection.",
+                    summary: "Returns a subsequence from the specified position to the end of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8946,7 +8946,7 @@ extension Bridge {
                     parameters: [Parameter(label: "through", name: "position", type: .int)],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence from the start of the collection through the specified position.",
+                    summary: "Returns a subsequence from the start of the collection through the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8960,7 +8960,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8974,7 +8974,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("Range", [.int])), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -8988,7 +8988,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9002,7 +9002,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index where the specified value appears in the collection.",
+                    summary: "Returns the first index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9016,7 +9016,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
+                    summary: "Returns the first index in which an element of the collection satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9030,7 +9030,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9044,7 +9044,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the index of the last element in the collection that matches the given predicate.",
+                    summary: "Returns the index of the last element in the collection that matches the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9058,7 +9058,7 @@ extension Bridge {
                     parameters: [Parameter(label: "of", name: "element", type: .int)],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the last index where the specified value appears in the collection.",
+                    summary: "Returns the last index where the specified value appears in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9072,7 +9072,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9086,7 +9086,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9100,7 +9100,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
                     returns: .void, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9114,7 +9114,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9128,7 +9128,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9142,7 +9142,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9156,7 +9156,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9170,7 +9170,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9184,7 +9184,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9198,7 +9198,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9212,7 +9212,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9226,7 +9226,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9240,7 +9240,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9254,7 +9254,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9268,7 +9268,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9282,7 +9282,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9296,7 +9296,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9310,7 +9310,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9324,7 +9324,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9338,7 +9338,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9352,7 +9352,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9366,7 +9366,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9380,7 +9380,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9394,7 +9394,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "",
+                    summary: "",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9408,7 +9408,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.int))],
                     returns: .generic("Range", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
+                    summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9422,7 +9422,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The range's lower bound.",
+                    summary: "The range's lower bound.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9436,7 +9436,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Bound"), generics: ["Bound": []],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The range's upper bound.",
+                    summary: "The range's upper bound.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9450,7 +9450,7 @@ extension Bridge {
                     parameters: [Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))],
                     returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance with the given bounds.",
+                    summary: "Creates an instance with the given bounds.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = ClosedRange<Value>(uncheckedBounds: try bridgeTuple(args["bounds"]!, ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
@@ -9463,7 +9463,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A Boolean value indicating whether the range contains no elements.",
+                    summary: "A Boolean value indicating whether the range contains no elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9477,7 +9477,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "element", type: .parameter("Bound"))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
+                    summary: "Returns a Boolean value indicating whether the given element is contained within the range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9491,7 +9491,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.",
+                    summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9505,7 +9505,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the given closed range is contained within this closed range.",
+                    summary: "Returns a Boolean value indicating whether the given closed range is contained within this closed range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9519,7 +9519,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["Comparable", "Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The hash value.",
+                    summary: "The hash value.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9533,7 +9533,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the range.",
+                    summary: "A textual representation of the range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9547,7 +9547,7 @@ extension Bridge {
                     parameters: [],
                     returns: .string, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A textual representation of the range, suitable for debugging.",
+                    summary: "A textual representation of the range, suitable for debugging.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9561,7 +9561,7 @@ extension Bridge {
                     parameters: [Parameter(label: "to", name: "limits", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .generic("ClosedRange", [.parameter("Bound")]), generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a copy of this range clamped to the given limiting range.",
+                    summary: "Returns a copy of this range clamped to the given limiting range.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9575,7 +9575,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.int]))],
                     returns: .generic("ClosedRange", [.int]), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Creates an instance equivalent to the given `Range`.",
+                    summary: "Creates an instance equivalent to the given `Range`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = ClosedRange<Int>(try bridgeRange(args["other"]!) { try Int($0) })
@@ -9588,7 +9588,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("ClosedRange", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
+                    summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9602,7 +9602,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .generic("Range", [.parameter("Bound")]))],
                     returns: .bool, generics: ["Bound": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
+                    summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Value> = try SwiftValue.unbox(ClosedRange<Value>.self, args["self"]!)
@@ -9616,7 +9616,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The number of elements in the collection.",
+                    summary: "The number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9630,7 +9630,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a random element of the collection.",
+                    summary: "Returns a random element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9644,7 +9644,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The first element of the collection.",
+                    summary: "The first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9658,7 +9658,7 @@ extension Bridge {
                     parameters: [],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "A value less than or equal to the number of elements in the collection.",
+                    summary: "A value less than or equal to the number of elements in the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9672,7 +9672,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .parameter("T"), throws: true))],
                     returns: .list(.parameter("T")), generics: ["Bound": ["=Int"], "T": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
+                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9686,7 +9686,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "The last element of the collection.",
+                    summary: "The last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9700,7 +9700,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the last element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9714,7 +9714,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, shuffled.",
+                    summary: "Returns the elements of the sequence, shuffled.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9728,7 +9728,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
+                    summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9742,7 +9742,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "body", type: .functionType([.int], .void, throws: true))],
                     returns: .void, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
+                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9756,7 +9756,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the first element of the sequence that satisfies the given predicate.",
+                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9770,7 +9770,7 @@ extension Bridge {
                     parameters: [Parameter(label: "separator", name: "separator", type: .int), Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true)))],
                     returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
+                    summary: "Returns the longest possible subsequences of the sequence, in order, around elements equal to the given element.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9784,7 +9784,7 @@ extension Bridge {
                     parameters: [Parameter(label: "maxSplits", name: "maxSplits", type: .int, externalDefault: "Int.max"), Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, defaultValue: .literal(.bool(true))), Parameter(label: "whereSeparator", name: "isSeparator", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.generic("ArraySlice", [.int])), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
+                    summary: "Returns the longest possible subsequences of the sequence, in order, that don't contain elements satisfying the given predicate. Elements that are used to split the sequence are not returned as part of any subsequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9798,7 +9798,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "maxLength", type: .int)],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
+                    summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9812,7 +9812,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "k", type: .int, defaultValue: .literal(.int(1)))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing all but the given number of final elements.",
+                    summary: "Returns a sequence containing all but the given number of final elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9826,7 +9826,7 @@ extension Bridge {
                     parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
+                    summary: "Returns a sequence containing the initial, consecutive elements that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9840,7 +9840,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9854,7 +9854,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9868,7 +9868,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the minimum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9882,7 +9882,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the maximum element in the sequence.",
+                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9896,7 +9896,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("PossiblePrefix.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "PossiblePrefix.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9910,7 +9910,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
+                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9924,7 +9924,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.int, .parameter("OtherSequence.Element")], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"], "OtherSequence.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9938,7 +9938,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
+                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9952,7 +9952,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int)), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9966,7 +9966,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "other", type: .someSequence(.int))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
+                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9980,7 +9980,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
+                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9994,7 +9994,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .bool, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
+                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10008,7 +10008,7 @@ extension Bridge {
                     parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.int], .bool, throws: true))],
                     returns: .int, generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
+                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10022,7 +10022,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .int], .parameter("Result"), throws: true))],
                     returns: .parameter("Result"), generics: ["Bound": ["=Int"], "Result": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the result of combining the elements of the sequence using the given closure.",
+                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10036,7 +10036,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the elements of this sequence in reverse order.",
+                    summary: "Returns an array containing the elements of this sequence in reverse order.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10050,7 +10050,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
                     returns: .list(.parameter("SegmentOfResult.Element")), generics: ["Bound": ["=Int"], "SegmentOfResult.Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10064,7 +10064,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "transform", type: .functionType([.int], .optional(.parameter("ElementOfResult")), throws: true))],
                     returns: .list(.parameter("ElementOfResult")), generics: ["Bound": ["=Int"], "ElementOfResult": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
+                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10078,7 +10078,7 @@ extension Bridge {
                     parameters: [],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted.",
+                    summary: "Returns the elements of the sequence, sorted.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -10092,7 +10092,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .list(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    discardableResult: false, summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
+                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }

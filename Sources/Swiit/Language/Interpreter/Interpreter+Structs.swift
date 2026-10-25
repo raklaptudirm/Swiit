@@ -125,6 +125,7 @@ extension Interpreter {
                         body: natives["\(decl.name).\(method.name)"] ?? .swiit(method.body),
                         captured: captureScopes(method.names),
                         documentation: method.documentation,
+                        attributes: method.attributes,
                         isMutating: method.isMutating,
                         isThrowing: method.isThrowing
                     )
@@ -193,6 +194,7 @@ extension Interpreter {
                         body: .swiit(method.body),
                         captured: captureScopes(method.names),
                         documentation: method.documentation,
+                        attributes: method.attributes,
                         isThrowing: method.isThrowing
                     )
                 )
@@ -420,6 +422,7 @@ extension Interpreter {
                     )
                 },
                 documentation: method.documentation,
+                attributes: method.attributes,
                 isMutating: method.isMutating
             )
         }

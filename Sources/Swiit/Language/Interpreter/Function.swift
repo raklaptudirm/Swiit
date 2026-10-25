@@ -15,6 +15,8 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     public let body: FunctionBody
     public let captured: [Scope]
     public let documentation: Documentation?
+    /// The attributes it was declared with.
+    public let attributes: [Attribute]
     /// A struct's `mutating func` (or `init`), which may change `self`.
     public let isMutating: Bool
     /// `throws`: a call to it needs `try`.
@@ -46,6 +48,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
         body: FunctionBody,
         captured: [Scope] = [],
         documentation: Documentation? = nil,
+        attributes: [Attribute] = [],
         isMutating: Bool = false,
         isThrowing: Bool = false,
         isRethrowing: Bool = false,
@@ -72,6 +75,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
         self.body = body
         self.captured = captured
         self.documentation = documentation
+        self.attributes = attributes
     }
 
     /// It, with `scope` among what it captured: the types of its type parameters, for one call.
@@ -83,6 +87,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
             body: body,
             captured: captured + [scope],
             documentation: documentation,
+            attributes: attributes,
             isMutating: isMutating,
             isThrowing: isThrowing,
             isRethrowing: isRethrowing,

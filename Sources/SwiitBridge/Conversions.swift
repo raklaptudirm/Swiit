@@ -182,3 +182,47 @@ func quoted(_ text: String) -> String {
         + text.replacingOccurrences(of: "\\", with: "\\\\")
         .replacingOccurrences(of: "\"", with: "\\\"") + "\""
 }
+
+/// The attributes written at the start of a declaration (`@discardableResult mutating func …`), as
+/// the code that makes them, ending in `", "` for a place before another argument; nothing when
+/// there are none. The compiler's underscored ones are left out.
+func attributesCode(of declaration: String) -> String {
+    var rest = Substring(declaration.drop { $0.isWhitespace })
+    var made: [String] = []
+    while rest.first == "@" {
+        rest = rest.dropFirst()
+        let name = String(rest.prefix { $0.isLetter || $0.isNumber || $0 == "_" })
+        rest = rest.dropFirst(name.count)
+        var arguments: [String] = []
+        if rest.first == "(" {
+            var depth = 0
+            var current = ""
+            var consumed = 0
+            for character in rest {
+                consumed += 1
+                if character == "(" {
+                    depth += 1
+                    if depth == 1 { continue }
+                } else if character == ")" {
+                    depth -= 1
+                    if depth == 0 { break }
+                }
+                if character == ",", depth == 1 {
+                    arguments.append(current.trimmingCharacters(in: .whitespaces))
+                    current = ""
+                } else {
+                    current.append(character)
+                }
+            }
+            if !current.isEmpty { arguments.append(current.trimmingCharacters(in: .whitespaces)) }
+            rest = rest.dropFirst(consumed)
+        }
+        rest = Substring(rest.drop { $0.isWhitespace })
+        if name.hasPrefix("_") { continue }
+        let argumentsCode =
+            arguments.isEmpty
+            ? "" : ", arguments: [\(arguments.map(quoted).joined(separator: ", "))]"
+        made.append("Attribute(name: \(quoted(name))\(argumentsCode))")
+    }
+    return made.isEmpty ? "" : "attributes: [\(made.joined(separator: ", "))], "
+}

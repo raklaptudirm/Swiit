@@ -139,6 +139,7 @@ extension Interpreter {
                     )
                 },
                 documentation: method.documentation,
+                attributes: method.attributes,
                 isMutating: method.isMutating
             )
         }

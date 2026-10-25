@@ -67,7 +67,7 @@ extension Bridge {
             isThrowing: throwing,
             isRethrowing: false,
             isMutating: false,
-            discardableResult: kind == .initializer,
+            attributes: kind == .initializer ? [Attribute(name: "discardableResult")] : [],
             summary: summary,
             body: .native(body),
             effect: effect,

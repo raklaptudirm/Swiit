@@ -23,7 +23,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
         do {
             let checked = try TypeChecker(interpreter: interpreter).check(program)
             // As a prompt would: each top-level value statement is shown.
-            _ = try interpreter.run(checked) { value, _, _ in
+            _ = try interpreter.run(checked) { value, _ in
                 captured.add(value.debugDescription + "\n")
             }
             return (output, nil)

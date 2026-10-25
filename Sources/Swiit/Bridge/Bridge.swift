@@ -208,9 +208,9 @@ struct BridgedMember: Sendable {
     /// Changes its receiver, like `append`. Its glue gives the result and
     /// the changed receiver, which the host puts back.
     public let isMutating: Bool
-    /// `@discardableResult`, like `removeLast()`: a statement that's just
-    /// the call doesn't show what it gives.
-    public let discardableResult: Bool
+    /// The attributes it is declared with, as Swift writes them: `@discardableResult` on
+    /// `removeLast()`.
+    public let attributes: [Attribute]
     /// Its documentation's first paragraph, from Swift's: what `help` shows.
     public let summary: String
     /// Converts the arguments (and `self`), calls Swift, and converts back.
@@ -237,7 +237,7 @@ struct BridgedMember: Sendable {
         isThrowing: Bool,
         isRethrowing: Bool,
         isMutating: Bool,
-        discardableResult: Bool,
+        attributes: [Attribute] = [],
         summary: String,
         body: FunctionBody,
         parameterDocs: [String: String] = [:],
@@ -255,7 +255,7 @@ struct BridgedMember: Sendable {
         self.isThrowing = isThrowing
         self.isRethrowing = isRethrowing
         self.isMutating = isMutating
-        self.discardableResult = discardableResult
+        self.attributes = attributes
         self.summary = summary
         self.body = body
         self.parameterDocs = parameterDocs

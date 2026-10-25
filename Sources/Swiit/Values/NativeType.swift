@@ -160,7 +160,7 @@ extension Interpreter {
                     isThrowing: member.isThrowing,
                     isRethrowing: member.isRethrowing,
                     isMutating: false,
-                    discardableResult: member.discardableResult,
+                    attributes: member.attributes,
                     summary: member.summary,
                     body: body,
                     parameterDocs: member.parameterDocs,
@@ -236,7 +236,6 @@ extension BridgedMember {
                 isThrowing: function?.isThrowing ?? false,
                 isRethrowing: false,
                 isMutating: isMutating,
-                discardableResult: false,
                 summary: member.summary,
                 body: .native { _, arguments in try call(arguments) },
                 effect: function?.isAsync == true ? .async : .sync

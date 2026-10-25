@@ -12,6 +12,8 @@ public struct HostFunction: Sendable {
     public let summary: String
     /// Its parameters, what it gives back, and whether it throws.
     public let signature: Symbol.Function
+    /// The attributes it is declared with, such as `Attribute(name: "discardableResult")`.
+    public let attributes: [Attribute]
     /// Called with every argument bound, by parameter name, except ones left to a Swift default.
     let call: @Sendable ([String: Value]) throws -> Value
 
@@ -22,10 +24,12 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: ScriptType = .void,
         isThrowing: Bool = false,
+        attributes: [Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.name = name
         self.summary = summary
+        self.attributes = attributes
         self.signature = Symbol.Function(
             parameters: parameters,
             returns: returns,
@@ -48,6 +52,7 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: T.Type,
         isThrowing: Bool = false,
+        attributes: [Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.init(
@@ -56,6 +61,7 @@ public struct HostFunction: Sendable {
             parameters: parameters,
             returns: ScriptType(returns),
             isThrowing: isThrowing,
+            attributes: attributes,
             body: body
         )
     }
@@ -70,6 +76,7 @@ public struct HostFunction: Sendable {
         self.name = name
         self.summary = summary
         self.signature = signature
+        self.attributes = []
         self.call = call
     }
 }

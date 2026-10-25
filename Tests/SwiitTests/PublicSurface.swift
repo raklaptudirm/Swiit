@@ -9,6 +9,7 @@ enum PublicSurface {
 
         "ScriptConvertible", "HostFunction", "Diagnostic", "SourceRange", "OutputSink",
         "Symbol",
+        "Attribute",
         "HostType", "Cancellation",
         "TypeInfo", "ScriptTask",
         "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",

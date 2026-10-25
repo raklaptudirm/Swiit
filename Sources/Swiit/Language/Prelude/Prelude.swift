@@ -181,6 +181,7 @@ extension Interpreter {
             // What it is written in sees the globals, as a function a script declares does.
             captured: Array(scopes.prefix(1)),
             documentation: decl.documentation,
+            attributes: decl.attributes,
             isThrowing: decl.isThrowing,
             isRethrowing: decl.isRethrowing,
             effect: decl.effect,

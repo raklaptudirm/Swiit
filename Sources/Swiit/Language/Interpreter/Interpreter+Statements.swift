@@ -8,17 +8,22 @@ extension Interpreter {
     /// value of each of the program's own expression statements. Statements
     /// nested in blocks, like the body of a `for`, aren't the program's own,
     /// as in Swift's REPL: use `print` for those.
+    /// What it gives back is the value of the program's last statement when that is an expression
+    /// that ran, and nothing otherwise.
+    @discardableResult
     func run(
         _ program: Program,
         observing observer: ValueObserver? = nil,
         onError handle: ((Diagnostic) -> Bool)? = nil,
         finish: (() -> Void)? = nil
-    ) throws {
+    ) throws -> Value {
+        var result = Value.nothing
         try hoistDeclarations(program)
         // `defer` blocks run as the block ends, however it ends.
         var deferred: [Program] = []
         defer { runDeferred(deferred) }
         for (index, statement) in program.statements.enumerated() {
+            result = .nothing
             if case .deferBlock(let body) = statement {
                 deferred.append(body)
                 continue
@@ -26,8 +31,13 @@ extension Interpreter {
             if statement.declaresType { continue }  // Hoisted.
             try checkInterrupt()
             do {
-                if let observer, case .expression(let expression) = statement {
-                    try runObserved(expression, observer)
+                if case .expression(let expression) = statement {
+                    result =
+                        if let observer {
+                            try runObserved(expression, observer)
+                        } else {
+                            try runExpression(expression)
+                        }
                 } else {
                     try run(statement)
                 }
@@ -58,6 +68,7 @@ extension Interpreter {
         finish?()
         // Whatever the last statement let go of.
         if hasPendingDeinits { runPendingDeinits() }
+        return result
     }
 
     /// The branch of an `if` its condition picks, with what the condition
@@ -164,6 +175,7 @@ extension Interpreter {
                 body: .swiit(decl.body),
                 captured: captureScopes(decl.names),
                 documentation: decl.documentation,
+                attributes: decl.attributes,
                 isThrowing: decl.isThrowing,
                 effect: decl.effect,
                 typeParameters: decl.runtimeTypeParameters
@@ -263,16 +275,20 @@ extension Interpreter {
     /// An expression statement at the top level: evaluated, and shown to the
     /// observer (unless it is a bare `true` or `false`, which stand in for the
     /// Unix commands).
-    func runObserved(_ expr: Expr, _ observer: ValueObserver) throws {
+    /// An expression statement: its value, with the host told it finished.
+    func runExpression(_ expr: Expr) throws -> Value {
+        let value = try evaluate(expr)
+        finished(.expression(expr), value)
+        return value
+    }
+
+    func runObserved(_ expr: Expr, _ observer: ValueObserver) throws -> Value {
+        task.lastCallee = nil
         let value = try evaluate(expr)
         let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
-        // `xs.removeLast()` alone: Swift's @discardableResult.
-        let discarded =
-            if case .bridged(let type, let member, _, _) = expr {
-                Bridge.types[type]?.members[member].discardableResult == true
-            } else { false }
-        if !isBoolLiteral { try observer(value, expr, discarded) }
+        if !isBoolLiteral { try observer(value, calleeSymbol(of: expr)) }
         finished(.expression(expr), value)
+        return value
     }
 
     /// Runs one iteration; false means `break`. A `break` or `continue` that
@@ -382,4 +398,28 @@ extension Interpreter {
     }
 }
 
-typealias ValueObserver = (_ value: Value, _ expression: Expr, _ discarded: Bool) throws -> Void
+typealias ValueObserver = (_ value: Value, _ callee: Symbol?) throws -> Void
+
+extension Interpreter {
+    /// The function an expression statement just called, when the statement is a call (through the
+    /// `try`, `await` and `!` around it): what a host asks for its attributes, such as
+    /// `@discardableResult`.
+    func calleeSymbol(of expression: Expr) -> Symbol? {
+        var expression = expression
+        while true {
+            switch expression {
+            case .attempt(let inner, _), .await(let inner, _), .forceUnwrap(let inner),
+                .specialized(let inner, _), .chosen(let inner, _), .described(let inner, _),
+                .annotated(let inner, _), .voidValue(let inner):
+                expression = inner
+            case .bridged(let type, let member, _, _):
+                guard let found = Bridge.types[type]?.members[member] else { return nil }
+                return bridgedSymbol(found, checker: TypeChecker(interpreter: self))
+            case .call:
+                return task.lastCallee.map { symbol(of: $0, named: "closure") }
+            default:
+                return nil
+            }
+        }
+    }
+}

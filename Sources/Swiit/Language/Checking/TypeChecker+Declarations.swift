@@ -209,6 +209,7 @@ extension TypeChecker {
                 isThrowing: method.isThrowing
             )
             signature.thrownType = method.thrownType
+            signature.attributes = method.attributes
             signature.index = methods[method.name]?.count ?? 0
             methods[method.name, default: []].append(signature)
         }

@@ -15,6 +15,12 @@ extension FunctionDecl {
         return copy
     }
 
+    func withAttributes(_ attributes: [Attribute]) -> FunctionDecl {
+        var copy = self
+        copy.attributes = attributes
+        return copy
+    }
+
     func withThrown(_ type: TypeAnnotation?) -> FunctionDecl {
         var copy = self
         copy.thrownType = type
@@ -55,6 +61,8 @@ struct FunctionDecl: Equatable, Sendable {
     var resultBuilder: String?
     /// `nonisolated`: an actor's member reached without `await`.
     var isNonisolated = false
+    /// The attributes written on it, all of them: `@discardableResult`, `@available(…)`.
+    var attributes: [Attribute] = []
     /// `convenience init`: makes the value through another initializer.
     var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and

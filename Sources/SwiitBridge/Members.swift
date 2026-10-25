@@ -322,7 +322,7 @@ func bridge(
                                 parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
                                 returns: .void, generics: [:],
                                 isThrowing: false, isRethrowing: false, isMutating: true,
-                                discardableResult: false, summary: "",
+                                summary: "",
                                 body: .native { interpreter, args in
                                     _ = interpreter
                                     var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
@@ -366,7 +366,7 @@ func bridge(
                             parameters: [\(parameterCode.joined(separator: ", "))],
                             returns: \(annotation(returns)), generics: \(genericsCode),
                             isThrowing: \(declaration.throwing), isRethrowing: \(declaration.rethrowing), isMutating: \(declaration.isMutating),
-                            discardableResult: \(text.contains("@discardableResult")), summary: \(quoted(symbol.summary)),
+                            \(attributesCode(of: text))summary: \(quoted(symbol.summary)),
                             body: .native { interpreter, args in
                                 _ = interpreter
                                 \(body)

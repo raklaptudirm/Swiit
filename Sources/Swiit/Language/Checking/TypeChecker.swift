@@ -57,6 +57,8 @@ final class TypeChecker {
         /// Its result is flattened if it is an optional of an optional (see
         /// `Function.flattensResult`).
         var flattensResult = false
+        /// The attributes it was declared with.
+        var attributes: [Attribute] = []
 
         init(
             name: String,

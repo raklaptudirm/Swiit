@@ -4,6 +4,28 @@ import Foundation
 // and types there are, which overload a call means, and the type of an expression. One lookup for
 // everything a name can mean.
 
+/// An attribute written on a declaration, as written: `@discardableResult` is a name with no
+/// arguments, `@available(*, deprecated)` is `available` with two. What an attribute means is up to
+/// whatever looks it up by name: the checker for some, a host for the rest.
+public struct Attribute: Sendable, Hashable {
+    /// What follows the `@`.
+    public var name: String
+    /// The text between the parentheses, one element per comma-separated argument.
+    public var arguments: [String]
+
+    public init(name: String, arguments: [String] = []) {
+        self.name = name
+        self.arguments = arguments
+    }
+}
+
+extension Sequence where Element == Attribute {
+    /// Whether one named `name` is among them.
+    public func contains(named name: String) -> Bool {
+        contains { $0.name == name }
+    }
+}
+
 /// Something a script can name: a function or method, a variable or property, or a type. Only a
 /// function has parameters and effects, only a variable can be settable, only a type has a
 /// declaration kind: what a symbol is decides what it has.
@@ -12,6 +34,8 @@ public struct Symbol: Sendable, Hashable {
     /// The line `help` shows, when it has one.
     public var summary: String?
     public var declaration: Declaration
+    /// The attributes it was declared with: `@discardableResult`, `@available(…)`, and the rest.
+    public var attributes: [Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
 
@@ -104,10 +128,16 @@ public struct Symbol: Sendable, Hashable {
         }
     }
 
-    public init(name: String, summary: String? = nil, declaration: Declaration) {
+    public init(
+        name: String,
+        summary: String? = nil,
+        declaration: Declaration,
+        attributes: [Attribute] = []
+    ) {
         self.name = name
         self.summary = summary
         self.declaration = declaration
+        self.attributes = attributes
     }
 
     /// The function this is, if it is one.
@@ -206,30 +236,7 @@ extension Interpreter {
         case .function(let callable):
             let candidates =
                 (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
-            return candidates.map { function in
-                var symbol = Symbol(
-                    name: function.name ?? name,
-                    summary: function.documentation.map(\.summary)
-                        .flatMap { $0.isEmpty ? nil : $0 },
-                    declaration: .function(
-                        Symbol.Function(
-                            parameters: function.parameters.map {
-                                parameter(
-                                    $0,
-                                    documentation: function.documentation?.parameters[$0.name]
-                                )
-                            },
-                            returns: function.returnType.map(ScriptType.init) ?? .void,
-                            isThrowing: function.isThrowing,
-                            isAsync: function.effect != .sync,
-                            isMutating: function.isMutating,
-                            generics: function.generics
-                        )
-                    )
-                )
-                symbol.isBuiltin = function.isBuiltin
-                return symbol
-            }
+            return candidates.map { symbol(of: $0, named: name) }
         case .object(is StructType): return [Symbol(name: name, declaration: .type(.structure))]
         case .object(is EnumType): return [Symbol(name: name, declaration: .type(.enumeration))]
         case .object(let type as ClassType):
@@ -247,6 +254,83 @@ extension Interpreter {
                 )
             ]
         }
+    }
+
+    /// What a function is, as a symbol: `name` when it has none of its own.
+    func symbol(of function: Function, named name: String) -> Symbol {
+        var symbol = Symbol(
+            name: function.name ?? name,
+            summary: function.documentation.map(\.summary)
+                .flatMap { $0.isEmpty ? nil : $0 },
+            declaration: .function(
+                Symbol.Function(
+                    parameters: function.parameters.map {
+                        parameter(
+                            $0,
+                            documentation: function.documentation?.parameters[$0.name]
+                        )
+                    },
+                    returns: function.returnType.map(ScriptType.init) ?? .void,
+                    isThrowing: function.isThrowing,
+                    isAsync: function.effect != .sync,
+                    isMutating: function.isMutating,
+                    generics: function.generics
+                )
+            ),
+            attributes: function.attributes
+        )
+        symbol.isBuiltin = function.isBuiltin
+        return symbol
+    }
+
+    /// What a bridged Swift member is, as a symbol: a method is a function, anything else a variable.
+    /// `bindings` says what the generic parameters of its type are.
+    func bridgedSymbol(
+        _ member: BridgedMember,
+        checker: TypeChecker,
+        bindings: [String: TypeAnnotation] = [:],
+        isSettable: Bool = false
+    ) -> Symbol {
+        guard member.kind == .method else {
+            return Symbol(
+                name: member.name,
+                summary: member.summary.isEmpty ? nil : member.summary,
+                declaration: .variable(
+                    ScriptType(checker.substitute(member.returns, bindings)),
+                    isSettable: isSettable
+                ),
+                attributes: member.attributes
+            )
+        }
+        return Symbol(
+            name: member.name,
+            summary: member.summary.isEmpty ? nil : member.summary,
+            declaration: .function(
+                Symbol.Function(
+                    parameters: member.parameters.map {
+                        let substituted = checker.substitute($0.type, bindings)
+                        var made = Symbol.Parameter(
+                            label: $0.label,
+                            name: $0.name,
+                            type: ScriptType(substituted),
+                            arity: $0.variadic
+                                ? .variadic
+                                : $0.defaultValue != nil || $0.externalDefault != nil
+                                    ? .defaulted(.computed) : .required,
+                            documentation: member.parameterDocs[$0.name]
+                        )
+                        made.annotation = substituted
+                        return made
+                    },
+                    returns: ScriptType(checker.substitute(member.returns, bindings)),
+                    isThrowing: member.isThrowing,
+                    isAsync: member.effect != .sync,
+                    isMutating: member.isMutating,
+                    generics: member.generics
+                )
+            ),
+            attributes: member.attributes
+        )
     }
 
     fileprivate func parameter(
@@ -287,7 +371,8 @@ extension Interpreter {
                             isMutating: signature.isMutating,
                             generics: signature.generics
                         )
-                    )
+                    ),
+                    attributes: signature.attributes
                 )
             )
         }
@@ -323,52 +408,14 @@ extension Interpreter {
             where !member.isStatic && member.kind != .initializer && member.kind != .setter
                 && (name == nil || name == member.name)
             {
-                if member.kind == .method {
-                    found.append(
-                        Symbol(
-                            name: member.name,
-                            summary: member.summary.isEmpty ? nil : member.summary,
-                            declaration: .function(
-                                Symbol.Function(
-                                    parameters: member.parameters.map {
-                                        let substituted = checker.substitute($0.type, bindings)
-                                        var made = Symbol.Parameter(
-                                            label: $0.label,
-                                            name: $0.name,
-                                            type: ScriptType(substituted),
-                                            arity: $0.variadic
-                                                ? .variadic
-                                                : $0.defaultValue != nil
-                                                    || $0.externalDefault != nil
-                                                    ? .defaulted(.computed) : .required,
-                                            documentation: member.parameterDocs[$0.name]
-                                        )
-                                        made.annotation = substituted
-                                        return made
-                                    },
-                                    returns: ScriptType(
-                                        checker.substitute(member.returns, bindings)
-                                    ),
-                                    isThrowing: member.isThrowing,
-                                    isAsync: member.effect != .sync,
-                                    isMutating: member.isMutating,
-                                    generics: member.generics
-                                )
-                            )
-                        )
+                found.append(
+                    bridgedSymbol(
+                        member,
+                        checker: checker,
+                        bindings: bindings,
+                        isSettable: settable.contains(member.name)
                     )
-                } else {
-                    found.append(
-                        Symbol(
-                            name: member.name,
-                            summary: member.summary.isEmpty ? nil : member.summary,
-                            declaration: .variable(
-                                ScriptType(checker.substitute(member.returns, bindings)),
-                                isSettable: settable.contains(member.name)
-                            )
-                        )
-                    )
-                }
+                )
             }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which

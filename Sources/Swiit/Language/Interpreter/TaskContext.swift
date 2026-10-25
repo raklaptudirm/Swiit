@@ -25,6 +25,8 @@ final class TaskContext {
     var owners: [ClassType] = []
     /// Whether the initializer running has called `super.init`.
     var calledSuperInit = false
+    /// The function whose call finished last: after an expression that is a call, the one it made.
+    var lastCallee: Function?
     /// Asks the task to stop, from any thread.
     public let cancellation = Cancellation()
     /// What the host keeps for the task (the host: its output, its status).

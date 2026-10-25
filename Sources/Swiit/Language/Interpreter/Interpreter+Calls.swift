@@ -23,6 +23,7 @@ extension Interpreter {
         with arguments: [String: Value],
         receiver: Receiver? = nil
     ) throws -> Value {
+        defer { task.lastCallee = function }
         guard callDepth < limits.maxCallDepth else {
             throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
         }
@@ -416,6 +417,7 @@ extension Interpreter {
                 }
             },
             documentation: Documentation(summary: export.summary, parameters: docs),
+            attributes: export.attributes,
             isThrowing: signature.isThrowing
         )
     }
@@ -501,6 +503,7 @@ extension Interpreter {
             body: function.body,
             captured: function.captured,
             documentation: function.documentation,
+            attributes: function.attributes,
             isMutating: function.isMutating,
             isThrowing: function.isThrowing,
             isRethrowing: function.isRethrowing,
