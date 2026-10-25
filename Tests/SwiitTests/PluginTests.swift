@@ -25,13 +25,13 @@ private struct Entry: Encodable {
 }
 
 @Test func scriptEnumsBridgeTheirCases() throws {
-    let type = EnumType.of(Level.self)
-    #expect(type === EnumType.of(Level.self))  // One type, so values compare equal.
+    let type = Value.EnumCase.Enumeration.of(Level.self)
+    #expect(type === Value.EnumCase.Enumeration.of(Level.self))  // One type, so values compare equal.
     #expect(type.name == "Level")
     #expect(type.cases.map(\.name) == ["low", "high"])
     #expect(type.cases.map(\.rawValue) == [.string("low"), .string("high")])
-    #expect(Level.high.value == .enumValue(EnumValue(type: type, name: "high")))
-    #expect(try Level(.enumValue(EnumValue(type: type, name: "low"))) == .low)
+    #expect(Level.high.value == .enumValue(Value.EnumCase(type: type, name: "high")))
+    #expect(try Level(.enumValue(Value.EnumCase(type: type, name: "low"))) == .low)
     #expect([Level].swiitEnums.map(\.name) == ["Level"])
 }
 
@@ -40,7 +40,7 @@ private struct Entry: Encodable {
     #expect(try Value(returning: [1, 2]) == .list([.int(1), .int(2)]))
     #expect(
         try Value(returning: Entry(name: "a", size: 2))
-            == .record(Record(["name": .string("a"), "size": .int(2)]))
+            == .record(Value.Record(["name": .string("a"), "size": .int(2)]))
     )
     #expect(try Value(returning: Level.low) == Level.low.value)
 }

@@ -12,8 +12,8 @@ public struct HostFunction: Sendable {
     public let summary: String
     /// Its parameters, what it gives back, and whether it throws.
     public let signature: Symbol.Function
-    /// The attributes it is declared with, such as `Attribute(name: "discardableResult")`.
-    public let attributes: [Attribute]
+    /// The attributes it is declared with, such as `Symbol.Attribute(name: "discardableResult")`.
+    public let attributes: [Symbol.Attribute]
     /// Called with every argument bound, by parameter name, except ones left to a Swift default.
     let call: @Sendable ([String: Value]) throws -> Value
 
@@ -24,7 +24,7 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: ScriptType = .void,
         isThrowing: Bool = false,
-        attributes: [Attribute] = [],
+        attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.name = name
@@ -52,7 +52,7 @@ public struct HostFunction: Sendable {
         parameters: [Symbol.Parameter] = [],
         returns: T.Type,
         isThrowing: Bool = false,
-        attributes: [Attribute] = [],
+        attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) {
         self.init(
@@ -145,7 +145,13 @@ extension Symbol.Parameter {
 /// class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     case named(String, [ScriptType] = [])
-    case function(parameters: [ScriptType], returns: ScriptType)
+    /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
+    case function(
+        parameters: [ScriptType],
+        returns: ScriptType,
+        isThrowing: Bool = false,
+        isAsync: Bool = false
+    )
     case tuple([Element])
 
     /// An element of a tuple type, labeled or not.
@@ -199,8 +205,9 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         case .named(let name, let arguments):
             arguments.isEmpty
                 ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
-        case .function(let parameters, let returns):
-            "(\(parameters.map(\.description).joined(separator: ", "))) -> \(returns)"
+        case .function(let parameters, let returns, let isThrowing, let isAsync):
+            "(\(parameters.map(\.description).joined(separator: ", ")))"
+                + (isAsync ? " async" : "") + (isThrowing ? " throws" : "") + " -> \(returns)"
         case .tuple(let elements):
             "("
                 + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
@@ -247,13 +254,15 @@ public protocol ScriptConvertible {
 /// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their
 /// elements'. An SPI refinement, because a requirement only the module can see cannot be satisfied
 /// by a conformance outside it.
-protocol ValueEnums { static var enumTypes: [EnumType] { get } }
+protocol ValueEnums { static var enumTypes: [Value.EnumCase.Enumeration] { get } }
 
 extension ScriptConvertible {
     /// The enums `scriptType` names.
-    static var swiitEnums: [EnumType] {
+    static var swiitEnums: [Value.EnumCase.Enumeration] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
-        if let enumeration = self as? any CaseIterable.Type { return [EnumType.of(enumeration)] }
+        if let enumeration = self as? any CaseIterable.Type {
+            return [Value.EnumCase.Enumeration.of(enumeration)]
+        }
         return []
     }
 }
@@ -324,7 +333,7 @@ extension Optional: ValueEnums where Wrapped: ScriptConvertible {}
 
 extension Array: ScriptConvertible where Element: ScriptConvertible {
     public static var scriptType: ScriptType { .list(Element.scriptType) }
-    static var enumTypes: [EnumType] { Element.swiitEnums }
+    static var enumTypes: [Value.EnumCase.Enumeration] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
         switch swiitValue {
         case .list(let items): self = try items.map(Element.init(_:))
@@ -339,7 +348,7 @@ extension Array: ScriptConvertible where Element: ScriptConvertible {
 
 extension Dictionary: ScriptConvertible where Key: ScriptConvertible, Value: ScriptConvertible {
     public static var scriptType: ScriptType { .dictionary(Key.scriptType, Value.scriptType) }
-    static var enumTypes: [EnumType] { Key.swiitEnums + Value.swiitEnums }
+    static var enumTypes: [Swiit.Value.EnumCase.Enumeration] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue else {
             throw SwiitError.expected("[\(Key.scriptType): \(Value.scriptType)]", swiitValue)
@@ -347,13 +356,13 @@ extension Dictionary: ScriptConvertible where Key: ScriptConvertible, Value: Scr
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
     }
     public var value: Swiit.Value {
-        .dictionary(ValueDictionary(map { ($0.key.value, $0.value.value) }))
+        .dictionary(Swiit.Value.Dictionary(map { ($0.key.value, $0.value.value) }))
     }
 }
 
 extension Optional: ScriptConvertible where Wrapped: ScriptConvertible {
     public static var scriptType: ScriptType { .optional(Wrapped.scriptType) }
-    static var enumTypes: [EnumType] { Wrapped.swiitEnums }
+    static var enumTypes: [Value.EnumCase.Enumeration] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {
         self = swiitValue == .nothing ? nil : try Wrapped(swiitValue)
     }
@@ -403,8 +412,10 @@ func swiitParameterType<T: ScriptConvertible>(_ type: T.Type) -> ScriptType { T.
 /// An exported object: anything, checked when it's converted.
 func swiitParameterType<T: HostObject>(_ type: T.Type) -> ScriptType { .any }
 
-func swiitParameterEnums<T: ScriptConvertible>(_ type: T.Type) -> [EnumType] { T.swiitEnums }
-func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [EnumType] { [] }
+func swiitParameterEnums<T: ScriptConvertible>(_ type: T.Type) -> [Value.EnumCase.Enumeration] {
+    T.swiitEnums
+}
+func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [Value.EnumCase.Enumeration] { [] }
 
 /// What a function returns, for signatures and help.
 func swiitReturnType(_ type: Any.Type) -> ScriptType {
@@ -448,32 +459,40 @@ func swiitArgument<T: ScriptConvertible>(
 ///
 /// The host learns it by name from the functions that take it.
 extension ScriptConvertible where Self: CaseIterable & Hashable & Sendable {
-    public static var scriptType: ScriptType { .named(EnumType.of(Self.self).name) }
+    public static var scriptType: ScriptType {
+        .named(Value.EnumCase.Enumeration.of(Self.self).name)
+    }
 
     public init(_ swiitValue: Value) throws {
-        guard case .enumValue(let value) = swiitValue, value.type === EnumType.of(Self.self),
+        guard case .enumValue(let value) = swiitValue,
+            value.type === Value.EnumCase.Enumeration.of(Self.self),
             let found = Self.allCases.first(where: { String(describing: $0) == value.name })
         else {
-            throw SwiitError.expected(EnumType.of(Self.self).name, swiitValue)
+            throw SwiitError.expected(Value.EnumCase.Enumeration.of(Self.self).name, swiitValue)
         }
         self = found
     }
 
     public var value: Value {
-        .enumValue(EnumValue(type: EnumType.of(Self.self), name: String(describing: self)))
+        .enumValue(
+            Value.EnumCase(
+                type: Value.EnumCase.Enumeration.of(Self.self),
+                name: String(describing: self)
+            )
+        )
     }
 }
 
-extension EnumType {
+extension Value.EnumCase.Enumeration {
     /// The enum a Swift enum is, with its cases and raw values as Swiit sees them; one instance
     /// per type, so values compare equal across calls.
-    static func of<E: CaseIterable>(_ type: E.Type) -> EnumType {
+    static func of<E: CaseIterable>(_ type: E.Type) -> Value.EnumCase.Enumeration {
         EnumRegistry.shared.type(for: type) {
-            EnumType(
+            Value.EnumCase.Enumeration(
                 name: String(describing: type),
                 cases: type.allCases.map { value in
                     let raw = (value as? any RawRepresentable)?.rawValue
-                    return EnumType.Case(
+                    return Value.EnumCase.Enumeration.Case(
                         name: String(describing: value),
                         rawValue: raw.flatMap { raw in
                             switch raw {
@@ -492,9 +511,12 @@ extension EnumType {
 /// Each Swift enum's `EnumType`, made once.
 final class EnumRegistry: Sendable {
     static let shared = EnumRegistry()
-    private let types = Mutex<[ObjectIdentifier: EnumType]>([:])
+    private let types = Mutex<[ObjectIdentifier: Value.EnumCase.Enumeration]>([:])
 
-    func type(for key: Any.Type, _ make: () -> EnumType) -> EnumType {
+    func type(
+        for key: Any.Type,
+        _ make: () -> Value.EnumCase.Enumeration
+    ) -> Value.EnumCase.Enumeration {
         types.withLock { types in
             if let type = types[ObjectIdentifier(key)] { return type }
             let type = make()

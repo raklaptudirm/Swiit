@@ -428,7 +428,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -496,7 +496,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -589,7 +589,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -603,7 +603,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -617,7 +617,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -631,7 +631,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: String = try String(args["self"]!)
@@ -1590,7 +1590,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1658,7 +1658,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("Character"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -1737,7 +1737,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1751,7 +1751,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("Character"), .named("Character")], .bool, throws: true))],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1765,7 +1765,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -1779,7 +1779,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.named("Character")), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Substring = try SwiftValue.unbox(Substring.self, args["self"]!)
@@ -4589,7 +4589,7 @@ extension Bridge {
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4640,7 +4640,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4708,7 +4708,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -4804,7 +4804,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -4818,7 +4818,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5045,7 +5045,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5059,7 +5059,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value] = try bridgeList(args["self"]!)
@@ -5825,7 +5825,7 @@ extension Bridge {
                     parameters: [Parameter(label: "at", name: "position", type: .int)],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the element at the specified position.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5876,7 +5876,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -5944,7 +5944,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -6040,7 +6040,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6054,7 +6054,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6281,7 +6281,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6295,7 +6295,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ArraySlice<Value> = try SwiftValue.unbox(ArraySlice<Value>.self, args["self"]!)
@@ -6779,7 +6779,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -6793,7 +6793,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.parameter("Element"), .parameter("Element")], .bool, throws: true))],
                     returns: .optional(.parameter("Element")), generics: ["Element": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7061,7 +7061,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7075,7 +7075,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Comparable"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Set<Value> = try SwiftValue.unbox(Set<Value>.self, args["self"]!)
@@ -7200,7 +7200,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "newMember", type: .parameter("Element"))],
                     returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Inserts the given element in the set if it is not already present.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Inserts the given element in the set if it is not already present.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7217,7 +7217,7 @@ extension Bridge {
                     parameters: [Parameter(label: "with", name: "newMember", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Inserts the given element into the set unconditionally.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Inserts the given element into the set unconditionally.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7234,7 +7234,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "member", type: .parameter("Element"))],
                     returns: .optional(.parameter("Element")), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the specified element from the set.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the specified element from the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7268,7 +7268,7 @@ extension Bridge {
                     parameters: [],
                     returns: .parameter("Element"), generics: ["Element": ["Hashable"]],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the first element of the set.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the first element of the set.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -7809,7 +7809,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -7823,7 +7823,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], .bool, throws: true))],
                     returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), generics: ["Key": [], "Value": []],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: [Value: Value] = try bridgeDictionary(args["self"]!)
@@ -8155,7 +8155,7 @@ extension Bridge {
                     parameters: [Parameter(label: nil, name: "value", type: .parameter("Value")), Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -8234,7 +8234,7 @@ extension Bridge {
                     parameters: [Parameter(label: "forKey", name: "key", type: .parameter("Key"))],
                     returns: .optional(.parameter("Value")), generics: ["Key": ["Hashable"], "Value": []],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes the given key and its associated value from the dictionary.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes the given key and its associated value from the dictionary.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -9128,7 +9128,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9142,7 +9142,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9156,7 +9156,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9170,7 +9170,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: Range<Int> = try bridgeRange(args["self"]!) { try Int($0) }
@@ -9840,7 +9840,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9854,7 +9854,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.int, .int], .bool, throws: true))],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9868,7 +9868,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }
@@ -9882,7 +9882,7 @@ extension Bridge {
                     parameters: [],
                     returns: .optional(.int), generics: ["Bound": ["=Int"]],
                     isThrowing: false, isRethrowing: false, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: ClosedRange<Int> = try bridgeClosedRange(args["self"]!) { try Int($0) }

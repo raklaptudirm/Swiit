@@ -114,7 +114,7 @@ extension Interpreter {
                     body: .native { _, arguments in
                         func child(_ label: String?, _ value: Value) -> Value {
                             .record(
-                                Record([
+                                Value.Record([
                                     "label": label.map(Value.string) ?? .nothing, "value": value,
                                 ])
                             )
@@ -126,7 +126,10 @@ extension Interpreter {
                         case .dictionary(let dictionary):
                             return .list(
                                 dictionary.sortedForDisplay.map {
-                                    child(nil, .record(Record(["key": $0.key, "value": $0.value])))
+                                    child(
+                                        nil,
+                                        .record(Value.Record(["key": $0.key, "value": $0.value]))
+                                    )
                                 }
                             )
                         case .object(let instance as ClassInstance):
@@ -327,7 +330,7 @@ extension Interpreter {
                     var pairs: [Value] = []
                     while let a = first.next(), let b = second.next() {
                         try interpreter.checkInterrupt()
-                        pairs.append(.record(Record(["0": a, "1": b])))
+                        pairs.append(.record(Value.Record(["0": a, "1": b])))
                     }
                     return .list(pairs)
                 }
@@ -484,7 +487,8 @@ extension Interpreter {
         // The type of a type: `Int.Type`.
         case .object(let type as ClassType): return .object(BridgedTypeName(type.name + ".Type"))
         case .object(let type as StructType): return .object(BridgedTypeName(type.name + ".Type"))
-        case .object(let type as EnumType): return .object(BridgedTypeName(type.name + ".Type"))
+        case .object(let type as Value.EnumCase.Enumeration):
+            return .object(BridgedTypeName(type.name + ".Type"))
         case .object(let type as BridgedTypeName):
             return .object(BridgedTypeName(type.name + ".Type"))
         default: return .nothing

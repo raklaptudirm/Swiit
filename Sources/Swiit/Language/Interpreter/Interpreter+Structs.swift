@@ -297,7 +297,7 @@ extension Interpreter {
         return type
     }
 
-    func structType(of record: Record) -> StructType? {
+    func structType(of record: Value.Record) -> StructType? {
         record.typeName.flatMap(structType(named:))
     }
 
@@ -329,7 +329,7 @@ extension Interpreter {
         }
         guard let initializers = chosenInitializers else {
             let bound = try bind(values, to: type.memberwise).bindings
-            var record = Record(typeName: type.name)
+            var record = Value.Record(typeName: type.name)
             for property in type.stored {
                 if let value = bound[property.name] {
                     record[property.name] = value
@@ -344,7 +344,7 @@ extension Interpreter {
             try self.bind(values, to: $0)
         }
         // Defaults first, then whatever the initializer sets.
-        var start = Record(typeName: type.name)
+        var start = Value.Record(typeName: type.name)
         for property in type.stored {
             if let defaultValue = property.defaultValue {
                 start[property.name] = try storedValue(defaultValue, for: property, of: type)
@@ -361,7 +361,7 @@ extension Interpreter {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
         // In declaration order, whatever order the initializer set them in.
-        var record = Record(typeName: type.name)
+        var record = Value.Record(typeName: type.name)
         for property in type.stored {
             guard let value = made[property.name] else {
                 throw RuntimeError("\(type.name).init must set '\(property.name)'")
@@ -394,7 +394,8 @@ extension Interpreter {
 
     /// A computed property's value, or a method as a function value; nil if
     /// the type has neither by that name.
-    func structMember(_ name: String, of record: Record, _ type: StructType) throws -> Value? {
+    func structMember(_ name: String, of record: Value.Record, _ type: StructType) throws -> Value?
+    {
         if let getter = type.computed[name] {
             return try invoke(
                 getter,
@@ -494,7 +495,7 @@ extension Interpreter {
     }
 
     func readSubscript(
-        _ record: Record,
+        _ record: Value.Record,
         _ type: StructType,
         _ arguments: [Argument]
     ) throws -> Value {
@@ -516,7 +517,7 @@ extension Interpreter {
     /// `grid[1, 2] = v` (or with `rest`, a change deeper inside it): the value through the
     /// subscript's setter.
     func writeSubscript(
-        _ record: Record,
+        _ record: Value.Record,
         _ type: StructType,
         _ arguments: [Argument],
         _ rest: ArraySlice<Assignment.Step>,

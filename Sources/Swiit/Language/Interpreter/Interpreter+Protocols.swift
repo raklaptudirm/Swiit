@@ -90,7 +90,7 @@ extension Interpreter {
         case let structType as StructType:
             declared =
                 structType.conformances + (typeExtensions[structType.name]?.conformances ?? [])
-        case let enumType as EnumType:
+        case let enumType as Value.EnumCase.Enumeration:
             declared =
                 (enumConformances[ObjectIdentifier(enumType)] ?? [])
                 + (typeExtensions[enumType.name]?.conformances ?? [])

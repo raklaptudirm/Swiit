@@ -653,7 +653,7 @@ extension TypeChecker {
                 .tuple(
                     record.map {
                         .init(
-                            label: Record.isPosition($0.key) ? nil : $0.key,
+                            label: Value.Record.isPosition($0.key) ? nil : $0.key,
                             type: type(of: $0.value)
                         )
                     }

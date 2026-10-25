@@ -58,7 +58,7 @@ final class TypeChecker {
         /// `Function.flattensResult`).
         var flattensResult = false
         /// The attributes it was declared with.
-        var attributes: [Attribute] = []
+        var attributes: [Swiit.Symbol.Attribute] = []
 
         init(
             name: String,

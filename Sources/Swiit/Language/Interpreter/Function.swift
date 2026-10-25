@@ -16,7 +16,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     public let captured: [Scope]
     public let documentation: Documentation?
     /// The attributes it was declared with.
-    public let attributes: [Attribute]
+    public let attributes: [Symbol.Attribute]
     /// A struct's `mutating func` (or `init`), which may change `self`.
     public let isMutating: Bool
     /// `throws`: a call to it needs `try`.
@@ -48,7 +48,7 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
         body: FunctionBody,
         captured: [Scope] = [],
         documentation: Documentation? = nil,
-        attributes: [Attribute] = [],
+        attributes: [Symbol.Attribute] = [],
         isMutating: Bool = false,
         isThrowing: Bool = false,
         isRethrowing: Bool = false,

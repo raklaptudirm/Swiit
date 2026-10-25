@@ -31,7 +31,7 @@ extension TypeChecker {
                 conformances: type.conformances
             )
             return info.map { .structType($0) } ?? .variable(.unknown, mutable: false)
-        case .object(let type as EnumType):
+        case .object(let type as Value.EnumCase.Enumeration):
             return .enumType(enumInfo(type))
         case .object(let type as ProtocolType):
             return .protocolType(protocolInfo(type.declaration))
@@ -162,7 +162,7 @@ extension TypeChecker {
         return profile
     }
 
-    func enumInfo(_ type: EnumType) -> TypeProfile {
+    func enumInfo(_ type: Value.EnumCase.Enumeration) -> TypeProfile {
         let payloads = interpreter.enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
         var profile = TypeProfile(name: type.name, kind: .enumeration)
         profile.cases = type.cases.map { enumCase in

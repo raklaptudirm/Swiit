@@ -15,7 +15,7 @@ extension FunctionDecl {
         return copy
     }
 
-    func withAttributes(_ attributes: [Attribute]) -> FunctionDecl {
+    func withAttributes(_ attributes: [Symbol.Attribute]) -> FunctionDecl {
         var copy = self
         copy.attributes = attributes
         return copy
@@ -62,7 +62,7 @@ struct FunctionDecl: Equatable, Sendable {
     /// `nonisolated`: an actor's member reached without `await`.
     var isNonisolated = false
     /// The attributes written on it, all of them: `@discardableResult`, `@available(…)`.
-    var attributes: [Attribute] = []
+    var attributes: [Symbol.Attribute] = []
     /// `convenience init`: makes the value through another initializer.
     var isConvenience = false
     /// `<T, V: Comparable>` and `where` clauses: each type parameter, and

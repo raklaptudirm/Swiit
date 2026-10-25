@@ -288,7 +288,7 @@ extension Bridge {
                     parameters: [],
                     returns: .bool, generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "In-place mutating variant of `removingLastComponent`.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "In-place mutating variant of `removingLastComponent`.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -818,7 +818,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("FilePath.Component"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -886,7 +886,7 @@ extension Bridge {
                     parameters: [],
                     returns: .named("FilePath.Component"), generics: [:],
                     isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
+                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let mover = ReceiverBox.of(args["self"]!)
@@ -979,7 +979,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
                     returns: .optional(.named("FilePath.Component")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
@@ -993,7 +993,7 @@ extension Bridge {
                     parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
                     returns: .optional(.named("FilePath.Component")), generics: [:],
                     isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
+                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
                     body: .native { interpreter, args in
                         _ = interpreter
                         let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)

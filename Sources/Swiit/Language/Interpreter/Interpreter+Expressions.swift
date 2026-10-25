@@ -61,14 +61,14 @@ extension Interpreter {
             return .list(try elements.map(evaluate))
         case .record(let entries):
             // `["a": 1]`: a dictionary, as in Swift.
-            var dictionary = ValueDictionary()
+            var dictionary = Value.Dictionary()
             for entry in entries {
                 dictionary[try evaluate(entry.key)] = try evaluate(entry.value)
             }
             return .dictionary(dictionary)
         case .tuple(let elements):
             // `(name: "x", 2)`: unlabeled elements are keyed by position.
-            var record = Record()
+            var record = Value.Record()
             for (index, element) in elements.enumerated() {
                 record[element.label ?? String(index)] = try evaluate(element.value)
             }
@@ -195,7 +195,7 @@ extension Interpreter {
             return try runBridged(typeName, member, receiver: receiver, arguments)
         case .voidValue(let operand):
             _ = try evaluate(operand)
-            return .record(Record())
+            return .record(Value.Record())
         case .specialized(let inner, let types):
             return specialized(try evaluate(inner), types)
         case .chosen(let inner, let overload):
@@ -382,7 +382,7 @@ extension Interpreter {
                 return .nothing
             }
             // `Level.make()`: a static method of an enum.
-            if case .object(let type as EnumType) = base,
+            if case .object(let type as Value.EnumCase.Enumeration) = base,
                 let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
@@ -393,13 +393,13 @@ extension Interpreter {
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
-            if case .object(let type as EnumType) = base,
+            if case .object(let type as Value.EnumCase.Enumeration) = base,
                 let methods = typeExtensions[type.name]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             // `Result.failed(code: 2)`: a case with associated values.
-            if case .object(let type as EnumType) = base {
+            if case .object(let type as Value.EnumCase.Enumeration) = base {
                 return try makeCase(type, name, arguments)
             }
             // `direction.opposite()`: an enum's method, with the case as `self`.
@@ -456,7 +456,7 @@ extension Interpreter {
             return try construct(type, arguments, overload: overload)
         }
         // `Level(rawValue: 2)`: the case with that raw value, or nil.
-        if case .object(let type as EnumType) = value {
+        if case .object(let type as Value.EnumCase.Enumeration) = value {
             if !(arguments.count == 1 && arguments[0].label == "rawValue"),
                 let initializers = enumMembers[ObjectIdentifier(type)]?.initializers
             {
@@ -547,17 +547,18 @@ extension Interpreter {
         {
             return found
         }
-        if case .object(let type as EnumType) = value,
+        if case .object(let type as Value.EnumCase.Enumeration) = value,
             let found = try extensionStaticMember(name, ofTypeNamed: type.name)
         {
             return found
         }
-        if case .object(let type as EnumType) = value,
+        if case .object(let type as Value.EnumCase.Enumeration) = value,
             let found = try enumStaticMember(name, of: type)
         {
             return found
         }
-        if case .object(let type as EnumType) = value, type.case(named: name) != nil,
+        if case .object(let type as Value.EnumCase.Enumeration) = value,
+            type.case(named: name) != nil,
             type.member(name) == nil
         {
             return try makeCase(type, name, nil)  // Says what values it needs.
@@ -741,7 +742,7 @@ extension Interpreter {
         switch object {
         case let type as ClassType: name = type.name
         case let type as StructType: name = type.name
-        case let type as EnumType: name = type.name
+        case let type as Value.EnumCase.Enumeration: name = type.name
         case let type as ProtocolType: name = type.name
         case let type as BridgedTypeName: name = type.name
         default: return nil

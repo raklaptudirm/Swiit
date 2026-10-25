@@ -210,7 +210,7 @@ struct BridgedMember: Sendable {
     public let isMutating: Bool
     /// The attributes it is declared with, as Swift writes them: `@discardableResult` on
     /// `removeLast()`.
-    public let attributes: [Attribute]
+    public let attributes: [Symbol.Attribute]
     /// Its documentation's first paragraph, from Swift's: what `help` shows.
     public let summary: String
     /// Converts the arguments (and `self`), calls Swift, and converts back.
@@ -237,7 +237,7 @@ struct BridgedMember: Sendable {
         isThrowing: Bool,
         isRethrowing: Bool,
         isMutating: Bool,
-        attributes: [Attribute] = [],
+        attributes: [Symbol.Attribute] = [],
         summary: String,
         body: FunctionBody,
         parameterDocs: [String: String] = [:],

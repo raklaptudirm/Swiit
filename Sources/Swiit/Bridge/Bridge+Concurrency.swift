@@ -17,7 +17,7 @@ func cancellationError() -> RuntimeError {
     RuntimeError(
         "the task was cancelled",
         thrown: .record(
-            Record(
+            Value.Record(
                 ["localizedDescription": .string("the task was cancelled")],
                 typeName: "CancellationError"
             )
@@ -67,7 +67,7 @@ extension Bridge {
             isThrowing: throwing,
             isRethrowing: false,
             isMutating: false,
-            attributes: kind == .initializer ? [Attribute(name: "discardableResult")] : [],
+            attributes: kind == .initializer ? [Symbol.Attribute(name: "discardableResult")] : [],
             summary: summary,
             body: .native(body),
             effect: effect,

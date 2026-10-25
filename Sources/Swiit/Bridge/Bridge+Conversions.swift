@@ -64,7 +64,7 @@ func bridgeRecord<T: Encodable>(
     patches: [String: FieldKind] = [:]
 ) -> Value {
     guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
-    var record = Record(typeName: encoded.typeName)
+    var record = Value.Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
         guard let field = child.label else { continue }
         var held: Any? = child.value
@@ -105,7 +105,7 @@ func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
 
 /// Swift's dictionary as Swiit's.
 func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
-    .dictionary(ValueDictionary(dictionary))
+    .dictionary(Value.Dictionary(dictionary))
 }
 
 /// A tuple's elements, by label or position, made into a Swift tuple.
@@ -125,7 +125,7 @@ func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throw
 
 /// A Swift tuple as Swiit's, from its elements' labels and values.
 func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
-    var record = Record()
+    var record = Value.Record()
     for (index, (label, value)) in elements(tuple).enumerated() {
         record[label ?? String(index)] = value
     }

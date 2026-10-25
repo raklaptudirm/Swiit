@@ -16,50 +16,19 @@ final class OverloadSet: Callable, @unchecked Sendable {  // safe: its state is 
     }
 }
 
-extension Parameter {
-    /// As a declaration writes it: `_ name: String`, `by key: Int`,
-    /// `paths: FilePath...`.
-    public var declaration: [AttributedString] {
-        var pieces: [AttributedString] = []
-        if label == name {
-            pieces.append(.init(name, .variable))
-        } else {
-            pieces += [
-                .init(label ?? "_", label == nil ? nil : .variable), .init(" "),
-                .init(name, .variable),
-            ]
-        }
-        return pieces + [.init(": ")] + type.styled + (variadic ? [.init("...")] : [])
-    }
-}
-
 extension Function {
-    /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`,
-    /// without the parameters `hiding` says, in pieces by what each is.
-    public func declaration(
-        as name: String? = nil,
-        nameStyle: DisplayStyle = .function,
-        hiding hidden: (Parameter) -> Bool
-    ) -> [AttributedString] {
-        var pieces: [AttributedString] = [
-            .init(name ?? self.name ?? "closure", nameStyle), .init("("),
-        ]
-        for (index, parameter) in parameters.filter({ !hidden($0) }).enumerated() {
-            pieces += (index > 0 ? [.init(", ")] : []) + parameter.declaration
-        }
-        pieces.append(.init(")"))
-        if let returnType, returnType != .void { pieces += [.init(" -> ")] + returnType.styled }
-        return pieces
-    }
-
     /// Like a Swift declaration: `greet(_ name: String, times: Int) -> String`.
     /// A Swift member's receiver, as a stage's input, isn't written.
-    public var signature: String {
-        AttributedString(joining: declaration { $0.name == "self" }).plain
-    }
-
-    public func declaration(hiding hidden: (Parameter) -> Bool) -> [AttributedString] {
-        declaration(as: nil, nameStyle: .function, hiding: hidden)
+    var signature: String {
+        let written = parameters.filter { $0.name != "self" }
+            .map { parameter -> String in
+                let name =
+                    parameter.label == parameter.name
+                    ? parameter.name : "\(parameter.label ?? "_") \(parameter.name)"
+                return "\(name): \(parameter.type)" + (parameter.variadic ? "..." : "")
+            }
+        let returns = returnType.flatMap { $0 == .void ? nil : " -> \($0)" } ?? ""
+        return "\(name ?? "closure")(\(written.joined(separator: ", ")))\(returns)"
     }
 }
 

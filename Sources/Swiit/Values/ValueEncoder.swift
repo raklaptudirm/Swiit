@@ -46,7 +46,7 @@ extension Value {
         case .collection, .set:
             return .list(mirror.children.map { reflect($0.value, depth: depth + 1) })
         case .dictionary:
-            var record = Record()
+            var record = Value.Record()
             for child in mirror.children {
                 let pair = Array(Mirror(reflecting: child.value).children)
                 guard pair.count == 2 else { continue }
@@ -54,7 +54,7 @@ extension Value {
             }
             return .record(record)
         case .struct, .class, .tuple:
-            var record = Record(
+            var record = Value.Record(
                 typeName: mirror.displayStyle == .tuple
                     ? nil : String(describing: type(of: subject))
             )
@@ -81,7 +81,7 @@ private final class Slot {
 
     func resolved() -> Value {
         if let record {
-            var result = Record(typeName: record.typeName)
+            var result = Value.Record(typeName: record.typeName)
             for key in record.keys { result[key] = record.slots[key]!.resolved() }
             return .record(result)
         }

@@ -5,15 +5,9 @@ import Foundation
 /// by adding its name here and to the design.
 enum PublicSurface {
     static let allowed: Set<String> = [
-        "Interpreter", "Value", "ValueDictionary", "Callable", "ScriptType", "HostObject",
-
-        "ScriptConvertible", "HostFunction", "Diagnostic", "SourceRange", "OutputSink",
-        "Symbol",
-        "Attribute",
-        "HostType", "Cancellation",
-        "TypeInfo", "ScriptTask",
-        "Record", "EnumValue", "EnumType", "Flow", "DisplayStyle",
-        "DisplayStyleAttribute",
+        "Interpreter", "Value", "Callable", "ScriptType", "HostObject", "ScriptConvertible",
+        "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "HostType",
+        "ScriptTask", "Flow", "DisplayStyle",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()

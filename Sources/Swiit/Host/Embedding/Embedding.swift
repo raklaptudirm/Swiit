@@ -385,67 +385,69 @@ final class OutputCounter: Sendable {
     func reset() { count.withLock { $0 = 0 } }
 }
 
-/// A request to stop, from any thread.
-/// A request to stop a task, which a host can ask about before it waits.
-public final class Cancellation: @unchecked Sendable {  // safe: the state is in a `Mutex`; the flag is a word, below
-    private struct State {
-        var isRequested = false
-        /// What wakes the waits going on now, so a request ends them early.
-        var wakers: [Int: @Sendable () -> Void] = [:]
-        var nextWaker = 0
-    }
-
-    private let state = Mutex(State())
-    /// What `isSet` reads without the lock, which every step of every script asks. It is a word
-    /// written under the lock and read by whoever is running: a stale read only delays the stop by
-    /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
-    /// flag in the host's spawn code is.
-    nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
-        let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-        pointer.initialize(to: 0)
-        return pointer
-    }()
-
-    deinit { flag.deallocate() }
-
-    init() {}
-
-    public var isSet: Bool { readFlag() != 0 }
-
-    /// Not inlined, so that a loop asking again reads the word again.
-    @inline(never)
-    private func readFlag() -> Int32 { flag.pointee }
-
-    /// Asks for the stop, and wakes what is waiting.
-    func request() {
-        let wake = state.withLock { state -> [@Sendable () -> Void] in
-            state.isRequested = true
-            flag.pointee = 1
-            return Array(state.wakers.values)
+extension Interpreter {
+    /// A request to stop, from any thread.
+    /// A request to stop a task, which a host can ask about before it waits.
+    public final class Cancellation: @unchecked Sendable {  // safe: the state is in a `Mutex`; the flag is a word, below
+        private struct State {
+            var isRequested = false
+            /// What wakes the waits going on now, so a request ends them early.
+            var wakers: [Int: @Sendable () -> Void] = [:]
+            var nextWaker = 0
         }
-        wake.forEach { $0() }
-    }
 
-    func clear() {
-        state.withLock { state in
-            state.isRequested = false; flag.pointee = 0
+        private let state = Mutex(State())
+        /// What `isSet` reads without the lock, which every step of every script asks. It is a word
+        /// written under the lock and read by whoever is running: a stale read only delays the stop by
+        /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
+        /// flag in the host's spawn code is.
+        nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
+            let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
+            pointer.initialize(to: 0)
+            return pointer
+        }()
+
+        deinit { flag.deallocate() }
+
+        init() {}
+
+        public var isSet: Bool { readFlag() != 0 }
+
+        /// Not inlined, so that a loop asking again reads the word again.
+        @inline(never)
+        private func readFlag() -> Int32 { flag.pointee }
+
+        /// Asks for the stop, and wakes what is waiting.
+        func request() {
+            let wake = state.withLock { state -> [@Sendable () -> Void] in
+                state.isRequested = true
+                flag.pointee = 1
+                return Array(state.wakers.values)
+            }
+            wake.forEach { $0() }
         }
-    }
 
-    /// Calls `wake` when the stop is asked for (now, if it was already), until
-    /// `remove` is given what this gives.
-    func onRequest(_ wake: @escaping @Sendable () -> Void) -> Int {
-        let (token, already) = state.withLock { state -> (Int, Bool) in
-            state.nextWaker += 1
-            state.wakers[state.nextWaker] = wake
-            return (state.nextWaker, state.isRequested)
+        func clear() {
+            state.withLock { state in
+                state.isRequested = false; flag.pointee = 0
+            }
         }
-        if already { wake() }
-        return token
-    }
 
-    func remove(_ token: Int) {
-        state.withLock { _ = $0.wakers.removeValue(forKey: token) }
+        /// Calls `wake` when the stop is asked for (now, if it was already), until
+        /// `remove` is given what this gives.
+        func onRequest(_ wake: @escaping @Sendable () -> Void) -> Int {
+            let (token, already) = state.withLock { state -> (Int, Bool) in
+                state.nextWaker += 1
+                state.wakers[state.nextWaker] = wake
+                return (state.nextWaker, state.isRequested)
+            }
+            if already { wake() }
+            return token
+        }
+
+        func remove(_ token: Int) {
+            state.withLock { _ = $0.wakers.removeValue(forKey: token) }
+        }
     }
 }
 
@@ -689,8 +691,8 @@ extension Interpreter {
 
     private static func types<each Argument: ScriptConvertible>(
         _: repeat (each Argument).Type
-    ) -> [(ScriptType, [EnumType])] {
-        var types: [(ScriptType, [EnumType])] = []
+    ) -> [(ScriptType, [Value.EnumCase.Enumeration])] {
+        var types: [(ScriptType, [Value.EnumCase.Enumeration])] = []
         func add<T: ScriptConvertible>(_: T.Type) { types.append((T.scriptType, T.swiitEnums)) }
         repeat add((each Argument).self)
         return types
@@ -701,8 +703,8 @@ extension Interpreter {
         labels: [String?],
         throwing: Bool,
         returns: ScriptType?,
-        enums: [EnumType],
-        parameterTypes: [(ScriptType, [EnumType])],
+        enums: [Value.EnumCase.Enumeration],
+        parameterTypes: [(ScriptType, [Value.EnumCase.Enumeration])],
         call: @escaping @Sendable ([Value]) throws -> Value
     ) {
         let parameters = parameterTypes.enumerated()

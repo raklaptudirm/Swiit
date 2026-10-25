@@ -28,7 +28,7 @@ final class TaskContext {
     /// The function whose call finished last: after an expression that is a call, the one it made.
     var lastCallee: Function?
     /// Asks the task to stop, from any thread.
-    public let cancellation = Cancellation()
+    public let cancellation = Interpreter.Cancellation()
     /// What the host keeps for the task (the host: its output, its status).
     public var host: AnyObject?
     /// Whether the host's interrupts (the host's ^C) stop it: the task in the
@@ -55,7 +55,7 @@ extension Interpreter {
 
     /// Whether the task running now has been asked to stop; ask it before a wait and keep the
     /// answer for after, since the task running changes while one waits.
-    public var cancellation: Cancellation { task.cancellation }
+    public var cancellation: Interpreter.Cancellation { task.cancellation }
 
     /// The current task's scopes, innermost last.
     var scopes: [Scope] {

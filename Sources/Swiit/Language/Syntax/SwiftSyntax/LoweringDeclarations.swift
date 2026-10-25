@@ -854,7 +854,7 @@ extension Lowering {
     }
 
     /// The attributes written on a declaration, as written.
-    private func attributes(of list: AttributeListSyntax) -> [Attribute] {
+    private func attributes(of list: AttributeListSyntax) -> [Symbol.Attribute] {
         list.compactMap { element in
             guard case .attribute(let attribute) = element else { return nil }
             var arguments: [String] = []
@@ -863,7 +863,10 @@ extension Lowering {
             case let other?: arguments = [other.trimmedDescription]
             case nil: break
             }
-            return Attribute(name: attribute.attributeName.trimmedDescription, arguments: arguments)
+            return Symbol.Attribute(
+                name: attribute.attributeName.trimmedDescription,
+                arguments: arguments
+            )
         }
     }
 

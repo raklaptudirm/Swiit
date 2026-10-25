@@ -23,7 +23,8 @@ extension Interpreter {
         let declared = scopes.dropFirst()
             .contains { scope in
                 guard case .object(let object)? = scope.bindings[name]?.value else { return false }
-                return object is StructType || object is EnumType || object is ClassType
+                return object is StructType || object is Value.EnumCase.Enumeration
+                    || object is ClassType
             }
         return declared ? moduleName + "." + name : name
     }
@@ -62,7 +63,7 @@ extension Interpreter {
                 return "("
                     + (try zip(record, elements)
                     .map { field, element in
-                        (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                        (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
                             + (try describing(field.value, debug: true, type: element.type))
                     })
                     .joined(separator: ", ") + ")"
@@ -94,7 +95,7 @@ extension Interpreter {
         // A type is shown as its name, as `print(Int.self)` does.
         case .object(let type as StructType):
             return type.name
-        case .object(let type as EnumType):
+        case .object(let type as Value.EnumCase.Enumeration):
             return type.name
         case .object(let type as BridgedTypeName):
             return type.name
@@ -137,7 +138,7 @@ extension Interpreter {
             let shownName = record.typeName.map { debug ? qualified($0) : $0 } ?? ""
             return shownName + "("
                 + (try record.map { field in
-                    (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                    (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
                         + (try describing(
                             field.value,
                             debug: true,

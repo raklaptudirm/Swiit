@@ -222,7 +222,7 @@ func attributesCode(of declaration: String) -> String {
         let argumentsCode =
             arguments.isEmpty
             ? "" : ", arguments: [\(arguments.map(quoted).joined(separator: ", "))]"
-        made.append("Attribute(name: \(quoted(name))\(argumentsCode))")
+        made.append("Symbol.Attribute(name: \(quoted(name))\(argumentsCode))")
     }
     return made.isEmpty ? "" : "attributes: [\(made.joined(separator: ", "))], "
 }

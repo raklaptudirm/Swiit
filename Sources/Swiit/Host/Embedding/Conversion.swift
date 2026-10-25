@@ -40,7 +40,7 @@ extension Interpreter {
             guard let type = enumType(named: enumName), let definition = type.case(named: name),
                 definition.labels.isEmpty
             else { return nil }
-            return .enumValue(EnumValue(type: type, name: name))
+            return .enumValue(Value.EnumCase(type: type, name: name))
         }
     }
 

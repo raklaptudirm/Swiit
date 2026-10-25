@@ -61,15 +61,17 @@ private final class Node {
     }
     #expect(record.typeName == "Node")
     #expect(record["label"] == .string("n"))
-    #expect(Value(reflecting: (1, b: "x")) == .record(Record(["0": .int(1), "b": .string("x")])))
+    #expect(
+        Value(reflecting: (1, b: "x")) == .record(Value.Record(["0": .int(1), "b": .string("x")]))
+    )
     #expect(Value(reflecting: [UInt8(1)]) == .list([.int(1)]))
     #expect(Value(reflecting: Optional<Int>.none as Any) == .nothing)
 }
 
 @Test func recordsKeepOrderButCompareByContent() {
-    var record = Record(["b": .int(2), "a": .int(1)])
+    var record = Value.Record(["b": .int(2), "a": .int(1)])
     #expect(record.keys == ["b", "a"])
-    #expect(record == Record(["a": .int(1), "b": .int(2)]))
+    #expect(record == Value.Record(["a": .int(1), "b": .int(2)]))
     record["b"] = nil
     #expect(record.keys == ["a"])
     #expect(Value.record(record).description == "(a: 1)")

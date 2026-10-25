@@ -68,7 +68,7 @@ extension Value {
             return self
         case (.tuple(let elements), .record(let record)):
             guard record.count == elements.count else { return nil }
-            var converted = Record(typeName: record.typeName)
+            var converted = Value.Record(typeName: record.typeName)
             for (index, (element, field)) in zip(elements, record).enumerated() {
                 guard
                     element.label == nil || element.label == field.key
@@ -79,7 +79,7 @@ extension Value {
             }
             return .record(converted)
         case (.dictionary(let keyType, let scriptType), .dictionary(let dictionary)):
-            var converted = ValueDictionary()
+            var converted = Value.Dictionary()
             for (key, value) in dictionary {
                 guard let k = key.conforming(to: keyType), let v = value.conforming(to: scriptType)
                 else { return nil }

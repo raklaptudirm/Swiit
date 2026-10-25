@@ -332,7 +332,7 @@ extension Interpreter {
             elements = AnyIterator(
                 dictionary.sortedForDisplay
                     .map { entry in
-                        Value.record(Record(["key": entry.key, "value": entry.value]))
+                        Value.record(Value.Record(["key": entry.key, "value": entry.value]))
                     }
                     .makeIterator()
             )

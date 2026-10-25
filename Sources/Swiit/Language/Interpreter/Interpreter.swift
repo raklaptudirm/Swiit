@@ -109,7 +109,7 @@ extension Interpreter {
             .mapValues { binding in
                 if binding.isFunction { return .function }
                 if binding.isComputed { return .variable }
-                if case .object(is EnumType) = binding.value { return .type }
+                if case .object(is Value.EnumCase.Enumeration) = binding.value { return .type }
                 if case .object(is StructType) = binding.value { return .type }
                 if case .object(is ProtocolType) = binding.value { return .type }
                 if case .object(is BridgedTypeName) = binding.value { return .type }

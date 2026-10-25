@@ -16,11 +16,11 @@ public enum Value: Sendable {
     case list([Value])
     /// Named fields in order, like a row of a table: a struct's value (with
     /// its type's name), or a tuple (without).
-    case record(Record)
+    case record(Value.Record)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
-    case dictionary(ValueDictionary)
+    case dictionary(Value.Dictionary)
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
-    case enumValue(EnumValue)
+    case enumValue(Value.EnumCase)
     /// A live value with members of its own: a background job, an enum type,
     /// and later bridged Swift objects.
     case object(any HostObject)
@@ -97,9 +97,9 @@ extension HostObject {
     /// Its data as named fields, which tables, `select` and `to json` use: every member that isn't
     /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
     /// has none: it is one value, like a `FileSize`.
-    var dataFields: ValueDictionary? {
+    var dataFields: Value.Dictionary? {
         if self is any LanguageObject { return nil }
-        var fields = ValueDictionary()
+        var fields = Value.Dictionary()
         for name in memberNames {
             guard let value = member(name) else { continue }
             if case .function = value { continue }
@@ -109,9 +109,9 @@ extension HostObject {
     }
 
     /// `dataFields` as the language's record of the object's type.
-    var objectFields: Record? {
+    var objectFields: Value.Record? {
         guard let fields = dataFields else { return nil }
-        var record = Record(typeName: typeName)
+        var record = Value.Record(typeName: typeName)
         for (key, value) in fields { if case .string(let name) = key { record[name] = value } }
         return record
     }
@@ -131,7 +131,7 @@ extension HostObject {
 
 extension Value {
     /// A record, or an object's fields: what a table row is made from.
-    var asRecord: Record? {
+    var asRecord: Value.Record? {
         switch self {
         case .record(let record): record
         case .object(let object): object.objectFields
@@ -144,67 +144,69 @@ extension Value {
 /// closures; hosts implement it for Swift functions.
 public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
-/// Fields in insertion order. Two records are equal when they have the same
-/// fields, whatever their order or type name.
-public struct Record: Sendable, Hashable, Sequence {
-    public private(set) var keys: [String] = []
-    private var storage: [String: Value] = [:]
-    /// The Swift type this record came from, like `FileEntry`, which picks
-    /// how it's displayed.
-    public var typeName: String?
+extension Value {
+    /// Fields in insertion order. Two records are equal when they have the same
+    /// fields, whatever their order or type name.
+    public struct Record: Sendable, Hashable, Sequence {
+        public private(set) var keys: [String] = []
+        private var storage: [String: Value] = [:]
+        /// The Swift type this record came from, like `FileEntry`, which picks
+        /// how it's displayed.
+        public var typeName: String?
 
-    public init(typeName: String? = nil) {
-        self.typeName = typeName
-    }
+        public init(typeName: String? = nil) {
+            self.typeName = typeName
+        }
 
-    init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
-        self.typeName = typeName
-        for (key, value) in fields { self[key] = value }
-    }
+        init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
+            self.typeName = typeName
+            for (key, value) in fields { self[key] = value }
+        }
 
-    public subscript(key: String) -> Value? {
-        get { storage[key] }
-        set {
-            if let newValue {
-                if storage.updateValue(newValue, forKey: key) == nil { keys.append(key) }
-            } else if storage.removeValue(forKey: key) != nil {
-                keys.removeAll { $0 == key }
+        public subscript(key: String) -> Value? {
+            get { storage[key] }
+            set {
+                if let newValue {
+                    if storage.updateValue(newValue, forKey: key) == nil { keys.append(key) }
+                } else if storage.removeValue(forKey: key) != nil {
+                    keys.removeAll { $0 == key }
+                }
             }
         }
-    }
 
-    /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only
-    /// reference to it.
-    mutating func takeValue(_ key: String) -> Value? {
-        guard let current = storage[key] else { return nil }
-        storage[key] = .nothing
-        return current
-    }
+        /// A field's value, moved out and left `.nothing` in its place: the caller then holds the only
+        /// reference to it.
+        mutating func takeValue(_ key: String) -> Value? {
+            guard let current = storage[key] else { return nil }
+            storage[key] = .nothing
+            return current
+        }
 
-    public var count: Int { keys.count }
-    public var isEmpty: Bool { keys.isEmpty }
+        public var count: Int { keys.count }
+        public var isEmpty: Bool { keys.isEmpty }
 
-    public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
-        keys.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
-    }
+        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+            keys.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
+        }
 
-    public static func == (lhs: Record, rhs: Record) -> Bool {
-        lhs.storage == rhs.storage
-    }
+        public static func == (lhs: Value.Record, rhs: Value.Record) -> Bool {
+            lhs.storage == rhs.storage
+        }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(storage)
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(storage)
+        }
     }
 }
 
-extension Record: CustomStringConvertible, CustomDebugStringConvertible {
+extension Value.Record: CustomStringConvertible, CustomDebugStringConvertible {
     /// As its type would print, `Status(code: 0, …)`, or as a tuple,
     /// `(name: "x", 2)`, for a record without one; a tuple's unlabeled
     /// elements are keyed by position.
     public var debugDescription: String {
         (typeName ?? "") + "("
             + map { field in
-                (Record.isPosition(field.key) ? "" : "\(field.key): ")
+                (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
                     + field.value.debugDescription
             }
             .joined(separator: ", ") + ")"
@@ -214,7 +216,8 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
         (typeName ?? "") + "("
             + map { field in
-                (Record.isPosition(field.key) ? "" : "\(field.key): ") + field.value.description
+                (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
+                    + field.value.description
             }
             .joined(separator: ", ") + ")"
     }
@@ -225,86 +228,90 @@ extension Record: CustomStringConvertible, CustomDebugStringConvertible {
     }
 }
 
-/// Swift's `[Value: Value]`: iterating it goes in Swift's order, which is
-/// no particular one and changes from run to run. Shown, it's sorted by key
-/// (`sortedForDisplay`), so what's printed is the same every time.
-public struct ValueDictionary: Sendable, Hashable, Sequence, CustomStringConvertible,
-    CustomDebugStringConvertible
-{
-    private var storage: [Value: Value]
-    /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two
-    /// dictionaries with the same entries are equal whatever order they were made in.
-    private var order: [Value]
+extension Value {
+    /// Swift's `[Value: Value]`: iterating it goes in Swift's order, which is
+    /// no particular one and changes from run to run. Shown, it's sorted by key
+    /// (`sortedForDisplay`), so what's printed is the same every time.
+    public struct Dictionary: Sendable, Hashable, Sequence, CustomStringConvertible,
+        CustomDebugStringConvertible
+    {
+        private var storage: [Value: Value]
+        /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two
+        /// dictionaries with the same entries are equal whatever order they were made in.
+        private var order: [Value]
 
-    public init() {
-        storage = [:]
-        order = []
-    }
-
-    var dictionary: [Value: Value] {
-        get { storage }
-        set {
-            // What stays keeps its place; what is new comes after, in a fixed order.
-            let added = newValue.keys.filter { storage[$0] == nil }
-                .sorted { Value.displaysBefore($0, $1) }
-            order = order.filter { newValue[$0] != nil } + added
-            storage = newValue
+        public init() {
+            storage = [:]
+            order = []
         }
-    }
 
-    init(_ dictionary: [Value: Value]) {
-        storage = dictionary
-        order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
-    }
-
-    /// In the order given. A later entry with the same key replaces the value of the earlier one,
-    /// which keeps its place.
-    public init(_ entries: [(Value, Value)]) {
-        storage = [:]
-        order = []
-        for (key, value) in entries { self[key] = value }
-    }
-
-    public subscript(key: Value) -> Value? {
-        get { storage[key] }
-        set {
-            if let newValue {
-                if storage.updateValue(newValue, forKey: key) == nil { order.append(key) }
-            } else if storage.removeValue(forKey: key) != nil {
-                order.removeAll { $0 == key }
+        var dictionary: [Value: Value] {
+            get { storage }
+            set {
+                // What stays keeps its place; what is new comes after, in a fixed order.
+                let added = newValue.keys.filter { storage[$0] == nil }
+                    .sorted { Value.displaysBefore($0, $1) }
+                order = order.filter { newValue[$0] != nil } + added
+                storage = newValue
             }
         }
+
+        init(_ dictionary: [Value: Value]) {
+            storage = dictionary
+            order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
+        }
+
+        /// In the order given. A later entry with the same key replaces the value of the earlier one,
+        /// which keeps its place.
+        public init(_ entries: [(Value, Value)]) {
+            storage = [:]
+            order = []
+            for (key, value) in entries { self[key] = value }
+        }
+
+        public subscript(key: Value) -> Value? {
+            get { storage[key] }
+            set {
+                if let newValue {
+                    if storage.updateValue(newValue, forKey: key) == nil { order.append(key) }
+                } else if storage.removeValue(forKey: key) != nil {
+                    order.removeAll { $0 == key }
+                }
+            }
+        }
+
+        public static func == (lhs: Value.Dictionary, rhs: Value.Dictionary) -> Bool {
+            lhs.storage == rhs.storage
+        }
+        public func hash(into hasher: inout Hasher) { hasher.combine(storage) }
+
+        public var count: Int { storage.count }
+        public var isEmpty: Bool { storage.isEmpty }
+        public var keys: [Value] { order }
+        public var values: [Value] { order.map { storage[$0]! } }
+
+        public func makeIterator() -> some IteratorProtocol<(key: Value, value: Value)> {
+            order.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
+        }
+
+        /// The entries sorted by key: numbers by value, strings as Swift sorts
+        /// them, an enum's cases in declared order, and anything else by how
+        /// it's written.
+        public var sortedForDisplay: [(key: Value, value: Value)] {
+            storage.sorted { Value.displaysBefore($0.key, $1.key) }
+        }
+
+        public var debugDescription: String {
+            guard !isEmpty else { return "[:]" }
+            return "["
+                + sortedForDisplay.map {
+                    "\($0.key.debugDescription): \($0.value.debugDescription)"
+                }
+                .joined(separator: ", ") + "]"
+        }
+
+        public var description: String { debugDescription }
     }
-
-    public static func == (lhs: ValueDictionary, rhs: ValueDictionary) -> Bool {
-        lhs.storage == rhs.storage
-    }
-    public func hash(into hasher: inout Hasher) { hasher.combine(storage) }
-
-    public var count: Int { storage.count }
-    public var isEmpty: Bool { storage.isEmpty }
-    public var keys: [Value] { order }
-    public var values: [Value] { order.map { storage[$0]! } }
-
-    public func makeIterator() -> some IteratorProtocol<(key: Value, value: Value)> {
-        order.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
-    }
-
-    /// The entries sorted by key: numbers by value, strings as Swift sorts
-    /// them, an enum's cases in declared order, and anything else by how
-    /// it's written.
-    public var sortedForDisplay: [(key: Value, value: Value)] {
-        storage.sorted { Value.displaysBefore($0.key, $1.key) }
-    }
-
-    public var debugDescription: String {
-        guard !isEmpty else { return "[:]" }
-        return "["
-            + sortedForDisplay.map { "\($0.key.debugDescription): \($0.value.debugDescription)" }
-            .joined(separator: ", ") + "]"
-    }
-
-    public var description: String { debugDescription }
 }
 
 extension Value {
@@ -479,7 +486,7 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
     public init(stringLiteral value: String) { self = .string(value) }
     public init(arrayLiteral elements: Value...) { self = .list(elements) }
     public init(dictionaryLiteral elements: (Value, Value)...) {
-        self = .dictionary(ValueDictionary(elements))
+        self = .dictionary(Value.Dictionary(elements))
     }
 }
 
@@ -487,10 +494,10 @@ extension Value {
     /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a
     /// struct value by name (a tuple's unlabeled ones by position, "0", "1"), or the fields of a
     /// host's object that is data. Nil for any other value.
-    public var entries: ValueDictionary? {
+    public var entries: Value.Dictionary? {
         switch self {
         case .dictionary(let dictionary): dictionary
-        case .record(let record): ValueDictionary(record.map { (Value.string($0.key), $0.value) })
+        case .record(let record): Value.Dictionary(record.map { (Value.string($0.key), $0.value) })
         case .object(let object): object.dataFields
         default: nil
         }
@@ -518,12 +525,12 @@ extension Value {
     /// `nil`): `Value(struct: "Point", fields: ["x": Value(1), "y": Value(2)])`. With no name it is
     /// a tuple, whose unlabeled elements are named by position.
     public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
-        self = .record(Record(fields, typeName: typeName))
+        self = .record(Value.Record(fields, typeName: typeName))
     }
 
     /// As above, for fields whose names are known only as the program runs: a parsed object's keys.
     public init(struct typeName: String?, fields: [(name: String, value: Value)]) {
-        var record = Record(typeName: typeName)
+        var record = Value.Record(typeName: typeName)
         for (name, value) in fields { record[name] = value }
         self = .record(record)
     }
@@ -548,7 +555,7 @@ extension Value {
     public init(_ value: Double) { self = .double(value) }
     public init(_ value: String) { self = .string(value) }
     public init(_ value: [Value]) { self = .list(value) }
-    public init(_ value: ValueDictionary) { self = .dictionary(value) }
+    public init(_ value: Value.Dictionary) { self = .dictionary(value) }
     public init(_ value: some HostObject) { self = .object(value) }
 
     /// What a value is, as a script would say it. A tuple and a struct value are told apart by

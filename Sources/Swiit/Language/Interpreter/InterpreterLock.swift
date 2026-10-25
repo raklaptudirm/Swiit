@@ -112,7 +112,7 @@ public final class ScriptTask: @unchecked Sendable {  // safe: every access hold
 
     /// Blocks until it has ended, or the waiting task is cancelled (nil).
     /// (Through `suspend`, so the lock is let go.)
-    func wait(unless cancellation: Cancellation) -> Result<Value, any Error>? {
+    func wait(unless cancellation: Interpreter.Cancellation) -> Result<Value, any Error>? {
         condition.lock()
         defer { condition.unlock() }
         while outcome == nil && !cancellation.isSet { condition.wait() }

@@ -6,17 +6,19 @@ import Foundation
 // UIKit and SwiftUI), so the host's own are one attribute: a style by what
 // the text is, which the terminal turns into a color when it's shown.
 
-/// The style a run of text is in: `DisplayStyle`'s roles (a keyword, a type,
-/// a flag…), not a color, so what a color is, or whether there is one, is
-/// decided when it's shown.
-public enum DisplayStyleAttribute: AttributedStringKey {
-    public typealias Value = DisplayStyle
-    public static let name = "swiit.displayStyle"
+extension DisplayStyle {
+    /// The style a run of text is in: `DisplayStyle`'s roles (a keyword, a type,
+    /// a flag…), not a color, so what a color is, or whether there is one, is
+    /// decided when it's shown.
+    public enum Attribute: AttributedStringKey {
+        public typealias Value = DisplayStyle
+        public static let name = "swiit.displayStyle"
+    }
 }
 
 extension AttributeScopes {
     public struct SwiitAttributes: AttributeScope {
-        public let displayStyle: DisplayStyleAttribute
+        public let displayStyle: DisplayStyle.Attribute
     }
 
     public var swiit: SwiitAttributes.Type { SwiitAttributes.self }

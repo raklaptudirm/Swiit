@@ -6,7 +6,7 @@ extension Interpreter {
     /// `enum Name: Raw { … }`: builds the type, checking raw values, and binds
     /// its name.
     func declare(_ decl: EnumDecl) throws {
-        var cases: [EnumType.Case] = []
+        var cases: [Value.EnumCase.Enumeration.Case] = []
         var payloadTypes: [String: [TypeAnnotation]] = [:]
         var nextInt = 0
         var rawSeen: Set<Value> = []
@@ -45,7 +45,7 @@ extension Interpreter {
                 )
             }
             cases.append(
-                EnumType.Case(
+                Value.EnumCase.Enumeration.Case(
                     name: enumCase.name,
                     rawValue: raw,
                     labels: enumCase.associated.map(\.label)
@@ -53,7 +53,7 @@ extension Interpreter {
             )
             payloadTypes[enumCase.name] = enumCase.associated.map(\.type)
         }
-        let type = EnumType(name: decl.name, cases: cases)
+        let type = Value.EnumCase.Enumeration(name: decl.name, cases: cases)
         enumPayloadTypes[ObjectIdentifier(type)] = payloadTypes
         enumConformances[ObjectIdentifier(type)] = decl.conformances
         enumTypeParameters[ObjectIdentifier(type)] = decl.typeParameters
@@ -62,7 +62,7 @@ extension Interpreter {
     }
 
     /// An enum's computed properties and methods, and its static ones.
-    private func declareMembers(of decl: EnumDecl, on type: EnumType) throws {
+    private func declareMembers(of decl: EnumDecl, on type: Value.EnumCase.Enumeration) throws {
         guard
             !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty
                 || !decl.staticMethods.isEmpty
@@ -84,7 +84,7 @@ extension Interpreter {
 
     /// `Direction(code: "N")`: through an `init` the enum declares, which sets `self` to a case.
     func constructEnum(
-        _ type: EnumType,
+        _ type: Value.EnumCase.Enumeration,
         _ initializers: OverloadSet,
         _ arguments: [Argument],
         overload: Int?
@@ -111,7 +111,7 @@ extension Interpreter {
 
     /// A computed property of an enum's case, or a method as a function value; nil if there isn't
     /// one.
-    func enumMember(_ name: String, of value: EnumValue) throws -> Value? {
+    func enumMember(_ name: String, of value: Value.EnumCase) throws -> Value? {
         guard let members = enumMembers[ObjectIdentifier(value.type)] else { return nil }
         if let getter = members.computed[name] {
             return try invoke(
@@ -147,7 +147,7 @@ extension Interpreter {
     }
 
     /// `Level.default`, `Level.make`: an enum's static member; nil if it has none by that name.
-    func enumStaticMember(_ name: String, of type: EnumType) throws -> Value? {
+    func enumStaticMember(_ name: String, of type: Value.EnumCase.Enumeration) throws -> Value? {
         guard let members = enumMembers[ObjectIdentifier(type)] else { return nil }
         if let getter = members.staticComputed[name] { return try invoke(getter, with: [:]) }
         if let slot = members.statics[name] { return slot.value }
@@ -155,7 +155,7 @@ extension Interpreter {
     }
 
     /// The enum a type annotation names, looking through optionals.
-    func enumType(for type: TypeAnnotation?) -> EnumType? {
+    func enumType(for type: TypeAnnotation?) -> Value.EnumCase.Enumeration? {
         switch type {
         case .named(let name)?: enumType(named: name)
         case .generic(let name, _)?: enumType(named: name)
@@ -164,8 +164,10 @@ extension Interpreter {
         }
     }
 
-    func enumType(named name: String) -> EnumType? {
-        guard case .object(let type as EnumType)? = lookup(name)?.value else { return nil }
+    func enumType(named name: String) -> Value.EnumCase.Enumeration? {
+        guard case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value else {
+            return nil
+        }
         return type
     }
 
@@ -173,7 +175,11 @@ extension Interpreter {
 
     /// `Kind.file`, `.failed(code: 2)` or `Kind.failed(code: 2)` for `type`:
     /// checks the case exists and its associated values' labels and types.
-    func makeCase(_ type: EnumType, _ name: String, _ arguments: [Argument]?) throws -> Value {
+    func makeCase(
+        _ type: Value.EnumCase.Enumeration,
+        _ name: String,
+        _ arguments: [Argument]?
+    ) throws -> Value {
         guard let definition = type.case(named: name) else {
             throw RuntimeError("\(type.name) has no case '\(name)'")
         }
@@ -183,7 +189,7 @@ extension Interpreter {
                 let labels = definition.labels.map { ($0 ?? "_") + ":" }.joined()
                 throw RuntimeError("\(written) needs its associated values: \(written)(\(labels))")
             }
-            return .enumValue(EnumValue(type: type, name: name))
+            return .enumValue(Value.EnumCase(type: type, name: name))
         }
         guard !definition.labels.isEmpty else {
             throw RuntimeError("\(written) has no associated values")
@@ -209,7 +215,7 @@ extension Interpreter {
             }
             values.append(conforming)
         }
-        return .enumValue(EnumValue(type: type, name: name, values: values))
+        return .enumValue(Value.EnumCase(type: type, name: name, values: values))
     }
 
     /// An expression whose type is known from context: a `.case` literal
@@ -342,7 +348,7 @@ extension Interpreter {
             guard case .dictionary(let dictionary) = value else {
                 return value.conforming(to: type)
             }
-            var made = ValueDictionary()
+            var made = Value.Dictionary()
             for (key, entry) in dictionary {
                 guard let conformingKey = conform(key, to: keyType),
                     let conformingValue = conform(entry, to: scriptType)
@@ -357,7 +363,7 @@ extension Interpreter {
             else {
                 return value.conforming(to: type)
             }
-            var made = Record()
+            var made = Value.Record()
             for (element, field) in zip(elements, record) {
                 guard let conforming = conform(field.value, to: element.type) else { return nil }
                 made[element.label ?? field.key] = conforming
@@ -370,13 +376,13 @@ extension Interpreter {
 
     /// A case from text: its name (`directory` or `.directory`),
     /// or its raw value.
-    func enumCase(fromText text: String, _ type: EnumType) -> Value? {
+    func enumCase(fromText text: String, _ type: Value.EnumCase.Enumeration) -> Value? {
         let name = text.hasPrefix(".") ? String(text.dropFirst()) : text
         if let definition = type.case(named: name), definition.labels.isEmpty {
-            return .enumValue(EnumValue(type: type, name: name))
+            return .enumValue(Value.EnumCase(type: type, name: name))
         }
         return type.cases.first { $0.labels.isEmpty && $0.rawValue?.description == text }
-            .map { .enumValue(EnumValue(type: type, name: $0.name)) }
+            .map { .enumValue(Value.EnumCase(type: type, name: $0.name)) }
     }
 
     // MARK: Matching
@@ -549,6 +555,6 @@ extension Interpreter {
     /// A case of an enum the prelude or the standard library module
     /// declares: `FileType.directory`.
     func declaredCase(_ type: String, _ name: String) -> Value {
-        .enumValue(EnumValue(type: enumType(named: type)!, name: name))
+        .enumValue(Value.EnumCase(type: enumType(named: type)!, name: name))
     }
 }

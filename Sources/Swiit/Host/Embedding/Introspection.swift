@@ -4,22 +4,24 @@ import Foundation
 // and types there are, which overload a call means, and the type of an expression. One lookup for
 // everything a name can mean.
 
-/// An attribute written on a declaration, as written: `@discardableResult` is a name with no
-/// arguments, `@available(*, deprecated)` is `available` with two. What an attribute means is up to
-/// whatever looks it up by name: the checker for some, a host for the rest.
-public struct Attribute: Sendable, Hashable {
-    /// What follows the `@`.
-    public var name: String
-    /// The text between the parentheses, one element per comma-separated argument.
-    public var arguments: [String]
+extension Symbol {
+    /// An attribute written on a declaration, as written: `@discardableResult` is a name with no
+    /// arguments, `@available(*, deprecated)` is `available` with two. What an attribute means is up to
+    /// whatever looks it up by name: the checker for some, a host for the rest.
+    public struct Attribute: Sendable, Hashable {
+        /// What follows the `@`.
+        public var name: String
+        /// The text between the parentheses, one element per comma-separated argument.
+        public var arguments: [String]
 
-    public init(name: String, arguments: [String] = []) {
-        self.name = name
-        self.arguments = arguments
+        public init(name: String, arguments: [String] = []) {
+            self.name = name
+            self.arguments = arguments
+        }
     }
 }
 
-extension Sequence where Element == Attribute {
+extension Sequence where Element == Symbol.Attribute {
     /// Whether one named `name` is among them.
     public func contains(named name: String) -> Bool {
         contains { $0.name == name }
@@ -27,25 +29,74 @@ extension Sequence where Element == Attribute {
 }
 
 /// Something a script can name: a function or method, a variable or property, or a type. Only a
-/// function has parameters and effects, only a variable can be settable, only a type has a
-/// declaration kind: what a symbol is decides what it has.
+/// function has parameters and effects, only a variable can be settable: what a symbol is, its kind,
+/// decides what it has.
 public struct Symbol: Sendable, Hashable {
     public var name: String
     /// The line `help` shows, when it has one.
     public var summary: String?
-    public var declaration: Declaration
+    public var kind: Kind
     /// The attributes it was declared with: `@discardableResult`, `@available(…)`, and the rest.
-    public var attributes: [Attribute] = []
+    public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
 
-    public enum Declaration: Sendable, Hashable {
-        /// A function, or a method of a type.
+    /// What a symbol is. A type is one of the five Swift declares; what it has is for
+    /// `symbols(named:in:)` to say.
+    public enum Kind: Sendable, Hashable {
+        /// A function, as a script declares or a host registers one.
         case function(Function)
-        /// A global or a property: its type, and whether a script can assign to it.
-        case variable(ScriptType, isSettable: Bool)
-        /// A type, and how it was declared.
-        case type(TypeKind)
+        /// A global: its type, and whether a script can assign to it.
+        case variable(Variable)
+        /// A method of a type: a function that also says whether it changes its value and whether
+        /// it is the type's own.
+        case method(Method)
+        /// A property of a type: a variable that also says whether it is the type's own.
+        case property(Property)
+        /// An initializer of a type: what it takes, and the type it makes.
+        case initializer(Function)
+        /// A case of an enum: the values it carries (none for most), and its raw value when the
+        /// enum has them.
+        case enumCase(parameters: [Parameter], rawValue: Value?)
+        case structure, enumeration, `class`, actor, `protocol`
+    }
+
+    /// A variable: its type, and whether a script can assign to it.
+    public struct Variable: Sendable, Hashable {
+        public var type: ScriptType
+        public var isSettable: Bool
+
+        public init(type: ScriptType, isSettable: Bool = false) {
+            self.type = type
+            self.isSettable = isSettable
+        }
+    }
+
+    /// A function that belongs to a type.
+    public struct Method: Sendable, Hashable {
+        public var function: Function
+        /// It changes its value.
+        public var isMutating: Bool
+        /// It belongs to the type itself, as a `static` member does, and not to a value of it.
+        public var isStatic: Bool
+
+        public init(function: Function, isMutating: Bool = false, isStatic: Bool = false) {
+            self.function = function
+            self.isMutating = isMutating
+            self.isStatic = isStatic
+        }
+    }
+
+    /// A variable that belongs to a type.
+    public struct Property: Sendable, Hashable {
+        public var variable: Variable
+        /// It belongs to the type itself, as a `static` member does, and not to a value of it.
+        public var isStatic: Bool
+
+        public init(variable: Variable, isStatic: Bool = false) {
+            self.variable = variable
+            self.isStatic = isStatic
+        }
     }
 
     public struct Function: Sendable, Hashable {
@@ -54,8 +105,6 @@ public struct Symbol: Sendable, Hashable {
         public var returns: ScriptType
         public var isThrowing: Bool
         public var isAsync: Bool
-        /// A method that changes its value.
-        public var isMutating: Bool
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
         public var generics: [String: [String]]
@@ -65,7 +114,6 @@ public struct Symbol: Sendable, Hashable {
             returns: ScriptType = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
-            isMutating: Bool = false,
             generics: [String: [String]] = [:]
         ) {
             self.generics = generics
@@ -73,11 +121,8 @@ public struct Symbol: Sendable, Hashable {
             self.returns = returns
             self.isThrowing = isThrowing
             self.isAsync = isAsync
-            self.isMutating = isMutating
         }
     }
-
-    public enum TypeKind: Sendable { case structure, enumeration, `class`, actor, `protocol` }
 
     /// A parameter of a function.
     public struct Parameter: Sendable, Hashable {
@@ -131,31 +176,55 @@ public struct Symbol: Sendable, Hashable {
     public init(
         name: String,
         summary: String? = nil,
-        declaration: Declaration,
-        attributes: [Attribute] = []
+        kind: Kind,
+        attributes: [Symbol.Attribute] = []
     ) {
         self.name = name
         self.summary = summary
-        self.declaration = declaration
+        self.kind = kind
         self.attributes = attributes
     }
 
-    /// The function this is, if it is one.
+    /// The function this is, if it is one: a function, a method or an initializer.
     public var function: Function? {
-        if case .function(let function) = declaration { function } else { nil }
+        switch kind {
+        case .function(let function), .initializer(let function): function
+        case .method(let method): method.function
+        default: nil
+        }
+    }
+
+    /// The variable this is, if it is one: a global or a property.
+    public var variable: Variable? {
+        switch kind {
+        case .variable(let variable): variable
+        case .property(let property): property.variable
+        default: nil
+        }
+    }
+
+    /// Whether it is a type: a struct, an enum, a class, an actor or a protocol.
+    public var isType: Bool {
+        switch kind {
+        case .structure, .enumeration, .class, .actor, .protocol: true
+        case .function, .variable, .method, .property, .initializer, .enumCase: false
+        }
     }
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names.
-    public var type: ScriptType {
-        switch declaration {
-        case .function(let function):
+    public var scriptType: ScriptType {
+        switch kind {
+        case .function, .method, .initializer:
             .function(
-                parameters: function.parameters.map(\.type),
-                returns: function.returns ?? .tuple([])
+                parameters: function!.parameters.map(\.type),
+                returns: function!.returns,
+                isThrowing: function!.isThrowing,
+                isAsync: function!.isAsync
             )
-        case .variable(let type, _): type
-        case .type: .named(name)
+        case .variable, .property: variable!.type
+        case .structure, .enumeration, .class, .actor, .protocol: .named(name)
+        case .enumCase: .any
         }
     }
 }
@@ -180,8 +249,13 @@ extension ScriptType {
                 .tuple(
                     elements.map { ScriptType.Element(label: $0.label, type: ScriptType($0.type)) }
                 )
-            case .functionType(let parameters, let returns, _, _):
-                .function(parameters: parameters.map(ScriptType.init), returns: ScriptType(returns))
+            case .functionType(let parameters, let returns, let throwing, let effect):
+                .function(
+                    parameters: parameters.map(ScriptType.init),
+                    returns: ScriptType(returns),
+                    isThrowing: throwing,
+                    isAsync: effect == .async
+                )
             case .keyPath(let root, let value):
                 .named("KeyPath", [ScriptType(root), ScriptType(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
@@ -194,9 +268,10 @@ extension ScriptType {
 
 extension Interpreter {
     /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all
-    /// of them without a `name`, the core's builtins too); with one, the members a value of that
-    /// type has (a struct's or host object's methods and properties, a bridged type's, the sequence
-    /// methods of a list).
+    /// of them without a `name`, the core's builtins too); with one, what the type has: the
+    /// methods and properties of its values (a struct's, a host object's, a bridged type's, the
+    /// sequence methods of a list), and what belongs to the type itself, marked `isStatic`: its
+    /// static members, its initializers and the cases of an enum.
     public func symbols(named name: String? = nil, in type: ScriptType? = nil) -> [Symbol] {
         withMainTask {
             guard let type else { return globalSymbols(named: name) }
@@ -237,19 +312,22 @@ extension Interpreter {
             let candidates =
                 (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
             return candidates.map { symbol(of: $0, named: name) }
-        case .object(is StructType): return [Symbol(name: name, declaration: .type(.structure))]
-        case .object(is EnumType): return [Symbol(name: name, declaration: .type(.enumeration))]
+        case .object(is StructType): return [Symbol(name: name, kind: .structure)]
+        case .object(is Value.EnumCase.Enumeration):
+            return [Symbol(name: name, kind: .enumeration)]
         case .object(let type as ClassType):
-            return [Symbol(name: name, declaration: .type(type.isActor ? .actor : .class))]
-        case .object(is ProtocolType): return [Symbol(name: name, declaration: .type(.protocol))]
+            return [Symbol(name: name, kind: type.isActor ? .actor : .class)]
+        case .object(is ProtocolType): return [Symbol(name: name, kind: .protocol)]
         default:
             let checker = TypeChecker(interpreter: self)
             return [
                 Symbol(
                     name: name,
-                    declaration: .variable(
-                        ScriptType(checker.type(of: binding.value)),
-                        isSettable: binding.mutable
+                    kind: .variable(
+                        Symbol.Variable(
+                            type: ScriptType(checker.type(of: binding.value)),
+                            isSettable: binding.mutable
+                        )
                     )
                 )
             ]
@@ -262,7 +340,7 @@ extension Interpreter {
             name: function.name ?? name,
             summary: function.documentation.map(\.summary)
                 .flatMap { $0.isEmpty ? nil : $0 },
-            declaration: .function(
+            kind: .function(
                 Symbol.Function(
                     parameters: function.parameters.map {
                         parameter(
@@ -273,7 +351,6 @@ extension Interpreter {
                     returns: function.returnType.map(ScriptType.init) ?? .void,
                     isThrowing: function.isThrowing,
                     isAsync: function.effect != .sync,
-                    isMutating: function.isMutating,
                     generics: function.generics
                 )
             ),
@@ -291,44 +368,55 @@ extension Interpreter {
         bindings: [String: TypeAnnotation] = [:],
         isSettable: Bool = false
     ) -> Symbol {
-        guard member.kind == .method else {
-            return Symbol(
-                name: member.name,
-                summary: member.summary.isEmpty ? nil : member.summary,
-                declaration: .variable(
-                    ScriptType(checker.substitute(member.returns, bindings)),
-                    isSettable: isSettable
-                ),
-                attributes: member.attributes
+        func function() -> Symbol.Function {
+            Symbol.Function(
+                parameters: member.parameters.map {
+                    let substituted = checker.substitute($0.type, bindings)
+                    var made = Symbol.Parameter(
+                        label: $0.label,
+                        name: $0.name,
+                        type: ScriptType(substituted),
+                        arity: $0.variadic
+                            ? .variadic
+                            : $0.defaultValue != nil || $0.externalDefault != nil
+                                ? .defaulted(.computed) : .required,
+                        documentation: member.parameterDocs[$0.name]
+                    )
+                    made.annotation = substituted
+                    return made
+                },
+                returns: ScriptType(checker.substitute(member.returns, bindings)),
+                isThrowing: member.isThrowing,
+                isAsync: member.effect != .sync,
+                generics: member.generics
             )
         }
-        return Symbol(
-            name: member.name,
-            summary: member.summary.isEmpty ? nil : member.summary,
-            declaration: .function(
-                Symbol.Function(
-                    parameters: member.parameters.map {
-                        let substituted = checker.substitute($0.type, bindings)
-                        var made = Symbol.Parameter(
-                            label: $0.label,
-                            name: $0.name,
-                            type: ScriptType(substituted),
-                            arity: $0.variadic
-                                ? .variadic
-                                : $0.defaultValue != nil || $0.externalDefault != nil
-                                    ? .defaulted(.computed) : .required,
-                            documentation: member.parameterDocs[$0.name]
-                        )
-                        made.annotation = substituted
-                        return made
-                    },
-                    returns: ScriptType(checker.substitute(member.returns, bindings)),
-                    isThrowing: member.isThrowing,
-                    isAsync: member.effect != .sync,
-                    isMutating: member.isMutating,
-                    generics: member.generics
+        let kind: Symbol.Kind =
+            switch member.kind {
+            case .method:
+                .method(
+                    Symbol.Method(
+                        function: function(),
+                        isMutating: member.isMutating,
+                        isStatic: member.isStatic
+                    )
                 )
-            ),
+            case .initializer: .initializer(function())
+            default:
+                .property(
+                    Symbol.Property(
+                        variable: Symbol.Variable(
+                            type: ScriptType(checker.substitute(member.returns, bindings)),
+                            isSettable: isSettable
+                        ),
+                        isStatic: member.isStatic
+                    )
+                )
+            }
+        return Symbol(
+            name: member.kind == .initializer ? "init" : member.name,
+            summary: member.summary.isEmpty ? nil : member.summary,
+            kind: kind,
             attributes: member.attributes
         )
     }
@@ -353,23 +441,44 @@ extension Interpreter {
         return made
     }
 
-    private func memberSymbols(named name: String?, of type: TypeAnnotation) -> [Symbol] {
-        let checker = TypeChecker(interpreter: self)
+    /// What a type has, for `symbols(named:in:)`: its instance members, its static ones, its
+    /// initializers, and the cases of an enum. `rawValues` says the raw values of enums not yet
+    /// declared (as `check` reads them), by enum and case.
+    func memberSymbols(
+        named name: String?,
+        of type: TypeAnnotation,
+        checker: TypeChecker? = nil,
+        rawValues: [String: [String: Value]] = [:]
+    ) -> [Symbol] {
+        let checker = checker ?? TypeChecker(interpreter: self)
         var found: [Symbol] = []
-        func add(_ signature: TypeChecker.Signature, dropping receiver: Bool = false) {
+        func function(
+            _ signature: TypeChecker.Signature,
+            dropping receiver: Bool = false
+        ) -> Symbol.Function {
             var parameters = signature.parameters
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
+            return Symbol.Function(
+                parameters: parameters.map { parameter($0) },
+                returns: ScriptType(signature.returns),
+                isThrowing: signature.isThrowing,
+                isAsync: signature.effect != .sync,
+                generics: signature.generics
+            )
+        }
+        func add(
+            _ signature: TypeChecker.Signature,
+            dropping receiver: Bool = false,
+            isStatic: Bool = false
+        ) {
             found.append(
                 Symbol(
                     name: signature.name,
-                    declaration: .function(
-                        Symbol.Function(
-                            parameters: parameters.map { parameter($0) },
-                            returns: ScriptType(signature.returns),
-                            isThrowing: signature.isThrowing,
-                            isAsync: signature.effect != .sync,
+                    kind: .method(
+                        Symbol.Method(
+                            function: function(signature, dropping: receiver),
                             isMutating: signature.isMutating,
-                            generics: signature.generics
+                            isStatic: isStatic
                         )
                     ),
                     attributes: signature.attributes
@@ -391,12 +500,81 @@ extension Interpreter {
                 found.append(
                     Symbol(
                         name: member,
-                        declaration: .variable(
-                            ScriptType(property.type),
-                            isSettable: property.isSettable
+                        kind: .property(
+                            Symbol.Property(
+                                variable: Symbol.Variable(
+                                    type: ScriptType(property.type),
+                                    isSettable: property.isSettable
+                                )
+                            )
                         )
                     )
                 )
+            }
+            // What belongs to the type itself.
+            for set in [profile.declared, profile.extended] {
+                for (member, signatures) in set.staticMethods where name == nil || name == member {
+                    signatures.forEach { add($0, isStatic: true) }
+                }
+            }
+            for (member, property) in profile.declared.staticProperties
+            where name == nil || name == member {
+                found.append(
+                    Symbol(
+                        name: member,
+                        kind: .property(
+                            Symbol.Property(
+                                variable: Symbol.Variable(
+                                    type: ScriptType(property.type),
+                                    isSettable: property.isSettable
+                                ),
+                                isStatic: true
+                            )
+                        )
+                    )
+                )
+            }
+            if name == nil || name == "init" {
+                // A struct with none of its own is made by its memberwise one.
+                var initializers = profile.declared.initializers
+                if initializers.isEmpty, profile.kind == .structure,
+                    let memberwise = profile.memberwise
+                {
+                    initializers = [memberwise]
+                }
+                for initializer in initializers {
+                    found.append(
+                        Symbol(
+                            name: "init",
+                            kind: .initializer(function(initializer)),
+                            attributes: initializer.attributes
+                        )
+                    )
+                }
+            }
+            if profile.kind == .enumeration {
+                let runtime = enumType(named: profile.name)
+                for enumCase in profile.cases where name == nil || name == enumCase.name {
+                    let raw =
+                        rawValues[profile.name]?[enumCase.name]
+                        ?? runtime?.case(named: enumCase.name)?.rawValue
+                    found.append(
+                        Symbol(
+                            name: enumCase.name,
+                            kind: .enumCase(
+                                parameters: enumCase.payload.enumerated()
+                                    .map { index, value in
+                                        Symbol.Parameter(
+                                            label: value.label,
+                                            name: value.label ?? String(index),
+                                            type: ScriptType(value.type)
+                                        )
+                                    },
+                                rawValue: raw
+                            )
+                        )
+                    )
+                }
             }
         }
         // A bridged Swift type's.
@@ -405,9 +583,7 @@ extension Interpreter {
                 bridgedType.members.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
             )
             for member in bridgedType.members
-            where !member.isStatic && member.kind != .initializer && member.kind != .setter
-                && (name == nil || name == member.name)
-            {
+            where member.kind != .setter && (name == nil || name == member.name) {
                 found.append(
                     bridgedSymbol(
                         member,
@@ -480,12 +656,12 @@ extension Interpreter {
             let declared = scopes[1].bindings.sorted { $0.key < $1.key }
                 .flatMap { symbols(of: $0.key, binding: $0.value) }
                 .filter {
-                    if case .type = $0.declaration { true } else { false }
+                    if $0.isType { true } else { false }
                 }
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }
                 .compactMap { name, binding -> Symbol? in
                     if case .object(is BridgedTypeName) = binding.value {
-                        var symbol = Symbol(name: name, declaration: .type(.structure))
+                        var symbol = Symbol(name: name, kind: .structure)
                         symbol.isBuiltin = true
                         return symbol
                     } else {
@@ -602,7 +778,7 @@ extension Interpreter {
                         symbols: checker.scopes[0].sorted { $0.key < $1.key }
                             .flatMap { declaredSymbols(of: $0.key, $0.value) }
                             .map { symbol in
-                                guard case .function(var function) = symbol.declaration,
+                                guard case .function(var function) = symbol.kind,
                                     var queue = docs[symbol.name],
                                     !queue.isEmpty
                                 else { return symbol }
@@ -615,15 +791,27 @@ extension Interpreter {
                                     var p = $0; p.documentation = documentation.parameters[p.name];
                                     return p
                                 }
-                                documented.declaration = .function(function)
+                                documented.kind = .function(function)
                                 return documented
                             }
                     )
-                    for case (let name, .enumType(let profile)) in checker.scopes[0] {
-                        declarations.enumerations[name] = Declarations.Enumeration(
-                            cases: profile.cases.filter { $0.payload.isEmpty }.map(\.name),
-                            hasRawValues: profile.rawType != nil
-                        )
+                    // What each type it declares has, which does not exist to ask yet: an enum's
+                    // cases, with the raw values it writes or Swift gives them.
+                    var rawValues: [String: [String: Value]] = [:]
+                    for case .enumDecl(let decl) in program.statements {
+                        rawValues[decl.name] = Interpreter.rawValues(of: decl)
+                    }
+                    for (name, symbol) in checker.scopes[0] {
+                        switch symbol {
+                        case .structType, .enumType:
+                            declarations.members[name] = memberSymbols(
+                                named: nil,
+                                of: .named(name),
+                                checker: checker,
+                                rawValues: rawValues
+                            )
+                        default: break
+                        }
                     }
                     return declarations
                 }
@@ -637,14 +825,34 @@ extension Interpreter {
     public struct Declarations: Sendable {
         /// Its functions, types and variables.
         public var symbols: [Symbol]
-        /// Its enums, by name, for reading a word against one before the enum exists.
-        public var enumerations: [String: Enumeration] = [:]
+        /// What each struct and enum it declares has, by the type's name: its members, its
+        /// initializers and an enum's cases, for reading a word against an enum before it exists.
+        public var members: [String: [Symbol]] = [:]
+    }
 
-        public struct Enumeration: Sendable {
-            /// The cases without associated values.
-            public var cases: [String]
-            public var hasRawValues: Bool
+    /// The raw values an enum's cases have: the ones written as literals, and the ones Swift gives
+    /// the rest (`0, 1, 2…` for an `Int`, the case's name for a `String`).
+    static func rawValues(of decl: EnumDecl) -> [String: Value] {
+        guard let rawType = decl.rawType else { return [:] }
+        var values: [String: Value] = [:]
+        var next = 0
+        for enumCase in decl.cases {
+            var raw: Value?
+            if case .literal(let value)? = enumCase.rawValue {
+                raw = value
+            } else if enumCase.rawValue == nil {
+                switch rawType {
+                case .int: raw = .int(next)
+                case .string: raw = .string(enumCase.name)
+                default: break
+                }
+            }
+            if let raw {
+                values[enumCase.name] = raw
+                if case .int(let n) = raw { next = n + 1 }
+            }
         }
+        return values
     }
 
     private func declaredSymbols(of name: String, _ symbol: TypeChecker.Symbol) -> [Symbol] {
@@ -653,23 +861,27 @@ extension Interpreter {
             return signatures.map { signature in
                 Symbol(
                     name: signature.name,
-                    declaration: .function(
+                    kind: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
                             returns: ScriptType(signature.returns),
                             isThrowing: signature.isThrowing,
-                            isAsync: signature.effect != .sync,
-                            isMutating: signature.isMutating
+                            isAsync: signature.effect != .sync
                         )
                     )
                 )
             }
-        case .structType: return [Symbol(name: name, declaration: .type(.structure))]
-        case .enumType: return [Symbol(name: name, declaration: .type(.enumeration))]
-        case .protocolType: return [Symbol(name: name, declaration: .type(.protocol))]
+        case .structType: return [Symbol(name: name, kind: .structure)]
+        case .enumType: return [Symbol(name: name, kind: .enumeration)]
+        case .protocolType: return [Symbol(name: name, kind: .protocol)]
         case .variable(let type, let mutable):
             return [
-                Symbol(name: name, declaration: .variable(ScriptType(type), isSettable: mutable))
+                Symbol(
+                    name: name,
+                    kind: .variable(
+                        Symbol.Variable(type: ScriptType(type), isSettable: mutable)
+                    )
+                )
             ]
         case .swiftType, .asyncLet: return []
         }

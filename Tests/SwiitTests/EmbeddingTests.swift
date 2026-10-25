@@ -334,7 +334,41 @@ private final class HostNode: HostObject, @unchecked Sendable {
         """
     )
     let members = swiit.symbols(in: .named("Point"))
-    #expect(Set(members.map(\.name)) == ["x", "scaled"])
+    #expect(
+        Set(
+            members.filter {
+                if case .initializer = $0.kind { false } else { true }
+            }
+            .map(\.name)
+        ) == ["x", "scaled"]
+    )
+    // A type's functions and variables are methods and properties; a global's are not.
+    #expect(
+        members.contains {
+            if case .method(let method) = $0.kind {
+                $0.name == "scaled" && !method.isStatic
+            } else {
+                false
+            }
+        }
+    )
+    #expect(
+        members.contains {
+            if case .property(let property) = $0.kind {
+                $0.name == "x" && property.variable.isSettable
+            } else {
+                false
+            }
+        }
+    )
+    #expect(
+        swiit.symbols(named: "f").allSatisfy { if case .function = $0.kind { true } else { false } }
+    )
+    // And what belongs to the type: its memberwise initializer.
+    let initializers = members.filter {
+        if case .initializer = $0.kind { true } else { false }
+    }
+    #expect(initializers.count == 1)
     #expect(try swiit.scriptType(ofExpression: "Point(x: 1)") == .named("Point"))
     #expect(try swiit.scriptType(ofExpression: "[1, 2].map { $0 + 1 }") == .list(.int))
     let overloads = swiit.symbols(named: "f")
@@ -394,7 +428,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
 }
 
 @Test func aDictionaryKeepsTheOrderItsEntriesWereAddedIn() throws {
-    var dictionary = ValueDictionary()
+    var dictionary = Value.Dictionary()
     dictionary["z"] = 1
     dictionary["a"] = 2
     dictionary["z"] = 3
@@ -403,7 +437,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
     dictionary["z"] = nil
     #expect(dictionary.keys == ["a"])
     // Equal by what they hold, not the order they were made in.
-    var other = ValueDictionary()
+    var other = Value.Dictionary()
     other["a"] = 2
     #expect(other == dictionary)
 }
@@ -460,11 +494,13 @@ private final class HostNode: HostObject, @unchecked Sendable {
     // An enum's case, and the declaration kind of a type.
     let high = try #require(try swiit.evaluate("Level.high").enumCase)
     #expect(high.type == "Level" && high.name == "high")
-    #expect(swiit.symbols(named: "Point").first?.declaration == .type(.structure))
-    #expect(swiit.symbols(named: "Level").first?.declaration == .type(.enumeration))
+    #expect(swiit.symbols(named: "Point").first?.kind == .structure)
+    #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
     #expect(swiit.symbols(named: "twice").first?.function != nil)
     swiit["limit"] = 3
-    #expect(swiit.symbols(named: "limit").first?.declaration == .variable(.int, isSettable: false))
+    #expect(
+        swiit.symbols(named: "limit").first?.kind == .variable(Symbol.Variable(type: .int))
+    )
 }
 
 @Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
@@ -518,7 +554,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
     )
     // A function symbol is also a function type, and a call's arguments are the elements of a tuple
     // type.
-    #expect(scale.type == .function(parameters: [.int, .int], returns: .int))
+    #expect(scale.scriptType == .function(parameters: [.int, .int], returns: .int))
 }
 
 @Test func aRunCancelledBeforeItStartsDoesNotRun() async throws {
@@ -657,7 +693,12 @@ extension URL: ScriptConvertible {}
     )
     #expect(log.text == "")
     #expect(declared.symbols.map(\.name) == ["Kind", "f"])
-    #expect(declared.enumerations["Kind"]?.cases == ["a", "b"])
+    // An enum it declares has its cases to ask for, before it exists to run.
+    let cases = declared.members["Kind"]?
+        .filter {
+            if case .enumCase = $0.kind { true } else { false }
+        }
+    #expect(cases?.map(\.name) == ["a", "b"])
     #expect(declared.symbols.first { $0.name == "f" }?.summary == "Says f.")
     let f = declared.symbols.first { $0.name == "f" }?.function
     #expect(f?.parameters.map(\.label) == ["a", "b"])
@@ -942,7 +983,7 @@ private final class Handle: HostObject, @unchecked Sendable {
         HostFunction(
             name: "quiet",
             returns: Int.self,
-            attributes: [Attribute(name: "discardableResult")],
+            attributes: [Symbol.Attribute(name: "discardableResult")],
             body: { _ in Value(10) }
         )
     )

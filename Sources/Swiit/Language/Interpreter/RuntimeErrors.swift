@@ -29,7 +29,10 @@ struct RuntimeError: Error, CustomStringConvertible {
     /// What `catch` binds. As in Swift it is an `Error`, which tells its
     /// `localizedDescription`; to get at more, cast it (`error as? T`).
     var value: Value {
-        thrown ?? .record(Record(["localizedDescription": .string(description)], typeName: "Error"))
+        thrown
+            ?? .record(
+                Value.Record(["localizedDescription": .string(description)], typeName: "Error")
+            )
     }
 }
 

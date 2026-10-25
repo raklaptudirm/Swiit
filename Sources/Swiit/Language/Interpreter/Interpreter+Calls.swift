@@ -475,8 +475,13 @@ extension TypeAnnotation {
             self =
                 arguments.isEmpty
                 ? .named(name) : .generic(name, arguments.map(TypeAnnotation.init))
-        case .function(let parameters, let returns):
-            self = .functionType(parameters.map(TypeAnnotation.init), TypeAnnotation(returns))
+        case .function(let parameters, let returns, let isThrowing, let isAsync):
+            self = .functionType(
+                parameters.map(TypeAnnotation.init),
+                TypeAnnotation(returns),
+                throws: isThrowing,
+                async: isAsync ? .async : .sync
+            )
         case .tuple(let elements):
             self = .tuple(
                 elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
