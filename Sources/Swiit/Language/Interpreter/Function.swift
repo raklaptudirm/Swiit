@@ -1,9 +1,9 @@
 import Foundation
 
-enum FunctionBody {
+enum FunctionBody: Sendable {
     case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
-    case native((Interpreter, [String: Value]) throws -> Value)
+    case native(@Sendable (Interpreter, [String: Value]) throws -> Value)
 }
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the

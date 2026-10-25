@@ -391,7 +391,7 @@ public final class Cancellation: @unchecked Sendable {  // safe: the state is in
     private struct State {
         var isRequested = false
         /// What wakes the waits going on now, so a request ends them early.
-        var wakers: [Int: UncheckedSendable<() -> Void>] = [:]
+        var wakers: [Int: @Sendable () -> Void] = [:]
         var nextWaker = 0
     }
 
@@ -418,10 +418,10 @@ public final class Cancellation: @unchecked Sendable {  // safe: the state is in
 
     /// Asks for the stop, and wakes what is waiting.
     func request() {
-        let wake = state.withLock { state -> [() -> Void] in
+        let wake = state.withLock { state -> [@Sendable () -> Void] in
             state.isRequested = true
             flag.pointee = 1
-            return state.wakers.values.map(\.value)
+            return Array(state.wakers.values)
         }
         wake.forEach { $0() }
     }
@@ -434,10 +434,10 @@ public final class Cancellation: @unchecked Sendable {  // safe: the state is in
 
     /// Calls `wake` when the stop is asked for (now, if it was already), until
     /// `remove` is given what this gives.
-    func onRequest(_ wake: @escaping () -> Void) -> Int {
+    func onRequest(_ wake: @escaping @Sendable () -> Void) -> Int {
         let (token, already) = state.withLock { state -> (Int, Bool) in
             state.nextWaker += 1
-            state.wakers[state.nextWaker] = UncheckedSendable(wake)  // woken from the requesting thread
+            state.wakers[state.nextWaker] = wake
             return (state.nextWaker, state.isRequested)
         }
         if already { wake() }

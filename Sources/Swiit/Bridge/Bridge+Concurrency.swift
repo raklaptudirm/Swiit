@@ -55,7 +55,7 @@ extension Bridge {
         effect: Effect = .sync,
         typedThrows: String? = nil,
         summary: String,
-        _ body: @escaping (Interpreter, [String: Value]) throws -> Value
+        _ body: @escaping @Sendable (Interpreter, [String: Value]) throws -> Value
     ) -> BridgedMember {
         BridgedMember(
             kind: kind,

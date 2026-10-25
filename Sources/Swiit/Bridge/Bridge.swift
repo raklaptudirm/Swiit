@@ -11,27 +11,20 @@ import SystemPackage
 enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
-    public static var types: [String: BridgedType] { table.withLock { $0 }.types }
+    public static var types: [String: BridgedType] { table.withLock { $0 } }
 
-    /// The table, which holds closures that only read what they are given.
-    private struct Table: @unchecked Sendable {
-        var types: [String: BridgedType]
-    }
-
-    private static let table = Mutex(
-        Table(
-            types: Dictionary(
-                uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
-                    stringIndex, flowType,
-                ])
-                .map {
-                    (
-                        $0.name,
-                        $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
-                            .adding(additions[$0.name] ?? [])
-                    )
-                }
-            )
+    private static let table = Mutex<[String: BridgedType]>(
+        Dictionary(
+            uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
+                stringIndex, flowType,
+            ])
+            .map {
+                (
+                    $0.name,
+                    $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
+                        .adding(additions[$0.name] ?? [])
+                )
+            }
         )
     )
 
@@ -40,16 +33,16 @@ enum Bridge {
     public static func register(_ more: [BridgedType]) {
         table.withLock { table in
             for type in more {
-                if let existing = table.types[type.name] {
+                if let existing = table[type.name] {
                     // A library adds members to a type the core has (`String.styled`), as an
                     // extension does.
                     var extended = existing.adding(type.members)
                     // How text becomes one, if the type did not have a way.
                     if extended.parse == nil { extended.parse = type.parse }
                     if extended.literal == nil { extended.literal = type.literal }
-                    table.types[type.name] = extended
+                    table[type.name] = extended
                 } else {
-                    table.types[type.name] =
+                    table[type.name] =
                         type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
                         .adding(additions[type.name] ?? [])
                 }
@@ -114,7 +107,7 @@ final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its
     var description: String { name }
 }
 
-struct BridgedType {
+struct BridgedType: Sendable {
     /// `String`, `Substring`, `Array`.
     public let name: String
     /// A generic type's parameters: `Element` for Array.
@@ -127,13 +120,13 @@ struct BridgedType {
     public let associatedTypes: [String: TypeAnnotation]
     /// Text as one, through the type's failable initializer from text
     /// (`Int("42")`); nil if the text isn't one.
-    public var parse: ((String) -> Value?)?
+    public var parse: (@Sendable (String) -> Value?)?
     /// Text as one by Swift's rules for text literals (`Character`,
     /// `FilePath`); nil if the text can't be that literal.
-    public var literal: ((String) -> Value?)?
+    public var literal: (@Sendable (String) -> Value?)?
     /// Items as one, for a collection an array literal can be (Array, Set):
     /// what a parameter given several words gets.
-    public var arrayLiteral: (([Value]) -> Value)?
+    public var arrayLiteral: (@Sendable ([Value]) -> Value)?
     public let members: [BridgedMember]
 
     /// It, with members written by hand too, where the generator can't make them. A host's own member
@@ -184,9 +177,9 @@ struct BridgedType {
         genericParameters: [String],
         conformances: [String: [String: [String]]],
         associatedTypes: [String: TypeAnnotation],
-        parse: ((String) -> Value?)? = nil,
-        literal: ((String) -> Value?)? = nil,
-        arrayLiteral: (([Value]) -> Value)? = nil,
+        parse: (@Sendable (String) -> Value?)? = nil,
+        literal: (@Sendable (String) -> Value?)? = nil,
+        arrayLiteral: (@Sendable ([Value]) -> Value)? = nil,
         members: [BridgedMember]
     ) {
         self.name = name
@@ -200,7 +193,7 @@ struct BridgedType {
     }
 }
 
-struct BridgedMember {
+struct BridgedMember: Sendable {
     /// A setter is a property's other half, for `p.extension = "md"`.
     public enum Kind { case method, property, initializer, setter }
 

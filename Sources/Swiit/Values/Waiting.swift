@@ -6,7 +6,7 @@ protocol WaitingHost: AnyObject {
     /// Runs `body`, a wait, letting other tasks run while it does.
     func wait(_ body: () -> Void)
     /// As `wait`, and `wake` is called when the task is cancelled meanwhile, to end the wait early.
-    func wait(wake: @escaping () -> Void, _ body: () -> Void)
+    func wait(wake: @escaping @Sendable () -> Void, _ body: () -> Void)
     /// Runs `body`, a read of the host's input, when it's this task's turn at
     /// the input; or not at all, if the task is cancelled before then.
     func waitForInput(_ body: () -> Void)
@@ -14,7 +14,7 @@ protocol WaitingHost: AnyObject {
 
 extension WaitingHost {
     /// A host that can't end a wait early waits it out.
-    public func wait(wake: @escaping () -> Void, _ body: () -> Void) { wait(body) }
+    public func wait(wake: @escaping @Sendable () -> Void, _ body: () -> Void) { wait(body) }
 }
 
 /// For a function that waits, as a host's or a library's may: a blocking
@@ -56,7 +56,7 @@ enum Waiting {
     /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It
     /// runs on the thread that cancels, so it may only do what is safe from there: close a handle,
     /// signal a process, resume a continuation.
-    public static func whileWaiting<T>(wake: @escaping () -> Void, _ body: () -> T) -> T {
+    public static func whileWaiting<T>(wake: @escaping @Sendable () -> Void, _ body: () -> T) -> T {
         guard let host else { return body() }
         var result: T?
         host.wait(wake: wake) { result = body() }
@@ -89,7 +89,7 @@ extension Interpreter {
     }
 
     /// As above, with how to cut the wait short when the run is cancelled.
-    public static func whileWaiting<T>(wake: @escaping () -> Void, _ wait: () -> T) -> T {
+    public static func whileWaiting<T>(wake: @escaping @Sendable () -> Void, _ wait: () -> T) -> T {
         Waiting.whileWaiting(wake: wake, wait)
     }
 

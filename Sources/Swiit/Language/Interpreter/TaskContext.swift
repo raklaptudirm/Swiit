@@ -84,7 +84,7 @@ extension Interpreter {
     /// `wake` ends the wait early if the task is cancelled meanwhile (by
     /// stopping the programs it waits for, say); the task then stops at its
     /// next step.
-    func suspend<T>(wake: (() -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
+    func suspend<T>(wake: (@Sendable () -> Void)? = nil, _ wait: () throws -> T) rethrows -> T {
         let mine = task
         let token = wake.map { mine.cancellation.onRequest($0) }
         defer { token.map { mine.cancellation.remove($0) } }
@@ -133,7 +133,7 @@ extension Interpreter: WaitingHost {
         suspend { body() }
     }
 
-    func wait(wake: @escaping () -> Void, _ body: () -> Void) {
+    func wait(wake: @escaping @Sendable () -> Void, _ body: () -> Void) {
         suspend(wake: wake) { body() }
     }
 
