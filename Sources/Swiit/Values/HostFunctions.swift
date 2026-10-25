@@ -145,7 +145,7 @@ extension Symbol.Parameter {
 /// How a host names a type: a parameter or result of a function it offers, and what `symbols`,
 /// `overload` and `scriptType(of:)` speak. Swift's type grammar is small and closed, and so
 /// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
-/// `Flow<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
+/// `ThrowingStream<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
 /// class is a fact about its declaration: `symbols(named:)` says.
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
     ExpressibleByStringLiteral

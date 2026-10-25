@@ -16,7 +16,7 @@ enum Bridge {
     private static let table = Mutex<[String: BridgedType]>(
         Dictionary(
             uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
-                stringIndex, flowType,
+                stringIndex, throwingStreamType,
             ])
             .map {
                 (

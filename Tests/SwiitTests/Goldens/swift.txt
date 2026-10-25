@@ -79,7 +79,7 @@ func g() async -> Int {
     async let a = f()
     async let b = f()
     return await (a + b)
-}for try awaitfunc f(_ xs: Flow<Int>) async throws {
+}for try awaitfunc f(_ xs: ThrowingStream<Int>) async throws {
     for try await x in xs {
         let y = x
     }

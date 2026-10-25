@@ -115,7 +115,9 @@ private func typeError(_ source: String) -> String? {
 
 @Test func forTryAwaitReadsAnAsyncSequence() throws {
     #expect(
-        try eval("var total = 0; for try await n in Flow([1, 2, 3]) { total += n }; total")
+        try eval(
+            "var total = 0; for try await n in ThrowingStream([1, 2, 3]) { total += n }; total"
+        )
             == .int(6)
     )
     #expect(
@@ -123,8 +125,8 @@ private func typeError(_ source: String) -> String? {
             == "'for await' reads an AsyncSequence, and [Int] isn't one"
     )
     #expect(
-        typeError("for await n in Flow([1]) { }")
-            == "reading a Flow<Int> can throw: write 'for try await'"
+        typeError("for await n in ThrowingStream([1]) { }")
+            == "reading a ThrowingStream<Int> can throw: write 'for try await'"
     )
 }
 

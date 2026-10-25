@@ -7,7 +7,7 @@ enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "Callable", "ScriptType", "HostObject", "ScriptConvertible",
         "HostFunction", "Diagnostic", "SourceRange", "OutputSink", "Symbol", "HostType",
-        "ScriptTask", "Flow", "DisplayStyle",
+        "ScriptTask", "ThrowingStream", "DisplayStyle",
     ]
 
     private static let sources = URL(fileURLWithPath: #filePath).deletingLastPathComponent()

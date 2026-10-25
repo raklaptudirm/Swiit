@@ -2,7 +2,10 @@
 /// only does the work the one after it asks for: `yes | map { … } | prefix 3`
 /// ends. Not a `Sequence`, because reading an item can throw, as a closure
 /// can, and an iterator's `next()` can't.
-public struct Flow<Element> {
+///
+/// Meant to be replaced by the standard library's `Iterable` (SE-0516), whose typed `Failure` is what
+/// this exists for, once a toolchain has it with lazy operators.
+public struct ThrowingStream<Element> {
     /// Reads the next item, or gives nil when there are no more. A property
     /// rather than a method, so it isn't a stage of its own.
     public let read: () throws -> Element?
@@ -19,8 +22,9 @@ public struct Flow<Element> {
 
     /// The items for which the predicate returns true.
     /// - Parameter isIncluded: a closure like { $0.size > 1.mb }
-    public func filter(_ isIncluded: @escaping (Element) throws -> Bool) -> Flow<Element> {
-        Flow {
+    public func filter(_ isIncluded: @escaping (Element) throws -> Bool) -> ThrowingStream<Element>
+    {
+        ThrowingStream {
             while let item = try read() {
                 if try isIncluded(item) { return item }
             }
@@ -30,14 +34,14 @@ public struct Flow<Element> {
 
     /// Each item transformed, nil results included, as Swift's map.
     /// - Parameter transform: a closure like { $0.name }, or a key path like \.name
-    public func map<T>(_ transform: @escaping (Element) throws -> T) -> Flow<T> {
-        Flow<T> { try read().map(transform) }
+    public func map<T>(_ transform: @escaping (Element) throws -> T) -> ThrowingStream<T> {
+        ThrowingStream<T> { try read().map(transform) }
     }
 
     /// Each item transformed, nil results dropped.
     /// - Parameter transform: a closure like { $0.name }, or a key path like \.name
-    public func compactMap<T>(_ transform: @escaping (Element) throws -> T?) -> Flow<T> {
-        Flow<T> {
+    public func compactMap<T>(_ transform: @escaping (Element) throws -> T?) -> ThrowingStream<T> {
+        ThrowingStream<T> {
             while let item = try read() {
                 if let result = try transform(item) { return result }
             }
@@ -46,9 +50,9 @@ public struct Flow<Element> {
     }
 
     /// The first items; stops reading after them.
-    public func prefix(_ maxLength: Int = 1) -> Flow<Element> {
+    public func prefix(_ maxLength: Int = 1) -> ThrowingStream<Element> {
         var taken = 0
-        return Flow {
+        return ThrowingStream {
             guard taken < maxLength, let item = try read() else { return nil }
             taken += 1
             return item

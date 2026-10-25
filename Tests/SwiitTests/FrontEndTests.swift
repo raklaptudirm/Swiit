@@ -59,7 +59,7 @@ private let programs: [(name: String, source: String)] = [
     ),
     (
         "for try await",
-        "func f(_ xs: Flow<Int>) async throws { for try await x in xs { let y = x } }"
+        "func f(_ xs: ThrowingStream<Int>) async throws { for try await x in xs { let y = x } }"
     ),
     ("await covers what follows", "func f() async -> Int { 1 }\nlet n = await f() + f() * 2"),
     ("discards", "func f() -> Int { 1 }\n_ = f()\nlet _ = f()"),

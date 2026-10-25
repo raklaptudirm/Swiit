@@ -503,9 +503,9 @@ extension Value {
         }
     }
 
-    /// The items it gives as they come, which reading can fail on: a `Flow`'s, or a task group's.
+    /// The items it gives as they come, which reading can fail on: a `ThrowingStream`'s, or a task group's.
     /// Nil for anything else.
-    public var flow: Flow<Value>? { Interpreter.flow(of: self) }
+    public var throwingStream: ThrowingStream<Value>? { Interpreter.throwingStream(of: self) }
 
     /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host
     /// type's text, a flow), one at a time, so a range of a billion never becomes a list; nil for

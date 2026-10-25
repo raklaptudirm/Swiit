@@ -320,7 +320,7 @@ extension Interpreter {
             return
         }
         let value = try evaluate(sequence)
-        if let flow = Interpreter.flow(of: value) {
+        if let flow = Interpreter.throwingStream(of: value) {
             while let element = try flow.read() {
                 guard try body(element) else { return }
             }

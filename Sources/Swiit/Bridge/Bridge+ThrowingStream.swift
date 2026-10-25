@@ -1,22 +1,24 @@
 import Foundation
 
-// `Flow`, the items read one at a time with the work done as each is asked for, by hand: the
+// `ThrowingStream`, the items read one at a time with the work done as each is asked for, by hand: the
 // generator reads Swift's own modules, and this one is Swiit's.
 
 extension Bridge {
     private static let element = TypeAnnotation.parameter("Element")
     private static func flow(_ element: TypeAnnotation) -> TypeAnnotation {
-        .generic("Flow", [element])
+        .generic("ThrowingStream", [element])
     }
 
-    private static func receiver(_ arguments: [String: Value]) throws -> Flow<Value> {
-        try SwiftValue.unbox(Flow<Value>.self, arguments["self"] ?? .nothing)
+    private static func receiver(_ arguments: [String: Value]) throws -> ThrowingStream<Value> {
+        try SwiftValue.unbox(ThrowingStream<Value>.self, arguments["self"] ?? .nothing)
     }
 
-    private static func make(_ flow: Flow<Value>) -> Value { SwiftValue.make(flow, as: "Flow") }
+    private static func make(_ flow: ThrowingStream<Value>) -> Value {
+        SwiftValue.make(flow, as: "ThrowingStream")
+    }
 
-    nonisolated(unsafe) static let flowType = BridgedType(  // safe: set once, before anything reads it
-        name: "Flow",
+    nonisolated(unsafe) static let throwingStreamType = BridgedType(  // safe: set once, before anything reads it
+        name: "ThrowingStream",
         genericParameters: ["Element"],
         conformances: [:],
         associatedTypes: [:],
@@ -37,7 +39,7 @@ extension Bridge {
                 summary: ""
             ) { interpreter, arguments in
                 make(
-                    Flow<Value> {
+                    ThrowingStream<Value> {
                         bridgeOptional(try bridgeClosure(interpreter, arguments["read"]!)([])) {
                             $0
                         }
@@ -53,7 +55,7 @@ extension Bridge {
                 generics: ["Element"],
                 summary: "The items of any sequence."
             ) { _, arguments in
-                make(Flow<Value>(try bridgeSequence(arguments["items"]!)))
+                make(ThrowingStream<Value>(try bridgeSequence(arguments["items"]!)))
             },
             member(
                 .method,

@@ -276,18 +276,18 @@ extension Bridge {
         )
     }
 
-    /// `lazy`: the items one at a time, as a Flow, which maps and filters as they are read.
+    /// `lazy`: the items one at a time, as a ThrowingStream, which maps and filters as they are read.
     private static func lazyMember(_ element: TypeAnnotation) -> BridgedMember {
         member(
             .property,
             "lazy",
-            returns: .generic("Flow", [element]),
+            returns: .generic("ThrowingStream", [element]),
             summary: "The items read one at a time, mapped and filtered as they are read."
         ) { _, arguments in
             guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else {
                 throw RuntimeError("lazy needs a sequence")
             }
-            return SwiftValue.make(Flow<Value> { items.next() }, as: "Flow")
+            return SwiftValue.make(ThrowingStream<Value> { items.next() }, as: "ThrowingStream")
         }
     }
 
@@ -313,20 +313,23 @@ extension Bridge {
                 )
             }
         ],
-        "Flow": [
+        "ThrowingStream": [
             member(
                 .method,
                 "reversed",
-                returns: .generic("Flow", [.parameter("Element")]),
+                returns: .generic("ThrowingStream", [.parameter("Element")]),
                 summary: "The items in the opposite order."
             ) { _, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
-                    let flow = box.value as? Flow<Value>
+                    let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 var items: [Value] = []
                 while let item = try flow.read() { items.append(item) }
                 var reversed = items.reversed().makeIterator()
-                return SwiftValue.make(Flow<Value> { reversed.next() }, as: "Flow")
+                return SwiftValue.make(
+                    ThrowingStream<Value> { reversed.next() },
+                    as: "ThrowingStream"
+                )
             },
             member(
                 .property,
@@ -335,7 +338,7 @@ extension Bridge {
                 summary: "The first item, if there is one."
             ) { _, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
-                    let flow = box.value as? Flow<Value>
+                    let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 return try flow.read() ?? .nothing
             },
@@ -353,7 +356,7 @@ extension Bridge {
                 summary: "The first item the predicate accepts."
             ) { interpreter, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
-                    let flow = box.value as? Flow<Value>
+                    let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 while let item = try flow.read() {
                     if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {
@@ -376,7 +379,7 @@ extension Bridge {
                 summary: "Whether the predicate accepts an item."
             ) { interpreter, arguments in
                 guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
-                    let flow = box.value as? Flow<Value>
+                    let flow = box.value as? ThrowingStream<Value>
                 else { return .bool(false) }
                 while let item = try flow.read() {
                     if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {

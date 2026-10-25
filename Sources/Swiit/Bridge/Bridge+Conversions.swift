@@ -201,12 +201,12 @@ func makeRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> V
 }
 
 extension Interpreter {
-    /// The items a value gives as they come, which can throw: a `Flow`'s,
+    /// The items a value gives as they come, which can throw: a `ThrowingStream`'s,
     /// one at a time; nil for anything else.
-    static func flow(of value: Value) -> Flow<Value>? {
+    static func throwingStream(of value: Value) -> ThrowingStream<Value>? {
         guard case .object(let box as SwiftValue) = value else { return nil }
-        if let group = box.value as? TaskGroupBox { return Flow { try group.next() } }
-        return box.value as? Flow<Value>
+        if let group = box.value as? TaskGroupBox { return ThrowingStream { try group.next() } }
+        return box.value as? ThrowingStream<Value>
     }
 
     /// The items of a list, or a Swift sequence Swiit
@@ -217,7 +217,7 @@ extension Interpreter {
         case .list(let items):
             return AnyIterator(items.makeIterator())
         case .object(let box as SwiftValue):
-            if let flow = box.value as? Flow<Value> {
+            if let flow = box.value as? ThrowingStream<Value> {
                 return AnyIterator { (try? flow.read()) ?? nil }
             }
             if let range = box.value as? ClosedRange<Value> {
