@@ -90,6 +90,8 @@ struct TypeProfile {
     /// What `value[…]` reads, with whether each can also be written.
     var subscripts: [TypeChecker.Signature] = []
     var subscriptSettable: [Bool] = []
+    /// `@dynamicMemberLookup`: a member it has no declaration for is `self[dynamicMember: name]`.
+    var isDynamicMemberLookup = false
     /// Of a class: which of its initializers are `convenience`, and which of its methods say
     /// `override`, by name.
     var convenienceInitializers: [Bool] = []

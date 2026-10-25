@@ -374,6 +374,22 @@ extension TypeChecker {
         return type
     }
 
+    /// `x.name` on a `@dynamicMemberLookup` type that has no member of that name: the arguments of
+    /// `x[dynamicMember: "name"]`, and what it gives.
+    func dynamicMember(
+        of base: TypeAnnotation,
+        _ name: String
+    ) throws -> (arguments: [Argument], type: TypeAnnotation)? {
+        guard case .named(let typeName) = erased(base), let info = structInfo(named: typeName),
+            info.isDynamicMemberLookup, describe(erased(base))?.instanceMember(name) == nil,
+            name != "description", name != "debugDescription"
+        else {
+            return nil
+        }
+        var arguments = [Argument(label: "dynamicMember", value: .literal(.string(name)))]
+        return (arguments, try structSubscript(info, &arguments).type)
+    }
+
     func tupleElement(_ name: String, of elements: [TypeAnnotation.TupleElement]) -> TypeAnnotation?
     {
         if let position = Int(name), elements.indices.contains(position) {

@@ -73,6 +73,9 @@ indirect enum Expr: Equatable, Sendable {
     case optionalMember(Expr, String)
     /// `x?[i]`: nil if `x` is, and its element otherwise.
     case optionalIndex(Expr, Expr)
+    /// `x?[label: i]`, and what the checker makes of `x?.name` on a `@dynamicMemberLookup` type:
+    /// nil if `x` is, and its subscript's value otherwise.
+    case optionalSubscripted(Expr, [Argument])
     /// A function, method or initializer, with the overload the checker
     /// chose: the candidate at that position. Only the checker makes these.
     case chosen(Expr, overload: Int)

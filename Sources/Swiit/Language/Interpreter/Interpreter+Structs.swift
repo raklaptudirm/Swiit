@@ -27,6 +27,8 @@ final class StructType: LanguageObject, @unchecked Sendable {  // safe: its stat
     /// parameters are the getter's, then the new value).
     var subscriptGetters: [Function] = []
     var subscriptSetters: [Function?] = []
+    /// `@dynamicMemberLookup`, which the checker reads.
+    var isDynamicMemberLookup = false
     /// What setting a computed property runs, with its value as the one parameter.
     var setters: [String: Function] = [:]
     /// What runs before and after a stored property changes.
@@ -211,6 +213,7 @@ extension Interpreter {
             }
         )
         type.staticSetters = staticSetters
+        type.isDynamicMemberLookup = decl.isDynamicMemberLookup
         for declared in decl.subscripts {
             type.subscriptGetters.append(
                 Function(

@@ -264,6 +264,7 @@ extension TypeChecker {
         }
         var profile = TypeProfile(name: decl.name, kind: .structure)
         profile.conformances = decl.conformances
+        profile.isDynamicMemberLookup = decl.isDynamicMemberLookup
         profile.memberwise = memberwise
         for property in decl.properties where property.getter != nil {
             profile.declared.properties[property.name] = MemberProperty(

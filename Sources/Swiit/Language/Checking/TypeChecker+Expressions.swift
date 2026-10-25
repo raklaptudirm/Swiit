@@ -77,7 +77,9 @@ extension TypeChecker {
             return try typeOfCall(&expr, expecting: expected)
         case .unary, .binary, .index, .subscripted, .indexDefault:
             return try typeOfOperation(&expr, expecting: expected)
-        case .annotated, .forceUnwrap, .optionalMember, .optionalIndex, .chosen, .specialized,
+        case .annotated, .forceUnwrap, .optionalMember, .optionalIndex, .optionalSubscripted,
+            .chosen,
+            .specialized,
             .voidValue, .described,
             .inoutArgument, .cast:
             return try typeOfWrapper(&expr, expecting: expected)
@@ -359,6 +361,10 @@ extension TypeChecker {
                 }
                 lastMemberBase = nil
                 try actorSite(baseType, base, name)
+                if let (arguments, type) = try dynamicMember(of: baseType, name) {
+                    expr = .subscripted(base, arguments)
+                    return type
+                }
                 let type = try memberType(of: baseType, name)
                 expr = plainAccess(lastMemberBase, base, name) ?? .member(base, name)
                 return type
@@ -496,10 +502,25 @@ extension TypeChecker {
                 if case .optional = type { return type }
                 return .optional(type)
             }
+            if let (arguments, type) = try dynamicMember(of: wrapped, name) {
+                expr = .optionalSubscripted(base, arguments)
+                if case .optional = type { return type }
+                return type == .unknown ? .unknown : .optional(type)
+            }
             expr = plainAccess(wrapped, base, name) ?? .optionalMember(base, name)
             let member = try memberType(of: wrapped, name)
             if case .optional = member { return member }
             return member == .unknown ? .unknown : .optional(member)
+        case .optionalSubscripted(var base, var arguments):
+            let wrapped = try optionalBase(&base)
+            guard case .named(let structName) = wrapped, let info = structInfo(named: structName)
+            else {
+                throw TypeError("\(wrapped) can't be indexed by several values")
+            }
+            let element = try structSubscript(info, &arguments).type
+            expr = .optionalSubscripted(base, arguments)
+            if case .optional = element { return element }
+            return element == .unknown ? .unknown : .optional(element)
         case .optionalIndex(var base, var index):
             let wrapped = try optionalBase(&base)
             if let (dynamic, _) = plainType(of: wrapped) {

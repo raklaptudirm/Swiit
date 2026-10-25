@@ -35,6 +35,7 @@ extension TypeChecker {
         // No memberwise initializer: `init()` where every property has a value.
         info.memberwise = Signature(name: decl.name, parameters: [], returns: .named(decl.name))
         guard let parent else { return info }
+        info.isDynamicMemberLookup = info.isDynamicMemberLookup || parent.isDynamicMemberLookup
         for (name, property) in parent.declared.properties
         where info.declared.properties[name] == nil {
             info.declared.properties[name] = property

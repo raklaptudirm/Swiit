@@ -135,6 +135,8 @@ struct StructDecl: Equatable, Sendable {
     var staticMethods: [FunctionDecl] = []
     /// `subscript(i: Int) -> T { get … set … }`: what `value[i]` reads and writes.
     var subscripts: [SubscriptDecl] = []
+    /// `@dynamicMemberLookup`: `x.name` with no such member is `x[dynamicMember: "name"]`.
+    var isDynamicMemberLookup = false
 
     init(
         name: String,

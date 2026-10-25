@@ -35,6 +35,7 @@ extension Interpreter {
             staticProperties: members.staticProperties,
             conformances: conformances
         )
+        type.declaration = decl
         func make(_ function: Function) -> Function { function.owner = type; return function }
         for property in members.properties {
             if let getter = property.getter {

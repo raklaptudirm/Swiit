@@ -14,6 +14,23 @@ extension TypeChecker {
         switch binding.value {
         case .object(let type as StructType):
             return .structType(structInfo(type))
+        case .object(let type as ClassType):
+            // What an earlier program declared is read as it was declared.
+            guard let declaration = type.declaration else {
+                return .variable(.unknown, mutable: false)
+            }
+            var parent: TypeProfile?
+            if let superclass = type.superclass,
+                case .structType(let info)? = lookup(superclass.name)
+            {
+                parent = info
+            }
+            let info = try? classInfo(
+                declaration,
+                superclass: parent,
+                conformances: type.conformances
+            )
+            return info.map { .structType($0) } ?? .variable(.unknown, mutable: false)
         case .object(let type as EnumType):
             return .enumType(enumInfo(type))
         case .object(let type as ProtocolType):
@@ -92,6 +109,7 @@ extension TypeChecker {
         }
         var profile = TypeProfile(name: type.name, kind: .structure)
         profile.conformances = type.conformances
+        profile.isDynamicMemberLookup = type.isDynamicMemberLookup
         profile.memberwise = Signature(
             name: type.name,
             parameters: type.memberwise.parameters,

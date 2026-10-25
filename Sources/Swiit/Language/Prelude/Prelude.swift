@@ -42,6 +42,10 @@ extension Interpreter {
                 try declare(decl)
                 scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
                     .removeValue(forKey: decl.name)
+            case .classDecl(let decl):
+                try declare(decl)
+                scopes[0].bindings[decl.name] = scopes[scopes.count - 1].bindings
+                    .removeValue(forKey: decl.name)
             case .typeExtension(let decl):
                 // A host's addition to a type, with its body in Swiit
                 // (`extension Int { var mb: FileSize { … } }`): declared once the Swift types are

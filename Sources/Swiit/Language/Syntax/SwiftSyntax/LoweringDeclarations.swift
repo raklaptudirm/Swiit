@@ -740,6 +740,11 @@ extension Lowering {
         let outer = enter(type: written, members: block)
         defer { self.members.removeLast(); leave(type: outer) }
         try lowerMembers(of: block, owner: qualified, staticMembers: staticMembers, into: &members)
+        members.isDynamicMemberLookup = hasAttribute(
+            "dynamicMemberLookup",
+            node.as(ClassDeclSyntax.self)?.attributes ?? node.as(ActorDeclSyntax.self)?.attributes
+                ?? []
+        )
         declaration.members = members
         // `deinit { … }`.
         for member in block.members {
@@ -842,7 +847,16 @@ extension Lowering {
             staticMembers: staticMembers,
             into: &declaration
         )
+        declaration.isDynamicMemberLookup = hasAttribute("dynamicMemberLookup", node.attributes)
         return declaration
+    }
+
+    /// Whether a declaration is marked with `@name`.
+    private func hasAttribute(_ name: String, _ attributes: AttributeListSyntax) -> Bool {
+        attributes.contains { element in
+            guard case .attribute(let attribute) = element else { return false }
+            return attribute.attributeName.trimmedDescription == name
+        }
     }
 
     /// `protocol Shape: Named { … }`: its requirements, which carry no bodies.

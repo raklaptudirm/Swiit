@@ -9,7 +9,7 @@ extension Interpreter {
             return try evaluateName(expr)
         case .list, .record, .tuple:
             return try evaluateCollection(expr)
-        case .forceUnwrap, .optionalMember, .optionalIndex, .attempt, .await:
+        case .forceUnwrap, .optionalMember, .optionalIndex, .optionalSubscripted, .attempt, .await:
             return try evaluateOptional(expr)
         case .caseLiteral, .member, .call, .bridged, .closure, .childTask, .inoutArgument,
             .described, .voidValue,
@@ -90,6 +90,10 @@ extension Interpreter {
         case .optionalMember(let base, let name):
             let value = try evaluate(base)
             return value == .nothing ? .nothing : try member(name, of: value)
+        case .optionalSubscripted(let base, let arguments):
+            let value = try evaluate(base)
+            return value == .nothing
+                ? .nothing : try evaluate(.subscripted(.literal(value), arguments))
         case .optionalIndex(let base, let index):
             let value = try evaluate(base)
             return value == .nothing ? .nothing : try element(of: value, at: try evaluate(index))

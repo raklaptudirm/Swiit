@@ -21,6 +21,8 @@ final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state
     let staticProperties: [PropertyDecl]
     /// The protocols it names itself.
     public let conformances: [String]
+    /// What it was declared as, which the checker reads again for a later program.
+    var declaration: ClassDecl?
 
     init(
         name: String,

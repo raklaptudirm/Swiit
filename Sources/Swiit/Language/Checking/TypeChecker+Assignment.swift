@@ -60,6 +60,23 @@ extension TypeChecker {
                     let description = describe(type),
                     [.structure, .classType, .actor].contains(description.kind)
                 {
+                    // `@dynamicMemberLookup`: `x.name = v` is `x[dynamicMember: "name"] = v`.
+                    if let info = structInfo(named: structName), info.isDynamicMemberLookup,
+                        description.instanceMember(name) == nil
+                    {
+                        var arguments = [
+                            Argument(label: "dynamicMember", value: .literal(.string(name)))
+                        ]
+                        let (result, settable) = try structSubscript(info, &arguments)
+                        guard settable else {
+                            throw TypeError(
+                                "cannot assign to '\(name)': \(structName)'s dynamic members are get-only"
+                            )
+                        }
+                        assignment.path[index] = .subscripted(arguments)
+                        type = result
+                        continue
+                    }
                     guard case .property(let property)? = description.instanceMember(name) else {
                         throw TypeError(
                             "cannot assign to '\(name)': \(structName) has no property '\(name)'"
