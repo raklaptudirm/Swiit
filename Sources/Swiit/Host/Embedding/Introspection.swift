@@ -8,9 +8,6 @@ import Foundation
 /// function has parameters and effects, only a variable can be settable, only a type has a
 /// declaration kind: what a symbol is decides what it has.
 public struct Symbol: Sendable, Hashable {
-    /// What a name stands for, in a word.
-    public enum Role: Sendable { case variable, function, type }
-
     public var name: String
     /// The line `help` shows, when it has one.
     public var summary: String?
@@ -394,23 +391,6 @@ extension Interpreter {
             }
         }
         return found
-    }
-
-    /// What each global name stands for, cheaply: the functions, variables and types a script can
-    /// name, the core's builtins and Swift's own types included. How a front end tells a name it
-    /// reads from one that is new.
-    public func names() -> [String: Symbol.Role] {
-        withMainTask {
-            globalNames()
-                .compactMapValues { kind in
-                    switch kind {
-                    case .function: .function
-                    case .variable: .variable
-                    case .type: .type
-                    default: nil
-                    }
-                }
-        }
     }
 
     /// How to color Swift source, in characters, which may be half typed: what it reads before a
