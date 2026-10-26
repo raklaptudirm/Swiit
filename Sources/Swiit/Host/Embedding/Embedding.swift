@@ -606,6 +606,26 @@ extension Interpreter {
         }
     }
 
+    /// A value of a type a script declares, made by calling its initializer with `arguments`: how a
+    /// host builds a struct or a class of the program's own, with the declaration's ID, its defaults
+    /// and its checks. It throws for an ID that names no such type: a host type's, another
+    /// interpreter's, or one declared again since.
+    public func make(
+        _ type: Symbol.ID,
+        arguments: [(label: String?, value: Value)] = []
+    ) throws(Diagnostic) -> Value {
+        let current = inCurrentTask {
+            if case .declared = type.kind { isCurrent(type) } else { false }
+        }
+        guard current else {
+            throw Diagnostic(
+                kind: .type,
+                message: "\(type.name) is not a type this program declares"
+            )
+        }
+        return try call(type.name, arguments: arguments)
+    }
+
     /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments
     /// would: the overload is chosen by the labels and the values given, and what is left out takes
     /// its default. A struct or enum type given as the receiver calls its static members and

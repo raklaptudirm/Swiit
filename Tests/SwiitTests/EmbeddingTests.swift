@@ -761,7 +761,7 @@ private struct Status: Error { var code: Int32 }
         HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
             throw Diagnostic.runtime(
                 "nope",
-                thrown: Value(struct: Symbol.ID(hostType: "Failure"), fields: ["code": Value(7)]),
+                thrown: try Value(encoding: Failure(code: 7)),
                 cause: Status(code: 3)
             )
         }
@@ -1227,7 +1227,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swiit.evaluate("Level.low").typeID == swiit.typeID(named: "Level"))
     #expect(try swiit.evaluate("Dog()").typeID == swiit.typeID(named: "Dog"))
     // A struct value of a Swift type is a host ID, by name, and names nothing registered.
-    let encoded = Value(struct: Symbol.ID(hostType: "Point"), fields: ["x": Value(1)])
+    let encoded = try Value(encoding: Point(x: 1))
     #expect(encoded.typeID == Symbol.ID(hostType: "Point"))
     #expect(encoded.typeID != point.typeID)
 }
@@ -1255,7 +1255,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A struct value of a Swift type stands for the same-named type a script declares.
     #expect(
-        Value(struct: Symbol.ID(hostType: "Point"), fields: ["x": Value(1)]).isInstance(of: point)
+        try Value(encoding: Point(x: 1)).isInstance(of: point)
     )
 }
 
@@ -1360,4 +1360,23 @@ private final class DataPair: HostObject {
     // Both are read as a record by their mirrors.
     #expect(Value(DataPair(1, 2)).mirror.displayStyle == .class)
     #expect(Value(DataPair(1, 2)).mirror.children.map(\.label) == ["a", "b"])
+}
+
+/// Swift types a host encodes into struct values, by their own names.
+private struct Failure: Encodable { var code: Int }
+private struct Point: Encodable { var x: Int }
+
+@Test func aHostMakesAValueOfADeclaredTypeByCallingItsInitializer() throws {
+    let swiit = interpreter()
+    try swiit.evaluate("struct Point { var x: Int; var y = 0 }")
+    let point = try swiit.call("Point", arguments: [("x", Value(1)), ("y", Value(2))])
+    #expect(point.typeID == swiit.typeID(named: "Point"))
+    #expect(point.mirror.children.map(\.label) == ["x", "y"])
+    #expect(try swiit.evaluate("Point(x: 1, y: 2)") == point)
+    // Through the ID, which must be a type the program declares and still means.
+    let id = try #require(swiit.typeID(named: "Point"))
+    #expect(try swiit.make(id, arguments: [("x", Value(3))]).typeID == id)
+    #expect(throws: Diagnostic.self) { try swiit.make(.int) }
+    try swiit.evaluate("struct Point { var z: Int }")
+    #expect(throws: Diagnostic.self) { try swiit.make(id, arguments: [("x", Value(3))]) }
 }

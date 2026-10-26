@@ -586,20 +586,6 @@ extension Value {
         self = .function(NativeFunction(function))
     }
 
-    /// A struct's value, with its fields in order and every one present (an absent optional is
-    /// `nil`), of the type `id` names: one a script declares (`typeID(named:)`), or a Swift type's
-    /// by `Symbol.ID(hostType:)`: `Value(struct: point, fields: ["x": Value(1), "y": Value(2)])`.
-    public init(struct id: Symbol.ID, fields: KeyValuePairs<String, Value>) {
-        self = .structure(Structure(Value.Record(fields, typeID: id)))
-    }
-
-    /// As above, for fields whose names are known only as the program runs.
-    public init(struct id: Symbol.ID, fields: [(name: String, value: Value)]) {
-        var record = Value.Record(typeID: id)
-        for (name, value) in fields { record[name] = value }
-        self = .structure(Structure(record))
-    }
-
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is of a host type named for
     /// its Swift type, or of `type` if one is given.
     public init(encoding value: some Encodable, as type: Symbol.ID? = nil) throws {

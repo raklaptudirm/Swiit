@@ -40,10 +40,7 @@ private struct Entry: Encodable {
     #expect(try Value(returning: [1, 2]) == .list([.int(1), .int(2)]))
     #expect(
         try Value(returning: Entry(name: "a", size: 2))
-            == Value(
-                struct: Symbol.ID(hostType: "Entry"),
-                fields: ["name": .string("a"), "size": .int(2)]
-            )
+            == Value(encoding: Entry(name: "a", size: 2))
     )
     #expect(try Value(returning: Level.low) == Level.low.value)
 }
