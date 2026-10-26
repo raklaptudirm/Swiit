@@ -35,9 +35,10 @@ extension Interpreter {
 
     /// A case without associated values of an enum a script or the host declared:
     /// `value(ofCase: "directory", in: "FileType")`. Nil if there is no such enum or case.
-    public func value(forCase name: String, in enumName: String) -> Value? {
+    public func value(forCase name: String, in enumType: Symbol.ID) -> Value? {
         inCurrentTask {
-            guard let type = enumType(named: enumName), let definition = type.case(named: name),
+            guard let type = self.enumType(named: enumType.name),
+                let definition = type.case(named: name),
                 definition.labels.isEmpty
             else { return nil }
             return .enumValue(Value.EnumCase(type: type, name: name))

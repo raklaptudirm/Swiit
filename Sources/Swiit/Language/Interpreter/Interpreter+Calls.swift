@@ -475,7 +475,7 @@ extension TypeAnnotation {
         case .named(let name, let arguments):
             self =
                 arguments.isEmpty
-                ? .named(name) : .generic(name, arguments.map(TypeAnnotation.init))
+                ? .named(name.name) : .generic(name.name, arguments.map(TypeAnnotation.init))
         case .function(let parameters, let returns, let isThrowing, let isAsync):
             self = .functionType(
                 parameters.map(TypeAnnotation.init),

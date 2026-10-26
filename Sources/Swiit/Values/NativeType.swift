@@ -78,6 +78,8 @@ public struct HostType: Sendable {
 
     /// A type described by hand, from its members alone. `HostType.Builder` also finds what the
     /// Swift type says of itself: its conformances, how text becomes one.
+    public var id: Symbol.ID { Symbol.ID(name) }
+
     public init(name: String, members: [Member] = []) {
         self.name = name
         self.members = members
@@ -100,7 +102,8 @@ extension Value {
 extension Interpreter {
     /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
     /// lacks.
-    public func register(_ type: HostType) {
+    @discardableResult
+    public func register(_ type: HostType) -> Symbol.ID {
         var bridged = BridgedType(type)
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
@@ -119,6 +122,7 @@ extension Interpreter {
                 mutable: false
             )
         }
+        return Symbol.ID(type.name)
     }
 }
 
@@ -566,7 +570,8 @@ extension HostType {
 }
 
 extension Interpreter {
-    public func register<T>(_ builder: HostType.Builder<T>) { register(builder.type) }
+    @discardableResult
+    public func register<T>(_ builder: HostType.Builder<T>) -> Symbol.ID { register(builder.type) }
 }
 
 /// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function

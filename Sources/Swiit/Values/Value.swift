@@ -601,6 +601,9 @@ extension Value {
         }
     }
 
+    /// Whether the value is of the type `type` names, as `is` asks in a script.
+    public func `is`(_ type: Symbol.ID) -> Bool { matches(.named(type)) }
+
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
     /// script's call does.
@@ -643,9 +646,9 @@ extension Value {
             }
         case .named(let name, _):
             switch self {
-            case .structure(let structure): return structure.typeName == name
-            case .enumValue(let value): return value.type.name == name
-            case .object(let object): return object.typeName == name
+            case .structure(let structure): return structure.typeName == name.name
+            case .enumValue(let value): return value.type.name == name.name
+            case .object(let object): return object.typeName == name.name
             default: return false
             }
         case .tuple(let elements):

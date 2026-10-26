@@ -147,10 +147,8 @@ extension Symbol.Parameter {
 /// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
 /// `ThrowingStream<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
 /// class is a fact about its declaration: `symbols(named:)` says.
-public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
-    ExpressibleByStringLiteral
-{
-    case named(String, [ScriptType] = [])
+public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
+    case named(Symbol.ID, [ScriptType] = [])
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
     case function(
         parameters: [ScriptType],
@@ -181,7 +179,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
         self = T.scriptType
     }
 
-    public static let any = ScriptType.named("Any")
+    public static let any = ScriptType.named(.any)
     public static let bool = ScriptType.named("Bool")
     public static let int = ScriptType.named("Int")
     public static let double = ScriptType.named("Double")
@@ -189,22 +187,22 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
     /// The type of nothing: what a function that gives nothing gives.
     public static let void = ScriptType.tuple([])
     /// A function whose signature is not said.
-    public static let callable = ScriptType.named("Function")
+    public static let callable = ScriptType.named(.function)
 
     /// `[Element]`, which is `Array<Element>`.
-    public static func list(_ element: ScriptType) -> ScriptType { .named("Array", [element]) }
+    public static func list(_ element: ScriptType) -> ScriptType { .named(.array, [element]) }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
     public static func dictionary(_ key: ScriptType, _ value: ScriptType) -> ScriptType {
-        .named("Dictionary", [key, value])
+        .named(.dictionary, [key, value])
     }
     /// `Wrapped?`, which is `Optional<Wrapped>`.
     public static func optional(_ wrapped: ScriptType) -> ScriptType {
-        .named("Optional", [wrapped])
+        .named(.optional, [wrapped])
     }
 
-    /// A type by its name, with no generic arguments: `"Int"`.
-    public init(stringLiteral name: String) {
-        self = .named(name)
+    /// A named type by its text, which the module's own tables and checker are written in.
+    static func named(_ name: String, _ arguments: [ScriptType] = []) -> ScriptType {
+        .named(Symbol.ID(name), arguments)
     }
 
     public var description: String {
@@ -215,7 +213,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible,
         case .named("Optional", let arguments) where arguments.count == 1: "\(arguments[0])?"
         case .named(let name, let arguments):
             arguments.isEmpty
-                ? name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+                ? name.name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
         case .function(let parameters, let returns, let isThrowing, let isAsync):
             "(\(parameters.map(\.description).joined(separator: ", ")))"
                 + (isAsync ? " async" : "") + (isThrowing ? " throws" : "") + " -> \(returns)"

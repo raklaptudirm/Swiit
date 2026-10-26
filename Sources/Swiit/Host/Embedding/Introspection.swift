@@ -42,6 +42,38 @@ public struct Symbol: Sendable, Hashable {
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
 
+    /// Names a type: what `register` gives back, what `Interpreter.typeID(named:)` finds, and what
+    /// `ScriptType.named` and `Value.is(_:)` take. A host gets one from the interpreter or from a
+    /// Swift type, never from text it made up.
+    public struct ID: Sendable, Hashable, CustomStringConvertible {
+        /// The type's name as a script writes it.
+        let name: String
+
+        init(_ name: String) { self.name = name }
+
+        public var description: String { name }
+
+        /// A type a host declares, which is how an ID is born: once, where the host names the Swift
+        /// type it registers (`Symbol.ID(declaring: "Output")`). Everywhere else it is passed
+        /// around, or asked of the interpreter.
+        public init(declaring name: String) { self.name = name }
+
+        /// Swift's own, which scripts have and hosts match on.
+        public static let any = ID("Any")
+        public static let array = ID("Array")
+        public static let arraySlice = ID("ArraySlice")
+        public static let set = ID("Set")
+        public static let dictionary = ID("Dictionary")
+        public static let optional = ID("Optional")
+        public static let function = ID("Function")
+        public static let sequence = ID("Sequence")
+        public static let throwingStream = ID("ThrowingStream")
+
+        /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
+        /// conformance would offer to every host.
+        static func ~= (name: String, id: ID) -> Bool { id.name == name }
+    }
+
     /// What a symbol is. A type is one of the five Swift declares; what it has is for
     /// `symbols(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
@@ -138,6 +170,14 @@ public struct Symbol: Sendable, Hashable {
             /// It is exactly this type, as `where Element == Int` says.
             case equals(ScriptType)
 
+            /// The module's own tables are written with the names of the types they mean.
+            public static let comparable = Constraint.conforms(to: .named("Comparable"))
+            public static let hashable = Constraint.conforms(to: .named("Hashable"))
+            public static let equatable = Constraint.conforms(to: .named("Equatable"))
+
+            static func conforms(to name: String) -> Constraint { .conforms(to: .named(name)) }
+            static func equals(_ name: String) -> Constraint { .equals(.named(name)) }
+
             /// What one constraint is among others when they are compared: a protocol by its name,
             /// an exact type by that name after an `=`.
             var refinementKey: String {
@@ -147,6 +187,9 @@ public struct Symbol: Sendable, Hashable {
                 }
             }
         }
+
+        /// The parameter as a type, for a signature that uses it: `T` in `(T, T) -> T`.
+        public var type: ScriptType { .named(Symbol.ID(name)) }
 
         public init(name: String, constraints: [Constraint] = []) {
             self.name = name
@@ -245,6 +288,9 @@ public struct Symbol: Sendable, Hashable {
         case .function, .variable, .method, .property, .initializer, .enumCase: false
         }
     }
+
+    /// The type's ID, for a type; nil for any other symbol.
+    public var id: ID? { isType ? ID(name) : nil }
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names.
@@ -686,6 +732,13 @@ extension Interpreter {
         public var kind: Kind
     }
 
+    /// The ID of the type a script can name `name`: one it or the host declares, or one of Swift's
+    /// the core bridges. Nil when there is none. A host asks once, after loading the source that
+    /// declares the type, and keeps the answer.
+    public func typeID(named name: String) -> Symbol.ID? {
+        (symbols(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
+    }
+
     /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public var types: [Symbol] {
@@ -709,11 +762,11 @@ extension Interpreter {
         }
     }
 
-    /// Whether values of `type` have what the protocol named asks (`Comparable`, `Hashable`,
+    /// Whether values of `type` have what the protocol asks (`Comparable`, `Hashable`,
     /// `Sequence`, or one a script declares), as the checker reads it.
-    public func conforms(_ type: ScriptType, to protocolName: String) -> Bool {
+    public func conforms(_ type: ScriptType, to proto: Symbol.ID) -> Bool {
         inCurrentTask {
-            TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: protocolName)
+            TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: proto.name)
         }
     }
 

@@ -4,6 +4,11 @@ import Testing
 
 // The embedding API: what a host does with an `Interpreter` and nothing else.
 
+extension Interpreter {
+    /// A type a script or the host declared, as a reference.
+    fileprivate func type(_ name: String) -> ScriptType { .named(typeID(named: name)!) }
+}
+
 private final class Log: @unchecked Sendable {
     var text = ""
 }
@@ -333,7 +338,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
         func f(_ s: String) -> String { "string" }
         """
     )
-    let members = swiit.symbols(in: .named("Point"))
+    let members = swiit.symbols(in: swiit.type("Point"))
     #expect(
         Set(
             members.filter {
@@ -369,7 +374,7 @@ private final class HostNode: HostObject, @unchecked Sendable {
         if case .initializer = $0.kind { true } else { false }
     }
     #expect(initializers.count == 1)
-    #expect(try swiit.scriptType(ofExpression: "Point(x: 1)") == .named("Point"))
+    #expect(try swiit.scriptType(ofExpression: "Point(x: 1)") == swiit.type("Point"))
     #expect(try swiit.scriptType(ofExpression: "[1, 2].map { $0 + 1 }") == .list(.int))
     let overloads = swiit.symbols(named: "f")
     #expect(
@@ -484,8 +489,8 @@ extension Value {
     #expect(throws: (any Error).self) { try String(three) }
     // A script type by name, and a structured type by shape.
     let point = try swiit.evaluate("Point(x: 1, y: 2)")
-    #expect(point.cast(to: .named("Point")) != nil)
-    #expect(point.cast(to: .named("Level")) == nil)
+    #expect(point.cast(to: swiit.type("Point")) != nil)
+    #expect(point.cast(to: swiit.type("Level")) == nil)
     #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.int)) != nil)
     #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.string)) == nil)
     #expect(
@@ -506,8 +511,8 @@ extension Value {
 
 @Test func aTypeIsANameWithArgumentsAFunctionOrATuple() throws {
     let swiit = interpreter()
-    #expect(ScriptType.list(.int) == .named("Array", [.int]))
-    #expect(ScriptType.optional(.string) == .named("Optional", [.string]))
+    #expect(ScriptType.list(.int) == .named(.array, [.int]))
+    #expect(ScriptType.optional(.string) == .named(.optional, [.string]))
     #expect(ScriptType.list(.optional(.int)).description == "[Int?]")
     #expect(try swiit.scriptType(ofExpression: "[1, 2]") == .list(.int))
     #expect(try swiit.scriptType(ofExpression: #"["a": 1]"#) == .dictionary(.string, .int))
@@ -582,6 +587,7 @@ struct Bytes: Comparable, Hashable, Sendable {
 
 @Suite struct NativeTypeTests {
     static func bytesType() -> HostType {
+        let bytes = Symbol.ID(declaring: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b, as: "Bytes") }
         return HostType(
             name: "Bytes",
@@ -591,7 +597,7 @@ struct Bytes: Comparable, Hashable, Sendable {
                     .initializer(
                         Symbol.Function(
                             parameters: [.init(label: "count", name: "count", type: Int.self)],
-                            returns: .named("Bytes")
+                            returns: .named(bytes)
                         )
                     ) { box(Bytes(count: try Int($0[0]))) }
                 ),
@@ -607,8 +613,8 @@ struct Bytes: Comparable, Hashable, Sendable {
                     .staticMethod(
                         Symbol.Function(
                             parameters: [
-                                .init(name: "lhs", type: .named("Bytes")),
-                                .init(name: "rhs", type: .named("Bytes")),
+                                .init(name: "lhs", type: .named(bytes)),
+                                .init(name: "rhs", type: .named(bytes)),
                             ],
                             returns: .bool
                         )
@@ -716,12 +722,14 @@ extension URL: ScriptConvertible {}
     #expect(swiit.parse(word: "5", as: .int) == 5)
     #expect(swiit.parse(word: "x", as: .int) == nil)
     #expect(swiit.parse(word: "x", as: .string) == "x")
-    #expect(swiit.parse(word: ".directory", as: .named("Kind"))?.enumCase?.name == "directory")
-    #expect(swiit.parse(word: "nope", as: .named("Kind")) == nil)
+    #expect(swiit.parse(word: ".directory", as: swiit.type("Kind"))?.enumCase?.name == "directory")
+    #expect(swiit.parse(word: "nope", as: swiit.type("Kind")) == nil)
     #expect(swiit.parse(word: "x", as: .optional(.string)) == "x")
-    #expect(swiit.parse(word: "x", as: .named("Element")) == "x")
-    #expect(swiit.value(forCase: "file", in: "Kind")?.enumCase?.name == "file")
-    #expect(swiit.value(forCase: "nope", in: "Kind") == nil)
+    #expect(swiit.parse(word: "x", as: Symbol.GenericParameter(name: "Element").type) == "x")
+    #expect(
+        swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.enumCase?.name == "file"
+    )
+    #expect(swiit.value(forCase: "nope", in: swiit.typeID(named: "Kind")!) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
     #expect(swiit.converted(Value("3"), to: .int) == nil)
     #expect(swiit.scriptType(of: Value(3)) == .int)
@@ -913,8 +921,9 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit
+    let handle = Symbol.ID(declaring: "Handle")
     swiit.register(
-        HostFunction(name: "spawn", returns: .named("Handle")) { _ in
+        HostFunction(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))
         }
     )
@@ -1027,39 +1036,30 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func typeParametersCarryTheirConstraintsAsTypes() throws {
     let swiit = interpreter()
     // A host function's own type parameters, with and without constraints.
+    let t = Symbol.GenericParameter(name: "T", constraints: [.comparable, .hashable])
+    let u: Symbol.GenericParameter = "U"
     swiit.register(
         HostFunction(
             name: "pick",
             parameters: [
-                Symbol.Parameter(name: "a", type: "T"), Symbol.Parameter(name: "b", type: "U"),
+                Symbol.Parameter(name: "a", type: t.type),
+                Symbol.Parameter(name: "b", type: u.type),
             ],
-            returns: "T",
-            generics: [
-                Symbol.GenericParameter(
-                    name: "T",
-                    constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")]
-                ),
-                "U",
-            ],
+            returns: t.type,
+            generics: [t, u],
             body: { $0[0] }
         )
     )
     let pick = swiit.symbols(named: "pick").first?.function
     #expect(
-        pick?.generics == [
-            Symbol.GenericParameter(
-                name: "T",
-                constraints: [.conforms(to: "Comparable"), .conforms(to: "Hashable")]
-            ),
-            "U",
-        ]
+        pick?.generics == [t, u]
     )
     // A Swift member's, with what it asks of its type: `sorted()` needs a Comparable element.
     let sorted = swiit.symbols(named: "sorted", in: .list(.int)).compactMap(\.function)
     #expect(
         sorted.contains {
             $0.generics.contains {
-                $0.name == "Element" && $0.constraints.contains(.conforms(to: "Comparable"))
+                $0.name == "Element" && $0.constraints.contains(.comparable)
             }
         }
     )
