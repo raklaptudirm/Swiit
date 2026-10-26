@@ -2,7 +2,7 @@ import Foundation
 
 extension Interpreter {
     func intRange(_ op: BinaryOperator, _ lower: Value, _ upper: Value) throws -> Range<Int> {
-        guard case .int(let low) = lower, case .int(let high) = upper else {
+        guard case .int(let low) = lower.storage, case .int(let high) = upper.storage else {
             throw RuntimeError(
                 "a range needs Int bounds, not \(lower.typeName) and \(upper.typeName)"
             )
@@ -17,14 +17,14 @@ extension Interpreter {
 
     func truth(_ expr: Expr, for op: BinaryOperator) throws -> Bool {
         let value = try evaluate(expr)
-        guard case .bool(let truth) = value else {
+        guard case .bool(let truth) = value.storage else {
             throw RuntimeError("'\(op.rawValue)' needs Bool operands, not \(value.typeName)")
         }
         return truth
     }
 
     func apply(_ op: UnaryOperator, _ value: Value) throws -> Value {
-        switch (op, value) {
+        switch (op, value.storage) {
         case (.not, .bool(let b)):
             return .bool(!b)
         case (.negate, .int(let n)):
@@ -48,7 +48,7 @@ extension Interpreter {
 
     /// Whether a value is of a type the program declared, which may have operators of its own.
     func isDeclaredValue(_ value: Value) -> Bool {
-        switch value {
+        switch value.storage {
         case .structure(let structure): structure.record.typeName != nil
         case .enumValue: true
         default: false
@@ -59,7 +59,7 @@ extension Interpreter {
     /// extension's).
     func staticOperators(_ name: String, of value: Value) -> [Function] {
         var found: [Function] = []
-        switch value {
+        switch value.storage {
         case .structure(let structure):
             if let type = structType(of: structure.record) {
                 found += type.staticMethods[name]?.candidates ?? []
@@ -81,7 +81,7 @@ extension Interpreter {
     func userOperator(_ name: String, _ operands: [Value]) throws -> Value? {
         var candidates: [Function] = []
         for operand in operands { candidates += staticOperators(name, of: operand) }
-        if case .function(let set as OverloadSet)? = lookup(name)?.value {
+        if case .function(let set as OverloadSet)? = lookup(name)?.value.storage {
             candidates += set.candidates
         }
         var unique: [Function] = []
@@ -106,7 +106,7 @@ extension Interpreter {
     private func derivedOperator(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value?
     {
         func truth(_ value: Value?) -> Bool? {
-            if case .bool(let result)? = value { result } else { nil }
+            if case .bool(let result)? = value?.storage { result } else { nil }
         }
         switch op {
         case .notEqual: return truth(try userOperator("==", [lhs, rhs])).map { .bool(!$0) }
@@ -119,7 +119,7 @@ extension Interpreter {
 
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
         // Two integers, the common case: nothing below applies to them but the arithmetic.
-        if case .int(let a) = lhs, case .int(let b) = rhs {
+        if case .int(let a) = lhs.storage, case .int(let b) = rhs.storage {
             switch op {
             case .equal: return .bool(a == b)
             case .notEqual: return .bool(a != b)
@@ -131,12 +131,12 @@ extension Interpreter {
             if let result = try derivedOperator(op, lhs, rhs) { return result }
         }
         if op == .equal || op == .notEqual {
-            if case .enumValue(let value) = lhs, case .string(let text) = rhs {
+            if case .enumValue(let value) = lhs.storage, case .string(let text) = rhs.storage {
                 throw RuntimeError(
                     "can't compare \(value.type.name) with a String; compare with a case, like .\(text)"
                 )
             }
-            if case .string(let text) = lhs, case .enumValue(let value) = rhs {
+            if case .string(let text) = lhs.storage, case .enumValue(let value) = rhs.storage {
                 throw RuntimeError(
                     "can't compare a String with \(value.type.name); compare with a case, like .\(text)"
                 )
@@ -145,13 +145,13 @@ extension Interpreter {
         // A Swift type compared with text through an operator it declares (`==` of an `Output` and a
         // `String`).
         if op == .equal || op == .notEqual {
-            switch (lhs, rhs) {
+            switch (lhs.storage, rhs.storage) {
             case (.object(is SwiftValue), .string), (.string, .object(is SwiftValue)):
                 if let result = try bridgedOperator(op.rawValue, [lhs, rhs]) { return result }
             default: break
             }
         }
-        switch (op, lhs, rhs) {
+        switch (op, lhs.storage, rhs.storage) {
         case (.equal, _, _):
             return .bool(lhs.isEqual(to: rhs))
         case (.notEqual, _, _):
@@ -191,7 +191,8 @@ extension Interpreter {
             return .bool(op == .lessEqual || op == .greaterEqual)
         }
         // Swift values that order themselves (an index, a date).
-        if case .object(let a as SwiftValue) = lhs, case .object(let b as SwiftValue) = rhs,
+        if case .object(let a as SwiftValue) = lhs.storage,
+            case .object(let b as SwiftValue) = rhs.storage,
             [.less, .lessEqual, .greater, .greaterEqual].contains(op),
             let ordered = a.isLess(than: b)
         {

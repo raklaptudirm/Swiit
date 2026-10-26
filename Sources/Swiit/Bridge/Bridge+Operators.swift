@@ -46,7 +46,7 @@ extension Interpreter {
     /// is an error here, with no `try`, as for Int.
     func bridgedOperator(_ symbol: String, _ operands: [Value]) throws -> Value? {
         let names = operands.compactMap { operand -> String? in
-            if case .object(let box as SwiftValue) = operand { box.typeName } else { nil }
+            if case .object(let box as SwiftValue) = operand.storage { box.typeName } else { nil }
         }
         let functions = Bridge.operators(symbol, arity: operands.count, of: names)
             .map {

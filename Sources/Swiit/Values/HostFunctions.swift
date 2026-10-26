@@ -285,7 +285,7 @@ extension Value: ScriptConvertible {
 extension Int: ScriptConvertible {
     public static var scriptType: ScriptType { .int }
     public init(_ swiitValue: Value) throws {
-        guard case .int(let value) = swiitValue else {
+        guard case .int(let value) = swiitValue.storage else {
             throw SwiitError.expected("Int", swiitValue)
         }
         self = value
@@ -296,7 +296,7 @@ extension Int: ScriptConvertible {
 extension Double: ScriptConvertible {
     public static var scriptType: ScriptType { .double }
     public init(_ swiitValue: Value) throws {
-        switch swiitValue {
+        switch swiitValue.storage {
         case .double(let value): self = value
         case .int(let value): self = Double(value)
         default: throw SwiitError.expected("Double", swiitValue)
@@ -308,7 +308,7 @@ extension Double: ScriptConvertible {
 extension String: ScriptConvertible {
     public static var scriptType: ScriptType { .string }
     public init(_ swiitValue: Value) throws {
-        guard case .string(let value) = swiitValue else {
+        guard case .string(let value) = swiitValue.storage else {
             throw SwiitError.expected("String", swiitValue)
         }
         self = value
@@ -319,7 +319,7 @@ extension String: ScriptConvertible {
 extension Bool: ScriptConvertible {
     public static var scriptType: ScriptType { .bool }
     public init(_ swiitValue: Value) throws {
-        guard case .bool(let value) = swiitValue else {
+        guard case .bool(let value) = swiitValue.storage else {
             throw SwiitError.expected("Bool", swiitValue)
         }
         self = value
@@ -344,7 +344,7 @@ extension Array: ScriptConvertible where Element: ScriptConvertible {
     public static var scriptType: ScriptType { .list(Element.scriptType) }
     static var enumTypes: [Value.EnumCase.Enumeration] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
-        switch swiitValue {
+        switch swiitValue.storage {
         case .list(let items): self = try items.map(Element.init(_:))
         // A Swift sequence Swiit holds (a host type's lines).
         case .object(let box as SwiftValue) where box.value is any Sequence:
@@ -359,7 +359,7 @@ extension Dictionary: ScriptConvertible where Key: ScriptConvertible, Value: Scr
     public static var scriptType: ScriptType { .dictionary(Key.scriptType, Value.scriptType) }
     static var enumTypes: [Swiit.Value.EnumCase.Enumeration] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
-        guard case .dictionary(let entries) = swiitValue else {
+        guard case .dictionary(let entries) = swiitValue.storage else {
             throw SwiitError.expected("[\(Key.scriptType): \(Value.scriptType)]", swiitValue)
         }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
@@ -389,7 +389,7 @@ extension SwiitError {
 extension Value {
     /// The type name a conversion error uses.
     var bridgeTypeName: String {
-        switch self {
+        switch self.storage {
         case .nothing: "nil"
         case .bool: "Bool"
         case .int: "Int"
@@ -441,7 +441,7 @@ func swiitArgument<T: HostObject>(
     of function: String,
     as type: T.Type = T.self
 ) throws -> T {
-    guard case .object(let object as T) = arguments[name] ?? .nothing else {
+    guard case .object(let object as T) = (arguments[name] ?? .nothing).storage else {
         throw SwiitError(
             "\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).bridgeTypeName)"
         )
@@ -476,7 +476,7 @@ extension ScriptConvertible where Self: CaseIterable & Hashable & Sendable {
     }
 
     public init(_ swiitValue: Value) throws {
-        guard case .enumValue(let value) = swiitValue,
+        guard case .enumValue(let value) = swiitValue.storage,
             value.type === Value.EnumCase.Enumeration.of(Self.self),
             let found = Self.allCases.first(where: { String(describing: $0) == value.name })
         else {

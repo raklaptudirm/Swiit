@@ -296,7 +296,9 @@ extension Interpreter {
     }
 
     func structType(named name: String) -> StructType? {
-        guard case .object(let type as StructType)? = lookup(name)?.value else { return nil }
+        guard case .object(let type as StructType)? = lookup(name)?.value.storage else {
+            return nil
+        }
         return type
     }
 
@@ -636,7 +638,7 @@ extension Interpreter {
         // the instance itself, which the variable holding it needn't allow.
         var holdsInstance = false
         if !assignment.path.isEmpty {
-            switch lookup(assignment.root)?.value {
+            switch lookup(assignment.root)?.value.storage {
             case .object(is ClassInstance)?, .object(is ClassType)?: holdsInstance = true
             default: break
             }
@@ -656,7 +658,7 @@ extension Interpreter {
             try withPlace(assignment.root, place) { slot in
                 guard let op = assignment.op else { slot = value; return }
                 try applyInPlace(op, &slot, value)
-                switch slot {
+                switch slot.storage {
                 case .int, .double, .bool:
                     if let validate = place.validate { slot = try validate(slot) }
                 default: break
@@ -669,10 +671,10 @@ extension Interpreter {
         try update(assignment.root, assignment.path) { current, type in
             let value = try evaluate(assignment.value, expecting: type)
             // A weak variable stays weak: what is put in it is held without being kept alive.
-            if assignment.path.isEmpty, case .object(is WeakReference) = current,
+            if assignment.path.isEmpty, case .object(is WeakReference) = current.storage,
                 assignment.op == nil
             {
-                if case .object(let instance as ClassInstance) = value {
+                if case .object(let instance as ClassInstance) = value.storage {
                     return .object(WeakReference(instance))
                 }
                 if value == .nothing { return .object(WeakReference(nil)) }
@@ -759,7 +761,7 @@ extension Interpreter {
     ) throws -> Value {
         guard let step = path.first else { return try change(base, type) }
         let rest = path.dropFirst()
-        switch (step, base) {
+        switch (step, base.storage) {
         case (.optionalChain, _):
             // Nothing is nil's to change, and what would have been assigned isn't worked out.
             guard base != .nothing else { return base }
@@ -843,7 +845,7 @@ extension Interpreter {
             return Value(record: record)
         case (.index(let indexExpr), .list(var items)):
             let index = try evaluate(indexExpr)
-            guard case .int(let position) = index else {
+            guard case .int(let position) = index.storage else {
                 throw RuntimeError("a list is indexed by Int, not \(index.typeName)")
             }
             guard items.indices.contains(position) else {
@@ -886,7 +888,7 @@ extension Interpreter {
         case (.index(let indexExpr), _) where base.record != nil:
             var record = base.record!
             let key = try evaluate(indexExpr)
-            guard case .string(let name) = key else {
+            guard case .string(let name) = key.storage else {
                 throw RuntimeError("a record is indexed by String, not \(key.typeName)")
             }
             if structType(of: record) != nil {
@@ -972,7 +974,8 @@ extension Interpreter {
                 case .list(let parts) = try invoke(
                     function,
                     with: ["self": base, "newValue": value]
-                ),
+                )
+                .storage,
                 parts.count == 2
             else {
                 throw RuntimeError("\(box.typeName).\(name) gave back no receiver")

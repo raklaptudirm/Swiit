@@ -6,7 +6,7 @@ extension Interpreter {
     /// Whether two values are of the same kind: a plain one is told by its case, without building
     /// the name of its type.
     static func sameKind(_ a: Value, _ b: Value) -> Bool {
-        switch (a, b) {
+        switch (a.storage, b.storage) {
         case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.list, .list),
             (.dictionary, .dictionary):
             true
@@ -62,7 +62,7 @@ extension Interpreter {
         for name in function.typeParameters {
             if case .object(let bound)? = function.captured.last?
                 .bindings[Interpreter.typeArgumentPrefix + name]?
-                .value,
+                .value.storage,
                 !(bound is ProtocolType)
             {
                 continue
@@ -182,7 +182,7 @@ extension Interpreter {
     /// `where` call the closures they're given.
     public func call(_ value: Value, with arguments: [Value]) throws -> Value {
         let unlabeled = arguments.map { Argument(label: nil, value: .literal($0)) }
-        switch value {
+        switch value.storage {
         case .function(let set as OverloadSet):
             let (function, bindings) = try resolve(set) { try self.bind(unlabeled, to: $0) }
             return try invoke(function, with: bindings)
@@ -212,7 +212,8 @@ extension Interpreter {
             later.allSatisfy({ $0.label != nil })
         else { return false }
         switch arguments[index].value {
-        case .closure, .literal(.function): return parameter.type.acceptsFunction
+        case .closure: return parameter.type.acceptsFunction
+        case .literal(let value): return value.isFunction && parameter.type.acceptsFunction
         default: return false
         }
     }
@@ -495,7 +496,8 @@ extension Interpreter {
     /// Calls a closure of two values whose first it changes in place (`reduce(into:)`'s), giving
     /// what it left in the first.
     func callChangingFirst(_ value: Value, _ first: Value, _ second: Value) throws -> Value {
-        guard case .function(let function as Function) = value, !function.parameters.isEmpty else {
+        guard case .function(let function as Function) = value.storage, !function.parameters.isEmpty
+        else {
             return try {
                 _ = try call(value, with: [first, second]); return first
             }()

@@ -95,7 +95,7 @@ extension Interpreter {
     /// A condition's value.
     func isTrue(_ condition: Expr) throws -> Bool {
         let value = try evaluate(condition)
-        guard case .bool(let truth) = value else {
+        guard case .bool(let truth) = value.storage else {
             throw RuntimeError("condition must be a Bool, not \(value.typeName)")
         }
         return truth
@@ -285,7 +285,7 @@ extension Interpreter {
     func runObserved(_ expr: Expr, _ observer: ValueObserver) throws -> Value {
         task.lastCallee = nil
         let value = try evaluate(expr)
-        let isBoolLiteral = if case .literal(.bool) = expr { true } else { false }
+        let isBoolLiteral = if case .literal(let value) = expr, value.isBool { true } else { false }
         if !isBoolLiteral { try observer(value, calleeSymbol(of: expr)) }
         finished(.expression(expr), value)
         return value
@@ -327,7 +327,7 @@ extension Interpreter {
             return
         }
         let elements: AnyIterator<Value>
-        if case .dictionary(let dictionary) = value {
+        if case .dictionary(let dictionary) = value.storage {
             // In the order they are shown in, which is the same every run.
             elements = AnyIterator(
                 dictionary.sortedForDisplay
@@ -336,7 +336,7 @@ extension Interpreter {
                     }
                     .makeIterator()
             )
-        } else if case .string(let text) = value {
+        } else if case .string(let text) = value.storage {
             elements = AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
         } else if let items = Interpreter.items(of: value) {
             elements = items

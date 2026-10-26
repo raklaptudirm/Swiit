@@ -33,7 +33,8 @@ extension Interpreter {
         }
         guard member.isMutating, let receiver else { return try invoke(function, with: bindings) }
         // `xs.append(1)`: Swift changes a copy, which goes back into `xs`.
-        guard case .list(let parts) = try invoke(function, with: bindings), parts.count == 2 else {
+        guard case .list(let parts) = try invoke(function, with: bindings).storage, parts.count == 2
+        else {
             throw RuntimeError("\(typeName).\(member.name) gave back no receiver")
         }
         try mutate(receiver, by: member.name) { _ in parts[1] }
@@ -59,7 +60,7 @@ extension Interpreter {
         else { return nil }
         // Only a collection (or a string) gains by it; anything else has no copy to save.
         let isCollection: Bool = try withPlace(root, place) { slot in
-            switch slot {
+            switch slot.storage {
             case .list, .dictionary, .string, .object(is SwiftValue): true
             default: false
             }
@@ -72,7 +73,8 @@ extension Interpreter {
             var arguments = bindings
             arguments["self"] = .object(box)
             defer { slot = box.value }
-            guard case .list(let parts) = try invoke(function, with: arguments), parts.count == 2
+            guard case .list(let parts) = try invoke(function, with: arguments).storage,
+                parts.count == 2
             else {
                 throw RuntimeError("\(member.name) gave back no receiver")
             }
@@ -84,7 +86,7 @@ extension Interpreter {
     /// does; nil if its type has none of that name.
     func bridgedProperty(_ name: String, of value: Value) throws -> Value? {
         let typeName: String? =
-            switch value {
+            switch value.storage {
             case .string: "String"
             case .int: "Int"
             case .double: "Double"
@@ -116,7 +118,7 @@ extension Interpreter {
     /// Nil if its type has none.
     func bridgedMethods(_ name: String, of value: Value) -> Value? {
         let typeName: String? =
-            switch value {
+            switch value.storage {
             case .string: "String"
             case .int: "Int"
             case .double: "Double"

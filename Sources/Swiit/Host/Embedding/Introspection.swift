@@ -431,7 +431,7 @@ extension Interpreter {
     /// The type an annotation names, with the names of declared types as their declarations' IDs.
     func scriptType(_ annotation: TypeAnnotation) -> ScriptType {
         ScriptType(annotation) { name in
-            guard case .object(let object)? = self.lookup(name)?.value else { return nil }
+            guard case .object(let object)? = self.lookup(name)?.value.storage else { return nil }
             return (object as? any DeclaredType)?.id
         }
     }
@@ -480,7 +480,7 @@ extension Interpreter {
     }
 
     private func symbols(of name: String, binding: Binding) -> [Symbol] {
-        switch binding.value {
+        switch binding.value.storage {
         case .function(let callable):
             let candidates =
                 (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
@@ -860,7 +860,7 @@ extension Interpreter {
     /// written with it is not the type its name means now.
     func isCurrent(_ id: Symbol.ID) -> Bool {
         guard case .declared = id.kind else { return true }
-        guard case .object(let object)? = lookup(id.name)?.value else { return false }
+        guard case .object(let object)? = lookup(id.name)?.value.storage else { return false }
         return (object as? any DeclaredType)?.id == id
     }
 
@@ -888,7 +888,7 @@ extension Interpreter {
                 }
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }
                 .compactMap { name, binding -> Symbol? in
-                    if case .object(is BridgedTypeName) = binding.value {
+                    if case .object(is BridgedTypeName) = binding.value.storage {
                         var symbol = Symbol(name: name, kind: .structure)
                         symbol.id = .host(name)
                         symbol.isBuiltin = true
@@ -1078,7 +1078,7 @@ extension Interpreter {
             }
             if let raw {
                 values[enumCase.name] = raw
-                if case .int(let n) = raw { next = n + 1 }
+                if case .int(let n) = raw.storage { next = n + 1 }
             }
         }
         return values

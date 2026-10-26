@@ -4,28 +4,54 @@ import Foundation
 ///
 /// This is the currency shared by the interpreter and its hosts,
 /// which is why it lives in its own dynamic library.
-public enum Value: Sendable {
-    // The representation is the interpreter's and the host's (SPI). A host builds a value with its
-    // initializers and literals and reads one with `kind`, `cast(to:)`, `entries` and `enumCase`,
-    // so a new representation never breaks it.
-    case nothing
-    case bool(Bool)
-    case int(Int)
-    case double(Double)
-    case string(String)
-    case list([Value])
-    /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
-    case tuple(Value.Tuple)
-    /// A struct's value: its type's name, and its fields in the order the type declares them.
-    case structure(Value.Structure)
-    /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
-    case dictionary([Value: Value])
-    /// A case of an enum: `.directory`, or `.failed(code: 2)`.
-    case enumValue(Value.EnumCase)
-    /// A live value with members of its own: a background job, an enum type,
-    /// and later bridged Swift objects.
-    case object(any HostObject)
-    case function(any Callable)
+public struct Value: Sendable {
+    // The representation is the interpreter's: a host builds a value with its initializers,
+    // literals and static members, and reads one with `cast(to:)`, `typeID`, `isInstance(of:)`,
+    // `entries` and the views (`tuple`, `structure`, `enumCase`), so a new representation never
+    // breaks it.
+    var storage: Storage
+
+    init(_ storage: Storage) { self.storage = storage }
+
+    /// What a value is made of: the interpreter's fast representation.
+    enum Storage: Sendable {
+        case nothing
+        case bool(Bool)
+        case int(Int)
+        case double(Double)
+        case string(String)
+        case list([Value])
+        /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
+        case tuple(Value.Tuple)
+        /// A struct's value: its type's name, and its fields in the order the type declares them.
+        case structure(Value.Structure)
+        /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
+        case dictionary([Value: Value])
+        /// A case of an enum: `.directory`, or `.failed(code: 2)`.
+        case enumValue(Value.EnumCase)
+        /// A live value with members of its own: a background job, an enum type,
+        /// and later bridged Swift objects.
+        case object(any HostObject)
+        case function(any Callable)
+    }
+
+    /// `nil`, which a script writes `nil`.
+    public static let nothing = Value(Storage.nothing)
+    public static func bool(_ value: Bool) -> Value { Value(Storage.bool(value)) }
+    public static func int(_ value: Int) -> Value { Value(Storage.int(value)) }
+    public static func double(_ value: Double) -> Value { Value(Storage.double(value)) }
+    public static func string(_ value: String) -> Value { Value(Storage.string(value)) }
+    public static func list(_ values: [Value]) -> Value { Value(Storage.list(values)) }
+    var isFunction: Bool { if case .function = storage { true } else { false } }
+    var isString: Bool { if case .string = storage { true } else { false } }
+    var isBool: Bool { if case .bool = storage { true } else { false } }
+    var isInt: Bool { if case .int = storage { true } else { false } }
+    static func tuple(_ value: Value.Tuple) -> Value { Value(Storage.tuple(value)) }
+    static func structure(_ value: Value.Structure) -> Value { Value(Storage.structure(value)) }
+    static func dictionary(_ value: [Value: Value]) -> Value { Value(Storage.dictionary(value)) }
+    static func enumValue(_ value: Value.EnumCase) -> Value { Value(Storage.enumValue(value)) }
+    static func object(_ value: any HostObject) -> Value { Value(Storage.object(value)) }
+    static func function(_ value: any Callable) -> Value { Value(Storage.function(value)) }
 }
 
 /// A live object a host hands scripts. Its members are the ones its `HostType` registers, which
@@ -103,7 +129,7 @@ extension HostObject {
         var fields: [(key: Value, value: Value)] = []
         for name in memberNames {
             guard let value = member(name) else { continue }
-            if case .function = value { continue }
+            if case .function = value.storage { continue }
             fields.append((Value.string(name), value))
         }
         return fields
@@ -113,7 +139,9 @@ extension HostObject {
     var objectFields: Value.Record? {
         guard let fields = dataFields else { return nil }
         var record = Value.Record(typeName: typeName)
-        for (key, value) in fields { if case .string(let name) = key { record[name] = value } }
+        for (key, value) in fields {
+            if case .string(let name) = key.storage { record[name] = value }
+        }
         return record
     }
 
@@ -133,7 +161,7 @@ extension HostObject {
 extension Value {
     /// A record, or an object's fields: what a table row is made from.
     var asRecord: Value.Record? {
-        switch self {
+        switch self.storage {
         case .tuple(let tuple): tuple.record
         case .structure(let structure): structure.record
         case .object(let object): object.objectFields
@@ -315,7 +343,7 @@ extension Value {
 
     /// The fields of a tuple or of a struct value, with the struct's type name.
     var record: Record? {
-        switch self {
+        switch self.storage {
         case .tuple(let tuple): tuple.record
         case .structure(let structure): structure.record
         default: nil
@@ -339,7 +367,7 @@ extension Value {
     /// The order a dictionary's keys are shown in: only for showing, so it
     /// needn't mean anything beyond being the same every time.
     static func displaysBefore(_ a: Value, _ b: Value) -> Bool {
-        switch (a, b) {
+        switch (a.storage, b.storage) {
         case (.int(let x), .int(let y)): return x < y
         case (.int, .double), (.double, .int), (.double, .double):
             return a.displayNumber! < b.displayNumber!
@@ -353,7 +381,7 @@ extension Value {
     }
 
     private var displayNumber: Double? {
-        switch self {
+        switch self.storage {
         case .int(let n): Double(n)
         case .double(let d): d
         default: nil
@@ -364,7 +392,7 @@ extension Value {
 extension Value: Hashable {
     /// Functions compare by identity.
     public static func == (lhs: Value, rhs: Value) -> Bool {
-        switch (lhs, rhs) {
+        switch (lhs.storage, rhs.storage) {
         case (.nothing, .nothing): true
         case (.bool(let a), .bool(let b)): a == b
         case (.int(let a), .int(let b)): a == b
@@ -383,7 +411,7 @@ extension Value: Hashable {
     }
 
     public func hash(into hasher: inout Hasher) {
-        switch self {
+        switch self.storage {
         case .nothing: hasher.combine(0)
         case .bool(let value): hasher.combine(value)
         case .int(let value): hasher.combine(value)
@@ -404,7 +432,7 @@ extension Value: Hashable {
 
 extension Value: CustomStringConvertible {
     public var description: String {
-        switch self {
+        switch self.storage {
         case .nothing: ""
         case .bool(let value): String(value)
         case .int(let value): String(value)
@@ -448,7 +476,7 @@ extension Value: CustomDebugStringConvertible {
     /// value: strings quoted, cases with their type, outputs and records
     /// with their fields.
     public var debugDescription: String {
-        switch self {
+        switch self.storage {
         case .nothing: "nil"
         case .string(let value): Value.quoted(value)
         case .list(let values): "[" + values.map(\.debugDescription).joined(separator: ", ") + "]"
@@ -470,7 +498,7 @@ extension Value {
 
     /// The date it holds, if it's one.
     var date: Date? {
-        if case .object(let box as SwiftValue) = self { box.value as? Date } else { nil }
+        if case .object(let box as SwiftValue) = self.storage { box.value as? Date } else { nil }
     }
 }
 
@@ -483,7 +511,7 @@ final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its sta
 
     /// The box, if `value` is one.
     public static func of(_ value: Value) -> ReceiverBox? {
-        if case .object(let box as ReceiverBox) = value { box } else { nil }
+        if case .object(let box as ReceiverBox) = value.storage { box } else { nil }
     }
 
     /// What it holds, leaving it empty: the caller then holds the only reference.
@@ -523,7 +551,7 @@ extension Value {
     /// struct value by name (a tuple's unlabeled ones by position, "0", "1"), or the fields of a
     /// host's object that is data. Nil for any other value.
     public var entries: [(key: Value, value: Value)]? {
-        switch self {
+        switch self.storage {
         case .dictionary(let dictionary): dictionary.map { (key: $0.key, value: $0.value) }
         case .tuple, .structure:
             record!.map { (key: Value.string($0.key), value: $0.value) }
@@ -612,15 +640,16 @@ extension Value {
     public init(_ value: [Value: Value]) { self = .dictionary(value) }
     public init(_ value: some HostObject) { self = .object(value) }
 
-    /// What a value is, as a script would say it. A tuple and a struct value are told apart by
-    /// whether the type has a name.
-    public enum Kind: Sendable {
+    /// What a value is made of, as the interpreter says it. A host asks `typeID`, `isInstance(of:)`
+    /// and the views (`tuple`, `structure`, `enumCase`, `function`) instead, and makes its own
+    /// taxonomy of them if it wants one to switch over.
+    enum Kind: Sendable {
         case nothing, bool, int, double, string, list, dictionary
         case tuple, structure, enumeration, function, object
     }
 
-    public var kind: Kind {
-        switch self {
+    var kind: Kind {
+        switch self.storage {
         case .nothing: .nothing
         case .bool: .bool
         case .int: .int
@@ -642,7 +671,7 @@ extension Value {
     /// nothing the interpreter knows (an encoded Swift value's), and `Interpreter.symbol(for:)`
     /// then gives nil.
     public var typeID: Symbol.ID? {
-        switch self {
+        switch self.storage {
         case .nothing: .optional
         case .bool: .bool
         case .int: .int
@@ -656,6 +685,8 @@ extension Value {
         case .object(let object):
             if let instance = object as? ClassInstance {
                 instance.type.id
+            } else if let box = object as? SwiftValue {
+                .host(box.typeName)
             } else if object is any LanguageObject {
                 nil
             } else {
@@ -672,15 +703,15 @@ extension Value {
     /// interpreter: `ScriptType.conforms(to:in:)` is.
     public func isInstance(of id: Symbol.ID) -> Bool {
         if id == .any { return true }
-        if case .function = self { return id == .function }
+        if case .function = self.storage { return id == .function }
         guard let own = typeID else { return false }
         if own == id { return true }
-        if case .structure(let structure) = self, case .host = own.kind,
+        if case .structure(let structure) = self.storage, case .host = own.kind,
             case .declared = id.kind, structure.typeName == id.name
         {
             return true
         }
-        if case .object(let object) = self, let instance = object as? ClassInstance {
+        if case .object(let object) = self.storage, let instance = object as? ClassInstance {
             var type = instance.type.superclass
             while let current = type {
                 if current.id == id { return true }
@@ -699,13 +730,38 @@ extension Value {
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
     /// script's call does.
     public func cast<T: ScriptConvertible>(to type: T.Type = T.self) -> T? {
+        // The plain ones, which a host asks per item, without building a value to compare.
+        switch storage {
+        case .int(let value) where T.self == Int.self: return value as? T
+        case .string(let value) where T.self == String.self: return value as? T
+        case .bool(let value) where T.self == Bool.self: return value as? T
+        case .double(let value) where T.self == Double.self: return value as? T
+        case .list(let value) where T.self == [Value].self: return value as? T
+        case _ where T.self == Value.self: return self as? T
+        default: break
+        }
         guard let result = try? T(self), result.value == self else { return nil }
         return result
     }
 
+    /// The elements of a tuple, if this is one.
+    public var tuple: Value.Tuple? {
+        if case .tuple(let tuple) = storage { tuple } else { nil }
+    }
+
+    /// The fields of a struct value, if this is one.
+    public var structure: Value.Structure? {
+        if case .structure(let structure) = storage { structure } else { nil }
+    }
+
+    /// The function, if this is one.
+    public var function: (any Callable)? {
+        if case .function(let function) = storage { function } else { nil }
+    }
+
     /// The host's own object, if this is one of that class.
     public func cast<T: HostObject>(to type: T.Type) -> T? {
-        guard case .object(let object) = self else { return nil }
+        guard case .object(let object) = self.storage else { return nil }
         return object as? T
     }
 
@@ -726,24 +782,24 @@ extension Value {
         case .named("Optional", let arguments):
             return self == .nothing || arguments.first.map(matches) ?? true
         case .named("Array", let arguments):
-            guard case .list(let items) = self else { return false }
+            guard case .list(let items) = self.storage else { return false }
             return items.allSatisfy { arguments.first.map($0.matches) ?? true }
         case .named("Dictionary", let arguments):
-            guard case .dictionary(let dictionary) = self, arguments.count == 2 else {
+            guard case .dictionary(let dictionary) = self.storage, arguments.count == 2 else {
                 return kind == .dictionary
             }
             return dictionary.allSatisfy {
                 $0.key.matches(arguments[0]) && $0.value.matches(arguments[1])
             }
         case .named(let name, _):
-            switch self {
+            switch self.storage {
             case .structure(let structure): return structure.id == name
             case .enumValue(let value): return value.type.id == name
             case .object: return typeID == name
             default: return false
             }
         case .tuple(let elements):
-            guard case .tuple(let tuple) = self, tuple.count == elements.count
+            guard case .tuple(let tuple) = self.storage, tuple.count == elements.count
             else {
                 return false
             }
@@ -757,14 +813,14 @@ extension Value {
 
     /// The raw value of a script enum's case, if its type has them.
     public var rawValue: Value? {
-        guard case .enumValue(let value) = self else { return nil }
+        guard case .enumValue(let value) = self.storage else { return nil }
         return value.rawValue
     }
 
     /// The case of a script enum: its type's name, the case's name, its payload and the labels the
     /// payload is declared with.
     public var enumCase: (type: String, name: String, values: [Value], labels: [String?])? {
-        guard case .enumValue(let value) = self else { return nil }
+        guard case .enumValue(let value) = self.storage else { return nil }
         return (value.type.name, value.name, value.values, value.definition?.labels ?? [])
     }
 }

@@ -94,7 +94,7 @@ extension TypeChecker {
     ) throws -> TypeAnnotation {
         switch expr {
         case .literal(let value):
-            switch value {
+            switch value.storage {
             case .int where expected == .double || expected == .optional(.double):
                 return .double  // `let x: Double = 1`
             case .string(let text) where expected.flatMap(textLiteralType) != nil:
@@ -635,7 +635,7 @@ extension TypeChecker {
     }
 
     func type(of value: Value) -> TypeAnnotation {
-        switch value {
+        switch value.storage {
         case .nothing: .optional(.unknown)
         case .bool: .bool
         case .int: .int

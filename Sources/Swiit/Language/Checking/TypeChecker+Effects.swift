@@ -71,7 +71,7 @@ extension TypeChecker {
     func checkBecomingAsync(_ decl: FunctionDecl) throws {
         guard decl.isAsync, effectContexts.count == 1 else { return }
         if let binding = interpreter.scopes.last?.bindings[decl.name],
-            case .function(let set as OverloadSet) = binding.value,
+            case .function(let set as OverloadSet) = binding.value.storage,
             set.candidates.allSatisfy({ $0.effect == .async })
         {
             return

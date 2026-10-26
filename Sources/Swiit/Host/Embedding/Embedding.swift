@@ -526,10 +526,16 @@ extension Interpreter {
                 ],
                 returnType: nil,
                 call: { arguments in
-                    guard case .list(let items)? = arguments["items"] else { return .nothing }
+                    guard case .list(let items)? = arguments["items"]?.storage else {
+                        return .nothing
+                    }
                     var separator = " ", terminator = "\n"
-                    if case .string(let text)? = arguments["separator"] { separator = text }
-                    if case .string(let text)? = arguments["terminator"] { terminator = text }
+                    if case .string(let text)? = arguments["separator"]?.storage {
+                        separator = text
+                    }
+                    if case .string(let text)? = arguments["terminator"]?.storage {
+                        terminator = text
+                    }
                     let line = try items.map { try interpreter.describing($0) }
                         .joined(separator: separator)
                     interpreter.host.output.write(line + terminator)
@@ -623,7 +629,7 @@ extension Interpreter {
                 {
                     var fits = true
                     if sequenceMethods[name] != nil,
-                        case .function(let set as OverloadSet) = methods
+                        case .function(let set as OverloadSet) = methods.storage
                     {
                         fits = set.candidates.contains { (try? self.bind(written, to: $0)) != nil }
                     }

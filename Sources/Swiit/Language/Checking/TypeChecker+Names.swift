@@ -11,7 +11,7 @@ extension TypeChecker {
         if binding.isComputed {
             return .variable(interpreter.staticTypes[name] ?? .unknown, mutable: false)
         }
-        switch binding.value {
+        switch binding.value.storage {
         case .object(let type as StructType):
             return .structType(structInfo(type))
         case .object(let type as ClassType):
@@ -176,7 +176,7 @@ extension TypeChecker {
             )
         }
         profile.rawType =
-            switch type.cases.first?.rawValue {
+            switch type.cases.first?.rawValue?.storage {
             case .int?: .int
             case .string?: .string
             case .double?: .double

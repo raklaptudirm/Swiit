@@ -33,7 +33,7 @@ extension Interpreter {
             }
             // A weak variable gives what it refers to, or nil once that is gone.
             let value = binding.value
-            if case .object(let reference as WeakReference) = value {
+            if case .object(let reference as WeakReference) = value.storage {
                 return reference.target.map { .object($0) } ?? .nothing
             }
             return value
@@ -99,7 +99,7 @@ extension Interpreter {
             guard value != .nothing else { return .nothing }
             // A struct or class with a subscript of its own is indexed as `x[i]` is.
             if value.record != nil { return try evaluate(.index(.literal(value), index)) }
-            if case .object(_ as ClassInstance) = value {
+            if case .object(_ as ClassInstance) = value.storage {
                 return try evaluate(.index(.literal(value), index))
             }
             return try element(of: value, at: try evaluate(index))
@@ -147,7 +147,7 @@ extension Interpreter {
                 for capture in literal.captures {
                     var value = try evaluate(capture.value)
                     if capture.isWeak || capture.isUnowned,
-                        case .object(let instance as ClassInstance) = value
+                        case .object(let instance as ClassInstance) = value.storage
                     {
                         value = .object(WeakReference(instance))
                     }
@@ -200,7 +200,7 @@ extension Interpreter {
             return specialized(try evaluate(inner), types)
         case .chosen(let inner, let overload):
             // A function as a value, with the overload the checker picked.
-            if case .function(let set as OverloadSet) = try evaluate(inner) {
+            if case .function(let set as OverloadSet) = try evaluate(inner).storage {
                 return .function(narrowed(set, overload))
             }
             return try evaluate(inner)
@@ -242,13 +242,13 @@ extension Interpreter {
             {
                 return try readSubscript(record, type, [Argument(value: index)])
             }
-            if case .object(let instance as ClassInstance) = value {
+            if case .object(let instance as ClassInstance) = value.storage {
                 return try readSubscript(instance, [Argument(value: index)])
             }
             return try element(of: value, at: try evaluate(index))
         case .subscripted(let base, let arguments):
             let target = try evaluate(base)
-            if case .object(let instance as ClassInstance) = target {
+            if case .object(let instance as ClassInstance) = target.storage {
                 return try readSubscript(instance, arguments)
             }
             guard let record = target.record, let type = structType(of: record),
@@ -258,7 +258,7 @@ extension Interpreter {
             }
             return try readSubscript(record, type, arguments)
         case .indexDefault(let base, let key, let fallback):
-            guard case .dictionary(let dictionary) = try evaluate(base) else {
+            guard case .dictionary(let dictionary) = try evaluate(base).storage else {
                 throw RuntimeError("'default:' goes with a dictionary")
             }
             return try dictionary[try evaluate(key)] ?? evaluate(fallback)
@@ -285,7 +285,7 @@ extension Interpreter {
             if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs) {
                 // `$0.type == .directory`: the case comes from the other side's enum.
                 let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
-                guard case .enumValue(let enumValue) = known else {
+                guard case .enumValue(let enumValue) = known.storage else {
                     throw RuntimeError(
                         "\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)"
                     )
@@ -301,7 +301,7 @@ extension Interpreter {
             if Interpreter.isCaseLiteral(lhs) || Interpreter.isCaseLiteral(rhs) {
                 // `level < .high`: the case comes from the other side's enum.
                 let known = try evaluate(Interpreter.isCaseLiteral(lhs) ? rhs : lhs)
-                guard case .enumValue(let enumValue) = known else {
+                guard case .enumValue(let enumValue) = known.storage else {
                     throw RuntimeError(
                         "\(op.rawValue) with a .case needs an enum on the other side, not \(known.typeName)"
                     )
@@ -349,7 +349,7 @@ extension Interpreter {
             }
             let base = try evaluate(baseExpr)
             // `self.init(…)` in a convenience initializer.
-            if name == "init", case .object(let instance as ClassInstance) = base {
+            if name == "init", case .object(let instance as ClassInstance) = base.storage {
                 try delegateInitializer(
                     of: instance,
                     in: task.owners.last ?? instance.type,
@@ -359,13 +359,13 @@ extension Interpreter {
                 return .nothing
             }
             // `obj.move(by: 1)`: the method of the instance's own class, or one it inherits.
-            if case .object(let instance as ClassInstance) = base,
+            if case .object(let instance as ClassInstance) = base.storage,
                 let result = try callClassMethod(instance, name, arguments, overload: overload)
             {
                 return result
             }
             // `Counter.make()`: a static or class method, inherited ones too.
-            if case .object(let type as ClassType) = base {
+            if case .object(let type as ClassType) = base.storage {
                 for next in type.chain {
                     if let methods = next.staticMethods[name] {
                         return try callStatic(
@@ -382,28 +382,28 @@ extension Interpreter {
                 return .nothing
             }
             // `Level.make()`: a static method of an enum.
-            if case .object(let type as Value.EnumCase.Enumeration) = base,
+            if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
                 let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             // `P.make()`: a static method an extension adds to a struct or enum.
-            if case .object(let type as StructType) = base,
+            if case .object(let type as StructType) = base.storage,
                 let methods = typeExtensions[type.name]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
-            if case .object(let type as Value.EnumCase.Enumeration) = base,
+            if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
                 let methods = typeExtensions[type.name]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             // `Result.failed(code: 2)`: a case with associated values.
-            if case .object(let type as Value.EnumCase.Enumeration) = base {
+            if case .object(let type as Value.EnumCase.Enumeration) = base.storage {
                 return try makeCase(type, name, arguments)
             }
             // `direction.opposite()`: an enum's method, with the case as `self`.
-            if case .enumValue(let enumValue) = base,
+            if case .enumValue(let enumValue) = base.storage,
                 let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name]
             {
                 return try callMethod(
@@ -414,7 +414,9 @@ extension Interpreter {
                 )
             }
             // `Point.make(1)`: a static method.
-            if case .object(let type as StructType) = base, let methods = type.staticMethods[name] {
+            if case .object(let type as StructType) = base.storage,
+                let methods = type.staticMethods[name]
+            {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             // `p.move(by: 1)`: a struct's method, with `p` as `self`.
@@ -448,15 +450,15 @@ extension Interpreter {
             value = try evaluate(callee)
         }
         // `Point(x: 1, y: 2)`: a new struct.
-        if case .object(let type as StructType) = value {
+        if case .object(let type as StructType) = value.storage {
             return try construct(type, arguments, overload: overload)
         }
         // `Dog(name: "Rex")`: a new instance.
-        if case .object(let type as ClassType) = value {
+        if case .object(let type as ClassType) = value.storage {
             return try construct(type, arguments, overload: overload)
         }
         // `Level(rawValue: 2)`: the case with that raw value, or nil.
-        if case .object(let type as Value.EnumCase.Enumeration) = value {
+        if case .object(let type as Value.EnumCase.Enumeration) = value.storage {
             if !(arguments.count == 1 && arguments[0].label == "rawValue"),
                 let initializers = enumMembers[ObjectIdentifier(type)]?.initializers
             {
@@ -476,7 +478,7 @@ extension Interpreter {
             if case .caseLiteral = argument.value { return argument }
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
-        switch value {
+        switch value.storage {
         case .function(let set as OverloadSet):
             let (function, bindings) = try resolve(narrowed(set, overload)) {
                 try self.bind(values, to: $0)
@@ -499,7 +501,7 @@ extension Interpreter {
     /// overload to choose and nothing to match, so the arguments become its scope directly. Nil for
     /// any other call.
     private func callPlainly(_ value: Value, _ arguments: [Argument]) throws -> Value? {
-        guard case .function(let target) = value else { return nil }
+        guard case .function(let target) = value.storage else { return nil }
         let only =
             (target as? OverloadSet).flatMap { $0.candidates.count == 1 ? $0.candidates[0] : nil }
             ?? (target as? Function)
@@ -518,21 +520,23 @@ extension Interpreter {
 
     /// Record fields first, then the few members values have.
     func member(_ name: String, of value: Value) throws -> Value {
-        if case .enumValue(let enumValue) = value, name == "rawValue" {
+        if case .enumValue(let enumValue) = value.storage, name == "rawValue" {
             guard let raw = enumValue.rawValue else {
                 throw RuntimeError("\(enumValue.type.name) has no raw values")
             }
             return raw
         }
-        if case .enumValue(let enumValue) = value, let found = try enumMember(name, of: enumValue) {
+        if case .enumValue(let enumValue) = value.storage,
+            let found = try enumMember(name, of: enumValue)
+        {
             return found
         }
-        if case .object(let instance as ClassInstance) = value,
+        if case .object(let instance as ClassInstance) = value.storage,
             let found = try classMember(name, of: instance)
         {
             return found
         }
-        if case .object(let type as ClassType) = value,
+        if case .object(let type as ClassType) = value.storage,
             let found = try classStaticMember(name, of: type)
         {
             return found
@@ -542,33 +546,35 @@ extension Interpreter {
         } else if let found = try extensionMember(name, of: value) {
             return found
         }
-        if case .object(let type as StructType) = value,
+        if case .object(let type as StructType) = value.storage,
             let found = try extensionStaticMember(name, ofTypeNamed: type.name)
         {
             return found
         }
-        if case .object(let type as Value.EnumCase.Enumeration) = value,
+        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
             let found = try extensionStaticMember(name, ofTypeNamed: type.name)
         {
             return found
         }
-        if case .object(let type as Value.EnumCase.Enumeration) = value,
+        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
             let found = try enumStaticMember(name, of: type)
         {
             return found
         }
-        if case .object(let type as Value.EnumCase.Enumeration) = value,
+        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
             type.case(named: name) != nil,
             type.member(name) == nil
         {
             return try makeCase(type, name, nil)  // Says what values it needs.
         }
-        if case .object(let type as StructType) = value,
+        if case .object(let type as StructType) = value.storage,
             let found = try staticMember(name, of: type)
         {
             return found
         }
-        if case .object(let object) = value, name != "description" && name != "debugDescription" {
+        if case .object(let object) = value.storage,
+            name != "description" && name != "debugDescription"
+        {
             if let property = try bridgedProperty(name, of: value) { return property }
             if let method = bridgedMethods(name, of: value) { return method }
             guard let member = object.member(name) else {
@@ -608,7 +614,7 @@ extension Interpreter {
         if value.record != nil, let found = try extensionMember(name, of: value) { return found }
         // Swiit's own kinds, and its views of Swift's, as the checker's
         // `memberType(of:_:)` types them.
-        switch (value, name) {
+        switch (value.storage, name) {
         case _ where value.record?[name] != nil: return value.record![name]!
         case (_, "count") where value.record != nil: return .int(value.record!.count)
         case (_, "isEmpty") where value.record != nil: return .bool(value.record!.isEmpty)
@@ -635,30 +641,32 @@ extension Interpreter {
     }
 
     func element(of base: Value, at index: Value) throws -> Value {
-        if case .string(let text) = base { return try Bridge.subscriptString(text, index) }
-        if case .dictionary(let dictionary) = base {
+        if case .string(let text) = base.storage { return try Bridge.subscriptString(text, index) }
+        if case .dictionary(let dictionary) = base.storage {
             return dictionary[index] ?? .nothing
         }
-        if let record = base.record, case .string(let key) = index {
+        if let record = base.record, case .string(let key) = index.storage {
             return record[key] ?? .nothing
         }
         // A Swift sequence Swiit holds is indexed by position (a host type's text, by line);
         // subscripts aren't bridged yet.
-        if case .object = base, let items = Interpreter.items(of: base) {
+        if case .object = base.storage, let items = Interpreter.items(of: base) {
             return try element(of: .list(Array(items)), at: index)
         }
-        guard case .list(let elements) = base else {
+        guard case .list(let elements) = base.storage else {
             throw RuntimeError("\(base.typeName) can't be indexed")
         }
         // `xs[1...3]`: a slice, as Swift's ArraySlice.
-        if case .object(let box as SwiftValue) = index {
+        if case .object(let box as SwiftValue) = index.storage {
             var bounds: Range<Int>?
-            if let range = box.value as? ClosedRange<Value>, case .int(let low) = range.lowerBound,
-                case .int(let high) = range.upperBound, high < Int.max
+            if let range = box.value as? ClosedRange<Value>,
+                case .int(let low) = range.lowerBound.storage,
+                case .int(let high) = range.upperBound.storage, high < Int.max
             {
                 bounds = low..<(high + 1)
-            } else if let range = box.value as? Range<Value>, case .int(let low) = range.lowerBound,
-                case .int(let high) = range.upperBound
+            } else if let range = box.value as? Range<Value>,
+                case .int(let low) = range.lowerBound.storage,
+                case .int(let high) = range.upperBound.storage
             {
                 bounds = low..<high
             }
@@ -671,7 +679,7 @@ extension Interpreter {
                 return SwiftValue.make(ArraySlice(elements[bounds]), as: "ArraySlice")
             }
         }
-        guard case .int(let i) = index else {
+        guard case .int(let i) = index.storage else {
             throw RuntimeError("a list index must be an Int, not \(index.typeName)")
         }
         guard elements.indices.contains(i) else {
@@ -699,7 +707,9 @@ extension Interpreter {
                 )
             }
         }
-        guard !bindings.isEmpty, case .function(let callable) = function else { return function }
+        guard !bindings.isEmpty, case .function(let callable) = function.storage else {
+            return function
+        }
         let scope = Scope(bindings)
         if let set = callable as? OverloadSet {
             return .function(
@@ -738,7 +748,7 @@ extension Interpreter {
 
     /// The annotation a type value stands for, to test a value against.
     func annotation(ofTypeValue value: Value) -> TypeAnnotation? {
-        guard case .object(let object) = value else { return nil }
+        guard case .object(let object) = value.storage else { return nil }
         let name: String
         switch object {
         case let type as ClassType: name = type.name

@@ -4,7 +4,7 @@ import SystemPackage
 /// A Swiit key path (`\.status.code`) as a Swift one over
 /// values: each name a subscript that reads the field, one after another.
 func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
-    guard case .function(let keyPath as KeyPathValue) = value else {
+    guard case .function(let keyPath as KeyPathValue) = value.storage else {
         throw SwiitError("expected a key path, not \(value.typeName)")
     }
     return keyPath.path.reduce(\Value.self) { path, name in
@@ -33,7 +33,7 @@ func withFieldReader<T>(_ interpreter: Interpreter, _ body: () throws -> T) thro
 /// A case of a Swift enum from a Swiit value: the case of that name, among
 /// all the enum's.
 func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
-    guard case .enumValue(let found) = value,
+    guard case .enumValue(let found) = value.storage,
         let match = T.allCases.first(where: { "\($0)" == found.name })
     else {
         throw SwiitError("expected a \(T.self), not \(value.typeName)")
@@ -85,7 +85,7 @@ func bridgeRecord<T: Encodable>(
 
 /// A list's items, or a Swift sequence's (a host type's lines).
 func bridgeList(_ value: Value) throws -> [Value] {
-    switch value {
+    switch value.storage {
     case .list(let items): return items
     default:
         guard let items = Interpreter.items(of: value) else {
@@ -97,7 +97,7 @@ func bridgeList(_ value: Value) throws -> [Value] {
 
 /// A dictionary as Swift's, which is what it holds.
 func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
-    guard case .dictionary(let dictionary) = value else {
+    guard case .dictionary(let dictionary) = value.storage else {
         throw SwiitError("expected a dictionary, not \(value.typeName)")
     }
     return dictionary
@@ -136,7 +136,7 @@ func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value 
 /// String's Characters, a dictionary's (key, value) pairs, or what
 /// `items(of:)` gives.
 func bridgeSequence(_ value: Value) throws -> [Value] {
-    switch value {
+    switch value.storage {
     case .string(let text):
         return Array(Interpreter.iterator(text))
     case .dictionary(let dictionary):
@@ -204,7 +204,7 @@ extension Interpreter {
     /// The items a value gives as they come, which can throw: a `ThrowingStream`'s,
     /// one at a time; nil for anything else.
     static func throwingStream(of value: Value) -> ThrowingStream<Value>? {
-        guard case .object(let box as SwiftValue) = value else { return nil }
+        guard case .object(let box as SwiftValue) = value.storage else { return nil }
         if let group = box.value as? TaskGroupBox { return ThrowingStream { try group.next() } }
         return box.value as? ThrowingStream<Value>
     }
@@ -213,7 +213,7 @@ extension Interpreter {
     /// holds (a host type's text) (a Set, a range of Ints, a dictionary's keys), one at a time,
     /// so a range of a billion never becomes a list; nil for anything else.
     static func items(of value: Value) -> AnyIterator<Value>? {
-        switch value {
+        switch value.storage {
         case .list(let items):
             return AnyIterator(items.makeIterator())
         case .object(let box as SwiftValue):
@@ -221,16 +221,16 @@ extension Interpreter {
                 return AnyIterator { (try? flow.read()) ?? nil }
             }
             if let range = box.value as? ClosedRange<Value> {
-                guard case .int(let lower) = range.lowerBound,
-                    case .int(let upper) = range.upperBound
+                guard case .int(let lower) = range.lowerBound.storage,
+                    case .int(let upper) = range.upperBound.storage
                 else {
                     return nil
                 }
                 return AnyIterator((lower...upper).lazy.map(Value.int).makeIterator())
             }
             if let range = box.value as? Range<Value> {
-                guard case .int(let lower) = range.lowerBound,
-                    case .int(let upper) = range.upperBound
+                guard case .int(let lower) = range.lowerBound.storage,
+                    case .int(let upper) = range.upperBound.storage
                 else {
                     return nil
                 }
@@ -279,7 +279,7 @@ extension Value: Comparable {
     public static func < (lhs: Value, rhs: Value) -> Bool {
         // A type of the program's with its own `<` (Comparable) says which comes first.
         if let interpreter = Waiting.host as? Interpreter, lhs.isOfProgramsType,
-            case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs])
+            case .bool(let less)? = try? interpreter.userOperator("<", [lhs, rhs])?.storage
         {
             return less
         }
@@ -290,7 +290,7 @@ extension Value: Comparable {
 extension Value {
     /// A struct or class instance, which a program's `<` may order.
     fileprivate var isOfProgramsType: Bool {
-        switch self {
+        switch self.storage {
         case .structure: true
         case .object(let object): object is ClassInstance
         default: false

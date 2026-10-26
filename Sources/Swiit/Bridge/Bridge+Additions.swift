@@ -45,7 +45,7 @@ extension Bridge {
     private static let indexType = TypeAnnotation.named("String.Index")
 
     private static func text(_ arguments: [String: Value]) throws -> String {
-        guard case .string(let text)? = arguments["self"] else {
+        guard case .string(let text)? = arguments["self"]?.storage else {
             throw RuntimeError("expected a String")
         }
         return text
@@ -249,7 +249,7 @@ extension Bridge {
         if let single = try? stringIndexValue(index) {
             return .string(String(text[try checked(single, in: text)]))
         }
-        if case .object(let box as SwiftValue) = index {
+        if case .object(let box as SwiftValue) = index.storage {
             if let range = box.value as? Range<Value> {
                 let low = try checked(
                     try stringIndexValue(range.lowerBound),
@@ -320,7 +320,7 @@ extension Bridge {
                 returns: .generic("ThrowingStream", [.parameter("Element")]),
                 summary: "The items in the opposite order."
             ) { _, arguments in
-                guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
+                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
                     let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 var items: [Value] = []
@@ -337,7 +337,7 @@ extension Bridge {
                 returns: .optional(.parameter("Element")),
                 summary: "The first item, if there is one."
             ) { _, arguments in
-                guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
+                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
                     let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 return try flow.read() ?? .nothing
@@ -355,7 +355,7 @@ extension Bridge {
                 returns: .optional(.parameter("Element")),
                 summary: "The first item the predicate accepts."
             ) { interpreter, arguments in
-                guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
+                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
                     let flow = box.value as? ThrowingStream<Value>
                 else { return .nothing }
                 while let item = try flow.read() {
@@ -378,7 +378,7 @@ extension Bridge {
                 returns: .bool,
                 summary: "Whether the predicate accepts an item."
             ) { interpreter, arguments in
-                guard case .object(let box as SwiftValue) = arguments["self"] ?? .nothing,
+                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
                     let flow = box.value as? ThrowingStream<Value>
                 else { return .bool(false) }
                 while let item = try flow.read() {
@@ -401,8 +401,8 @@ extension Bridge {
                 summary: "The text with every `target` replaced by `replacement`."
             ) { _, arguments in
                 let text = try text(arguments)
-                guard case .string(let target)? = arguments["target"],
-                    case .string(let replacement)? = arguments["replacement"]
+                guard case .string(let target)? = arguments["target"]?.storage,
+                    case .string(let replacement)? = arguments["replacement"]?.storage
                 else { return .string(text) }
                 guard !target.isEmpty else { return .string(text) }
                 return .string(
@@ -418,7 +418,8 @@ extension Bridge {
                 summary: "The parts of the text between the `separator`s."
             ) { _, arguments in
                 let text = try text(arguments)
-                guard case .string(let separator)? = arguments["separator"], !separator.isEmpty
+                guard case .string(let separator)? = arguments["separator"]?.storage,
+                    !separator.isEmpty
                 else {
                     return .list([.string(text)])
                 }

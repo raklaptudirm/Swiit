@@ -57,14 +57,15 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
 
     /// The Swift value in `value`, which must be one of type `T`.
     public static func unbox<T>(_ type: T.Type, _ value: Value) throws -> T {
-        if case .object(let box as SwiftValue) = value, let unboxed = box.value as? T {
+        if case .object(let box as SwiftValue) = value.storage, let unboxed = box.value as? T {
             return unboxed
         }
         // A host's own object is held as it is.
-        if case .object(let object) = value, let held = object as? T { return held }
+        if case .object(let object) = value.storage, let held = object as? T { return held }
         // A Character is held as the one-letter String it is, where Swiit makes it (iterating a
         // String).
-        if case .string(let text) = value, text.count == 1, let character = text.first as? T {
+        if case .string(let text) = value.storage, text.count == 1, let character = text.first as? T
+        {
             return character
         }
         throw SwiitError("expected \(T.self), not \(value.bridgeTypeName)")
@@ -101,7 +102,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
                     $0.name == property && !$0.isStatic && $0.kind == .property
                 }),
             let read = member.plain,
-            case .string(let text)? = try? read(["self": .object(self)])
+            case .string(let text)? = (try? read(["self": .object(self)]))?.storage
         else { return nil }
         return text
     }

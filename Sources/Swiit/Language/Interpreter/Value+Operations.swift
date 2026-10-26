@@ -4,7 +4,8 @@ extension Expr {
     /// A string literal, interpolated or not.
     var isStringExpression: Bool {
         switch self {
-        case .literal(.string), .string: true
+        case .literal(let value): value.isString
+        case .string: true
         default: false
         }
     }
@@ -14,7 +15,7 @@ extension Value {
     /// The name of its type as errors say it: `Int`, `FileEntry`, `List`, `Tuple` for an unnamed
     /// struct.
     public var typeName: String {
-        switch self {
+        switch self.storage {
         case .nothing: "Nothing"
         case .bool: "Bool"
         case .int: "Int"
@@ -32,7 +33,7 @@ extension Value {
     }
 
     var asDouble: Double? {
-        switch self {
+        switch self.storage {
         case .int(let n): Double(n)
         case .double(let d): d
         default: nil
@@ -42,7 +43,7 @@ extension Value {
     /// `==` with Int and Double comparing numerically, as their literals
     /// would in Swift.
     func isEqual(to other: Value) -> Bool {
-        switch (self, other) {
+        switch (self.storage, other.storage) {
         case (.int, .double), (.double, .int):
             return asDouble == other.asDouble
         case (.list(let a), .list(let b)):
@@ -55,7 +56,7 @@ extension Value {
     /// This value as `type`, or nil if it doesn't fit. An Int passes as a
     /// Double, as an integer literal would in Swift.
     func conforming(to type: TypeAnnotation) -> Value? {
-        switch (type, self) {
+        switch (type, self.storage) {
         // A key path is a function of one value, as in Swift, and no other kind.
         case (.functionType(let parameters, _, _, _), .function(is KeyPathValue)):
             return parameters.count == 1 ? self : nil
@@ -109,7 +110,7 @@ extension Value {
 extension Value {
     /// A list's items, or a Swift sequence's (a host type's lines): what sequence methods work on.
     var sequenceItems: [Value]? {
-        switch self {
+        switch self.storage {
         case .list(let items): items
         default: Interpreter.items(of: self).map { Array($0) }
         }
@@ -121,7 +122,7 @@ extension Value {
         func compare<T: Comparable>(_ a: T, _ b: T) -> ComparisonResult {
             a < b ? .orderedAscending : a > b ? .orderedDescending : .orderedSame
         }
-        switch (self, other) {
+        switch (self.storage, other.storage) {
         case (.bool(let a), .bool(let b)): return compare(a ? 1 : 0, b ? 1 : 0)
         case (.int, .int), (.int, .double), (.double, .int), (.double, .double):
             return compare(asDouble!, other.asDouble!)
@@ -146,7 +147,7 @@ extension Value {
     }
 
     private var kindRank: Int {
-        switch self {
+        switch self.storage {
         case .nothing: 0
         case .bool: 1
         case .int, .double: 2

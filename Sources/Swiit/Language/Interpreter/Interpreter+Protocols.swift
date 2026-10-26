@@ -36,14 +36,16 @@ extension Interpreter {
     }
 
     func protocolType(named name: String) -> ProtocolType? {
-        guard case .object(let type as ProtocolType)? = lookup(name)?.value else { return nil }
+        guard case .object(let type as ProtocolType)? = lookup(name)?.value.storage else {
+            return nil
+        }
         return type
     }
 
     /// The protocols a value's type conforms to by saying so, and those those take in.
     func conformanceList(of value: Value) -> [String] {
         var declared: [String] = []
-        switch value {
+        switch value.storage {
         case .structure(let structure):
             if let type = structType(of: structure.record) { declared = type.conformances }
         case .enumValue(let enumValue):
@@ -55,12 +57,12 @@ extension Interpreter {
         }
         // A host's object conforms to the protocol the program declares under its type's name: that
         // is how the host describes it (`protocol Node { var label: String { get } }`).
-        if case .object(let object) = value, isHostObject(object),
+        if case .object(let object) = value.storage, isHostObject(object),
             protocolType(named: object.typeName) != nil
         {
             declared.append(object.typeName)
         }
-        if case .object(let instance as ClassInstance) = value {
+        if case .object(let instance as ClassInstance) = value.storage {
             for type in instance.type.chain {
                 declared += typeExtensions[type.name]?.conformances ?? []
             }
@@ -88,7 +90,7 @@ extension Interpreter {
 
     /// Whether the type a type value stands for conforms to the protocol named.
     func typeValue(_ type: Value, conformsTo name: String) -> Bool {
-        guard case .object(let object) = type else { return false }
+        guard case .object(let object) = type.storage else { return false }
         var declared: [String] = []
         switch object {
         case let structType as StructType:
@@ -121,7 +123,7 @@ extension Interpreter {
     func extensionChain(of value: Value) -> [TypeMembers] {
         guard !typeExtensions.isEmpty else { return [] }
         var chain: [TypeMembers] = []
-        if case .object(let instance as ClassInstance) = value {
+        if case .object(let instance as ClassInstance) = value.storage {
             for type in instance.type.chain {
                 if let own = typeExtensions[type.name] { chain.append(own) }
             }

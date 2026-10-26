@@ -33,7 +33,7 @@ extension Interpreter {
                     default: throw RuntimeError("\(decl.name).\(enumCase.name) needs a raw value")
                     }
                 }
-                if case .int(let n) = raw { nextInt = n + 1 }
+                if case .int(let n)? = raw?.storage { nextInt = n + 1 }
                 guard rawSeen.insert(raw!).inserted else {
                     throw RuntimeError(
                         "\(decl.name).\(enumCase.name): raw value \(raw!) is used twice"
@@ -104,7 +104,7 @@ extension Interpreter {
             task.failedInit = false
             return .nothing
         }
-        guard case .enumValue = receiver.value else {
+        guard case .enumValue = receiver.value.storage else {
             throw RuntimeError("\(type.name).init must set self to a case")
         }
         return receiver.value
@@ -166,7 +166,8 @@ extension Interpreter {
     }
 
     func enumType(named name: String) -> Value.EnumCase.Enumeration? {
-        guard case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value else {
+        guard case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value.storage
+        else {
             return nil
         }
         return type
@@ -231,7 +232,7 @@ extension Interpreter {
     /// `value` as `type`, knowing the enums in scope; nil if it doesn't fit.
     func conform(_ value: Value, to type: TypeAnnotation) -> Value? {
         // A value already of a plain type, which is nearly every argument and result.
-        switch (type, value) {
+        switch (type, value.storage) {
         case (.int, .int), (.double, .double), (.string, .string), (.bool, .bool), (.any, _):
             return value
         default: break
@@ -258,7 +259,7 @@ extension Interpreter {
         case .named(let name):
             // A class of the program's: an instance of it or of a subclass.
             if let type = classType(named: name) {
-                guard case .object(let instance as ClassInstance) = value,
+                guard case .object(let instance as ClassInstance) = value.storage,
                     instance.type.isSubclass(of: type)
                 else {
                     return nil
@@ -270,15 +271,20 @@ extension Interpreter {
                 return self.value(value, conformsTo: name) ? value : nil
             }
             // A Swift value, boxed, is of its Swift type.
-            if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
+            if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
+                return value
+            }
             // A host's object is of the type it registered.
-            if case .object(let object) = value, isHostObject(object), object.typeName == name,
+            if case .object(let object) = value.storage, isHostObject(object),
+                object.typeName == name,
                 Bridge.types[name] != nil
             {
                 return value
             }
             // A Character is held as the one-letter String it is.
-            if name == "Character", case .string(let text) = value, text.count == 1 { return value }
+            if name == "Character", case .string(let text) = value.storage, text.count == 1 {
+                return value
+            }
             if let record = value.record, record.typeName == name,
                 structType(named: name) != nil
             {
@@ -286,13 +292,16 @@ extension Interpreter {
             }
             // An Error is any value whose type conforms to it.
             if name == "Error", isError(value) { return value }
-            guard case .enumValue(let enumValue) = value, let expected = enumType(named: name),
+            guard case .enumValue(let enumValue) = value.storage,
+                let expected = enumType(named: name),
                 enumValue.type === expected
             else { return nil }
             return value
         case .generic(let name, _):
             // A Swift value, boxed, is of its Swift type.
-            if case .object(let box as SwiftValue) = value, box.typeName == name { return value }
+            if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
+                return value
+            }
             // A generic enum of the program's: its arguments say what its cases hold, and it is its
             // name.
             if enumType(named: name) != nil { return conform(value, to: .named(name)) }
@@ -318,7 +327,8 @@ extension Interpreter {
             switch wrapped {
             case .any, .parameter, .unknown: return value
             case .named(let name):
-                if case .object(let object as ClassType) = value, let above = classType(named: name)
+                if case .object(let object as ClassType) = value.storage,
+                    let above = classType(named: name)
                 {
                     return object.isSubclass(of: above) ? value : nil
                 }
@@ -338,7 +348,7 @@ extension Interpreter {
         case .optional(let wrapped):
             return value == .nothing ? value : conform(value, to: wrapped)
         case .list(let element):
-            guard case .list(let items) = value else { return value.conforming(to: type) }
+            guard case .list(let items) = value.storage else { return value.conforming(to: type) }
             var converted: [Value] = []
             for item in items {
                 guard let conforming = conform(item, to: element) else { return nil }
@@ -346,7 +356,7 @@ extension Interpreter {
             }
             return .list(converted)
         case .dictionary(let keyType, let scriptType):
-            guard case .dictionary(let dictionary) = value else {
+            guard case .dictionary(let dictionary) = value.storage else {
                 return value.conforming(to: type)
             }
             var made: [Value: Value] = [:]
@@ -401,7 +411,7 @@ extension Interpreter {
             bindings[name] = Binding(value: value, mutable: mutable)
             return true
         case .enumCase(let typeName, let name, let arguments):
-            guard case .enumValue(let enumValue) = value else { return false }
+            guard case .enumValue(let enumValue) = value.storage else { return false }
             if let typeName {
                 guard let named = enumType(named: typeName) else {
                     throw RuntimeError("no enum named \(typeName)")
@@ -441,7 +451,7 @@ extension Interpreter {
                 return number >= from && (op == .closedRange ? number <= to : number < to)
             }
             let expected = try evaluate(expr)
-            if case .enumValue = value, case .string = expected {
+            if case .enumValue = value.storage, case .string = expected.storage {
                 throw RuntimeError(
                     "can't compare \(value.typeName) with a String; match a case like .\(expected)"
                 )
@@ -479,7 +489,7 @@ extension Interpreter {
     /// Whether a value is an Error: of a struct or enum declared `: Error`, or
     /// what the interpreter throws (`Error`, `CancellationError`).
     func isError(_ value: Value) -> Bool {
-        switch value {
+        switch value.storage {
         case .structure(let structure):
             guard let name = structure.record.typeName else { return false }
             return name == "Error"
@@ -514,7 +524,7 @@ extension Interpreter {
                     scopes.append(Scope(bindings))
                     defer { scopes.removeLast() }
                     let verdict = try evaluate(guardExpr)
-                    guard case .bool(let pass) = verdict else {
+                    guard case .bool(let pass) = verdict.storage else {
                         throw RuntimeError("a case's where must be a Bool, not \(verdict.typeName)")
                     }
                     guard pass else { continue }

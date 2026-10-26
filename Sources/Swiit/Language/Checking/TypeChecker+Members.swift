@@ -67,7 +67,9 @@ extension TypeChecker {
         var fields: [TypeAnnotation.TupleElement] = []
         for index in arguments.indices {
             try expect(&arguments[index].value, .string, "select: a field's name")
-            guard case .literal(.string(let field)) = arguments[index].value else {
+            guard case .literal(let literal) = arguments[index].value,
+                let field = literal.cast(to: String.self)
+            else {
                 return .list(.unknown)
             }
             fields.append(

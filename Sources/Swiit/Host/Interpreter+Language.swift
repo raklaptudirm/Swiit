@@ -121,7 +121,7 @@ extension Interpreter {
                                     ])
                             )
                         }
-                        switch arguments["subject"] ?? .nothing {
+                        switch (arguments["subject"] ?? .nothing).storage {
                         case .tuple(let tuple):
                             return .list(tuple.map { child($0.key, $0.value) })
                         case .structure(let structure):
@@ -164,7 +164,7 @@ extension Interpreter {
                     parameters: [Parameter(label: nil, name: "x", type: .parameter("T"))],
                     returnType: .parameter("T"),
                     body: .native { _, arguments in
-                        if case .object(let instance as ClassInstance)? = arguments["x"] {
+                        if case .object(let instance as ClassInstance)? = arguments["x"]?.storage {
                             return .object(WeakReference(instance))
                         }
                         if arguments["x"] == nil || arguments["x"] == .nothing {
@@ -249,8 +249,8 @@ extension Interpreter {
                     ],
                     returnType: .bool,
                     body: .native { _, arguments in
-                        guard case .object(let a)? = arguments["a"],
-                            case .object(let b)? = arguments["b"]
+                        guard case .object(let a)? = arguments["a"]?.storage,
+                            case .object(let b)? = arguments["b"]?.storage
                         else {
                             return .bool(false)
                         }
@@ -323,7 +323,7 @@ extension Interpreter {
                 call: { arguments in
                     func items(_ value: Value?) throws -> AnyIterator<Value> {
                         guard let value else { return AnyIterator { nil } }
-                        if case .string(let text) = value {
+                        if case .string(let text) = value.storage {
                             return AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
                         }
                         guard let items = Interpreter.items(of: value) else {
@@ -352,7 +352,7 @@ extension Interpreter {
                     returnType: type,
                     isThrowing: false,
                     call: { arguments in
-                        switch arguments["x"] {
+                        switch arguments["x"]?.storage {
                         case .int(let n)?:
                             guard n != Int.min else { throw RuntimeError("arithmetic overflow") }
                             return .int(Swift.abs(n))
@@ -383,9 +383,9 @@ extension Interpreter {
                         isThrowing: false,
                         call: { arguments in
                             var values = [arguments["x"] ?? .nothing, arguments["y"] ?? .nothing]
-                            if case .list(let rest)? = arguments["rest"] { values += rest }
+                            if case .list(let rest)? = arguments["rest"]?.storage { values += rest }
                             func before(_ a: Value, _ b: Value) -> Bool {
-                                switch (a, b) {
+                                switch (a.storage, b.storage) {
                                 case (.int(let x), .int(let y)): return x < y
                                 case (.double(let x), .double(let y)): return x < y
                                 case (.string(let x), .string(let y)): return x < y
@@ -422,8 +422,8 @@ extension Interpreter {
                             guard let start = arguments["from"], let stop = arguments[end],
                                 let step = arguments["by"]
                             else { return .list([]) }
-                            if case .int(let a) = start, case .int(let b) = stop,
-                                case .int(let s) = step
+                            if case .int(let a) = start.storage, case .int(let b) = stop.storage,
+                                case .int(let s) = step.storage
                             {
                                 guard s != 0 else {
                                     throw RuntimeError("stride: the step can't be 0")
@@ -472,7 +472,7 @@ extension Interpreter {
     /// What stands for a value's type: the struct's or enum's own, or Swift's by name.
     func typeObject(of value: Value) -> Value {
         let name: String
-        switch value {
+        switch value.storage {
         case .int: name = "Int"
         case .double: name = "Double"
         case .string: name = "String"

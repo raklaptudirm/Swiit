@@ -470,7 +470,7 @@ struct SwiftPrinter {
     }
 
     private func literal(_ value: Value) -> String {
-        switch value {
+        switch value.storage {
         case .int(let number): "\(number)"
         case .double(let number):
             number == number.rounded() && abs(number) < 1e15 ? "\(Int(number)).0" : "\(number)"

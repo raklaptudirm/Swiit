@@ -470,13 +470,13 @@ extension Value {
         func twice(_ n: Int) -> Int { n * 2 }
         """
     )
-    #expect(try swiit.evaluate("3").kind == .int)
-    #expect(try swiit.evaluate("[1, 2]").kind == .list)
-    #expect(try swiit.evaluate("(a: 1, b: 2)").kind == .tuple)
-    #expect(try swiit.evaluate("Point(x: 1, y: 2)").kind == .structure)
-    #expect(try swiit.evaluate("Level.high").kind == .enumeration)
-    #expect(try swiit.evaluate("twice").kind == .function)
-    #expect(Value.nothing.kind == .nothing)
+    #expect(try swiit.evaluate("3").typeID == .int)
+    #expect(try swiit.evaluate("[1, 2]").typeID == .array)
+    #expect(try swiit.evaluate("(a: 1, b: 2)").tuple != nil)
+    #expect(try swiit.evaluate("Point(x: 1, y: 2)").structure != nil)
+    #expect(try swiit.evaluate("Level.high").enumCase?.type == "Level")
+    #expect(try swiit.evaluate("twice").function != nil)
+    #expect(Value.nothing.typeID == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
     let three = try swiit.evaluate("3")
     #expect(three.cast(to: Int.self) == 3)
@@ -1252,4 +1252,29 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swiit.evaluate("old.twice") == 4)
     #expect(try swiit.evaluate("Point(x: 2).twice") == 6)
     #expect(!old.isInstance(of: try #require(swiit.typeID(named: "Point"))))
+}
+
+@Test func aHostReadsAValueThroughCastAndTheViews() throws {
+    let swiit = interpreter()
+    // `cast` is strict, as `as?` is, and fast for the plain ones.
+    #expect(Value(3).cast(to: Int.self) == 3)
+    #expect(Value(3).cast(to: Double.self) == nil)
+    #expect(Value(3.5).cast(to: Double.self) == 3.5)
+    #expect(Value("x").cast(to: String.self) == "x")
+    #expect(Value(true).cast(to: Bool.self) == true)
+    #expect(Value([Value(1), Value("x")]).cast(to: [Value].self)?.count == 2)
+    #expect(Value([Value(1), Value("x")]).cast(to: [Int].self) == nil)
+    #expect(Value(3).cast(to: Value.self) == Value(3))
+    // The views are nil for any other shape.
+    let tuple = Value(tuple: ["a": Value(1)])
+    #expect(tuple.tuple?["a"] == Value(1))
+    #expect(tuple.structure == nil)
+    try swiit.evaluate("struct Point { var x = 1 }")
+    let point = try swiit.evaluate("Point(x: 1)")
+    #expect(point.structure?["x"] == Value(1))
+    #expect(point.tuple == nil)
+    #expect(try swiit.evaluate("{ (x: Int) in x }").function != nil)
+    #expect(Value(3).function == nil)
+    // A Swift value held as it is has the host ID of its registered name.
+    #expect(Value(boxing: Bytes(count: 1), as: "Bytes").typeID == Symbol.ID(hostType: "Bytes"))
 }

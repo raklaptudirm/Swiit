@@ -98,7 +98,7 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
         )
     }
     #expect(value == .int(2))
-    guard case .function(let closure as Function)? = swiit.lookup("h")?.value else {
+    guard case .function(let closure as Function)? = swiit.lookup("h")?.value.storage else {
         Issue.record("h isn't a closure")
         return
     }

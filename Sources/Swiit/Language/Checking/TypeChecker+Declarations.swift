@@ -11,13 +11,13 @@ extension TypeChecker {
             overloads = existing
         } else if scopes.count == 1, let binding = interpreter.scopes.last?.bindings[decl.name],
             binding.isFunction,
-            case .function(let set as OverloadSet) = binding.value
+            case .function(let set as OverloadSet) = binding.value.storage
         {
             // At the top, it joins what earlier entries declared.
             overloads = set.candidates.map(signature)
         } else if scopes.count == 1, let binding = interpreter.scopes.first?.bindings[decl.name],
             binding.isFunction,
-            case .function(let set as OverloadSet) = binding.value
+            case .function(let set as OverloadSet) = binding.value.storage
         {
             // A builtin of that name is overloaded, not replaced.
             overloads = set.candidates.map(signature)

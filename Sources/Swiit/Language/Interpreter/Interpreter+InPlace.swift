@@ -92,9 +92,10 @@ extension Interpreter {
                 current = record[name] ?? .nothing
             case .index(let expr):
                 let key = try evaluate(expr)
-                switch current {
+                switch current.storage {
                 case .list(let items):
-                    guard case .int(let position) = key, items.indices.contains(position) else {
+                    guard case .int(let position) = key.storage, items.indices.contains(position)
+                    else {
                         return nil
                     }
                     current = items[position]
@@ -106,7 +107,7 @@ extension Interpreter {
                 type = nil
                 validate = nil
             case .indexDefault(let keyExpr, let fallbackExpr):
-                guard case .dictionary(let dictionary) = current else { return nil }
+                guard case .dictionary(let dictionary) = current.storage else { return nil }
                 let key = try evaluate(keyExpr)
                 let fallback = try evaluate(fallbackExpr)
                 current = dictionary[key] ?? fallback
@@ -119,7 +120,7 @@ extension Interpreter {
         }
         // What a type of the program's defines for the operator, or a weak variable, is the long
         // way's.
-        if path.isEmpty, case .object(is WeakReference) = current { return nil }
+        if path.isEmpty, case .object(is WeakReference) = current.storage { return nil }
         if op != nil, isDeclaredValue(current) { return nil }
         return Place(steps: steps, type: type, validate: validate)
     }
@@ -157,13 +158,13 @@ extension Interpreter {
             defer { record[name] = field; value = Value(record: record) }
             return try descend(&field, rest, body)
         case .index(let key):
-            if case .list = value { return try descendList(&value, key, rest, body) }
-            if case .dictionary = value {
+            if case .list = value.storage { return try descendList(&value, key, rest, body) }
+            if case .dictionary = value.storage {
                 return try descendDictionary(&value, key, fallback: nil, rest, body)
             }
             throw RuntimeError("cannot assign into \(value.typeName) by index")
         case .indexDefault(let key, let fallback):
-            guard case .dictionary = value else {
+            guard case .dictionary = value.storage else {
                 throw RuntimeError("'default:' goes with a dictionary")
             }
             return try descendDictionary(&value, key, fallback: fallback, rest, body)
@@ -176,8 +177,8 @@ extension Interpreter {
         _ rest: ArraySlice<PlaceStep>,
         _ body: (inout Value) throws -> T
     ) throws -> T {
-        guard case .list(var items) = value else { preconditionFailure() }
-        guard case .int(let position) = key, items.indices.contains(position) else {
+        guard case .list(var items) = value.storage else { preconditionFailure() }
+        guard case .int(let position) = key.storage, items.indices.contains(position) else {
             throw RuntimeError("index \(key) is out of range for a list of \(items.count)")
         }
         value = .nothing
@@ -194,7 +195,7 @@ extension Interpreter {
         _ rest: ArraySlice<PlaceStep>,
         _ body: (inout Value) throws -> T
     ) throws -> T {
-        guard case .dictionary(var dictionary) = value else { preconditionFailure() }
+        guard case .dictionary(var dictionary) = value.storage else { preconditionFailure() }
         value = .nothing
         var element = dictionary[key] ?? fallback ?? .nothing
         if dictionary[key] != nil { dictionary[key] = .nothing }
@@ -208,13 +209,13 @@ extension Interpreter {
     /// string grows.
     func applyInPlace(_ op: BinaryOperator, _ slot: inout Value, _ rhs: Value) throws {
         if op == .add {
-            if case .list(var items) = slot, case .list(let more) = rhs {
+            if case .list(var items) = slot.storage, case .list(let more) = rhs.storage {
                 slot = .nothing
                 items.append(contentsOf: more)
                 slot = .list(items)
                 return
             }
-            if case .string(var text) = slot, case .string(let more) = rhs {
+            if case .string(var text) = slot.storage, case .string(let more) = rhs.storage {
                 slot = .nothing
                 text.append(more)
                 slot = .string(text)

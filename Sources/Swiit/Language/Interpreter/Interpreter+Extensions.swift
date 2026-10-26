@@ -183,7 +183,7 @@ extension Interpreter {
 
     /// What names a value's type: `Int`, a struct's own name, `Array`.
     func typeKey(of value: Value) -> String? {
-        switch value {
+        switch value.storage {
         case .int: "Int"
         case .double: "Double"
         case .string: "String"

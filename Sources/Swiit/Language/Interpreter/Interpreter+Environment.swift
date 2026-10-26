@@ -22,7 +22,9 @@ extension Interpreter {
     func qualified(_ name: String) -> String {
         let declared = scopes.dropFirst()
             .contains { scope in
-                guard case .object(let object)? = scope.bindings[name]?.value else { return false }
+                guard case .object(let object)? = scope.bindings[name]?.value.storage else {
+                    return false
+                }
                 return object is StructType || object is Value.EnumCase.Enumeration
                     || object is ClassType
             }
@@ -41,14 +43,14 @@ extension Interpreter {
             if value == .nothing { return "nil" }
             return "Optional(" + (try describing(value, debug: true, type: wrapped)) + ")"
         case .list(let element)?:
-            if case .list(let items) = value {
+            if case .list(let items) = value.storage {
                 return "["
                     + (try items.map { try describing($0, debug: true, type: element) })
                     .joined(separator: ", ")
                     + "]"
             }
         case .dictionary(let keyType, let scriptType)?:
-            if case .dictionary(let dictionary) = value {
+            if case .dictionary(let dictionary) = value.storage {
                 guard !dictionary.isEmpty else { return "[:]" }
                 return "["
                     + (try dictionary.sortedForDisplay.map {
@@ -71,7 +73,7 @@ extension Interpreter {
         default:
             break
         }
-        switch value {
+        switch value.storage {
         case .enumValue(let enumValue)
         where debug && enumValue.values.isEmpty && enumValue.type.name != "Never":
             return qualified(enumValue.type.name) + "." + enumValue.name

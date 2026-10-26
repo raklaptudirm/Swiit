@@ -86,7 +86,8 @@ final class Scope {
     public func declare(_ function: Function, named name: String) {
         var candidates = [function]
         if let existing = bindings[name], existing.isFunction,
-            case .function(let callable) = existing.value, let set = callable as? OverloadSet
+            case .function(let callable) = existing.value.storage,
+            let set = callable as? OverloadSet
         {
             // The same signature is replaced where it stood, so each overload keeps its place (the
             // checker numbers them).

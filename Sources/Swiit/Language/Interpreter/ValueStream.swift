@@ -26,7 +26,7 @@ final class ValueStream {
             return ValueStream { try flow.read() }
         }
         let items: AnyIterator<Value>
-        switch value {
+        switch value.storage {
         case .nothing:
             return .empty
         case .list:

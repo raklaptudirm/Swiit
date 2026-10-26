@@ -87,7 +87,7 @@ extension TypeChecker {
 
     static func isIntegerLiteral(_ expr: Expr) -> Bool {
         switch expr {
-        case .literal(.int): true
+        case .literal(let value): value.isInt
         case .unary(.negate, let inner): isIntegerLiteral(inner)
         default: false
         }

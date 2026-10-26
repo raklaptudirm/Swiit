@@ -14,7 +14,7 @@ extension Interpreter {
     // MARK: Declaring
 
     func classType(named name: String) -> ClassType? {
-        guard case .object(let type as ClassType)? = lookup(name)?.value else { return nil }
+        guard case .object(let type as ClassType)? = lookup(name)?.value.storage else { return nil }
         return type
     }
 
@@ -240,14 +240,14 @@ extension Interpreter {
 
     /// A `weak` property holds its value weakly.
     private func wrapped(_ value: Value, _ property: PropertyDecl) -> Value {
-        if property.isWeak, case .object(let instance as ClassInstance) = value {
+        if property.isWeak, case .object(let instance as ClassInstance) = value.storage {
             return .object(WeakReference(instance))
         }
         return value
     }
 
     func read(_ value: Value) -> Value {
-        if case .object(let reference as WeakReference) = value {
+        if case .object(let reference as WeakReference) = value.storage {
             return reference.target.map { .object($0) } ?? .nothing
         }
         return value
@@ -476,7 +476,7 @@ extension Interpreter {
         guard let owner = task.owners.last, let parent = owner.superclass else {
             throw RuntimeError("'super' needs a superclass")
         }
-        guard case .object(let instance as ClassInstance)? = lookup("self")?.value else {
+        guard case .object(let instance as ClassInstance)? = lookup("self")?.value.storage else {
             throw RuntimeError("'super' is only in a method")
         }
         if name == "init" {
@@ -505,7 +505,7 @@ extension Interpreter {
         guard let owner = task.owners.last, let parent = owner.superclass else {
             throw RuntimeError("'super' needs a superclass")
         }
-        guard case .object(let instance as ClassInstance)? = lookup("self")?.value else {
+        guard case .object(let instance as ClassInstance)? = lookup("self")?.value.storage else {
             throw RuntimeError("'super' is only in a method")
         }
         if let stored = instance.storage[name] { return read(stored) }
