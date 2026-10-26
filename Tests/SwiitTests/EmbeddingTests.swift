@@ -1221,7 +1221,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(Value("x").typeID == .string)
     #expect(Value([Value(1)]).typeID == .array)
     #expect(Value.nothing.typeID == .optional)
-    #expect(Value(tuple: ["a": Value(1)]).typeID == nil)
+    #expect(try interpreter().evaluate("(a: 1)").typeID == nil)
     let point = try swiit.evaluate("Point(x: 1)")
     #expect(point.typeID == swiit.typeID(named: "Point"))
     #expect(try swiit.evaluate("Level.low").typeID == swiit.typeID(named: "Level"))
@@ -1283,7 +1283,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(Value([Value(1), Value("x")]).cast(to: [Int].self) == nil)
     #expect(Value(3).cast(to: Value.self) == Value(3))
     // A tuple, a struct and a function are told apart by their mirrors and their types.
-    let tuple = Value(tuple: ["a": Value(1)])
+    let tuple = try swiit.evaluate("(a: 1)")
     #expect(tuple.mirror.displayStyle == .tuple && tuple.typeID == nil)
     #expect(tuple.entry("a") == Value(1))
     try swiit.evaluate("struct Point { var x = 1 }")
@@ -1326,4 +1326,38 @@ private final class Handle: HostObject, @unchecked Sendable {
     let cases = swiit.symbols(in: .named(try #require(failedValue.typeID)))
         .filter { if case .enumCase = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
+}
+
+private final class Pair: HostObject {
+    let a: Int, b: Int
+    init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
+    var typeName: String { "Pair" }
+    var description: String { "Pair" }
+    var debugDescription: String { "Pair(\(a), \(b))" }
+    var memberNames: [String] { ["a", "b"] }
+    func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
+}
+
+private final class DataPair: HostObject {
+    let a: Int, b: Int
+    init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
+    var typeName: String { "DataPair" }
+    var description: String { "DataPair" }
+    var debugDescription: String { "DataPair(\(a), \(b))" }
+    var memberNames: [String] { ["a", "b"] }
+    func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
+    var valueIdentity: AnyHashable? { [a, b] }
+}
+
+@Test func aHostObjectIsEqualToItselfUnlessItSaysItIsData() {
+    // A thing is equal only to itself; data is equal to data that holds the same.
+    #expect(Value(Pair(1, 2)) != Value(Pair(1, 2)))
+    let thing = Pair(1, 2)
+    #expect(Value(thing) == Value(thing))
+    #expect(Value(DataPair(1, 2)) == Value(DataPair(1, 2)))
+    #expect(Value(DataPair(1, 2)) != Value(DataPair(2, 1)))
+    #expect(Set([Value(DataPair(1, 2)), Value(DataPair(1, 2))]).count == 1)
+    // Both are read as a record by their mirrors.
+    #expect(Value(DataPair(1, 2)).mirror.displayStyle == .class)
+    #expect(Value(DataPair(1, 2)).mirror.children.map(\.label) == ["a", "b"])
 }

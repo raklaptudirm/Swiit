@@ -119,7 +119,7 @@ extension Value {
             if values.count == 1, labels.first.flatMap({ $0 }) == nil {
                 carried = values[0]
             } else {
-                carried = Value(tuple: payload.record.map { (name: $0.key, value: $0.value) })
+                carried = .tuple(payload)
             }
             return [Mirror.Child(label: name, value: carried)]
         }

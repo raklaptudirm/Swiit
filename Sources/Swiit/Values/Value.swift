@@ -56,7 +56,8 @@ public struct Value: Sendable {
 
 /// A live object a host hands scripts. Its members are the ones its `HostType` registers, which
 /// the checker reads, so a script's use of one is checked before it runs; `member(_:)` is for the
-/// few a host answers for at run time. Objects compare by identity.
+/// few a host answers for at run time. Objects compare by identity, unless one says it is data
+/// (`valueIdentity`).
 public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     CustomDebugStringConvertible
 {
@@ -67,6 +68,10 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
     /// A member answered at run time, after the registered ones; nil if there is none. Optional:
     /// most objects have only the registered members.
     func member(_ name: String) -> Value?
+    /// What equality and hashing go by when the object is data, as a struct is: what it holds. Two
+    /// objects with the same one are equal. Nil, the default, is for an object that is a thing
+    /// itself, a job or a connection, which is equal only to itself.
+    var valueIdentity: AnyHashable? { get }
 }
 
 /// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
@@ -75,6 +80,8 @@ public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
 protocol LanguageObject: HostObject {}
 
 extension HostObject {
+    public var valueIdentity: AnyHashable? { nil }
+
     /// The registered members of its type, unless it says.
     public var memberNames: [String] {
         var seen = Set<String>()
@@ -148,7 +155,7 @@ extension HostObject {
     /// What equality and hashing go by: the object itself, and for a Swift value held as it is,
     /// the value (when it is `Hashable`).
     var objectIdentity: AnyHashable {
-        (self as? SwiftValue)?.identity ?? AnyHashable(ObjectIdentifier(self))
+        (self as? SwiftValue)?.identity ?? valueIdentity ?? AnyHashable(ObjectIdentifier(self))
     }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
@@ -591,19 +598,6 @@ extension Value {
         var record = Value.Record(typeID: id)
         for (name, value) in fields { record[name] = value }
         self = .structure(Structure(record))
-    }
-
-    /// A tuple, with the names of its elements in order (the unlabeled ones by position, `"0"`):
-    /// `Value(tuple: ["name": Value("x"), "size": Value(2)])`.
-    public init(tuple fields: KeyValuePairs<String, Value>) {
-        self = .tuple(Tuple(Value.Record(fields)))
-    }
-
-    /// As above, for names known only as the program runs.
-    public init(tuple fields: [(name: String, value: Value)]) {
-        var record = Value.Record()
-        for (name, value) in fields { record[name] = value }
-        self = .tuple(Tuple(record))
     }
 
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is of a host type named for
