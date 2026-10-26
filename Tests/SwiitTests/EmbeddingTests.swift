@@ -1191,3 +1191,65 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(swiit.symbol(for: parameter) == nil)
     #expect(parameter != Symbol.ID(hostType: "Element"))
 }
+
+@Test func aValueHasTheIDOfItsType() throws {
+    let swiit = interpreter()
+    try swiit.evaluate(
+        """
+        struct Point { var x = 0 }
+        enum Level { case low, high }
+        class Animal { }
+        class Dog: Animal { }
+        """
+    )
+    #expect(Value(3).typeID == .int)
+    #expect(Value("x").typeID == .string)
+    #expect(Value([Value(1)]).typeID == .array)
+    #expect(Value.nothing.typeID == .optional)
+    #expect(Value(tuple: ["a": Value(1)]).typeID == nil)
+    let point = try swiit.evaluate("Point(x: 1)")
+    #expect(point.typeID == swiit.typeID(named: "Point"))
+    #expect(try swiit.evaluate("Level.low").typeID == swiit.typeID(named: "Level"))
+    #expect(try swiit.evaluate("Dog()").typeID == swiit.typeID(named: "Dog"))
+    // A struct value of a Swift type is a host ID, by name, and names nothing registered.
+    let encoded = Value(struct: "Point", fields: ["x": Value(1)])
+    #expect(encoded.typeID == Symbol.ID(hostType: "Point"))
+    #expect(encoded.typeID != point.typeID)
+}
+
+@Test func isInstanceFollowsSwiftsIs() throws {
+    let swiit = interpreter()
+    try swiit.evaluate(
+        """
+        struct Point { var x = 0 }
+        class Animal { }
+        class Dog: Animal { }
+        """
+    )
+    let point = try #require(swiit.typeID(named: "Point"))
+    let animal = try #require(swiit.typeID(named: "Animal"))
+    let dog = try #require(swiit.typeID(named: "Dog"))
+    #expect(try swiit.evaluate("Point(x: 1)").isInstance(of: point))
+    #expect(try swiit.evaluate("Dog()").isInstance(of: dog))
+    #expect(try swiit.evaluate("Dog()").isInstance(of: animal))  // a subclass is its superclass
+    #expect(try !swiit.evaluate("Animal()").isInstance(of: dog))
+    #expect(Value(3).isInstance(of: .any))
+    #expect(Value(3).isInstance(of: .int))
+    #expect(!Value(3).isInstance(of: .string))
+    #expect(Value(3).isInstance(of: Int.self))
+    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
+    // A struct value of a Swift type stands for the same-named type a script declares.
+    #expect(Value(struct: "Point", fields: ["x": Value(1)]).isInstance(of: point))
+}
+
+@Test func aStructValueKeepsItsOwnDeclarationWhenTheTypeIsDeclaredAgain() throws {
+    let swiit = interpreter()
+    try swiit.evaluate("struct Point { var x = 0; var twice: Int { x * 2 } }")
+    let old = try swiit.evaluate("Point(x: 2)")
+    try swiit.evaluate("struct Point { var x = 0; var twice: Int { x * 3 } }")
+    swiit["old"] = old
+    // The old value still has the old type's members, and is not an instance of the new one.
+    #expect(try swiit.evaluate("old.twice") == 4)
+    #expect(try swiit.evaluate("Point(x: 2).twice") == 6)
+    #expect(!old.isInstance(of: try #require(swiit.typeID(named: "Point"))))
+}

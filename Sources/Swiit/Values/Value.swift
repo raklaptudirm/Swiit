@@ -153,17 +153,31 @@ extension Value {
     struct Record: Sendable, Hashable, Sequence {
         private(set) var keys: [String] = []
         fileprivate var storage: [String: Value] = [:]
-        /// The Swift type it came from, like `FileEntry`, which picks how it's displayed; nil for a
-        /// tuple.
-        var typeName: String?
+        /// The type it is a value of, which picks how it's displayed; nil for a tuple. A struct a
+        /// program declares has that declaration's ID; one from a Swift value (`FileEntry`) has a
+        /// host ID, by the Swift type's name.
+        var typeID: Symbol.ID?
 
-        init(typeName: String? = nil) {
-            self.typeName = typeName
+        var typeName: String? {
+            get { typeID?.name }
+            set { typeID = newValue.map(Symbol.ID.host) }
         }
 
-        init(_ fields: KeyValuePairs<String, Value>, typeName: String? = nil) {
-            self.typeName = typeName
+        init(typeID: Symbol.ID? = nil) {
+            self.typeID = typeID
+        }
+
+        init(typeName: String?) {
+            self.typeID = typeName.map(Symbol.ID.host)
+        }
+
+        init(_ fields: KeyValuePairs<String, Value>, typeID: Symbol.ID? = nil) {
+            self.typeID = typeID
             for (key, value) in fields { self[key] = value }
+        }
+
+        init(_ fields: KeyValuePairs<String, Value>, typeName: String?) {
+            self.init(fields, typeID: typeName.map(Symbol.ID.host))
         }
 
         subscript(key: String) -> Value? {
@@ -269,9 +283,17 @@ extension Value {
 
         init(_ record: Value.Record) { self.record = record }
 
+        /// A struct value of a Swift type, by name.
         public init(typeName: String) { record = Value.Record(typeName: typeName) }
 
-        /// The Swift type it came from, like `FileEntry`, which picks how it's displayed.
+        /// A struct value of the type `id` names.
+        public init(id: Symbol.ID) { record = Value.Record(typeID: id) }
+
+        /// What type it is a value of. A struct a program declares has that declaration's ID; one
+        /// from a Swift value (`FileEntry`) has a host ID.
+        public var id: Symbol.ID { record.typeID! }
+
+        /// The type's name, which picks how it's displayed.
         public var typeName: String { record.typeName ?? "" }
 
         public var keys: [String] { record.keys }
@@ -534,6 +556,19 @@ extension Value {
         self = .structure(Structure(Value.Record(fields, typeName: typeName)))
     }
 
+    /// A struct's value of the type `id` names, such as one a script declares:
+    /// `Value(struct: point, fields: ["x": Value(1)])`.
+    public init(struct id: Symbol.ID, fields: KeyValuePairs<String, Value>) {
+        self = .structure(Structure(Value.Record(fields, typeID: id)))
+    }
+
+    /// As above, for fields whose names are known only as the program runs.
+    public init(struct id: Symbol.ID, fields: [(name: String, value: Value)]) {
+        var record = Value.Record(typeID: id)
+        for (name, value) in fields { record[name] = value }
+        self = .structure(Structure(record))
+    }
+
     /// As above, for fields whose names are known only as the program runs: a parsed object's keys.
     public init(struct typeName: String, fields: [(name: String, value: Value)]) {
         var record = Value.Record(typeName: typeName)
@@ -601,8 +636,64 @@ extension Value {
         }
     }
 
-    /// Whether the value is of the type `type` names, as `is` asks in a script.
-    public func `is`(_ type: Symbol.ID) -> Bool { matches(.named(type)) }
+    /// The type the value is of, as an ID: a script's struct, enum or class by its declaration's,
+    /// a Swift type's by its name, and `Int`, `String`, `Array`, `Optional` (for `nil`) and the
+    /// rest of Swift's own. Nil for a tuple or a function, which no type declares. The ID may name
+    /// nothing the interpreter knows (an encoded Swift value's), and `Interpreter.symbol(for:)`
+    /// then gives nil.
+    public var typeID: Symbol.ID? {
+        switch self {
+        case .nothing: .optional
+        case .bool: .bool
+        case .int: .int
+        case .double: .double
+        case .string: .string
+        case .list: .array
+        case .dictionary: .dictionary
+        case .tuple, .function: nil
+        case .structure(let structure): structure.id
+        case .enumValue(let value): value.type.id
+        case .object(let object):
+            if let instance = object as? ClassInstance {
+                instance.type.id
+            } else if object is any LanguageObject {
+                nil
+            } else {
+                .host(object.typeName)
+            }
+        }
+    }
+
+    /// Whether the value is an instance of the type `id` names: of exactly that type, of a class
+    /// that inherits from it, or `Any`, as Swift's `is` says. A struct value that came from a
+    /// Swift value (an encoded one, or one a host built by the type's name) also counts as an
+    /// instance of a type a script declares of the same name, which members and display already
+    /// treat it as. A protocol it conforms to is not asked here, since that takes an
+    /// interpreter: `ScriptType.conforms(to:in:)` is.
+    public func isInstance(of id: Symbol.ID) -> Bool {
+        if id == .any { return true }
+        if case .function = self { return id == .function }
+        guard let own = typeID else { return false }
+        if own == id { return true }
+        if case .structure(let structure) = self, case .host = own.kind,
+            case .declared = id.kind, structure.typeName == id.name
+        {
+            return true
+        }
+        if case .object(let object) = self, let instance = object as? ClassInstance {
+            var type = instance.type.superclass
+            while let current = type {
+                if current.id == id { return true }
+                type = current.superclass
+            }
+        }
+        return false
+    }
+
+    /// Whether the value is an instance of the Swift type `T`, as `cast(to:)` says.
+    public func isInstance<T: ScriptConvertible>(of type: T.Type) -> Bool {
+        cast(to: type) != nil
+    }
 
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
@@ -646,9 +737,9 @@ extension Value {
             }
         case .named(let name, _):
             switch self {
-            case .structure(let structure): return structure.typeName == name.name
-            case .enumValue(let value): return value.type.name == name.name
-            case .object(let object): return object.typeName == name.name
+            case .structure(let structure): return structure.id == name
+            case .enumValue(let value): return value.type.id == name
+            case .object: return typeID == name
             default: return false
             }
         case .tuple(let elements):
