@@ -276,35 +276,35 @@ extension Value.Record: CustomStringConvertible, CustomDebugStringConvertible {
 extension Value {
     /// A tuple: its elements in order, each with a label or, without one, its position (`"0"`,
     /// `"1"`) for a name. Two are equal when their elements are, label by label, in order.
-    public struct Tuple: Sendable, Hashable, Sequence, CustomStringConvertible,
+    struct Tuple: Sendable, Hashable, Sequence, CustomStringConvertible,
         CustomDebugStringConvertible
     {
         var record: Value.Record
 
         init(_ record: Value.Record) { self.record = record }
 
-        public init() { record = Value.Record() }
+        init() { record = Value.Record() }
 
-        public var keys: [String] { record.keys }
-        public var count: Int { record.count }
-        public var isEmpty: Bool { record.isEmpty }
+        var keys: [String] { record.keys }
+        var count: Int { record.count }
+        var isEmpty: Bool { record.isEmpty }
 
-        public subscript(key: String) -> Value? {
+        subscript(key: String) -> Value? {
             get { record[key] }
             set { record[key] = newValue }
         }
 
-        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+        func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
             record.makeIterator()
         }
 
-        public var description: String { record.description }
-        public var debugDescription: String { record.debugDescription }
+        var description: String { record.description }
+        var debugDescription: String { record.debugDescription }
     }
 
     /// A struct's value: the name of its type, and its fields in order. Two are equal when they are
     /// of the type of one name and their fields are equal in order.
-    public struct Structure: Sendable, Hashable, Sequence, CustomStringConvertible,
+    struct Structure: Sendable, Hashable, Sequence, CustomStringConvertible,
         CustomDebugStringConvertible
     {
         var record: Value.Record
@@ -312,33 +312,33 @@ extension Value {
         init(_ record: Value.Record) { self.record = record }
 
         /// A struct value of a Swift type, by name.
-        public init(typeName: String) { record = Value.Record(typeName: typeName) }
+        init(typeName: String) { record = Value.Record(typeName: typeName) }
 
         /// A struct value of the type `id` names.
-        public init(id: Symbol.ID) { record = Value.Record(typeID: id) }
+        init(id: Symbol.ID) { record = Value.Record(typeID: id) }
 
         /// What type it is a value of. A struct a program declares has that declaration's ID; one
         /// from a Swift value (`FileEntry`) has a host ID.
-        public var id: Symbol.ID { record.typeID! }
+        var id: Symbol.ID { record.typeID! }
 
         /// The type's name, which picks how it's displayed.
-        public var typeName: String { record.typeName ?? "" }
+        var typeName: String { record.typeName ?? "" }
 
-        public var keys: [String] { record.keys }
-        public var count: Int { record.count }
-        public var isEmpty: Bool { record.isEmpty }
+        var keys: [String] { record.keys }
+        var count: Int { record.count }
+        var isEmpty: Bool { record.isEmpty }
 
-        public subscript(key: String) -> Value? {
+        subscript(key: String) -> Value? {
             get { record[key] }
             set { record[key] = newValue }
         }
 
-        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+        func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
             record.makeIterator()
         }
 
-        public var description: String { record.description }
-        public var debugDescription: String { record.debugDescription }
+        var description: String { record.description }
+        var debugDescription: String { record.debugDescription }
     }
 
     /// The fields of a tuple or of a struct value, with the struct's type name.
@@ -547,10 +547,11 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
 }
 
 extension Value {
-    /// The entries of a structured value: a dictionary's, in Swift's order, which is no particular one, the fields of a tuple or a
-    /// struct value by name (a tuple's unlabeled ones by position, "0", "1"), or the fields of a
-    /// host's object that is data. Nil for any other value.
-    public var entries: [(key: Value, value: Value)]? {
+    /// The fields of a structured value as ordered pairs, which `customMirror` reflects: a
+    /// dictionary's, in Swift's order (no particular one), the fields of a tuple or a struct by
+    /// name (a tuple's unlabeled ones by position, "0", "1"), or the data of a host's object. Nil
+    /// for any other value.
+    var entries: [(key: Value, value: Value)]? {
         switch self.storage {
         case .dictionary(let dictionary): dictionary.map { (key: $0.key, value: $0.value) }
         case .tuple, .structure:
@@ -744,21 +745,6 @@ extension Value {
         return result
     }
 
-    /// The elements of a tuple, if this is one.
-    public var tuple: Value.Tuple? {
-        if case .tuple(let tuple) = storage { tuple } else { nil }
-    }
-
-    /// The fields of a struct value, if this is one.
-    public var structure: Value.Structure? {
-        if case .structure(let structure) = storage { structure } else { nil }
-    }
-
-    /// The function, if this is one.
-    public var function: (any Callable)? {
-        if case .function(let function) = storage { function } else { nil }
-    }
-
     /// The host's own object, if this is one of that class.
     public func cast<T: HostObject>(to type: T.Type) -> T? {
         guard case .object(let object) = self.storage else { return nil }
@@ -814,5 +800,57 @@ extension Value {
     /// The case of an enum, if this is one: its type's ID, its name, and its payload.
     public var enumCase: Value.EnumCase? {
         if case .enumValue(let value) = self.storage { value } else { nil }
+    }
+}
+
+/// How a host reads what a value is made of, as it would any Swift value: `Mirror(reflecting:)`.
+///
+/// - `displayStyle` says its shape: `.collection` for a list, `.dictionary`, `.tuple`, `.struct`
+///   for a struct value, `.enum` for a case of an enum, `.class` for a host's object that is data,
+///   `.optional` for `nil`, and nothing for a scalar, a function and any other object.
+/// - `children` are its elements, in order. A list's are unlabeled, and so are a dictionary's,
+///   each a `(key: Value, value: Value)`. A tuple's and a struct's are labeled by field name (a
+///   tuple's unlabeled elements by nothing), each value a `Value`. A case of an enum has, as
+///   Swift's own do, one child labeled with the case's name if it carries anything: the value
+///   itself if it is one unlabeled value, else a tuple of them.
+///
+/// Its type is `typeID`; `Mirror.subjectType` is `Value`.
+extension Value: CustomReflectable {
+    public var customMirror: Mirror {
+        switch storage {
+        case .nothing:
+            return Mirror(self, children: [Mirror.Child](), displayStyle: .optional)
+        case .bool, .int, .double, .string, .function:
+            return Mirror(self, children: [Mirror.Child]())
+        case .list(let items):
+            return Mirror(self, unlabeledChildren: items, displayStyle: .collection)
+        case .dictionary(let dictionary):
+            return Mirror(
+                self,
+                unlabeledChildren: dictionary.map { (key: $0.key, value: $0.value) },
+                displayStyle: .dictionary
+            )
+        case .tuple(let tuple):
+            return Mirror(self, children: tuple.record.reflected, displayStyle: .tuple)
+        case .structure(let structure):
+            return Mirror(self, children: structure.record.reflected, displayStyle: .struct)
+        case .enumValue(let value):
+            return Mirror(self, children: value.reflected, displayStyle: .enum)
+        case .object(let object):
+            guard let fields = object.dataFields else {
+                return Mirror(self, children: [Mirror.Child]())
+            }
+            let children = fields.map { field in
+                Mirror.Child(label: field.key.cast(to: String.self), value: field.value)
+            }
+            return Mirror(self, children: children, displayStyle: .class)
+        }
+    }
+}
+
+extension Value.Record {
+    /// Its fields as a mirror's children: labeled by name, but not by position.
+    var reflected: [Mirror.Child] {
+        map { Mirror.Child(label: Value.Record.isPosition($0.key) ? nil : $0.key, value: $0.value) }
     }
 }

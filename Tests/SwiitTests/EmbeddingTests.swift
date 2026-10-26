@@ -435,30 +435,44 @@ private final class HostNode: HostObject, @unchecked Sendable {
 extension Value {
     /// The entry named `name` of a structured value.
     fileprivate func entry(_ name: String) -> Value? {
-        entries?.first { $0.key == Value(name) }?.value
+        Mirror(reflecting: self).children.first { $0.label == name }?.value as? Value
     }
+
+    /// What a host reads of a value's shape and children, as it would of any Swift value.
+    fileprivate var mirror: Mirror { Mirror(reflecting: self) }
 }
 
 @Test func aDictionaryIsSwiftsAndComparesByWhatItHolds() throws {
     var dictionary: [Value: Value] = ["z": 1, "a": 2]
     dictionary["z"] = 3
     #expect(dictionary == ["a": 2, "z": 3])
-    #expect(Value(dictionary).entries?.count == 2)
+    #expect(Value(dictionary).mirror.children.count == 2)
     dictionary["z"] = nil
     #expect(Value(dictionary) == Value(["a": 2] as [Value: Value]))
 }
 
-@Test func aStructuredValueIsReadAsItsEntries() throws {
+@Test func aValueIsReflectedAsAnySwiftValueIs() throws {
     struct Row: Encodable { var name = "a"; var size = 3; var kind = "file" }
     let swiit = interpreter()
     swiit["row"] = try Value(encoding: Row())
-    // A script reads the fields by name; a host reads them in order.
+    // A script reads the fields by name; a host reads them in order, through a mirror.
     #expect(try swiit.evaluate("row.size + 1") == 4)
-    let entries = try #require(try swiit.evaluate("row").entries)
-    #expect(entries.map(\.key) == ["name", "size", "kind"])
-    #expect(try swiit.evaluate("(a: 1, b: 2)").entries?.map(\.key) == ["a", "b"])
-    #expect(try swiit.evaluate("[\"b\": 1, \"a\": 2]").entries?.count == 2)
-    #expect(Value(1).entries == nil)
+    let row = try swiit.evaluate("row").mirror
+    #expect(row.displayStyle == .struct)
+    #expect(row.children.map(\.label) == ["name", "size", "kind"])
+    #expect(row.children.map { $0.value as? Value } == [Value("a"), Value(3), Value("file")])
+    // A tuple's unlabeled elements have no label.
+    let tuple = try swiit.evaluate("(a: 1, 2)").mirror
+    #expect(tuple.displayStyle == .tuple)
+    #expect(tuple.children.map(\.label) == ["a", nil])
+    #expect(try swiit.evaluate("[1, 2]").mirror.displayStyle == .collection)
+    #expect(try swiit.evaluate("[1, 2]").mirror.children.count == 2)
+    let dictionary = try swiit.evaluate("[\"b\": 1, \"a\": 2]").mirror
+    #expect(dictionary.displayStyle == .dictionary)
+    #expect(dictionary.children.count == 2)
+    #expect(Value.nothing.mirror.displayStyle == .optional)
+    // A scalar has no shape of its own, and no children.
+    #expect(Value(1).mirror.displayStyle == nil && Value(1).mirror.children.isEmpty)
 }
 
 @Test func aHostReadsAValueByItsKindAndCastsItToATypeItExpects() throws {
@@ -472,10 +486,10 @@ extension Value {
     )
     #expect(try swiit.evaluate("3").typeID == .int)
     #expect(try swiit.evaluate("[1, 2]").typeID == .array)
-    #expect(try swiit.evaluate("(a: 1, b: 2)").tuple != nil)
-    #expect(try swiit.evaluate("Point(x: 1, y: 2)").structure != nil)
-    #expect(try swiit.evaluate("Level.high").enumCase?.typeName == "Level")
-    #expect(try swiit.evaluate("twice").function != nil)
+    #expect(try swiit.evaluate("(a: 1, b: 2)").mirror.displayStyle == .tuple)
+    #expect(try swiit.evaluate("Point(x: 1, y: 2)").mirror.displayStyle == .struct)
+    #expect(try swiit.evaluate("Level.high").enumCase?.id.name == "Level")
+    #expect(try swiit.evaluate("twice").isInstance(of: .function))
     #expect(Value.nothing.typeID == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
     let three = try swiit.evaluate("3")
@@ -499,7 +513,7 @@ extension Value {
     )
     // An enum's case, and the declaration kind of a type.
     let high = try #require(try swiit.evaluate("Level.high").enumCase)
-    #expect(high.typeName == "Level" && high.name == "high")
+    #expect(high.id.name == "Level" && high.name == "high")
     #expect(swiit.symbols(named: "Point").first?.kind == .structure)
     #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
     #expect(swiit.symbols(named: "twice").first?.function != nil)
@@ -1265,16 +1279,15 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(Value([Value(1), Value("x")]).cast(to: [Value].self)?.count == 2)
     #expect(Value([Value(1), Value("x")]).cast(to: [Int].self) == nil)
     #expect(Value(3).cast(to: Value.self) == Value(3))
-    // The views are nil for any other shape.
+    // A tuple, a struct and a function are told apart by their mirrors and their types.
     let tuple = Value(tuple: ["a": Value(1)])
-    #expect(tuple.tuple?["a"] == Value(1))
-    #expect(tuple.structure == nil)
+    #expect(tuple.mirror.displayStyle == .tuple && tuple.typeID == nil)
+    #expect(tuple.entry("a") == Value(1))
     try swiit.evaluate("struct Point { var x = 1 }")
     let point = try swiit.evaluate("Point(x: 1)")
-    #expect(point.structure?["x"] == Value(1))
-    #expect(point.tuple == nil)
-    #expect(try swiit.evaluate("{ (x: Int) in x }").function != nil)
-    #expect(Value(3).function == nil)
+    #expect(point.mirror.displayStyle == .struct)
+    #expect(point.entry("x") == Value(1))
+    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A Swift value held as it is has the host ID of its registered name.
     #expect(Value(boxing: Bytes(count: 1), as: "Bytes").typeID == Symbol.ID(hostType: "Bytes"))
 }
@@ -1290,13 +1303,20 @@ private final class Handle: HostObject, @unchecked Sendable {
     let high = try #require(try swiit.evaluate("Level.high").enumCase)
     #expect(high.id == swiit.typeID(named: "Level"))
     #expect(high.rawValue == Value(2))
-    #expect(high.payload.isEmpty)
-    // What it carries is a tuple: a value under its label, or its position without one.
-    let failed = try #require(try swiit.evaluate("Outcome.failed(code: 2, \"no\")").enumCase)
-    #expect(failed.payload.keys == ["code", "1"])
-    #expect(failed.payload["code"] == Value(2))
-    #expect(failed.payload["1"] == Value("no"))
+    #expect(try swiit.evaluate("Level.high").mirror.children.isEmpty)
+    // What it carries is one child labeled with the case's name, as Swift's own mirror has it: a
+    // tuple of the values, each under its label or, without one, its position.
+    let failedValue = try swiit.evaluate("Outcome.failed(code: 2, \"no\")")
+    let failed = try #require(failedValue.enumCase)
+    #expect(failedValue.mirror.displayStyle == .enum)
+    #expect(failedValue.mirror.children.map(\.label) == ["failed"])
+    let carried = try #require(failedValue.mirror.children.first?.value as? Value)
+    #expect(carried.entry("code") == Value(2))
+    #expect(carried.entry("1") == nil)  // an unlabeled one has no label
     #expect(failed.rawValue == nil)
+    // One unlabeled value is the child itself.
+    try swiit.evaluate("enum Wrapped { case one(Int) }")
+    #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
     let symbol = try #require(swiit.symbol(for: failed.id))
     #expect(symbol.kind == .enumeration)

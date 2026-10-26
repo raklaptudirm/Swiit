@@ -72,9 +72,9 @@ public struct Symbol: Sendable, Hashable {
         enum Kind: Sendable, Hashable { case declared(UInt64), host, parameter }
 
         let kind: Kind
-        /// The type's name as a script writes it; for display, and the identity of a host or
-        /// parameter ID.
-        let name: String
+        /// The type's name as a script writes it: for display, not identity. Two IDs can share a
+        /// name and be different types (a type declared again), and a host ID is its name alone.
+        public let name: String
 
         private init(_ kind: Kind, _ name: String) {
             self.kind = kind

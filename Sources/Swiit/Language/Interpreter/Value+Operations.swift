@@ -14,7 +14,7 @@ extension Expr {
 extension Value {
     /// The name of its type as errors say it: `Int`, `FileEntry`, `List`, `Tuple` for an unnamed
     /// struct.
-    public var typeName: String {
+    var typeName: String {
         switch self.storage {
         case .nothing: "Nothing"
         case .bool: "Bool"

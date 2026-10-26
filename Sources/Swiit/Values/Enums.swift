@@ -82,7 +82,7 @@ extension Value {
         let type: Value.EnumCase.Enumeration
         public let name: String
         /// The enum it is a case of.
-        public var typeName: String { type.name }
+        var typeName: String { type.name }
         /// The ID of the enum it is a case of.
         public var id: Symbol.ID { type.id }
         /// In the order the case declares them.
@@ -91,7 +91,7 @@ extension Value {
         /// What the case carries, in the order its declaration gives: each value under its label,
         /// or under its position (`"0"`, `"1"`) if it has none, as a tuple's elements are named.
         /// Empty for a case with none.
-        public var payload: Value.Tuple {
+        var payload: Value.Tuple {
             let labels = definition?.labels ?? []
             var tuple = Value.Tuple()
             for (index, value) in values.enumerated() {
@@ -108,6 +108,20 @@ extension Value {
 
         var definition: Value.EnumCase.Enumeration.Case? {
             type.case(named: name)
+        }
+
+        /// What `customMirror` gives: nothing for a case that carries nothing; else one child
+        /// labeled with the case's name, as Swift's mirror of an enum has it.
+        var reflected: [Mirror.Child] {
+            guard !values.isEmpty else { return [] }
+            let labels = definition?.labels ?? []
+            let carried: Value
+            if values.count == 1, labels.first.flatMap({ $0 }) == nil {
+                carried = values[0]
+            } else {
+                carried = Value(tuple: payload.record.map { (name: $0.key, value: $0.value) })
+            }
+            return [Mirror.Child(label: name, value: carried)]
         }
 
         /// The raw value its declaration gives it, if the enum has them (`enum Level: Int`).
