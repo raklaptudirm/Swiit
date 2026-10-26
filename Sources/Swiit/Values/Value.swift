@@ -170,9 +170,9 @@ extension Value {
     }
 }
 
-/// A function value. The interpreter implements this for Swiit functions and
-/// closures; hosts implement it for Swift functions.
-public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
+/// A function value: the interpreter implements this for Swiit functions, closures, overload sets
+/// and key paths, and for a host's `HostFunction` as a value.
+protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 extension Value {
     /// The fields a tuple or a struct value keeps, in order, with the struct's type name. Two are
