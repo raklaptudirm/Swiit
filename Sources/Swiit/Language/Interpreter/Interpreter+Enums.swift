@@ -348,7 +348,7 @@ extension Interpreter {
             guard case .dictionary(let dictionary) = value else {
                 return value.conforming(to: type)
             }
-            var made = Value.Dictionary()
+            var made: [Value: Value] = [:]
             for (key, entry) in dictionary {
                 guard let conformingKey = conform(key, to: keyType),
                     let conformingValue = conform(entry, to: scriptType)

@@ -367,7 +367,9 @@ extension Dictionary: ScriptConvertible where Key: ScriptConvertible, Value: Scr
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
     }
     public var value: Swiit.Value {
-        .dictionary(Swiit.Value.Dictionary(map { ($0.key.value, $0.value.value) }))
+        .dictionary(
+            Swift.Dictionary(map { ($0.key.value, $0.value.value) }, uniquingKeysWith: { $1 })
+        )
     }
 }
 

@@ -19,7 +19,7 @@ public enum Value: Sendable {
     /// A struct's value: its type's name, and its fields in the order the type declares them.
     case structure(Value.Structure)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
-    case dictionary(Value.Dictionary)
+    case dictionary([Value: Value])
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
     case enumValue(Value.EnumCase)
     /// A live value with members of its own: a background job, an enum type,
@@ -98,13 +98,13 @@ extension HostObject {
     /// Its data as named fields, which tables, `select` and `to json` use: every member that isn't
     /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
     /// has none: it is one value, like a `FileSize`.
-    var dataFields: Value.Dictionary? {
+    var dataFields: [(key: Value, value: Value)]? {
         if self is any LanguageObject { return nil }
-        var fields = Value.Dictionary()
+        var fields: [(key: Value, value: Value)] = []
         for name in memberNames {
             guard let value = member(name) else { continue }
             if case .function = value { continue }
-            fields[Value.string(name)] = value
+            fields.append((Value.string(name), value))
         }
         return fields
     }
@@ -306,89 +306,10 @@ extension Value {
     }
 }
 
-extension Value {
-    /// Swift's `[Value: Value]`: iterating it goes in Swift's order, which is
-    /// no particular one and changes from run to run. Shown, it's sorted by key
-    /// (`sortedForDisplay`), so what's printed is the same every time.
-    public struct Dictionary: Sendable, Hashable, Sequence, CustomStringConvertible,
-        CustomDebugStringConvertible
-    {
-        private var storage: [Value: Value]
-        /// The keys in the order they were added, which `keys`, `values` and iteration follow. Two
-        /// dictionaries with the same entries are equal whatever order they were made in.
-        private var order: [Value]
-
-        public init() {
-            storage = [:]
-            order = []
-        }
-
-        var dictionary: [Value: Value] {
-            get { storage }
-            set {
-                // What stays keeps its place; what is new comes after, in a fixed order.
-                let added = newValue.keys.filter { storage[$0] == nil }
-                    .sorted { Value.displaysBefore($0, $1) }
-                order = order.filter { newValue[$0] != nil } + added
-                storage = newValue
-            }
-        }
-
-        init(_ dictionary: [Value: Value]) {
-            storage = dictionary
-            order = dictionary.keys.sorted { Value.displaysBefore($0, $1) }
-        }
-
-        /// In the order given. A later entry with the same key replaces the value of the earlier one,
-        /// which keeps its place.
-        public init(_ entries: [(Value, Value)]) {
-            storage = [:]
-            order = []
-            for (key, value) in entries { self[key] = value }
-        }
-
-        public subscript(key: Value) -> Value? {
-            get { storage[key] }
-            set {
-                if let newValue {
-                    if storage.updateValue(newValue, forKey: key) == nil { order.append(key) }
-                } else if storage.removeValue(forKey: key) != nil {
-                    order.removeAll { $0 == key }
-                }
-            }
-        }
-
-        public static func == (lhs: Value.Dictionary, rhs: Value.Dictionary) -> Bool {
-            lhs.storage == rhs.storage
-        }
-        public func hash(into hasher: inout Hasher) { hasher.combine(storage) }
-
-        public var count: Int { storage.count }
-        public var isEmpty: Bool { storage.isEmpty }
-        public var keys: [Value] { order }
-        public var values: [Value] { order.map { storage[$0]! } }
-
-        public func makeIterator() -> some IteratorProtocol<(key: Value, value: Value)> {
-            order.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
-        }
-
-        /// The entries sorted by key: numbers by value, strings as Swift sorts
-        /// them, an enum's cases in declared order, and anything else by how
-        /// it's written.
-        public var sortedForDisplay: [(key: Value, value: Value)] {
-            storage.sorted { Value.displaysBefore($0.key, $1.key) }
-        }
-
-        public var debugDescription: String {
-            guard !isEmpty else { return "[:]" }
-            return "["
-                + sortedForDisplay.map {
-                    "\($0.key.debugDescription): \($0.value.debugDescription)"
-                }
-                .joined(separator: ", ") + "]"
-        }
-
-        public var description: String { debugDescription }
+extension Dictionary where Key == Swiit.Value {
+    /// The entries sorted by key (`Value.displaysBefore`), so what's printed is the same every time.
+    var sortedForDisplay: [(key: Key, value: Value)] {
+        sorted { Key.displaysBefore($0.key, $1.key) }.map { (key: $0.key, value: $0.value) }
     }
 }
 
@@ -571,19 +492,19 @@ extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
     public init(stringLiteral value: String) { self = .string(value) }
     public init(arrayLiteral elements: Value...) { self = .list(elements) }
     public init(dictionaryLiteral elements: (Value, Value)...) {
-        self = .dictionary(Value.Dictionary(elements))
+        self = .dictionary(Dictionary(elements, uniquingKeysWith: { $1 }))
     }
 }
 
 extension Value {
-    /// The entries of a structured value in order: a dictionary's, the fields of a tuple or a
+    /// The entries of a structured value: a dictionary's, in Swift's order, which is no particular one, the fields of a tuple or a
     /// struct value by name (a tuple's unlabeled ones by position, "0", "1"), or the fields of a
     /// host's object that is data. Nil for any other value.
-    public var entries: Value.Dictionary? {
+    public var entries: [(key: Value, value: Value)]? {
         switch self {
-        case .dictionary(let dictionary): dictionary
+        case .dictionary(let dictionary): dictionary.map { (key: $0.key, value: $0.value) }
         case .tuple, .structure:
-            Value.Dictionary(record!.map { (Value.string($0.key), $0.value) })
+            record!.map { (key: Value.string($0.key), value: $0.value) }
         case .object(let object): object.dataFields
         default: nil
         }
@@ -653,7 +574,7 @@ extension Value {
     public init(_ value: Double) { self = .double(value) }
     public init(_ value: String) { self = .string(value) }
     public init(_ value: [Value]) { self = .list(value) }
-    public init(_ value: Value.Dictionary) { self = .dictionary(value) }
+    public init(_ value: [Value: Value]) { self = .dictionary(value) }
     public init(_ value: some HostObject) { self = .object(value) }
 
     /// What a value is, as a script would say it. A tuple and a struct value are told apart by

@@ -61,7 +61,7 @@ extension Interpreter {
             return .list(try elements.map(evaluate))
         case .record(let entries):
             // `["a": 1]`: a dictionary, as in Swift.
-            var dictionary = Value.Dictionary()
+            var dictionary: [Value: Value] = [:]
             for entry in entries {
                 dictionary[try evaluate(entry.key)] = try evaluate(entry.value)
             }
@@ -615,8 +615,8 @@ extension Interpreter {
         case (_, "keys") where value.record != nil:
             return .list(value.record!.keys.map(Value.string))
         case (_, "values") where value.record != nil: return .list(value.record!.map(\.value))
-        case (.dictionary(let dictionary), "keys"): return .list(dictionary.keys)
-        case (.dictionary(let dictionary), "values"): return .list(dictionary.values)
+        case (.dictionary(let dictionary), "keys"): return .list(Array(dictionary.keys))
+        case (.dictionary(let dictionary), "values"): return .list(Array(dictionary.values))
         case (.string(let text), "lines"):
             return .list(
                 text.isEmpty

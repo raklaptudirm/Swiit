@@ -427,19 +427,20 @@ private final class HostNode: HostObject, @unchecked Sendable {
     }
 }
 
-@Test func aDictionaryKeepsTheOrderItsEntriesWereAddedIn() throws {
-    var dictionary = Value.Dictionary()
-    dictionary["z"] = 1
-    dictionary["a"] = 2
+extension Value {
+    /// The entry named `name` of a structured value.
+    fileprivate func entry(_ name: String) -> Value? {
+        entries?.first { $0.key == Value(name) }?.value
+    }
+}
+
+@Test func aDictionaryIsSwiftsAndComparesByWhatItHolds() throws {
+    var dictionary: [Value: Value] = ["z": 1, "a": 2]
     dictionary["z"] = 3
-    #expect(dictionary.keys == ["z", "a"])
-    #expect(dictionary.values == [3, 2])
+    #expect(dictionary == ["a": 2, "z": 3])
+    #expect(Value(dictionary).entries?.count == 2)
     dictionary["z"] = nil
-    #expect(dictionary.keys == ["a"])
-    // Equal by what they hold, not the order they were made in.
-    var other = Value.Dictionary()
-    other["a"] = 2
-    #expect(other == dictionary)
+    #expect(Value(dictionary) == Value(["a": 2] as [Value: Value]))
 }
 
 @Test func aStructuredValueIsReadAsItsEntries() throws {
@@ -449,9 +450,9 @@ private final class HostNode: HostObject, @unchecked Sendable {
     // A script reads the fields by name; a host reads them in order.
     #expect(try swiit.evaluate("row.size + 1") == 4)
     let entries = try #require(try swiit.evaluate("row").entries)
-    #expect(entries.keys == ["name", "size", "kind"])
-    #expect(try swiit.evaluate("(a: 1, b: 2)").entries?.keys == ["a", "b"])
-    #expect(try swiit.evaluate("[\"b\": 1, \"a\": 2]").entries?.keys.count == 2)
+    #expect(entries.map(\.key) == ["name", "size", "kind"])
+    #expect(try swiit.evaluate("(a: 1, b: 2)").entries?.map(\.key) == ["a", "b"])
+    #expect(try swiit.evaluate("[\"b\": 1, \"a\": 2]").entries?.count == 2)
     #expect(Value(1).entries == nil)
 }
 
@@ -671,9 +672,9 @@ extension URL: ScriptConvertible {}
     #expect(try swiit.call("g", arguments: [("a", Value(1))]) == 11)
     let point = try swiit.evaluate("Point(x: 3)")
     #expect(
-        try swiit.call("scaled", on: point, arguments: [("by", Value(2))]).entries?[Value("x")] == 6
+        try swiit.call("scaled", on: point, arguments: [("by", Value(2))]).entry("x") == 6
     )
-    #expect(try swiit.call("origin", on: swiit["Point"]!).entries?[Value("x")] == 0)
+    #expect(try swiit.call("origin", on: swiit["Point"]!).entry("x") == 0)
     #expect(try swiit.call("uppercased", on: Value("ab")) == "AB")
     #expect(try swiit.call("sorted", on: [3, 1, 2]) == [1, 2, 3])
     #expect(throws: Diagnostic.self) { try swiit.call("f", arguments: [(nil, Value(true))]) }
@@ -836,7 +837,7 @@ private final class Mark: @unchecked Sendable {
         bodies: [
             "Counter.next": { arguments in
                 Value(
-                    (arguments["self"]?.entries?[Value("start")].flatMap { $0.cast(to: Int.self) }
+                    (arguments["self"]?.entry("start").flatMap { $0.cast(to: Int.self) }
                         ?? 0) + 1
                 )
             },

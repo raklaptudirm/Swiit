@@ -490,7 +490,7 @@ extension Bridge {
                     if groups[key] == nil { order.append(key) }
                     groups[key, default: []].append(item)
                 }
-                return .dictionary(Value.Dictionary(order.map { ($0, Value.list(groups[$0]!)) }))
+                return .dictionary(groups.mapValues { Value.list($0) })
             }
         ],
     ]

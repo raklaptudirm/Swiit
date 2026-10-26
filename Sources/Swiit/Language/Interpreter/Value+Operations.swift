@@ -80,7 +80,7 @@ extension Value {
             }
             return Value(record: converted)
         case (.dictionary(let keyType, let scriptType), .dictionary(let dictionary)):
-            var converted = Value.Dictionary()
+            var converted: [Value: Value] = [:]
             for (key, value) in dictionary {
                 guard let k = key.conforming(to: keyType), let v = value.conforming(to: scriptType)
                 else { return nil }

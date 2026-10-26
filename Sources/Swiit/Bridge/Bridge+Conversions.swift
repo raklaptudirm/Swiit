@@ -100,12 +100,12 @@ func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
     guard case .dictionary(let dictionary) = value else {
         throw SwiitError("expected a dictionary, not \(value.typeName)")
     }
-    return dictionary.dictionary
+    return dictionary
 }
 
 /// Swift's dictionary as Swiit's.
 func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
-    .dictionary(Value.Dictionary(dictionary))
+    .dictionary(dictionary)
 }
 
 /// A tuple's elements, by label or position, made into a Swift tuple.
