@@ -121,7 +121,7 @@ extension HostObject {
         }
     }
 
-    /// Its data as named fields, which tables, `select` and `to json` use: every member that isn't
+    /// Its data as named fields, which a host lays out as a record (a table, JSON): every member that isn't
     /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
     /// has none: it is one value, like a `FileSize`.
     var dataFields: [(key: Value, value: Value)]? {

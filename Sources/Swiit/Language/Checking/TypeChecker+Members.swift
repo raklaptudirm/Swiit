@@ -13,10 +13,6 @@ extension TypeChecker {
     ) throws -> TypeAnnotation? {
         guard let methods = interpreter.sequenceMethods[name], let element = sequenceElement(base)
         else { return nil }
-        // `select`'s result is a tuple of the fields it names, which Swift could
-        // only type with parameter packs over key paths; until then its rule is
-        // here (Docs/foundations.md, open questions).
-        if name == "select" { return try selectType(element, arguments: &arguments) }
         let candidates = sequenceSignatures(methods)
         guard
             let chosen = try resolve(
@@ -58,28 +54,6 @@ extension TypeChecker {
         case .unknown: .unknown
         default: nil
         }
-    }
-
-    /// `select name size` on [FileEntry]: [(name: String, size: FileSize)],
-    /// a tuple of the fields picked, which Swift's generics can't say.
-    func selectType(_ element: TypeAnnotation, arguments: inout [Argument]) throws -> TypeAnnotation
-    {
-        var fields: [TypeAnnotation.TupleElement] = []
-        for index in arguments.indices {
-            try expect(&arguments[index].value, .string, "select: a field's name")
-            guard case .literal(let literal) = arguments[index].value,
-                let field = literal.cast(to: String.self)
-            else {
-                return .list(.unknown)
-            }
-            fields.append(
-                .init(
-                    label: field,
-                    type: element == .unknown ? .unknown : try memberType(of: element, field)
-                )
-            )
-        }
-        return .list(.tuple(fields))
     }
 }
 

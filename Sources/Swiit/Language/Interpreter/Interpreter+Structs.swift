@@ -2,7 +2,7 @@ import Foundation
 
 /// A struct's definition. Its values are records with its name as their
 /// type, so they're values like Swift's structs, and tables, `where`,
-/// `select` and `to json` work on them as on any record; what the type adds
+/// a host lays them out as it does any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
 final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
