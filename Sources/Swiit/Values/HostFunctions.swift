@@ -180,10 +180,10 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     }
 
     public static let any = ScriptType.named(.any)
-    public static let bool = ScriptType.named("Bool")
-    public static let int = ScriptType.named("Int")
-    public static let double = ScriptType.named("Double")
-    public static let string = ScriptType.named("String")
+    public static let bool = ScriptType.named(.bool)
+    public static let int = ScriptType.named(.int)
+    public static let double = ScriptType.named(.double)
+    public static let string = ScriptType.named(.string)
     /// The type of nothing: what a function that gives nothing gives.
     public static let void = ScriptType.tuple([])
     /// A function whose signature is not said.
@@ -202,7 +202,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
 
     /// A named type by its text, which the module's own tables and checker are written in.
     static func named(_ name: String, _ arguments: [ScriptType] = []) -> ScriptType {
-        .named(Symbol.ID(name), arguments)
+        .named(.host(name), arguments)
     }
 
     public var description: String {

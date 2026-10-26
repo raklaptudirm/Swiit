@@ -587,7 +587,7 @@ struct Bytes: Comparable, Hashable, Sendable {
 
 @Suite struct NativeTypeTests {
     static func bytesType() -> HostType {
-        let bytes = Symbol.ID(declaring: "Bytes")
+        let bytes = Symbol.ID(hostType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b, as: "Bytes") }
         return HostType(
             name: "Bytes",
@@ -921,7 +921,7 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit
-    let handle = Symbol.ID(declaring: "Handle")
+    let handle = Symbol.ID(hostType: "Handle")
     swiit.register(
         HostFunction(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))
@@ -1148,4 +1148,46 @@ private final class Handle: HostObject, @unchecked Sendable {
             .name
             == "reduce"
     )
+}
+
+// MARK: Type identity
+
+@Test func aDeclaredTypeIsToldApartFromAnotherOfTheSameName() throws {
+    let swiit = interpreter()
+    try swiit.evaluate("struct Point { var x = 0 }")
+    let first = try #require(swiit.typeID(named: "Point"))
+    try swiit.evaluate("struct Point { var y = 0 }")
+    let second = try #require(swiit.typeID(named: "Point"))
+    #expect(first != second)
+    // Both IDs still resolve, to their own declarations; a type written with the stale one is no
+    // longer the type its name means.
+    #expect(swiit.symbol(for: first)?.kind == .structure)
+    #expect(swiit.symbol(for: second)?.id == second)
+    #expect(swiit.symbols(in: .named(first)).isEmpty)
+    #expect(!swiit.symbols(in: .named(second)).isEmpty)
+}
+
+@Test func anIDFromAnotherInterpreterNamesNothing() throws {
+    let one = interpreter(), two = interpreter()
+    try one.evaluate("struct Point { var x = 0 }")
+    try two.evaluate("struct Point { var x = 0 }")
+    let id = try #require(one.typeID(named: "Point"))
+    #expect(id != two.typeID(named: "Point"))
+    #expect(two.symbol(for: id) == nil)
+}
+
+@Test func hostAndParameterIDsAreByName() throws {
+    let swiit = interpreter()
+    #expect(swiit.symbol(for: .int)?.name == "Int")
+    #expect(swiit.typeID(named: "Int") == .int)
+    #expect(Symbol.ID(hostType: "Int") == .int)
+    // A host type nobody registered names nothing, and a script's type is never a host's.
+    #expect(swiit.symbol(for: Symbol.ID(hostType: "Nope")) == nil)
+    try swiit.evaluate("struct Int2 { var x = 0 }")
+    #expect(swiit.typeID(named: "Int2") != Symbol.ID(hostType: "Int2"))
+    // A parameter is a reference with nothing under it.
+    let element = Symbol.GenericParameter(name: "Element").type
+    guard case .named(let parameter, _) = element else { return }
+    #expect(swiit.symbol(for: parameter) == nil)
+    #expect(parameter != Symbol.ID(hostType: "Element"))
 }

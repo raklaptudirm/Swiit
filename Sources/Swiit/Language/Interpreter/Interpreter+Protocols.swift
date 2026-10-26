@@ -1,8 +1,9 @@
 import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-final class ProtocolType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
+    let id: Symbol.ID
     /// The protocols it takes in: `protocol A: B`.
     public let inherited: [String]
     /// What it asks of a conforming type.
@@ -10,6 +11,7 @@ final class ProtocolType: LanguageObject, @unchecked Sendable {  // safe: its st
 
     init(_ declaration: ProtocolDecl) {
         self.name = declaration.name
+        self.id = .declare(declaration.name)
         self.inherited = declaration.inherited
         self.declaration = declaration
     }
@@ -25,8 +27,10 @@ extension Interpreter {
 
     /// `protocol Shape { … }`: named, so a type can say it conforms and a value can be asked.
     func declare(_ decl: ProtocolDecl) throws {
+        let type = ProtocolType(decl)
+        declaredTypes[type.id] = type
         scopes[scopes.count - 1].bindings[decl.name] = Binding(
-            value: .object(ProtocolType(decl)),
+            value: .object(type),
             mutable: false
         )
     }

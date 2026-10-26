@@ -1,5 +1,6 @@
 import Foundation
 import SwiftSyntax
+import Synchronization
 
 // What a host can ask of the names a script can use: the functions, methods, properties, variables
 // and types there are, which overload a call means, and the type of an expression. One lookup for
@@ -41,33 +42,101 @@ public struct Symbol: Sendable, Hashable {
     public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
+    /// The type's ID, for a type. Nil for any other symbol, and for a type described by `check`
+    /// before the source is run, which declares nothing yet.
+    public internal(set) var id: ID?
 
-    /// Names a type: what `register` gives back, what `Interpreter.typeID(named:)` finds, and what
-    /// `ScriptType.named` and `Value.is(_:)` take. A host gets one from the interpreter or from a
-    /// Swift type, never from text it made up.
+    /// Names a type, or stands where one would be: what `register` gives back, what
+    /// `Interpreter.typeID(named:)` finds, what `Value.typeID` has, and what `ScriptType.named` and
+    /// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
+    /// `typeID(named:)`, `Symbol.id`, a value's `typeID`), and mints one only for a Swift type it
+    /// registers (`init(hostType:)`).
+    ///
+    /// An ID is one of three kinds:
+    /// - **Declared**: a type a script declares. It names one declaration, made once in this
+    ///   process. Declaring `struct Point` again makes a new type with a new ID, and the old ID
+    ///   keeps naming the old one. A host cannot make one; it comes from the interpreter, so a
+    ///   misspelling cannot name a declaration. An ID from another interpreter is just one this
+    ///   interpreter never made, and names nothing.
+    /// - **Host**: a Swift type the host or the core provides (`Int`, `Array`, a registered
+    ///   `FileSize`, an encoded Swift value), by the name `String(describing:)` gives the Swift
+    ///   type, which has no module in it. Host types are process-wide and one per name, as the
+    ///   registry they live in is: two Swift types of one name in different modules collide, and an
+    ///   encoded value carries only the name. An ID of this kind may name nothing (a type not
+    ///   registered, or an encoded value's), and `Interpreter.symbol(for:)` then gives nil.
+    /// - **Parameter**: a generic parameter (`Element`), by name, with nothing declared under it.
+    ///
+    /// IDs are equal when they are the same kind and the same declaration, or the same name. They
+    /// do not outlive the process.
     public struct ID: Sendable, Hashable, CustomStringConvertible {
-        /// The type's name as a script writes it.
+        enum Kind: Sendable, Hashable { case declared(UInt64), host, parameter }
+
+        let kind: Kind
+        /// The type's name as a script writes it; for display, and the identity of a host or
+        /// parameter ID.
         let name: String
 
-        init(_ name: String) { self.name = name }
+        private init(_ kind: Kind, _ name: String) {
+            self.kind = kind
+            self.name = name
+        }
+
+        static func host(_ name: String) -> ID { ID(.host, name) }
+        static func parameter(_ name: String) -> ID { ID(.parameter, name) }
+
+        /// A new declaration's ID, from a counter shared by the process.
+        static func declare(_ name: String) -> ID {
+            ID(
+                .declared(
+                    counter.withLock {
+                        $0 += 1; return $0
+                    }
+                ),
+                name
+            )
+        }
+        private static let counter = Mutex<UInt64>(0)
+
+        /// The ID of a Swift type the host is about to register, for the places that need it
+        /// before there is an interpreter to ask or before the type is registered: a `scriptType`
+        /// that is a static property, a type's own members that name it. It equals the ID
+        /// `register` gives for the type of that name, and the same name's in another interpreter,
+        /// and can never equal a script's type. Everywhere else, pass around what `register` gave
+        /// back, or ask `typeID(named:)`.
+        public init(hostType name: String) { self.init(.host, name) }
 
         public var description: String { name }
 
-        /// A type a host declares, which is how an ID is born: once, where the host names the Swift
-        /// type it registers (`Symbol.ID(declaring: "Output")`). Everywhere else it is passed
-        /// around, or asked of the interpreter.
-        public init(declaring name: String) { self.name = name }
+        public static func == (lhs: ID, rhs: ID) -> Bool {
+            switch (lhs.kind, rhs.kind) {
+            case (.declared(let a), .declared(let b)): a == b
+            case (.host, .host), (.parameter, .parameter): lhs.name == rhs.name
+            default: false
+            }
+        }
+
+        public func hash(into hasher: inout Hasher) {
+            switch kind {
+            case .declared(let token): hasher.combine(token)
+            case .host: hasher.combine(0); hasher.combine(name)
+            case .parameter: hasher.combine(1); hasher.combine(name)
+            }
+        }
 
         /// Swift's own, which scripts have and hosts match on.
-        public static let any = ID("Any")
-        public static let array = ID("Array")
-        public static let arraySlice = ID("ArraySlice")
-        public static let set = ID("Set")
-        public static let dictionary = ID("Dictionary")
-        public static let optional = ID("Optional")
-        public static let function = ID("Function")
-        public static let sequence = ID("Sequence")
-        public static let throwingStream = ID("ThrowingStream")
+        public static let any = ID.host("Any")
+        public static let bool = ID.host("Bool")
+        public static let int = ID.host("Int")
+        public static let double = ID.host("Double")
+        public static let string = ID.host("String")
+        public static let array = ID.host("Array")
+        public static let arraySlice = ID.host("ArraySlice")
+        public static let set = ID.host("Set")
+        public static let dictionary = ID.host("Dictionary")
+        public static let optional = ID.host("Optional")
+        public static let function = ID.host("Function")
+        public static let sequence = ID.host("Sequence")
+        public static let throwingStream = ID.host("ThrowingStream")
 
         /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
         /// conformance would offer to every host.
@@ -189,7 +258,7 @@ public struct Symbol: Sendable, Hashable {
         }
 
         /// The parameter as a type, for a signature that uses it: `T` in `(T, T) -> T`.
-        public var type: ScriptType { .named(Symbol.ID(name)) }
+        public var type: ScriptType { .named(.parameter(name)) }
 
         public init(name: String, constraints: [Constraint] = []) {
             self.name = name
@@ -289,9 +358,6 @@ public struct Symbol: Sendable, Hashable {
         }
     }
 
-    /// The type's ID, for a type; nil for any other symbol.
-    public var id: ID? { isType ? ID(name) : nil }
-
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names.
     public var scriptType: ScriptType {
@@ -304,15 +370,20 @@ public struct Symbol: Sendable, Hashable {
                 isAsync: function!.isAsync
             )
         case .variable, .property: variable!.type
-        case .structure, .enumeration, .class, .actor, .protocol: .named(name)
+        case .structure, .enumeration, .class, .actor, .protocol: .named(id ?? .host(name))
         case .enumCase: .any
         }
     }
 }
 
 extension ScriptType {
-    /// The type an annotation names.
-    init(_ annotation: TypeAnnotation) {
+    /// The type an annotation names. `declared` says which declaration a name means, for the names
+    /// of types a program declares; a name it does not know is a host type's.
+    init(_ annotation: TypeAnnotation, declared: (String) -> Symbol.ID? = { _ in nil }) {
+        func reference(_ name: String) -> Symbol.ID { declared(name) ?? .host(name) }
+        func convert(_ annotation: TypeAnnotation) -> ScriptType {
+            ScriptType(annotation, declared: declared)
+        }
         self =
             switch annotation {
             case .bool: .bool
@@ -321,29 +392,48 @@ extension ScriptType {
             case .string: .string
             case .function: .callable
             case .record: .named("Record")
-            case .named(let name): .named(name)
-            case .list(let element): .list(ScriptType(element))
-            case .dictionary(let key, let value): .dictionary(ScriptType(key), ScriptType(value))
-            case .optional(let wrapped): .optional(ScriptType(wrapped))
-            case .generic(let name, let arguments): .named(name, arguments.map(ScriptType.init))
+            case .named(let name): .named(reference(name))
+            case .list(let element): .list(convert(element))
+            case .dictionary(let key, let value): .dictionary(convert(key), convert(value))
+            case .optional(let wrapped): .optional(convert(wrapped))
+            case .generic(let name, let arguments): .named(reference(name), arguments.map(convert))
             case .tuple(let elements):
                 .tuple(
-                    elements.map { ScriptType.Element(label: $0.label, type: ScriptType($0.type)) }
+                    elements.map { ScriptType.Element(label: $0.label, type: convert($0.type)) }
                 )
             case .functionType(let parameters, let returns, let throwing, let effect):
                 .function(
-                    parameters: parameters.map(ScriptType.init),
-                    returns: ScriptType(returns),
+                    parameters: parameters.map(convert),
+                    returns: convert(returns),
                     isThrowing: throwing,
                     isAsync: effect == .async
                 )
             case .keyPath(let root, let value):
-                .named("KeyPath", [ScriptType(root), ScriptType(value)])
+                .named("KeyPath", [convert(root), convert(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
-            case .parameter(let name): .named(name)
+            case .parameter(let name): .named(.parameter(name))
             case .void: .tuple([])
             default: .any
             }
+    }
+}
+
+extension ScriptType {
+    /// Whether values of this type have what the protocol asks (`Comparable`, `Hashable`,
+    /// `Sequence`, or one a script declares), as the checker reads it. False for a type or a
+    /// protocol that is a declaration `interpreter` no longer means by its name.
+    public func conforms(to proto: Symbol.ID, in interpreter: Interpreter) -> Bool {
+        interpreter.conforms(self, to: proto)
+    }
+}
+
+extension Interpreter {
+    /// The type an annotation names, with the names of declared types as their declarations' IDs.
+    func scriptType(_ annotation: TypeAnnotation) -> ScriptType {
+        ScriptType(annotation) { name in
+            guard case .object(let object)? = self.lookup(name)?.value else { return nil }
+            return (object as? any DeclaredType)?.id
+        }
     }
 }
 
@@ -358,7 +448,7 @@ extension Interpreter {
     public func symbols(named name: String? = nil, in type: ScriptType? = nil) -> [Symbol] {
         withMainTask {
             guard let type else { return globalSymbols(named: name) }
-            var annotation = TypeAnnotation(type)
+            guard var annotation = self.annotation(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
             if case .named(let typeName) = annotation,
                 let generic = Bridge.types[typeName]?.genericParameters,
@@ -395,12 +485,7 @@ extension Interpreter {
             let candidates =
                 (callable as? OverloadSet)?.candidates ?? (callable as? Function).map { [$0] } ?? []
             return candidates.map { symbol(of: $0, named: name) }
-        case .object(is StructType): return [Symbol(name: name, kind: .structure)]
-        case .object(is Value.EnumCase.Enumeration):
-            return [Symbol(name: name, kind: .enumeration)]
-        case .object(let type as ClassType):
-            return [Symbol(name: name, kind: type.isActor ? .actor : .class)]
-        case .object(is ProtocolType): return [Symbol(name: name, kind: .protocol)]
+        case .object(let type as any DeclaredType): return [typeSymbol(named: name, type)]
         default:
             let checker = TypeChecker(interpreter: self)
             return [
@@ -408,13 +493,27 @@ extension Interpreter {
                     name: name,
                     kind: .variable(
                         Symbol.Variable(
-                            type: ScriptType(checker.type(of: binding.value)),
+                            type: scriptType(checker.type(of: binding.value)),
                             isSettable: binding.mutable
                         )
                     )
                 )
             ]
         }
+    }
+
+    /// A declared type as a symbol.
+    func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
+        let kind: Symbol.Kind =
+            switch type {
+            case is StructType: .structure
+            case is Value.EnumCase.Enumeration: .enumeration
+            case let type as ClassType: type.isActor ? .actor : .class
+            default: .protocol
+            }
+        var symbol = Symbol(name: name, kind: kind)
+        symbol.id = type.id
+        return symbol
     }
 
     /// What a function is, as a symbol: `name` when it has none of its own.
@@ -431,7 +530,7 @@ extension Interpreter {
                             documentation: function.documentation?.parameters[$0.name]
                         )
                     },
-                    returns: function.returnType.map(ScriptType.init) ?? .void,
+                    returns: function.returnType.map(scriptType) ?? .void,
                     isThrowing: function.isThrowing,
                     isAsync: function.effect != .sync,
                     generics: function.generics
@@ -458,7 +557,7 @@ extension Interpreter {
                     var made = Symbol.Parameter(
                         label: $0.label,
                         name: $0.name,
-                        type: ScriptType(substituted),
+                        type: scriptType(substituted),
                         arity: $0.variadic
                             ? .variadic
                             : $0.defaultValue != nil || $0.externalDefault != nil
@@ -468,7 +567,7 @@ extension Interpreter {
                     made.annotation = substituted
                     return made
                 },
-                returns: ScriptType(checker.substitute(member.returns, bindings)),
+                returns: scriptType(checker.substitute(member.returns, bindings)),
                 isThrowing: member.isThrowing,
                 isAsync: member.effect != .sync,
                 generics: member.generics
@@ -489,7 +588,7 @@ extension Interpreter {
                 .property(
                     Symbol.Property(
                         variable: Symbol.Variable(
-                            type: ScriptType(checker.substitute(member.returns, bindings)),
+                            type: scriptType(checker.substitute(member.returns, bindings)),
                             isSettable: isSettable
                         ),
                         isStatic: member.isStatic
@@ -513,7 +612,7 @@ extension Interpreter {
         var made = Symbol.Parameter(
             label: parameter.label,
             name: parameter.name,
-            type: ScriptType(parameter.type),
+            type: scriptType(parameter.type),
             arity: parameter.variadic
                 ? .variadic
                 : parameter.defaultValue != nil || parameter.externalDefault != nil
@@ -543,7 +642,7 @@ extension Interpreter {
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
             return Symbol.Function(
                 parameters: parameters.map { parameter($0) },
-                returns: ScriptType(signature.returns),
+                returns: scriptType(signature.returns),
                 isThrowing: signature.isThrowing,
                 isAsync: signature.effect != .sync,
                 generics: signature.generics
@@ -586,7 +685,7 @@ extension Interpreter {
                         kind: .property(
                             Symbol.Property(
                                 variable: Symbol.Variable(
-                                    type: ScriptType(property.type),
+                                    type: scriptType(property.type),
                                     isSettable: property.isSettable
                                 )
                             )
@@ -608,7 +707,7 @@ extension Interpreter {
                         kind: .property(
                             Symbol.Property(
                                 variable: Symbol.Variable(
-                                    type: ScriptType(property.type),
+                                    type: scriptType(property.type),
                                     isSettable: property.isSettable
                                 ),
                                 isStatic: true
@@ -650,7 +749,7 @@ extension Interpreter {
                                         Symbol.Parameter(
                                             label: value.label,
                                             name: value.label ?? String(index),
-                                            type: ScriptType(value.type)
+                                            type: scriptType(value.type)
                                         )
                                     },
                                 rawValue: raw
@@ -739,6 +838,45 @@ extension Interpreter {
         (symbols(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
     }
 
+    /// What an ID names: a script's declaration (even one a later declaration of the same name
+    /// hides), or a type the host registers or the core bridges. Nil for an ID that names nothing:
+    /// a Swift type that is not registered (an encoded value's), a declared type of another
+    /// interpreter, a generic parameter.
+    public func symbol(for id: Symbol.ID) -> Symbol? {
+        withMainTask {
+            switch id.kind {
+            case .declared:
+                declaredTypes[id].map { typeSymbol(named: id.name, $0) }
+            case .host:
+                types.first { $0.id == id }
+            case .parameter:
+                nil
+            }
+        }
+    }
+
+    /// Whether `id` still means what it did: a declared ID whose declaration is no longer the one
+    /// its name means (another `struct Point` was declared since) has gone stale, and a type
+    /// written with it is not the type its name means now.
+    func isCurrent(_ id: Symbol.ID) -> Bool {
+        guard case .declared = id.kind else { return true }
+        guard case .object(let object)? = lookup(id.name)?.value else { return false }
+        return (object as? any DeclaredType)?.id == id
+    }
+
+    /// A type as the checker reads it, or nil when it names a declared type that has gone stale.
+    func annotation(_ type: ScriptType) -> TypeAnnotation? {
+        func current(_ type: ScriptType) -> Bool {
+            switch type {
+            case .named(let id, let arguments): isCurrent(id) && arguments.allSatisfy(current)
+            case .function(let parameters, let returns, _, _):
+                parameters.allSatisfy(current) && current(returns)
+            case .tuple(let elements): elements.allSatisfy { current($0.type) }
+            }
+        }
+        return current(type) ? TypeAnnotation(type) : nil
+    }
+
     /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public var types: [Symbol] {
@@ -752,6 +890,7 @@ extension Interpreter {
                 .compactMap { name, binding -> Symbol? in
                     if case .object(is BridgedTypeName) = binding.value {
                         var symbol = Symbol(name: name, kind: .structure)
+                        symbol.id = .host(name)
                         symbol.isBuiltin = true
                         return symbol
                     } else {
@@ -762,11 +901,10 @@ extension Interpreter {
         }
     }
 
-    /// Whether values of `type` have what the protocol asks (`Comparable`, `Hashable`,
-    /// `Sequence`, or one a script declares), as the checker reads it.
-    public func conforms(_ type: ScriptType, to proto: Symbol.ID) -> Bool {
+    func conforms(_ type: ScriptType, to proto: Symbol.ID) -> Bool {
         inCurrentTask {
-            TypeChecker(interpreter: self).conforms(TypeAnnotation(type), to: proto.name)
+            guard isCurrent(proto), let annotation = annotation(type) else { return false }
+            return TypeChecker(interpreter: self).conforms(annotation, to: proto.name)
         }
     }
 
@@ -797,9 +935,10 @@ extension Interpreter {
                 else { return nil }
                 let parameter = parameters[index]
                 // A function of a signature not known fits where any function is wanted.
-                var actual = TypeAnnotation(argument.type)
+                guard var actual = annotation(argument.type),
+                    let expected = parameter.annotation ?? annotation(parameter.type)
+                else { return nil }
                 if actual == .function { actual = .unknown }
-                let expected = parameter.annotation ?? TypeAnnotation(parameter.type)
                 guard checker.fits(actual, expected) else { return nil }
                 if expected == .any || expected == .unknown { cost += 1 }
                 given.insert(parameter.name)
@@ -954,7 +1093,7 @@ extension Interpreter {
                     kind: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: ScriptType(signature.returns),
+                            returns: scriptType(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync
                         )
@@ -999,7 +1138,7 @@ extension Interpreter {
                         )
                     }
                     do {
-                        return ScriptType(try TypeChecker(interpreter: self).typeOf(&expr))
+                        return scriptType(try TypeChecker(interpreter: self).typeOf(&expr))
                     } catch let error as TypeError {
                         throw Diagnostic(
                             kind: .type,

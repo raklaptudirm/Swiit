@@ -2,7 +2,7 @@ extension Value.EnumCase {
     /// An enum's definition: its name and cases, in order. Declared in Swiit
     /// (`enum FileType { case file, directory }`) or by the host.
     /// Types compare by identity, so two enums with the same name are distinct.
-    public final class Enumeration: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+    public final class Enumeration: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
         public struct Case: Sendable, Equatable {
             public let name: String
             /// For an enum with raw values (`enum Level: Int`).
@@ -20,10 +20,20 @@ extension Value.EnumCase {
 
         public let name: String
         public let cases: [Case]
+        let id: Symbol.ID
 
+        /// An enum the host provides, named by the Swift type's name.
         public init(name: String, cases: [Case]) {
             self.name = name
             self.cases = cases
+            self.id = .host(name)
+        }
+
+        /// An enum a program declares, which is a type of its own.
+        init(declaring name: String, cases: [Case]) {
+            self.name = name
+            self.cases = cases
+            self.id = .declare(name)
         }
 
         public func `case`(named name: String) -> Case? {

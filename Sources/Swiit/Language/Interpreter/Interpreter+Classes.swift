@@ -1,8 +1,9 @@
 import Foundation
 
 /// A class a program declares.
-final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
+    let id: Symbol.ID
     public let superclass: ClassType?
     let isActor: Bool
     /// Stored properties this class declares, in order, and their defaults.
@@ -33,6 +34,7 @@ final class ClassType: LanguageObject, @unchecked Sendable {  // safe: its state
         conformances: [String]
     ) {
         self.name = name
+        self.id = .declare(name)
         self.superclass = superclass
         self.isActor = isActor
         self.stored = stored

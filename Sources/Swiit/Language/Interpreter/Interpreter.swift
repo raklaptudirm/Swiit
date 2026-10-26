@@ -30,6 +30,9 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
     /// The protocols each enum declares.
     var enumConformances: [ObjectIdentifier: [String]] = [:]
+    /// The types programs have declared, by ID, including those a later declaration of the same
+    /// name has since hidden.
+    var declaredTypes: [Symbol.ID: any DeclaredType] = [:]
     /// The module a program's types are in, shown before their names where Swift shows it
     /// (`main.Point`).
     var moduleName = "main"

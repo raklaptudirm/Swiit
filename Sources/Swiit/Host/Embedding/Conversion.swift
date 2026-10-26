@@ -4,7 +4,7 @@ extension Interpreter {
     /// `value` as a `type`, converting as a call's argument is: nil if it is not one. A list's
     /// elements are converted too.
     public func converted(_ value: Value, to type: ScriptType) -> Value? {
-        inCurrentTask { conform(value, to: TypeAnnotation(type)) }
+        inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
     }
 
     /// Text as a value of `type`, as a word of text is: an enum's case by its name (`directory` or
@@ -12,13 +12,13 @@ extension Interpreter {
     /// a path for a `FilePath`), a key path by the field names (`size`, `owner.name`), and anything
     /// else by being text, as `String`, `Any` and a type parameter are. Nil if the text is not one.
     public func parse(word text: String, as type: ScriptType) -> Value? {
-        inCurrentTask { word(text, as: TypeAnnotation(type)) }
+        inCurrentTask { annotation(type).flatMap { word(text, as: $0) } }
     }
 
     /// Whether a word can be a value of `type` at all: an enum, a Swift type text can be, a key
     /// path, or anything text satisfies. (`value(fromWord:as:)` says whether one word is.)
     public func acceptsWords(as type: ScriptType) -> Bool {
-        inCurrentTask { acceptsWords(TypeAnnotation(type)) }
+        inCurrentTask { annotation(type).map { acceptsWords($0) } ?? false }
     }
 
     private func acceptsWords(_ type: TypeAnnotation) -> Bool {
@@ -57,7 +57,7 @@ extension Interpreter {
 
     /// The type a value has in a script.
     public func scriptType(of value: Value) -> ScriptType {
-        inCurrentTask { ScriptType(TypeChecker(interpreter: self).type(of: value)) }
+        inCurrentTask { scriptType(TypeChecker(interpreter: self).type(of: value)) }
     }
 
     private func word(_ text: String, as type: TypeAnnotation) -> Value? {

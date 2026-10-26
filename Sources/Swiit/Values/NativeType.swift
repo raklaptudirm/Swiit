@@ -78,7 +78,9 @@ public struct HostType: Sendable {
 
     /// A type described by hand, from its members alone. `HostType.Builder` also finds what the
     /// Swift type says of itself: its conformances, how text becomes one.
-    public var id: Symbol.ID { Symbol.ID(name) }
+    /// The ID `register` gives back for this type, which is `Symbol.ID(hostType: name)`: the same
+    /// promises hold of it, and of what they leave out.
+    public var id: Symbol.ID { .host(name) }
 
     public init(name: String, members: [Member] = []) {
         self.name = name
@@ -122,7 +124,7 @@ extension Interpreter {
                 mutable: false
             )
         }
-        return Symbol.ID(type.name)
+        return .host(type.name)
     }
 }
 

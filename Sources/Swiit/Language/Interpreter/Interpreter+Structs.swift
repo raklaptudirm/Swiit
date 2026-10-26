@@ -4,8 +4,9 @@ import Foundation
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// `select` and `to json` work on them as on any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-final class StructType: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     public let name: String
+    let id: Symbol.ID
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
     public let computed: [String: Function]
@@ -58,6 +59,7 @@ final class StructType: LanguageObject, @unchecked Sendable {  // safe: its stat
         staticMethods: [String: OverloadSet] = [:]
     ) {
         self.name = name
+        self.id = .declare(name)
         self.conformances = conformances
         self.staticProperties = staticProperties
         self.staticComputed = staticComputed
@@ -275,6 +277,7 @@ extension Interpreter {
                 )
             }
         }
+        declaredTypes[type.id] = type
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
         // Bound first, so a static value can be made of the type itself.
         for property in decl.staticProperties where property.getter == nil {
