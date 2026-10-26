@@ -116,7 +116,24 @@ private func typeError(_ source: String) -> String? {
 @Test func forTryAwaitReadsAnAsyncSequence() throws {
     #expect(
         try eval(
-            "var total = 0; for try await n in ThrowingStream([1, 2, 3]) { total += n }; total"
+            """
+            struct Counter {
+                let limit: Int
+                func makeAsyncIterator() -> Counting { Counting(limit: limit) }
+            }
+            final class Counting {
+                let limit: Int
+                var at = 0
+                init(limit: Int) { self.limit = limit }
+                func next() async throws -> Int? {
+                    at += 1
+                    return at <= limit ? at : nil
+                }
+            }
+            var total = 0
+            for try await n in Counter(limit: 3) { total += n }
+            total
+            """
         )
             == .int(6)
     )
@@ -125,8 +142,13 @@ private func typeError(_ source: String) -> String? {
             == "'for await' reads an AsyncSequence, and [Int] isn't one"
     )
     #expect(
-        typeError("for await n in ThrowingStream([1]) { }")
-            == "reading a ThrowingStream<Int> can throw: write 'for try await'"
+        typeError(
+            """
+            struct Counter { func makeAsyncIterator() -> Counter { self }
+                func next() async throws -> Int? { nil } }
+            for await n in Counter() { }
+            """
+        ) == "reading a Counter can throw: write 'for try await'"
     )
 }
 

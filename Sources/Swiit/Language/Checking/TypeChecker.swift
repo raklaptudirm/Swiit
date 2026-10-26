@@ -60,6 +60,8 @@ final class TypeChecker {
         var flattensResult = false
         /// The attributes it was declared with.
         var attributes: [Swiit.Symbol.Attribute] = []
+        /// The `///` lines above it.
+        var documentation: Documentation?
 
         init(
             name: String,

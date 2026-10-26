@@ -22,9 +22,7 @@ final class ValueStream {
     /// range of Ints, a FilePath's components); nothing as no items,
     /// anything else as a single item.
     public static func elements(of value: Value) -> ValueStream {
-        if let flow = Interpreter.throwingStream(of: value) {
-            return ValueStream { try flow.read() }
-        }
+        if let read = Interpreter.taskGroupReader(of: value) { return ValueStream(read) }
         let items: AnyIterator<Value>
         switch value.storage {
         case .nothing:

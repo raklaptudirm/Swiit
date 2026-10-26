@@ -87,10 +87,6 @@ extension TypeChecker {
     /// The Element of a bridged Swift type that's a Sequence: Int for a
     /// ClosedRange<Int>, Character for a Substring; nil if it isn't one.
     func bridgedElement(_ type: TypeAnnotation) -> TypeAnnotation? {
-        // A `ThrowingStream` isn't a Sequence, its reading can throw, but passes on its elements the same.
-        if case .generic("ThrowingStream", let arguments) = type, arguments.count == 1 {
-            return arguments[0]
-        }
         guard let (bridgedType, bindings) = bridged(type),
             bridgedConforms(bridgedType, bindings, to: "Sequence")
         else {

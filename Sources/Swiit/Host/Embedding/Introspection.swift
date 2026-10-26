@@ -136,7 +136,6 @@ public struct Symbol: Sendable, Hashable {
         public static let optional = ID.host("Optional")
         public static let function = ID.host("Function")
         public static let sequence = ID.host("Sequence")
-        public static let throwingStream = ID.host("ThrowingStream")
 
         /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
         /// conformance would offer to every host.
@@ -641,7 +640,9 @@ extension Interpreter {
             var parameters = signature.parameters
             if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
             return Symbol.Function(
-                parameters: parameters.map { parameter($0) },
+                parameters: parameters.map {
+                    parameter($0, documentation: signature.documentation?.parameters[$0.name])
+                },
                 returns: scriptType(signature.returns),
                 isThrowing: signature.isThrowing,
                 isAsync: signature.effect != .sync,
@@ -656,6 +657,8 @@ extension Interpreter {
             found.append(
                 Symbol(
                     name: signature.name,
+                    summary: signature.documentation.map(\.summary)
+                        .flatMap { $0.isEmpty ? nil : $0 },
                     kind: .method(
                         Symbol.Method(
                             function: function(signature, dropping: receiver),

@@ -266,7 +266,7 @@ extension TypeChecker {
         case .forLoop(var loop):
             let sequence = try typeOf(&loop.sequence)
             if loop.isAwait { try checkAsyncLoop(loop, over: sequence) }
-            let element = try elementType(of: sequence)
+            let element = try elementType(of: sequence, async: loop.isAwait)
             var bound: [String: Symbol] = [:]
             try checkPattern(&loop.pattern, against: element, binding: &bound)
             try checkBlock(&loop.body, declaring: bound, newScope: true)
@@ -285,6 +285,16 @@ extension TypeChecker {
     func checkAsyncLoop(_ loop: ForLoop, over sequence: TypeAnnotation) throws {
         try checkAwaitAllowed()
         effectContexts[effectContexts.count - 1].effect = .async
+        if let (_, throwing) = iteratedElement(of: sequence, async: true) {
+            guard throwing else { return }
+            guard loop.isTry else {
+                throw TypeError("reading a \(sequence) can throw: write 'for try await'")
+            }
+            tryDepth += 1
+            defer { tryDepth -= 1 }
+            try throwingSite("'for try await'")
+            return
+        }
         if sequence != .unknown {
             guard let (bridgedType, bindings) = bridged(sequence),
                 bridgedConforms(bridgedType, bindings, to: "AsyncSequence")

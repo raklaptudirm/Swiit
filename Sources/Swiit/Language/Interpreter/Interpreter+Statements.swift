@@ -224,7 +224,7 @@ extension Interpreter {
             return
         case .forLoop(let loop):
             finished(statement, nil)
-            try forEachElement(of: loop.sequence) { element in
+            try forEachElement(of: loop.sequence, awaiting: loop.isAwait) { element in
                 var bindings: [String: Binding] = [:]
                 guard try match(loop.pattern, element, into: &bindings) else {
                     throw RuntimeError("a \(element.typeName) doesn't fit this 'for' pattern")
@@ -310,7 +310,11 @@ extension Interpreter {
     /// Iterates lists, ranges lazily (so `for i in 1...1_000_000_000` never
     /// builds a list), strings by character, as in Swift, the Swift
     /// sequences Swiit holds, and command output by line.
-    func forEachElement(of sequence: Expr, _ body: (Value) throws -> Bool) throws {
+    func forEachElement(
+        of sequence: Expr,
+        awaiting: Bool = false,
+        _ body: (Value) throws -> Bool
+    ) throws {
         if case .binary(let op, let lower, let upper) = sequence,
             op == .closedRange || op == .halfOpenRange
         {
@@ -320,8 +324,8 @@ extension Interpreter {
             return
         }
         let value = try evaluate(sequence)
-        if let flow = Interpreter.throwingStream(of: value) {
-            while let element = try flow.read() {
+        if let read = Interpreter.taskGroupReader(of: value) {
+            while let element = try read() {
                 guard try body(element) else { return }
             }
             return
@@ -340,11 +344,34 @@ extension Interpreter {
             elements = AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
         } else if let items = Interpreter.items(of: value) {
             elements = items
+        } else if let next = try iterator(of: value, awaiting: awaiting) {
+            while let element = try next() {
+                guard try body(element) else { return }
+            }
+            return
         } else {
             throw RuntimeError("can't iterate over \(value.typeName)")
         }
         for element in elements {
             guard try body(element) else { return }
+        }
+    }
+
+    /// What `for` reads a value with when it declares its own iteration, as Swift's protocols say:
+    /// the `next()` of its `makeIterator()` (`makeAsyncIterator()` for `for await`), which gives nil
+    /// when the items are done; nil if the value has no such iterator.
+    func iterator(of value: Value, awaiting: Bool) throws -> (() throws -> Value?)? {
+        guard
+            let make = try? member(awaiting ? "makeAsyncIterator" : "makeIterator", of: value)
+        else {
+            return nil
+        }
+        let iterator = try call(make, with: [])
+        let next = try member("next", of: iterator)
+        return {
+            let item = try self.call(next, with: [])
+            if case .nothing = item.storage { return nil }
+            return item
         }
     }
 

@@ -591,6 +591,20 @@ extension Set: ScriptConvertible where Element: Hashable {
     public var value: Value { SwiftValue.make(self, as: "Set") }
 }
 
+/// Any sequence a script holds, read one item at a time so a range of a billion is never a list: a
+/// list's items, a set's, a range of Ints, a host type's text. A value that isn't one is an error.
+/// A script's own iterators, which can throw, are read by the interpreter's `for`.
+extension AnySequence: ScriptConvertible where Element == Value {
+    public static var scriptType: ScriptType { .named(.sequence, [.any]) }
+    public init(_ swiitValue: Value) throws {
+        guard let items = Interpreter.items(of: swiitValue) else {
+            throw SwiitError("expected a sequence, not \(swiitValue.bridgeTypeName)")
+        }
+        self.init { items }
+    }
+    public var value: Value { .list(Array(self)) }
+}
+
 extension ArraySlice: ScriptConvertible {
     public static var scriptType: ScriptType { .named(.arraySlice, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }

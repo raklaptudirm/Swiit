@@ -276,26 +276,22 @@ extension Bridge {
         )
     }
 
-    /// `lazy`: the items one at a time, as a ThrowingStream, which maps and filters as they are read.
-    private static func lazyMember(_ element: TypeAnnotation) -> BridgedMember {
+    /// `lazy`, which Swiit reads as the sequence itself: its operators run all at once, not as
+    /// items are asked for, which a finite sequence's result cannot tell.
+    private static func lazyMember(_ sequence: TypeAnnotation) -> BridgedMember {
         member(
             .property,
             "lazy",
-            returns: .generic("ThrowingStream", [element]),
-            summary: "The items read one at a time, mapped and filtered as they are read."
-        ) { _, arguments in
-            guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else {
-                throw RuntimeError("lazy needs a sequence")
-            }
-            return SwiftValue.make(ThrowingStream<Value> { items.next() }, as: "ThrowingStream")
-        }
+            returns: sequence,
+            summary: "The sequence itself: Swiit does not defer the work of its operators."
+        ) { _, arguments in arguments["self"] ?? .nothing }
     }
 
     nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [  // safe: set once, before anything reads it
-        "Array": [reduceInto, lazyMember(.parameter("Element"))],
-        "Set": [reduceInto, lazyMember(.parameter("Element"))],
-        "ClosedRange": [reduceInto, lazyMember(.parameter("Bound"))],
-        "Range": [reduceInto, lazyMember(.parameter("Bound"))],
+        "Array": [reduceInto, lazyMember(.list(.parameter("Element")))],
+        "Set": [reduceInto, lazyMember(.generic("Set", [.parameter("Element")]))],
+        "ClosedRange": [reduceInto, lazyMember(.generic("ClosedRange", [.parameter("Bound")]))],
+        "Range": [reduceInto, lazyMember(.generic("Range", [.parameter("Bound")]))],
         "Unicode.Scalar": [
             member(
                 .property,
@@ -312,82 +308,6 @@ extension Bridge {
                     )
                 )
             }
-        ],
-        "ThrowingStream": [
-            member(
-                .method,
-                "reversed",
-                returns: .generic("ThrowingStream", [.parameter("Element")]),
-                summary: "The items in the opposite order."
-            ) { _, arguments in
-                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
-                    let flow = box.value as? ThrowingStream<Value>
-                else { return .nothing }
-                var items: [Value] = []
-                while let item = try flow.read() { items.append(item) }
-                var reversed = items.reversed().makeIterator()
-                return SwiftValue.make(
-                    ThrowingStream<Value> { reversed.next() },
-                    as: "ThrowingStream"
-                )
-            },
-            member(
-                .property,
-                "first",
-                returns: .optional(.parameter("Element")),
-                summary: "The first item, if there is one."
-            ) { _, arguments in
-                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
-                    let flow = box.value as? ThrowingStream<Value>
-                else { return .nothing }
-                return try flow.read() ?? .nothing
-            },
-            member(
-                .method,
-                "first",
-                parameters: [
-                    Parameter(
-                        label: "where",
-                        name: "predicate",
-                        type: .functionType([.parameter("Element")], .bool)
-                    )
-                ],
-                returns: .optional(.parameter("Element")),
-                summary: "The first item the predicate accepts."
-            ) { interpreter, arguments in
-                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
-                    let flow = box.value as? ThrowingStream<Value>
-                else { return .nothing }
-                while let item = try flow.read() {
-                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {
-                        return item
-                    }
-                }
-                return .nothing
-            },
-            member(
-                .method,
-                "contains",
-                parameters: [
-                    Parameter(
-                        label: "where",
-                        name: "predicate",
-                        type: .functionType([.parameter("Element")], .bool)
-                    )
-                ],
-                returns: .bool,
-                summary: "Whether the predicate accepts an item."
-            ) { interpreter, arguments in
-                guard case .object(let box as SwiftValue) = (arguments["self"] ?? .nothing).storage,
-                    let flow = box.value as? ThrowingStream<Value>
-                else { return .bool(false) }
-                while let item = try flow.read() {
-                    if try interpreter.call(arguments["predicate"]!, with: [item]) == .bool(true) {
-                        return .bool(true)
-                    }
-                }
-                return .bool(false)
-            },
         ],
         "String": stringIndexMembers + [
             member(

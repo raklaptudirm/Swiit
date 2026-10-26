@@ -79,7 +79,7 @@ extension Interpreter {
 
 extension Interpreter {
     /// Where the current task waits for something outside itself: a program
-    /// to finish, a `$(…)`'s output, a job, the next item of a `ThrowingStream` or line
+    /// to finish, a `$(…)`'s output, a job, the next item of a task group or line
     /// of input. Every wait goes through here; with one task it is just the
     /// wait, and it is where the async evaluator will let another task run
     /// (Docs/async.md, step 2).

@@ -876,13 +876,11 @@ private final class Mark: @unchecked Sendable {
             "Sequence.firsts": { arguments in
                 // A sequence's items, one at a time, as far as are wanted.
                 let wanted = arguments["count"]?.casting(to: Int.self) ?? 0
-                guard let items = arguments["self"].flatMap({ try? ThrowingStream<Value>($0) })
+                guard let value = arguments["self"], let items = try? AnySequence<Value>(value)
                 else {
                     return Value([] as [Value])
                 }
-                var kept: [Value] = []
-                while kept.count < wanted, let item = try items.read() { kept.append(item) }
-                return Value(kept)
+                return Value(Array(items.prefix(wanted)))
             },
             "hello": { arguments in Value("hello, " + (arguments["name"]?.description ?? "")) },
         ]
@@ -1399,10 +1397,8 @@ private struct Point: Encodable { var x: Int }
 @Test func aStreamIsMadeOfWhatAValueGives() throws {
     let swiit = interpreter()
     func items(_ value: Value) throws -> [Value]? {
-        guard let stream = try? ThrowingStream<Value>(value) else { return nil }
-        var read: [Value] = []
-        while let item = try stream.read() { read.append(item) }
-        return read
+        guard let sequence = try? AnySequence<Value>(value) else { return nil }
+        return Array(sequence)
     }
     // A list, a range (one at a time, so a huge one is never a list), a set; not a scalar or nil.
     #expect(try items(Value([Value(1), Value(2)])) == [Value(1), Value(2)])
@@ -1411,6 +1407,5 @@ private struct Point: Encodable { var x: Int }
     #expect(try items(swiit.evaluate("Set([4])")) == [Value(4)])
     #expect(try items(Value(3)) == nil)
     #expect(try items(.nothing) == nil)
-    // A stream is itself.
     #expect(try items(swiit.evaluate("[1, 2].map { $0 * 2 }")) == [Value(2), Value(4)])
 }

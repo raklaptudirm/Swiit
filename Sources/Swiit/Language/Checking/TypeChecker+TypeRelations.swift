@@ -243,12 +243,39 @@ extension TypeChecker {
     }
 
     /// The type of each item when iterating `type`.
-    func elementType(of type: TypeAnnotation) throws -> TypeAnnotation {
+    /// What a declared type gives a `for` loop, as Swift's protocols say: its `makeIterator()`'s
+    /// `next()` (or `makeAsyncIterator()`'s, for `for await`) returns an optional element. Also
+    /// whether that `next()` throws; nil if the type has no such iterator.
+    func iteratedElement(
+        of type: TypeAnnotation,
+        async: Bool
+    ) -> (element: TypeAnnotation, throws: Bool)? {
+        switch type {
+        case .named, .generic: break
+        default: return nil
+        }
+        guard
+            case .functionType(_, let iterator, _, _)? = try? memberType(
+                of: type,
+                async ? "makeAsyncIterator" : "makeIterator"
+            ),
+            case .functionType(_, .optional(let element), let throwing, _)? = try? memberType(
+                of: iterator,
+                "next"
+            )
+        else {
+            return nil
+        }
+        return (element, throwing)
+    }
+
+    func elementType(of type: TypeAnnotation, async: Bool = false) throws -> TypeAnnotation {
         if case .named(let name) = type,
             let element = Bridge.types[name]?.associatedTypes["Element"]
         {
             return element
         }
+        if let (element, _) = iteratedElement(of: type, async: async) { return element }
         if case .generic = type {
             // What `for await` reads: an AsyncSequence of the bridged types (a task group).
             if let (bridgedType, bindings) = bridged(type),

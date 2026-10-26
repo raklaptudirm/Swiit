@@ -82,6 +82,7 @@ extension TypeChecker {
         made.typeParameters = function.typeParameters
         made.flattensResult = function.flattensResult
         made.attributes = function.attributes
+        made.documentation = function.documentation
         return made
     }
 

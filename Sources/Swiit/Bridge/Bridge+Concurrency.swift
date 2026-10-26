@@ -30,7 +30,7 @@ extension Bridge {
     /// Conformances this module declares for bridged types, which the
     /// generator doesn't read (it reads the modules the types are from).
     static let conformancesDeclaredHere: [String: [String]] = [
-        "ThrowingStream": ["AsyncSequence"], "TaskGroup": ["AsyncSequence"],
+        "TaskGroup": ["AsyncSequence"],
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
@@ -302,19 +302,4 @@ func bridgeAsyncClosure(
             }
         }
     }
-}
-
-/// A ThrowingStream read with `for try await`, as Swift reads any asynchronous sequence:
-/// reading an item may wait (a job's next line). Declared here rather than
-/// with ThrowingStream, so the generator doesn't bridge AsyncSequence's own methods,
-/// whose iteration would run the ThrowingStream's Swiit closures off the interpreter's
-/// threads.
-extension ThrowingStream: AsyncSequence {
-    public struct AsyncIterator: AsyncIteratorProtocol {
-        let read: () throws -> Element?
-
-        public mutating func next() async throws -> Element? { try read() }
-    }
-
-    public func makeAsyncIterator() -> AsyncIterator { AsyncIterator(read: read) }
 }

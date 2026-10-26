@@ -210,6 +210,7 @@ extension TypeChecker {
             )
             signature.thrownType = method.thrownType
             signature.attributes = method.attributes
+            signature.documentation = method.documentation
             signature.index = methods[method.name]?.count ?? 0
             methods[method.name, default: []].append(signature)
         }

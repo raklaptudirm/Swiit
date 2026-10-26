@@ -34,7 +34,7 @@ nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]  // safe: the gen
 
 /// Generic types Swiit holds as they are, boxed (`SwiftValue`), with Swiit's
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.
-let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange", "ThrowingStream"]
+let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange"]
 
 /// The protocols a type conforms to, as far as the checker needs to know.
 let knownProtocols: Set = [
