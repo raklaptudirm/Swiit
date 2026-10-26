@@ -72,7 +72,7 @@ extension Interpreter {
                 guard current != .nothing else { return nil }
                 steps.append(.unwrap)
             case .member(let name):
-                guard case .record(let record) = current else { return nil }
+                guard let record = current.record else { return nil }
                 if let structType = structType(of: record) {
                     guard structType.setters[name] == nil, structType.observers[name] == nil,
                         extensionChain(of: current).allSatisfy({ $0.setters[name] == nil }),
@@ -149,12 +149,12 @@ extension Interpreter {
         case .unwrap:
             return try descend(&value, rest, body)
         case .member(let name):
-            guard case .record(var record) = value else {
+            guard var record = value.record else {
                 throw RuntimeError("cannot assign to '\(name)' of \(value.typeName)")
             }
             value = .nothing
             var field = record.takeValue(name) ?? .nothing
-            defer { record[name] = field; value = .record(record) }
+            defer { record[name] = field; value = Value(record: record) }
             return try descend(&field, rest, body)
         case .index(let key):
             if case .list = value { return try descendList(&value, key, rest, body) }

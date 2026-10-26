@@ -113,22 +113,28 @@ extension Interpreter {
                     ),
                     body: .native { _, arguments in
                         func child(_ label: String?, _ value: Value) -> Value {
-                            .record(
-                                Value.Record([
-                                    "label": label.map(Value.string) ?? .nothing, "value": value,
-                                ])
+                            Value(
+                                record:
+                                    Value.Record([
+                                        "label": label.map(Value.string) ?? .nothing,
+                                        "value": value,
+                                    ])
                             )
                         }
                         switch arguments["subject"] ?? .nothing {
-                        case .record(let record):
-                            return .list(record.map { child($0.key, $0.value) })
+                        case .tuple(let tuple):
+                            return .list(tuple.map { child($0.key, $0.value) })
+                        case .structure(let structure):
+                            return .list(structure.map { child($0.key, $0.value) })
                         case .list(let items): return .list(items.map { child(nil, $0) })
                         case .dictionary(let dictionary):
                             return .list(
                                 dictionary.sortedForDisplay.map {
                                     child(
                                         nil,
-                                        .record(Value.Record(["key": $0.key, "value": $0.value]))
+                                        Value(
+                                            record: Value.Record(["key": $0.key, "value": $0.value])
+                                        )
                                     )
                                 }
                             )
@@ -330,7 +336,7 @@ extension Interpreter {
                     var pairs: [Value] = []
                     while let a = first.next(), let b = second.next() {
                         try interpreter.checkInterrupt()
-                        pairs.append(.record(Value.Record(["0": a, "1": b])))
+                        pairs.append(Value(record: Value.Record(["0": a, "1": b])))
                     }
                     return .list(pairs)
                 }
@@ -474,9 +480,13 @@ extension Interpreter {
         case .list: name = "Array"
         case .dictionary: name = "Dictionary"
         case .enumValue(let enumValue): return .object(enumValue.type)
-        case .record(let record):
+        case .tuple:
             // A tuple is of the type its elements make: `(x: Int, Double)`.
-            guard let typeName = record.typeName, let type = structType(named: typeName) else {
+            return .object(
+                BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description)
+            )
+        case .structure(let structure):
+            guard let type = structType(named: structure.typeName) else {
                 return .object(
                     BridgedTypeName(TypeChecker(interpreter: self).type(of: value).description)
                 )

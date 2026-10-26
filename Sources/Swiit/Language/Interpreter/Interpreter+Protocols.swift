@@ -40,8 +40,8 @@ extension Interpreter {
     func conformanceList(of value: Value) -> [String] {
         var declared: [String] = []
         switch value {
-        case .record(let record):
-            if let type = structType(of: record) { declared = type.conformances }
+        case .structure(let structure):
+            if let type = structType(of: structure.record) { declared = type.conformances }
         case .enumValue(let enumValue):
             declared = enumConformances[ObjectIdentifier(enumValue.type)] ?? []
         case .object(let instance as ClassInstance):

@@ -49,7 +49,7 @@ extension Interpreter {
     /// Whether a value is of a type the program declared, which may have operators of its own.
     func isDeclaredValue(_ value: Value) -> Bool {
         switch value {
-        case .record(let record): record.typeName != nil
+        case .structure(let structure): structure.record.typeName != nil
         case .enumValue: true
         default: false
         }
@@ -60,8 +60,8 @@ extension Interpreter {
     func staticOperators(_ name: String, of value: Value) -> [Function] {
         var found: [Function] = []
         switch value {
-        case .record(let record):
-            if let type = structType(of: record) {
+        case .structure(let structure):
+            if let type = structType(of: structure.record) {
                 found += type.staticMethods[name]?.candidates ?? []
             }
         case .enumValue(let enumValue):
@@ -175,7 +175,7 @@ extension Interpreter {
             break
         }
         // Tuples compare element by element, as Swift's do.
-        if case .record(let a) = lhs, case .record(let b) = rhs, a.typeName == nil,
+        if let a = lhs.record, let b = rhs.record, a.typeName == nil,
             b.typeName == nil,
             a.count == b.count,
             [.less, .lessEqual, .greater, .greaterEqual].contains(op)

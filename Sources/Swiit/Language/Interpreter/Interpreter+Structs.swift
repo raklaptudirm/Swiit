@@ -337,7 +337,7 @@ extension Interpreter {
                     record[property.name] = try storedValue(defaultValue, for: property, of: type)
                 }
             }
-            return .record(record)
+            return Value(record: record)
         }
 
         let (initializer, bindings) = try resolve(narrowed(initializers, overload)) {
@@ -350,14 +350,14 @@ extension Interpreter {
                 start[property.name] = try storedValue(defaultValue, for: property, of: type)
             }
         }
-        let receiver = Receiver(.record(start), mutable: true, initializing: true)
+        let receiver = Receiver(Value(record: start), mutable: true, initializing: true)
         task.failedInit = false
         _ = try invoke(initializer, with: bindings, receiver: receiver)
         if task.failedInit {
             task.failedInit = false
             return .nothing
         }
-        guard case .record(let made) = receiver.value else {
+        guard let made = receiver.value.record else {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
         // In declaration order, whatever order the initializer set them in.
@@ -368,7 +368,7 @@ extension Interpreter {
             }
             record[property.name] = value
         }
-        return .record(record)
+        return Value(record: record)
     }
 
     private func storedValue(
@@ -400,7 +400,7 @@ extension Interpreter {
             return try invoke(
                 getter,
                 with: [:],
-                receiver: Receiver(.record(record), mutable: false)
+                receiver: Receiver(Value(record: record), mutable: false)
             )
         }
         guard let methods = type.methods[name] else { return nil }
@@ -419,7 +419,7 @@ extension Interpreter {
                     return try interpreter.invoke(
                         method,
                         with: arguments,
-                        receiver: Receiver(.record(record), mutable: false)
+                        receiver: Receiver(Value(record: record), mutable: false)
                     )
                 },
                 documentation: method.documentation,
@@ -510,7 +510,7 @@ extension Interpreter {
         return try invoke(
             getter,
             with: bindings,
-            receiver: Receiver(.record(record), mutable: false)
+            receiver: Receiver(Value(record: record), mutable: false)
         )
     }
 
@@ -539,7 +539,7 @@ extension Interpreter {
         let current = try invoke(
             getter,
             with: bindings,
-            receiver: Receiver(.record(record), mutable: false)
+            receiver: Receiver(Value(record: record), mutable: false)
         )
         let updatedValue =
             try rest.isEmpty
@@ -547,7 +547,7 @@ extension Interpreter {
             : updated(current, rest, type: getter.returnType, change)
         var all = bindings
         all[setter.parameters[setter.parameters.count - 1].name] = updatedValue
-        let receiver = Receiver(.record(record), mutable: true)
+        let receiver = Receiver(Value(record: record), mutable: true)
         _ = try invoke(setter, with: all, receiver: receiver)
         return receiver.value
     }
@@ -759,7 +759,8 @@ extension Interpreter {
         case (.unwrap, _):
             guard base != .nothing else { throw RuntimeError("nil was unwrapped with '!'") }
             return try updated(base, rest, type: type, initializing: initializing, change)
-        case (.member(let name), .record(var record)):
+        case (.member(let name), _) where base.record != nil:
+            var record = base.record!
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.
                 if let setter = structType.setters[name]
@@ -770,7 +771,7 @@ extension Interpreter {
                     let current =
                         task.assigningPlainly && rest.isEmpty
                         ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
-                    let receiver = Receiver(.record(record), mutable: true)
+                    let receiver = Receiver(Value(record: record), mutable: true)
                     let returnType = structType.computed[name]?.returnType
                     let newValue =
                         try rest.isEmpty
@@ -803,26 +804,26 @@ extension Interpreter {
                 if let observers = structType.observers[name], !initializing {
                     var working = record
                     if let willSet = observers.willSet {
-                        let receiver = Receiver(.record(working), mutable: true)
+                        let receiver = Receiver(Value(record: working), mutable: true)
                         _ = try invoke(
                             willSet,
                             with: [willSet.parameters[0].name: stored],
                             receiver: receiver
                         )
-                        if case .record(let changed) = receiver.value { working = changed }
+                        if let changed = receiver.value.record { working = changed }
                     }
                     let old = working[name] ?? .nothing
                     working[name] = stored
                     if let didSet = observers.didSet {
-                        let receiver = Receiver(.record(working), mutable: true)
+                        let receiver = Receiver(Value(record: working), mutable: true)
                         _ = try invoke(
                             didSet,
                             with: [didSet.parameters[0].name: old],
                             receiver: receiver
                         )
-                        if case .record(let changed) = receiver.value { working = changed }
+                        if let changed = receiver.value.record { working = changed }
                     }
-                    return .record(working)
+                    return Value(record: working)
                 }
                 record[name] = stored
             } else {
@@ -831,7 +832,7 @@ extension Interpreter {
                 }
                 record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
             }
-            return .record(record)
+            return Value(record: record)
         case (.index(let indexExpr), .list(var items)):
             let index = try evaluate(indexExpr)
             guard case .int(let position) = index else {
@@ -849,8 +850,9 @@ extension Interpreter {
                 try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
-        case (.index(let indexExpr), .record(let record))
-        where structType(of: record)?.subscriptGetters.isEmpty == false:
+        case (.index(let indexExpr), _)
+        where base.record.flatMap(structType(of:))?.subscriptGetters.isEmpty == false:
+            let record = base.record!
             return try writeSubscript(
                 record,
                 structType(of: record)!,
@@ -858,8 +860,9 @@ extension Interpreter {
                 rest,
                 change
             )
-        case (.subscripted(let arguments), .record(let record))
-        where structType(of: record)?.subscriptGetters.isEmpty == false:
+        case (.subscripted(let arguments), _)
+        where base.record.flatMap(structType(of:))?.subscriptGetters.isEmpty == false:
+            let record = base.record!
             return try writeSubscript(record, structType(of: record)!, arguments, rest, change)
         case (.index(let indexExpr), .object(let instance as ClassInstance)):
             return try writeSubscript(instance, [Argument(value: indexExpr)], rest, change)
@@ -872,7 +875,8 @@ extension Interpreter {
                 try rest.isEmpty ? change(current, type) : updated(current, rest, type: nil, change)
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
-        case (.index(let indexExpr), .record(var record)):
+        case (.index(let indexExpr), _) where base.record != nil:
+            var record = base.record!
             let key = try evaluate(indexExpr)
             guard case .string(let name) = key else {
                 throw RuntimeError("a record is indexed by String, not \(key.typeName)")
@@ -887,7 +891,7 @@ extension Interpreter {
                 )
             }
             record[name] = try updated(record[name] ?? .nothing, rest, type: nil, change)
-            return .record(record)
+            return Value(record: record)
         case (.member(let name), .object(let instance as ClassInstance)):
             try updatedInstance(instance, name, rest: rest, initializing: initializing, change) {
                 current,

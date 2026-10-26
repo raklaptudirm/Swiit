@@ -21,7 +21,8 @@ extension Value {
         case .double: "Double"
         case .string: "String"
         case .list: "List"
-        case .record(let record): record.typeName ?? "Tuple"
+        case .tuple: "Tuple"
+        case .structure(let structure): structure.typeName
         case .dictionary: "Dictionary"
         case .enumValue(let value): value.type.name
         case .object(let object): object.typeName
@@ -64,10 +65,10 @@ extension Value {
         case (.any, _), (.unknown, _), (.bool, .bool), (.int, .int), (.double, .double),
             (.string, .string),
             (.function, .function), (.functionType, .function), (.parameter, _),
-            (.record, .record), (.void, .nothing):
+            (.record, .tuple), (.record, .structure), (.void, .nothing):
             return self
-        case (.tuple(let elements), .record(let record)):
-            guard record.count == elements.count else { return nil }
+        case (.tuple(let elements), .tuple), (.tuple(let elements), .structure):
+            guard let record = record, record.count == elements.count else { return nil }
             var converted = Value.Record(typeName: record.typeName)
             for (index, (element, field)) in zip(elements, record).enumerated() {
                 guard
@@ -77,7 +78,7 @@ extension Value {
                 else { return nil }
                 converted[element.label ?? field.key] = value
             }
-            return .record(converted)
+            return Value(record: converted)
         case (.dictionary(let keyType, let scriptType), .dictionary(let dictionary)):
             var converted = Value.Dictionary()
             for (key, value) in dictionary {
@@ -152,7 +153,7 @@ extension Value {
         case .string: 5
         case .list: 6
         case .enumValue: 6
-        case .record, .dictionary: 7
+        case .tuple, .structure, .dictionary: 7
         case .object, .function: 8
         @unknown default: 9
         }

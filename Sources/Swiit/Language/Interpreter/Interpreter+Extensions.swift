@@ -190,7 +190,7 @@ extension Interpreter {
         case .bool: "Bool"
         case .list: "Array"
         case .dictionary: "Dictionary"
-        case .record(let record): record.typeName
+        case .structure(let structure): structure.record.typeName
         case .enumValue(let enumValue): enumValue.type.name
         case .object(let box as SwiftValue): box.typeName
         default: nil

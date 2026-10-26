@@ -57,7 +57,7 @@ extension Interpreter {
                     .joined(separator: ", ") + "]"
             }
         case .tuple(let elements)?:
-            if case .record(let record) = value, record.typeName == nil,
+            if let record = value.record, record.typeName == nil,
                 record.count == elements.count
             {
                 return "("
@@ -118,7 +118,8 @@ extension Interpreter {
                     "\(try describing($0.key, debug: true)): \(try describing($0.value, debug: true))"
                 })
                 .joined(separator: ", ") + "]"
-        case .record(let record):
+        case .tuple, .structure:
+            let record = value.record!
             if let type = structType(of: record) {
                 let conformances = conformanceList(of: value)
                 if debug, conformances.contains("CustomDebugStringConvertible"),

@@ -647,19 +647,17 @@ extension TypeChecker {
                 commonType(dictionary.keys.map(type(of:))) ?? .unknown,
                 commonType(dictionary.values.map(type(of:))) ?? .unknown
             )
-        case .record(let record):
-            if let name = record.typeName {
-                structInfo(named: name) != nil ? .named(name) : .record
-            } else {
-                .tuple(
-                    record.map {
-                        .init(
-                            label: Value.Record.isPosition($0.key) ? nil : $0.key,
-                            type: type(of: $0.value)
-                        )
-                    }
-                )
-            }
+        case .structure(let structure):
+            structInfo(named: structure.typeName) != nil ? .named(structure.typeName) : .record
+        case .tuple(let tuple):
+            .tuple(
+                tuple.map {
+                    .init(
+                        label: Value.Record.isPosition($0.key) ? nil : $0.key,
+                        type: type(of: $0.value)
+                    )
+                }
+            )
         case .enumValue(let value): .named(value.type.name)
         case .object(let box as SwiftValue):
             if let parameters = Bridge.types[box.typeName]?.genericParameters, !parameters.isEmpty {

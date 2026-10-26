@@ -72,7 +72,7 @@ extension Interpreter {
             for (index, element) in elements.enumerated() {
                 record[element.label ?? String(index)] = try evaluate(element.value)
             }
-            return .record(record)
+            return Value(record: record)
         default:
             preconditionFailure("this was sent to the wrong group")
         }
@@ -98,7 +98,7 @@ extension Interpreter {
             let value = try evaluate(base)
             guard value != .nothing else { return .nothing }
             // A struct or class with a subscript of its own is indexed as `x[i]` is.
-            if case .record = value { return try evaluate(.index(.literal(value), index)) }
+            if value.record != nil { return try evaluate(.index(.literal(value), index)) }
             if case .object(_ as ClassInstance) = value {
                 return try evaluate(.index(.literal(value), index))
             }
@@ -195,7 +195,7 @@ extension Interpreter {
             return try runBridged(typeName, member, receiver: receiver, arguments)
         case .voidValue(let operand):
             _ = try evaluate(operand)
-            return .record(Value.Record())
+            return Value(record: Value.Record())
         case .specialized(let inner, let types):
             return specialized(try evaluate(inner), types)
         case .chosen(let inner, let overload):
@@ -237,7 +237,7 @@ extension Interpreter {
             }
         case .index(let base, let index):
             let value = try evaluate(base)
-            if case .record(let record) = value, let type = structType(of: record),
+            if let record = value.record, let type = structType(of: record),
                 !type.subscriptGetters.isEmpty
             {
                 return try readSubscript(record, type, [Argument(value: index)])
@@ -251,7 +251,7 @@ extension Interpreter {
             if case .object(let instance as ClassInstance) = target {
                 return try readSubscript(instance, arguments)
             }
-            guard case .record(let record) = target, let type = structType(of: record),
+            guard let record = target.record, let type = structType(of: record),
                 !type.subscriptGetters.isEmpty
             else {
                 throw RuntimeError("this value has no subscript")
@@ -376,7 +376,7 @@ extension Interpreter {
                 }
             }
             // `self.init(x: 1)`: another initializer makes the value.
-            if name == "init", case .record(let record) = base, let type = structType(of: record) {
+            if name == "init", let record = base.record, let type = structType(of: record) {
                 let made = try construct(type, arguments, overload: overload)
                 try assign(Assignment(root: "self", path: [], op: nil, value: .literal(made)))
                 return .nothing
@@ -418,7 +418,7 @@ extension Interpreter {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
             // `p.move(by: 1)`: a struct's method, with `p` as `self`.
-            if case .record(let record) = base, record[name] == nil,
+            if let record = base.record, record[name] == nil,
                 let type = structType(of: record),
                 let methods = type.methods[name]
             {
@@ -538,7 +538,7 @@ extension Interpreter {
             return found
         }
         // A struct's own members come before what extensions add.
-        if case .record = value {
+        if value.record != nil {
         } else if let found = try extensionMember(name, of: value) {
             return found
         }
@@ -580,14 +580,14 @@ extension Interpreter {
         // does in Swift: what interpolation shows. A record's own field of
         // that name comes first.
         if name == "description" || name == "debugDescription" {
-            if case .record(let record) = value, let field = record[name] { return field }
+            if let record = value.record, let field = record[name] { return field }
             return .string(name == "description" ? value.description : value.debugDescription)
         }
         // What every Error says of itself, unless its type says otherwise: its
         // value, as Swift's describes an error it has no message for.
         if name == "localizedDescription", isError(value) {
-            if case .record(let record) = value, let field = record[name] { return field }
-            if case .record(let record) = value, let type = structType(of: record),
+            if let record = value.record, let field = record[name] { return field }
+            if let record = value.record, let type = structType(of: record),
                 let found = try structMember(name, of: record, type)
             {
                 return found
@@ -595,25 +595,26 @@ extension Interpreter {
             return .string(value.description)
         }
         // `pair.1`: a tuple's element by position, labeled or not.
-        if case .record(let record) = value, record.typeName == nil, record[name] == nil,
+        if let record = value.record, record.typeName == nil, record[name] == nil,
             let position = Int(name), position >= 0, position < record.count
         {
             return Array(record)[position].value
         }
-        if case .record(let record) = value, record[name] == nil, let type = structType(of: record),
+        if let record = value.record, record[name] == nil, let type = structType(of: record),
             let found = try structMember(name, of: record, type)
         {
             return found
         }
-        if case .record = value, let found = try extensionMember(name, of: value) { return found }
+        if value.record != nil, let found = try extensionMember(name, of: value) { return found }
         // Swiit's own kinds, and its views of Swift's, as the checker's
         // `memberType(of:_:)` types them.
         switch (value, name) {
-        case (.record(let record), _) where record[name] != nil: return record[name]!
-        case (.record(let record), "count"): return .int(record.count)
-        case (.record(let record), "isEmpty"): return .bool(record.isEmpty)
-        case (.record(let record), "keys"): return .list(record.keys.map(Value.string))
-        case (.record(let record), "values"): return .list(record.map(\.value))
+        case _ where value.record?[name] != nil: return value.record![name]!
+        case (_, "count") where value.record != nil: return .int(value.record!.count)
+        case (_, "isEmpty") where value.record != nil: return .bool(value.record!.isEmpty)
+        case (_, "keys") where value.record != nil:
+            return .list(value.record!.keys.map(Value.string))
+        case (_, "values") where value.record != nil: return .list(value.record!.map(\.value))
         case (.dictionary(let dictionary), "keys"): return .list(dictionary.keys)
         case (.dictionary(let dictionary), "values"): return .list(dictionary.values)
         case (.string(let text), "lines"):
@@ -623,8 +624,8 @@ extension Interpreter {
                     : text.split(separator: "\n", omittingEmptySubsequences: false)
                         .map { .string(String($0)) }
             )
-        case (.record(let record), _):
-            throw RuntimeError("\(record.typeName ?? "Record") has no field '\(name)'")
+        case _ where value.record != nil:
+            throw RuntimeError("\(value.record!.typeName ?? "Tuple") has no field '\(name)'")
         default:
             // Swift's own properties, as a key path like `\.count` reads them.
             if let property = try bridgedProperty(name, of: value) { return property }
@@ -638,7 +639,7 @@ extension Interpreter {
         if case .dictionary(let dictionary) = base {
             return dictionary[index] ?? .nothing
         }
-        if case .record(let record) = base, case .string(let key) = index {
+        if let record = base.record, case .string(let key) = index {
             return record[key] ?? .nothing
         }
         // A Swift sequence Swiit holds is indexed by position (a host type's text, by line);

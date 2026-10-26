@@ -396,7 +396,8 @@ extension Value {
         case .double: "Double"
         case .string: "String"
         case .list: "List"
-        case .record(let record): record.typeName ?? "Record"
+        case .tuple: "Tuple"
+        case .structure(let structure): structure.typeName
         case .dictionary: "Dictionary"
         case .enumValue(let value): value.type.name
         case .object(let object): object.typeName

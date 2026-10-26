@@ -16,11 +16,12 @@ final class TaskBox: @unchecked Sendable {  // safe: only immutable state
 func cancellationError() -> RuntimeError {
     RuntimeError(
         "the task was cancelled",
-        thrown: .record(
-            Value.Record(
-                ["localizedDescription": .string("the task was cancelled")],
-                typeName: "CancellationError"
-            )
+        thrown: Value(
+            record:
+                Value.Record(
+                    ["localizedDescription": .string("the task was cancelled")],
+                    typeName: "CancellationError"
+                )
         )
     )
 }

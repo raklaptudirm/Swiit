@@ -52,7 +52,7 @@ extension Value {
                 guard pair.count == 2 else { continue }
                 record[String(describing: pair[0].value)] = reflect(pair[1].value, depth: depth + 1)
             }
-            return .record(record)
+            return Value(record: record)
         case .struct, .class, .tuple:
             var record = Value.Record(
                 typeName: mirror.displayStyle == .tuple
@@ -63,7 +63,7 @@ extension Value {
                 let label = child.label.map { $0.hasPrefix(".") ? String($0.dropFirst()) : $0 }
                 record[label ?? "\(index)"] = reflect(child.value, depth: depth + 1)
             }
-            return .record(record)
+            return Value(record: record)
         default:
             return .string(String(describing: subject))
         }
@@ -83,7 +83,7 @@ private final class Slot {
         if let record {
             var result = Value.Record(typeName: record.typeName)
             for key in record.keys { result[key] = record.slots[key]!.resolved() }
-            return .record(result)
+            return Value(record: result)
         }
         if let list { return .list(list.map { $0.resolved() }) }
         return value

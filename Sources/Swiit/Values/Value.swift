@@ -14,9 +14,10 @@ public enum Value: Sendable {
     case double(Double)
     case string(String)
     case list([Value])
-    /// Named fields in order, like a row of a table: a struct's value (with
-    /// its type's name), or a tuple (without).
-    case record(Value.Record)
+    /// A tuple: elements in order, each labeled or not: `(name: "x", 2)`.
+    case tuple(Value.Tuple)
+    /// A struct's value: its type's name, and its fields in the order the type declares them.
+    case structure(Value.Structure)
     /// `["a": 1]`: keys to values, as Swift's Dictionary, unordered.
     case dictionary(Value.Dictionary)
     /// A case of an enum: `.directory`, or `.failed(code: 2)`.
@@ -133,7 +134,8 @@ extension Value {
     /// A record, or an object's fields: what a table row is made from.
     var asRecord: Value.Record? {
         switch self {
-        case .record(let record): record
+        case .tuple(let tuple): tuple.record
+        case .structure(let structure): structure.record
         case .object(let object): object.objectFields
         default: nil
         }
@@ -145,16 +147,17 @@ extension Value {
 public protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 extension Value {
-    /// Fields in insertion order. Two records are equal when they have the same
-    /// fields, whatever their order or type name.
-    public struct Record: Sendable, Hashable, Sequence {
-        public private(set) var keys: [String] = []
-        private var storage: [String: Value] = [:]
-        /// The Swift type this record came from, like `FileEntry`, which picks
-        /// how it's displayed.
-        public var typeName: String?
+    /// The fields a tuple or a struct value keeps, in order, with the struct's type name. Two are
+    /// equal when they have the same fields in the same order; a `Tuple` and a `Structure` add what
+    /// else equality asks of them.
+    struct Record: Sendable, Hashable, Sequence {
+        private(set) var keys: [String] = []
+        fileprivate var storage: [String: Value] = [:]
+        /// The Swift type it came from, like `FileEntry`, which picks how it's displayed; nil for a
+        /// tuple.
+        var typeName: String?
 
-        public init(typeName: String? = nil) {
+        init(typeName: String? = nil) {
             self.typeName = typeName
         }
 
@@ -163,7 +166,7 @@ extension Value {
             for (key, value) in fields { self[key] = value }
         }
 
-        public subscript(key: String) -> Value? {
+        subscript(key: String) -> Value? {
             get { storage[key] }
             set {
                 if let newValue {
@@ -182,19 +185,19 @@ extension Value {
             return current
         }
 
-        public var count: Int { keys.count }
-        public var isEmpty: Bool { keys.isEmpty }
+        var count: Int { keys.count }
+        var isEmpty: Bool { keys.isEmpty }
 
-        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+        func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
             keys.lazy.map { (key: $0, value: storage[$0]!) }.makeIterator()
         }
 
-        public static func == (lhs: Value.Record, rhs: Value.Record) -> Bool {
-            lhs.storage == rhs.storage
+        static func == (lhs: Value.Record, rhs: Value.Record) -> Bool {
+            lhs.keys == rhs.keys && lhs.storage == rhs.storage
         }
 
-        public func hash(into hasher: inout Hasher) {
-            hasher.combine(storage)
+        func hash(into hasher: inout Hasher) {
+            for key in keys { hasher.combine(key); hasher.combine(storage[key]) }
         }
     }
 }
@@ -225,6 +228,81 @@ extension Value.Record: CustomStringConvertible, CustomDebugStringConvertible {
     /// `0`, `1`, …: the key of a tuple element without a label.
     static func isPosition(_ key: String) -> Bool {
         !key.isEmpty && key.allSatisfy(\.isNumber)
+    }
+}
+
+extension Value {
+    /// A tuple: its elements in order, each with a label or, without one, its position (`"0"`,
+    /// `"1"`) for a name. Two are equal when their elements are, label by label, in order.
+    public struct Tuple: Sendable, Hashable, Sequence, CustomStringConvertible,
+        CustomDebugStringConvertible
+    {
+        var record: Value.Record
+
+        init(_ record: Value.Record) { self.record = record }
+
+        public init() { record = Value.Record() }
+
+        public var keys: [String] { record.keys }
+        public var count: Int { record.count }
+        public var isEmpty: Bool { record.isEmpty }
+
+        public subscript(key: String) -> Value? {
+            get { record[key] }
+            set { record[key] = newValue }
+        }
+
+        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+            record.makeIterator()
+        }
+
+        public var description: String { record.description }
+        public var debugDescription: String { record.debugDescription }
+    }
+
+    /// A struct's value: the name of its type, and its fields in order. Two are equal when they are
+    /// of the type of one name and their fields are equal in order.
+    public struct Structure: Sendable, Hashable, Sequence, CustomStringConvertible,
+        CustomDebugStringConvertible
+    {
+        var record: Value.Record
+
+        init(_ record: Value.Record) { self.record = record }
+
+        public init(typeName: String) { record = Value.Record(typeName: typeName) }
+
+        /// The Swift type it came from, like `FileEntry`, which picks how it's displayed.
+        public var typeName: String { record.typeName ?? "" }
+
+        public var keys: [String] { record.keys }
+        public var count: Int { record.count }
+        public var isEmpty: Bool { record.isEmpty }
+
+        public subscript(key: String) -> Value? {
+            get { record[key] }
+            set { record[key] = newValue }
+        }
+
+        public func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+            record.makeIterator()
+        }
+
+        public var description: String { record.description }
+        public var debugDescription: String { record.debugDescription }
+    }
+
+    /// The fields of a tuple or of a struct value, with the struct's type name.
+    var record: Record? {
+        switch self {
+        case .tuple(let tuple): tuple.record
+        case .structure(let structure): structure.record
+        default: nil
+        }
+    }
+
+    /// A tuple, or a struct value if the record has a type name.
+    init(record: Record) {
+        self = record.typeName == nil ? .tuple(Tuple(record)) : .structure(Structure(record))
     }
 }
 
@@ -350,7 +428,9 @@ extension Value: Hashable {
         case (.double(let a), .double(let b)): a == b
         case (.string(let a), .string(let b)): a == b
         case (.list(let a), .list(let b)): a == b
-        case (.record(let a), .record(let b)): a == b
+        case (.tuple(let a), .tuple(let b)): a.record == b.record
+        case (.structure(let a), .structure(let b)):
+            a.record.typeName == b.record.typeName && a.record == b.record
         case (.dictionary(let a), .dictionary(let b)): a == b
         case (.enumValue(let a), .enumValue(let b)): a == b
         case (.object(let a), .object(let b)): a === b || a.objectIdentity == b.objectIdentity
@@ -367,7 +447,10 @@ extension Value: Hashable {
         case .double(let value): hasher.combine(value)
         case .string(let value): hasher.combine(value)
         case .list(let values): hasher.combine(values)
-        case .record(let record): hasher.combine(record)
+        case .tuple(let tuple): hasher.combine(tuple.record)
+        case .structure(let structure):
+            hasher.combine(structure.record.typeName)
+            hasher.combine(structure.record)
         case .dictionary(let dictionary): hasher.combine(dictionary)
         case .enumValue(let value): hasher.combine(value)
         case .object(let object): hasher.combine(object.objectIdentity)
@@ -385,7 +468,8 @@ extension Value: CustomStringConvertible {
         case .double(let value): String(value)
         case .string(let value): value
         case .list(let values): "[" + values.map(\.description).joined(separator: ", ") + "]"
-        case .record(let record): record.description
+        case .tuple(let tuple): tuple.description
+        case .structure(let structure): structure.description
         case .dictionary(let dictionary): dictionary.description
         case .enumValue(let value): value.description
         case .object(let object): object.description
@@ -425,7 +509,8 @@ extension Value: CustomDebugStringConvertible {
         case .nothing: "nil"
         case .string(let value): Value.quoted(value)
         case .list(let values): "[" + values.map(\.debugDescription).joined(separator: ", ") + "]"
-        case .record(let record): record.debugDescription
+        case .tuple(let tuple): tuple.debugDescription
+        case .structure(let structure): structure.debugDescription
         case .dictionary(let dictionary): dictionary.debugDescription
         case .enumValue(let value): value.debugDescription
         case .object(let object): object.debugDescription
@@ -497,7 +582,8 @@ extension Value {
     public var entries: Value.Dictionary? {
         switch self {
         case .dictionary(let dictionary): dictionary
-        case .record(let record): Value.Dictionary(record.map { (Value.string($0.key), $0.value) })
+        case .tuple, .structure:
+            Value.Dictionary(record!.map { (Value.string($0.key), $0.value) })
         case .object(let object): object.dataFields
         default: nil
         }
@@ -522,26 +608,38 @@ extension Value {
     }
 
     /// A struct's value, with its fields in order and every one present (an absent optional is
-    /// `nil`): `Value(struct: "Point", fields: ["x": Value(1), "y": Value(2)])`. With no name it is
-    /// a tuple, whose unlabeled elements are named by position.
-    public init(struct typeName: String?, fields: KeyValuePairs<String, Value>) {
-        self = .record(Value.Record(fields, typeName: typeName))
+    /// `nil`): `Value(struct: "Point", fields: ["x": Value(1), "y": Value(2)])`.
+    public init(struct typeName: String, fields: KeyValuePairs<String, Value>) {
+        self = .structure(Structure(Value.Record(fields, typeName: typeName)))
     }
 
     /// As above, for fields whose names are known only as the program runs: a parsed object's keys.
-    public init(struct typeName: String?, fields: [(name: String, value: Value)]) {
+    public init(struct typeName: String, fields: [(name: String, value: Value)]) {
         var record = Value.Record(typeName: typeName)
         for (name, value) in fields { record[name] = value }
-        self = .record(record)
+        self = .structure(Structure(record))
+    }
+
+    /// A tuple, with the names of its elements in order (the unlabeled ones by position, `"0"`):
+    /// `Value(tuple: ["name": Value("x"), "size": Value(2)])`.
+    public init(tuple fields: KeyValuePairs<String, Value>) {
+        self = .tuple(Tuple(Value.Record(fields)))
+    }
+
+    /// As above, for names known only as the program runs.
+    public init(tuple fields: [(name: String, value: Value)]) {
+        var record = Value.Record()
+        for (name, value) in fields { record[name] = value }
+        self = .tuple(Tuple(record))
     }
 
     /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift
     /// type, or `name` if one is given.
     public init(encoding value: some Encodable, as name: String? = nil) throws {
         self = try ValueEncoder().encode(value)
-        if let name, case .record(var record) = self {
+        if let name, var record = record {
             record.typeName = name
-            self = .record(record)
+            self = Value(record: record)
         }
     }
 
@@ -574,7 +672,8 @@ extension Value {
         case .string: .string
         case .list: .list
         case .dictionary: .dictionary
-        case .record(let record): record.typeName == nil ? .tuple : .structure
+        case .tuple: .tuple
+        case .structure: .structure
         case .enumValue: .enumeration
         case .function: .function
         case .object: .object
@@ -623,18 +722,17 @@ extension Value {
             }
         case .named(let name, _):
             switch self {
-            case .record(let record): return record.typeName == name
+            case .structure(let structure): return structure.typeName == name
             case .enumValue(let value): return value.type.name == name
             case .object(let object): return object.typeName == name
             default: return false
             }
         case .tuple(let elements):
-            guard case .record(let record) = self, record.typeName == nil,
-                record.count == elements.count
+            guard case .tuple(let tuple) = self, tuple.count == elements.count
             else {
                 return false
             }
-            return zip(record, elements)
+            return zip(tuple, elements)
                 .allSatisfy { field, element in
                     (element.label == nil || element.label == field.key)
                         && field.value.matches(element.type)

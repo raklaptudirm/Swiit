@@ -23,7 +23,7 @@ private struct FileEntry: Encodable {
         owner: .init(name: "rak", id: 501),
         note: nil
     )
-    guard case .record(let record) = try ValueEncoder().encode(entry) else {
+    guard let record = try ValueEncoder().encode(entry).record else {
         Issue.record("not a record")
         return
     }
@@ -33,7 +33,7 @@ private struct FileEntry: Encodable {
     #expect(record.keys == ["name", "size", "tags", "owner"])
     #expect(record["size"] == .int(1200))
     #expect(record["tags"] == .list([.string("x")]))
-    guard case .record(let owner)? = record["owner"] else {
+    guard let owner = record["owner"]?.record else {
         Issue.record("owner isn't a record")
         return
     }
@@ -55,24 +55,26 @@ private final class Node {
 @Test func reflectsAnything() {
     let node = Node()
     node.next = node  // A cycle, cut off by the depth limit.
-    guard case .record(let record) = Value(reflecting: node) else {
+    guard let record = Value(reflecting: node).record else {
         Issue.record("not a record")
         return
     }
     #expect(record.typeName == "Node")
     #expect(record["label"] == .string("n"))
     #expect(
-        Value(reflecting: (1, b: "x")) == .record(Value.Record(["0": .int(1), "b": .string("x")]))
+        Value(reflecting: (1, b: "x"))
+            == Value(record: Value.Record(["0": .int(1), "b": .string("x")]))
     )
     #expect(Value(reflecting: [UInt8(1)]) == .list([.int(1)]))
     #expect(Value(reflecting: Optional<Int>.none as Any) == .nothing)
 }
 
-@Test func recordsKeepOrderButCompareByContent() {
+@Test func recordsKeepOrderAndCompareInOrder() {
     var record = Value.Record(["b": .int(2), "a": .int(1)])
     #expect(record.keys == ["b", "a"])
-    #expect(record == Value.Record(["a": .int(1), "b": .int(2)]))
+    #expect(record != Value.Record(["a": .int(1), "b": .int(2)]))
+    #expect(record == Value.Record(["b": .int(2), "a": .int(1)]))
     record["b"] = nil
     #expect(record.keys == ["a"])
-    #expect(Value.record(record).description == "(a: 1)")
+    #expect(Value(record: record).description == "(a: 1)")
 }

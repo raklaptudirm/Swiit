@@ -31,8 +31,9 @@ struct RuntimeError: Error, CustomStringConvertible {
     /// `localizedDescription`; to get at more, cast it (`error as? T`).
     var value: Value {
         thrown
-            ?? .record(
-                Value.Record(["localizedDescription": .string(description)], typeName: "Error")
+            ?? Value(
+                record:
+                    Value.Record(["localizedDescription": .string(description)], typeName: "Error")
             )
     }
 }

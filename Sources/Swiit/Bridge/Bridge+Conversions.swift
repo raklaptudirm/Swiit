@@ -63,7 +63,7 @@ func bridgeRecord<T: Encodable>(
     _ value: T,
     patches: [String: FieldKind] = [:]
 ) -> Value {
-    guard case .record(let encoded)? = try? ValueEncoder().encode(value) else { return .nothing }
+    guard let encoded = (try? ValueEncoder().encode(value))?.record else { return .nothing }
     var record = Value.Record(typeName: encoded.typeName)
     for child in Mirror(reflecting: value).children {
         guard let field = child.label else { continue }
@@ -80,7 +80,7 @@ func bridgeRecord<T: Encodable>(
             default: .nothing
             }
     }
-    return .record(record)
+    return Value(record: record)
 }
 
 /// A list's items, or a Swift sequence's (a host type's lines).
@@ -111,7 +111,7 @@ func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
 /// A tuple's elements, by label or position, made into a Swift tuple.
 func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T
 {
-    guard case .record(let record) = value, record.typeName == nil, record.count == labels.count
+    guard let record = value.record, record.typeName == nil, record.count == labels.count
     else {
         throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
     }
@@ -129,7 +129,7 @@ func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value 
     for (index, (label, value)) in elements(tuple).enumerated() {
         record[label ?? String(index)] = value
     }
-    return .record(record)
+    return Value(record: record)
 }
 
 /// The items of any sequence, for a Swift parameter that takes one: a
@@ -291,7 +291,7 @@ extension Value {
     /// A struct or class instance, which a program's `<` may order.
     fileprivate var isOfProgramsType: Bool {
         switch self {
-        case .record(let record): record.typeName != nil
+        case .structure: true
         case .object(let object): object is ClassInstance
         default: false
         }

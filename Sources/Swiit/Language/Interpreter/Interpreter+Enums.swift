@@ -278,7 +278,7 @@ extension Interpreter {
             }
             // A Character is held as the one-letter String it is.
             if name == "Character", case .string(let text) = value, text.count == 1 { return value }
-            if case .record(let record) = value, record.typeName == name,
+            if let record = value.record, record.typeName == name,
                 structType(named: name) != nil
             {
                 return value
@@ -358,7 +358,7 @@ extension Interpreter {
             return .dictionary(made)
         case .tuple(let elements):
             // Each element as its own type, which may be a protocol of the program's.
-            guard case .record(let record) = value, record.typeName == nil,
+            guard let record = value.record, record.typeName == nil,
                 record.count == elements.count
             else {
                 return value.conforming(to: type)
@@ -368,7 +368,7 @@ extension Interpreter {
                 guard let conforming = conform(field.value, to: element.type) else { return nil }
                 made[element.label ?? field.key] = conforming
             }
-            return .record(made)
+            return Value(record: made)
         default:
             return value.conforming(to: type)
         }
@@ -463,7 +463,7 @@ extension Interpreter {
             }
             return true
         case .tuple(let patterns):
-            guard case .record(let record) = value, record.typeName == nil,
+            guard let record = value.record, record.typeName == nil,
                 record.count == patterns.count
             else {
                 return false
@@ -479,8 +479,8 @@ extension Interpreter {
     /// what the interpreter throws (`Error`, `CancellationError`).
     func isError(_ value: Value) -> Bool {
         switch value {
-        case .record(let record):
-            guard let name = record.typeName else { return false }
+        case .structure(let structure):
+            guard let name = structure.record.typeName else { return false }
             return name == "Error"
                 || structType(named: name)?.conformances.contains("Error") == true
         case .enumValue(let enumValue):
