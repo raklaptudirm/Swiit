@@ -488,7 +488,7 @@ extension Value {
     #expect(try swiit.evaluate("[1, 2]").typeID == .array)
     #expect(try swiit.evaluate("(a: 1, b: 2)").mirror.displayStyle == .tuple)
     #expect(try swiit.evaluate("Point(x: 1, y: 2)").mirror.displayStyle == .struct)
-    #expect(try swiit.evaluate("Level.high").enumCase?.id.name == "Level")
+    #expect(try swiit.evaluate("Level.high").typeID?.name == "Level")
     #expect(try swiit.evaluate("twice").isInstance(of: .function))
     #expect(Value.nothing.typeID == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
@@ -512,8 +512,9 @@ extension Value {
             .cast(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)])) != nil
     )
     // An enum's case, and the declaration kind of a type.
-    let high = try #require(try swiit.evaluate("Level.high").enumCase)
-    #expect(high.id.name == "Level" && high.name == "high")
+    let high = try swiit.evaluate("Level.high")
+    #expect(high.typeID?.name == "Level" && high.mirror.displayStyle == .enum)
+    #expect(swiit.rawValue(of: high) == Value(2))
     #expect(swiit.symbols(named: "Point").first?.kind == .structure)
     #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
     #expect(swiit.symbols(named: "twice").first?.function != nil)
@@ -736,12 +737,12 @@ extension URL: ScriptConvertible {}
     #expect(swiit.parse(word: "5", as: .int) == 5)
     #expect(swiit.parse(word: "x", as: .int) == nil)
     #expect(swiit.parse(word: "x", as: .string) == "x")
-    #expect(swiit.parse(word: ".directory", as: swiit.type("Kind"))?.enumCase?.name == "directory")
+    #expect(swiit.parse(word: ".directory", as: swiit.type("Kind"))?.description == "directory")
     #expect(swiit.parse(word: "nope", as: swiit.type("Kind")) == nil)
     #expect(swiit.parse(word: "x", as: .optional(.string)) == "x")
     #expect(swiit.parse(word: "x", as: Symbol.GenericParameter(name: "Element").type) == "x")
     #expect(
-        swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.enumCase?.name == "file"
+        swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.description == "file"
     )
     #expect(swiit.value(forCase: "nope", in: swiit.typeID(named: "Kind")!) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
@@ -1300,27 +1301,27 @@ private final class Handle: HostObject, @unchecked Sendable {
         enum Outcome { case done, failed(code: Int, String) }
         """
     )
-    let high = try #require(try swiit.evaluate("Level.high").enumCase)
-    #expect(high.id == swiit.typeID(named: "Level"))
-    #expect(high.rawValue == Value(2))
-    #expect(try swiit.evaluate("Level.high").mirror.children.isEmpty)
+    let high = try swiit.evaluate("Level.high")
+    #expect(high.typeID == swiit.typeID(named: "Level"))
+    #expect(swiit.rawValue(of: high) == Value(2))
+    #expect(high.mirror.children.isEmpty)  // a case that carries nothing is its description
     // What it carries is one child labeled with the case's name, as Swift's own mirror has it: a
     // tuple of the values, each under its label or, without one, its position.
     let failedValue = try swiit.evaluate("Outcome.failed(code: 2, \"no\")")
-    let failed = try #require(failedValue.enumCase)
     #expect(failedValue.mirror.displayStyle == .enum)
     #expect(failedValue.mirror.children.map(\.label) == ["failed"])
     let carried = try #require(failedValue.mirror.children.first?.value as? Value)
     #expect(carried.entry("code") == Value(2))
     #expect(carried.entry("1") == nil)  // an unlabeled one has no label
-    #expect(failed.rawValue == nil)
+    #expect(swiit.rawValue(of: failedValue) == nil)
+    #expect(swiit.rawValue(of: Value(3)) == nil)
     // One unlabeled value is the child itself.
     try swiit.evaluate("enum Wrapped { case one(Int) }")
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
-    let symbol = try #require(swiit.symbol(for: failed.id))
+    let symbol = try #require(failedValue.typeID.flatMap(swiit.symbol(for:)))
     #expect(symbol.kind == .enumeration)
-    let cases = swiit.symbols(in: .named(failed.id))
+    let cases = swiit.symbols(in: .named(try #require(failedValue.typeID)))
         .filter { if case .enumCase = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
 }

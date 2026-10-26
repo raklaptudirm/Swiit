@@ -797,8 +797,8 @@ extension Value {
         }
     }
 
-    /// The case of an enum, if this is one: its type's ID, its name, and its payload.
-    public var enumCase: Value.EnumCase? {
+    /// The case of an enum, if this is one.
+    var enumCase: Value.EnumCase? {
         if case .enumValue(let value) = self.storage { value } else { nil }
     }
 }

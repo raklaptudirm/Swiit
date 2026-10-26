@@ -76,15 +76,15 @@ extension Value.EnumCase {
 
 extension Value {
     /// One value of an enum: a case, and its associated values if it has any.
-    public struct EnumCase: Sendable, Hashable, CustomStringConvertible,
+    struct EnumCase: Sendable, Hashable, CustomStringConvertible,
         CustomDebugStringConvertible
     {
         let type: Value.EnumCase.Enumeration
-        public let name: String
+        let name: String
         /// The enum it is a case of.
         var typeName: String { type.name }
         /// The ID of the enum it is a case of.
-        public var id: Symbol.ID { type.id }
+        var id: Symbol.ID { type.id }
         /// In the order the case declares them.
         let values: [Value]
 
@@ -125,7 +125,7 @@ extension Value {
         }
 
         /// The raw value its declaration gives it, if the enum has them (`enum Level: Int`).
-        public var rawValue: Value? {
+        var rawValue: Value? {
             definition?.rawValue
         }
 
@@ -134,18 +134,18 @@ extension Value {
             type.cases.firstIndex { $0.name == name } ?? 0
         }
 
-        public static func == (lhs: EnumCase, rhs: EnumCase) -> Bool {
+        static func == (lhs: EnumCase, rhs: EnumCase) -> Bool {
             lhs.type === rhs.type && lhs.name == rhs.name && lhs.values == rhs.values
         }
 
-        public func hash(into hasher: inout Hasher) {
+        func hash(into hasher: inout Hasher) {
             hasher.combine(ObjectIdentifier(type))
             hasher.combine(name)
             hasher.combine(values)
         }
 
         /// As Swift prints it: `directory`, or `failed(code: 2)`.
-        public var description: String {
+        var description: String {
             guard !values.isEmpty else { return name }
             let labels = definition?.labels ?? []
             let parts = values.enumerated()
@@ -158,7 +158,7 @@ extension Value {
 
         /// With its type, and its values as they'd be written:
         /// `Result.failed(code: 2, "no such file")`.
-        public var debugDescription: String {
+        var debugDescription: String {
             let written = "\(type.name).\(name)"
             guard !values.isEmpty else { return written }
             let labels = definition?.labels ?? []
