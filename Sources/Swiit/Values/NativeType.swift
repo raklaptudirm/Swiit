@@ -108,7 +108,7 @@ extension Value {
     }
 
     /// The Swift value this holds, if it holds one of type `T`.
-    public func unboxed<T>(_: T.Type = T.self) throws -> T {
+    public func unboxing<T>(_: T.Type = T.self) throws -> T {
         try SwiftValue.unbox(T.self, self)
     }
 }
@@ -157,8 +157,10 @@ extension Interpreter {
                 if case .native(let call) = member.body {
                     body = .native { interpreter, arguments in
                         var arguments = arguments
-                        if let receiver = arguments["self"], let items = receiver.items {
-                            arguments["self"] = .list(Array(items))
+                        if let receiver = arguments["self"],
+                            let items = Interpreter.items(of: receiver)
+                        {
+                            arguments["self"] = .list(Array(IteratorSequence(items)))
                         }
                         return try call(interpreter, arguments)
                     }
@@ -457,7 +459,7 @@ extension HostType {
                     name,
                     .property(
                         V.scriptType,
-                        .readOnly { try $0.unboxed(T.self)[keyPath: keyPath].value }
+                        .readOnly { try $0.unboxing(T.self)[keyPath: keyPath].value }
                     )
                 )
             )
@@ -486,7 +488,7 @@ extension HostType {
                     ) { receiver, arguments in
                         var index = 0
                         func next() -> Value { defer { index += 1 }; return arguments[index] }
-                        return try function(receiver.unboxed(T.self))(
+                        return try function(receiver.unboxing(T.self))(
                             repeat try (each Argument)(next())
                         )
                         .value
@@ -593,6 +595,6 @@ extension Interpreter {
 /// its Swift name.
 extension ScriptConvertible where Self: Hashable & Sendable {
     public static var scriptType: ScriptType { .named(String(describing: Self.self)) }
-    public init(_ swiitValue: Value) throws { self = try swiitValue.unboxed(Self.self) }
+    public init(_ swiitValue: Value) throws { self = try swiitValue.unboxing(Self.self) }
     public var value: Value { SwiftValue.make(self, as: String(describing: Self.self)) }
 }

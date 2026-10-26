@@ -6,7 +6,7 @@ import Foundation
 /// which is why it lives in its own dynamic library.
 public struct Value: Sendable {
     // The representation is the interpreter's: a host builds a value with its initializers,
-    // literals and static members, and reads one with `cast(to:)`, `typeID`, `isInstance(of:)`,
+    // literals and static members, and reads one with `casting(to:)`, `typeID`, `isInstance(of:)`,
     // `entries` and the views (`tuple`, `structure`, `enumCase`), so a new representation never
     // breaks it.
     var storage: Storage
@@ -35,13 +35,16 @@ public struct Value: Sendable {
         case function(any Callable)
     }
 
-    /// `nil`, which a script writes `nil`.
+    /// `nil`, which a script writes `nil`. The language's own `nil` is a value, as a list's element or
+    /// a field or an argument is, which a Swift `Optional<Value>` cannot say: that one is absent. The
+    /// other kinds are made with `Value(3)`, `Value("x")` and the rest of the initializers; the
+    /// static functions of the same names are the interpreter's own shorthand.
     public static let nothing = Value(Storage.nothing)
-    public static func bool(_ value: Bool) -> Value { Value(Storage.bool(value)) }
-    public static func int(_ value: Int) -> Value { Value(Storage.int(value)) }
-    public static func double(_ value: Double) -> Value { Value(Storage.double(value)) }
-    public static func string(_ value: String) -> Value { Value(Storage.string(value)) }
-    public static func list(_ values: [Value]) -> Value { Value(Storage.list(values)) }
+    static func bool(_ value: Bool) -> Value { Value(Storage.bool(value)) }
+    static func int(_ value: Int) -> Value { Value(Storage.int(value)) }
+    static func double(_ value: Double) -> Value { Value(Storage.double(value)) }
+    static func string(_ value: String) -> Value { Value(Storage.string(value)) }
+    static func list(_ values: [Value]) -> Value { Value(Storage.list(values)) }
     var isFunction: Bool { if case .function = storage { true } else { false } }
     var isString: Bool { if case .string = storage { true } else { false } }
     var isBool: Bool { if case .bool = storage { true } else { false } }
@@ -568,18 +571,6 @@ extension Value {
         }
     }
 
-    /// The items it gives as they come, which reading can fail on: a `ThrowingStream`'s, or a task group's.
-    /// Nil for anything else.
-    public var throwingStream: ThrowingStream<Value>? { Interpreter.throwingStream(of: self) }
-
-    /// The items of a list or of a Swift sequence a script holds (a set, a range of Ints, a host
-    /// type's text, a flow), one at a time, so a range of a billion never becomes a list; nil for
-    /// anything else.
-    public var items: AnySequence<Value>? {
-        guard Interpreter.items(of: self) != nil else { return nil }
-        return AnySequence { Interpreter.items(of: self)! }
-    }
-
     /// A described function as a value, for a host object's method to give: `.function(...)` of its
     /// own making.
     public init(_ function: HostFunction) {
@@ -690,15 +681,15 @@ extension Value {
         return false
     }
 
-    /// Whether the value is an instance of the Swift type `T`, as `cast(to:)` says.
+    /// Whether the value is an instance of the Swift type `T`, as `casting(to:)` says.
     public func isInstance<T: ScriptConvertible>(of type: T.Type) -> Bool {
-        cast(to: type) != nil
+        casting(to: type) != nil
     }
 
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
     /// script's call does.
-    public func cast<T: ScriptConvertible>(to type: T.Type = T.self) -> T? {
+    public func casting<T: ScriptConvertible>(to type: T.Type = T.self) -> T? {
         // The plain ones, which a host asks per item, without building a value to compare.
         switch storage {
         case .int(let value) where T.self == Int.self: return value as? T
@@ -713,15 +704,9 @@ extension Value {
         return result
     }
 
-    /// The host's own object, if this is one of that class.
-    public func cast<T: HostObject>(to type: T.Type) -> T? {
-        guard case .object(let object) = self.storage else { return nil }
-        return object as? T
-    }
-
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
     /// optional string), else nil.
-    public func cast(to type: ScriptType) -> Value? {
+    public func casting(to type: ScriptType) -> Value? {
         matches(type) ? self : nil
     }
 
@@ -809,7 +794,7 @@ extension Value: CustomReflectable {
                 return Mirror(self, children: [Mirror.Child]())
             }
             let children = fields.map { field in
-                Mirror.Child(label: field.key.cast(to: String.self), value: field.value)
+                Mirror.Child(label: field.key.casting(to: String.self), value: field.value)
             }
             return Mirror(self, children: children, displayStyle: .class)
         }

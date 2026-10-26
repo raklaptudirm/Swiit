@@ -493,23 +493,26 @@ extension Value {
     #expect(Value.nothing.typeID == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
     let three = try swiit.evaluate("3")
-    #expect(three.cast(to: Int.self) == 3)
-    #expect(three.cast(to: Double.self) == nil)
-    #expect(three.cast(to: String.self) == nil)
-    #expect(try swiit.evaluate("[1, 2]").cast(to: [Int].self) == [1, 2])
-    #expect(try swiit.evaluate(#"let mixed: [Any] = [1, "a"]; mixed"#).cast(to: [Int].self) == nil)
+    #expect(three.casting(to: Int.self) == 3)
+    #expect(three.casting(to: Double.self) == nil)
+    #expect(three.casting(to: String.self) == nil)
+    #expect(try swiit.evaluate("[1, 2]").casting(to: [Int].self) == [1, 2])
+    #expect(
+        try swiit.evaluate(#"let mixed: [Any] = [1, "a"]; mixed"#).casting(to: [Int].self) == nil
+    )
     // `try T(value)` is the throwing form, which converts as a call does.
     #expect(try Double(three) == 3)
     #expect(throws: (any Error).self) { try String(three) }
     // A script type by name, and a structured type by shape.
     let point = try swiit.evaluate("Point(x: 1, y: 2)")
-    #expect(point.cast(to: swiit.type("Point")) != nil)
-    #expect(point.cast(to: swiit.type("Level")) == nil)
-    #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.int)) != nil)
-    #expect(try swiit.evaluate("[1, 2]").cast(to: .list(.string)) == nil)
+    #expect(point.casting(to: swiit.type("Point")) != nil)
+    #expect(point.casting(to: swiit.type("Level")) == nil)
+    #expect(try swiit.evaluate("[1, 2]").casting(to: .list(.int)) != nil)
+    #expect(try swiit.evaluate("[1, 2]").casting(to: .list(.string)) == nil)
     #expect(
         try swiit.evaluate("(a: 1, b: 2)")
-            .cast(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)])) != nil
+            .casting(to: .tuple([.init(label: "a", type: .int), .init(label: "b", type: .int)]))
+            != nil
     )
     // An enum's case, and the declaration kind of a type.
     let high = try swiit.evaluate("Level.high")
@@ -555,7 +558,10 @@ extension Value {
             ],
             returns: Int.self
         ) { arguments in
-            Value((arguments[0].cast(to: Int.self) ?? 0) * (arguments[1].cast(to: Int.self) ?? 0))
+            Value(
+                (arguments[0].casting(to: Int.self) ?? 0)
+                    * (arguments[1].casting(to: Int.self) ?? 0)
+            )
         }
     )
     #expect(try swiit.evaluate("scale(3, by: 4)") == 12)
@@ -620,7 +626,7 @@ struct Bytes: Comparable, Hashable, Sendable {
                     "count",
                     .property(
                         .int,
-                        .readOnly { try $0.unboxed(Bytes.self).count.value }
+                        .readOnly { try $0.unboxing(Bytes.self).count.value }
                     )
                 ),
                 .init(
@@ -633,7 +639,7 @@ struct Bytes: Comparable, Hashable, Sendable {
                             ],
                             returns: .bool
                         )
-                    ) { (try $0[0].unboxed(Bytes.self) < $0[1].unboxed(Bytes.self)).value }
+                    ) { (try $0[0].unboxing(Bytes.self) < $0[1].unboxing(Bytes.self)).value }
                 ),
             ]
         )
@@ -648,7 +654,7 @@ struct Bytes: Comparable, Hashable, Sendable {
         #expect(try Int(value) == 8)
         #expect(try Bool(interpreter.evaluate("a < b")) == true)
         #expect(try Bool(interpreter.evaluate("a == Bytes(count: 3)")) == true)
-        let held = try interpreter.evaluate("a").unboxed(Bytes.self)
+        let held = try interpreter.evaluate("a").unboxing(Bytes.self)
         #expect(held == Bytes(count: 3))
     }
 
@@ -860,17 +866,19 @@ private final class Mark: @unchecked Sendable {
         bodies: [
             "Counter.next": { arguments in
                 Value(
-                    (arguments["self"]?.entry("start").flatMap { $0.cast(to: Int.self) }
+                    (arguments["self"]?.entry("start").flatMap { $0.casting(to: Int.self) }
                         ?? 0) + 1
                 )
             },
             "Sequence.firsts": { arguments in
-                Value(
-                    Array(
-                        (arguments["self"]?.items.map(Array.init) ?? [])
-                            .prefix(arguments["count"]?.cast(to: Int.self) ?? 0)
-                    )
-                )
+                // A sequence's items, one at a time, as far as are wanted.
+                let wanted = arguments["count"]?.casting(to: Int.self) ?? 0
+                guard let items = arguments["self"].flatMap({ ThrowingStream<Value>($0) }) else {
+                    return Value([] as [Value])
+                }
+                var kept: [Value] = []
+                while kept.count < wanted, let item = try items.read() { kept.append(item) }
+                return Value(kept)
             },
             "hello": { arguments in Value("hello, " + (arguments["name"]?.description ?? "")) },
         ]
@@ -951,7 +959,7 @@ private final class Handle: HostObject, @unchecked Sendable {
                 .init(
                     "wait",
                     .method(Symbol.Function(returns: .int, isAsync: true)) { receiver, _ in
-                        guard let handle = receiver.cast(to: Handle.self) else {
+                        guard let handle = try? receiver.unboxing(Handle.self) else {
                             throw Diagnostic.runtime("nothing to await")
                         }
                         return try running.join(handle.task)
@@ -1274,14 +1282,14 @@ private final class Handle: HostObject, @unchecked Sendable {
 @Test func aHostReadsAValueThroughCastAndTheViews() throws {
     let swiit = interpreter()
     // `cast` is strict, as `as?` is, and fast for the plain ones.
-    #expect(Value(3).cast(to: Int.self) == 3)
-    #expect(Value(3).cast(to: Double.self) == nil)
-    #expect(Value(3.5).cast(to: Double.self) == 3.5)
-    #expect(Value("x").cast(to: String.self) == "x")
-    #expect(Value(true).cast(to: Bool.self) == true)
-    #expect(Value([Value(1), Value("x")]).cast(to: [Value].self)?.count == 2)
-    #expect(Value([Value(1), Value("x")]).cast(to: [Int].self) == nil)
-    #expect(Value(3).cast(to: Value.self) == Value(3))
+    #expect(Value(3).casting(to: Int.self) == 3)
+    #expect(Value(3).casting(to: Double.self) == nil)
+    #expect(Value(3.5).casting(to: Double.self) == 3.5)
+    #expect(Value("x").casting(to: String.self) == "x")
+    #expect(Value(true).casting(to: Bool.self) == true)
+    #expect(Value([Value(1), Value("x")]).casting(to: [Value].self)?.count == 2)
+    #expect(Value([Value(1), Value("x")]).casting(to: [Int].self) == nil)
+    #expect(Value(3).casting(to: Value.self) == Value(3))
     // A tuple, a struct and a function are told apart by their mirrors and their types.
     let tuple = try swiit.evaluate("(a: 1)")
     #expect(tuple.mirror.displayStyle == .tuple && tuple.typeID == nil)
@@ -1379,4 +1387,23 @@ private struct Point: Encodable { var x: Int }
     #expect(throws: Diagnostic.self) { try swiit.make(.int) }
     try swiit.evaluate("struct Point { var z: Int }")
     #expect(throws: Diagnostic.self) { try swiit.make(id, arguments: [("x", Value(3))]) }
+}
+
+@Test func aStreamIsMadeOfWhatAValueGives() throws {
+    let swiit = interpreter()
+    func items(_ value: Value) throws -> [Value]? {
+        guard let stream = ThrowingStream<Value>(value) else { return nil }
+        var read: [Value] = []
+        while let item = try stream.read() { read.append(item) }
+        return read
+    }
+    // A list, a range (one at a time, so a huge one is never a list), a set; not a scalar or nil.
+    #expect(try items(Value([Value(1), Value(2)])) == [Value(1), Value(2)])
+    #expect(try items(swiit.evaluate("1...3")) == [Value(1), Value(2), Value(3)])
+    #expect(try items(swiit.evaluate("(1...1000000000).count")) == nil)
+    #expect(try items(swiit.evaluate("Set([4])")) == [Value(4)])
+    #expect(try items(Value(3)) == nil)
+    #expect(try items(.nothing) == nil)
+    // A stream is itself.
+    #expect(try items(swiit.evaluate("[1, 2].map { $0 * 2 }")) == [Value(2), Value(4)])
 }

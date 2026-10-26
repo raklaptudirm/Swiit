@@ -59,3 +59,18 @@ public struct ThrowingStream<Element> {
         }
     }
 }
+
+extension ThrowingStream where Element == Value {
+    /// The items a value gives, one at a time: a list's, a Swift sequence a script holds (a set, a
+    /// range of Ints, a host type's text), a task group's, or a stream's own, which reading can fail
+    /// on. A range of a billion is never made into a list. Nil for any other value.
+    public init?(_ value: Value) {
+        if let stream = Interpreter.throwingStream(of: value) {
+            self = stream
+        } else if let items = Interpreter.items(of: value) {
+            self.init { items.next() }
+        } else {
+            return nil
+        }
+    }
+}
