@@ -580,13 +580,8 @@ extension Value {
     }
 
     /// A struct's value, with its fields in order and every one present (an absent optional is
-    /// `nil`): `Value(struct: "Point", fields: ["x": Value(1), "y": Value(2)])`.
-    public init(struct typeName: String, fields: KeyValuePairs<String, Value>) {
-        self = .structure(Structure(Value.Record(fields, typeName: typeName)))
-    }
-
-    /// A struct's value of the type `id` names, such as one a script declares:
-    /// `Value(struct: point, fields: ["x": Value(1)])`.
+    /// `nil`), of the type `id` names: one a script declares (`typeID(named:)`), or a Swift type's
+    /// by `Symbol.ID(hostType:)`: `Value(struct: point, fields: ["x": Value(1), "y": Value(2)])`.
     public init(struct id: Symbol.ID, fields: KeyValuePairs<String, Value>) {
         self = .structure(Structure(Value.Record(fields, typeID: id)))
     }
@@ -594,13 +589,6 @@ extension Value {
     /// As above, for fields whose names are known only as the program runs.
     public init(struct id: Symbol.ID, fields: [(name: String, value: Value)]) {
         var record = Value.Record(typeID: id)
-        for (name, value) in fields { record[name] = value }
-        self = .structure(Structure(record))
-    }
-
-    /// As above, for fields whose names are known only as the program runs: a parsed object's keys.
-    public init(struct typeName: String, fields: [(name: String, value: Value)]) {
-        var record = Value.Record(typeName: typeName)
         for (name, value) in fields { record[name] = value }
         self = .structure(Structure(record))
     }
@@ -618,12 +606,12 @@ extension Value {
         self = .tuple(Tuple(record))
     }
 
-    /// Any `Encodable` as a value: a struct, a list, a string. A struct is named for its Swift
-    /// type, or `name` if one is given.
-    public init(encoding value: some Encodable, as name: String? = nil) throws {
+    /// Any `Encodable` as a value: a struct, a list, a string. A struct is of a host type named for
+    /// its Swift type, or of `type` if one is given.
+    public init(encoding value: some Encodable, as type: Symbol.ID? = nil) throws {
         self = try ValueEncoder().encode(value)
-        if let name, var record = record {
-            record.typeName = name
+        if let type, var record = record {
+            record.typeID = type
             self = Value(record: record)
         }
     }

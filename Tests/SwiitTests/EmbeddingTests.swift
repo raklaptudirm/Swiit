@@ -603,7 +603,7 @@ struct Bytes: Comparable, Hashable, Sendable {
 @Suite struct NativeTypeTests {
     static func bytesType() -> HostType {
         let bytes = Symbol.ID(hostType: "Bytes")
-        @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b, as: "Bytes") }
+        @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b) }
         return HostType(
             name: "Bytes",
             members: [
@@ -761,7 +761,7 @@ private struct Status: Error { var code: Int32 }
         HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
             throw Diagnostic.runtime(
                 "nope",
-                thrown: Value(struct: "Failure", fields: ["code": Value(7)]),
+                thrown: Value(struct: Symbol.ID(hostType: "Failure"), fields: ["code": Value(7)]),
                 cause: Status(code: 3)
             )
         }
@@ -1227,7 +1227,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(try swiit.evaluate("Level.low").typeID == swiit.typeID(named: "Level"))
     #expect(try swiit.evaluate("Dog()").typeID == swiit.typeID(named: "Dog"))
     // A struct value of a Swift type is a host ID, by name, and names nothing registered.
-    let encoded = Value(struct: "Point", fields: ["x": Value(1)])
+    let encoded = Value(struct: Symbol.ID(hostType: "Point"), fields: ["x": Value(1)])
     #expect(encoded.typeID == Symbol.ID(hostType: "Point"))
     #expect(encoded.typeID != point.typeID)
 }
@@ -1254,7 +1254,9 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(Value(3).isInstance(of: Int.self))
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A struct value of a Swift type stands for the same-named type a script declares.
-    #expect(Value(struct: "Point", fields: ["x": Value(1)]).isInstance(of: point))
+    #expect(
+        Value(struct: Symbol.ID(hostType: "Point"), fields: ["x": Value(1)]).isInstance(of: point)
+    )
 }
 
 @Test func aStructValueKeepsItsOwnDeclarationWhenTheTypeIsDeclaredAgain() throws {
@@ -1290,7 +1292,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(point.entry("x") == Value(1))
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A Swift value held as it is has the host ID of its registered name.
-    #expect(Value(boxing: Bytes(count: 1), as: "Bytes").typeID == Symbol.ID(hostType: "Bytes"))
+    #expect(Value(boxing: Bytes(count: 1)).typeID == Symbol.ID(hostType: "Bytes"))
 }
 
 @Test func anEnumCaseIsItsTypeAndNameAndWhatItCarries() throws {
