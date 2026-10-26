@@ -274,13 +274,6 @@ extension Interpreter {
             if case .object(let box as SwiftValue) = value.storage, box.typeName == name {
                 return value
             }
-            // A host's object is of the type it registered.
-            if case .object(let object) = value.storage, isHostObject(object),
-                object.typeName == name,
-                Bridge.types[name] != nil
-            {
-                return value
-            }
             // A Character is held as the one-letter String it is.
             if name == "Character", case .string(let text) = value.storage, text.count == 1 {
                 return value

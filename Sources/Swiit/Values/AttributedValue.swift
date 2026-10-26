@@ -6,3 +6,5 @@ extension Value {
         SwiftValue.make(text, as: "AttributedString")
     }
 }
+
+extension AttributedString: ScriptConvertible {}

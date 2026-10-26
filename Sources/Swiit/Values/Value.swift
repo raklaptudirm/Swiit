@@ -31,7 +31,7 @@ public struct Value: Sendable {
         case enumValue(Value.EnumCase)
         /// A live value with members of its own: a background job, an enum type,
         /// and later bridged Swift objects.
-        case object(any HostObject)
+        case object(any LanguageObject)
         case function(any Callable)
     }
 
@@ -53,40 +53,27 @@ public struct Value: Sendable {
     static func structure(_ value: Value.Structure) -> Value { Value(Storage.structure(value)) }
     static func dictionary(_ value: [Value: Value]) -> Value { Value(Storage.dictionary(value)) }
     static func enumValue(_ value: Value.EnumCase) -> Value { Value(Storage.enumValue(value)) }
-    static func object(_ value: any HostObject) -> Value { Value(Storage.object(value)) }
+    static func object(_ value: any LanguageObject) -> Value { Value(Storage.object(value)) }
     static func function(_ value: any Callable) -> Value { Value(Storage.function(value)) }
 }
 
-/// A live object a host hands scripts. Its members are the ones its `HostType` registers, which
-/// the checker reads, so a script's use of one is checked before it runs; `member(_:)` is for the
-/// few a host answers for at run time. Objects compare by identity, unless one says it is data
-/// (`valueIdentity`).
-public protocol HostObject: AnyObject, Sendable, CustomStringConvertible,
-    CustomDebugStringConvertible
+/// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
+/// as it is, a host's value or live object held as it is). The checker types the language's by
+/// what they are, and a host's by the type it registered, or by the protocol the program declares
+/// under its name.
+protocol LanguageObject: AnyObject, Sendable, CustomStringConvertible, CustomDebugStringConvertible
 {
     /// The name `members` and error messages use, like `Job`.
     var typeName: String { get }
     /// Names of its members, for `members` and completion.
     var memberNames: [String] { get }
-    /// A member answered at run time, after the registered ones; nil if there is none. Optional:
-    /// most objects have only the registered members.
+    /// A member answered at run time, after the registered ones; nil if there is none.
     func member(_ name: String) -> Value?
-    /// What equality and hashing go by when the object is data, as a struct is: what it holds. Two
-    /// objects with the same one are equal. Nil, the default, is for an object that is a thing
-    /// itself, a job or a connection, which is equal only to itself.
-    var valueIdentity: AnyHashable? { get }
 }
 
-/// An object the language makes itself (an instance, a type, a weak reference, a Swift value held
-/// as it is), as opposed to one a host hands in. The checker types the language's by what they are,
-/// and a host's by the protocol the host declares for them.
-protocol LanguageObject: HostObject {}
-
-extension HostObject {
-    public var valueIdentity: AnyHashable? { nil }
-
+extension LanguageObject {
     /// The registered members of its type, unless it says.
-    public var memberNames: [String] {
+    var memberNames: [String] {
         var seen = Set<String>()
         return (Bridge.types[typeName]?.members ?? [])
             .filter { !$0.isStatic && ($0.kind == .method || $0.kind == .property) }
@@ -95,13 +82,13 @@ extension HostObject {
 
     /// The registered members of its type: a property is read, a method is a function bound to the
     /// object.
-    public func member(_ name: String) -> Value? {
+    func member(_ name: String) -> Value? {
         guard
             let member = Bridge.types[typeName]?.members
                 .first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
             let plain = member.plain
         else { return nil }
-        let receiver = Value(self)
+        let receiver = Value.object(self)
         switch member.kind {
         case .property: return try? plain(["self": receiver])
         case .method:
@@ -135,7 +122,10 @@ extension HostObject {
     /// a method. What the language makes itself (a type, an instance, a Swift value held as it is)
     /// has none: it is one value, like a `FileSize`.
     var dataFields: [(key: Value, value: Value)]? {
-        if self is any LanguageObject { return nil }
+        // A held value is data if it names its members: a parsed object's keys, a job's fields.
+        guard let box = self as? SwiftValue,
+            (box.value as? any ScriptConvertible)?.memberNames != nil
+        else { return nil }
         var fields: [(key: Value, value: Value)] = []
         for name in memberNames {
             guard let value = member(name) else { continue }
@@ -158,7 +148,7 @@ extension HostObject {
     /// What equality and hashing go by: the object itself, and for a Swift value held as it is,
     /// the value (when it is `Hashable`).
     var objectIdentity: AnyHashable {
-        (self as? SwiftValue)?.identity ?? valueIdentity ?? AnyHashable(ObjectIdentifier(self))
+        (self as? SwiftValue)?.identity ?? AnyHashable(ObjectIdentifier(self))
     }
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
@@ -592,13 +582,9 @@ extension Value {
 // MARK: What a host does with a value
 
 extension Value {
-    public init(_ value: Bool) { self = .bool(value) }
-    public init(_ value: Int) { self = .int(value) }
-    public init(_ value: Double) { self = .double(value) }
-    public init(_ value: String) { self = .string(value) }
-    public init(_ value: [Value]) { self = .list(value) }
-    public init(_ value: [Value: Value]) { self = .dictionary(value) }
-    public init(_ value: some HostObject) { self = .object(value) }
+    /// A Swift value as a value: a number, text, a list, a dictionary, an optional, or any type that
+    /// says scripts can have it (`extension URL: ScriptConvertible {}`).
+    public init<T: ScriptConvertible>(_ value: T) { self = value.value }
 
     /// What a value is made of, as the interpreter says it. A host asks `typeID`, `isInstance(of:)`
     /// and the views (`tuple`, `structure`, `enumCase`, `function`) instead, and makes its own
@@ -698,10 +684,27 @@ extension Value {
         case .double(let value) where T.self == Double.self: return value as? T
         case .list(let value) where T.self == [Value].self: return value as? T
         case _ where T.self == Value.self: return self as? T
+        // A Swift value or object a script holds as it is, when it is a `T`.
+        case .object(let box as SwiftValue): if let held = box.value as? T { return held }
         default: break
         }
         guard let result = try? T(self), result.value == self else { return nil }
         return result
+    }
+
+    /// What the value is, as a type that is no concrete one: a protocol (`any Presentable`) or `Any`.
+    /// A Swift value or object a script holds as it is, if it conforms; a number, text or a flag, as
+    /// the Swift value it is. Nil otherwise, and never a conversion: `casting(to:)` converts.
+    public func casting<T>(toExistential type: T.Type) -> T? {
+        switch storage {
+        case .object(let box as SwiftValue): return box.value as? T
+        case .object(let object): return object as? T
+        case .int(let value): return value as? T
+        case .double(let value): return value as? T
+        case .bool(let value): return value as? T
+        case .string(let text): return text as? T
+        default: return nil
+        }
     }
 
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an

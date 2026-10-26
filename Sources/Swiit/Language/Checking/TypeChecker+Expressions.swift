@@ -665,18 +665,7 @@ extension TypeChecker {
             } else {
                 .named(box.typeName)
             }
-        case .object(let object):
-            // The host registered its type under its name (or, as the host's jobs are, a program
-            // declared a protocol of it).
-            if interpreter.isHostObject(object), Bridge.types[object.typeName] != nil {
-                .named(object.typeName)
-            } else if interpreter.isHostObject(object),
-                case .protocolType? = lookup(object.typeName)
-            {
-                .named(object.typeName)
-            } else {
-                .unknown
-            }
+        case .object: .unknown
         case .function: .function
         @unknown default: .unknown
         }

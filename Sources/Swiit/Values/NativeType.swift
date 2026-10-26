@@ -89,26 +89,13 @@ public struct HostType: Sendable {
 }
 
 extension Value {
-    /// A Swift value, held as it is, of the type `T`, which is registered as a `HostType` under
-    /// the Swift type's own name (`Set<Int>` is `Set`, generic arguments aside). Scripts compare
-    /// and hash it as Swift does when the type is `Equatable`, `Hashable` or `Comparable`.
-    public init<T>(boxing value: T) {
-        self = SwiftValue.make(value, as: Value.hostName(of: T.self))
-    }
-
-    /// As above, for a type registered under another name than its Swift type's: the `Symbol.ID`
-    /// that `register` gave for it.
-    public init<T>(boxing value: T, as type: Symbol.ID) {
-        self = SwiftValue.make(value, as: type.name)
-    }
-
     /// The name a Swift type is registered under by default: its own, without its generic arguments.
     static func hostName(of type: Any.Type) -> String {
         String(String(describing: type).prefix { $0 != "<" })
     }
 
     /// The Swift value this holds, if it holds one of type `T`.
-    public func unboxing<T>(_: T.Type = T.self) throws -> T {
+    func unboxing<T>(_: T.Type = T.self) throws -> T {
         try SwiftValue.unbox(T.self, self)
     }
 }
@@ -420,7 +407,6 @@ extension HostType {
         }
 
         fileprivate static func box(_ value: T, as name: String) -> Value {
-            if let object = value as? any HostObject { return Value(object) }
             return SwiftValue.make(value, as: name)
         }
 
@@ -590,11 +576,23 @@ extension Interpreter {
     public func register<T>(_ builder: HostType.Builder<T>) -> Symbol.ID { register(builder.type) }
 }
 
-/// A value type that is `Hashable` and `Sendable` becomes one a script can hold and a host function
-/// can take and give by saying so: `extension URL: ScriptConvertible {}`. It is held as it is, under
-/// its Swift name.
-extension ScriptConvertible where Self: Hashable & Sendable {
-    public static var scriptType: ScriptType { .named(String(describing: Self.self)) }
-    public init(_ swiitValue: Value) throws { self = try swiitValue.unboxing(Self.self) }
-    public var value: Value { SwiftValue.make(self, as: String(describing: Self.self)) }
+/// A `Sendable` type becomes one a script can hold and a host function can take and give by
+/// saying so: `extension URL: ScriptConvertible {}`. It is held as it is, under its Swift name.
+extension ScriptConvertible where Self: Sendable {
+    public static var scriptType: ScriptType { .named(.host(Value.hostName(of: Self.self))) }
+    public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
+    public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
+}
+
+/// The Swift collections a script holds as they are, which the bridge gives members to.
+extension Set: ScriptConvertible where Element: Hashable {
+    public static var scriptType: ScriptType { .named(.set, [.any]) }
+    public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
+    public var value: Value { SwiftValue.make(self, as: "Set") }
+}
+
+extension ArraySlice: ScriptConvertible {
+    public static var scriptType: ScriptType { .named(.arraySlice, [.any]) }
+    public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
+    public var value: Value { SwiftValue.make(self, as: "ArraySlice") }
 }

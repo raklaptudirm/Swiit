@@ -25,7 +25,7 @@ private final class Stub: Callable {
     #expect(Value.function(stub).description == "stub")
 }
 
-private final class Thing: HostObject {
+private final class Thing: LanguageObject {
     var typeName: String { "Thing" }
     var memberNames: [String] { ["size"] }
     var description: String { "a thing" }

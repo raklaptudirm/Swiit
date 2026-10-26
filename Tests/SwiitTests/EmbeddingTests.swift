@@ -264,23 +264,23 @@ private func interpreter(
     #expect(try swiit.evaluate("Code.Kind.a == .a") == true)
 }
 
-private final class HostNode: HostObject, @unchecked Sendable {
+private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked Sendable {
     let label: String
     init(_ label: String) { self.label = label }
-    var typeName: String { "Node" }
     var description: String { "Node(\(label))" }
     func shout() -> String { label.uppercased() }
 
-    static let type = HostType.Builder<HostNode>("Node")
+    static let scriptTypeID = Symbol.ID(hostType: "Node")
+    static let type = HostType.Builder<Node>("Node")
         .property("label", \.label)
-        .method("shout", HostNode.shout)
+        .method("shout", Node.shout)
 }
 
 @Test func aHostObjectIsTypedByTheTypeThatIsRegisteredForIt() throws {
     let log = Log()
     let swiit = interpreter(log: log)
-    swiit["nodes"] = [Value(HostNode("a")), Value(HostNode("b"))]
-    swiit.register(HostNode.type)
+    swiit["nodes"] = [Value(Node("a")), Value(Node("b"))]
+    swiit.register(Node.type)
     // It is used as the protocol says, and passes where one is asked for.
     #expect(try swiit.evaluate("nodes.map { $0.shout() }") == ["A", "B"])
     #expect(
@@ -410,10 +410,13 @@ private final class HostNode: HostObject, @unchecked Sendable {
 
 @Test func aHostObjectsMembersAreTheRegisteredOnes() throws {
     let swiit = interpreter()
-    let node = HostNode("a")
+    let node = Node("a")
     swiit["node"] = Value(node)
-    swiit.register(HostNode.type)
-    #expect(node.memberNames == ["label", "shout"])
+    swiit.register(Node.type)
+    #expect(
+        Set(swiit.symbols(in: .named(Node.scriptTypeID)).map(\.name))
+            .isSuperset(of: ["label", "shout"])
+    )
     #expect(try swiit.evaluate("node.shout()") == "A")
     #expect(throws: (any Error).self) { try swiit.evaluate("node.nosuch") }
 }
@@ -601,7 +604,7 @@ extension Value {
 
 // MARK: Native types
 
-struct Bytes: Comparable, Hashable, Sendable {
+struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
     var count: Int
     static func < (a: Bytes, b: Bytes) -> Bool { a.count < b.count }
 }
@@ -609,7 +612,7 @@ struct Bytes: Comparable, Hashable, Sendable {
 @Suite struct NativeTypeTests {
     static func bytesType() -> HostType {
         let bytes = Symbol.ID(hostType: "Bytes")
-        @Sendable func box(_ b: Bytes) -> Value { Value(boxing: b) }
+        @Sendable func box(_ b: Bytes) -> Value { Value(b) }
         return HostType(
             name: "Bytes",
             members: [
@@ -626,7 +629,7 @@ struct Bytes: Comparable, Hashable, Sendable {
                     "count",
                     .property(
                         .int,
-                        .readOnly { try $0.unboxing(Bytes.self).count.value }
+                        .readOnly { try Bytes($0).count.value }
                     )
                 ),
                 .init(
@@ -639,7 +642,7 @@ struct Bytes: Comparable, Hashable, Sendable {
                             ],
                             returns: .bool
                         )
-                    ) { (try $0[0].unboxing(Bytes.self) < $0[1].unboxing(Bytes.self)).value }
+                    ) { (try Bytes($0[0]) < Bytes($0[1])).value }
                 ),
             ]
         )
@@ -654,7 +657,7 @@ struct Bytes: Comparable, Hashable, Sendable {
         #expect(try Int(value) == 8)
         #expect(try Bool(interpreter.evaluate("a < b")) == true)
         #expect(try Bool(interpreter.evaluate("a == Bytes(count: 3)")) == true)
-        let held = try interpreter.evaluate("a").unboxing(Bytes.self)
+        let held = try Bytes(interpreter.evaluate("a"))
         #expect(held == Bytes(count: 3))
     }
 
@@ -873,7 +876,8 @@ private final class Mark: @unchecked Sendable {
             "Sequence.firsts": { arguments in
                 // A sequence's items, one at a time, as far as are wanted.
                 let wanted = arguments["count"]?.casting(to: Int.self) ?? 0
-                guard let items = arguments["self"].flatMap({ ThrowingStream<Value>($0) }) else {
+                guard let items = arguments["self"].flatMap({ try? ThrowingStream<Value>($0) })
+                else {
                     return Value([] as [Value])
                 }
                 var kept: [Value] = []
@@ -934,10 +938,9 @@ private final class Mark: @unchecked Sendable {
     #expect(told.filter { $0 != "-" } == ["2", "7", "caught", "11"])
 }
 
-private final class Handle: HostObject, @unchecked Sendable {
+private final class Handle: ScriptConvertible, CustomStringConvertible, @unchecked Sendable {
     let task: ScriptTask
     init(_ task: ScriptTask) { self.task = task }
-    var typeName: String { "Handle" }
     var description: String { "Handle" }
 }
 
@@ -959,7 +962,7 @@ private final class Handle: HostObject, @unchecked Sendable {
                 .init(
                     "wait",
                     .method(Symbol.Function(returns: .int, isAsync: true)) { receiver, _ in
-                        guard let handle = try? receiver.unboxing(Handle.self) else {
+                        guard let handle = try? Handle(receiver) else {
                             throw Diagnostic.runtime("nothing to await")
                         }
                         return try running.join(handle.task)
@@ -1300,7 +1303,7 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(point.entry("x") == Value(1))
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A Swift value held as it is has the host ID of its registered name.
-    #expect(Value(boxing: Bytes(count: 1)).typeID == Symbol.ID(hostType: "Bytes"))
+    #expect(Value(Bytes(count: 1)).typeID == Symbol.ID(hostType: "Bytes"))
 }
 
 @Test func anEnumCaseIsItsTypeAndNameAndWhatItCarries() throws {
@@ -1336,38 +1339,42 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(cases.map(\.name).contains("failed"))
 }
 
-private final class Pair: HostObject {
+/// A thing: a class, which is equal only to itself, and says its members at run time.
+private final class Pair: ScriptConvertible, CustomStringConvertible, CustomDebugStringConvertible,
+    @unchecked Sendable
+{
     let a: Int, b: Int
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
-    var typeName: String { "Pair" }
     var description: String { "Pair" }
     var debugDescription: String { "Pair(\(a), \(b))" }
-    var memberNames: [String] { ["a", "b"] }
+    var memberNames: [String]? { ["a", "b"] }
     func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
 }
 
-private final class DataPair: HostObject {
+/// Data: a struct, which is equal to another that holds the same.
+private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
+    CustomDebugStringConvertible, Sendable
+{
     let a: Int, b: Int
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
-    var typeName: String { "DataPair" }
     var description: String { "DataPair" }
     var debugDescription: String { "DataPair(\(a), \(b))" }
-    var memberNames: [String] { ["a", "b"] }
+    var memberNames: [String]? { ["a", "b"] }
     func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
-    var valueIdentity: AnyHashable? { [a, b] }
 }
 
-@Test func aHostObjectIsEqualToItselfUnlessItSaysItIsData() {
-    // A thing is equal only to itself; data is equal to data that holds the same.
+@Test func aHostTypeIsEqualToItselfOrByWhatItHolds() {
+    // A class is equal only to itself; a struct is equal to one that holds the same.
     #expect(Value(Pair(1, 2)) != Value(Pair(1, 2)))
     let thing = Pair(1, 2)
     #expect(Value(thing) == Value(thing))
     #expect(Value(DataPair(1, 2)) == Value(DataPair(1, 2)))
     #expect(Value(DataPair(1, 2)) != Value(DataPair(2, 1)))
     #expect(Set([Value(DataPair(1, 2)), Value(DataPair(1, 2))]).count == 1)
-    // Both are read as a record by their mirrors.
+    // Both say their members, so both are read as a record by their mirrors.
     #expect(Value(DataPair(1, 2)).mirror.displayStyle == .class)
     #expect(Value(DataPair(1, 2)).mirror.children.map(\.label) == ["a", "b"])
+    #expect(Value(thing).mirror.children.map(\.label) == ["a", "b"])
 }
 
 /// Swift types a host encodes into struct values, by their own names.
@@ -1392,7 +1399,7 @@ private struct Point: Encodable { var x: Int }
 @Test func aStreamIsMadeOfWhatAValueGives() throws {
     let swiit = interpreter()
     func items(_ value: Value) throws -> [Value]? {
-        guard let stream = ThrowingStream<Value>(value) else { return nil }
+        guard let stream = try? ThrowingStream<Value>(value) else { return nil }
         var read: [Value] = []
         while let item = try stream.read() { read.append(item) }
         return read

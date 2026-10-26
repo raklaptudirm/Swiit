@@ -86,8 +86,9 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
         }
         return AnyHashable(ObjectIdentifier(self))
     }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
+    /// What the held value answers for at run time, if it says (`ScriptConvertible.memberNames`).
+    public var memberNames: [String] { (value as? any ScriptConvertible)?.memberNames ?? [] }
+    public func member(_ name: String) -> Value? { (value as? any ScriptConvertible)?.member(name) }
     public var description: String {
         registered("description") ?? String(describing: value)
     }

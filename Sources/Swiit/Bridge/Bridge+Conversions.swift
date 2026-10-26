@@ -41,6 +41,8 @@ func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
     return match
 }
 
+extension FilePath: ScriptConvertible {}
+
 /// A path as Swiit holds it: a FilePath.
 func pathValue(_ path: String) -> Value {
     SwiftValue.make(FilePath(path), as: "FilePath")

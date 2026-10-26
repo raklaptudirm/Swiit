@@ -55,9 +55,9 @@ extension Interpreter {
         default:
             break
         }
-        // A host's object conforms to the protocol the program declares under its type's name: that
+        // A host's value conforms to the protocol the program declares under its type's name: that
         // is how the host describes it (`protocol Node { var label: String { get } }`).
-        if case .object(let object) = value.storage, isHostObject(object),
+        if case .object(let object as SwiftValue) = value.storage,
             protocolType(named: object.typeName) != nil
         {
             declared.append(object.typeName)
@@ -71,9 +71,6 @@ extension Interpreter {
         }
         return conformances(taking: declared)
     }
-
-    /// Whether `object` is one a host handed in, not one the language made.
-    func isHostObject(_ object: any HostObject) -> Bool { !(object is LanguageObject) }
 
     /// What each of `declared` takes in, with them.
     private func conformances(taking declared: [String]) -> [String] {

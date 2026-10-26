@@ -52,7 +52,7 @@ extension Value.EnumCase {
             return cases.map { Value.EnumCase(type: self, name: $0.name) }
         }
 
-        // MARK: HostObject
+        // MARK: LanguageObject
 
         public var typeName: String { "enum" }
 

@@ -254,10 +254,26 @@ struct SwiitError: Error, CustomStringConvertible {
 
 /// A Swift type that can be a parameter: the host hands it a `Value`, and
 /// it says what type the host should check for.
+///
+/// It is also how a type is held as it is: a type that is `Sendable` and conforms with no more than
+/// `extension URL: ScriptConvertible {}` is held under its Swift name, by value if it is `Hashable`
+/// and by identity if it is a class, and its registered members are its members (`HostType`). A
+/// type that answers for members it only knows at run time, like a parsed object's keys, says them.
 public protocol ScriptConvertible {
     static var scriptType: ScriptType { get }
     init(_ swiitValue: Value) throws
     var value: Value { get }
+    /// The names of the members it answers for at run time, in order, or nil, the default, if all
+    /// its members are registered. A type with names is laid out as a record is, in a table and in
+    /// JSON.
+    var memberNames: [String]? { get }
+    /// A member answered at run time, after the registered ones; nil if there is none.
+    func member(_ name: String) -> Value?
+}
+
+extension ScriptConvertible {
+    public var memberNames: [String]? { nil }
+    public func member(_ name: String) -> Value? { nil }
 }
 
 /// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their
@@ -411,8 +427,6 @@ extension Value {
         switch result {
         case is Void: self = .nothing
         case let value as any ScriptConvertible: self = value.value
-        case let object as any HostObject: self = .object(object)
-        case let objects as [any HostObject]: self = .list(objects.map(Value.object))
         case let data as any Encodable: self = try ValueEncoder().encode(data)
         default: throw SwiitError("can't return a \(type(of: result)) to Swiit; make it Encodable")
         }
@@ -421,32 +435,13 @@ extension Value {
 
 /// What the host checks a parameter's arguments against.
 func swiitParameterType<T: ScriptConvertible>(_ type: T.Type) -> ScriptType { T.scriptType }
-/// An exported object: anything, checked when it's converted.
-func swiitParameterType<T: HostObject>(_ type: T.Type) -> ScriptType { .any }
-
 func swiitParameterEnums<T: ScriptConvertible>(_ type: T.Type) -> [Value.EnumCase.Enumeration] {
     T.swiitEnums
 }
-func swiitParameterEnums<T: HostObject>(_ type: T.Type) -> [Value.EnumCase.Enumeration] { [] }
 
 /// What a function returns, for signatures and help.
 func swiitReturnType(_ type: Any.Type) -> ScriptType {
     (type as? any ScriptConvertible.Type)?.scriptType ?? .any
-}
-
-/// An object argument: one of the host's own classes, held as a live object.
-func swiitArgument<T: HostObject>(
-    _ arguments: [String: Value],
-    _ name: String,
-    of function: String,
-    as type: T.Type = T.self
-) throws -> T {
-    guard case .object(let object as T) = (arguments[name] ?? .nothing).storage else {
-        throw SwiitError(
-            "\(function): \(name): expected \(T.self), not \((arguments[name] ?? .nothing).bridgeTypeName)"
-        )
-    }
-    return object
 }
 
 /// An argument the macro-generated code converts: a clear message naming
