@@ -474,7 +474,7 @@ extension Value {
     #expect(try swiit.evaluate("[1, 2]").typeID == .array)
     #expect(try swiit.evaluate("(a: 1, b: 2)").tuple != nil)
     #expect(try swiit.evaluate("Point(x: 1, y: 2)").structure != nil)
-    #expect(try swiit.evaluate("Level.high").enumCase?.type == "Level")
+    #expect(try swiit.evaluate("Level.high").enumCase?.typeName == "Level")
     #expect(try swiit.evaluate("twice").function != nil)
     #expect(Value.nothing.typeID == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
@@ -499,7 +499,7 @@ extension Value {
     )
     // An enum's case, and the declaration kind of a type.
     let high = try #require(try swiit.evaluate("Level.high").enumCase)
-    #expect(high.type == "Level" && high.name == "high")
+    #expect(high.typeName == "Level" && high.name == "high")
     #expect(swiit.symbols(named: "Point").first?.kind == .structure)
     #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
     #expect(swiit.symbols(named: "twice").first?.function != nil)
@@ -1277,4 +1277,30 @@ private final class Handle: HostObject, @unchecked Sendable {
     #expect(Value(3).function == nil)
     // A Swift value held as it is has the host ID of its registered name.
     #expect(Value(boxing: Bytes(count: 1), as: "Bytes").typeID == Symbol.ID(hostType: "Bytes"))
+}
+
+@Test func anEnumCaseIsItsTypeAndNameAndWhatItCarries() throws {
+    let swiit = interpreter()
+    try swiit.evaluate(
+        """
+        enum Level: Int { case low = 1, high }
+        enum Outcome { case done, failed(code: Int, String) }
+        """
+    )
+    let high = try #require(try swiit.evaluate("Level.high").enumCase)
+    #expect(high.id == swiit.typeID(named: "Level"))
+    #expect(high.rawValue == Value(2))
+    #expect(high.payload.isEmpty)
+    // What it carries is a tuple: a value under its label, or its position without one.
+    let failed = try #require(try swiit.evaluate("Outcome.failed(code: 2, \"no\")").enumCase)
+    #expect(failed.payload.keys == ["code", "1"])
+    #expect(failed.payload["code"] == Value(2))
+    #expect(failed.payload["1"] == Value("no"))
+    #expect(failed.rawValue == nil)
+    // Its type resolves to a declaration with the cases and their labels, as a symbol says.
+    let symbol = try #require(swiit.symbol(for: failed.id))
+    #expect(symbol.kind == .enumeration)
+    let cases = swiit.symbols(in: .named(failed.id))
+        .filter { if case .enumCase = $0.kind { true } else { false } }
+    #expect(cases.map(\.name).contains("failed"))
 }

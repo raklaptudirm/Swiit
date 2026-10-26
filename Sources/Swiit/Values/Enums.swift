@@ -2,28 +2,28 @@ extension Value.EnumCase {
     /// An enum's definition: its name and cases, in order. Declared in Swiit
     /// (`enum FileType { case file, directory }`) or by the host.
     /// Types compare by identity, so two enums with the same name are distinct.
-    public final class Enumeration: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-        public struct Case: Sendable, Equatable {
-            public let name: String
+    final class Enumeration: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+        struct Case: Sendable, Equatable {
+            let name: String
             /// For an enum with raw values (`enum Level: Int`).
-            public let rawValue: Value?
+            let rawValue: Value?
             /// Labels of its associated values, nil for one without a label;
             /// empty for a case that has none.
-            public let labels: [String?]
+            let labels: [String?]
 
-            public init(name: String, rawValue: Value? = nil, labels: [String?] = []) {
+            init(name: String, rawValue: Value? = nil, labels: [String?] = []) {
                 self.name = name
                 self.rawValue = rawValue
                 self.labels = labels
             }
         }
 
-        public let name: String
-        public let cases: [Case]
+        let name: String
+        let cases: [Case]
         let id: Symbol.ID
 
         /// An enum the host provides, named by the Swift type's name.
-        public init(name: String, cases: [Case]) {
+        init(name: String, cases: [Case]) {
             self.name = name
             self.cases = cases
             self.id = .host(name)
@@ -36,18 +36,18 @@ extension Value.EnumCase {
             self.id = .declare(name)
         }
 
-        public func `case`(named name: String) -> Case? {
+        func `case`(named name: String) -> Case? {
             cases.first { $0.name == name }
         }
 
         /// The case with this raw value, as `Level(rawValue: 2)` gives it.
-        public func `case`(rawValue: Value) -> Value.EnumCase? {
+        func `case`(rawValue: Value) -> Value.EnumCase? {
             cases.first { $0.rawValue == rawValue && $0.labels.isEmpty }
                 .map { Value.EnumCase(type: self, name: $0.name) }
         }
 
         /// Every case, if none has associated values (Swift's `CaseIterable`).
-        public var allCases: [Value.EnumCase]? {
+        var allCases: [Value.EnumCase]? {
             guard cases.allSatisfy(\.labels.isEmpty) else { return nil }
             return cases.map { Value.EnumCase(type: self, name: $0.name) }
         }
@@ -83,8 +83,22 @@ extension Value {
         public let name: String
         /// The enum it is a case of.
         public var typeName: String { type.name }
+        /// The ID of the enum it is a case of.
+        public var id: Symbol.ID { type.id }
         /// In the order the case declares them.
-        public let values: [Value]
+        let values: [Value]
+
+        /// What the case carries, in the order its declaration gives: each value under its label,
+        /// or under its position (`"0"`, `"1"`) if it has none, as a tuple's elements are named.
+        /// Empty for a case with none.
+        public var payload: Value.Tuple {
+            let labels = definition?.labels ?? []
+            var tuple = Value.Tuple()
+            for (index, value) in values.enumerated() {
+                tuple[(index < labels.count ? labels[index] : nil) ?? String(index)] = value
+            }
+            return tuple
+        }
 
         init(type: Value.EnumCase.Enumeration, name: String, values: [Value] = []) {
             self.type = type
@@ -96,7 +110,8 @@ extension Value {
             type.case(named: name)
         }
 
-        var rawValue: Value? {
+        /// The raw value its declaration gives it, if the enum has them (`enum Level: Int`).
+        public var rawValue: Value? {
             definition?.rawValue
         }
 
