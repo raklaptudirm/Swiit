@@ -5,7 +5,7 @@ extension Interpreter {
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
-        func declare(_ export: HostFunction) {
+        func declare(_ export: HostSymbol) {
             scopes[0].declare(hostFunction(export), named: export.name)
         }
         let condition = Symbol.Parameter(label: nil, name: "condition", type: .bool)
@@ -20,7 +20,7 @@ extension Interpreter {
             ("precondition", "Stops with the message unless the condition holds."),
         ] {
             declare(
-                HostFunction(
+                HostSymbol.function(
                     name: name,
                     summary: summary,
                     parameters: [condition, message],
@@ -41,7 +41,7 @@ extension Interpreter {
         }
         for name in ["fatalError", "preconditionFailure"] {
             declare(
-                HostFunction(
+                HostSymbol.function(
                     name: name,
                     summary: "Stops with the message.",
                     parameters: [message],
@@ -276,7 +276,7 @@ extension Interpreter {
         ]
         for (name, function) in unary {
             declare(
-                HostFunction(
+                HostSymbol.function(
                     name: name,
                     summary: "\(name) of a Double.",
                     parameters: [Symbol.Parameter(label: nil, name: "x", type: .double)],
@@ -291,7 +291,7 @@ extension Interpreter {
         ]
         for (name, function) in binary {
             declare(
-                HostFunction(
+                HostSymbol.function(
                     name: name,
                     summary: "\(name) of two Doubles.",
                     parameters: [
@@ -311,7 +311,7 @@ extension Interpreter {
         // `zip(a, b)`: pairs of what two sequences hold, as far as the shorter goes. Swift's
         // lazy `Zip2Sequence` is held as the array it would give.
         declare(
-            HostFunction(
+            HostSymbol.function(
                 name: "zip",
                 summary: "Pairs of the items of two sequences, up to the end of the shorter.",
                 parameters: [
@@ -345,7 +345,7 @@ extension Interpreter {
         // `abs`, `min` and `max`, for the numbers and strings there are.
         for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
             declare(
-                HostFunction(
+                HostSymbol.function(
                     name: "abs",
                     summary: "The magnitude of an \(name).",
                     parameters: [Symbol.Parameter(label: nil, name: "x", type: type)],
@@ -366,7 +366,7 @@ extension Interpreter {
         for type in [ScriptType.int, .double, .string] {
             for (name, picksLess) in [("min", true), ("max", false)] {
                 declare(
-                    HostFunction(
+                    HostSymbol.function(
                         name: name,
                         summary: "The \(picksLess ? "smallest" : "largest") of its arguments.",
                         parameters: [
@@ -407,7 +407,7 @@ extension Interpreter {
         for (end, inclusive) in [("to", false), ("through", true)] {
             for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
                 declare(
-                    HostFunction(
+                    HostSymbol.function(
                         name: "stride",
                         summary:
                             "The values from `from` to `\(end)` `\(end == "to" ? "(not including it)" : "")`, `by` apart, as \(name)s.",

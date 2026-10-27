@@ -487,7 +487,7 @@ extension Interpreter {
     func installPrint() {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         let print = hostFunction(
-            HostFunction(
+            HostSymbol.function(
                 name: "print",
                 summary: "Writes its arguments to the output, separated by spaces, then a newline.",
                 parameters: [
@@ -628,8 +628,12 @@ extension Interpreter {
 
     // MARK: Functions
 
-    /// Makes a described function one scripts can call, checked like any they declare.
-    public func register(_ function: HostFunction) {
+    /// Makes a described function one scripts can call, checked like any they declare. A member of a
+    /// type is registered with its type (`HostType`), so this takes only a function.
+    public func register(_ function: HostSymbol) {
+        guard function.function != nil else {
+            preconditionFailure("\(function.name) is a member of a type: register it with its type")
+        }
         withMainTask { scopes[1].declare(hostFunction(function), named: function.name) }
     }
 
@@ -714,7 +718,7 @@ extension Interpreter {
             }
         let names = parameters.map(\.name)
         let function = hostFunction(
-            HostFunction(
+            HostSymbol.function(
                 name: name,
                 parameters: parameters,
                 returnType: returns,

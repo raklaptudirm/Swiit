@@ -93,7 +93,7 @@ extension LanguageObject {
         case .property: return try? plain(["self": receiver])
         case .method:
             return Value(
-                HostFunction(
+                HostSymbol.function(
                     name: name,
                     summary: member.summary,
                     signature: Symbol.Function(
@@ -171,7 +171,7 @@ extension Value {
 }
 
 /// A function value: the interpreter implements this for Swiit functions, closures, overload sets
-/// and key paths, and for a host's `HostFunction` as a value.
+/// and key paths, and for a host's function as a value.
 protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
 extension Value {
@@ -563,7 +563,11 @@ extension Value {
 
     /// A described function as a value, for a host object's method to give: `.function(...)` of its
     /// own making.
-    public init(_ function: HostFunction) {
+    public init(_ function: HostSymbol) {
+        precondition(
+            function.function != nil,
+            "\(function.name) is a member of a type, not a function"
+        )
         self = .function(NativeFunction(function))
     }
 

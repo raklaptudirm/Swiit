@@ -383,8 +383,10 @@ extension Interpreter {
 extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
-    func hostFunction(_ export: HostFunction) -> Function {
-        let signature = export.signature
+    func hostFunction(_ export: HostSymbol) -> Function {
+        guard let (signature, call) = export.function else {
+            preconditionFailure("\(export.name) is a member of a type, not a function")
+        }
         let parameters = signature.parameters.map { parameter -> Parameter in
             var made = Parameter(
                 label: parameter.label,
@@ -405,7 +407,6 @@ extension Interpreter {
             if let doc = parameter.documentation { docs[parameter.name] = doc }
         }
         let name = export.name
-        let call = export.call
         return Function(
             name: name,
             parameters: parameters,
@@ -418,7 +419,7 @@ extension Interpreter {
                 }
             },
             documentation: Documentation(summary: export.summary, parameters: docs),
-            attributes: export.attributes,
+            attributes: export.symbol.attributes,
             isThrowing: signature.isThrowing,
             generics: signature.generics
         )

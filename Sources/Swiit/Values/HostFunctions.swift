@@ -3,111 +3,6 @@ import Synchronization
 
 // MARK: What a host exports
 
-/// A function described as data: a name, a signature, and a body. The way to offer functions whose
-/// shape is known only at run time. It is checked like any function the script declares, and what
-/// `symbols(named:)` says of it is its `signature`.
-public struct HostFunction: Sendable {
-    public let name: String
-    /// The line `help` shows.
-    public let summary: String
-    /// Its parameters, what it gives back, and whether it throws.
-    public let signature: Symbol.Function
-    /// The attributes it is declared with, such as `Symbol.Attribute(name: "discardableResult")`.
-    public let attributes: [Symbol.Attribute]
-    /// Called with every argument bound, by parameter name, except ones left to a Swift default.
-    let call: @Sendable ([String: Value]) throws -> Value
-
-    /// `body` is called with its arguments in declared order, defaults filled in.
-    public init(
-        name: String,
-        summary: String = "",
-        parameters: [Symbol.Parameter] = [],
-        returns: ScriptType = .void,
-        isThrowing: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
-        attributes: [Symbol.Attribute] = [],
-        body: @escaping @Sendable ([Value]) throws -> Value
-    ) {
-        self.name = name
-        self.summary = summary
-        self.attributes = attributes
-        self.signature = Symbol.Function(
-            parameters: parameters,
-            returns: returns,
-            isThrowing: isThrowing,
-            generics: generics
-        )
-        let defaults = parameters.map { parameter -> (String, Value?) in
-            if case .defaulted(.value(let value)) = parameter.arity {
-                return (parameter.name, value)
-            }
-            return (parameter.name, nil)
-        }
-        self.call = { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
-    }
-
-    /// A function whose result is a Swift type:
-    /// `HostFunction(name: "size", returns: Int.self) { _ in 3 }`.
-    public init<T: ScriptConvertible>(
-        name: String,
-        summary: String = "",
-        parameters: [Symbol.Parameter] = [],
-        returns: T.Type,
-        isThrowing: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
-        attributes: [Symbol.Attribute] = [],
-        body: @escaping @Sendable ([Value]) throws -> Value
-    ) {
-        self.init(
-            name: name,
-            summary: summary,
-            parameters: parameters,
-            returns: ScriptType(returns),
-            isThrowing: isThrowing,
-            generics: generics,
-            attributes: attributes,
-            body: body
-        )
-    }
-
-    /// As the host's functions are described: a body taking the arguments by name.
-    init(
-        name: String,
-        summary: String = "",
-        signature: Symbol.Function,
-        call: @escaping @Sendable ([String: Value]) throws -> Value
-    ) {
-        self.name = name
-        self.summary = summary
-        self.signature = signature
-        self.attributes = []
-        self.call = call
-    }
-}
-
-extension HostFunction {
-    /// As the language's own builtins are described: a body taking the arguments by name.
-    init(
-        name: String,
-        summary: String = "",
-        parameters: [Symbol.Parameter],
-        returnType: ScriptType?,
-        isThrowing: Bool = false,
-        call: @escaping @Sendable ([String: Value]) throws -> Value
-    ) {
-        self.init(
-            name: name,
-            summary: summary,
-            signature: Symbol.Function(
-                parameters: parameters,
-                returns: returnType ?? .void,
-                isThrowing: isThrowing
-            ),
-            call: call
-        )
-    }
-}
-
 extension Symbol.Parameter {
     /// As the language's own builtins describe one.
     init(
@@ -229,9 +124,9 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
 /// A host's function or method as a value, as `repo.log` gives it. The
 /// host calls it like any other function.
 final class NativeFunction: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let function: HostFunction
+    public let function: HostSymbol
 
-    public init(_ function: HostFunction) {
+    public init(_ function: HostSymbol) {
         self.function = function
     }
 

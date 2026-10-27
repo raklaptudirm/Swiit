@@ -553,7 +553,7 @@ extension Value {
     #expect(ScriptType([String: Int].self) == .dictionary(.string, .int))
     let swiit = interpreter()
     swiit.register(
-        HostFunction(
+        HostSymbol.function(
             name: "scale",
             summary: "Multiplies.",
             parameters: [
@@ -616,34 +616,19 @@ struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
         return HostType(
             name: "Bytes",
             members: [
-                .init(
-                    "init",
-                    .initializer(
-                        Symbol.Function(
-                            parameters: [.init(label: "count", name: "count", type: Int.self)],
-                            returns: .named(bytes)
-                        )
-                    ) { box(Bytes(count: try Int($0[0]))) }
-                ),
-                .init(
-                    "count",
-                    .property(
-                        .int,
-                        .readOnly { try Bytes($0).count.value }
-                    )
-                ),
-                .init(
+                .initializer(
+                    parameters: [.init(label: "count", name: "count", type: Int.self)],
+                    returns: .named(bytes)
+                ) { box(Bytes(count: try Int($0[0]))) },
+                .property("count", type: .int) { try Bytes($0).count.value },
+                .staticMethod(
                     "<",
-                    .staticMethod(
-                        Symbol.Function(
-                            parameters: [
-                                .init(name: "lhs", type: .named(bytes)),
-                                .init(name: "rhs", type: .named(bytes)),
-                            ],
-                            returns: .bool
-                        )
-                    ) { (try Bytes($0[0]) < Bytes($0[1])).value }
-                ),
+                    parameters: [
+                        .init(name: "lhs", type: .named(bytes)),
+                        .init(name: "rhs", type: .named(bytes)),
+                    ],
+                    returns: .bool
+                ) { (try Bytes($0[0]) < Bytes($0[1])).value },
             ]
         )
     }
@@ -767,7 +752,7 @@ private struct Status: Error { var code: Int32 }
     let log = Log()
     let swiit = interpreter(log: log)
     swiit.register(
-        HostFunction(name: "fail", returns: .int, isThrowing: true) { _ in
+        HostSymbol.function(name: "fail", returns: .int, isThrowing: true) { _ in
             throw Diagnostic.runtime(
                 "nope",
                 thrown: try Value(encoding: Failure(code: 7)),
@@ -776,7 +761,7 @@ private struct Status: Error { var code: Int32 }
         }
     )
     swiit.register(
-        HostFunction(name: "stop", isThrowing: true) { _ in
+        HostSymbol.function(name: "stop", isThrowing: true) { _ in
             throw Diagnostic.fatal("stopped", cause: Stop())
         }
     )
@@ -929,7 +914,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     nonisolated(unsafe) let running = swiit
     let handle = Symbol.ID(hostType: "Handle")
     swiit.register(
-        HostFunction(name: "spawn", returns: .named(handle)) { _ in
+        HostSymbol.function(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))
         }
     )
@@ -939,15 +924,12 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
         HostType(
             name: "Handle",
             members: [
-                .init(
-                    "wait",
-                    .method(Symbol.Function(returns: .int, isAsync: true)) { receiver, _ in
-                        guard let handle = try? Handle(receiver) else {
-                            throw Diagnostic.runtime("nothing to await")
-                        }
-                        return try running.join(handle.task)
+                .method("wait", returns: .int, isAsync: true) { receiver, _ in
+                    guard let handle = try? Handle(receiver) else {
+                        throw Diagnostic.runtime("nothing to await")
                     }
-                )
+                    return try running.join(handle.task)
+                }
             ]
         )
     )
@@ -996,7 +978,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
 @Test func aHostAsksTheFunctionAStatementCalledForItsAttributes() throws {
     let swiit = interpreter()
     swiit.register(
-        HostFunction(
+        HostSymbol.function(
             name: "quiet",
             returns: Int.self,
             attributes: [Symbol.Attribute(name: "discardableResult")],
@@ -1045,7 +1027,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     let t = Symbol.GenericParameter(name: "T", constraints: [.comparable, .hashable])
     let u: Symbol.GenericParameter = "U"
     swiit.register(
-        HostFunction(
+        HostSymbol.function(
             name: "pick",
             parameters: [
                 Symbol.Parameter(name: "a", type: t.type),

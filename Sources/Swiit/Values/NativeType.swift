@@ -5,66 +5,8 @@ import Foundation
 /// members are checked before the script runs, `==`, `<` and hashing go by the Swift value's own,
 /// and a word of text becomes one through `parse`.
 public struct HostType: Sendable {
-    /// A member of the type. Scripts see its name and signature, which the checker reads, so a use
-    /// of it is checked before it runs; what each kind carries is what that kind has.
-    public struct Member: Sendable {
-        public var name: String
-        /// The line `help` shows.
-        public var summary: String
-        public var kind: Kind
-
-        public init(_ name: String, summary: String = "", _ kind: Kind) {
-            self.name = name
-            self.summary = summary
-            self.kind = kind
-        }
-
-        /// What a member is. A body is called with its arguments in declared order, defaults filled
-        /// in; an instance member's also with the receiver, which scripts do not see as a parameter.
-        public enum Kind: Sendable {
-            case method(
-                Symbol.Function,
-                body: @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
-            )
-            /// A method that changes its receiver, like `append`: it gives its result and the
-            /// receiver as it is now.
-            case mutatingMethod(
-                Symbol.Function,
-                body:
-                    @Sendable (_ receiver: Value, _ arguments: [Value]) throws
-                    -> (result: Value, receiver: Value)
-            )
-            case staticMethod(
-                Symbol.Function,
-                body: @Sendable (_ arguments: [Value]) throws -> Value
-            )
-            case property(ScriptType, Access)
-            case staticProperty(ScriptType, get: @Sendable () throws -> Value)
-            case initializer(
-                Symbol.Function,
-                body: @Sendable (_ arguments: [Value]) throws -> Value
-            )
-            /// An initializer that can fail, which a script sees as one that gives an optional:
-            /// the body gives nothing for a failure.
-            case failableInitializer(
-                Symbol.Function,
-                body: @Sendable (_ arguments: [Value]) throws -> Value
-            )
-        }
-
-        /// What a script can do with a property.
-        public enum Access: Sendable {
-            case readOnly(get: @Sendable (_ receiver: Value) throws -> Value)
-            /// A setter gives the receiver as it is now, which is how a value type changes.
-            case readWrite(
-                get: @Sendable (_ receiver: Value) throws -> Value,
-                set: @Sendable (_ receiver: Value, _ newValue: Value) throws -> Value
-            )
-        }
-    }
-
     public var name: String
-    public var members: [Member]
+    public var members: [HostSymbol]
     /// The protocols its Swift type conforms to, of those Swiit knows: `Equatable`, `Hashable`,
     /// `Comparable`, `Sequence`. A builder finds them from the type.
     var conformances: [String] = []
@@ -82,7 +24,7 @@ public struct HostType: Sendable {
     /// promises hold of it, and of what they leave out.
     public var id: Symbol.ID { .host(name) }
 
-    public init(name: String, members: [Member] = []) {
+    public init(name: String, members: [HostSymbol] = []) {
         self.name = name
         self.members = members
     }
@@ -194,9 +136,10 @@ extension BridgedType {
 }
 
 extension BridgedMember {
-    /// What a script can call, from what a host wrote: a read-write property is a property and its
+    /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
-    static func members(of member: HostType.Member, in typeName: String) -> [BridgedMember] {
+    static func members(of member: HostSymbol, in typeName: String) -> [BridgedMember] {
+        let symbol = member.symbol
         func parameters(_ function: Symbol.Function) -> [Parameter] {
             function.parameters.map { parameter in
                 var made = Parameter(
@@ -243,6 +186,7 @@ extension BridgedMember {
                 isThrowing: function?.isThrowing ?? false,
                 isRethrowing: false,
                 isMutating: isMutating,
+                attributes: symbol.attributes,
                 summary: member.summary,
                 body: .native { _, arguments in try call(arguments) },
                 effect: function?.isAsync == true ? .async : .sync
@@ -250,9 +194,9 @@ extension BridgedMember {
             made.plain = call
             return made
         }
-        switch member.kind {
-        case .method(let function, let body):
-            let order = ordered(function)
+        switch (symbol.kind, member.body) {
+        case (.method(let method), .method(let body)):
+            let function = method.function, order = ordered(function)
             return [
                 make(
                     .method,
@@ -261,8 +205,8 @@ extension BridgedMember {
                     function: function
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
-        case .mutatingMethod(let function, let body):
-            let order = ordered(function)
+        case (.method(let method), .mutatingMethod(let body)):
+            let function = method.function, order = ordered(function)
             return [
                 make(
                     .method,
@@ -275,8 +219,8 @@ extension BridgedMember {
                     return .list([result, receiver])
                 }
             ]
-        case .staticMethod(let function, let body):
-            let order = ordered(function)
+        case (.method(let method), .staticMethod(let body)):
+            let function = method.function, order = ordered(function)
             return [
                 make(
                     .method,
@@ -286,11 +230,14 @@ extension BridgedMember {
                     function: function
                 ) { try body(order($0)) }
             ]
-        case .property(let type, .readOnly(let get)):
+        case (.property(let property), .property(let get)):
             return [
-                make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) }
+                make(.property, returns: TypeAnnotation(property.variable.type)) {
+                    try get($0["self"] ?? .nothing)
+                }
             ]
-        case .property(let type, .readWrite(let get, let set)):
+        case (.property(let property), .settableProperty(let get, let set)):
+            let type = property.variable.type
             return [
                 make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) },
                 make(
@@ -304,11 +251,15 @@ extension BridgedMember {
                     .list([.nothing, try set($0["self"] ?? .nothing, $0["newValue"] ?? .nothing)])
                 },
             ]
-        case .staticProperty(let type, let get):
+        case (.property(let property), .staticProperty(let get)):
             return [
-                make(.property, isStatic: true, returns: TypeAnnotation(type)) { _ in try get() }
+                make(
+                    .property,
+                    isStatic: true,
+                    returns: TypeAnnotation(property.variable.type)
+                ) { _ in try get() }
             ]
-        case .initializer(let function, let body):
+        case (.initializer(let function), .initializer(let body)):
             let order = ordered(function)
             return [
                 make(
@@ -316,22 +267,12 @@ extension BridgedMember {
                     isStatic: true,
                     name: "init",
                     parameters: parameters(function),
-                    returns: .named(typeName),
+                    returns: TypeAnnotation(function.returns),
                     function: function
                 ) { try body(order($0)) }
             ]
-        case .failableInitializer(let function, let body):
-            let order = ordered(function)
-            return [
-                make(
-                    .initializer,
-                    isStatic: true,
-                    name: "init",
-                    parameters: parameters(function),
-                    returns: .optional(.named(typeName)),
-                    function: function
-                ) { try body(order($0)) }
-            ]
+        default:
+            preconditionFailure("\(member.name) is not a member of a type")
         }
     }
 }
@@ -410,7 +351,7 @@ extension HostType {
             return SwiftValue.make(value, as: name)
         }
 
-        private func adding(_ member: Member) -> Builder {
+        private func adding(_ member: HostSymbol) -> Builder {
             var copy = self
             copy.type.members.append(member)
             return copy
@@ -441,13 +382,9 @@ extension HostType {
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
             adding(
-                Member(
-                    name,
-                    .property(
-                        V.scriptType,
-                        .readOnly { try $0.unboxing(T.self)[keyPath: keyPath].value }
-                    )
-                )
+                .property(name, type: V.scriptType) {
+                    try $0.unboxing(T.self)[keyPath: keyPath].value
+                }
             )
         }
 
@@ -460,26 +397,19 @@ extension HostType {
             _ function: @escaping @Sendable (T) -> (repeat each Argument) throws -> Result
         ) -> Builder {
             adding(
-                Member(
+                .method(
                     name,
-                    .method(
-                        Symbol.Function(
-                            parameters: Self.parameters(
-                                repeat (each Argument).self,
-                                labels: labels
-                            ),
-                            returns: Result.scriptType,
-                            isThrowing: throwing
-                        )
-                    ) { receiver, arguments in
-                        var index = 0
-                        func next() -> Value { defer { index += 1 }; return arguments[index] }
-                        return try function(receiver.unboxing(T.self))(
-                            repeat try (each Argument)(next())
-                        )
-                        .value
-                    }
-                )
+                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                    returns: Result.scriptType,
+                    isThrowing: throwing
+                ) { receiver, arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try function(receiver.unboxing(T.self))(
+                        repeat try (each Argument)(next())
+                    )
+                    .value
+                }
             )
         }
 
@@ -491,23 +421,16 @@ extension HostType {
             _ function: @escaping @Sendable (repeat each Argument) throws -> Result
         ) -> Builder {
             adding(
-                Member(
+                .staticMethod(
                     name,
-                    .staticMethod(
-                        Symbol.Function(
-                            parameters: Self.parameters(
-                                repeat (each Argument).self,
-                                labels: labels
-                            ),
-                            returns: Result.scriptType,
-                            isThrowing: throwing
-                        )
-                    ) { arguments in
-                        var index = 0
-                        func next() -> Value { defer { index += 1 }; return arguments[index] }
-                        return try function(repeat try (each Argument)(next())).value
-                    }
-                )
+                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                    returns: Result.scriptType,
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try function(repeat try (each Argument)(next())).value
+                }
             )
         }
 
@@ -519,23 +442,15 @@ extension HostType {
         ) -> Builder {
             let name = type.name
             return adding(
-                Member(
-                    "init",
-                    .initializer(
-                        Symbol.Function(
-                            parameters: Self.parameters(
-                                repeat (each Argument).self,
-                                labels: labels
-                            ),
-                            returns: .named(name),
-                            isThrowing: throwing
-                        )
-                    ) { arguments in
-                        var index = 0
-                        func next() -> Value { defer { index += 1 }; return arguments[index] }
-                        return Self.box(try make(repeat try (each Argument)(next())), as: name)
-                    }
-                )
+                .initializer(
+                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                    returns: .named(.host(name)),
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return Self.box(try make(repeat try (each Argument)(next())), as: name)
+                }
             )
         }
 
@@ -548,24 +463,16 @@ extension HostType {
         ) -> Builder {
             let name = type.name
             return adding(
-                Member(
-                    "init",
-                    .failableInitializer(
-                        Symbol.Function(
-                            parameters: Self.parameters(
-                                repeat (each Argument).self,
-                                labels: labels
-                            ),
-                            returns: .optional(.named(name)),
-                            isThrowing: throwing
-                        )
-                    ) { arguments in
-                        var index = 0
-                        func next() -> Value { defer { index += 1 }; return arguments[index] }
-                        return try make(repeat try (each Argument)(next()))
-                            .map { Self.box($0, as: name) } ?? .nothing
-                    }
-                )
+                .initializer(
+                    parameters: Self.parameters(repeat (each Argument).self, labels: labels),
+                    returns: .named(.optional, [.named(.host(name))]),
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try make(repeat try (each Argument)(next()))
+                        .map { Self.box($0, as: name) } ?? .nothing
+                }
             )
         }
     }
