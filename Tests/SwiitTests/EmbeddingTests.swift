@@ -776,13 +776,6 @@ private struct Status: Error { var code: Int32 }
         }
     )
     swiit.register(
-        HostFunction(name: "elsewhere", isThrowing: true) { _ in
-            try swiit.withErrorOutput(OutputSink { _ in true }) {
-                try swiit.evaluate("1 / 0")
-            }
-        }
-    )
-    swiit.register(
         HostFunction(name: "stop", isThrowing: true) { _ in
             throw Diagnostic.fatal("stopped", cause: Stop())
         }
@@ -802,17 +795,6 @@ private struct Status: Error { var code: Int32 }
         return
     }
     #expect((own as? Status)?.code == 3)
-    // What is raised inside `withErrorOutput` says where it goes; a script's `catch` still sees it.
-    let sent = #expect(throws: Diagnostic.self) { try swiit.evaluate("try elsewhere()") }
-    guard case .sink? = sent?.failure?.destination else {
-        Issue.record("expected the error to go to the scope's output")
-        return
-    }
-    guard case .standard? = failure?.failure?.destination else {
-        Issue.record("expected an error raised outside the scope to go to the host's own")
-        return
-    }
-    #expect(try swiit.evaluate("var r = 0; do { try elsewhere() } catch { r = 1 }; r") == 1)
     // A fatal failure is not caught, runs the defers, and reaches the host.
     let stopped = #expect(throws: Diagnostic.self) {
         try swiit.evaluate(

@@ -12,8 +12,6 @@ struct RuntimeError: Error, CustomStringConvertible {
     public var range: SourceRange?
     /// The functions it unwound out of, innermost first, and where each was called.
     public var calls: [Call] = []
-    /// Where the host prints it, stamped by the scope it was raised in.
-    var destination: Diagnostic.Failure.Destination = .standard
 
     public typealias Call = Diagnostic.Call
 

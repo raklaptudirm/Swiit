@@ -48,27 +48,15 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         public var origin: Origin
         /// The functions it came out of, innermost first, with where each was called.
         public var calls: [Call]
-        /// Where the host prints it.
-        public var destination: Destination
 
         public init(
             thrown: Thrown = .message,
             origin: Origin = .language,
-            calls: [Call] = [],
-            destination: Destination = .standard
+            calls: [Call] = []
         ) {
             self.thrown = thrown
             self.origin = origin
             self.calls = calls
-            self.destination = destination
-        }
-
-        public enum Destination: Sendable {
-            /// The host's own error output.
-            case standard
-            /// The output that `Interpreter.withErrorOutput` set where it was raised, as a shell's
-            /// `f 2>file` sends `f`'s errors to the file.
-            case sink(OutputSink)
         }
 
         public enum Thrown: Sendable, Equatable {
@@ -161,8 +149,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
                 Failure(
                     thrown: error.thrown.map { .value($0) } ?? .message,
                     origin: error.origin,
-                    calls: error.calls,
-                    destination: error.destination
+                    calls: error.calls
                 )
             ),
             message: error.description,
@@ -549,35 +536,6 @@ extension Interpreter {
     /// Asks a run in progress to stop, from any thread. It ends with a
     /// `.cancelled` diagnostic; the next `evaluate` starts afresh.
     public func cancel() { cancellation.request() }
-
-    /// Runs `body` with the errors it raises sent to `output` instead of the host's own: a
-    /// failure that comes out of it, and was not caught inside, says so in its `destination`, for
-    /// the host that prints it. A shell's `f 2>file` is this.
-    public func withErrorOutput<Result>(
-        _ output: OutputSink,
-        _ body: () throws -> Result
-    ) rethrows -> Result {
-        do {
-            return try body()
-        } catch var diagnostic as Diagnostic {
-            switch diagnostic.kind {
-            case .runtime(var failure):
-                if case .standard = failure.destination { failure.destination = .sink(output) }
-                diagnostic.kind = .runtime(failure)
-            case .fatal(var failure):
-                if case .standard = failure.destination { failure.destination = .sink(output) }
-                diagnostic.kind = .fatal(failure)
-            default: break
-            }
-            throw diagnostic
-        } catch var error as RuntimeError {
-            if case .standard = error.destination { error.destination = .sink(output) }
-            throw error
-        } catch var fatal as FatalError {
-            if case .standard = fatal.error.destination { fatal.error.destination = .sink(output) }
-            throw fatal
-        }
-    }
 
     // MARK: Values
 
