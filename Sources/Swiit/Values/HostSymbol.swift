@@ -4,6 +4,9 @@ import Foundation
 /// sees, as a `Symbol` (its name, summary, signature and attributes, which `symbols(named:)` says
 /// of it as they are), and the Swift that runs when it is used.
 ///
+/// What the Swift of a body may rely on, and what it must do, is in the article "What a Swift body
+/// can rely on" (`NativeBodies`).
+///
 /// The two always agree: the only ways to make one are the functions here, and each makes the
 /// `Symbol.Kind` and the body that fit each other, so a static method cannot be given a receiver nor
 /// a settable property no setter.

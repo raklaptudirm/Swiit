@@ -113,9 +113,10 @@ extension Interpreter {
     /// method written without a body (`func next() -> Int`) takes the body registered under its
     /// name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
-    /// may overload it.
+    /// may overload it. The bodies are Swift a host gives the interpreter to run: what they can
+    /// rely on is in "What a Swift body can rely on" (`NativeBodies`).
     public func declare(
-        prelude source: String,
+        _ source: String,
         bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]
     ) throws(Diagnostic) {
         do {

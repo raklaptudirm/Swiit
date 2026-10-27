@@ -813,26 +813,25 @@ private final class Mark: @unchecked Sendable {
 @Test func aHostDeclaresWhatItAddsToTheLanguage() throws {
     let swiit = interpreter()
     try swiit.declare(
-        prelude:
-            """
-            /// A counter the host runs.
-            struct Counter {
-                let start: Int
-                func next() -> Int
-            }
+        """
+        /// A counter the host runs.
+        struct Counter {
+            let start: Int
+            func next() -> Int
+        }
 
-            extension Sequence {
-                /// Keeps the first of each.
-                func firsts(_ count: Int) -> [Any]
-            }
+        extension Sequence {
+            /// Keeps the first of each.
+            func firsts(_ count: Int) -> [Any]
+        }
 
-            extension Int {
-                var doubled: Int { self * 2 }
-            }
+        extension Int {
+            var doubled: Int { self * 2 }
+        }
 
-            /// Says hello.
-            func hello(_ name: String) -> String
-            """,
+        /// Says hello.
+        func hello(_ name: String) -> String
+        """,
         bodies: [
             "Counter.next": { arguments in
                 Value(

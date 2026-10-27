@@ -162,6 +162,25 @@ extension BridgedMember {
             }
             return { arguments in slots.map { arguments[$0.0] ?? $0.1 } }
         }
+        /// A member that changes its receiver, as the glue for a Swift member does: a variable's value
+        /// is moved into a box for the call, which takes the changed one back however the call
+        /// ends, and a value that is not in one comes back with the result.
+        @Sendable func mutating(
+            _ arguments: [String: Value],
+            _ body: (_ receiver: Value) throws -> (result: Value, receiver: Value)
+        ) throws -> Value {
+            let given = arguments["self"] ?? .nothing
+            let mover = ReceiverBox.of(given)
+            let taken = mover?.take() ?? given
+            do {
+                let (result, receiver) = try body(taken)
+                mover?.put(receiver)
+                return .list([result, mover == nil ? receiver : .nothing])
+            } catch {
+                mover?.put(taken)
+                throw error
+            }
+        }
         func make(
             _ kind: BridgedMember.Kind,
             isStatic: Bool = false,
@@ -184,7 +203,12 @@ extension BridgedMember {
                 isMutating: isMutating,
                 attributes: symbol.attributes,
                 summary: member.summary,
-                body: .native { _, arguments in try call(arguments) },
+                // An error it throws is one a script can catch, as a function's is.
+                body: .native { interpreter, arguments in
+                    do { return try call(arguments) } catch {
+                        throw interpreter.hostFailure(error, in: "\(typeName).\(member.name)")
+                    }
+                },
                 effect: function?.isAsync == true ? .async : .sync
             )
             made.plain = call
@@ -210,9 +234,8 @@ extension BridgedMember {
                     returns: TypeAnnotation(function.returns),
                     function: function,
                     isMutating: true
-                ) {
-                    let (result, receiver) = try body($0["self"] ?? .nothing, order($0))
-                    return .list([result, receiver])
+                ) { arguments in
+                    try mutating(arguments) { try body($0, order(arguments)) }
                 }
             ]
         case (.method(let method), .staticMethod(let body)):
@@ -243,8 +266,10 @@ extension BridgedMember {
                     ],
                     returns: .void,
                     isMutating: true
-                ) {
-                    .list([.nothing, try set($0["self"] ?? .nothing, $0["newValue"] ?? .nothing)])
+                ) { arguments in
+                    try mutating(arguments) {
+                        (result: .nothing, receiver: try set($0, arguments["newValue"] ?? .nothing))
+                    }
                 },
             ]
         case (.property(let property), .staticProperty(let get)):
