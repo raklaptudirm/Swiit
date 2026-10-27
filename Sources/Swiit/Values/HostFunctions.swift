@@ -152,7 +152,7 @@ struct SwiitError: Error, CustomStringConvertible {
 ///
 /// It is also how a type is held as it is: a type that is `Sendable` and conforms with no more than
 /// `extension URL: ScriptConvertible {}` is held under its Swift name, by value if it is `Hashable`
-/// and by identity if it is a class, and its registered members are its members (`HostType`). A
+/// and by identity if it is a class, and its registered members are its members (`HostTypeBuilder`). A
 /// type that answers for members it only knows at run time, like a parsed object's keys, says them.
 public protocol ScriptConvertible {
     static var scriptType: ScriptType { get }

@@ -629,39 +629,28 @@ extension Interpreter {
     // MARK: Functions
 
     /// Makes a described function one scripts can call, checked like any they declare. A member of a
-    /// type is registered with its type (`HostType`), so this takes only a function.
+    /// type is registered with its type (`HostTypeBuilder`), so this takes only a function.
     public func register(_ function: HostSymbol) {
         guard function.function != nil else {
             preconditionFailure("\(function.name) is a member of a type: register it with its type")
         }
-        withMainTask { scopes[1].declare(hostFunction(function), named: function.name) }
+        withMainTask {
+            for type in function.enums {
+                scopes[1].bindings[type.name] = Binding(value: .object(type), mutable: false)
+            }
+            scopes[1].declare(hostFunction(function), named: function.name)
+        }
     }
 
-    /// Makes a Swift closure a function scripts can call. Its parameters and
-    /// result convert as SwiitKit's `ScriptConvertible` says, and a script
-    /// sees an ordinary function: `labels` are its argument labels (`nil`
-    /// or missing for none), and a wrong argument is the usual type error.
+    /// Makes a Swift closure a function scripts can call: `HostSymbol.function(_:labels:throwing:_:)`
+    /// registered.
     public func register<each Argument: ScriptConvertible, Result: ScriptConvertible>(
         _ name: String,
         labels: [String?] = [],
         throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Result
     ) {
-        install(
-            name,
-            labels: labels,
-            throwing: throwing,
-            returns: Result.scriptType,
-            enums: Result.swiitEnums,
-            parameterTypes: Self.types(repeat (each Argument).self)
-        ) { arguments in
-            var index = 0
-            func next() -> Value {
-                defer { index += 1 }
-                return arguments[index]
-            }
-            return try body(repeat try (each Argument)(next())).value
-        }
+        register(HostSymbol.function(name, labels: labels, throwing: throwing, body))
     }
 
     /// As above, for a closure that returns nothing.
@@ -671,65 +660,7 @@ extension Interpreter {
         throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Void
     ) {
-        install(
-            name,
-            labels: labels,
-            throwing: throwing,
-            returns: nil,
-            enums: [],
-            parameterTypes: Self.types(repeat (each Argument).self)
-        ) { arguments in
-            var index = 0
-            func next() -> Value {
-                defer { index += 1 }
-                return arguments[index]
-            }
-            try body(repeat try (each Argument)(next()))
-            return .nothing
-        }
-    }
-
-    private static func types<each Argument: ScriptConvertible>(
-        _: repeat (each Argument).Type
-    ) -> [(ScriptType, [Value.EnumCase.Enumeration])] {
-        var types: [(ScriptType, [Value.EnumCase.Enumeration])] = []
-        func add<T: ScriptConvertible>(_: T.Type) { types.append((T.scriptType, T.swiitEnums)) }
-        repeat add((each Argument).self)
-        return types
-    }
-
-    private func install(
-        _ name: String,
-        labels: [String?],
-        throwing: Bool,
-        returns: ScriptType?,
-        enums: [Value.EnumCase.Enumeration],
-        parameterTypes: [(ScriptType, [Value.EnumCase.Enumeration])],
-        call: @escaping @Sendable ([Value]) throws -> Value
-    ) {
-        let parameters = parameterTypes.enumerated()
-            .map { index, entry in
-                let label = labels.indices.contains(index) ? labels[index] : nil
-                return Symbol.Parameter(
-                    label: label,
-                    name: label ?? "argument\(index)",
-                    type: entry.0
-                )
-            }
-        let names = parameters.map(\.name)
-        let function = hostFunction(
-            HostSymbol.function(
-                name: name,
-                parameters: parameters,
-                returnType: returns,
-                isThrowing: throwing,
-                call: { arguments in try call(names.map { arguments[$0] ?? .nothing }) }
-            )
-        )
-        for type in parameterTypes.flatMap(\.1) + enums {
-            scopes[1].bindings[type.name] = Binding(value: .object(type), mutable: false)
-        }
-        scopes[1].declare(function, named: name)
+        register(HostSymbol.function(name, labels: labels, throwing: throwing, body))
     }
 
     // MARK: Running

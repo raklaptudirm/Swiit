@@ -271,7 +271,7 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
     func shout() -> String { label.uppercased() }
 
     static let scriptTypeID = Symbol.ID(hostType: "Node")
-    static let type = HostType.Builder<Node>("Node")
+    static let type = HostTypeBuilder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
 }
@@ -610,17 +610,18 @@ struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
 }
 
 @Suite struct NativeTypeTests {
-    static func bytesType() -> HostType {
+    static func bytesType() -> HostTypeBuilder<Bytes> {
         let bytes = Symbol.ID(hostType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
-        return HostType(
-            name: "Bytes",
-            members: [
+        return HostTypeBuilder<Bytes>("Bytes")
+            .member(
                 .initializer(
                     parameters: [.init(label: "count", name: "count", type: Int.self)],
                     returns: .named(bytes)
-                ) { box(Bytes(count: try Int($0[0]))) },
-                .property("count", type: .int) { try Bytes($0).count.value },
+                ) { box(Bytes(count: try Int($0[0]))) }
+            )
+            .member(.property("count", type: .int) { try Bytes($0).count.value })
+            .member(
                 .staticMethod(
                     "<",
                     parameters: [
@@ -628,9 +629,8 @@ struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
                         .init(name: "rhs", type: .named(bytes)),
                     ],
                     returns: .bool
-                ) { (try Bytes($0[0]) < Bytes($0[1])).value },
-            ]
-        )
+                ) { (try Bytes($0[0]) < Bytes($0[1])).value }
+            )
     }
 
     @Test func aRegisteredTypeIsOneScriptsUse() throws {
@@ -659,7 +659,7 @@ extension URL: ScriptConvertible {}
 @Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
     let swiit = interpreter()
     swiit.register(
-        HostType.Builder<URL>()
+        HostTypeBuilder<URL>()
             .property("host", \.host)
             .property("path", \.path)
             .method("appending", labels: [nil], URL.appendingPathComponent(_:))
@@ -864,7 +864,7 @@ private final class Mark: @unchecked Sendable {
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
     let swiit = interpreter()
     swiit.register(
-        HostType.Builder<Bytes>("Bytes")
+        HostTypeBuilder<Bytes>("Bytes")
             .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
             .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } }
     )
@@ -921,17 +921,15 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     swiit.register(computed: "clock", type: .int) { Value(7) }
     // A handle is awaited by its `async` member, as Swift says it.
     swiit.register(
-        HostType(
-            name: "Handle",
-            members: [
+        HostTypeBuilder<Handle>("Handle")
+            .member(
                 .method("wait", returns: .int, isAsync: true) { receiver, _ in
                     guard let handle = try? Handle(receiver) else {
                         throw Diagnostic.runtime("nothing to await")
                     }
                     return try running.join(handle.task)
                 }
-            ]
-        )
+            )
     )
     #expect(try swiit.evaluate("clock + clock") == 14)
     #expect(try swiit.evaluate("await spawn().wait()") == 42)
@@ -1102,7 +1100,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     }
     let swiit = interpreter()
     swiit.register(
-        HostType.Builder<Lines>("Lines")
+        HostTypeBuilder<Lines>("Lines")
             .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
     )
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])

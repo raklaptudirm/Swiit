@@ -1,6 +1,6 @@
 import Foundation
 
-/// What a host offers a script: a function, or a member of a type (`HostType`). It is what a script
+/// What a host offers a script: a function, or a member of a type (`HostTypeBuilder`). It is what a script
 /// sees, as a `Symbol` (its name, summary, signature and attributes, which `symbols(named:)` says
 /// of it as they are), and the Swift that runs when it is used.
 ///
@@ -11,6 +11,8 @@ public struct HostSymbol: Sendable {
     /// What a script sees.
     public let symbol: Symbol
     let body: Body
+    /// The enums its parameters and result use, which registering it makes known to scripts.
+    var enums: [Value.EnumCase.Enumeration] = []
 
     /// What runs. A body is called with its arguments in declared order, defaults filled in; an
     /// instance member's also with the receiver, which scripts do not see as a parameter.
@@ -160,6 +162,91 @@ extension HostSymbol {
             ),
             call: call
         )
+    }
+}
+
+// MARK: Typed functions
+
+extension HostSymbol {
+    /// The parameters a Swift closure's argument types make, labeled as `labels` says (`nil` or
+    /// missing for none).
+    static func parameters<each Argument: ScriptConvertible>(
+        _: repeat (each Argument).Type,
+        labels: [String?]
+    ) -> [Symbol.Parameter] {
+        var made: [Symbol.Parameter] = []
+        func add<A: ScriptConvertible>(_: A.Type) {
+            let label = labels.indices.contains(made.count) ? labels[made.count] : nil
+            made.append(
+                Symbol.Parameter(label: label, name: label ?? "argument\(made.count)", type: A.self)
+            )
+        }
+        repeat add((each Argument).self)
+        return made
+    }
+
+    private static func enums<each Argument: ScriptConvertible>(
+        _: repeat (each Argument).Type
+    ) -> [Value.EnumCase.Enumeration] {
+        var found: [Value.EnumCase.Enumeration] = []
+        func add<A: ScriptConvertible>(_: A.Type) { found += A.swiitEnums }
+        repeat add((each Argument).self)
+        return found
+    }
+
+    /// A Swift closure as a function scripts can call. Its parameters and result convert as
+    /// `ScriptConvertible` says, and a script sees an ordinary function: `labels` are its argument
+    /// labels (`nil` or missing for none), and a wrong argument is the usual type error.
+    public static func function<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+        _ name: String,
+        summary: String = "",
+        labels: [String?] = [],
+        throwing: Bool = false,
+        _ body: @escaping @Sendable (repeat each Argument) throws -> Result
+    ) -> HostSymbol {
+        var symbol = function(
+            name: name,
+            summary: summary,
+            parameters: parameters(repeat (each Argument).self, labels: labels),
+            returns: Result.scriptType,
+            isThrowing: throwing
+        ) { arguments in
+            var index = 0
+            func next() -> Value {
+                defer { index += 1 }
+                return arguments[index]
+            }
+            return try body(repeat try (each Argument)(next())).value
+        }
+        symbol.enums = enums(repeat (each Argument).self) + Result.swiitEnums
+        return symbol
+    }
+
+    /// As above, for a closure that returns nothing.
+    public static func function<each Argument: ScriptConvertible>(
+        _ name: String,
+        summary: String = "",
+        labels: [String?] = [],
+        throwing: Bool = false,
+        _ body: @escaping @Sendable (repeat each Argument) throws -> Void
+    ) -> HostSymbol {
+        var symbol = function(
+            name: name,
+            summary: summary,
+            parameters: parameters(repeat (each Argument).self, labels: labels),
+            returns: .void,
+            isThrowing: throwing
+        ) { arguments in
+            var index = 0
+            func next() -> Value {
+                defer { index += 1 }
+                return arguments[index]
+            }
+            try body(repeat try (each Argument)(next()))
+            return .nothing
+        }
+        symbol.enums = enums(repeat (each Argument).self)
+        return symbol
     }
 }
 

@@ -6,7 +6,7 @@ import Foundation
 enum PublicSurface {
     static let allowed: Set<String> = [
         "Interpreter", "Value", "ScriptType", "ScriptConvertible",
-        "HostSymbol", "Diagnostic", "OutputSink", "Symbol", "HostType",
+        "HostSymbol", "Diagnostic", "OutputSink", "Symbol", "HostTypeBuilder",
         "ScriptTask", "DisplayStyle",
     ]
 
