@@ -728,13 +728,13 @@ extension URL: ScriptConvertible {}
 @Test func wordsAndValuesConvertToTheTypeAParameterNames() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Kind { case file, directory }")
-    #expect(swiit.parse(word: "5", as: .int) == 5)
-    #expect(swiit.parse(word: "x", as: .int) == nil)
-    #expect(swiit.parse(word: "x", as: .string) == "x")
-    #expect(swiit.parse(word: ".directory", as: swiit.type("Kind"))?.description == "directory")
-    #expect(swiit.parse(word: "nope", as: swiit.type("Kind")) == nil)
-    #expect(swiit.parse(word: "x", as: .optional(.string)) == "x")
-    #expect(swiit.parse(word: "x", as: Symbol.GenericParameter(name: "Element").type) == "x")
+    #expect(swiit.value(from: "5", as: .int) == 5)
+    #expect(swiit.value(from: "x", as: .int) == nil)
+    #expect(swiit.value(from: "x", as: .string) == "x")
+    #expect(swiit.value(from: "x", as: swiit.type("Kind")) == nil)
+    #expect(swiit.isMadeFromText(.int))
+    #expect(!swiit.isMadeFromText(swiit.type("Kind")))
+    #expect(!swiit.isMadeFromText(.list(.int)))
     #expect(
         swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.description == "file"
     )

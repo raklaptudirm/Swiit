@@ -378,17 +378,6 @@ extension Interpreter {
         }
     }
 
-    /// A case from text: its name (`directory` or `.directory`),
-    /// or its raw value.
-    func enumCase(fromText text: String, _ type: Value.EnumCase.Enumeration) -> Value? {
-        let name = text.hasPrefix(".") ? String(text.dropFirst()) : text
-        if let definition = type.case(named: name), definition.labels.isEmpty {
-            return .enumValue(Value.EnumCase(type: type, name: name))
-        }
-        return type.cases.first { $0.labels.isEmpty && $0.rawValue?.description == text }
-            .map { .enumValue(Value.EnumCase(type: type, name: $0.name)) }
-    }
-
     // MARK: Matching
 
     /// Whether `value` matches `pattern`, binding what the pattern names.

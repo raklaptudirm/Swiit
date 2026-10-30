@@ -81,6 +81,12 @@ public struct Symbol: Sendable, Hashable {
             self.name = name
         }
 
+        /// Whether this names a generic parameter (`Element`): a placeholder for a type, which
+        /// nothing is declared under.
+        public var isGenericParameter: Bool {
+            if case .parameter = kind { true } else { false }
+        }
+
         static func host(_ name: String) -> ID { ID(.host, name) }
         static func parameter(_ name: String) -> ID { ID(.parameter, name) }
 
@@ -135,6 +141,7 @@ public struct Symbol: Sendable, Hashable {
         public static let dictionary = ID.host("Dictionary")
         public static let optional = ID.host("Optional")
         public static let function = ID.host("Function")
+        public static let keyPath = ID.host("KeyPath")
         public static let sequence = ID.host("Sequence")
 
         /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
@@ -408,7 +415,7 @@ extension ScriptType {
                     isAsync: effect == .async
                 )
             case .keyPath(let root, let value):
-                .named("KeyPath", [convert(root), convert(value)])
+                .named(.keyPath, [convert(root), convert(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
             case .parameter(let name): .named(.parameter(name))
             case .void: .tuple([])
