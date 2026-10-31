@@ -564,21 +564,26 @@ extension Interpreter {
         }
     }
 
-    /// A value of a type a script declares, made by calling its initializer with `arguments`: how a
-    /// host builds a struct or a class of the program's own, with the declaration's ID, its defaults
-    /// and its checks. It throws for an ID that names no such type: a host type's, another
-    /// interpreter's, or one declared again since.
+    /// A value of a type, made by calling its initializer with `arguments`, as `call` does by the
+    /// type's name but by its ID: how a host builds a struct or a class of the program's own, with
+    /// the declaration's ID, its defaults and its checks, or a Swift type (`Int`, a registered
+    /// `FileSize`) from its initializers. It throws for an ID that names no such type: another
+    /// interpreter's, one declared again since, or a Swift type that is not registered.
     public func make(
         _ type: Symbol.ID,
         arguments: [(label: String?, value: Value)] = []
     ) throws(Diagnostic) -> Value {
         let current = inCurrentTask {
-            if case .declared = type.kind { isCurrent(type) } else { false }
+            switch type.kind {
+            case .declared: isCurrent(type)
+            case .host: bridgedInitializers(of: type.name) != nil
+            case .parameter: false
+            }
         }
         guard current else {
             throw Diagnostic(
                 kind: .type,
-                message: "\(type.name) is not a type this program declares"
+                message: "\(type.name) is not a type this program or the host provides"
             )
         }
         return try call(type.name, arguments: arguments)
@@ -586,9 +591,9 @@ extension Interpreter {
 
     /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments
     /// would: the overload is chosen by the labels and the values given, and what is left out takes
-    /// its default. A struct or enum type given as the receiver calls its static members and
-    /// initializers (`call("init", on: type)`). From a host function it runs in the calling
-    /// script's task; from outside, as the main one.
+    /// its default. Without a receiver the name may be a type's, which calls its initializers, as
+    /// `Point(x: 1)` and `Int("5")` do. From a host function it runs in the calling script's task;
+    /// from outside, as the main one.
     @discardableResult
     public func call(
         _ name: String,
@@ -612,6 +617,10 @@ extension Interpreter {
                         fits = set.candidates.contains { (try? self.bind(written, to: $0)) != nil }
                     }
                     if fits { return try self.evaluate(.call(.literal(methods), written)) }
+                }
+                // `Int("5")`: a Swift type's name calls its initializers.
+                if receiver == nil, let initializers = self.bridgedInitializers(of: name) {
+                    return try self.evaluate(.call(.literal(initializers), written))
                 }
                 let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
                 return try self.evaluate(.call(callee, written))

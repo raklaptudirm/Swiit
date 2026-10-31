@@ -113,6 +113,28 @@ extension Interpreter {
         return try invoke(function, with: ["self": value])
     }
 
+    /// The initializers of a Swift type, as one function to call with the arguments of a script's
+    /// `Int("5")`. A script's call gets this from the checker, which a call from the host skips.
+    /// Nil if there is no such Swift type, or a script declares a type of that name.
+    func bridgedInitializers(of typeName: String) -> Value? {
+        if case .object(let object)? = lookup(typeName)?.value.storage, object is any DeclaredType {
+            return nil
+        }
+        let candidates = (Bridge.types[typeName]?.members ?? [])
+            .filter { $0.kind == .initializer }
+            .compactMap { member -> Function? in
+                guard case .native(let call) = member.body else { return nil }
+                return Function(
+                    name: typeName,
+                    parameters: member.parameters,
+                    returnType: nil,
+                    body: .native { interpreter, arguments in try call(interpreter, arguments) }
+                )
+            }
+        return candidates.isEmpty
+            ? nil : .function(OverloadSet(name: typeName, candidates: candidates))
+    }
+
     /// The Swift methods of a value named `name`, bound to it, looked up when it runs: what a call
     /// on a value whose type the checker did not know (a closure's `$0` in a pipeline stage) finds.
     /// Nil if its type has none.

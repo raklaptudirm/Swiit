@@ -1348,9 +1348,22 @@ private struct Point: Encodable { var x: Int }
     // Through the ID, which must be a type the program declares and still means.
     let id = try #require(swiit.typeID(named: "Point"))
     #expect(try swiit.make(id, arguments: [("x", Value(3))]).typeID == id)
-    #expect(throws: Diagnostic.self) { try swiit.make(.int) }
     try swiit.evaluate("struct Point { var z: Int }")
     #expect(throws: Diagnostic.self) { try swiit.make(id, arguments: [("x", Value(3))]) }
+}
+
+@Test func aHostMakesAValueOfASwiftTypeByCallingItsInitializer() throws {
+    let swiit = interpreter()
+    #expect(try swiit.call("Int", arguments: [(nil, Value("5"))]) == 5)
+    // A failable initializer's nil is the call's result, as in a script.
+    #expect(try swiit.call("Int", arguments: [(nil, Value("x"))]) == .nothing)
+    #expect(try swiit.call("Int", arguments: [(nil, Value("7"))]) == swiit.evaluate(#"Int("7")"#))
+    #expect(try swiit.make(.int, arguments: [(nil, Value("9"))]) == 9)
+    // Not a type, or a Swift type nothing registered.
+    if case .named(let parameter, _) = Symbol.GenericParameter(name: "Element").type {
+        #expect(throws: Diagnostic.self) { try swiit.make(parameter) }
+    }
+    #expect(throws: Diagnostic.self) { try swiit.call("NoSuchType", arguments: [(nil, Value(1))]) }
 }
 
 @Test func aStreamIsMadeOfWhatAValueGives() throws {
