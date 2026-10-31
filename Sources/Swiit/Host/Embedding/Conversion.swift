@@ -7,13 +7,6 @@ extension Interpreter {
         inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
     }
 
-    /// The raw value an enum's declaration gives the case `value` is (`enum Level: Int { case low = 1 }`
-    /// gives 1 for `Level.low`), if the enum has raw values. Nil for any other value. Its cases, labels
-    /// and the rest of its declaration are `symbols(in:)` of its `typeID`.
-    public func rawValue(of value: Value) -> Value? {
-        inCurrentTask { value.enumCase?.rawValue }
-    }
-
     /// A case without associated values of an enum a script or the host declared:
     /// `value(ofCase: "directory", in: "FileType")`. Nil if there is no such enum or case.
     public func value(forCase name: String, in enumType: Symbol.ID) -> Value? {

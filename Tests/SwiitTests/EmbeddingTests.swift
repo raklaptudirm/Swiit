@@ -520,7 +520,7 @@ extension Value {
     // An enum's case, and the declaration kind of a type.
     let high = try swiit.evaluate("Level.high")
     #expect(high.typeID?.name == "Level" && high.mirror.displayStyle == .enum)
-    #expect(swiit.rawValue(of: high) == Value(2))
+    #expect(high.rawValue == Value(2))
     #expect(swiit.symbols(named: "Point").first?.kind == .structure)
     #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
     #expect(swiit.symbols(named: "twice").first?.function != nil)
@@ -1273,7 +1273,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     )
     let high = try swiit.evaluate("Level.high")
     #expect(high.typeID == swiit.typeID(named: "Level"))
-    #expect(swiit.rawValue(of: high) == Value(2))
+    #expect(high.rawValue == Value(2))
     #expect(high.mirror.children.isEmpty)  // a case that carries nothing is its description
     // What it carries is one child labeled with the case's name, as Swift's own mirror has it: a
     // tuple of the values, each under its label or, without one, its position.
@@ -1283,8 +1283,8 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     let carried = try #require(failedValue.mirror.children.first?.value as? Value)
     #expect(carried.entry("code") == Value(2))
     #expect(carried.entry("1") == nil)  // an unlabeled one has no label
-    #expect(swiit.rawValue(of: failedValue) == nil)
-    #expect(swiit.rawValue(of: Value(3)) == nil)
+    #expect(failedValue.rawValue == nil)
+    #expect(Value(3).rawValue == nil)
     // One unlabeled value is the child itself.
     try swiit.evaluate("enum Wrapped { case one(Int) }")
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
