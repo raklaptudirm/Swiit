@@ -278,7 +278,7 @@ extension Interpreter {
             if name == "Character", case .string(let text) = value.storage, text.count == 1 {
                 return value
             }
-            // Text where a Swift type that can be a text literal is wanted (`FilePath`, `Substring`),
+            // Text where a Swift type that can be a text literal is wanted (`Substring`),
             // as a literal of it would be.
             if case .string(let text) = value.storage, let literal = Bridge.types[name]?.literal,
                 let made = literal(text)

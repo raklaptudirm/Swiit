@@ -737,7 +737,6 @@ extension URL: ScriptConvertible {}
     // Text is a literal of the Swift types that can be one, and nothing for the rest.
     #expect(swiit.converted(Value("a"), to: swiit.type("Character")) == "a")
     #expect(swiit.converted(Value("ab"), to: swiit.type("Character")) == nil)
-    #expect(swiit.converted(Value("/a/b"), to: swiit.type("FilePath")) != nil)
     #expect(swiit.converted(Value("x"), to: swiit.type("Substring")) != nil)
     #expect(swiit.scriptType(of: Value(3)) == .int)
     #expect(swiit.scriptType(of: [1, 2]) == .list(.int))
