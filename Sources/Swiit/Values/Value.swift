@@ -621,11 +621,6 @@ extension Value {
         }
     }
 
-    /// The raw value the declaration of an enum gives the case this is (`enum Level: Int { case low = 1 }`
-    /// gives 1 for `Level.low`), if the enum has raw values. Nil for any other value. Its cases, labels
-    /// and the rest of its declaration are `symbols(in:)` of its `typeID`.
-    public var rawValue: Value? { enumCase?.rawValue }
-
     /// The type the value is of, as an ID: a script's struct, enum or class by its declaration's,
     /// a Swift type's by its name, and `Int`, `String`, `Array`, `Optional` (for `nil`) and the
     /// rest of Swift's own. Nil for a tuple or a function, which no type declares. The ID may name

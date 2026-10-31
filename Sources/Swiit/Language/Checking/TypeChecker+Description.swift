@@ -101,11 +101,13 @@ struct TypeProfile {
 
     func payload(of name: String) -> [AssociatedValue]? { cases.first { $0.name == name }?.payload }
 
-    /// What Swift synthesizes for an enum: `rawValue` where it has raw values, `allCases` where no
+    /// What Swift synthesizes for an enum: `rawValue` and the `RawRepresentable` conformance where it
+    /// has raw values, `allCases` where no
     /// case has associated values. (A Swiit enum isn't a Swift type the bridge could describe, so
     /// they are made here.)
     mutating func addSynthesizedEnumMembers() {
         if let rawType {
+            conformances.append("RawRepresentable")
             declared.properties["rawValue"] = MemberProperty(
                 type: rawType,
                 isSettable: false,

@@ -143,6 +143,7 @@ public struct Symbol: Sendable, Hashable {
         public static let function = ID.host("Function")
         public static let keyPath = ID.host("KeyPath")
         public static let sequence = ID.host("Sequence")
+        public static let rawRepresentable = ID.host("RawRepresentable")
 
         /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
         /// conformance would offer to every host.
