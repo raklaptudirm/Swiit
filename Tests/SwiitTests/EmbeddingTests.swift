@@ -6,7 +6,9 @@ import Testing
 
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
-    fileprivate func type(_ name: String) -> ScriptType { .named(typeID(named: name)!) }
+    fileprivate func type(_ name: String) -> ScriptType {
+        .named(Symbol.ID(named: name, in: self)!)
+    }
 }
 
 private final class Log: @unchecked Sendable {
@@ -315,18 +317,18 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
     swiit.register("greet", labels: ["name"]) { (name: String) in "hello, \(name)" }
     swiit.register("check", throwing: true) { (x: Int) throws -> Int in x }
     _ = try swiit.evaluate("func area(width: Int, height: Int = 1) -> Int { width * height }")
-    let names = Set(swiit.symbols().map(\.name))
+    let names = Set(swiit.globals().map(\.name))
     #expect(names.isSuperset(of: ["area", "check", "greet"]))
     #expect(names.contains("print"))
-    let area = try #require(swiit.symbols(named: "area").first)
+    let area = try #require(swiit.globals(named: "area").first)
     let function = try #require(area.function)
     #expect(function.parameters.map(\.label) == ["width", "height"])
     #expect(function.parameters.map(\.arity) == [.required, .defaulted(.value(1))])
     #expect(function.returns == .int)
-    #expect(try #require(swiit.symbols(named: "check").first?.function).isThrowing)
+    #expect(try #require(swiit.globals(named: "check").first?.function).isThrowing)
     // The interpreter's own are found by name, not listed.
-    #expect(!swiit.symbols(named: "print").isEmpty)
-    #expect(swiit.symbols(named: "nosuch").isEmpty)
+    #expect(!swiit.globals(named: "print").isEmpty)
+    #expect(swiit.globals(named: "nosuch").isEmpty)
 }
 
 @Test func aHostAsksWhatAMembersAreAndWhichOverloadACallMeans() throws {
@@ -338,7 +340,7 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
         func f(_ s: String) -> String { "string" }
         """
     )
-    let members = swiit.symbols(in: swiit.type("Point"))
+    let members = swiit.type("Point").members(in: swiit)
     #expect(
         Set(
             members.filter {
@@ -367,7 +369,7 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
         }
     )
     #expect(
-        swiit.symbols(named: "f").allSatisfy { if case .function = $0.kind { true } else { false } }
+        swiit.globals(named: "f").allSatisfy { if case .function = $0.kind { true } else { false } }
     )
     // And what belongs to the type: its memberwise initializer.
     let initializers = members.filter {
@@ -376,21 +378,21 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
     #expect(initializers.count == 1)
     #expect(try swiit.scriptType(ofExpression: "Point(x: 1)") == swiit.type("Point"))
     #expect(try swiit.scriptType(ofExpression: "[1, 2].map { $0 + 1 }") == .list(.int))
-    let overloads = swiit.symbols(named: "f")
+    let overloads = swiit.globals(named: "f")
     #expect(
-        try swiit.overload(among: overloads, arguments: [.init(type: .string)]).function?
+        try overloads.overload(arguments: [.init(type: .string)], in: swiit).function?
             .returns == .string
     )
     #expect(
-        try swiit.overload(among: overloads, arguments: [.init(type: .int)]).function?
+        try overloads.overload(arguments: [.init(type: .int)], in: swiit).function?
             .parameters.first?
             .type
             == .int
     )
     #expect(throws: Diagnostic.self) {
-        try swiit.overload(among: overloads, arguments: [.init(type: .bool)])
+        try overloads.overload(arguments: [.init(type: .bool)], in: swiit)
     }
-    let sorted = swiit.symbols(named: "sorted", in: .list(.int))
+    let sorted = ScriptType.list(.int).members(named: "sorted", in: swiit)
     #expect(!sorted.isEmpty)
 }
 
@@ -414,7 +416,7 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
     swiit["node"] = Value(node)
     swiit.register(Node.type)
     #expect(
-        Set(swiit.symbols(in: .named(Node.scriptTypeID)).map(\.name))
+        Set(ScriptType.named(Node.scriptTypeID).members(in: swiit).map(\.name))
             .isSuperset(of: ["label", "shout"])
     )
     #expect(try swiit.evaluate("node.shout()") == "A")
@@ -521,12 +523,12 @@ extension Value {
     let high = try swiit.evaluate("Level.high")
     #expect(high.typeID?.name == "Level" && high.mirror.displayStyle == .enum)
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
-    #expect(swiit.symbols(named: "Point").first?.kind == .structure)
-    #expect(swiit.symbols(named: "Level").first?.kind == .enumeration)
-    #expect(swiit.symbols(named: "twice").first?.function != nil)
+    #expect(swiit.globals(named: "Point").first?.kind == .structure)
+    #expect(swiit.globals(named: "Level").first?.kind == .enumeration)
+    #expect(swiit.globals(named: "twice").first?.function != nil)
     swiit["limit"] = 3
     #expect(
-        swiit.symbols(named: "limit").first?.kind == .variable(Symbol.Variable(type: .int))
+        swiit.globals(named: "limit").first?.kind == .variable(Symbol.Variable(type: .int))
     )
 }
 
@@ -569,16 +571,16 @@ extension Value {
     )
     #expect(try swiit.evaluate("scale(3, by: 4)") == 12)
     #expect(throws: Diagnostic.self) { try swiit.evaluate(#"scale("a", by: 4)"#) }
-    let scale = try #require(swiit.symbols(named: "scale").first)
+    let scale = try #require(swiit.globals(named: "scale").first)
     #expect(
         scale.function?.parameters.map(\.type) == [.int, .int] && scale.function?.returns == .int
     )
-    #expect(!swiit.symbols(named: "sorted", in: [Int].self).isEmpty)
+    #expect(!ScriptType([Int].self).members(named: "sorted", in: swiit).isEmpty)
     #expect(
-        try swiit
+        try [scale]
             .overload(
-                among: [scale],
-                arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)]
+                arguments: [.init(type: Int.self), .init(label: "by", type: Int.self)],
+                in: swiit
             )
             .name == "scale"
     )
@@ -722,16 +724,17 @@ extension URL: ScriptConvertible {}
     #expect(throws: Diagnostic.self) { try swiit.check(#"print("ran"); let x: Int = "s""#) }
     #expect(log.text == "")
     // Nothing was declared by checking.
-    #expect(swiit.symbols(named: "f").isEmpty)
+    #expect(swiit.globals(named: "f").isEmpty)
 }
 
 @Test func wordsAndValuesConvertToTheTypeAParameterNames() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Kind { case file, directory }")
     #expect(
-        swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.description == "file"
+        Symbol.ID(named: "Kind", in: swiit)!.enumCase(named: "file", in: swiit)?.description
+            == "file"
     )
-    #expect(swiit.value(forCase: "nope", in: swiit.typeID(named: "Kind")!) == nil)
+    #expect(Symbol.ID(named: "Kind", in: swiit)!.enumCase(named: "nope", in: swiit) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
     #expect(swiit.converted(Value("3"), to: .int) == nil)
     // A Character is held as a one-letter String. Any other Swift type text is not, as in Swift,
@@ -854,8 +857,8 @@ private final class Mark: @unchecked Sendable {
     #expect(try swiit.evaluate("3.doubled") == 6)
     #expect(try swiit.evaluate(#"hello("you")"#) == "hello, you")
     // What the host declared is the host's.
-    #expect(swiit.symbols(named: "hello").first?.isBuiltin == true)
-    #expect(!swiit.symbols(named: "firsts", in: .list(.int)).isEmpty)
+    #expect(swiit.globals(named: "hello").first?.isBuiltin == true)
+    #expect(!ScriptType.list(.int).members(named: "firsts", in: swiit).isEmpty)
 }
 
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
@@ -1012,7 +1015,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     #expect(told["9"] == ["discardableResult"])
     #expect(told["2"] == [])
     // And a symbol lookup says the same of what is declared.
-    let bump = swiit.symbols(named: "bump").first
+    let bump = swiit.globals(named: "bump").first
     #expect(bump?.attributes.contains(named: "discardableResult") == true)
 }
 
@@ -1033,12 +1036,12 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
             body: { $0[0] }
         )
     )
-    let pick = swiit.symbols(named: "pick").first?.function
+    let pick = swiit.globals(named: "pick").first?.function
     #expect(
         pick?.generics == [t, u]
     )
     // A Swift member's, with what it asks of its type: `sorted()` needs a Comparable element.
-    let sorted = swiit.symbols(named: "sorted", in: .list(.int)).compactMap(\.function)
+    let sorted = ScriptType.list(.int).members(named: "sorted", in: swiit).compactMap(\.function)
     #expect(
         sorted.contains {
             $0.generics.contains {
@@ -1124,10 +1127,10 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
             arguments: [(nil, Value(0)), (nil, try swiit.evaluate("{ $0 + $1 }"))]
         ) == 6
     )
-    let reduce = swiit.symbols(named: "reduce", in: .list(.int))
+    let reduce = ScriptType.list(.int).members(named: "reduce", in: swiit)
     #expect(
-        try swiit
-            .overload(among: reduce, arguments: [.init(type: .int), .init(type: .callable)])
+        try reduce
+            .overload(arguments: [.init(type: .int), .init(type: .callable)], in: swiit)
             .name
             == "reduce"
     )
@@ -1138,40 +1141,40 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
 @Test func aDeclaredTypeIsToldApartFromAnotherOfTheSameName() throws {
     let swiit = interpreter()
     try swiit.evaluate("struct Point { var x = 0 }")
-    let first = try #require(swiit.typeID(named: "Point"))
+    let first = try #require(Symbol.ID(named: "Point", in: swiit))
     try swiit.evaluate("struct Point { var y = 0 }")
-    let second = try #require(swiit.typeID(named: "Point"))
+    let second = try #require(Symbol.ID(named: "Point", in: swiit))
     #expect(first != second)
     // Both IDs still resolve, to their own declarations; a type written with the stale one is no
     // longer the type its name means.
-    #expect(swiit.symbol(for: first)?.kind == .structure)
-    #expect(swiit.symbol(for: second)?.id == second)
-    #expect(swiit.symbols(in: .named(first)).isEmpty)
-    #expect(!swiit.symbols(in: .named(second)).isEmpty)
+    #expect(first.symbol(in: swiit)?.kind == .structure)
+    #expect(second.symbol(in: swiit)?.id == second)
+    #expect(ScriptType.named(first).members(in: swiit).isEmpty)
+    #expect(!ScriptType.named(second).members(in: swiit).isEmpty)
 }
 
 @Test func anIDFromAnotherInterpreterNamesNothing() throws {
     let one = interpreter(), two = interpreter()
     try one.evaluate("struct Point { var x = 0 }")
     try two.evaluate("struct Point { var x = 0 }")
-    let id = try #require(one.typeID(named: "Point"))
-    #expect(id != two.typeID(named: "Point"))
-    #expect(two.symbol(for: id) == nil)
+    let id = try #require(Symbol.ID(named: "Point", in: one))
+    #expect(id != Symbol.ID(named: "Point", in: two))
+    #expect(id.symbol(in: two) == nil)
 }
 
 @Test func hostAndParameterIDsAreByName() throws {
     let swiit = interpreter()
-    #expect(swiit.symbol(for: .int)?.name == "Int")
-    #expect(swiit.typeID(named: "Int") == .int)
+    #expect(Symbol.ID.int.symbol(in: swiit)?.name == "Int")
+    #expect(Symbol.ID(named: "Int", in: swiit) == .int)
     #expect(Symbol.ID(hostType: "Int") == .int)
     // A host type nobody registered names nothing, and a script's type is never a host's.
-    #expect(swiit.symbol(for: Symbol.ID(hostType: "Nope")) == nil)
+    #expect(Symbol.ID(hostType: "Nope").symbol(in: swiit) == nil)
     try swiit.evaluate("struct Int2 { var x = 0 }")
-    #expect(swiit.typeID(named: "Int2") != Symbol.ID(hostType: "Int2"))
+    #expect(Symbol.ID(named: "Int2", in: swiit) != Symbol.ID(hostType: "Int2"))
     // A parameter is a reference with nothing under it.
     let element = Symbol.GenericParameter(name: "Element").type
     guard case .named(let parameter, _) = element else { return }
-    #expect(swiit.symbol(for: parameter) == nil)
+    #expect(parameter.symbol(in: swiit) == nil)
     #expect(parameter != Symbol.ID(hostType: "Element"))
 }
 
@@ -1191,9 +1194,9 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     #expect(Value.nothing.typeID == .optional)
     #expect(try interpreter().evaluate("(a: 1)").typeID == nil)
     let point = try swiit.evaluate("Point(x: 1)")
-    #expect(point.typeID == swiit.typeID(named: "Point"))
-    #expect(try swiit.evaluate("Level.low").typeID == swiit.typeID(named: "Level"))
-    #expect(try swiit.evaluate("Dog()").typeID == swiit.typeID(named: "Dog"))
+    #expect(point.typeID == Symbol.ID(named: "Point", in: swiit))
+    #expect(try swiit.evaluate("Level.low").typeID == Symbol.ID(named: "Level", in: swiit))
+    #expect(try swiit.evaluate("Dog()").typeID == Symbol.ID(named: "Dog", in: swiit))
     // A struct value of a Swift type is a host ID, by name, and names nothing registered.
     let encoded = try Value(encoding: Point(x: 1))
     #expect(encoded.typeID == Symbol.ID(hostType: "Point"))
@@ -1209,9 +1212,9 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
         class Dog: Animal { }
         """
     )
-    let point = try #require(swiit.typeID(named: "Point"))
-    let animal = try #require(swiit.typeID(named: "Animal"))
-    let dog = try #require(swiit.typeID(named: "Dog"))
+    let point = try #require(Symbol.ID(named: "Point", in: swiit))
+    let animal = try #require(Symbol.ID(named: "Animal", in: swiit))
+    let dog = try #require(Symbol.ID(named: "Dog", in: swiit))
     #expect(try swiit.evaluate("Point(x: 1)").isInstance(of: point))
     #expect(try swiit.evaluate("Dog()").isInstance(of: dog))
     #expect(try swiit.evaluate("Dog()").isInstance(of: animal))  // a subclass is its superclass
@@ -1236,7 +1239,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     // The old value still has the old type's members, and is not an instance of the new one.
     #expect(try swiit.evaluate("old.twice") == 4)
     #expect(try swiit.evaluate("Point(x: 2).twice") == 6)
-    #expect(!old.isInstance(of: try #require(swiit.typeID(named: "Point"))))
+    #expect(!old.isInstance(of: try #require(Symbol.ID(named: "Point", in: swiit))))
 }
 
 @Test func aHostReadsAValueThroughCastAndTheViews() throws {
@@ -1272,7 +1275,7 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
         """
     )
     let high = try swiit.evaluate("Level.high")
-    #expect(high.typeID == swiit.typeID(named: "Level"))
+    #expect(high.typeID == Symbol.ID(named: "Level", in: swiit))
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
     #expect(high.mirror.children.isEmpty)  // a case that carries nothing is its description
     // What it carries is one child labeled with the case's name, as Swift's own mirror has it: a
@@ -1286,17 +1289,17 @@ private final class Handle: ScriptConvertible, CustomStringConvertible, @uncheck
     #expect((try? swiit.value(forMember: "rawValue", of: failedValue)) == nil)
     #expect((try? swiit.value(forMember: "rawValue", of: Value(3))) == nil)
     // An enum with a raw type is RawRepresentable, as in Swift; the others are not.
-    let level = ScriptType.named(try #require(swiit.typeID(named: "Level")))
-    let outcome = ScriptType.named(try #require(swiit.typeID(named: "Outcome")))
+    let level = ScriptType.named(try #require(Symbol.ID(named: "Level", in: swiit)))
+    let outcome = ScriptType.named(try #require(Symbol.ID(named: "Outcome", in: swiit)))
     #expect(level.conforms(to: .rawRepresentable, in: swiit))
     #expect(!outcome.conforms(to: .rawRepresentable, in: swiit))
     // One unlabeled value is the child itself.
     try swiit.evaluate("enum Wrapped { case one(Int) }")
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
-    let symbol = try #require(failedValue.typeID.flatMap(swiit.symbol(for:)))
+    let symbol = try #require(failedValue.typeID.flatMap { $0.symbol(in: swiit) })
     #expect(symbol.kind == .enumeration)
-    let cases = swiit.symbols(in: .named(try #require(failedValue.typeID)))
+    let cases = ScriptType.named(try #require(failedValue.typeID)).members(in: swiit)
         .filter { if case .enumCase = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
 }
@@ -1347,11 +1350,11 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     try swiit.evaluate("struct Point { var x: Int; var y = 0 }")
     let point = try swiit.call("Point", arguments: [("x", Value(1)), ("y", Value(2))])
-    #expect(point.typeID == swiit.typeID(named: "Point"))
+    #expect(point.typeID == Symbol.ID(named: "Point", in: swiit))
     #expect(point.mirror.children.map(\.label) == ["x", "y"])
     #expect(try swiit.evaluate("Point(x: 1, y: 2)") == point)
     // Through the ID, which must be a type the program declares and still means.
-    let id = try #require(swiit.typeID(named: "Point"))
+    let id = try #require(Symbol.ID(named: "Point", in: swiit))
     #expect(try swiit.make(id, arguments: [("x", Value(3))]).typeID == id)
     try swiit.evaluate("struct Point { var z: Int }")
     #expect(throws: Diagnostic.self) { try swiit.make(id, arguments: [("x", Value(3))]) }

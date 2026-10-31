@@ -41,7 +41,7 @@ extension Symbol.Parameter {
 /// `overload` and `scriptType(of:)` speak. Swift's type grammar is small and closed, and so
 /// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
 /// `Set<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
-/// class is a fact about its declaration: `symbols(named:)` says.
+/// class is a fact about its declaration: `Interpreter.globals(named:)` says.
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     case named(Symbol.ID, [ScriptType] = [])
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.

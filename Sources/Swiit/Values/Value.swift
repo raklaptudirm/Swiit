@@ -624,7 +624,7 @@ extension Value {
     /// The type the value is of, as an ID: a script's struct, enum or class by its declaration's,
     /// a Swift type's by its name, and `Int`, `String`, `Array`, `Optional` (for `nil`) and the
     /// rest of Swift's own. Nil for a tuple or a function, which no type declares. The ID may name
-    /// nothing the interpreter knows (an encoded Swift value's), and `Interpreter.symbol(for:)`
+    /// nothing the interpreter knows (an encoded Swift value's), and `Symbol.ID.symbol(in:)`
     /// then gives nil.
     public var typeID: Symbol.ID? {
         switch self.storage {

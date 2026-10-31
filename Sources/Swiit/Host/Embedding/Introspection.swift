@@ -47,9 +47,9 @@ public struct Symbol: Sendable, Hashable {
     public internal(set) var id: ID?
 
     /// Names a type, or stands where one would be: what `register` gives back, what
-    /// `Interpreter.typeID(named:)` finds, what `Value.typeID` has, and what `ScriptType.named` and
+    /// `Symbol.ID(named:in:)` finds, what `Value.typeID` has, and what `ScriptType.named` and
     /// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
-    /// `typeID(named:)`, `Symbol.id`, a value's `typeID`), and mints one only for a Swift type it
+    /// `Symbol.ID(named:in:)`, `Symbol.id`, a value's `typeID`), and mints one only for a Swift type it
     /// registers (`init(hostType:)`).
     ///
     /// An ID is one of three kinds:
@@ -63,7 +63,7 @@ public struct Symbol: Sendable, Hashable {
     ///   type, which has no module in it. Host types are process-wide and one per name, as the
     ///   registry they live in is: two Swift types of one name in different modules collide, and an
     ///   encoded value carries only the name. An ID of this kind may name nothing (a type not
-    ///   registered, or an encoded value's), and `Interpreter.symbol(for:)` then gives nil.
+    ///   registered, or an encoded value's), and `Symbol.ID.symbol(in:)` then gives nil.
     /// - **Parameter**: a generic parameter (`Element`), by name, with nothing declared under it.
     ///
     /// IDs are equal when they are the same kind and the same declaration, or the same name. They
@@ -108,7 +108,7 @@ public struct Symbol: Sendable, Hashable {
         /// that is a static property, a type's own members that name it. It equals the ID
         /// `register` gives for the type of that name, and the same name's in another interpreter,
         /// and can never equal a script's type. Everywhere else, pass around what `register` gave
-        /// back, or ask `typeID(named:)`.
+        /// back, or ask `Symbol.ID(named:in:)`.
         public init(hostType name: String) { self.init(.host, name) }
 
         public var description: String { name }
@@ -151,7 +151,7 @@ public struct Symbol: Sendable, Hashable {
     }
 
     /// What a symbol is. A type is one of the five Swift declares; what it has is for
-    /// `symbols(named:in:)` to say.
+    /// `ScriptType.members(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
         /// A function, as a script declares or a host registers one.
         case function(Function)
@@ -447,14 +447,15 @@ extension Interpreter {
 typealias GenericParameter = Symbol.GenericParameter
 
 extension Interpreter {
-    /// Everything a name can mean: with no `type`, the globals (functions, variables and types, all
-    /// of them without a `name`, the core's builtins too); with one, what the type has: the
-    /// methods and properties of its values (a struct's, a host object's, a bridged type's, the
-    /// sequence methods of a list), and what belongs to the type itself, marked `isStatic`: its
-    /// static members, its initializers and the cases of an enum.
-    public func symbols(named name: String? = nil, in type: ScriptType? = nil) -> [Symbol] {
+    /// What the program and the host have declared for scripts to name: functions, variables and
+    /// types, all of them without a `name`, the core's builtins too. `ScriptType.members(named:in:)`
+    /// says what a type has.
+    public func globals(named name: String? = nil) -> [Symbol] {
+        withMainTask { globalSymbols(named: name) }
+    }
+
+    func members(of type: ScriptType, named name: String?) -> [Symbol] {
         withMainTask {
-            guard let type else { return globalSymbols(named: name) }
             guard var annotation = self.annotation(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
             if case .named(let typeName) = annotation,
@@ -465,14 +466,6 @@ extension Interpreter {
             }
             return memberSymbols(named: name, of: annotation)
         }
-    }
-
-    /// The members a Swift type has for scripts: `symbols(named: "sorted", of: [Int].self)`.
-    public func symbols<T: ScriptConvertible>(
-        named name: String? = nil,
-        in type: T.Type
-    ) -> [Symbol] {
-        symbols(named: name, in: ScriptType(type))
     }
 
     private func globalSymbols(named name: String?) -> [Symbol] {
@@ -630,7 +623,7 @@ extension Interpreter {
         return made
     }
 
-    /// What a type has, for `symbols(named:in:)`: its instance members, its static ones, its
+    /// What a type has, for `ScriptType.members(named:in:)`: its instance members, its static ones, its
     /// initializers, and the cases of an enum. `rawValues` says the raw values of enums not yet
     /// declared (as `check` reads them), by enum and case.
     func memberSymbols(
@@ -788,7 +781,7 @@ extension Interpreter {
             }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which
-        // `symbols(of: .named("Sequence"))` lists alone.
+        // `ScriptType.named(.sequence).members(in:)` lists alone.
         var holder: TypeAnnotation?
         if case .list(let element) = type {
             holder = element
@@ -842,18 +835,11 @@ extension Interpreter {
         public var kind: Kind
     }
 
-    /// The ID of the type a script can name `name`: one it or the host declares, or one of Swift's
-    /// the core bridges. Nil when there is none. A host asks once, after loading the source that
-    /// declares the type, and keeps the answer.
-    public func typeID(named name: String) -> Symbol.ID? {
-        (symbols(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
+    func typeID(named name: String) -> Symbol.ID? {
+        (globals(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
     }
 
-    /// What an ID names: a script's declaration (even one a later declaration of the same name
-    /// hides), or a type the host registers or the core bridges. Nil for an ID that names nothing:
-    /// a Swift type that is not registered (an encoded value's), a declared type of another
-    /// interpreter, a generic parameter.
-    public func symbol(for id: Symbol.ID) -> Symbol? {
+    func symbol(for id: Symbol.ID) -> Symbol? {
         withMainTask {
             switch id.kind {
             case .declared:
@@ -888,7 +874,7 @@ extension Interpreter {
         return current(type) ? TypeAnnotation(type) : nil
     }
 
-    /// Every type a script can name, its members to be had from `symbols(of:)`: those scripts and
+    /// Every type a script can name, its members to be had from `ScriptType.members(named:in:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public var types: [Symbol] {
         withMainTask {
@@ -919,10 +905,7 @@ extension Interpreter {
         }
     }
 
-    /// Which of the candidates a call with these arguments means: by their labels and types, the
-    /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
-    /// or several do.
-    public func overload(
+    func overload(
         among candidates: [Symbol],
         arguments: [ScriptType.Element]
     ) throws(Diagnostic) -> Symbol {
@@ -1163,5 +1146,48 @@ extension Interpreter {
         } catch {
             throw Diagnostic.of(error)
         }
+    }
+}
+
+// MARK: Looking up what a type is and has
+
+extension Symbol.ID {
+    /// The ID of the type a script can name `name`: one it or the host declares, or one of Swift's
+    /// the core bridges. Nil when there is none. A host asks once, after loading the source that
+    /// declares the type, and keeps the answer.
+    public init?(named name: String, in interpreter: Interpreter) {
+        guard let id = interpreter.typeID(named: name) else { return nil }
+        self = id
+    }
+
+    /// What the ID names: a script's declaration (even one a later declaration of the same name
+    /// hides), or a type the host registers or the core bridges. Nil for an ID that names nothing:
+    /// a Swift type that is not registered (an encoded value's), a declared type of another
+    /// interpreter, a generic parameter.
+    public func symbol(in interpreter: Interpreter) -> Symbol? {
+        interpreter.symbol(for: self)
+    }
+}
+
+extension ScriptType {
+    /// What the type has: the methods and properties of its values (a struct's, a host object's, a
+    /// bridged type's, the sequence methods of a list), and what belongs to the type itself, marked
+    /// `isStatic`: its static members, its initializers and the cases of an enum. Only those
+    /// called `name`, if one is given. `ScriptType(Int.self).members(in: interpreter)` is what a
+    /// Swift type has for scripts.
+    public func members(named name: String? = nil, in interpreter: Interpreter) -> [Symbol] {
+        interpreter.members(of: self, named: name)
+    }
+}
+
+extension Sequence where Element == Symbol {
+    /// Which of these functions a call with these arguments means: by their labels and types, the
+    /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
+    /// or several do.
+    public func overload(
+        arguments: [ScriptType.Element],
+        in interpreter: Interpreter
+    ) throws(Diagnostic) -> Symbol {
+        try interpreter.overload(among: Array(self), arguments: arguments)
     }
 }

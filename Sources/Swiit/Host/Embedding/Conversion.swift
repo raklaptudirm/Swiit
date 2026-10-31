@@ -7,9 +7,7 @@ extension Interpreter {
         inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
     }
 
-    /// A case without associated values of an enum a script or the host declared:
-    /// `value(ofCase: "directory", in: "FileType")`. Nil if there is no such enum or case.
-    public func value(forCase name: String, in enumType: Symbol.ID) -> Value? {
+    func value(forCase name: String, in enumType: Symbol.ID) -> Value? {
         inCurrentTask {
             guard let type = self.enumType(named: enumType.name),
                 let definition = type.case(named: name),
@@ -32,5 +30,14 @@ extension Interpreter {
     /// The type a value has in a script.
     public func scriptType(of value: Value) -> ScriptType {
         inCurrentTask { scriptType(TypeChecker(interpreter: self).type(of: value)) }
+    }
+}
+
+extension Symbol.ID {
+    /// A case without associated values of the enum the ID names, a script's or the host's:
+    /// `id.enumCase(named: "directory", in: interpreter)`. Nil if the ID names no enum, or the enum
+    /// has no such case.
+    public func enumCase(named name: String, in interpreter: Interpreter) -> Value? {
+        interpreter.value(forCase: name, in: self)
     }
 }
