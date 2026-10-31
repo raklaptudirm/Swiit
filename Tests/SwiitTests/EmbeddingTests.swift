@@ -734,10 +734,11 @@ extension URL: ScriptConvertible {}
     #expect(swiit.value(forCase: "nope", in: swiit.typeID(named: "Kind")!) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
     #expect(swiit.converted(Value("3"), to: .int) == nil)
-    // Text is a literal of the Swift types that can be one, and nothing for the rest.
+    // A Character is held as a one-letter String. Any other Swift type text is not, as in Swift,
+    // where only a literal is one.
     #expect(swiit.converted(Value("a"), to: swiit.type("Character")) == "a")
     #expect(swiit.converted(Value("ab"), to: swiit.type("Character")) == nil)
-    #expect(swiit.converted(Value("x"), to: swiit.type("Substring")) != nil)
+    #expect(swiit.converted(Value("x"), to: swiit.type("Substring")) == nil)
     #expect(swiit.scriptType(of: Value(3)) == .int)
     #expect(swiit.scriptType(of: [1, 2]) == .list(.int))
 }
