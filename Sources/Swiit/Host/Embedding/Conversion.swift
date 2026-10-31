@@ -9,24 +9,14 @@ extension Interpreter {
 
     /// Text as a value of a Swift type, by the type's own rules: its initializer from text (`5` for
     /// an `Int`, a path for a `FilePath`) or the text literal it can be (`Character`). Nil if the
-    /// type has neither, or the text is not one of its values. `isMadeFromText(_:)` says whether it
-    /// has either.
+    /// type has neither, or the text is not one of its values. Which types have one shows in their
+    /// initializers, but not which texts are valid: `Character("ab")` traps, and this gives nil.
     public func value(from text: String, as type: ScriptType) -> Value? {
         inCurrentTask {
             guard let annotation = annotation(type), let (bridged, _) = Bridge.type(of: annotation),
                 let made = Bridge.value(of: bridged.name, from: text)
             else { return nil }
             return made
-        }
-    }
-
-    /// Whether a Swift type can be made from text at all, by an initializer or a text literal.
-    /// (`value(from:as:)` says whether one piece of text is.)
-    public func isMadeFromText(_ type: ScriptType) -> Bool {
-        inCurrentTask {
-            guard let annotation = annotation(type), let (bridged, _) = Bridge.type(of: annotation)
-            else { return false }
-            return bridged.parse != nil || bridged.literal != nil
         }
     }
 

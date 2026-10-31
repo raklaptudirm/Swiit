@@ -732,9 +732,7 @@ extension URL: ScriptConvertible {}
     #expect(swiit.value(from: "x", as: .int) == nil)
     #expect(swiit.value(from: "x", as: .string) == "x")
     #expect(swiit.value(from: "x", as: swiit.type("Kind")) == nil)
-    #expect(swiit.isMadeFromText(.int))
-    #expect(!swiit.isMadeFromText(swiit.type("Kind")))
-    #expect(!swiit.isMadeFromText(.list(.int)))
+    #expect(swiit.value(from: "ab", as: swiit.type("Character")) == nil)
     #expect(
         swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.description == "file"
     )
