@@ -2,22 +2,10 @@ import Foundation
 
 extension Interpreter {
     /// `value` as a `type`, converting as a call's argument is: nil if it is not one. A list's
-    /// elements are converted too.
+    /// elements are converted too, and text is a value of a Swift type that can be a text literal
+    /// as a literal of it would be: `"a"` a `Character` and `"ab"` not, any text a `FilePath`.
     public func converted(_ value: Value, to type: ScriptType) -> Value? {
         inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
-    }
-
-    /// Text as a value of a Swift type, by the type's own rules: its initializer from text (`5` for
-    /// an `Int`, a path for a `FilePath`) or the text literal it can be (`Character`). Nil if the
-    /// type has neither, or the text is not one of its values. Which types have one shows in their
-    /// initializers, but not which texts are valid: `Character("ab")` traps, and this gives nil.
-    public func value(from text: String, as type: ScriptType) -> Value? {
-        inCurrentTask {
-            guard let annotation = annotation(type), let (bridged, _) = Bridge.type(of: annotation),
-                let made = Bridge.value(of: bridged.name, from: text)
-            else { return nil }
-            return made
-        }
     }
 
     /// The raw value an enum's declaration gives the case `value` is (`enum Level: Int { case low = 1 }`

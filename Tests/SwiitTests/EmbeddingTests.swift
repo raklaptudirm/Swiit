@@ -728,17 +728,17 @@ extension URL: ScriptConvertible {}
 @Test func wordsAndValuesConvertToTheTypeAParameterNames() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Kind { case file, directory }")
-    #expect(swiit.value(from: "5", as: .int) == 5)
-    #expect(swiit.value(from: "x", as: .int) == nil)
-    #expect(swiit.value(from: "x", as: .string) == "x")
-    #expect(swiit.value(from: "x", as: swiit.type("Kind")) == nil)
-    #expect(swiit.value(from: "ab", as: swiit.type("Character")) == nil)
     #expect(
         swiit.value(forCase: "file", in: swiit.typeID(named: "Kind")!)?.description == "file"
     )
     #expect(swiit.value(forCase: "nope", in: swiit.typeID(named: "Kind")!) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
     #expect(swiit.converted(Value("3"), to: .int) == nil)
+    // Text is a literal of the Swift types that can be one, and nothing for the rest.
+    #expect(swiit.converted(Value("a"), to: swiit.type("Character")) == "a")
+    #expect(swiit.converted(Value("ab"), to: swiit.type("Character")) == nil)
+    #expect(swiit.converted(Value("/a/b"), to: swiit.type("FilePath")) != nil)
+    #expect(swiit.converted(Value("x"), to: swiit.type("Substring")) != nil)
     #expect(swiit.scriptType(of: Value(3)) == .int)
     #expect(swiit.scriptType(of: [1, 2]) == .list(.int))
 }
