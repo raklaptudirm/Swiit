@@ -7,7 +7,7 @@ import Foundation
 
 /// A `Task`'s value: the interpreter's task it started.
 final class TaskBox: @unchecked Sendable {  // safe: only immutable state
-    public let handle: ScriptTask
+    let handle: ScriptTask
     init(_ handle: ScriptTask) { self.handle = handle }
 }
 

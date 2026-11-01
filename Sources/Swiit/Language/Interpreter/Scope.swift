@@ -8,19 +8,19 @@ struct Binding {
 
     /// Where the value lives, shared by every scope that has this
     /// variable: the one it was declared in, and closures that use it.
-    public let cell: Cell
-    public var value: Value {
+    let cell: Cell
+    var value: Value {
         get { cell.value }
         nonmutating set { cell.value = newValue }
     }
-    public let mutable: Bool
+    let mutable: Bool
     /// Its value is worked out on each read; looking at its type reads nothing.
     var isComputed: Bool { cell.isComputed }
     /// Declared with `func`.
-    public var isFunction = false
+    var isFunction = false
     var special: Special?
 
-    public init(value: Value, mutable: Bool, isFunction: Bool = false) {
+    init(value: Value, mutable: Bool, isFunction: Bool = false) {
         self.init(value: value, mutable: mutable, isFunction: isFunction, special: nil)
     }
 
@@ -33,23 +33,23 @@ struct Binding {
 
     /// A name whose value is worked out each time it is read, like the host's
     /// `jobs`, and can't be assigned.
-    public init(computed value: @escaping () -> Value) {
+    init(computed value: @escaping () -> Value) {
         cell = Cell(compute: value)
         mutable = false
     }
 
     /// A variable's storage, so a closure can share it without keeping the
     /// whole scope it's in.
-    public final class Cell {
+    final class Cell {
         private var stored: Value
         private let compute: (() -> Value)?
 
-        public var value: Value {
+        var value: Value {
             get { compute?() ?? stored }
             set { stored = newValue }
         }
 
-        public init(_ value: Value) {
+        init(_ value: Value) {
             stored = value
             compute = nil
         }
@@ -57,7 +57,7 @@ struct Binding {
         /// Worked out on each read, not stored.
         var isComputed: Bool { compute != nil }
 
-        public init(compute: @escaping () -> Value) {
+        init(compute: @escaping () -> Value) {
             stored = .nothing
             self.compute = compute
         }
@@ -67,13 +67,13 @@ struct Binding {
 /// A reference type so closures share variables with the scope they
 /// captured, as in Swift.
 final class Scope {
-    public var bindings: BindingTable
+    var bindings: BindingTable
     /// For a closure's scope: where it was made, held weakly so it can't
     /// keep them alive, for names bound there after it was made (a local
     /// function declared further down).
     var fallbacks: [WeakScope] = []
 
-    public init(_ bindings: [String: Binding] = [:]) {
+    init(_ bindings: [String: Binding] = [:]) {
         self.bindings = BindingTable(bindings)
     }
 
@@ -83,7 +83,7 @@ final class Scope {
 
     /// Declares a function by its name: another of that name is overloaded,
     /// unless the signature is the same, which replaces it.
-    public func declare(_ function: Function, named name: String) {
+    func declare(_ function: Function, named name: String) {
         var candidates = [function]
         if let existing = bindings[name], existing.isFunction,
             case .function(let callable) = existing.value.storage,
@@ -120,7 +120,7 @@ final class Scope {
     }
 
     /// The scope binding `name`: this one, or where it was made.
-    public func holding(_ name: String) -> Scope? {
+    func holding(_ name: String) -> Scope? {
         if bindings[name] != nil { return self }
         for fallback in fallbacks.reversed() {
             if let scope = fallback.scope, scope.bindings[name] != nil { return scope }
@@ -147,13 +147,13 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     private var entries: [Entry] = []
     private var positions: [String: Int]?
 
-    public init() {}
+    init() {}
 
-    public init(dictionaryLiteral elements: (String, Binding)...) {
+    init(dictionaryLiteral elements: (String, Binding)...) {
         for (name, binding) in elements { self[name] = binding }
     }
 
-    public init(_ dictionary: [String: Binding]) {
+    init(_ dictionary: [String: Binding]) {
         entries.reserveCapacity(dictionary.count)
         for (name, binding) in dictionary { self[name] = binding }
     }
@@ -169,7 +169,7 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
         return nil
     }
 
-    public subscript(name: String) -> Binding? {
+    subscript(name: String) -> Binding? {
         get { position(of: name).map { entries[$0].binding } }
         set {
             if let index = position(of: name) {
@@ -195,24 +195,24 @@ struct BindingTable: Sequence, ExpressibleByDictionaryLiteral {
     }
 
     @discardableResult
-    public mutating func removeValue(forKey name: String) -> Binding? {
+    mutating func removeValue(forKey name: String) -> Binding? {
         guard let index = position(of: name) else { return nil }
         let removed = entries[index].binding
         remove(at: index)
         return removed
     }
 
-    public var count: Int { entries.count }
-    public var isEmpty: Bool { entries.isEmpty }
-    public var keys: [String] { entries.map(\.name) }
-    public var values: [Binding] { entries.map(\.binding) }
+    var count: Int { entries.count }
+    var isEmpty: Bool { entries.isEmpty }
+    var keys: [String] { entries.map(\.name) }
+    var values: [Binding] { entries.map(\.binding) }
 
-    public func makeIterator() -> some IteratorProtocol<(key: String, value: Binding)> {
+    func makeIterator() -> some IteratorProtocol<(key: String, value: Binding)> {
         entries.lazy.map { (key: $0.name, value: $0.binding) }.makeIterator()
     }
 
     /// The names of both, the later table's binding for a name in both.
-    public func merging(
+    func merging(
         _ other: BindingTable,
         uniquingKeysWith combine: (Binding, Binding) -> Binding
     ) -> [String: Binding] {

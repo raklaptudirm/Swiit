@@ -14,7 +14,7 @@ struct Program: Equatable, Sendable {
     var spots: [[Spot]] = []
 
     /// Programs are equal by what they say, wherever it was written.
-    public static func == (lhs: Program, rhs: Program) -> Bool {
+    static func == (lhs: Program, rhs: Program) -> Bool {
         lhs.statements == rhs.statements
     }
 

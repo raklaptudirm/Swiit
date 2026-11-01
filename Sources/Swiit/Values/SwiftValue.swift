@@ -6,9 +6,9 @@ import Foundation
 /// Docs/swift-interop.md). It compares, hashes and sorts as the Swift
 /// value does, when its type can.
 final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let value: Any
+    let value: Any
     /// Its Swift type, as Swiit writes it: `Substring`.
-    public let typeName: String
+    let typeName: String
 
     // What it can do as a Swift value (hash, sort, encode) is found out when asked, not kept:
     // anything kept would be another reference to a collection inside it, and a collection with two
@@ -28,7 +28,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     }
 
     /// Its JSON, if its Swift type is Encodable.
-    public func json() throws -> String? {
+    func json() throws -> String? {
         // As Swift encodes it, if it can: a FileSize is its byte count.
         guard let encodable = value as? any Encodable else { return nil }
         // A date as ISO 8601 text, not Swift's number of seconds.
@@ -38,7 +38,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     }
 
     /// The elements of a Swift sequence a value holds, in order; none if it is not one.
-    public static func elements(of value: Any) -> [Any] {
+    static func elements(of value: Any) -> [Any] {
         func all<S: Sequence>(_ sequence: S) -> [Any] { sequence.map { $0 as Any } }
         guard let sequence = value as? any Sequence else { return [] }
         return all(sequence)
@@ -47,7 +47,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     /// Hashes and sorts as the Swift value does whenever it can, found out
     /// when it's boxed, so a value boxed from generic code (a sequence's
     /// elements) compares as one boxed where its type is known.
-    public static func make<T>(_ value: T, as typeName: String) -> Value {
+    static func make<T>(_ value: T, as typeName: String) -> Value {
         .object(SwiftValue(value, typeName: typeName))
     }
 
@@ -56,7 +56,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     }
 
     /// The Swift value in `value`, which must be one of type `T`.
-    public static func unbox<T>(_ type: T.Type, _ value: Value) throws -> T {
+    static func unbox<T>(_ type: T.Type, _ value: Value) throws -> T {
         if case .object(let box as SwiftValue) = value.storage, let unboxed = box.value as? T {
             return unboxed
         }
@@ -72,7 +72,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
     }
 
     /// Whether it sorts before `other`, if its type is Comparable.
-    public func isLess(than other: SwiftValue) -> Bool? {
+    func isLess(than other: SwiftValue) -> Bool? {
         guard let comparable = value as? any Comparable else { return nil }
         return SwiftValue.lessThan(comparable, other.value)
     }
@@ -87,12 +87,12 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
         return AnyHashable(ObjectIdentifier(self))
     }
     /// What the held value answers for at run time, if it says (`ScriptConvertible.memberNames`).
-    public var memberNames: [String] { (value as? any ScriptConvertible)?.memberNames ?? [] }
-    public func member(_ name: String) -> Value? { (value as? any ScriptConvertible)?.member(name) }
-    public var description: String {
+    var memberNames: [String] { (value as? any ScriptConvertible)?.memberNames ?? [] }
+    func member(_ name: String) -> Value? { (value as? any ScriptConvertible)?.member(name) }
+    var description: String {
         registered("description") ?? String(describing: value)
     }
-    public var debugDescription: String {
+    var debugDescription: String {
         registered("debugDescription") ?? String(reflecting: value)
     }
 

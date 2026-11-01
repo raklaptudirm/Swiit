@@ -2,9 +2,9 @@ import Foundation
 
 /// A class a program declares.
 final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String
+    let name: String
     let id: Symbol.ID
-    public let superclass: ClassType?
+    let superclass: ClassType?
     let isActor: Bool
     /// Stored properties this class declares, in order, and their defaults.
     let stored: [PropertyDecl]
@@ -21,7 +21,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // s
     var statics: [String: StructType.StaticValue] = [:]
     let staticProperties: [PropertyDecl]
     /// The protocols it names itself.
-    public let conformances: [String]
+    let conformances: [String]
     /// What it was declared as, which the checker reads again for a later program.
     var declaration: ClassDecl?
 
@@ -95,9 +95,9 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // s
         chain.lazy.compactMap { $0.observers[name] }.first
     }
 
-    public var typeName: String { "class" }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
+    var typeName: String { "class" }
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
     var description: String { name }
 }
 
@@ -117,8 +117,8 @@ final class ClassInstance: LanguageObject, @unchecked Sendable {  // safe: its s
         onRelease?(self)
     }
 
-    public var typeName: String { type.name }
-    public var memberNames: [String] { type.allStored.map(\.name) }
-    public func member(_ name: String) -> Value? { storage[name] }
-    public var description: String { type.name }
+    var typeName: String { type.name }
+    var memberNames: [String] { type.allStored.map(\.name) }
+    func member(_ name: String) -> Value? { storage[name] }
+    var description: String { type.name }
 }

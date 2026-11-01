@@ -9,39 +9,39 @@ enum FunctionBody: Sendable {
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
 final class Function: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String?
-    public let parameters: [Parameter]
-    public let returnType: TypeAnnotation?
-    public let body: FunctionBody
-    public let captured: [Scope]
-    public let documentation: Documentation?
+    let name: String?
+    let parameters: [Parameter]
+    let returnType: TypeAnnotation?
+    let body: FunctionBody
+    let captured: [Scope]
+    let documentation: Documentation?
     /// The attributes it was declared with.
-    public let attributes: [Symbol.Attribute]
+    let attributes: [Symbol.Attribute]
     /// A struct's `mutating func` (or `init`), which may change `self`.
-    public let isMutating: Bool
+    let isMutating: Bool
     /// `throws`: a call to it needs `try`.
-    public let isThrowing: Bool
+    let isThrowing: Bool
     /// `rethrows`: a call throws if a closure passed to it does.
-    public let isRethrowing: Bool
+    let isRethrowing: Bool
     /// `async` if declared so.
-    public let effect: Effect
+    let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
-    public let generics: [GenericParameter]
+    let generics: [GenericParameter]
     /// Of those, the ones its body names: a call binds them (`specialized`).
-    public let typeParameters: Set<String>
+    let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
     let inoutNames: Set<String>
     /// Its result is an optional of what it gives, flattened: an optional it gives back is not made
     /// one more (`flatMap`'s).
-    public let flattensResult: Bool
+    let flattensResult: Bool
     /// `init?`: leaving it with `return nil` makes nothing.
     let isFailable: Bool
     /// `convenience init`: made through another of the class's initializers.
     let isConvenience: Bool
     /// The class whose body it is in, which `super` in it looks above.
-    public weak var owner: ClassType?
+    weak var owner: ClassType?
 
-    public init(
+    init(
         name: String?,
         parameters: [Parameter],
         returnType: TypeAnnotation?,
@@ -103,19 +103,19 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
     }
 
     /// Whether a new declaration would replace this one rather than overload it.
-    public func hasSameSignature(as other: Function) -> Bool {
+    func hasSameSignature(as other: Function) -> Bool {
         let signature = { (p: Parameter) in [p.label ?? "_", p.type.description, "\(p.variadic)"] }
         return parameters.map(signature) == other.parameters.map(signature)
             && generics == other.generics
     }
 
     /// As Swift shows any function: by what it is, not its name.
-    public var description: String { "(Function)" }
+    var description: String { "(Function)" }
 
     /// Declared by a prelude (the language's, or a host's), though its body is Swiit's.
     var isPrelude = false
 
-    public var isBuiltin: Bool {
+    var isBuiltin: Bool {
         if isPrelude { return true }
         if case .swiit = body { return false } else { return true }
     }

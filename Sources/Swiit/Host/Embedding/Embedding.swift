@@ -367,7 +367,7 @@ extension Interpreter {
 }
 
 struct LimitExceeded: Error, Unwinding, CustomStringConvertible {
-    public let description: String
+    let description: String
     init(_ description: String) { self.description = description }
 }
 
@@ -377,10 +377,10 @@ struct Cancelled: Error, Unwinding {}
 final class OutputCounter: Sendable {
     private let count = Mutex(0)
 
-    public init() {}
+    init() {}
 
-    public var written: Int { count.withLock { $0 } }
-    public func add(_ bytes: Int) { count.withLock { $0 += bytes } }
+    var written: Int { count.withLock { $0 } }
+    func add(_ bytes: Int) { count.withLock { $0 += bytes } }
     func reset() { count.withLock { $0 = 0 } }
 }
 

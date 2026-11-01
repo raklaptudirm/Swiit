@@ -124,13 +124,13 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
 /// A host's function or method as a value, as `repo.log` gives it. The
 /// host calls it like any other function.
 final class NativeFunction: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let function: HostSymbol
+    let function: HostSymbol
 
-    public init(_ function: HostSymbol) {
+    init(_ function: HostSymbol) {
         self.function = function
     }
 
-    public var description: String {
+    var description: String {
         "(Function)"
     }
 }
@@ -138,9 +138,9 @@ final class NativeFunction: Callable, @unchecked Sendable {  // safe: its state 
 /// A failure in converting between Swift and Swiit values, or one a host's function
 /// throws to report a problem the way the host's own errors read.
 struct SwiitError: Error, CustomStringConvertible {
-    public let description: String
+    let description: String
 
-    public init(_ description: String) {
+    init(_ description: String) {
         self.description = description
     }
 }

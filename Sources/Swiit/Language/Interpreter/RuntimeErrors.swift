@@ -2,20 +2,20 @@ import Foundation
 import SwiftSyntax
 
 struct RuntimeError: Error, CustomStringConvertible {
-    public let description: String
+    let description: String
     /// Who raised it: the language, or a host function with an error of its own to read back.
-    public var origin: Diagnostic.Failure.Origin = .language
+    var origin: Diagnostic.Failure.Origin = .language
     /// What `catch` binds when the thrower has more to say than a message: the
     /// host's failed command carries its status and text.
-    public var thrown: Value?
+    var thrown: Value?
     /// The statement it happened in, once the run knows it.
-    public var range: SourceRange?
+    var range: SourceRange?
     /// The functions it unwound out of, innermost first, and where each was called.
-    public var calls: [Call] = []
+    var calls: [Call] = []
 
-    public typealias Call = Diagnostic.Call
+    typealias Call = Diagnostic.Call
 
-    public init(
+    init(
         _ description: String,
         origin: Diagnostic.Failure.Origin = .language,
         thrown: Value? = nil
@@ -39,9 +39,9 @@ struct RuntimeError: Error, CustomStringConvertible {
 /// An error that ends the run, which a script's `catch` does not see: a runtime error under `try!`,
 /// or a host function ending the script.
 struct FatalError: Error {
-    public var error: RuntimeError
+    var error: RuntimeError
 
-    public init(error: RuntimeError) {
+    init(error: RuntimeError) {
         self.error = error
     }
 }
@@ -49,9 +49,9 @@ struct FatalError: Error {
 /// ^C while the host itself was running code.
 /// ^C, or in a script SIGTERM or SIGHUP: stops what's running.
 struct Interrupted: Error, Unwinding {
-    public var reason: StopReason
+    var reason: StopReason
 
-    public init(reason: StopReason) {
+    init(reason: StopReason) {
         self.reason = reason
     }
 }

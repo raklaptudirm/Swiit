@@ -54,9 +54,9 @@ public struct OutputSink: Sendable {
 /// whoever asked reads it back from the `Interrupted` error. (The host's is
 /// the signal number, so it can end by that signal.)
 struct StopReason: Sendable {
-    public var code: Int32
+    var code: Int32
 
-    public init(code: Int32) {
+    init(code: Int32) {
         self.code = code
     }
 }

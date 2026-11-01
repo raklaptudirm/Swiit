@@ -153,7 +153,7 @@ extension LanguageObject {
 
     /// Its fields, as a Swift struct prints them: `Job(id: 1, …)`; or its
     /// description, for an object that isn't data.
-    public var debugDescription: String {
+    var debugDescription: String {
         objectFields?.debugDescription ?? description
     }
 }
@@ -248,7 +248,7 @@ extension Value.Record: CustomStringConvertible, CustomDebugStringConvertible {
     /// As its type would print, `Status(code: 0, …)`, or as a tuple,
     /// `(name: "x", 2)`, for a record without one; a tuple's unlabeled
     /// elements are keyed by position.
-    public var debugDescription: String {
+    var debugDescription: String {
         (typeName ?? "") + "("
             + map { field in
                 (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
@@ -258,7 +258,7 @@ extension Value.Record: CustomStringConvertible, CustomDebugStringConvertible {
     }
 
     /// What interpolation shows: like `debugDescription`, with text unquoted.
-    public var description: String {
+    var description: String {
         (typeName ?? "") + "("
             + map { field in
                 (Value.Record.isPosition(field.key) ? "" : "\(field.key): ")
@@ -506,27 +506,27 @@ extension Value {
 /// value while the member changes it, so a collection is changed where it is, not copied whole each
 /// time. The member's glue takes it out, and puts it back, changed, however the call ends.
 final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public var value: Value
-    public init(_ value: Value) { self.value = value }
+    var value: Value
+    init(_ value: Value) { self.value = value }
 
     /// The box, if `value` is one.
-    public static func of(_ value: Value) -> ReceiverBox? {
+    static func of(_ value: Value) -> ReceiverBox? {
         if case .object(let box as ReceiverBox) = value.storage { box } else { nil }
     }
 
     /// What it holds, leaving it empty: the caller then holds the only reference.
-    public func take() -> Value {
+    func take() -> Value {
         let taken = value
         value = .nothing
         return taken
     }
 
-    public func put(_ changed: Value) { value = changed }
+    func put(_ changed: Value) { value = changed }
 
-    public var typeName: String { "receiver" }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
-    public var description: String { "\(value)" }
+    var typeName: String { "receiver" }
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
+    var description: String { "\(value)" }
 }
 
 // MARK: Making and reading values

@@ -5,17 +5,17 @@ import Foundation
 /// a host lays them out as it does any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
 final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String
+    let name: String
     let id: Symbol.ID
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
-    public let computed: [String: Function]
-    public let methods: [String: OverloadSet]
+    let computed: [String: Function]
+    let methods: [String: OverloadSet]
     /// Custom initializers; without any, the memberwise one.
     let initializers: OverloadSet?
-    public let memberwise: Function
+    let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
-    public let conformances: [String]
+    let conformances: [String]
     /// `static let` and `static var`: declared, with their types once checked;
     /// the stored ones' values are in `statics`.
     let staticProperties: [PropertyDecl]
@@ -23,7 +23,7 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // 
     /// The setters of `static var`s that are computed.
     var staticSetters: [String: Function] = [:]
     let staticMethods: [String: OverloadSet]
-    public var statics: [String: StaticValue] = [:]
+    var statics: [String: StaticValue] = [:]
     /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
     /// parameters are the getter's, then the new value).
     var subscriptGetters: [Function] = []
@@ -36,9 +36,9 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // 
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
 
     /// A stored static property's value, kept on the type.
-    public final class StaticValue {
-        public var value: Value
-        public let mutable: Bool
+    final class StaticValue {
+        var value: Value
+        let mutable: Bool
 
         init(_ value: Value, mutable: Bool) {
             self.value = value
@@ -79,20 +79,20 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // 
         staticProperties.first { $0.name == name }
     }
 
-    public var typeName: String { "struct" }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
+    var typeName: String { "struct" }
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
     var description: String { "struct \(name)" }
 }
 
 /// `self` for a method: its value going in, and as the method left it.
 final class Receiver {
-    public var value: Value
-    public let mutable: Bool
+    var value: Value
+    let mutable: Bool
     /// In an `init`, which may also set `let` properties.
     let initializing: Bool
 
-    public init(_ value: Value, mutable: Bool, initializing: Bool = false) {
+    init(_ value: Value, mutable: Bool, initializing: Bool = false) {
         self.value = value
         self.mutable = mutable
         self.initializing = initializing

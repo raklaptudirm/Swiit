@@ -11,7 +11,7 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
     private var holder: pthread_t?
     private var depth = 0
 
-    public init() {}
+    init() {}
 
     private var isHolder: Bool {
         guard let holder else { return false }
@@ -19,13 +19,13 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
     }
 
     /// Whether the thread asking holds it.
-    public var isHeldByCurrentThread: Bool {
+    var isHeldByCurrentThread: Bool {
         condition.lock()
         defer { condition.unlock() }
         return isHolder
     }
 
-    public func acquire() {
+    func acquire() {
         condition.lock()
         defer { condition.unlock() }
         if isHolder {
@@ -37,7 +37,7 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
         depth = 1
     }
 
-    public func release() {
+    func release() {
         condition.lock()
         defer { condition.unlock() }
         precondition(isHolder, "the interpreter lock released by a thread that doesn't hold it")
@@ -49,7 +49,7 @@ final class InterpreterLock: @unchecked Sendable {  // safe: every access holds 
     }
 
     /// Runs `body` holding the lock.
-    public func withLock<T>(_ body: () throws -> T) rethrows -> T {
+    func withLock<T>(_ body: () throws -> T) rethrows -> T {
         acquire()
         defer { release() }
         return try body()

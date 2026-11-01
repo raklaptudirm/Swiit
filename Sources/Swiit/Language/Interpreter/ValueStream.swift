@@ -6,22 +6,22 @@ import Foundation
 final class ValueStream {
     private let pull: () throws -> Value?
 
-    public init(_ pull: @escaping () throws -> Value?) {
+    init(_ pull: @escaping () throws -> Value?) {
         self.pull = pull
     }
 
-    public func next() throws -> Value? {
+    func next() throws -> Value? {
         try pull()
     }
 
-    public static var empty: ValueStream {
+    static var empty: ValueStream {
         ValueStream { nil }
     }
 
     /// A list flows as its elements, as does a Swift sequence (a Set, a
     /// range of Ints, a FilePath's components); nothing as no items,
     /// anything else as a single item.
-    public static func elements(of value: Value) -> ValueStream {
+    static func elements(of value: Value) -> ValueStream {
         if let read = Interpreter.taskGroupReader(of: value) { return ValueStream(read) }
         let items: AnyIterator<Value>
         switch value.storage {

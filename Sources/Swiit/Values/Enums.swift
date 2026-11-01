@@ -54,15 +54,15 @@ extension Value.EnumCase {
 
         // MARK: LanguageObject
 
-        public var typeName: String { "enum" }
+        var typeName: String { "enum" }
 
-        public var memberNames: [String] {
+        var memberNames: [String] {
             cases.map(\.name) + (allCases == nil ? [] : ["allCases"])
         }
 
         /// A case without associated values, or `allCases`. Cases with them are
         /// made by calling, which the interpreter handles.
-        public func member(_ name: String) -> Value? {
+        func member(_ name: String) -> Value? {
             if name == "allCases", let all = allCases { return .list(all.map(Value.enumValue)) }
             guard let found = `case`(named: name), found.labels.isEmpty else { return nil }
             return .enumValue(Value.EnumCase(type: self, name: name))
@@ -70,7 +70,7 @@ extension Value.EnumCase {
 
         /// A type, not data: it shows as `enum Name`.
 
-        public var description: String { "enum \(name)" }
+        var description: String { "enum \(name)" }
     }
 }
 

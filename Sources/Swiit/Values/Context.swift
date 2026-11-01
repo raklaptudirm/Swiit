@@ -17,7 +17,7 @@ enum FieldAccess {
 
     private static let key = "SwiitKit.FieldAccess.reader"
 
-    public static var reader: ((Value, String) -> Value)? {
+    static var reader: ((Value, String) -> Value)? {
         get { (Thread.current.threadDictionary[key] as? Box)?.reader }
         set { Thread.current.threadDictionary[key] = newValue.map(Box.init) }
     }

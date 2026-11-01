@@ -17,11 +17,11 @@ enum NameKind: Equatable, Sendable {
 }
 
 struct SyntaxError: Error, Equatable, CustomStringConvertible {
-    public let description: String
+    let description: String
     /// The input ended in the middle of a construct, so more lines could complete it.
-    public let incomplete: Bool
+    let incomplete: Bool
     /// Where in the source it is, when that is known.
-    public var range: SourceRange?
+    var range: SourceRange?
 
     init(_ description: String, incomplete: Bool = false, range: SourceRange? = nil) {
         self.description = description
@@ -30,7 +30,7 @@ struct SyntaxError: Error, Equatable, CustomStringConvertible {
     }
 
     /// Equal by what they say: where they are doesn't matter.
-    public static func == (lhs: SyntaxError, rhs: SyntaxError) -> Bool {
+    static func == (lhs: SyntaxError, rhs: SyntaxError) -> Bool {
         lhs.description == rhs.description && lhs.incomplete == rhs.incomplete
     }
 

@@ -28,18 +28,18 @@ final class TaskContext {
     /// The function whose call finished last: after an expression that is a call, the one it made.
     var lastCallee: Function?
     /// Asks the task to stop, from any thread.
-    public let cancellation = Interpreter.Cancellation()
+    let cancellation = Interpreter.Cancellation()
     /// What the host keeps for the task (the host: its output, its status).
-    public var host: AnyObject?
+    var host: AnyObject?
     /// Whether the host's interrupts (the host's ^C) stop it: the task in the
     /// foreground's do; a background task stops only when it's cancelled.
     var receivesInterrupts = true
     /// The tasks it started and hasn't seen end, with how deep in its calls
     /// it was: each belongs to the scope that started it, which cancels and
     /// waits for it as it closes.
-    public var children: [(depth: Int, handle: ScriptTask)] = []
+    var children: [(depth: Int, handle: ScriptTask)] = []
 
-    public init(globals: [Scope], host: AnyObject? = nil) {
+    init(globals: [Scope], host: AnyObject? = nil) {
         self.scopes = globals
         self.host = host
     }

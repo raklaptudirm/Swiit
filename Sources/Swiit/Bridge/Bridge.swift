@@ -11,7 +11,7 @@ import SystemPackage
 enum Bridge {
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
-    public static var types: [String: BridgedType] { table.withLock { $0 } }
+    static var types: [String: BridgedType] { table.withLock { $0 } }
 
     private static let table = Mutex<[String: BridgedType]>(
         Dictionary(
@@ -30,7 +30,7 @@ enum Bridge {
 
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
     /// the members it adds to types the core has. Registering one again is no change.
-    public static func register(_ more: [BridgedType]) {
+    static func register(_ more: [BridgedType]) {
         table.withLock { table in
             for type in more {
                 if let existing = table[type.name] {
@@ -54,7 +54,7 @@ enum Bridge {
     /// text is one: through its failable initializer from text (`Int`), or
     /// as a text literal (`Character`, `FilePath`). A word of text,
     /// or a string literal where the type is wanted, is converted so.
-    public static func value(of typeName: String, from text: String) -> Value?? {
+    static func value(of typeName: String, from text: String) -> Value?? {
         guard let type = types[typeName], type.parse != nil || type.literal != nil else {
             return nil
         }
@@ -63,7 +63,7 @@ enum Bridge {
 
     /// The bridged type Swiit's type annotation is, and its generic
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
-    public static func type(
+    static func type(
         of annotation: TypeAnnotation
     ) -> (BridgedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
@@ -99,35 +99,35 @@ where T.UnicodeScalarLiteralType == Unicode.Scalar {
 
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
 final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String
-    public init(_ name: String) { self.name = name }
-    public var typeName: String { "type" }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
+    let name: String
+    init(_ name: String) { self.name = name }
+    var typeName: String { "type" }
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
     var description: String { name }
 }
 
 struct BridgedType: Sendable {
     /// `String`, `Substring`, `Array`.
-    public let name: String
+    let name: String
     /// A generic type's parameters: `Element` for Array.
-    public let genericParameters: [String]
+    let genericParameters: [String]
     /// The protocols it conforms to, of those Swiit knows, each with what
     /// its generic parameters must be for it: a ClosedRange is a Sequence
     /// when its Bound is Int (`["Bound": ["=Int"]]`).
-    public let conformances: [String: [GenericParameter]]
+    let conformances: [String: [GenericParameter]]
     /// Its associated types: `Element` is `Character` for String.
-    public let associatedTypes: [String: TypeAnnotation]
+    let associatedTypes: [String: TypeAnnotation]
     /// Text as one, through the type's failable initializer from text
     /// (`Int("42")`); nil if the text isn't one.
-    public var parse: (@Sendable (String) -> Value?)?
+    var parse: (@Sendable (String) -> Value?)?
     /// Text as one by Swift's rules for text literals (`Character`,
     /// `FilePath`); nil if the text can't be that literal.
-    public var literal: (@Sendable (String) -> Value?)?
+    var literal: (@Sendable (String) -> Value?)?
     /// Items as one, for a collection an array literal can be (Array, Set):
     /// what a parameter given several words gets.
-    public var arrayLiteral: (@Sendable ([Value]) -> Value)?
-    public let members: [BridgedMember]
+    var arrayLiteral: (@Sendable ([Value]) -> Value)?
+    let members: [BridgedMember]
 
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
@@ -172,7 +172,7 @@ struct BridgedType: Sendable {
         )
     }
 
-    public init(
+    init(
         name: String,
         genericParameters: [String],
         conformances: [String: [GenericParameter]],
@@ -195,31 +195,31 @@ struct BridgedType: Sendable {
 
 struct BridgedMember: Sendable {
     /// A setter is a property's other half, for `p.extension = "md"`.
-    public enum Kind { case method, property, initializer, setter }
+    enum Kind { case method, property, initializer, setter }
 
-    public let kind: Kind
-    public let name: String
-    public let isStatic: Bool
-    public let parameters: [Parameter]
-    public let returns: TypeAnnotation
-    public let generics: [GenericParameter]
-    public let isThrowing: Bool
-    public let isRethrowing: Bool
+    let kind: Kind
+    let name: String
+    let isStatic: Bool
+    let parameters: [Parameter]
+    let returns: TypeAnnotation
+    let generics: [GenericParameter]
+    let isThrowing: Bool
+    let isRethrowing: Bool
     /// Changes its receiver, like `append`. Its glue gives the result and
     /// the changed receiver, which the host puts back.
-    public let isMutating: Bool
+    let isMutating: Bool
     /// The attributes it is declared with, as Swift writes them: `@discardableResult` on
     /// `removeLast()`.
-    public let attributes: [Symbol.Attribute]
+    let attributes: [Symbol.Attribute]
     /// Its documentation's first paragraph, from Swift's: what `help` shows.
-    public let summary: String
+    let summary: String
     /// Converts the arguments (and `self`), calls Swift, and converts back.
-    public let body: FunctionBody
+    let body: FunctionBody
     /// What each parameter is, from `- Parameter name:` lines: `help`'s flags.
-    public var parameterDocs: [String: String] = [:]
+    var parameterDocs: [String: String] = [:]
     /// `async`: a call, or reading the property, needs `await`. Its glue
     /// waits in `suspend`, so other tasks run meanwhile.
-    public var effect: Effect = .sync
+    var effect: Effect = .sync
     /// How a host-registered member is called without an interpreter: what a host object's own
     /// `member(_:)` uses.
     var plain: (@Sendable ([String: Value]) throws -> Value)?
@@ -227,7 +227,7 @@ struct BridgedMember: Sendable {
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?
 
-    public init(
+    init(
         kind: Kind,
         name: String,
         isStatic: Bool,

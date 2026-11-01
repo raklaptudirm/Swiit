@@ -14,7 +14,7 @@ protocol WaitingHost: AnyObject {
 
 extension WaitingHost {
     /// A host that can't end a wait early waits it out.
-    public func wait(wake: @escaping @Sendable () -> Void, _ body: () -> Void) { wait(body) }
+    func wait(wake: @escaping @Sendable () -> Void, _ body: () -> Void) { wait(body) }
 }
 
 /// For a function that waits, as a host's or a library's may: a blocking
@@ -39,14 +39,14 @@ enum Waiting {
     private static let key = "SwiitKit.Waiting.host"
 
     /// What runs the Swiit code on this thread, if anything does.
-    public static var host: WaitingHost? {
+    static var host: WaitingHost? {
         get { (Thread.current.threadDictionary[key] as? Box)?.host }
         set { Thread.current.threadDictionary[key] = Box(newValue) }
     }
 
     /// Runs `body`, letting other Swiit tasks run while it waits. It must not
     /// touch the interpreter, or Swiit values that others could change.
-    public static func whileWaiting<T>(_ body: () -> T) -> T {
+    static func whileWaiting<T>(_ body: () -> T) -> T {
         guard let host else { return body() }
         var result: T?
         host.wait { result = body() }
@@ -56,14 +56,14 @@ enum Waiting {
     /// As `whileWaiting`, and `wake` is called if the task is cancelled before `body` returns. It
     /// runs on the thread that cancels, so it may only do what is safe from there: close a handle,
     /// signal a process, resume a continuation.
-    public static func whileWaiting<T>(wake: @escaping @Sendable () -> Void, _ body: () -> T) -> T {
+    static func whileWaiting<T>(wake: @escaping @Sendable () -> Void, _ body: () -> T) -> T {
         guard let host else { return body() }
         var result: T?
         host.wait(wake: wake) { result = body() }
         return result!
     }
 
-    public static func whileWaiting<T>(_ body: () throws -> T) throws -> T {
+    static func whileWaiting<T>(_ body: () throws -> T) throws -> T {
         guard let host else { return try body() }
         var result: Result<T, any Error>?
         host.wait { result = Result { try body() } }
@@ -73,7 +73,7 @@ enum Waiting {
     /// Runs `body`, a read of the input, when it's this task's turn at it (a
     /// task in the background waits until it's brought forward); nil if the
     /// task was cancelled first.
-    public static func forInput<T>(_ body: () -> T?) -> T? {
+    static func forInput<T>(_ body: () -> T?) -> T? {
         guard let host else { return body() }
         var result: T?
         host.waitForInput { result = body() }

@@ -2,10 +2,10 @@ import Foundation
 
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
 final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String
+    let name: String
     let id: Symbol.ID
     /// The protocols it takes in: `protocol A: B`.
-    public let inherited: [String]
+    let inherited: [String]
     /// What it asks of a conforming type.
     let declaration: ProtocolDecl
 
@@ -16,10 +16,10 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {  /
         self.declaration = declaration
     }
 
-    public var typeName: String { "protocol" }
-    public var memberNames: [String] { [] }
-    public func member(_ name: String) -> Value? { nil }
-    public var description: String { "protocol \(name)" }
+    var typeName: String { "protocol" }
+    var memberNames: [String] { [] }
+    func member(_ name: String) -> Value? { nil }
+    var description: String { "protocol \(name)" }
 }
 
 extension Interpreter {

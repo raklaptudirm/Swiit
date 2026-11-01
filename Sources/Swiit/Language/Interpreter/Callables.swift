@@ -3,15 +3,15 @@ import Foundation
 /// Every function declared under one name. A name declared with `func` is
 /// always bound to one of these, even with a single candidate.
 final class OverloadSet: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let name: String
-    public let candidates: [Function]
+    let name: String
+    let candidates: [Function]
 
-    public init(name: String, candidates: [Function]) {
+    init(name: String, candidates: [Function]) {
         self.name = name
         self.candidates = candidates
     }
 
-    public var description: String {
+    var description: String {
         "(Function)"
     }
 }
@@ -35,26 +35,26 @@ extension Function {
 /// `\.size` or `\.status.code`: reads the path of members from a value.
 /// Where a function is wanted it's one, as in Swift: `xs.map(\.name)`.
 final class KeyPathValue: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
-    public let path: [String]
+    let path: [String]
 
-    public init(path: [String]) {
+    init(path: [String]) {
         self.path = path
     }
 
-    public var description: String { "\\." + path.joined(separator: ".") }
+    var description: String { "\\." + path.joined(separator: ".") }
 
-    public func read(from value: Value, in interpreter: Interpreter) throws -> Value {
+    func read(from value: Value, in interpreter: Interpreter) throws -> Value {
         try path.reduce(value) { try interpreter.member($1, of: $0) }
     }
 }
 
 extension TypeAnnotation {
-    public var isList: Bool {
+    var isList: Bool {
         if case .list = self { true } else { false }
     }
 
     /// Whether a closure can be passed for it.
-    public var acceptsFunction: Bool {
+    var acceptsFunction: Bool {
         switch self {
         case .function, .functionType, .any: true
         case .optional(let wrapped): wrapped.acceptsFunction
@@ -67,7 +67,7 @@ extension TypeAnnotation {
 
 extension Function {
     /// A builtin written in Swift, with its documentation.
-    public static func builtin(
+    static func builtin(
         _ name: String,
         _ summary: String,
         _ parameters: [Parameter],

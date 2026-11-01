@@ -5,9 +5,9 @@ import Foundation
 /// their meaning. Most library model types already conform, so they show up
 /// in Swiit with no bridge code.
 struct ValueEncoder {
-    public init() {}
+    init() {}
 
-    public func encode<T: Encodable>(_ value: T) throws -> Value {
+    func encode<T: Encodable>(_ value: T) throws -> Value {
         let slot = Slot()
         try Slot.encode(value, into: slot, codingPath: [])
         return slot.resolved()

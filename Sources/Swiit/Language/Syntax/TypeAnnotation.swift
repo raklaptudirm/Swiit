@@ -38,7 +38,7 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
     /// declared its type. It fits anywhere, and anything fits it.
     case unknown
 
-    public struct TupleElement: Hashable, Sendable {
+    struct TupleElement: Hashable, Sendable {
         var label: String?
         var type: TypeAnnotation
 
@@ -48,7 +48,7 @@ indirect enum TypeAnnotation: Hashable, Sendable, CustomStringConvertible {
         }
     }
 
-    public var description: String { AttributedString(joining: styled).plain }
+    var description: String { AttributedString(joining: styled).plain }
 
     /// As Swift writes it, in pieces by what each is (the name of a type, a
     /// label, a keyword, or punctuation), so help can color it and no one has
