@@ -245,13 +245,7 @@ extension Interpreter {
             return
         case .forLoop(let loop):
             finished(statement, nil)
-            try forEachElement(of: loop.sequence, awaiting: loop.isAwait) { element in
-                var bindings: [String: Binding] = [:]
-                guard try match(loop.pattern, element, into: &bindings) else {
-                    throw RuntimeError("a \(element.typeName) doesn't fit this 'for' pattern")
-                }
-                return try runLoopBody(loop.body, declaring: bindings, label: loop.label)
-            }
+            try runForLoop(loop)
             return
         case .whileLoop(let loop):
             finished(statement, nil)
@@ -310,6 +304,28 @@ extension Interpreter {
         if !isBoolLiteral { try observer(value, calleeSymbol(of: expr)) }
         finished(.expression(expr), value)
         return value
+    }
+
+    /// Each element matched with the loop's pattern, and the body run with what it binds.
+    func runForLoop(_ loop: ForLoop) throws {
+        // `for x in …` in a body given a frame: each element goes straight into x's slot.
+        if case .binding(let name, let mutable) = loop.pattern,
+            let local = loop.body.locals?.first(where: { $0.name == name }),
+            let frame = task.frame
+        {
+            try forEachElement(of: loop.sequence, awaiting: loop.isAwait) { element in
+                frame.bind(name, Binding(value: element, mutable: mutable), at: local.slot)
+                return try runLoopBody(loop.body, declaring: [:], label: loop.label)
+            }
+            return
+        }
+        try forEachElement(of: loop.sequence, awaiting: loop.isAwait) { element in
+            var bindings: [String: Binding] = [:]
+            guard try match(loop.pattern, element, into: &bindings) else {
+                throw RuntimeError("a \(element.typeName) doesn't fit this 'for' pattern")
+            }
+            return try runLoopBody(loop.body, declaring: bindings, label: loop.label)
+        }
     }
 
     /// Runs one iteration; false means `break`. A `break` or `continue` that

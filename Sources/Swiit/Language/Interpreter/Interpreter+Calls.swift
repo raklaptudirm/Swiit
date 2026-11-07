@@ -66,27 +66,7 @@ extension Interpreter {
             !hasFrame || receiver != nil || !function.typeParameters.isEmpty || isNested
             ? Scope(table: arguments) : nil
         let savedScopes = scopes
-        // A type parameter the call left to what was passed (a protocol's type) is the type of that
-        // value, as Swift opens an existential.
-        for name in function.typeParameters {
-            if case .object(let bound)? = function.captured.last?
-                .bindings[Interpreter.typeArgumentPrefix + name]?
-                .value.storage,
-                !(bound is ProtocolType)
-            {
-                continue
-            }
-            guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }),
-                let argument = arguments[parameter.name]?.value, let argumentScope
-            else { continue }
-            let actual = typeObject(of: argument)
-            guard actual != .nothing else { continue }
-            argumentScope.bindings[name] = Binding(value: actual, mutable: false)
-            argumentScope.bindings[Interpreter.typeArgumentPrefix + name] = Binding(
-                value: actual,
-                mutable: false
-            )
-        }
+        if let argumentScope { openTypeParameters(of: function, arguments, in: argumentScope) }
         if let receiver, let argumentScope {
             argumentScope.bindings["self"] = Binding(
                 value: receiver.value,
@@ -105,11 +85,16 @@ extension Interpreter {
                 isFunction: true
             )
         }
-        var inside = [Scope]()
-        inside.reserveCapacity(function.captured.count + 1)
-        inside.append(contentsOf: function.captured)
-        if let argumentScope { inside.append(argumentScope) }
-        scopes = inside
+        // Without a scope of its own, it runs in what it captured as it is: no array is made.
+        if let argumentScope {
+            var inside = [Scope]()
+            inside.reserveCapacity(function.captured.count + 1)
+            inside.append(contentsOf: function.captured)
+            inside.append(argumentScope)
+            scopes = inside
+        } else {
+            scopes = function.captured
+        }
         if let owner = function.owner { task.owners.append(owner) }
         callDepth += 1
         returnTypes.append(function.returnType)
@@ -174,6 +159,34 @@ extension Interpreter {
             )
         }
         return conforming
+    }
+
+    /// A type parameter the call left to what was passed (a protocol's type) is the type of that
+    /// value, as Swift opens an existential: bound in the call's scope under its name.
+    private func openTypeParameters(
+        of function: Function,
+        _ arguments: BindingTable,
+        in argumentScope: Scope
+    ) {
+        for name in function.typeParameters {
+            if case .object(let bound)? = function.captured.last?
+                .bindings[Interpreter.typeArgumentPrefix + name]?
+                .value.storage,
+                !(bound is ProtocolType)
+            {
+                continue
+            }
+            guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }),
+                let argument = arguments[parameter.name]?.value
+            else { continue }
+            let actual = typeObject(of: argument)
+            guard actual != .nothing else { continue }
+            argumentScope.bindings[name] = Binding(value: actual, mutable: false)
+            argumentScope.bindings[Interpreter.typeArgumentPrefix + name] = Binding(
+                value: actual,
+                mutable: false
+            )
+        }
     }
 
     /// The scope of a call to a Swiit function whose arguments are one for each parameter, in order
