@@ -119,28 +119,17 @@ extension Interpreter {
                 throw RuntimeError("a prelude only declares")
             }
         }
-        if !written.isEmpty {
-            // Checked as a script's functions are, so that what a body calls, and a default
-            // argument's leading-dot case, are resolved against what is declared by now.
-            let checked: Program
-            do {
-                checked = try TypeChecker(interpreter: self)
-                    .check(Program(statements: written.map { .function($0) }))
-            } catch let error as TypeError {
-                throw RuntimeError("the function \(written[0].name): \(error.message)")
-            }
-            for case .function(let resolved) in checked.statements {
-                scopes[0]
-                    .declare(
-                        builtinFunction(
-                            resolved,
-                            .swiit(resolved.body),
-                            input: nil,
-                            capturing: globals
-                        ),
-                        named: resolved.name
-                    )
-            }
+        for resolved in try checkedFunctions(written) {
+            scopes[0]
+                .declare(
+                    builtinFunction(
+                        resolved,
+                        .swiit(resolved.body),
+                        input: nil,
+                        capturing: globals
+                    ),
+                    named: resolved.name
+                )
         }
         return extensions
     }
@@ -198,6 +187,22 @@ extension Interpreter {
             )
         } catch {
             throw Diagnostic.of(error)
+        }
+    }
+
+    /// Functions written in Swiit, checked together as a script's are, so that what a body calls,
+    /// and a default argument's leading-dot case, are resolved against what is declared by now.
+    private func checkedFunctions(_ functions: [FunctionDecl]) throws -> [FunctionDecl] {
+        guard let first = functions.first else { return [] }
+        let checked: Program
+        do {
+            checked = try TypeChecker(interpreter: self)
+                .check(Program(statements: functions.map { .function($0) }))
+        } catch {
+            throw RuntimeError("the function \(first.name): \(error)")
+        }
+        return checked.statements.compactMap {
+            if case .function(let resolved) = $0 { resolved } else { nil }
         }
     }
 
