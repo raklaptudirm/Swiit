@@ -387,18 +387,31 @@ extension Interpreter {
         // A task that is cancelled stops at its next step, even before it has begun: that is every
         // step's.
         if cancellation.isSet { throw Cancelled() }
-        // The host's interrupt is asked every few steps, not every one.
-        if steps & 15 == 0, task.receivesInterrupts, let reason = host.interrupt() {
+        // The rest is asked every few steps, not every one: one count down is all most steps pay.
+        stepsUntilCheck -= 1
+        if stepsUntilCheck <= 0 { try checkLimits() }
+    }
+
+    /// How many steps go by between asking the host whether to stop and checking the limits: few
+    /// enough that a stop or a deadline is seen within microseconds.
+    static let stepsBetweenChecks = 16
+
+    /// Asks the host whether to stop, checks the limits, and says when to do so again: in a few
+    /// steps, or at the step limit if that comes first, so a run stops at exactly its limit.
+    func checkLimits() throws {
+        if task.receivesInterrupts, let reason = host.interrupt() {
             throw Interrupted(reason: reason)
-        }
-        if let maximum = limits.maxSteps, steps > maximum {
-            throw LimitExceeded("step limit (\(maximum)) exceeded")
         }
         if let deadline, ContinuousClock.now > deadline {
             throw LimitExceeded("time limit exceeded")
         }
         if let maximum = limits.maxOutputBytes, outputCounter.written > maximum {
             throw LimitExceeded("output limit (\(maximum) bytes) exceeded")
+        }
+        stepsUntilCheck = Interpreter.stepsBetweenChecks
+        if let maximum = limits.maxSteps {
+            if steps > maximum { throw LimitExceeded("step limit (\(maximum)) exceeded") }
+            stepsUntilCheck = min(stepsUntilCheck, maximum - steps + 1)
         }
     }
 }

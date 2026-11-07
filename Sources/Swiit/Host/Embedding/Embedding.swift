@@ -803,6 +803,7 @@ extension Interpreter {
     /// and no stop asked for (but one asked before it began, which `alreadyCancelled` says).
     func beginRun(alreadyCancelled: () -> Bool = { false }) {
         steps = 0
+        stepsUntilCheck = 0
         outputCounter.reset()
         deadline = limits.timeLimit.map { ContinuousClock.now + $0 }
         cancellation.clear()

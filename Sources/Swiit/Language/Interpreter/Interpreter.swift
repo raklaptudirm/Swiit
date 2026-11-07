@@ -68,6 +68,9 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     /// of each `eval`.
     var limits = Interpreter.Limits()
     var steps = 0
+    /// Steps left before `checkLimits` runs again; nothing at the start of a run, so its first step
+    /// checks.
+    var stepsUntilCheck = 0
     var deadline: ContinuousClock.Instant?
     /// What a run has written, against `limits.maxOutputBytes`.
     let outputCounter: OutputCounter

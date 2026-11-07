@@ -10,6 +10,8 @@ let package = Package(
         // Reads Swift's symbol graphs and writes the glue that bridges them
         // (`Scripts/bridge`); not part of the interpreter.
         .executable(name: "swiit-bridge", targets: ["SwiitBridge"]),
+        // How long small programs take: `swift run -c release swiit-benchmarks`.
+        .executable(name: "swiit-benchmarks", targets: ["SwiitBenchmarks"]),
     ],
     dependencies: [
         // FilePath, until the standard library's (SE-0529) ships; swift-system's
@@ -19,6 +21,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(name: "SwiitBridge"),
+        .executableTarget(name: "SwiitBenchmarks", dependencies: ["Swiit"], path: "Benchmarks"),
         .target(
             name: "Swiit",
             dependencies: [
@@ -32,6 +35,12 @@ let package = Package(
             resources: [.embedInCode("Resources/Prelude.swift")]
         ),
         // boundaries.txt and programs.txt are data the boundary tests read from the source tree.
-        .testTarget(name: "SwiitTests", dependencies: ["Swiit"], exclude: ["boundaries.txt", "programs.txt", "parity.json", "parity-NOTICE.txt", "Goldens"]),
+        .testTarget(
+            name: "SwiitTests",
+            dependencies: ["Swiit"],
+            exclude: [
+                "boundaries.txt", "programs.txt", "parity.json", "parity-NOTICE.txt", "Goldens",
+            ]
+        ),
     ]
 )
