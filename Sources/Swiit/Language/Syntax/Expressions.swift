@@ -39,6 +39,8 @@ indirect enum Expr: Equatable, Sendable {
     case literal(Value)
     case string([StringPart])
     case variable(String)
+    /// A local of a body given a frame, read from its slot (`FrameResolver`).
+    case local(Program.Local)
     /// `try expr`, `try? expr` or `try! expr`.
     case attempt(Expr, TryKind)
     /// `await job`, or a bare `await` for the most recent job. Under `try`

@@ -68,6 +68,10 @@ extension TypeChecker {
         expecting expected: TypeAnnotation?
     ) throws -> TypeAnnotation {
         switch expr {
+        case .local(let local):
+            // Given a slot after it was checked; typed as the variable it is.
+            var named = Expr.variable(local.name)
+            return try typeOfName(&named, expecting: expected)
         case .literal, .string, .variable, .filePath, .keyPath, .ifExpression:
             return try typeOfName(&expr, expecting: expected)
         case .attempt, .await, .childTask, .closure:

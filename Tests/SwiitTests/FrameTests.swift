@@ -159,3 +159,18 @@ private final class OutputBox: @unchecked Sendable {
         """
     #expect(try run(source) == "[9, 2, 3, 4]\n")
 }
+
+@Test func parametersLiveInTheFrame() throws {
+    let source = """
+        func bump(_ x: inout Int, by step: Int) { x += step }
+        var n = 1
+        bump(&n, by: 4)
+        func shadow(_ v: Int) -> Int { if true { let v = v * 10; return v }; return 0 }
+        func adder(_ base: Int) -> (Int) -> Int { { base + $0 } }
+        func pick<T>(_ a: T, _ b: T, first: Bool) -> T { first ? a : b }
+        struct S { var k = 2; func times(_ m: Int) -> Int { k * m } }
+        func ignore(_: Int, _ kept: Int) -> Int { kept }
+        print(n, shadow(3), adder(5)(6), pick("a", "b", first: false), S().times(7), ignore(1, 2))
+        """
+    #expect(try run(source) == "5 30 11 b 14 2\n")
+}

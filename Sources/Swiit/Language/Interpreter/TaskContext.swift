@@ -14,6 +14,8 @@ final class TaskContext {
     var frame: Frame?
     /// How many of `scopes` were there when `frame` began: those after it are inside it.
     var frameBase = 0
+    /// Frames whose runs have ended, to be used again, so a call makes none.
+    var spareFrames: [Frame] = []
     /// How many Swiit function calls are in progress.
     var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
@@ -77,9 +79,20 @@ extension Interpreter {
         // small function.
         if size == 0, task.frame == nil { return try body() }
         let saved = (task.frame, task.frameBase)
-        task.frame = size == 0 ? nil : Frame(size: size)
+        var frame: Frame?
+        if size > 0 {
+            frame = task.spareFrames.popLast() ?? Frame(size: size)
+            frame!.reset(size: size)
+        }
+        task.frame = frame
         task.frameBase = task.scopes.count
-        defer { (task.frame, task.frameBase) = saved }
+        defer {
+            (task.frame, task.frameBase) = saved
+            if let frame {
+                frame.empty()
+                task.spareFrames.append(frame)
+            }
+        }
         return try body()
     }
 

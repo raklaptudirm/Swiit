@@ -6,15 +6,39 @@
 /// A local is still found by its name: the frame is asked before the scopes made before it, and
 /// after those made since (the bindings of an `if` expression, a `case`'s `where`). Of two locals of
 /// one name, the later slot is the inner one, which shadows the other.
+///
+/// A frame is the run's alone: what a closure keeps is the variables in it, never the frame, so
+/// one whose run has ended is emptied and used again (`TaskContext.spareFrames`).
 final class Frame {
     private var slots: ContiguousArray<(name: String, binding: Binding)?>
+    /// How many of `slots` this run uses: a frame used again may have more.
+    private var size: Int
 
     init(size: Int) {
         slots = ContiguousArray(repeating: nil, count: size)
+        self.size = size
+    }
+
+    /// Ready for a run of `size` slots, all empty.
+    func reset(size: Int) {
+        if slots.count < size {
+            slots.append(contentsOf: repeatElement(nil, count: size - slots.count))
+        }
+        self.size = size
+    }
+
+    /// Its run has ended: nothing it held is kept.
+    func empty() {
+        for index in 0..<size { slots[index] = nil }
     }
 
     func bind(_ name: String, _ binding: Binding, at slot: Int) {
         slots[slot] = (name, binding)
+    }
+
+    /// What is in a slot now.
+    func binding(at slot: Int) -> Binding? {
+        slots[slot]?.binding
     }
 
     /// The block whose locals these are has ended.
@@ -24,7 +48,7 @@ final class Frame {
 
     /// The innermost local of that name alive now.
     func binding(named name: String) -> Binding? {
-        var index = slots.count - 1
+        var index = size - 1
         while index >= 0 {
             if let local = slots[index], local.name == name { return local.binding }
             index -= 1
@@ -45,6 +69,9 @@ struct FrameResolver {
     private var next = 0
     private var size = 0
     private var placeable = true
+    /// The locals that can be named where the resolver is, innermost last: a variable that names
+    /// one is read from its slot.
+    private var visible: [Program.Local] = []
 
     /// The program, with the locals of its blocks and of the functions and closures in it given
     /// slots.
@@ -52,9 +79,16 @@ struct FrameResolver {
         resolve(body: program, isProgram: true)
     }
 
-    private static func resolve(body: Program, isProgram: Bool) -> Program {
+    /// A body with its parameters in its first slots, in order: one unnamed (`_`) has a slot too,
+    /// under a name nothing can write.
+    private static func resolve(
+        body: Program,
+        isProgram: Bool,
+        parameters: [Parameter] = []
+    ) -> Program {
         var resolver = FrameResolver()
-        var resolved = resolver.block(body, entering: [], isProgram: isProgram)
+        let names = parameters.map { $0.name == "_" ? "" : $0.name }
+        var resolved = resolver.block(body, entering: names, isProgram: isProgram)
         guard resolver.placeable else { return body }
         resolved.frameSize = resolver.size
         return resolved
@@ -74,12 +108,15 @@ struct FrameResolver {
         isProgram: Bool = false
     ) -> Program {
         let start = next
+        let seen = visible.count
         var locals = names.filter { $0 != "_" }.map { Program.Local(name: $0, slot: slot()) }
+        visible += locals
         var resolved = program
         resolved.statements = program.statements.map {
             statement($0, isProgram: isProgram, locals: &locals)
         }
         next = start
+        visible.removeLast(visible.count - seen)
         if !isProgram { resolved.locals = locals }
         return resolved
     }
@@ -97,13 +134,19 @@ struct FrameResolver {
             }
             let local = Program.Local(name: name, slot: slot())
             locals.append(local)
+            // Named from the next statement on: its own value can't name it.
+            visible.append(local)
             return .declareLocal(local, mutable: mutable, value: value)
         case .function(var decl):
             guard isProgram else {
                 placeable = false
                 return statement
             }
-            decl.body = FrameResolver.resolve(body: decl.body, isProgram: false)
+            decl.body = FrameResolver.resolve(
+                body: decl.body,
+                isProgram: false,
+                parameters: decl.parameters
+            )
             return .function(decl)
         case .enumDecl, .structDecl, .classDecl, .protocolDecl, .typeExtension, .extensionDecl,
             .operatorDeclaration:
@@ -147,7 +190,18 @@ struct FrameResolver {
             return .returnStatement(value.map { expression($0) })
         case .throwStatement(let value):
             return .throwStatement(expression(value))
-        case .assign, .declareLocal, .fallthroughStatement, .breakStatement, .continueStatement:
+        case .assign(var assignment):
+            assignment.value = expression(assignment.value)
+            assignment.path = assignment.path.map { step in
+                switch step {
+                case .index(let index): .index(expression(index))
+                case .indexDefault(let key, let fallback):
+                    .indexDefault(expression(key), expression(fallback))
+                default: step
+                }
+            }
+            return .assign(assignment)
+        case .declareLocal, .fallthroughStatement, .breakStatement, .continueStatement:
             return statement
         }
     }
@@ -182,12 +236,40 @@ struct FrameResolver {
         return resolved
     }
 
-    /// The closures in an expression, each with its own frame. What is not looked into keeps its
-    /// closures as they were, to be run by name.
+    /// An expression with the locals it names read from their slots, and its closures each with
+    /// a frame of its own. What is not looked into is left as it was, to be run by name: an `if`
+    /// expression and a pattern, whose bindings are made by name as they run, among them.
     private func expression(_ value: Expr) -> Expr {
         switch value {
+        case .variable(let name):
+            return visible.last(where: { $0.name == name }).map(Expr.local) ?? value
+        case .string(let parts):
+            return .string(
+                parts.map { part in
+                    if case .expression(let inner) = part { return .expression(expression(inner)) }
+                    return part
+                }
+            )
+        case .index(let base, let index):
+            return .index(expression(base), expression(index))
+        case .indexDefault(let base, let key, let fallback):
+            return .indexDefault(expression(base), expression(key), expression(fallback))
+        case .subscripted(let base, let arguments):
+            return .subscripted(expression(base), arguments.map(argument))
+        case .forceUnwrap(let inner):
+            return .forceUnwrap(expression(inner))
+        case .optionalMember(let base, let name):
+            return .optionalMember(expression(base), name)
+        case .cast(let inner, let type, let kind):
+            return .cast(expression(inner), type, kind)
+        case .described(let inner, let type):
+            return .described(expression(inner), type)
         case .closure(var literal):
-            literal.body = FrameResolver.resolve(body: literal.body, isProgram: false)
+            literal.body = FrameResolver.resolve(
+                body: literal.body,
+                isProgram: false,
+                parameters: literal.parameters
+            )
             return .closure(literal)
         case .call(let callee, let arguments):
             return .call(expression(callee), arguments.map(argument))

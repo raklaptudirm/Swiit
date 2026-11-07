@@ -47,15 +47,24 @@ extension Interpreter {
                 mutable: !function.inoutNames.isEmpty && function.inoutNames.contains(argument.key)
             )
         }
-        return try runSwiit(function, in: Scope(table: made), receiver: receiver)
+        return try runSwiit(function, with: made, receiver: receiver)
     }
 
-    /// Runs a Swiit function whose parameters are bound in `argumentScope`.
+    /// Runs a Swiit function whose parameters are bound in `arguments`. A body given a frame has
+    /// them in its first slots, in order (`FrameResolver`); a scope holds them for one run by name,
+    /// and holds what a call adds by name to either: `self`, the types of its type parameters, and
+    /// a nested function's own name.
     func runSwiit(
         _ function: Function,
-        in argumentScope: Scope,
+        with arguments: BindingTable,
         receiver: Receiver? = nil
     ) throws -> Value {
+        guard case .swiit(let body) = function.body else { preconditionFailure() }
+        let hasFrame = body.frameSize != nil
+        let isNested = function.name != nil && function.captured.count > 2
+        let argumentScope =
+            !hasFrame || receiver != nil || !function.typeParameters.isEmpty || isNested
+            ? Scope(table: arguments) : nil
         let savedScopes = scopes
         // A type parameter the call left to what was passed (a protocol's type) is the type of that
         // value, as Swift opens an existential.
@@ -68,7 +77,7 @@ extension Interpreter {
                 continue
             }
             guard let parameter = function.parameters.first(where: { $0.type == .parameter(name) }),
-                let argument = argumentScope.bindings[parameter.name]?.value
+                let argument = arguments[parameter.name]?.value, let argumentScope
             else { continue }
             let actual = typeObject(of: argument)
             guard actual != .nothing else { continue }
@@ -78,7 +87,7 @@ extension Interpreter {
                 mutable: false
             )
         }
-        if let receiver {
+        if let receiver, let argumentScope {
             argumentScope.bindings["self"] = Binding(
                 value: receiver.value,
                 mutable: receiver.mutable,
@@ -87,9 +96,8 @@ extension Interpreter {
         }
         // A nested function reaches itself through the call, not by keeping
         // the binding it's stored in, which would be a cycle.
-        if let name = function.name, function.captured.count > 2,
-            argumentScope.bindings[name] == nil,
-            case .swiit = function.body
+        if let name = function.name, isNested, let argumentScope,
+            argumentScope.bindings[name] == nil
         {
             argumentScope.bindings[name] = Binding(
                 value: .function(OverloadSet(name: name, candidates: [function])),
@@ -100,13 +108,13 @@ extension Interpreter {
         var inside = [Scope]()
         inside.reserveCapacity(function.captured.count + 1)
         inside.append(contentsOf: function.captured)
-        inside.append(argumentScope)
+        if let argumentScope { inside.append(argumentScope) }
         scopes = inside
         if let owner = function.owner { task.owners.append(owner) }
         callDepth += 1
         returnTypes.append(function.returnType)
         defer {
-            if let receiver, let changed = argumentScope.bindings["self"]?.value {
+            if let receiver, let changed = argumentScope?.bindings["self"]?.value {
                 receiver.value = changed
             }
             scopes = savedScopes
@@ -119,15 +127,27 @@ extension Interpreter {
             }
         }
 
-        guard case .swiit(let body) = function.body else { preconditionFailure() }
+        // The parameters, in the slots they were given.
+        func bindParameters() {
+            guard hasFrame, let frame = task.frame else { return }
+            for (slot, parameter) in function.parameters.enumerated() {
+                if let binding = arguments[parameter.name] {
+                    frame.bind(parameter.name, binding, at: slot)
+                }
+            }
+        }
         let result: Value
         if let expr = function.implicitReturn {
             result = try withFrame(size: body.frameSize) {
-                try evaluate(expr, expecting: function.returnType)
+                bindParameters()
+                return try evaluate(expr, expecting: function.returnType)
             }
         } else {
             do {
-                _ = try withFrame(size: body.frameSize) { try run(body) }
+                _ = try withFrame(size: body.frameSize) {
+                    bindParameters()
+                    return try run(body)
+                }
                 result = .nothing
             } catch ControlFlow.returned(let value) {
                 result = value
@@ -144,7 +164,7 @@ extension Interpreter {
         // What the `inout` parameters hold now goes back to where the call took them from.
         if !function.inoutNames.isEmpty {
             task.inoutOutputs = function.parameters.filter(\.isInout)
-                .map { argumentScope.bindings[$0.name]?.value ?? .nothing }
+                .map { arguments[$0.name]?.value ?? .nothing }
         }
         guard let returnType = function.returnType else { return result }
         guard let conforming = conform(result, to: returnType) else {
@@ -158,7 +178,7 @@ extension Interpreter {
 
     /// The scope of a call to a Swiit function whose arguments are one for each parameter, in order
     /// and with the labels the parameters have; nil for any other call, which `bind` works out.
-    func bindPlainly(_ arguments: [Argument], to function: Function) throws -> Scope? {
+    func bindPlainly(_ arguments: [Argument], to function: Function) throws -> BindingTable? {
         guard case .swiit = function.body, function.parameters.count == arguments.count else {
             return nil
         }
@@ -177,7 +197,7 @@ extension Interpreter {
                 mutable: false
             )
         }
-        return Scope(table: table)
+        return table
     }
 
     /// Calls a function value with positional arguments, as builtins like

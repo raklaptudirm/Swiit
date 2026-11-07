@@ -5,7 +5,7 @@ extension Interpreter {
 
     func evaluate(_ expr: Expr) throws -> Value {
         switch expr {
-        case .literal, .string, .variable, .filePath, .keyPath, .ifExpression:
+        case .literal, .string, .variable, .local, .filePath, .keyPath, .ifExpression:
             return try evaluateName(expr)
         case .list, .record, .tuple:
             return try evaluateCollection(expr)
@@ -27,6 +27,16 @@ extension Interpreter {
             return value
         case .string(let parts):
             return .string(try expand(parts))
+        case .local(let local):
+            // Its slot holds it wherever it is read (`FrameResolver`); by name otherwise.
+            guard let binding = task.frame?.binding(at: local.slot) ?? lookup(local.name) else {
+                throw RuntimeError("no variable named '\(local.name)'")
+            }
+            let value = binding.value
+            if case .object(let reference as WeakReference) = value.storage {
+                return reference.target.map { .object($0) } ?? .nothing
+            }
+            return value
         case .variable(let name):
             guard let binding = lookup(name) else {
                 throw RuntimeError("no variable named '\(name)'")
@@ -524,6 +534,8 @@ extension Interpreter {
     private func isDeclaredFunctionName(_ callee: Expr) -> Bool {
         switch callee {
         case .variable(let name): return lookup(name)?.isFunction ?? false
+        // A local is a value, never a declared function.
+        case .local: return false
         case .literal(let value): return !value.isFunction
         default: return true
         }
@@ -559,13 +571,13 @@ extension Interpreter {
         let only =
             (target as? OverloadSet).flatMap { $0.candidates.count == 1 ? $0.candidates[0] : nil }
             ?? (target as? Function)
-        guard let only, let scope = try bindPlainly(arguments, to: only) else { return nil }
+        guard let only, let table = try bindPlainly(arguments, to: only) else { return nil }
         defer { task.lastCallee = only }
         guard callDepth < limits.maxCallDepth else {
             throw RuntimeError("maximum call depth (\(limits.maxCallDepth)) exceeded")
         }
         try checkInterrupt()
-        return try runSwiit(only, in: scope)
+        return try runSwiit(only, with: table)
     }
 
     static func isCaseLiteral(_ expr: Expr) -> Bool {

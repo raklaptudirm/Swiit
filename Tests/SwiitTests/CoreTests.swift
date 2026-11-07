@@ -104,8 +104,9 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
     }
     let capture = try #require(closure.captured.last)
     #expect(capture.bindings.keys.sorted() == ["i"])
-    // The call's scope, which held `g` and `unused`, is gone once it returned.
-    #expect(!capture.fallbacks.isEmpty && capture.fallbacks.allSatisfy { $0.scope == nil })
+    // What held `g` and `unused` (the call's frame, or a scope) is not kept: any scope it is told
+    // to look in later is gone once the call returned.
+    #expect(capture.fallbacks.allSatisfy { $0.scope == nil })
 }
 
 /// A case's `where` is its last pattern's, as in Swift: in `case 1, 2 where c:`

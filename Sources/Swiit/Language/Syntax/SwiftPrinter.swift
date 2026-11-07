@@ -371,6 +371,7 @@ struct SwiftPrinter {
     private func expression(_ expr: Expr) -> String {
         switch expr {
         case .literal(let value): return literal(value)
+        case .local(let local): return local.name
         case .string(let parts):
             return "\""
                 + parts.map { part in

@@ -617,6 +617,8 @@ extension Interpreter {
         switch expr {
         case .variable(let name):
             return (name, [])
+        case .local(let local):
+            return (local.name, [])
         case .member(let base, let name):
             return lvalue(base).map { ($0.0, $0.1 + [.member(name)]) }
         case .index(let base, let index):
@@ -709,6 +711,11 @@ extension Interpreter {
                 current = inner
             case .variable(let root):
                 try assign(Assignment(root: root, path: path, op: nil, value: .literal(value)))
+                return
+            case .local(let local):
+                try assign(
+                    Assignment(root: local.name, path: path, op: nil, value: .literal(value))
+                )
                 return
             default:
                 throw RuntimeError("only a variable can be passed with &")

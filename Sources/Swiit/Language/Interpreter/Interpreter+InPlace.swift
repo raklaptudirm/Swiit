@@ -34,7 +34,7 @@ extension Interpreter {
     /// long way.
     func isPure(_ expr: Expr) -> Bool {
         switch expr {
-        case .literal, .variable: true
+        case .literal, .variable, .local: true
         case .member(let base, _): isPure(base)
         case .unary(_, let operand): isPure(operand)
         case .binary(_, let lhs, let rhs): isPure(lhs) && isPure(rhs)
