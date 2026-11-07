@@ -34,8 +34,8 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    nonisolated(unsafe) static let concurrency: [BridgedType] =
-        [  // safe: set once, before anything reads it
+    nonisolated(unsafe) static let concurrency: [BridgedType] =  // safe: set once, before anything reads it
+        [
             BridgedType(
                 name: "Task",
                 genericParameters: ["Success", "Failure"],

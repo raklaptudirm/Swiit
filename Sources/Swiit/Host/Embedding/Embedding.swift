@@ -400,7 +400,7 @@ extension Interpreter {
         /// written under the lock and read by whoever is running: a stale read only delays the stop by
         /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
         /// flag in the host's spawn code is.
-        nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
+        nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {  // safe: a word read and written atomically, as the doc above says
             let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
             pointer.initialize(to: 0)
             return pointer

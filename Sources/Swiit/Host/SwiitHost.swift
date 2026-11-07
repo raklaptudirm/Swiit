@@ -136,7 +136,7 @@ extension Interpreter {
 
 /// A closure the interpreter's owner promises is called safely: only holding the interpreter's
 /// lock, or from its own thread.
-struct UncheckedSendable<T>: @unchecked Sendable {
+struct UncheckedSendable<T>: @unchecked Sendable {  // safe: the owner promises it is called only under the interpreter's lock or from its own thread
     let value: T
     init(_ value: T) { self.value = value }
 }
