@@ -404,7 +404,13 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
             gate.wait(timeout: .now() + 10) == .timedOut ? 0 : 1
         }
     }
-    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { swiit.cancel() }
+    // From a thread of its own: a busy runner can hold the global queue's block up for seconds,
+    // and the test is of the cancel, not of the queue.
+    let canceller = Thread {
+        Thread.sleep(forTimeInterval: 0.2)
+        swiit.cancel()
+    }
+    canceller.start()
     let start = Date()
     _ = try? swiit.evaluate("block()")
     #expect(Date().timeIntervalSince(start) < 5)
