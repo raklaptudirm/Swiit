@@ -139,8 +139,25 @@ extension Interpreter {
     }
 
     func runBlock(_ program: Program, declaring bindings: [String: Binding] = [:]) throws {
-        scopes.append(Scope(bindings))
-        defer { scopes.removeLast() }
+        // A block of a body given a frame that binds nothing needs nothing made for it.
+        if program.locals?.isEmpty == true, bindings.isEmpty {
+            _ = try run(program)
+            return
+        }
+        guard let locals = program.locals, let frame = task.frame else {
+            scopes.append(Scope(bindings))
+            defer { scopes.removeLast() }
+            try run(program)
+            return
+        }
+        // A block of a body given a frame: what it begins with goes in the slots it was given.
+        for (name, binding) in bindings {
+            guard let local = locals.first(where: { $0.name == name }) else {
+                preconditionFailure("\(name) was given no slot in its block")
+            }
+            frame.bind(name, binding, at: local.slot)
+        }
+        defer { frame.clear(locals) }
         try run(program)
     }
 
@@ -162,6 +179,9 @@ extension Interpreter {
             if name != "_" {
                 scopes[scopes.count - 1].bindings[name] = Binding(value: value, mutable: mutable)
             }
+        case .declareLocal(let local, let mutable, let expr):
+            let value = try evaluate(expr)
+            task.frame!.bind(local.name, Binding(value: value, mutable: mutable), at: local.slot)
         case .assign(let assignment):
             try assign(assignment)
         case .structDecl(let decl):

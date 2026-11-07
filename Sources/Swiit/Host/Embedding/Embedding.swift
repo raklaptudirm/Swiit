@@ -843,7 +843,11 @@ extension Interpreter {
             // What the program declared is typed as written for the next run: `var x: Int? = nil`
             // is an optional Int.
             staticTypes.merge(checker.declaredGlobals) { $1 }
-            return try run(checked, observing: observer, onError: onError, finish: finish)
+            // The locals of its blocks, functions and closures in frames.
+            let resolved = FrameResolver.resolve(program: checked)
+            return try withFrame(size: resolved.frameSize) {
+                try run(resolved, observing: observer, onError: onError, finish: finish)
+            }
         } catch {
             throw Diagnostic.of(error)
         }

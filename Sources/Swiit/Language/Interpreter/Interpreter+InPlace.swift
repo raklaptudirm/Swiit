@@ -48,8 +48,7 @@ extension Interpreter {
     /// `root` followed by `path` as a place that can be changed in place, or nil if it can't.
     func plainPlace(_ root: String, _ path: [Assignment.Step], op: BinaryOperator?) throws -> Place?
     {
-        guard let scope = scopeHolding(root), let binding = scope.bindings[root],
-            binding.special != .initializing,
+        guard let binding = lookup(root), binding.special != .initializing,
             !binding.isComputed
         else { return nil }
         // Nothing the long way would evaluate first can have an effect.
@@ -129,13 +128,13 @@ extension Interpreter {
     /// and put back as `body` left it, however it ends.
     func withPlace<T>(_ root: String, _ place: Place, _ body: (inout Value) throws -> T) throws -> T
     {
-        guard let scope = scopeHolding(root) else {
+        guard let binding = lookup(root) else {
             throw RuntimeError("no variable named '\(root)'")
         }
         // Moved: what the variable held is held by `value` alone.
-        var value = scope.bindings[root]!.value
-        scope.bindings[root]!.value = .nothing
-        defer { scope.bindings[root]!.value = value }
+        var value = binding.value
+        binding.value = .nothing
+        defer { binding.value = value }
         return try descend(&value, place.steps[...], body)
     }
 

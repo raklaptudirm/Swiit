@@ -736,12 +736,12 @@ extension Interpreter {
         _ path: [Assignment.Step],
         _ change: (Value, TypeAnnotation?) throws -> Value
     ) throws {
-        guard let scope = scopeHolding(root) else {
+        guard let binding = lookup(root) else {
             throw RuntimeError("no variable named '\(root)'")
         }
-        let current = scope.bindings[root]!.value
-        let initializing = scope.bindings[root]!.special == .initializing
-        scope.bindings[root]!.value = try updated(
+        let current = binding.value
+        let initializing = binding.special == .initializing
+        binding.value = try updated(
             current,
             path[...],
             type: nil,

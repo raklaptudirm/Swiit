@@ -119,13 +119,15 @@ extension Interpreter {
             }
         }
 
+        guard case .swiit(let body) = function.body else { preconditionFailure() }
         let result: Value
         if let expr = function.implicitReturn {
-            result = try evaluate(expr, expecting: function.returnType)
+            result = try withFrame(size: body.frameSize) {
+                try evaluate(expr, expecting: function.returnType)
+            }
         } else {
-            guard case .swiit(let body) = function.body else { preconditionFailure() }
             do {
-                _ = try run(body)
+                _ = try withFrame(size: body.frameSize) { try run(body) }
                 result = .nothing
             } catch ControlFlow.returned(let value) {
                 result = value
@@ -315,11 +317,14 @@ extension Interpreter {
         let savedScopes = scopes
         scopes = function.captured
         defer { scopes = savedScopes }
-        return try checked(
-            try evaluate(expr, expecting: parameter.type),
-            for: parameter,
-            of: function.name ?? "closure"
-        )
+        // It sees what the function was declared with, not the locals of its caller.
+        return try withFrame(size: nil) {
+            try checked(
+                try evaluate(expr, expecting: parameter.type),
+                for: parameter,
+                of: function.name ?? "closure"
+            )
+        }
     }
 
     func checked(_ value: Value, for parameter: Parameter, of function: String) throws -> Value {

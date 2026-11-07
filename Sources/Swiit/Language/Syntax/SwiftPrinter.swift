@@ -45,6 +45,11 @@ struct SwiftPrinter {
                 return ["\(p)\(keyword) \(name): \(type) = \(expression(inner))"]
             }
             return ["\(p)\(keyword) \(name) = \(expression(value))"]
+        case .declareLocal(let local, let mutable, let value):
+            return self.statement(
+                .declare(name: local.name, mutable: mutable, value: value),
+                indent: indent
+            )
         case .assign(let assignment):
             var target = assignment.root
             for step in assignment.path {

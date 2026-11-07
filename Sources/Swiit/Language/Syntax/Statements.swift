@@ -12,6 +12,17 @@ struct Program: Equatable, Sendable {
     /// The expressions each statement has, and where they are, for an error to point at one of
     /// them.
     var spots: [[Spot]] = []
+    /// For a block of a body given a frame (`FrameResolver`), the locals it begins with and
+    /// declares, each in its slot; nil for one run by name.
+    var locals: [Local]?
+    /// For a body given a frame, how many slots it has; nil for one run by name.
+    var frameSize: Int?
+
+    /// A local and the slot of its frame it lives in.
+    struct Local: Equatable, Sendable {
+        var name: String
+        var slot: Int
+    }
 
     /// Programs are equal by what they say, wherever it was written.
     static func == (lhs: Program, rhs: Program) -> Bool {
@@ -33,6 +44,8 @@ struct Program: Equatable, Sendable {
 
 enum Statement: Equatable, Sendable {
     case declare(name: String, mutable: Bool, value: Expr)
+    /// A `let` or `var` in a block of a body given a frame: bound in its slot (`FrameResolver`).
+    case declareLocal(Program.Local, mutable: Bool, value: Expr)
     /// `x = v`, `p.x += 1`, `xs[0] = v`.
     case assign(Assignment)
     case function(FunctionDecl)

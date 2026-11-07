@@ -55,7 +55,7 @@ extension Interpreter {
         // A member that calls back into the program could see the variable while it is out.
         guard !member.parameters.contains(where: { $0.type.acceptsFunction }),
             let (root, path) = lvalue(receiver),
-            scopeHolding(root)?.bindings[root].map({ $0.mutable }) == true,
+            lookup(root)?.mutable == true,
             let place = try plainPlace(root, path, op: nil)
         else { return nil }
         // Only a collection (or a string) gains by it; anything else has no copy to save.

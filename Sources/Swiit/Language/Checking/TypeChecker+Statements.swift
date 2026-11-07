@@ -91,6 +91,13 @@ extension TypeChecker {
 
     func checkStatement(_ statement: inout Statement) throws {
         switch statement {
+        case .declareLocal(let local, let mutable, let value):
+            // Given a slot after it was checked; checked again as what it was written as.
+            var written = Statement.declare(name: local.name, mutable: mutable, value: value)
+            try checkDeclaration(&written)
+            if case .declare(_, _, let checked) = written {
+                statement = .declareLocal(local, mutable: mutable, value: checked)
+            }
         case .declare, .assign, .function, .enumDecl, .structDecl, .typeExtension, .classDecl,
             .operatorDeclaration,
             .protocolDecl:

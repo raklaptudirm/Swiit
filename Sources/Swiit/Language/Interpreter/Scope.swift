@@ -118,15 +118,6 @@ final class Scope {
         }
         return nil
     }
-
-    /// The scope binding `name`: this one, or where it was made.
-    func holding(_ name: String) -> Scope? {
-        if bindings[name] != nil { return self }
-        for fallback in fallbacks.reversed() {
-            if let scope = fallback.scope, scope.bindings[name] != nil { return scope }
-        }
-        return nil
-    }
 }
 
 struct WeakScope {

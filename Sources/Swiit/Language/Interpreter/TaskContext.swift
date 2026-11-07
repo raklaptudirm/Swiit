@@ -9,6 +9,11 @@ final class TaskContext {
     /// ones every task shares: the builtins, then what is declared at the
     /// prompt, so a `func` there shadows a builtin rather than overloading it.
     var scopes: [Scope]
+    /// The locals of the function, closure or program running now, if it was given a frame
+    /// (`FrameResolver`); nil for one run by name.
+    var frame: Frame?
+    /// How many of `scopes` were there when `frame` began: those after it are inside it.
+    var frameBase = 0
     /// How many Swiit function calls are in progress.
     var callDepth = 0
     /// The return types of the functions being run, innermost last, so a
@@ -61,6 +66,21 @@ extension Interpreter {
     var scopes: [Scope] {
         _read { yield task.scopes }
         _modify { yield &task.scopes }
+    }
+
+    /// Runs `body` with a frame of its own for a body given one (`size`), or none; the frame and
+    /// the scopes it is under are as they were after. A body without locals needs none.
+    func withFrame<T>(size: Int?, _ body: () throws -> T) rethrows -> T {
+        let size = size ?? 0
+        let task = self.task
+        // Neither has locals in a frame: there is nothing to change, which is most calls of a
+        // small function.
+        if size == 0, task.frame == nil { return try body() }
+        let saved = (task.frame, task.frameBase)
+        task.frame = size == 0 ? nil : Frame(size: size)
+        task.frameBase = task.scopes.count
+        defer { (task.frame, task.frameBase) = saved }
+        return try body()
     }
 
     /// How many Swiit function calls the current task has in progress.
