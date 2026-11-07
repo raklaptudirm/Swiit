@@ -6,7 +6,7 @@ extension Lowering {
     mutating func declaration(_ decl: DeclSyntax) throws -> [Statement] {
         if let node = decl.as(VariableDeclSyntax.self) { return try variables(node) }
         if let node = decl.as(FunctionDeclSyntax.self) {
-            functions.insert(node.name.text)
+            functions.insert(node.name.plainName)
             bind(node.name.text)
             return [.function(try function(node))]
         }
@@ -541,7 +541,7 @@ extension Lowering {
         let returnType = try node.signature.returnClause.map { try type($0.type) }
         let mutating = node.modifiers.contains { $0.name.tokenKind == .keyword(.mutating) }
         // A prefix or postfix operator is told from the infix one of the same spelling by its name.
-        var name = node.name.text
+        var name = node.name.plainName
         if node.modifiers.contains(where: { $0.name.tokenKind == .keyword(.prefix) }) {
             name = "prefix " + name
         } else if node.modifiers.contains(where: { $0.name.tokenKind == .keyword(.postfix) }) {
@@ -700,9 +700,9 @@ extension Lowering {
             }
             if let method = member.decl.as(FunctionDeclSyntax.self) {
                 if isStatic(method.modifiers) {
-                    statics.insert(method.name.text)
+                    statics.insert(method.name.plainName)
                 } else {
-                    instance.insert(method.name.text)
+                    instance.insert(method.name.plainName)
                 }
             }
         }
@@ -928,7 +928,7 @@ extension Lowering {
                 defer { typeParameters = methodParameters }
                 let effects = method.signature.effectSpecifiers
                 let lowered = FunctionDecl(
-                    name: method.name.text,
+                    name: method.name.plainName,
                     parameters: try parameters(method.signature.parameterClause),
                     returnType: try method.signature.returnClause.map { try type($0.type) },
                     body: Program(statements: []),

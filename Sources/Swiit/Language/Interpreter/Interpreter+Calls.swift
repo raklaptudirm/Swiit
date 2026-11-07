@@ -179,8 +179,22 @@ extension Interpreter {
     }
 
     /// Calls a function value with positional arguments, as builtins like
-    /// `where` call the closures they're given.
+    /// `where` call the closures they're given. From outside a run it is a run of its own: its
+    /// steps, output and time are counted from the call, and a stop asked for before it does not
+    /// end it.
     public func call(_ value: Value, with arguments: [Value]) throws -> Value {
+        // Outside a run, the call is one: it holds the interpreter, and starts with the steps,
+        // output and time of a run of its own and no stop asked for before.
+        if !lock.isHeldByCurrentThread {
+            return try withMainTask {
+                beginRun()
+                return try callFunctionValue(value, with: arguments)
+            }
+        }
+        return try callFunctionValue(value, with: arguments)
+    }
+
+    private func callFunctionValue(_ value: Value, with arguments: [Value]) throws -> Value {
         let positional = arguments.map { Argument(label: nil, value: .literal($0)) }
         // A function's type has no labels, so those of the function itself are the ones to use.
         let unlabeled = self.unlabeled(positional, for: value)

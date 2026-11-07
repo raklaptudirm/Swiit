@@ -158,7 +158,7 @@ extension Lowering {
     /// A name: a local, a member of the struct whose method this is (read
     /// through `self`), or a global.
     func reference(_ node: DeclReferenceExprSyntax) -> Expr {
-        let name = node.baseName.text
+        let name = node.baseName.plainName
         if locals.contains(where: { $0.contains(name) }) { return .variable(name) }
         if name == "Self", let current = currentType { return .variable(current) }
         if let nested = nestedNames[name] { return .variable(nested) }
@@ -321,7 +321,7 @@ extension Lowering {
             }
             // A type inside another that an earlier program declared, or one of Swift's inside a
             // namespace: `Unicode.Scalar`.
-            let base = reference.baseName.text
+            let base = reference.baseName.plainName
             if bound[base] == nil || bound[base] == .type, bound[base + "." + name] == .type {
                 return .variable(base + "." + name)
             }
@@ -731,10 +731,10 @@ extension Lowering {
     /// `total = 5`, `total += 1` where `total` is a computed variable: its setter.
     mutating func computedAssignment(_ node: InfixOperatorExprSyntax) throws -> [Statement]? {
         guard let target = node.leftOperand.as(DeclReferenceExprSyntax.self),
-            facts.computedGlobals.contains(target.baseName.text),
-            !locals.contains(where: { $0.contains(target.baseName.text) })
+            facts.computedGlobals.contains(target.baseName.plainName),
+            !locals.contains(where: { $0.contains(target.baseName.plainName) })
         else { return nil }
-        let name = target.baseName.text
+        let name = target.baseName.plainName
         var op: BinaryOperator?
         if node.operator.is(AssignmentExprSyntax.self) {
             op = nil
@@ -850,7 +850,7 @@ extension Lowering {
         guard let root = place.as(DeclReferenceExprSyntax.self) else {
             throw unsupported("this assignment", leftOperand)
         }
-        var rootName = root.baseName.text
+        var rootName = root.baseName.plainName
         // A static member, in a static member: `made += 1` is `Counter.made += 1`.
         if !locals.contains(where: { $0.contains(rootName) }), let context = staticContext,
             context.names.contains(rootName)

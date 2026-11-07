@@ -623,10 +623,6 @@ extension Interpreter {
                     }
                     if fits { return try self.evaluate(.call(.literal(methods), written)) }
                 }
-                // `Int("5")`: a Swift type's name calls its initializers.
-                if receiver == nil, let initializers = self.bridgedInitializers(of: name) {
-                    return try self.evaluate(.call(.literal(initializers), written))
-                }
                 let callee: Expr = receiver.map { .member(.literal($0), name) } ?? .variable(name)
                 return try self.evaluate(.call(callee, written))
             }
@@ -805,7 +801,7 @@ extension Interpreter {
 
     /// What a run starts from: no steps taken, no output counted, the time limit counting from now
     /// and no stop asked for (but one asked before it began, which `alreadyCancelled` says).
-    private func beginRun(alreadyCancelled: () -> Bool = { false }) {
+    func beginRun(alreadyCancelled: () -> Bool = { false }) {
         steps = 0
         outputCounter.reset()
         deadline = limits.timeLimit.map { ContinuousClock.now + $0 }

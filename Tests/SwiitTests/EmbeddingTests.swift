@@ -1506,3 +1506,34 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("func f() -> Int { var n = 0; for i in 0..<300 { n += i }; return n }")
     for _ in 0..<20 { _ = try swiit.call("f") }
 }
+
+// MARK: Declared types, keyword names, function values outside a run
+
+@Test func aDeclaredTypesMembersBuildValuesFromInitializers() throws {
+    let swiit = interpreter()
+    try swiit.declare("struct S { var w: String { String(1) }; var n: Int { Int(2.0) } }")
+    try swiit.declare(
+        "enum E { case a; var w: String { String(3) }; static func s() -> String { String(4) } }"
+    )
+    #expect(try swiit.evaluate("S().w + String(S().n)") == Value("12"))
+    #expect(try swiit.evaluate("E.a.w + E.s()") == Value("34"))
+    // The host's own call of a type's name chooses the same initializer.
+    #expect(try swiit.call("String", arguments: [(nil, Value(5))]) == Value("5"))
+}
+
+@Test func aFunctionNamedLikeAKeywordNeedsNoBackticksAfterADot() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum editor { static func `default`() -> Int { 1 } }")
+    #expect(try swiit.evaluate("editor.default() + editor.`default`()") == Value(2))
+    _ = try swiit.evaluate("func `repeat`() -> Int { 3 }\nlet `class` = 4")
+    #expect(try swiit.evaluate("`repeat`() + `class`") == Value(7))
+    _ = try swiit.evaluate("struct Q { var `in` = 5; func `case`() -> Int { `in` } }")
+    #expect(try swiit.evaluate("Q().in + Q().case()") == Value(10))
+}
+
+@Test func callingAFunctionValueOutsideARunStartsARun() throws {
+    let swiit = interpreter(limits: Interpreter.Limits(maxSteps: 2_000))
+    _ = try swiit.evaluate("let f = { var n = 0; for i in 0..<300 { n += i }; return n }")
+    let f = try swiit.evaluate("f")
+    for _ in 0..<20 { _ = try swiit.call(f, with: []) }
+}

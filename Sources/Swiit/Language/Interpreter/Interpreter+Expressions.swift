@@ -472,6 +472,9 @@ extension Interpreter {
             return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue)
                 ?? .nothing
         }
+        if case .object(let type as BridgedTypeName) = value.storage {
+            return try constructBridged(type, arguments)
+        }
         // A function's type has no argument labels: called through a variable, a function takes
         // its arguments in order, whatever it was declared with.
         var arguments = arguments
@@ -499,6 +502,21 @@ extension Interpreter {
         default:
             throw RuntimeError("\(value.typeName) isn't a function")
         }
+    }
+
+    /// `String(n)` in a body nothing has checked (a type a host declared): the checker chooses the
+    /// initializer, for the values the call is given.
+    private func constructBridged(_ type: BridgedTypeName, _ arguments: [Argument]) throws -> Value
+    {
+        let given = try arguments.map { argument -> Argument in
+            if case .caseLiteral = argument.value { return argument }
+            return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
+        }
+        var call = Expr.call(.variable(type.name), given)
+        do { _ = try TypeChecker(interpreter: self).typeOf(&call) } catch let error as TypeError {
+            throw RuntimeError(error.message)
+        }
+        return try evaluate(call)
     }
 
     /// Whether a call's callee names a function declared with `func` (or a host's), whose labels the
