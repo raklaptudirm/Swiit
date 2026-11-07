@@ -174,3 +174,23 @@ private final class OutputBox: @unchecked Sendable {
         """
     #expect(try run(source) == "5 30 11 b 14 2\n")
 }
+
+@Test func aLocalCapturedLaterIsTheSameVariable() throws {
+    let source = """
+        func bump(_ v: inout Int) { v += 100 }
+        func f() -> [Int] {
+            var x = 1
+            x = { x + 10 }()
+            var y = 2
+            let read = { y }
+            y = 3
+            var z = 4
+            bump(&z)
+            var w = 5
+            w += { w }()
+            return [x, read(), y, z, w]
+        }
+        print(f())
+        """
+    #expect(try run(source) == "[11, 3, 3, 104, 10]\n")
+}
