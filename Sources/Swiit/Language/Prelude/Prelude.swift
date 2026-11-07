@@ -29,9 +29,12 @@ extension Interpreter {
     /// are returned, to be declared once the rest is.
     func declarePrelude(
         _ program: Program,
-        natives: [String: (body: FunctionBody, input: Parameter?)]
+        natives: [String: (body: FunctionBody, input: Parameter?)],
+        capturing globals: Int = 1
     ) throws -> [ExtensionDecl] {
         var extensions: [ExtensionDecl] = []
+        // Functions written with a body, declared once checked together (they may call each other).
+        var written: [FunctionDecl] = []
         for statement in program.statements {
             switch statement {
             case .structDecl(let decl):
@@ -60,9 +63,10 @@ extension Interpreter {
                 // Written with a body, it is Swiit's; without, Swift's by name.
                 let function: Function
                 if let native = natives[decl.name] {
-                    function = builtinFunction(decl, native.body, input: nil)
+                    function = builtinFunction(decl, native.body, input: nil, capturing: globals)
                 } else if !decl.body.statements.isEmpty {
-                    function = builtinFunction(decl, .swiit(decl.body), input: nil)
+                    written.append(decl)
+                    continue
                 } else {
                     throw RuntimeError("no body for \(decl.name)")
                 }
@@ -71,7 +75,12 @@ extension Interpreter {
                 for method in methods {
                     let function: Function
                     if let native = natives["Sequence." + method.name] {
-                        function = builtinFunction(method, native.body, input: native.input)
+                        function = builtinFunction(
+                            method,
+                            native.body,
+                            input: native.input,
+                            capturing: globals
+                        )
                     } else if !method.body.statements.isEmpty {
                         // The sequence, as a list, is `self`; the body is checked as a function's
                         // is, so that what it calls is resolved.
@@ -91,7 +100,12 @@ extension Interpreter {
                         }
                         var shaped = resolved
                         shaped.parameters.removeFirst()
-                        function = builtinFunction(shaped, .swiit(resolved.body), input: receiver)
+                        function = builtinFunction(
+                            shaped,
+                            .swiit(resolved.body),
+                            input: receiver,
+                            capturing: globals
+                        )
                     } else {
                         throw RuntimeError("no body for Sequence.\(method.name)")
                     }
@@ -105,6 +119,29 @@ extension Interpreter {
                 throw RuntimeError("a prelude only declares")
             }
         }
+        if !written.isEmpty {
+            // Checked as a script's functions are, so that what a body calls, and a default
+            // argument's leading-dot case, are resolved against what is declared by now.
+            let checked: Program
+            do {
+                checked = try TypeChecker(interpreter: self)
+                    .check(Program(statements: written.map { .function($0) }))
+            } catch let error as TypeError {
+                throw RuntimeError("the function \(written[0].name): \(error.message)")
+            }
+            for case .function(let resolved) in checked.statements {
+                scopes[0]
+                    .declare(
+                        builtinFunction(
+                            resolved,
+                            .swiit(resolved.body),
+                            input: nil,
+                            capturing: globals
+                        ),
+                        named: resolved.name
+                    )
+            }
+        }
         return extensions
     }
 
@@ -115,6 +152,10 @@ extension Interpreter {
     /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
     /// may overload it. The bodies are Swift a host gives the interpreter to run: what they can
     /// rely on is in "What a Swift body can rely on" (`NativeBodies`).
+    ///
+    /// A function written with a body is checked as a script's is, when it is declared: what it
+    /// calls (the program's functions and the host's, evaluated or registered before) and the
+    /// cases a default argument names must be there then, and a name that is not is refused.
     public func declare(
         _ source: String,
         bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]
@@ -145,7 +186,9 @@ extension Interpreter {
                         )
                     }
                 )
-                try declarePreludeExtensions(try declarePrelude(program, natives: natives))
+                try declarePreludeExtensions(
+                    try declarePrelude(program, natives: natives, capturing: 2)
+                )
             }
         } catch let error as SyntaxError {
             throw Diagnostic(
@@ -174,15 +217,17 @@ extension Interpreter {
     private func builtinFunction(
         _ decl: FunctionDecl,
         _ body: FunctionBody,
-        input: Parameter?
+        input: Parameter?,
+        capturing globals: Int
     ) -> Function {
         let function = Function(
             name: decl.name,
             parameters: (input.map { [$0] } ?? []) + decl.parameters,
             returnType: decl.returnType,
             body: body,
-            // What it is written in sees the globals, as a function a script declares does.
-            captured: Array(scopes.prefix(1)),
+            // What it is written in sees the globals, as a function a script declares does: the
+            // builtins alone for the library, and what the script declared as well for a host's.
+            captured: Array(scopes.prefix(globals)),
             documentation: decl.documentation,
             attributes: decl.attributes,
             isThrowing: decl.isThrowing,

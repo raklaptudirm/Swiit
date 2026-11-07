@@ -23,6 +23,7 @@ enum Bridge {
                     $0.name,
                     $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
                         .adding(additions[$0.name] ?? [])
+                        .withTextInitializer()
                 )
             }
         )
@@ -40,11 +41,12 @@ enum Bridge {
                     // How text becomes one, if the type did not have a way.
                     if extended.parse == nil { extended.parse = type.parse }
                     if extended.literal == nil { extended.literal = type.literal }
-                    table[type.name] = extended
+                    table[type.name] = extended.withTextInitializer()
                 } else {
                     table[type.name] =
                         type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
                         .adding(additions[type.name] ?? [])
+                        .withTextInitializer()
                 }
             }
         }
@@ -128,6 +130,31 @@ struct BridgedType: Sendable {
     /// what a parameter given several words gets.
     var arrayLiteral: (@Sendable ([Value]) -> Value)?
     let members: [BridgedMember]
+
+    /// It, with the initializer from text Swift gives a type that can be read from it: Swift's
+    /// `Double.init?<S: StringProtocol>(_: S)` takes a `String` as well as the `Substring` it is
+    /// bridged with, so `Double(text)` does. Nothing is added to a type with one already.
+    func withTextInitializer() -> BridgedType {
+        guard let parse, let result = TypeAnnotation.spelled(name) else { return self }
+        let hasOne = members.contains {
+            $0.kind == .initializer && $0.parameters.count == 1 && $0.parameters[0].label == nil
+                && $0.parameters[0].type == .string
+        }
+        guard !hasOne else { return self }
+        return adding([
+            Bridge.member(
+                .initializer,
+                "init",
+                isStatic: true,
+                parameters: [Parameter(label: nil, name: "text", type: .string)],
+                returns: .optional(result),
+                summary: "The value the text spells, or nil."
+            ) { _, arguments in
+                guard case .string(let text)? = arguments["text"]?.storage else { return .nothing }
+                return parse(text) ?? .nothing
+            }
+        ])
+    }
 
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a

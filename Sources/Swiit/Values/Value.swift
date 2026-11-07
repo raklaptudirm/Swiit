@@ -760,6 +760,8 @@ extension Value {
                     (element.label == nil || element.label == field.key)
                         && field.value.matches(element.type)
                 }
+        // A type used as a value is not a value of a type a host can ask about.
+        case .metatype: return false
         }
     }
 

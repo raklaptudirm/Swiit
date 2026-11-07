@@ -1395,3 +1395,114 @@ private struct Point: Encodable { var x: Int }
     #expect(try items(.nothing) == nil)
     #expect(try items(swiit.evaluate("[1, 2].map { $0 * 2 }")) == [Value(2), Value(4)])
 }
+
+// MARK: What a declared function sees
+
+@Test func aDeclaredFunctionCallsWhatTheProgramDefined() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("func helper() -> Int { 41 }")
+    try swiit.declare("func caller() -> Int { helper() + 1 }")
+    #expect(try swiit.evaluate("caller()") == Value(42))
+}
+
+@Test func aDeclaredFunctionCallsAHostFunction() throws {
+    let swiit = interpreter()
+    swiit.register("hostAnswer") { () -> Int in 42 }
+    try swiit.declare("func answer() -> Int { hostAnswer() }")
+    #expect(try swiit.evaluate("answer()") == Value(42))
+}
+
+@Test func aDeclaredFunctionsDefaultNamesACaseOfTheProgramsEnum() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum Where { case here, there }")
+    try swiit.declare(#"func place(_ w: Where = .here) -> String { "\(w)" }"#)
+    #expect(try swiit.evaluate("place()") == Value("here"))
+    #expect(try swiit.evaluate("place(.there)") == Value("there"))
+}
+
+@Test func aDeclaredFunctionNamesWhatItCallsWhenItIsDeclared() throws {
+    let swiit = interpreter()
+    #expect(throws: Diagnostic.self) {
+        try swiit.declare("func caller() -> Int { missing() }")
+    }
+}
+
+@Test func aHostFunctionCanSayItGivesAScriptsStruct() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct P { var x: Int }")
+    let id = try #require(Symbol.ID(named: "P", in: swiit))
+    swiit.register(
+        HostSymbol.function(name: "hostP", returns: .named(id)) { _ in
+            try swiit.make(id, arguments: [("x", Value(5))])
+        }
+    )
+    #expect(try swiit.evaluate("hostP().x + 1") == Value(6))
+}
+
+// MARK: Function values and errors
+
+@Test func aFunctionValueIsCalledWithoutLabels() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("func count(nodes: [Int]) -> Int { nodes.count }")
+    _ = try swiit.evaluate("let f: ([Int]) -> Int = count")
+    #expect(try swiit.evaluate("f([1, 2])") == Value(2))
+    #expect(try swiit.evaluate("[[1], [1, 2]].map(count)") == Value([Value(1), Value(2)]))
+    let value = try swiit.evaluate("f")
+    #expect(try swiit.call(value, with: [Value([Value(1)])]) == Value(1))
+    #expect(throws: Diagnostic.self) { try swiit.evaluate("count([1])") }
+}
+
+@Test func aThrownErrorShowsItsDescription() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate(
+        #"struct Nope: Error, CustomStringConvertible { var description: String { "custom text" } }"#
+    )
+    do {
+        _ = try swiit.evaluate("throw Nope()")
+        Issue.record("it should throw")
+    } catch {
+        #expect(error.message == "custom text")
+    }
+}
+
+@Test func aCaseNamedLikeAKeywordNeedsNoBackticks() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum E { case `default`, other }")
+    #expect(try swiit.evaluate("E.default == E.`default`") == Value(true))
+    #expect(try swiit.evaluate("let e: E = .default\ne == .default") == Value(true))
+}
+
+@Test func aDoubleIsMadeFromAString() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate(#"let s = "1.5""#)
+    #expect(try swiit.evaluate("Double(s)") == Value(1.5))
+    #expect(try swiit.evaluate(#"Double("x")"#) == .nothing)
+    #expect(try swiit.evaluate("Double(Substring(s))") == Value(1.5))
+}
+
+// MARK: Types as values, and runs
+
+@Test func aTypeNameHasTheTypeOfTheType() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum Tools { static func go() {}; func other() {} }")
+    let type = try swiit.scriptType(ofExpression: "Tools")
+    #expect(type == .metatype(swiit.type("Tools")))
+    #expect(type.members(in: swiit).map(\.name).contains("go"))
+    #expect(!type.members(in: swiit).map(\.name).contains("other"))
+}
+
+@Test func aRunTakesTheLimitsItIsGiven() throws {
+    let swiit = interpreter()
+    let loop = "var n = 0; while true { n += 1 }"
+    #expect(throws: Diagnostic.self) {
+        try swiit.evaluate(loop, limits: Interpreter.Limits(maxSteps: 1_000))
+    }
+    // The next run has the interpreter's own.
+    #expect(try swiit.evaluate("1 + 1") == Value(2))
+}
+
+@Test func aCallOutsideARunStartsWithTheLimitsOfOne() throws {
+    let swiit = interpreter(limits: Interpreter.Limits(maxSteps: 2_000))
+    _ = try swiit.evaluate("func f() -> Int { var n = 0; for i in 0..<300 { n += i }; return n }")
+    for _ in 0..<20 { _ = try swiit.call("f") }
+}

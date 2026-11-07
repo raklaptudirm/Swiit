@@ -472,6 +472,10 @@ extension Interpreter {
             return type.case(rawValue: try evaluate(arguments[0].value)).map(Value.enumValue)
                 ?? .nothing
         }
+        // A function's type has no argument labels: called through a variable, a function takes
+        // its arguments in order, whatever it was declared with.
+        var arguments = arguments
+        if !isDeclaredFunctionName(callee) { arguments = unlabeled(arguments, for: value) }
         if let result = try callPlainly(value, arguments) { return result }
         // `.case` arguments wait for their parameter's type.
         let values = try arguments.map { argument -> Argument in
@@ -495,6 +499,38 @@ extension Interpreter {
         default:
             throw RuntimeError("\(value.typeName) isn't a function")
         }
+    }
+
+    /// Whether a call's callee names a function declared with `func` (or a host's), whose labels the
+    /// call must write, rather than a value of function type.
+    private func isDeclaredFunctionName(_ callee: Expr) -> Bool {
+        switch callee {
+        case .variable(let name): return lookup(name)?.isFunction ?? false
+        case .literal(let value): return !value.isFunction
+        default: return true
+        }
+    }
+
+    /// The arguments given the labels of the function's parameters, in order: how a call through a
+    /// value of function type is read. Only one function with that many parameters can be meant, so
+    /// an overloaded set that is ambiguous by count is left as written.
+    func unlabeled(_ arguments: [Argument], for value: Value) -> [Argument] {
+        guard case .function(let target) = value.storage else { return arguments }
+        let function: Function
+        if let only = target as? Function {
+            function = only
+        } else if let set = target as? OverloadSet, set.candidates.count == 1 {
+            function = set.candidates[0]
+        } else {
+            return arguments
+        }
+        guard function.parameters.count == arguments.count,
+            !function.parameters.contains(where: \.variadic)
+        else { return arguments }
+        return zip(arguments, function.parameters)
+            .map {
+                Argument(label: $1.label, value: $0.value)
+            }
     }
 
     /// A call to the one function there is, with each argument for the parameter in its place: no

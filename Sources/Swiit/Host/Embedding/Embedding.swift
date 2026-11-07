@@ -593,7 +593,8 @@ extension Interpreter {
     /// would: the overload is chosen by the labels and the values given, and what is left out takes
     /// its default. Without a receiver the name may be a type's, which calls its initializers, as
     /// `Point(x: 1)` and `Int("5")` do. From a host function it runs in the calling script's task;
-    /// from outside, as the main one.
+    /// from outside, as the main one, and it is a run of its own: its steps, output and time are
+    /// counted from the call, and a stop asked for before it does not end it.
     @discardableResult
     public func call(
         _ name: String,
@@ -601,8 +602,12 @@ extension Interpreter {
         arguments: [(label: String?, value: Value)] = []
     ) throws(Diagnostic) -> Value {
         let written = arguments.map { Argument(label: $0.label, value: .literal($0.value)) }
+        // Outside a run, the call is one: it starts with the steps, the time and the stop of a
+        // run of its own.
+        let isRun = !lock.isHeldByCurrentThread
         do {
             return try inCurrentTask { () throws -> Value in
+                if isRun { self.beginRun() }
                 // A Swift type's method by that name, when arguments are given: `count { … }` is a
                 // method, not the property `count`. Where the prelude has a sequence method of the
                 // name too, Swift's wins if it takes these arguments, as it does when a script is
@@ -652,7 +657,9 @@ extension Interpreter {
     }
 
     /// Makes a Swift closure a function scripts can call: `HostSymbol.function(_:labels:throwing:_:)`
-    /// registered.
+    /// registered. A closure that gives a `Value` gives scripts an `Any`; one that gives a type
+    /// a script declared is registered as `HostSymbol.function(name:returns:body:)`, with
+    /// `.named(id)` of that type for `returns`.
     public func register<each Argument: ScriptConvertible, Result: ScriptConvertible>(
         _ name: String,
         labels: [String?] = [],
@@ -675,7 +682,7 @@ extension Interpreter {
     // MARK: Running
 
     /// Runs source and gives the value of its last statement if that is an expression that ran
-    /// (nothing otherwise). Runs on a thread with a large stack. Declarations and values stay for
+    /// (nothing otherwise). `limits` bound this run alone, in place of the interpreter's own. Runs on a thread with a large stack. Declarations and values stay for
     /// the next call.
     ///
     /// A prompt or a script runner passes the closures:
@@ -695,12 +702,14 @@ extension Interpreter {
     @discardableResult
     public func evaluate(
         _ source: String,
+        limits: Limits? = nil,
         onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)? = nil,
         onError: ((Diagnostic) -> Bool)? = nil,
         completion: (() -> Void)? = nil
     ) throws(Diagnostic) -> Value {
         try evaluate(
             source,
+            limits: limits,
             onValue: onValue,
             onError: onError,
             completion: completion,
@@ -712,6 +721,7 @@ extension Interpreter {
     /// is not lost.
     private func evaluate(
         _ source: String,
+        limits: Limits?,
         onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)?,
         onError: ((Diagnostic) -> Bool)?,
         completion: (() -> Void)?,
@@ -729,6 +739,7 @@ extension Interpreter {
             if interpreter.lock.isHeldByCurrentThread {
                 return try interpreter.runSource(
                     source,
+                    limits: limits,
                     observer: observer,
                     onError: onError,
                     finish: completion,
@@ -740,6 +751,7 @@ extension Interpreter {
                 try interpreter.withMainTask {
                     try interpreter.runSource(
                         source,
+                        limits: limits,
                         observer: observer,
                         onError: onError,
                         finish: completion,
@@ -757,6 +769,7 @@ extension Interpreter {
     @discardableResult
     public func evaluate(
         _ source: String,
+        limits: Limits? = nil,
         onValue: ((_ value: Value, _ callee: Symbol?) throws -> Void)? = nil,
         onError: ((Diagnostic) -> Bool)? = nil,
         completion: (() -> Void)? = nil
@@ -773,6 +786,7 @@ extension Interpreter {
                         returning: Result { () throws(Diagnostic) -> Value in
                             try interpreter.evaluate(
                                 source,
+                                limits: limits,
                                 onValue: onValue,
                                 onError: onError,
                                 completion: completion,
@@ -789,8 +803,19 @@ extension Interpreter {
         return try outcome.get()
     }
 
+    /// What a run starts from: no steps taken, no output counted, the time limit counting from now
+    /// and no stop asked for (but one asked before it began, which `alreadyCancelled` says).
+    private func beginRun(alreadyCancelled: () -> Bool = { false }) {
+        steps = 0
+        outputCounter.reset()
+        deadline = limits.timeLimit.map { ContinuousClock.now + $0 }
+        cancellation.clear()
+        if alreadyCancelled() { cancellation.request() }
+    }
+
     private func runSource(
         _ source: String,
+        limits runLimits: Limits? = nil,
         observer: ValueObserver? = nil,
         onError: ((Diagnostic) -> Bool)? = nil,
         finish: (() -> Void)? = nil,
@@ -799,12 +824,11 @@ extension Interpreter {
     ) throws -> Value {
         // A run begun from a host function inside one carries on under the limits and the stop of
         // the one it is in.
+        let outerLimits = limits
+        defer { if !nested { limits = outerLimits } }
         if !nested {
-            steps = 0
-            outputCounter.reset()
-            deadline = limits.timeLimit.map { ContinuousClock.now + $0 }
-            cancellation.clear()
-            if alreadyCancelled() { cancellation.request() }
+            if let runLimits { limits = runLimits }
+            beginRun(alreadyCancelled: alreadyCancelled)
         }
         let program: Program
         switch parse(source) {

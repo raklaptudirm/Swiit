@@ -37,7 +37,8 @@ extension TypeChecker {
             return .protocolType(protocolInfo(type.declaration))
         case .object(let type as BridgedTypeName):
             return .swiftType(type.name)
-        case .function(let set as OverloadSet):
+        // Declared with `func`: a `let` that holds a function is a value, whose type has no labels.
+        case .function(let set as OverloadSet) where binding.isFunction:
             return .functions(
                 set.candidates.enumerated()
                     .map { index, function in

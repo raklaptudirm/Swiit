@@ -420,6 +420,7 @@ extension ScriptType {
             // A type parameter (`Element`) is named, and nothing is declared under the name.
             case .parameter(let name): .named(.parameter(name))
             case .void: .tuple([])
+            case .metatype(let type): .metatype(convert(type))
             default: .any
             }
     }
@@ -455,7 +456,19 @@ extension Interpreter {
     }
 
     func members(of type: ScriptType, named name: String?) -> [Symbol] {
-        withMainTask {
+        // A type written as a value has what belongs to the type itself.
+        if case .metatype(let instance) = type {
+            return members(of: instance, named: name)
+                .filter {
+                    switch $0.kind {
+                    case .method(let method): method.isStatic
+                    case .property(let property): property.isStatic
+                    case .initializer, .enumCase: true
+                    default: false
+                    }
+                }
+        }
+        return withMainTask {
             guard var annotation = self.annotation(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
             if case .named(let typeName) = annotation,
@@ -869,6 +882,7 @@ extension Interpreter {
             case .function(let parameters, let returns, _, _):
                 parameters.allSatisfy(current) && current(returns)
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
+            case .metatype(let type): current(type)
             }
         }
         return current(type) ? TypeAnnotation(type) : nil

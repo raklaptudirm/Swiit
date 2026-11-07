@@ -307,7 +307,7 @@ extension Lowering {
         guard node.declName.argumentNames == nil else {
             throw unsupported("a member with argument names", node)
         }
-        let name = node.declName.baseName.text
+        let name = node.declName.baseName.plainName
         guard let base = node.base else { return .caseLiteral(name, nil) }
         // `x.self`, `Int.self`: the value, or the type, itself.
         if name == "self" { return try expression(base) }
@@ -406,7 +406,7 @@ extension Lowering {
                 // `Optional(x)`: x, as an optional.
                 callee = .variable(InternalName.some)
             } else if let member = node.calledExpression.as(MemberAccessExprSyntax.self),
-                member.declName.baseName.text == "init",
+                member.declName.baseName.plainName == "init",
                 let base = member.base, !base.is(SuperExprSyntax.self),
                 base.as(DeclReferenceExprSyntax.self)?.baseName.text != "self"
             {
@@ -427,7 +427,7 @@ extension Lowering {
             arguments.append(Argument(label: nil, value: .closure(try closure(trailing))))
         }
         if let member = node.calledExpression.as(MemberAccessExprSyntax.self), isCase {
-            return .caseLiteral(member.declName.baseName.text, arguments)
+            return .caseLiteral(member.declName.baseName.plainName, arguments)
         }
         return .call(callee!, arguments)
     }
@@ -639,7 +639,7 @@ extension Lowering {
             guard case .property(let property) = component.component else {
                 throw unsupported("this key path component", component)
             }
-            path.append(property.declName.baseName.text)
+            path.append(property.declName.baseName.plainName)
         }
         return .keyPath(root: node.root?.trimmedDescription, path: path)
     }
@@ -812,7 +812,7 @@ extension Lowering {
         var place = leftOperand
         while true {
             if let member = place.as(MemberAccessExprSyntax.self), let base = member.base {
-                path.insert(.member(member.declName.baseName.text), at: 0)
+                path.insert(.member(member.declName.baseName.plainName), at: 0)
                 place = base
             } else if let chained = place.as(OptionalChainingExprSyntax.self) {
                 path.insert(.optionalChain, at: 0)

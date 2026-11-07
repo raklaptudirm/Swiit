@@ -152,7 +152,7 @@ extension Lowering {
             }
             let name: String
             if let identifier = binding.pattern.as(IdentifierPatternSyntax.self) {
-                name = identifier.identifier.text
+                name = identifier.identifier.plainName
             } else if binding.pattern.is(WildcardPatternSyntax.self) {
                 name = "_"
             } else {
@@ -692,9 +692,9 @@ extension Lowering {
                         continue
                     }
                     if isStatic(variable.modifiers) {
-                        statics.insert(identifier.identifier.text)
+                        statics.insert(identifier.identifier.plainName)
                     } else {
-                        instance.insert(identifier.identifier.text)
+                        instance.insert(identifier.identifier.plainName)
                     }
                 }
             }
@@ -959,7 +959,7 @@ extension Lowering {
                         }
                     }
                     let property = ProtocolProperty(
-                        name: identifier.identifier.text,
+                        name: identifier.identifier.plainName,
                         type: try type(annotation.type),
                         settable: settable
                     )
@@ -1154,7 +1154,7 @@ extension Lowering {
             let type = try binding.typeAnnotation.map { try self.type($0.type) }
             if let accessors = binding.accessorBlock {
                 var property = PropertyDecl(
-                    name: identifier.identifier.text,
+                    name: identifier.identifier.plainName,
                     mutable: mutable,
                     type: type
                 )
@@ -1211,7 +1211,7 @@ extension Lowering {
                 if value == nil, mutable, case .optional? = type { value = .literal(.nothing) }
                 properties.append(
                     PropertyDecl(
-                        name: identifier.identifier.text,
+                        name: identifier.identifier.plainName,
                         mutable: mutable,
                         type: type,
                         defaultValue: value
@@ -1271,7 +1271,11 @@ extension Lowering {
                         } ?? []
                     let raw = try element.rawValue.map { try expression($0.value) }
                     cases.append(
-                        EnumCaseDecl(name: element.name.text, rawValue: raw, associated: associated)
+                        EnumCaseDecl(
+                            name: element.name.plainName,
+                            rawValue: raw,
+                            associated: associated
+                        )
                     )
                 }
             } else if let variable = member.decl.as(VariableDeclSyntax.self) {

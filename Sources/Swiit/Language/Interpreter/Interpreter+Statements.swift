@@ -212,7 +212,8 @@ extension Interpreter {
             return
         case .throwStatement(let expr):
             let value = try evaluate(expr)
-            throw RuntimeError(value.description, thrown: value)
+            // What the error says is its `description`, if it is a CustomStringConvertible, as `print` shows it.
+            throw RuntimeError((try? describing(value)) ?? value.description, thrown: value)
         case .ifStatement(let node):
             finished(statement, nil)
             let (branch, bindings) = try chooseBranch(node)

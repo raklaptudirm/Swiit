@@ -435,3 +435,9 @@ private final class ProblemFinder: SyntaxVisitor {
         return .skipChildren
     }
 }
+
+extension TokenSyntax {
+    /// The name a token spells, without the backticks that let a keyword be one: `default` and
+    /// `` `default` `` are the same name.
+    var plainName: String { identifier?.name ?? text }
+}

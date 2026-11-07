@@ -181,7 +181,9 @@ extension Interpreter {
     /// Calls a function value with positional arguments, as builtins like
     /// `where` call the closures they're given.
     public func call(_ value: Value, with arguments: [Value]) throws -> Value {
-        let unlabeled = arguments.map { Argument(label: nil, value: .literal($0)) }
+        let positional = arguments.map { Argument(label: nil, value: .literal($0)) }
+        // A function's type has no labels, so those of the function itself are the ones to use.
+        let unlabeled = self.unlabeled(positional, for: value)
         switch value.storage {
         case .function(let set as OverloadSet):
             let (function, bindings) = try resolve(set) { try self.bind(unlabeled, to: $0) }
@@ -488,6 +490,7 @@ extension TypeAnnotation {
             self = .tuple(
                 elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
             )
+        case .metatype(let type): self = .metatype(TypeAnnotation(type))
         }
     }
 }
