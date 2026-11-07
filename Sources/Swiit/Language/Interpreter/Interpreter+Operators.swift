@@ -90,7 +90,7 @@ extension Interpreter {
         }
         guard !unique.isEmpty else { return nil }
         let arguments = operands.map { Argument(label: nil, value: .literal($0)) }
-        let chosen: (Function, [String: Value])
+        let chosen: (Function, Arguments)
         do {
             chosen = try resolve(OverloadSet(name: name, candidates: unique)) {
                 try self.bind(arguments, to: $0)

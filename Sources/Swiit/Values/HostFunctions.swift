@@ -346,7 +346,7 @@ func swiitReturnType(_ type: Any.Type) -> ScriptType {
 /// An argument the macro-generated code converts: a clear message naming
 /// the function and parameter when it doesn't fit.
 func swiitArgument<T: ScriptConvertible>(
-    _ arguments: [String: Value],
+    _ arguments: Arguments,
     _ name: String,
     of function: String,
     as type: T.Type = T.self

@@ -56,7 +56,7 @@ extension Bridge {
         effect: Effect = .sync,
         typedThrows: String? = nil,
         summary: String,
-        _ body: @escaping @Sendable (Interpreter, [String: Value]) throws -> Value
+        _ body: @escaping @Sendable (Interpreter, Arguments) throws -> Value
     ) -> BridgedMember {
         BridgedMember(
             kind: kind,
@@ -84,7 +84,7 @@ extension Bridge {
     /// it isn't cancelled when the scope that made it ends.
     private static func start(
         _ interpreter: Interpreter,
-        _ arguments: [String: Value]
+        _ arguments: Arguments
     ) throws -> Value {
         let operation = arguments["operation"]!
         let handle = try interpreter.startTask(

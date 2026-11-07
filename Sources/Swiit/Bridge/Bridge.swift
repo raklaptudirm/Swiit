@@ -249,7 +249,7 @@ struct BridgedMember: Sendable {
     var effect: Effect = .sync
     /// How a host-registered member is called without an interpreter: what a host object's own
     /// `member(_:)` uses.
-    var plain: (@Sendable ([String: Value]) throws -> Value)?
+    var plain: (@Sendable (Arguments) throws -> Value)?
     /// `throws(Failure)`, for a generic parameter of its type: it throws
     /// unless that is `Never` (`Task<Int, Never>.value` doesn't).
     var typedThrows: String?

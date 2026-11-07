@@ -3,7 +3,7 @@ import Foundation
 enum FunctionBody: Sendable {
     case swiit(Program)
     /// A builtin written in Swift, called with the bound arguments.
-    case native(@Sendable (Interpreter, [String: Value]) throws -> Value)
+    case native(@Sendable (Interpreter, Arguments) throws -> Value)
 }
 
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
@@ -130,4 +130,59 @@ final class Function: Callable, @unchecked Sendable {  // safe: its state is tou
         else { return nil }
         return expr
     }()
+}
+
+/// What a call binds: each parameter's name and the value it gets, in the order they are bound
+/// (the parameters', nearly always). A call binds a handful, for which comparing short names costs
+/// less than hashing each into a dictionary; a native body reads them by name as from one.
+struct Arguments: Sequence, ExpressibleByDictionaryLiteral {
+    private var entries: [(name: String, value: Value)] = []
+
+    init() {}
+
+    /// Room for `capacity` arguments.
+    init(capacity: Int) {
+        entries.reserveCapacity(capacity)
+    }
+
+    init(dictionaryLiteral elements: (String, Value)...) {
+        for (name, value) in elements { self[name] = value }
+    }
+
+    init(_ dictionary: [String: Value]) {
+        for (name, value) in dictionary { self[name] = value }
+    }
+
+    private func position(of name: String) -> Int? {
+        for index in entries.indices where entries[index].name == name { return index }
+        return nil
+    }
+
+    subscript(name: String) -> Value? {
+        get { position(of: name).map { entries[$0].value } }
+        set {
+            if let index = position(of: name) {
+                if let newValue {
+                    entries[index].value = newValue
+                } else {
+                    entries.remove(at: index)
+                }
+            } else if let newValue {
+                entries.append((name, newValue))
+            }
+        }
+    }
+
+    var count: Int { entries.count }
+    var isEmpty: Bool { entries.isEmpty }
+    var keys: [String] { entries.map(\.name) }
+
+    /// As a dictionary, for a host's body, which is promised one.
+    var dictionary: [String: Value] {
+        Dictionary(entries.map { ($0.name, $0.value) }, uniquingKeysWith: { $1 })
+    }
+
+    func makeIterator() -> some IteratorProtocol<(key: String, value: Value)> {
+        entries.lazy.map { (key: $0.name, value: $0.value) }.makeIterator()
+    }
 }

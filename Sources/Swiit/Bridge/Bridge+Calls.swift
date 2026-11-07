@@ -49,7 +49,7 @@ extension Interpreter {
     func runMutatingInPlace(
         _ member: BridgedMember,
         _ function: Function,
-        _ bindings: [String: Value],
+        _ bindings: Arguments,
         _ receiver: Expr
     ) throws -> Value? {
         // A member that calls back into the program could see the variable while it is out.

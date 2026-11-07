@@ -21,7 +21,7 @@ public struct HostSymbol: Sendable {
     /// instance member's also with the receiver, which scripts do not see as a parameter.
     enum Body: Sendable {
         /// A function that takes what a call bound by parameter name.
-        case function(@Sendable ([String: Value]) throws -> Value)
+        case function(@Sendable (Arguments) throws -> Value)
         case method(@Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value)
         /// A method that changes its receiver, like `append`: it gives its result and the receiver
         /// as it is now.
@@ -63,7 +63,7 @@ public struct HostSymbol: Sendable {
     var summary: String { symbol.summary ?? "" }
 
     /// What a function is, for one made as a function; nil for a member.
-    var function: (signature: Symbol.Function, call: @Sendable ([String: Value]) throws -> Value)? {
+    var function: (signature: Symbol.Function, call: @Sendable (Arguments) throws -> Value)? {
         guard case .function(let signature) = symbol.kind, case .function(let call) = body else {
             return nil
         }
@@ -135,7 +135,7 @@ extension HostSymbol {
         summary: String = "",
         signature: Symbol.Function,
         attributes: [Symbol.Attribute] = [],
-        call: @escaping @Sendable ([String: Value]) throws -> Value
+        call: @escaping @Sendable (Arguments) throws -> Value
     ) -> HostSymbol {
         HostSymbol(
             name: name,
@@ -153,7 +153,7 @@ extension HostSymbol {
         parameters: [Symbol.Parameter],
         returnType: ScriptType?,
         isThrowing: Bool = false,
-        call: @escaping @Sendable ([String: Value]) throws -> Value
+        call: @escaping @Sendable (Arguments) throws -> Value
     ) -> HostSymbol {
         function(
             name: name,

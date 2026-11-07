@@ -20,7 +20,7 @@ extension Interpreter {
     /// there as the method changed it.
     func invoke(
         _ function: Function,
-        with arguments: [String: Value],
+        with arguments: Arguments,
         receiver: Receiver? = nil
     ) throws -> Value {
         defer { task.lastCallee = function }
@@ -242,9 +242,9 @@ extension Interpreter {
     func bind(
         _ arguments: [Argument],
         to function: Function
-    ) throws -> (bindings: [String: Value], penalty: Int) {
+    ) throws -> (bindings: Arguments, penalty: Int) {
         let name = function.name ?? "closure"
-        var bound: [String: Value] = [:]
+        var bound = Arguments(capacity: function.parameters.count)
         var penalty = 0
         func checked(_ value: Value, for parameter: Parameter) throws -> Value {
             let result = try self.checked(value, for: parameter, of: name)
@@ -343,7 +343,7 @@ func narrowed(_ set: OverloadSet, _ overload: Int?) -> OverloadSet {
 /// conversions that took.
 private struct OverloadBinding {
     var function: Function
-    var bindings: [String: Value]
+    var bindings: Arguments
     var penalty: Int
 }
 
@@ -354,8 +354,8 @@ extension Interpreter {
     /// most specific match. Ties are an error, never a guess.
     func resolve(
         _ set: OverloadSet,
-        _ bind: (Function) throws -> (bindings: [String: Value], penalty: Int)
-    ) throws -> (Function, [String: Value]) {
+        _ bind: (Function) throws -> (bindings: Arguments, penalty: Int)
+    ) throws -> (Function, Arguments) {
         if set.candidates.count == 1 {
             return (set.candidates[0], try bind(set.candidates[0]).bindings)
         }

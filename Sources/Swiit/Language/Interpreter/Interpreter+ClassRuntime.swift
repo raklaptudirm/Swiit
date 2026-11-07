@@ -299,7 +299,7 @@ extension Interpreter {
     private func initialize(
         _ instance: ClassInstance,
         with initializer: Function,
-        _ bindings: [String: Value]
+        _ bindings: Arguments
     ) throws {
         let saved = task.calledSuperInit
         task.calledSuperInit = false

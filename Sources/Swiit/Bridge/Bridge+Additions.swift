@@ -44,7 +44,7 @@ extension Bridge {
 
     private static let indexType = TypeAnnotation.named("String.Index")
 
-    private static func text(_ arguments: [String: Value]) throws -> String {
+    private static func text(_ arguments: Arguments) throws -> String {
         guard case .string(let text)? = arguments["self"]?.storage else {
             throw RuntimeError("expected a String")
         }

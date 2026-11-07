@@ -153,7 +153,7 @@ extension BridgedMember {
             }
         }
         /// The arguments in declared order, from what a call bound by name.
-        func ordered(_ function: Symbol.Function) -> @Sendable ([String: Value]) -> [Value] {
+        func ordered(_ function: Symbol.Function) -> @Sendable (Arguments) -> [Value] {
             let slots = function.parameters.map { parameter -> (String, Value) in
                 if case .defaulted(.value(let value)) = parameter.arity {
                     return (parameter.name, value)
@@ -166,7 +166,7 @@ extension BridgedMember {
         /// is moved into a box for the call, which takes the changed one back however the call
         /// ends, and a value that is not in one comes back with the result.
         @Sendable func mutating(
-            _ arguments: [String: Value],
+            _ arguments: Arguments,
             _ body: (_ receiver: Value) throws -> (result: Value, receiver: Value)
         ) throws -> Value {
             let given = arguments["self"] ?? .nothing
@@ -189,7 +189,7 @@ extension BridgedMember {
             returns: TypeAnnotation,
             function: Symbol.Function? = nil,
             isMutating: Bool = false,
-            call: @escaping @Sendable ([String: Value]) throws -> Value
+            call: @escaping @Sendable (Arguments) throws -> Value
         ) -> BridgedMember {
             var made = BridgedMember(
                 kind: kind,

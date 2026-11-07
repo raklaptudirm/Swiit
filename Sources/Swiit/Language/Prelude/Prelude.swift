@@ -161,7 +161,7 @@ extension Interpreter {
                             name,
                             (
                                 body: FunctionBody.native { interpreter, arguments in
-                                    do { return try call(arguments) } catch {
+                                    do { return try call(arguments.dictionary) } catch {
                                         throw interpreter.hostFailure(error, in: name)
                                     }
                                 },
