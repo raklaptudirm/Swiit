@@ -1,0 +1,74 @@
+name: Docs
+
+# The DocC documentation (Sources/Swiit/Swiit.docc and the doc comments), built for every change and
+# published from main on GitHub Pages: https://raklaptudirm.github.io/Swiit/
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # DocC comes with Xcode; the newest is the one the bridges and their symbols match.
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      # A link the catalog can't resolve, or one that names an overload ambiguously, fails the
+      # build, as it would show readers a broken reference.
+      - name: Build the documentation
+        run: |
+          xcodebuild docbuild -scheme Swiit -destination 'generic/platform=macOS' \
+            -derivedDataPath .build/docs 2>&1 | tee docbuild.log
+          if grep -E "Swiit\.docc.*(warning|error)" docbuild.log; then exit 1; fi
+
+      # Served from https://raklaptudirm.github.io/Swiit/, so every link starts with /Swiit/. The
+      # site's root has no page of its own, so it goes to the module's.
+      - name: Make it a static site
+        run: |
+          xcrun docc process-archive transform-for-static-hosting \
+            .build/docs/Build/Products/Debug/Swiit.doccarchive \
+            --hosting-base-path Swiit --output-path site
+          cat > site/index.html <<'EOF'
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>Swiit</title>
+          <meta http-equiv="refresh" content="0; url=documentation/swiit/">
+          <link rel="canonical" href="documentation/swiit/">
+          EOF
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy
+    # Only main is published; a pull request's build only checks the documentation.
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}documentation/swiit/
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
