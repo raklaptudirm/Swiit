@@ -184,7 +184,9 @@ extension TypeChecker {
             case .double?: .double
             default: nil
             }
-        profile.conformances = interpreter.enumConformances[ObjectIdentifier(type)] ?? []
+        // What a script's enum declares, or what a host's conforms to in Swift.
+        profile.conformances =
+            type.conformances + (interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
         profile.typeParameters = interpreter.enumTypeParameters[ObjectIdentifier(type)] ?? []
         if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {

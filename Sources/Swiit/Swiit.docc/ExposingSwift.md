@@ -16,7 +16,7 @@ store it, compare it with `==` and `<`, hash it, and call the members you regist
 piece of text becomes a value of the type through its `parse` function.
 
 A `CaseIterable` Swift enum that conforms to ``ScriptConvertible`` is an enum in scripts: `.dark` is one of its cases, `case .dark:` matches
-it, and `rawValue` is its own. Registering a type declares every such enum its members take or give, as registering a function declares the
+it, `rawValue` is its own, and if it is `Comparable` its cases compare in the order they are declared, as Swift's own `<` does. Registering a type declares every such enum its members take or give, as registering a function declares the
 ones it takes or gives, so a struct with a `shade: Shade` property needs nothing more for scripts to name `Shade`. An enum
 that only declarations in Swift source name is registered on its own, with `register(Shade.self)`.
 

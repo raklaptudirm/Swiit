@@ -664,8 +664,10 @@ struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
 
 extension URL: ScriptConvertible {}
 
-enum Shade: String, CaseIterable, Hashable, Sendable, ScriptConvertible {
+enum Shade: String, CaseIterable, Comparable, Hashable, Sendable, ScriptConvertible {
     case light, dark
+
+    static func < (a: Shade, b: Shade) -> Bool { a == .light && b == .dark }
 }
 
 struct Swatch: Hashable, Sendable, ScriptConvertible {
@@ -685,6 +687,14 @@ struct Swatch: Hashable, Sendable, ScriptConvertible {
     )
     #expect(try swiit.evaluate("paint(.dark)") == "painted dark")
     #expect(try swiit.evaluate("Shade.allCases.count") == 2)
+
+    // Comparable in Swift, so in scripts too: by the cases' order.
+    #expect(try swiit.evaluate("Shade.light < .dark") == true)
+    #expect(
+        try swiit.evaluate("[Shade.dark, .light].sorted().map { $0.rawValue }") == [
+            "light", "dark",
+        ]
+    )
 }
 
 @Test func anEnumATypesMembersUseIsDeclaredWithIt() throws {

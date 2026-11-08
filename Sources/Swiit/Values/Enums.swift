@@ -21,12 +21,17 @@ extension Value.EnumCase {
         let name: String
         let cases: [Case]
         let id: Symbol.ID
+        /// The protocols a host's enum conforms to in Swift, of those that change what a script may
+        /// do with it beyond what every enum without payloads can: `Comparable`, whose `<` goes by
+        /// the cases' order, as Swift's own does.
+        let conformances: [String]
 
         /// An enum the host provides, named by the Swift type's name.
-        init(name: String, cases: [Case]) {
+        init(name: String, cases: [Case], conformances: [String] = []) {
             self.name = name
             self.cases = cases
             self.id = .host(name)
+            self.conformances = conformances
         }
 
         /// An enum a program declares, which is a type of its own.
@@ -34,6 +39,7 @@ extension Value.EnumCase {
             self.name = name
             self.cases = cases
             self.id = .declare(name)
+            self.conformances = []
         }
 
         func `case`(named name: String) -> Case? {

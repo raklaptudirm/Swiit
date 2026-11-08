@@ -408,7 +408,8 @@ extension Value.EnumCase.Enumeration {
                             }
                         }
                     )
-                }
+                },
+                conformances: type is any Comparable.Type ? ["Comparable"] : []
             )
         }
     }
