@@ -19,8 +19,9 @@
 
 ### Registering functions, types and globals
 
-- ``register(_:)->()``
+- ``register(_:)-(HostSymbol)``
 - ``register(_:)-(HostTypeBuilder<T>)``
+- ``register(_:)-(E.Type)``
 - ``register(_:labels:throwing:_:)-f2lx``
 - ``register(_:labels:throwing:_:)-29d7d``
 - ``register(computed:type:_:)``

@@ -41,6 +41,19 @@ extension Interpreter {
     @discardableResult
     public func register<T>(_ builder: HostTypeBuilder<T>) -> Symbol.ID { register(builder.type) }
 
+    /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
+    /// registering a function or a type that takes or gives one does: for an enum that a
+    /// host's declarations name (`declare(_:bodies:)`) and nothing registered has yet.
+    public func register<E: ScriptConvertible & CaseIterable & Hashable & Sendable>(_: E.Type) {
+        let enumeration = Value.EnumCase.Enumeration.of(E.self)
+        withMainTask {
+            scopes[1].bindings[enumeration.name] = Binding(
+                value: .object(enumeration),
+                mutable: false
+            )
+        }
+    }
+
     @discardableResult
     func register(_ type: HostType) -> Symbol.ID {
         var bridged = BridgedType(type)

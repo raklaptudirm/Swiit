@@ -673,6 +673,20 @@ struct Swatch: Hashable, Sendable, ScriptConvertible {
     func flipped() -> Shade { shade == .light ? .dark : .light }
 }
 
+@Test func anEnumIsRegisteredOnItsOwn() throws {
+    // For declarations that name it, before anything registered takes one.
+    let swiit = interpreter()
+    swiit.register(Shade.self)
+    try swiit.declare(
+        "func paint(_ shade: Shade) -> String",
+        bodies: [
+            "paint": { arguments in Value("painted \(try Shade(arguments["shade"]!).rawValue)") }
+        ]
+    )
+    #expect(try swiit.evaluate("paint(.dark)") == "painted dark")
+    #expect(try swiit.evaluate("Shade.allCases.count") == 2)
+}
+
 @Test func anEnumATypesMembersUseIsDeclaredWithIt() throws {
     // Nothing else registered names `Shade`: registering `Swatch` declares it, as registering a
     // function that takes one does.
