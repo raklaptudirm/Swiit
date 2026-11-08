@@ -15,6 +15,10 @@ parameter types are only known at run time, build a ``HostSymbol`` with ``HostSy
 store it, compare it with `==` and `<`, hash it, and call the members you register. The checker validates those calls before the script runs. A
 piece of text becomes a value of the type through its `parse` function.
 
+A `CaseIterable` Swift enum that conforms to ``ScriptConvertible`` is an enum in scripts: `.dark` is one of its cases, `case .dark:` matches
+it, and `rawValue` is its own. Registering a type declares every such enum its members take or give, as registering a function declares the
+ones it takes or gives, so a struct with a `shade: Shade` property needs nothing more for scripts to name `Shade`.
+
 ## Hand scripts a live object
 
 A class that conforms to ``ScriptConvertible`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are

@@ -664,6 +664,45 @@ struct Bytes: Comparable, Hashable, Sendable, ScriptConvertible {
 
 extension URL: ScriptConvertible {}
 
+enum Shade: String, CaseIterable, Hashable, Sendable, ScriptConvertible {
+    case light, dark
+}
+
+struct Swatch: Hashable, Sendable, ScriptConvertible {
+    var shade: Shade
+    func flipped() -> Shade { shade == .light ? .dark : .light }
+}
+
+@Test func anEnumATypesMembersUseIsDeclaredWithIt() throws {
+    // Nothing else registered names `Shade`: registering `Swatch` declares it, as registering a
+    // function that takes one does.
+    let swiit = interpreter()
+    swiit.register(
+        HostTypeBuilder<Swatch>()
+            .property("shade", \.shade)
+            .method("flipped", Swatch.flipped)
+    )
+    swiit["swatch"] = Value(Swatch(shade: .dark))
+
+    #expect(try swiit.evaluate("swatch.shade == .dark") == true)
+    #expect(try swiit.evaluate("swatch.flipped() == Shade.light") == true)
+    #expect(
+        try swiit.evaluate(
+            "func f(_ s: Shade) -> String { switch s { case .light: return \"l\"; case .dark: return \"d\" } }; f(swatch.shade)"
+        ) == "d"
+    )
+    #expect(try swiit.evaluate("Shade.dark.rawValue") == "dark")
+    #expect(try Shade(swiit.evaluate("swatch.shade")) == .dark)
+
+    // It's an enum to a host too: its cases are listed, and a case is had by name.
+    let shade = Symbol.ID(named: "Shade", in: swiit)
+    #expect(shade != nil)
+    let cases = ScriptType.named(shade!).members(in: swiit)
+        .filter { if case .enumCase = $0.kind { true } else { false } }
+    #expect(cases.map(\.name) == ["light", "dark"])
+    #expect(try shade.flatMap { $0.enumCase(named: "light", in: swiit) }.map(Shade.init) == .light)
+}
+
 @Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
     let swiit = interpreter()
     swiit.register(

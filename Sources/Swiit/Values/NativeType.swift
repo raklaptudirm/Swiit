@@ -56,6 +56,13 @@ extension Interpreter {
         }
         Bridge.register([bridged])
         withMainTask {
+            // The Swift enums its members take or give, as a function's are.
+            for enumeration in type.members.flatMap(\.enums) {
+                scopes[1].bindings[enumeration.name] = Binding(
+                    value: .object(enumeration),
+                    mutable: false
+                )
+            }
             scopes[0].bindings[type.name] = Binding(
                 value: .object(BridgedTypeName(type.name)),
                 mutable: false
@@ -376,8 +383,15 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
         return SwiftValue.make(value, as: name)
     }
 
-    private func adding(_ member: HostSymbol) -> HostTypeBuilder {
+    /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
+    /// declares them, as registering a function does.
+    private func adding(
+        _ member: HostSymbol,
+        enums: [Value.EnumCase.Enumeration] = []
+    ) -> HostTypeBuilder {
         var copy = self
+        var member = member
+        member.enums += enums
         copy.type.members.append(member)
         return copy
     }
@@ -400,7 +414,8 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
         adding(
             .property(name, type: V.scriptType) {
                 try $0.unboxing(T.self)[keyPath: keyPath].value
-            }
+            },
+            enums: V.swiitEnums
         )
     }
 
@@ -425,7 +440,8 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
                     repeat try (each Argument)(next())
                 )
                 .value
-            }
+            },
+            enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
         )
     }
 
@@ -446,7 +462,8 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
                 var index = 0
                 func next() -> Value { defer { index += 1 }; return arguments[index] }
                 return try function(repeat try (each Argument)(next())).value
-            }
+            },
+            enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
         )
     }
 
@@ -466,7 +483,8 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
                 var index = 0
                 func next() -> Value { defer { index += 1 }; return arguments[index] }
                 return Self.box(try make(repeat try (each Argument)(next())), as: name)
-            }
+            },
+            enums: HostSymbol.enums(repeat (each Argument).self)
         )
     }
 
@@ -488,7 +506,8 @@ public struct HostTypeBuilder<T: Sendable>: Sendable {
                 func next() -> Value { defer { index += 1 }; return arguments[index] }
                 return try make(repeat try (each Argument)(next()))
                     .map { Self.box($0, as: name) } ?? .nothing
-            }
+            },
+            enums: HostSymbol.enums(repeat (each Argument).self)
         )
     }
 }

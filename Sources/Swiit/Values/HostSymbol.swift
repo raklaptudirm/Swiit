@@ -188,7 +188,9 @@ extension HostSymbol {
         return made
     }
 
-    private static func enums<each Argument: ScriptConvertible>(
+    /// The Swift enums the types name, which a script learns by registering what takes or gives
+    /// them.
+    static func enums<each Argument: ScriptConvertible>(
         _: repeat (each Argument).Type
     ) -> [Value.EnumCase.Enumeration] {
         var found: [Value.EnumCase.Enumeration] = []
