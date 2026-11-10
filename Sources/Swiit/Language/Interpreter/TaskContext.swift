@@ -107,7 +107,6 @@ extension Interpreter {
         _read { yield task.returnTypes }
         _modify { yield &task.returnTypes }
     }
-
 }
 
 extension Interpreter {
