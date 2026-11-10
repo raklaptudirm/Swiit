@@ -4,8 +4,7 @@ import SwiftSyntax
 
 extension Lowering {
     /// `subscript(i: Int) -> T { … }`. Its parameters take no label unless two names are written.
-    mutating func subscriptDeclaration(_ node: SubscriptDeclSyntax) throws -> SubscriptDecl
-    {
+    mutating func subscriptDeclaration(_ node: SubscriptDeclSyntax) throws -> SubscriptDecl {
         guard node.genericParameterClause == nil, node.genericWhereClause == nil else {
             throw unsupported("a generic subscript", node)
         }
