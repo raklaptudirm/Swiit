@@ -73,4 +73,31 @@ extension Lowering {
         }
         return nil
     }
+
+    /// `extension Sequence { func select(…) -> … }`, in the prelude: the methods
+    /// every sequence has, with its items' type as `Element`.
+    mutating func sequenceExtension(_ node: ExtensionDeclSyntax) throws -> Statement {
+        guard node.extendedType.trimmedDescription == "Sequence" else {
+            throw SyntaxError("only Sequence can be extended, for now")
+        }
+        guard node.genericWhereClause == nil, node.inheritanceClause == nil else {
+            throw unsupported("this extension", node)
+        }
+        // The items' type, which a method's signature and body may name.
+        let outerParameters = typeParameters
+        typeParameters.insert("Element")
+        defer { typeParameters = outerParameters }
+        var methods: [FunctionDecl] = []
+        for member in node.memberBlock.members {
+            guard let method = member.decl.as(FunctionDeclSyntax.self) else {
+                throw unsupported("'\(member.decl.kind)' in an extension", member)
+            }
+            var lowered = try function(method, isMember: true)
+            if !lowered.generics.contains(where: { $0.name == "Element" }) {
+                lowered.generics.append("Element")
+            }
+            methods.append(lowered)
+        }
+        return .extensionDecl(name: "Sequence", methods: methods)
+    }
 }
