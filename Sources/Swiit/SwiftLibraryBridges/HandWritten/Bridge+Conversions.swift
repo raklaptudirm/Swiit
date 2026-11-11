@@ -1,46 +1,6 @@
 import Foundation
 import SystemPackage
 
-/// A Swiit key path (`\.status.code`) as a Swift one over
-/// values: each name a subscript that reads the field, one after another.
-func bridgeKeyPath(_ value: Value) throws -> KeyPath<Value, Value> {
-    guard case .function(let keyPath as KeyPathValue) = value.storage else {
-        throw SwiitError("expected a key path, not \(value.typeName)")
-    }
-    return keyPath.path.reduce(\Value.self) { path, name in
-        path.appending(path: \Value.[field: name])
-    }
-}
-
-/// Runs `body`, which reads fields through key paths, with fields read as the
-/// host reads them; the first failure (a field that isn't there) is thrown
-/// after it, since a key path can't throw.
-func withFieldReader<T>(_ interpreter: Interpreter, _ body: () throws -> T) throws -> T {
-    var failure: Error?
-    let saved = FieldAccess.reader
-    FieldAccess.reader = { value, name in
-        do { return try interpreter.member(name, of: value) } catch {
-            failure = failure ?? error
-            return .nothing
-        }
-    }
-    defer { FieldAccess.reader = saved }
-    let result = try body()
-    if let failure { throw failure }
-    return result
-}
-
-/// A case of a Swift enum from a Swiit value: the case of that name, among
-/// all the enum's.
-func bridgeCase<T: CaseIterable>(_ type: T.Type, _ value: Value) throws -> T {
-    guard case .enumValue(let found) = value.storage,
-        let match = T.allCases.first(where: { "\($0)" == found.name })
-    else {
-        throw SwiitError("expected a \(T.self), not \(value.typeName)")
-    }
-    return match
-}
-
 extension FilePath: ScriptConvertible {}
 
 /// A path as Swiit holds it: a FilePath.
@@ -54,138 +14,6 @@ enum FieldKind {
     case enumeration(String)
     /// A Swift type held as it is, of this name: a `FilePath`, a `FileSize`.
     case boxed(String)
-}
-
-/// A Swift struct as a record, its fields by name, in the order it declares
-/// them and all there: the encoder leaves out a nil, and the declaration says
-/// it's a field. A field of `patches` is read from the Swift value itself and
-/// made what it is declared as.
-func bridgeRecord<T: Encodable>(
-    _ interpreter: Interpreter,
-    _ value: T,
-    patches: [String: FieldKind] = [:]
-) -> Value {
-    guard let encoded = (try? ValueEncoder().encode(value))?.record else { return .nothing }
-    var record = Value.Record(typeName: encoded.typeName)
-    for child in Mirror(reflecting: value).children {
-        guard let field = child.label else { continue }
-        var held: Any? = child.value
-        // An optional holds its value, or nothing.
-        if let optional = held.map(Mirror.init(reflecting:)), optional.displayStyle == .optional {
-            held = optional.children.first?.value
-        }
-        record[field] =
-            switch (patches[field], held) {
-            case (.enumeration(let type)?, let held?): interpreter.declaredCase(type, "\(held)")
-            case (.boxed(let type)?, let held?): SwiftValue.make(held, as: type)
-            case (_, .some): encoded[field] ?? .nothing
-            default: .nothing
-            }
-    }
-    return Value(record: record)
-}
-
-/// A list's items, or a Swift sequence's (a host type's lines).
-func bridgeList(_ value: Value) throws -> [Value] {
-    switch value.storage {
-    case .list(let items): return items
-    default:
-        guard let items = Interpreter.items(of: value) else {
-            throw SwiitError("expected a list, not \(value.typeName)")
-        }
-        return Array(items)
-    }
-}
-
-/// A dictionary as Swift's, which is what it holds.
-func bridgeDictionary(_ value: Value) throws -> [Value: Value] {
-    guard case .dictionary(let dictionary) = value.storage else {
-        throw SwiitError("expected a dictionary, not \(value.typeName)")
-    }
-    return dictionary
-}
-
-/// Swift's dictionary as Swiit's.
-func bridgeDictionary(_ dictionary: [Value: Value]) -> Value {
-    .dictionary(dictionary)
-}
-
-/// A tuple's elements, by label or position, made into a Swift tuple.
-func bridgeTuple<T>(_ value: Value, _ labels: [String?], _ make: ([Value]) throws -> T) throws -> T
-{
-    guard let record = value.record, record.typeName == nil, record.count == labels.count
-    else {
-        throw SwiitError("expected a tuple of \(labels.count), not \(value.typeName)")
-    }
-    return try make(
-        labels.enumerated()
-            .map { index, label in
-                label.flatMap { record[$0] } ?? record[record.keys[index]]!
-            }
-    )
-}
-
-/// A Swift tuple as Swiit's, from its elements' labels and values.
-func bridgeTuple<T>(_ tuple: T, _ elements: (T) -> [(String?, Value)]) -> Value {
-    var record = Value.Record()
-    for (index, (label, value)) in elements(tuple).enumerated() {
-        record[label ?? String(index)] = value
-    }
-    return Value(record: record)
-}
-
-/// The items of any sequence, for a Swift parameter that takes one: a
-/// String's Characters, a dictionary's (key, value) pairs, or what
-/// `items(of:)` gives.
-func bridgeSequence(_ value: Value) throws -> [Value] {
-    switch value.storage {
-    case .string(let text):
-        return Array(Interpreter.iterator(text))
-    case .dictionary(let dictionary):
-        return dictionary.map {
-            bridgeTuple(($0.key, $0.value)) { [("key", $0.0), ("value", $0.1)] }
-        }
-    default:
-        guard let items = Interpreter.items(of: value) else {
-            throw SwiitError("expected a sequence, not \(value.typeName)")
-        }
-        return Array(items)
-    }
-}
-
-/// A range with bounds of a Swift type, from Swiit's range of values.
-func bridgeRange<Bound: Comparable>(
-    _ value: Value,
-    _ bound: (Value) throws -> Bound
-) throws -> Range<Bound> {
-    let range = try SwiftValue.unbox(Range<Value>.self, value)
-    return Range(
-        uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound))
-    )
-}
-
-func bridgeClosedRange<Bound: Comparable>(
-    _ value: Value,
-    _ bound: (Value) throws -> Bound
-) throws -> ClosedRange<Bound> {
-    let range = try SwiftValue.unbox(ClosedRange<Value>.self, value)
-    return ClosedRange(
-        uncheckedBounds: (lower: try bound(range.lowerBound), upper: try bound(range.upperBound))
-    )
-}
-
-/// A Swift value boxed as Swiit holds it, converted first (a `Set<Int>` to
-/// a `Set<Value>`).
-func bridgeBox<T, Boxed>(_ value: T, as typeName: String, _ convert: (T) -> Boxed) -> Value {
-    SwiftValue.make(convert(value), as: typeName)
-}
-
-func bridgeBox<T, Boxed: Hashable>(
-    _ value: T,
-    as typeName: String,
-    _ convert: (T) -> Boxed
-) -> Value {
-    SwiftValue.make(convert(value), as: typeName)
 }
 
 /// `lower...upper` or `lower..<upper`, of any values that compare.
@@ -262,16 +90,6 @@ extension Interpreter {
             return SwiftValue.make(next, as: Bridge.types[unqualified] != nil ? unqualified : name)
         }
     }
-}
-
-/// A Swiit function as a Swift closure.
-/// A Swiit value as a Swift optional: nil for nothing, else converted.
-func bridgeOptional<T>(_ value: Value, _ convert: (Value) throws -> T) rethrows -> T? {
-    value == .nothing ? nil : try convert(value)
-}
-
-func bridgeClosure(_ interpreter: Interpreter, _ function: Value) -> ([Value]) throws -> Value {
-    { arguments in try interpreter.call(function, with: arguments) }
 }
 
 /// Swiit's values sort as `order(comparedTo:)` has it, so Swift's generic

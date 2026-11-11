@@ -20,7 +20,7 @@ extension Bridge {
             name: "AttributedString", genericParameters: [],
             conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
             associatedTypes: ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string],
-            parse: nil, literal: { textLiteral(AttributedString.self, $0).map { SwiftValue.make($0, as: "AttributedString") } }, arrayLiteral: nil,
+            parse: nil, literal: { Value.Bridging.textLiteral(AttributedString.self, $0).map { SwiftValue.make($0, as: "AttributedString") } }, arrayLiteral: nil,
             members: [
                 member30, member31, member32, member33, member34, member35
             ]
@@ -35,7 +35,7 @@ extension Bridge {
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ... (try SwiftValue.unbox(Date.self, args["maximum"]!))
-                return bridgeBox(result, as: "ClosedRange") { r in ClosedRange<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
+                return Value.Bridging.box(result, as: .init(hostType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
                     }
                 )
 
@@ -100,7 +100,7 @@ extension Bridge {
                     body: .native { interpreter, args in
                         _ = interpreter
                         let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ..< (try SwiftValue.unbox(Date.self, args["maximum"]!))
-                return bridgeBox(result, as: "Range") { r in Range<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
+                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
                     }
                 )
 

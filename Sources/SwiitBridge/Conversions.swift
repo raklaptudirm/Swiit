@@ -65,7 +65,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
     switch type {
     case .named(let name, []): return leaves[name]?.from(value) ?? value
     case .named("KeyPath", let arguments) where arguments.count == 2:
-        return "try bridgeKeyPath(\(value))"
+        return "try Value.Bridging.keyPath(\(value))"
     case .named(let name, let arguments):
         let box = "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
         guard arguments.contains(where: isLeaf) else { return box }
@@ -76,8 +76,8 @@ func fromValue(_ value: String, _ type: SType) -> String {
         }
     case .array(let element), .someSequence(let element):
         let items =
-            if case .array = type { "try bridgeList(\(value))" } else {
-                "try bridgeSequence(\(value))"
+            if case .array = type { "try Value.Bridging.list(\(value))" } else {
+                "try Value.Bridging.sequence(\(value))"
             }
         if case .named(let name, []) = element, leaves[name] == nil { return items }
         return "\(items).map { \(fromValue("$0", element)) }"
@@ -88,20 +88,23 @@ func fromValue(_ value: String, _ type: SType) -> String {
             // The `try` is for the closure; what is inside the parentheses has its own.
             let converted = fromValue("$0", wrapped)
             return
-                "\(converted.contains("try") ? "try " : "")bridgeOptional(\(value)) { \(converted) }"
+                "\(converted.contains("try") ? "try " : "")Value.Bridging.optional(\(value)) { \(converted) }"
         }
         return "(\(value) == .nothing ? nil : \(fromValue(value, wrapped)))"
     case .dictionary(let key, let value2):
-        guard isLeaf(key) || isLeaf(value2) else { return "try bridgeDictionary(\(value))" }
+        guard isLeaf(key) || isLeaf(value2) else {
+            return "try Value.Bridging.dictionary(\(value))"
+        }
         return
-            "try Dictionary(uniqueKeysWithValues: bridgeDictionary(\(value)).map { (\(fromValue("$0.key", key)), \(fromValue("$0.value", value2))) })"
+            "try Dictionary(uniqueKeysWithValues: Value.Bridging.dictionary(\(value)).map { (\(fromValue("$0.key", key)), \(fromValue("$0.value", value2))) })"
     case .tuple(let elements):
         let labels = elements.map { $0.label.map(quoted) ?? "nil" }.joined(separator: ", ")
         let parts = elements.enumerated()
             .map { index, element in
                 (element.label.map { "\($0): " } ?? "") + fromValue("t[\(index)]", element.type)
             }
-        return "try bridgeTuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
+        return
+            "try Value.Bridging.tuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
     case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
         let arguments = zip(names, parameters).map { toValue($0, $1) }.joined(separator: ", ")
@@ -110,8 +113,8 @@ func fromValue(_ value: String, _ type: SType) -> String {
         // (`bridgeAsyncClosure`), as the task that passed it.
         let call =
             isAsync
-            ? "(try await bridgeAsyncClosure(interpreter, \(value))([\(arguments)]))"
-            : "try bridgeClosure(interpreter, \(value))([\(arguments)])"
+            ? "(try await Value.Bridging.asyncClosure(interpreter, \(value))([\(arguments)]))"
+            : "try Value.Bridging.closure(interpreter, \(value))([\(arguments)])"
         let effects = isAsync ? "async throws" : "throws"
         if case .tuple(let elements) = result, elements.isEmpty {
             return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"
@@ -134,10 +137,10 @@ func toValue(_ swift: String, _ type: SType) -> String {
         switch name {
         case "Range", "ClosedRange":
             return
-                "bridgeBox(\(swift), as: \(typeName)) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toValue("r.lowerBound", bound)), upper: \(toValue("r.upperBound", bound)))) }"
+                "Value.Bridging.box(\(swift), as: .init(hostType: \(typeName))) { r in \(canonical(name, arguments))(uncheckedBounds: (lower: \(toValue("r.lowerBound", bound)), upper: \(toValue("r.upperBound", bound)))) }"
         default:
             return
-                "bridgeBox(\(swift), as: \(typeName)) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
+                "Value.Bridging.box(\(swift), as: .init(hostType: \(typeName))) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
         if case .named(let name, []) = element, leaves[name] == nil { return ".list(\(swift))" }
@@ -145,16 +148,16 @@ func toValue(_ swift: String, _ type: SType) -> String {
     case .optional(let wrapped): return "(\(swift).map { \(toValue("$0", wrapped)) } ?? .nothing)"
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.
-        guard isLeaf(key) || isLeaf(value) else { return "bridgeDictionary(\(swift))" }
+        guard isLeaf(key) || isLeaf(value) else { return "Value.Bridging.dictionary(\(swift))" }
         return
-            "bridgeDictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toValue("$0.key", key)), \(toValue("$0.value", value))) }))"
+            "Value.Bridging.dictionary(Dictionary(uniqueKeysWithValues: \(swift).map { (\(toValue("$0.key", key)), \(toValue("$0.value", value))) }))"
     case .tuple(let elements):
         if elements.isEmpty { return ".nothing" }
         let parts = elements.enumerated()
             .map { index, element in
                 "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
             }
-        return "bridgeTuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
+        return "Value.Bridging.tuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
     case .someSequence, .function, .member: fatalError("unsupported \(type)")
     }
 }

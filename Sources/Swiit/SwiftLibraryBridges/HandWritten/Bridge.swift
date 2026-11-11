@@ -80,25 +80,6 @@ enum Bridge {
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
-func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T?
-where T.StringLiteralType == String {
-    T(stringLiteral: text)
-}
-
-func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(_: T.Type, _ text: String) -> T?
-where T.ExtendedGraphemeClusterLiteralType == Character {
-    guard let character = text.first, text.dropFirst().isEmpty else { return nil }
-    return T(extendedGraphemeClusterLiteral: character)
-}
-
-func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(_: T.Type, _ text: String) -> T?
-where T.UnicodeScalarLiteralType == Unicode.Scalar {
-    guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else {
-        return nil
-    }
-    return T(unicodeScalarLiteral: scalar)
-}
-
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
 final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
     let name: String

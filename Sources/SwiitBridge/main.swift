@@ -197,7 +197,7 @@ do {
         if !iterable { resultOnly.insert(name) }
         leaves[name] = Leaf(
             ".named(\(quoted(name)))",
-            { iterable ? "try bridgeCase(\(name).self, \($0))" : "fatalError()" },
+            { iterable ? "try Value.Bridging.enumCase(\(name).self, \($0))" : "fatalError()" },
             { "interpreter.declaredCase(\(quoted(name)), String(describing: \($0)))" }
         )
     }
@@ -234,7 +234,7 @@ do {
         leaves[name] = Leaf(
             ".named(\(quoted(name)))",
             { _ in fatalError("a record is a result, not an argument") },
-            { "bridgeRecord(interpreter, \($0)\(patchesCode))" }
+            { "Value.Bridging.record(interpreter, \($0)\(patchesCode))" }
         )
     }
 }
@@ -495,7 +495,8 @@ for (name, _) in bridgedTypeNames {
             parse = "{ \(name)($0).map { \(toValue("$0", selfType)) } }"
         }
         if owner.allConformances.contains("ExpressibleByUnicodeScalarLiteral") {
-            literal = "{ textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
+            literal =
+                "{ Value.Bridging.textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
         }
     }
     output += """
