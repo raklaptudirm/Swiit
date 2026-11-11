@@ -25,6 +25,8 @@ import Testing
             TypeAnnotation.TupleElement(label: nil, type: .double),
         ]),
         .metatype(.parameter("T")),
+        .someSequence(.parameter("E")),
+        .functionType([.someSequence(.int)], .bool, throws: false, async: .sync),
         .keyPath(.named("Point"), .int),
     ]
 )

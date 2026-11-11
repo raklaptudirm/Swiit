@@ -40,6 +40,9 @@ extension ScriptType {
                 .named(.keyPath, [convert(root), convert(value)])
             // A type parameter (`Element`) is named, and nothing is declared under the name.
             case .parameter(let name): .named(.parameter(name))
+            // `Sequence` takes no type argument in Swift, so `Sequence<Element>` is what a
+            // parameter of `some Sequence<Element>` is: anything that is a sequence of them.
+            case .someSequence(let element): .named(.sequence, [convert(element)])
             case .void: .tuple([])
             case .metatype(let type): .metatype(convert(type))
             default: .any

@@ -525,6 +525,8 @@ extension TypeAnnotation {
             self = .list(TypeAnnotation(arguments[0]))
         case .named("Optional", let arguments) where arguments.count == 1:
             self = .optional(TypeAnnotation(arguments[0]))
+        case .named("Sequence", let arguments) where arguments.count == 1:
+            self = .someSequence(TypeAnnotation(arguments[0]))
         case .named("Dictionary", let arguments) where arguments.count == 2:
             self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
         case .named(let name, let arguments) where name.isGenericParameter && arguments.isEmpty:
