@@ -89,6 +89,38 @@ private struct Boom: Error, CustomStringConvertible {
     )
 }
 
+@Test func aBodyFindsTheInterpreterThatCalledItWithoutHoldingOne() throws {
+    let swiit = interpreter()
+    let other = interpreter()
+    swiit.register(
+        HostSymbol.function(name: "sameAsMine", returns: .bool) { _ in
+            Value(Interpreter.running === swiit)
+        }
+    )
+    other.register(
+        HostSymbol.function(name: "sameAsMine", returns: .bool) { _ in
+            Value(Interpreter.running === swiit)
+        }
+    )
+    #expect(try swiit.evaluate("sameAsMine()") == true)
+    #expect(try other.evaluate("sameAsMine()") == false)
+    // On a thread running no script's code there is none.
+    #expect(Interpreter.running == nil)
+    // A body reaches the script through it, as a function that holds the interpreter does.
+    swiit.register(
+        HostSymbol.function(
+            name: "twiceViaRunning",
+            parameters: [.init(label: nil, name: "f", type: .callable)],
+            returns: .int
+        ) { arguments in
+            let running = try #require(Interpreter.running)
+            let once = try running.call(arguments[0], with: [Value(1)])
+            return try running.call(arguments[0], with: [once])
+        }
+    )
+    #expect(try swiit.evaluate("twiceViaRunning { $0 + 10 }") == 21)
+}
+
 @Test func whatABodyChangesInTheScriptIsSeenWhenItReturns() throws {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit

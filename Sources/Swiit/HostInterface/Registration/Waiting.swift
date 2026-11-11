@@ -82,6 +82,11 @@ enum Waiting {
 }
 
 extension Interpreter {
+    /// The interpreter running the script code that called this one, from inside a body: how a
+    /// member of a type reaches the interpreter to call a closure it was given, as a function does
+    /// by holding its own. Nil on a thread that is running no script's code (NativeBodies).
+    public static var running: Interpreter? { Waiting.host as? Interpreter }
+
     /// A host function that blocks says so, or it holds up every script task: the other tasks run
     /// while `wait` does.
     public static func whileWaiting<T>(_ wait: () -> T) -> T {

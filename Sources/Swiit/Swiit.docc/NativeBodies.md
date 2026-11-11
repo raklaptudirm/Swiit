@@ -38,6 +38,10 @@ A body may call the interpreter that is running it: ``Interpreter/call(_:with:)`
 does through those calls (a variable it changes) is there when the body returns. A script function that calls a body that calls a script
 function can go on as deep as ``Interpreter/Limits/maxCallDepth`` allows.
 
+A body of a type's member cannot hold an interpreter, because the type is shared by every interpreter in
+the process. Inside any body, ``Interpreter/running`` is the interpreter that called it, and the same calls are made on it. Outside a body, on
+a thread that runs no script code, it is nil.
+
 ## When a body fails
 
 Any error a body throws is a script error that a `catch` can catch. A plain Swift error becomes one whose message begins with the name of the
