@@ -337,7 +337,12 @@ var output = """
 var skipped: [String: Int] = [:]
 /// Each member the generator could not bridge, as `reason`, the type it is of and its name, for
 /// `--report`. (A reason names what was unsupported, so the same kind of gap groups together.)
-nonisolated(unsafe) var leftOut: [(reason: String, owner: String, member: String)] = []  // safe: the generator runs on one thread
+struct LeftOut {
+    let reason: String
+    let owner: String
+    let member: String
+}
+nonisolated(unsafe) var leftOut: [LeftOut] = []  // safe: the generator runs on one thread
 var counts: [String: Int] = [:]
 /// Each member is a declaration of its own, not an element of one big
 /// array: Swift checks an expression at a time, and 80 closures in a literal
@@ -443,7 +448,7 @@ for (name, _) in bridgedTypeNames {
                 unsupported.reason.split(separator: " ").first.map(String.init) ?? "?",
                 default: 0
             ] += 1
-            leftOut.append((unsupported.reason, name, title))
+            leftOut.append(LeftOut(reason: unsupported.reason, owner: name, member: title))
         }
     }
     let context = Context(owner: owner, generics: Set(owner.genericParameters))
@@ -527,7 +532,13 @@ if let list = module.functions {
             FileHandle.standardError.write(
                 Data("\(symbol.pathComponents[0]): \(unsupported.reason)\n".utf8)
             )
-            leftOut.append((unsupported.reason, "(free function)", symbol.pathComponents[0]))
+            leftOut.append(
+                LeftOut(
+                    reason: unsupported.reason,
+                    owner: "(free function)",
+                    member: symbol.pathComponents[0]
+                )
+            )
         }
     }
     output +=
