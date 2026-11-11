@@ -4,10 +4,9 @@
 import Foundation
 import Foundation
 
-import Swiit
 
-public enum FoundationBridge {
-    public static let types: [HostType] = [
+internal enum FoundationBridge {
+    internal static let types: [HostType] = [
 
         type29,
         type35,

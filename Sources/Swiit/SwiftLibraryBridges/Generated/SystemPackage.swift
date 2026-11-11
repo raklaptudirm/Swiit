@@ -4,1313 +4,559 @@
 import Foundation
 import SystemPackage
 
-extension Bridge {
-    internal nonisolated(unsafe) static let system: [BridgedType] = [
 
-        BridgedType(
-            name: "FilePath", genericParameters: [],
-            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
-            associatedTypes: [:],
-            parse: nil, literal: { Value.Bridging.textLiteral(FilePath.self, $0).map { SwiftValue.make($0, as: "FilePath") } }, arrayLiteral: nil,
-            members: [
-                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34
-            ]
-        ),
-        BridgedType(
-            name: "FilePath.Component", genericParameters: [],
-            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
-            associatedTypes: [:],
-            parse: { FilePath.Component($0).map { SwiftValue.make($0, as: "FilePath.Component") } }, literal: { Value.Bridging.textLiteral(FilePath.Component.self, $0).map { SwiftValue.make($0, as: "FilePath.Component") } }, arrayLiteral: nil,
-            members: [
-                member35, member36, member37, member38, member39, member40, member41, member42, member43
-            ]
-        ),
-        BridgedType(
-            name: "FilePath.ComponentView", genericParameters: [],
-            conformances: ["Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []],
-            associatedTypes: ["Element": .named("FilePath.Component")],
-            parse: nil, literal: nil, arrayLiteral: nil,
-            members: [
-                member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85, member86, member87
-            ]
-        ),
+internal enum SystemBridge {
+    internal static let types: [HostType] = [
+
+        type32,
+        type41,
+        type85,
     ]
-    nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "!=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath")), Parameter(label: nil, name: "rhs", type: .named("FilePath"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(FilePath.self, args["lhs"]!)) != (try SwiftValue.unbox(FilePath.self, args["rhs"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member0: HostSymbol = HostSymbol.initializer(summary: "Creates an empty, null-terminated path.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath()
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member1: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates an empty, null-terminated path.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath()
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member2: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "length", isStatic: false,
-                    parameters: [],
-                    returns: .int, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The length of the file path, excluding the null terminator.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member1: HostSymbol = HostSymbol.property("length", summary: "The length of the file path, excluding the null terminator.", type: .int, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.length
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member3: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "components", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath.ComponentView"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "View the non-root components that make up this path.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member2: HostSymbol = HostSymbol.property("components", summary: "View the non-root components that make up this path.", type: .named(.init(hostType: "FilePath.ComponentView")), get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.components
-                return SwiftValue.make(result, as: "FilePath.ComponentView")
-                    }
-                )
+                return Value(boxing: result, as: .init(hostType: "FilePath.ComponentView"))
+}, set: { selfValue, newValue in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+receiver.components = try newValue.unboxing(FilePath.ComponentView.self)
+return Value(boxing: receiver, as: .init(hostType: "FilePath"))
+})
 
-    nonisolated(unsafe) private static let member4: BridgedMember =                 BridgedMember(
-                    kind: .setter, name: "components", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "newValue", type: .named("FilePath.ComponentView"))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                        receiver.components = try SwiftValue.unbox(FilePath.ComponentView.self, args["newValue"]!)
-                        return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
-                    }
-                )
+    nonisolated(unsafe) private static let member3: HostSymbol = HostSymbol.initializer(summary: "Creates a file path from a string literal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath(stringLiteral: try String(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member5: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a file path from a string literal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath(stringLiteral: try String(args["stringLiteral"]!))
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+    nonisolated(unsafe) private static let member4: HostSymbol = HostSymbol.initializer(summary: "Creates a file path from a string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath(try String(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member6: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "string", type: .string)],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a file path from a string.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath(try String(args["string"]!))
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member7: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "description", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of the file path.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member5: HostSymbol = HostSymbol.property("description", summary: "A textual representation of the file path.", type: .string, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.description
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member8: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "debugDescription", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of the file path, suitable for debugging.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member6: HostSymbol = HostSymbol.property("debugDescription", summary: "A textual representation of the file path, suitable for debugging.", type: .string, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.debugDescription
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member9: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "string", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a string by interpreting the path’s content as UTF-8 on Unix and UTF-16 on Windows.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member7: HostSymbol = HostSymbol.property("string", summary: "Creates a string by interpreting the path’s content as UTF-8 on Unix and UTF-16 on Windows.", type: .string, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.string
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member10: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "isAbsolute", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns true if this path uniquely identifies the location of a file without reference to an additional starting location.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member8: HostSymbol = HostSymbol.property("isAbsolute", summary: "Returns true if this path uniquely identifies the location of a file without reference to an additional starting location.", type: .bool, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.isAbsolute
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member11: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "isRelative", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns true if this path is not absolute (see `isAbsolute`).",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member9: HostSymbol = HostSymbol.property("isRelative", summary: "Returns true if this path is not absolute (see `isAbsolute`).", type: .bool, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.isRelative
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member12: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "starts", isStatic: false,
-                    parameters: [Parameter(label: "with", name: "other", type: .named("FilePath"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns whether `other` is a prefix of `self`, only considering whole path components.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.starts(with: try SwiftValue.unbox(FilePath.self, args["other"]!))
+    nonisolated(unsafe) private static let member10: HostSymbol = HostSymbol.method("starts", summary: "Returns whether `other` is a prefix of `self`, only considering whole path components.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(hostType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.starts(with: try arguments[0].unboxing(FilePath.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member13: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "ends", isStatic: false,
-                    parameters: [Parameter(label: "with", name: "other", type: .named("FilePath"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns whether `other` is a suffix of `self`, only considering whole path components.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.ends(with: try SwiftValue.unbox(FilePath.self, args["other"]!))
+    nonisolated(unsafe) private static let member11: HostSymbol = HostSymbol.method("ends", summary: "Returns whether `other` is a suffix of `self`, only considering whole path components.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(hostType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.ends(with: try arguments[0].unboxing(FilePath.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member14: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "isEmpty", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Whether this path is empty",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member12: HostSymbol = HostSymbol.property("isEmpty", summary: "Whether this path is empty", type: .bool, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.isEmpty
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member15: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removingRoot", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a new path containing just the components, i.e. everything after `root`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member13: HostSymbol = HostSymbol.method("removingRoot", summary: "Creates a new path containing just the components, i.e. everything after `root`.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.removingRoot()
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member16: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "lastComponent", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns the final component of the path. Returns `nil` if the path is empty or only contains a root.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member14: HostSymbol = HostSymbol.property("lastComponent", summary: "Returns the final component of the path. Returns `nil` if the path is empty or only contains a root.", type: .optional(.named(.init(hostType: "FilePath.Component"))), get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.lastComponent
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+})
 
-    nonisolated(unsafe) private static let member17: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removingLastComponent", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a new path with everything up to but not including `lastComponent`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member15: HostSymbol = HostSymbol.method("removingLastComponent", summary: "Creates a new path with everything up to but not including `lastComponent`.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.removingLastComponent()
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member18: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeLastComponent", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "In-place mutating variant of `removingLastComponent`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
+    nonisolated(unsafe) private static let member16: HostSymbol = HostSymbol.mutatingMethod("removeLastComponent", summary: "In-place mutating variant of `removingLastComponent`.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.removeLastComponent()
-                return .list([result.value, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+                return (result: result.value, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member19: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "extension", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.string), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The extension of the file or directory last component.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member17: HostSymbol = HostSymbol.property("extension", summary: "The extension of the file or directory last component.", type: .optional(.string), get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.`extension`
                 return (result.map { $0.value } ?? .nothing)
-                    }
-                )
+}, set: { selfValue, newValue in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+receiver.`extension` = (newValue == .nothing ? nil : try String(newValue))
+return Value(boxing: receiver, as: .init(hostType: "FilePath"))
+})
 
-    nonisolated(unsafe) private static let member20: BridgedMember =                 BridgedMember(
-                    kind: .setter, name: "extension", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "newValue", type: .optional(.string))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        var receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                        receiver.`extension` = (args["newValue"]! == .nothing ? nil : try String(args["newValue"]!))
-                        return .list([.nothing, SwiftValue.make(receiver, as: "FilePath")])
-                    }
-                )
-
-    nonisolated(unsafe) private static let member21: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "stem", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.string), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The non-extension portion of the file or directory last component.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member18: HostSymbol = HostSymbol.property("stem", summary: "The non-extension portion of the file or directory last component.", type: .optional(.string), get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.stem
                 return (result.map { $0.value } ?? .nothing)
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member22: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "isLexicallyNormal", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Whether the path is in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks).",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member19: HostSymbol = HostSymbol.property("isLexicallyNormal", summary: "Whether the path is in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks).", type: .bool, get: { selfValue in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.isLexicallyNormal
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member23: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "lexicallyNormalize", isStatic: false,
-                    parameters: [],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
+    nonisolated(unsafe) private static let member20: HostSymbol = HostSymbol.mutatingMethod("lexicallyNormalize", summary: "Collapse `.` and `..` components lexically (i.e. without following symlinks).", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 receiver.lexicallyNormalize()
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member24: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "lexicallyNormalized", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a copy of `self` in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks). See `lexicallyNormalize`",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
+    nonisolated(unsafe) private static let member21: HostSymbol = HostSymbol.method("lexicallyNormalized", summary: "Returns a copy of `self` in lexical-normal form, that is `.` and `..` components have been collapsed lexically (i.e. without following symlinks). See `lexicallyNormalize`", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
                 let result = receiver.lexicallyNormalized()
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member25: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "lexicallyResolving", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "subpath", type: .named("FilePath"))],
-                    returns: .optional(.named("FilePath")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Create a new `FilePath` by resolving `subpath` relative to `self`, ensuring that the result is lexically contained within `self`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.lexicallyResolving(try SwiftValue.unbox(FilePath.self, args["subpath"]!))
-                return (result.map { SwiftValue.make($0, as: "FilePath") } ?? .nothing)
-                    }
-                )
+    nonisolated(unsafe) private static let member22: HostSymbol = HostSymbol.method("lexicallyResolving", summary: "Create a new `FilePath` by resolving `subpath` relative to `self`, ensuring that the result is lexically contained within `self`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "subpath", type: .named(.init(hostType: "FilePath")))], returns: .optional(.named(.init(hostType: "FilePath"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.lexicallyResolving(try arguments[0].unboxing(FilePath.self))
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removePrefix", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "prefix", type: .named("FilePath"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                let result = receiver.removePrefix(try SwiftValue.unbox(FilePath.self, args["prefix"]!))
-                return .list([result.value, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member23: HostSymbol = HostSymbol.mutatingMethod("removePrefix", summary: "If `prefix` is a prefix of `self`, removes it and returns `true`. Otherwise returns `false`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.init(hostType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.removePrefix(try arguments[0].unboxing(FilePath.self))
+                return (result: result.value, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "append", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "component", type: .named("FilePath.Component"))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Append a `component` on to the end of this path.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                receiver.append(try SwiftValue.unbox(FilePath.Component.self, args["component"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member24: HostSymbol = HostSymbol.mutatingMethod("append", summary: "Append a `component` on to the end of this path.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "component", type: .named(.init(hostType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                receiver.append(try arguments[0].unboxing(FilePath.Component.self))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member28: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "append", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Append the contents of `other`, ignoring any spurious leading separators.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                receiver.append(try String(args["other"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member25: HostSymbol = HostSymbol.mutatingMethod("append", summary: "Append the contents of `other`, ignoring any spurious leading separators.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                receiver.append(try String(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member29: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "appending", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .named("FilePath.Component"))],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Non-mutating version of `append(_:Component)`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.appending(try SwiftValue.unbox(FilePath.Component.self, args["other"]!))
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+    nonisolated(unsafe) private static let member26: HostSymbol = HostSymbol.method("appending", summary: "Non-mutating version of `append(_:Component)`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "FilePath.Component")))], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.appending(try arguments[0].unboxing(FilePath.Component.self))
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "appending", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .string)],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Non-mutating version of `append(_:String)`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.appending(try String(args["other"]!))
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+    nonisolated(unsafe) private static let member27: HostSymbol = HostSymbol.method("appending", summary: "Non-mutating version of `append(_:String)`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.appending(try String(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "push", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .named("FilePath"))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                receiver.push(try SwiftValue.unbox(FilePath.self, args["other"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member28: HostSymbol = HostSymbol.mutatingMethod("push", summary: "If `other` does not have a root, append each component of `other`. If `other` has a root, replaces `self` with other.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "FilePath")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                receiver.push(try arguments[0].unboxing(FilePath.self))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "pushing", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .named("FilePath"))],
-                    returns: .named("FilePath"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Non-mutating version of `push()`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath = try SwiftValue.unbox(FilePath.self, args["self"]!)
-                let result = receiver.pushing(try SwiftValue.unbox(FilePath.self, args["other"]!))
-                return SwiftValue.make(result, as: "FilePath")
-                    }
-                )
+    nonisolated(unsafe) private static let member29: HostSymbol = HostSymbol.method("pushing", summary: "Non-mutating version of `push()`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "FilePath")))], returns: .named(.init(hostType: "FilePath")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                let result = receiver.pushing(try arguments[0].unboxing(FilePath.self))
+                return Value(boxing: result, as: .init(hostType: "FilePath"))
+}
 
-    nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeAll", isStatic: false,
-                    parameters: [Parameter(label: "keepingCapacity", name: "keepingCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Remove the contents of the path, keeping the null terminator.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                receiver.removeAll(keepingCapacity: try Bool(args["keepingCapacity"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member30: HostSymbol = HostSymbol.mutatingMethod("removeAll", summary: "Remove the contents of the path, keeping the null terminator.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepingCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                receiver.removeAll(keepingCapacity: try Bool(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "reserveCapacity", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "minimumCapacity", type: .int)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Reserve enough storage space to store `minimumCapacity` platform characters.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath = try SwiftValue.unbox(FilePath.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath")) }
-                receiver.reserveCapacity(try Int(args["minimumCapacity"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member31: HostSymbol = HostSymbol.mutatingMethod("reserveCapacity", summary: "Reserve enough storage space to store `minimumCapacity` platform characters.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath = try selfValue.unboxing(FilePath.self)
+                receiver.reserveCapacity(try Int(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath")))
+}
 
-    nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "==", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.Component")), Parameter(label: nil, name: "rhs", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(FilePath.Component.self, args["lhs"]!)) == (try SwiftValue.unbox(FilePath.Component.self, args["rhs"]!))
+    nonisolated(unsafe) private static let type32: HostType = {
+        var type = HostType(name: "FilePath", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31])
+        type.genericParameters = []
+        type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
+        type.associatedTypes = [:]
+        type.parse = nil
+        type.literal = { Value.Bridging.textLiteral(FilePath.self, $0).map { Value(boxing: $0, as: .init(hostType: "FilePath")) } }
+        type.arrayLiteral = nil
+        return type
+    }()
+
+    nonisolated(unsafe) private static let member33: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "FilePath.Component"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(FilePath.Component.self)) == (try arguments[1].unboxing(FilePath.Component.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member36: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "!=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.Component")), Parameter(label: nil, name: "rhs", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(FilePath.Component.self, args["lhs"]!)) != (try SwiftValue.unbox(FilePath.Component.self, args["rhs"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member34: HostSymbol = HostSymbol.initializer(summary: "Create a file path component from a string literal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)], returns: .named(.init(hostType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath.Component(stringLiteral: try String(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "FilePath.Component"))
+}
 
-    nonisolated(unsafe) private static let member37: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "stringLiteral", name: "stringLiteral", type: .string)],
-                    returns: .named("FilePath.Component"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Create a file path component from a string literal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath.Component(stringLiteral: try String(args["stringLiteral"]!))
-                return SwiftValue.make(result, as: "FilePath.Component")
-                    }
-                )
+    nonisolated(unsafe) private static let member35: HostSymbol = HostSymbol.initializer(summary: "Create a file path component from a string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "string", type: .string)], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath.Component(try String(arguments[0]))
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member38: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "string", type: .string)],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Create a file path component from a string.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath.Component(try String(args["string"]!))
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
-
-    nonisolated(unsafe) private static let member39: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "description", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of the path component.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.Component = try SwiftValue.unbox(FilePath.Component.self, args["self"]!)
+    nonisolated(unsafe) private static let member36: HostSymbol = HostSymbol.property("description", summary: "A textual representation of the path component.", type: .string, get: { selfValue in
+let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.self)
                 let result = receiver.description
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member40: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "debugDescription", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of the path component, suitable for debugging.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.Component = try SwiftValue.unbox(FilePath.Component.self, args["self"]!)
+    nonisolated(unsafe) private static let member37: HostSymbol = HostSymbol.property("debugDescription", summary: "A textual representation of the path component, suitable for debugging.", type: .string, get: { selfValue in
+let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.self)
                 let result = receiver.debugDescription
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member41: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "string", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a string by interpreting the component’s content as UTF-8 on Unix and UTF-16 on Windows.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.Component = try SwiftValue.unbox(FilePath.Component.self, args["self"]!)
+    nonisolated(unsafe) private static let member38: HostSymbol = HostSymbol.property("string", summary: "Creates a string by interpreting the component’s content as UTF-8 on Unix and UTF-16 on Windows.", type: .string, get: { selfValue in
+let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.self)
                 let result = receiver.string
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member42: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "extension", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.string), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The extension of this file or directory component.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.Component = try SwiftValue.unbox(FilePath.Component.self, args["self"]!)
+    nonisolated(unsafe) private static let member39: HostSymbol = HostSymbol.property("extension", summary: "The extension of this file or directory component.", type: .optional(.string), get: { selfValue in
+let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.self)
                 let result = receiver.`extension`
                 return (result.map { $0.value } ?? .nothing)
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member43: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "stem", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The non-extension portion of this file or directory  component.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.Component = try SwiftValue.unbox(FilePath.Component.self, args["self"]!)
+    nonisolated(unsafe) private static let member40: HostSymbol = HostSymbol.property("stem", summary: "The non-extension portion of this file or directory  component.", type: .string, get: { selfValue in
+let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.self)
                 let result = receiver.stem
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member44: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "map", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .parameter("T"), throws: true))],
-                    returns: .list(.parameter("T")), generics: ["T"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result: [Value] = try receiver.map({ (a0: FilePath.Component) throws -> Value in try Value.Bridging.closure(interpreter, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")]) })
-                return .list(result)
-                    }
-                )
+    nonisolated(unsafe) private static let type41: HostType = {
+        var type = HostType(name: "FilePath.Component", members: [member33, member34, member35, member36, member37, member38, member39, member40])
+        type.genericParameters = []
+        type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
+        type.associatedTypes = [:]
+        type.parse = { FilePath.Component($0).map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } }
+        type.literal = { Value.Bridging.textLiteral(FilePath.Component.self, $0).map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } }
+        type.arrayLiteral = nil
+        return type
+    }()
 
-    nonisolated(unsafe) private static let member45: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "last", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The last element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member42: HostSymbol = HostSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: ["T"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result: [Value] = try receiver.map({ (a0: FilePath.Component) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))]) })
+                return Value(result)
+}
+
+    nonisolated(unsafe) private static let member43: HostSymbol = HostSymbol.property("last", summary: "The last element of the collection.", type: .optional(.named(.init(hostType: "FilePath.Component"))), get: { selfValue in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.last
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+})
 
-    nonisolated(unsafe) private static let member46: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "last", isStatic: false,
-                    parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns the last element of the sequence that satisfies the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.last(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+    nonisolated(unsafe) private static let member44: HostSymbol = HostSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.last(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member47: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "shuffled", isStatic: false,
-                    parameters: [],
-                    returns: .list(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns the elements of the sequence, shuffled.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member45: HostSymbol = HostSymbol.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [FilePath.Component] = receiver.shuffled()
-                return .list(result.map { SwiftValue.make($0, as: "FilePath.Component") })
-                    }
-                )
+                return Value(result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) })
+}
 
-    nonisolated(unsafe) private static let member48: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "!=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.ComponentView")), Parameter(label: nil, name: "rhs", type: .named("FilePath.ComponentView"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(FilePath.ComponentView.self, args["lhs"]!)) != (try SwiftValue.unbox(FilePath.ComponentView.self, args["rhs"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member46: HostSymbol = HostSymbol.initializer(summary: "Creates a new collection containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(hostType: "FilePath.Component"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(hostType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath.ComponentView(repeating: try arguments[0].unboxing(FilePath.Component.self), count: try Int(arguments[1]))
+                return Value(boxing: result, as: .init(hostType: "FilePath.ComponentView"))
+}
 
-    nonisolated(unsafe) private static let member49: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "repeating", name: "repeatedValue", type: .named("FilePath.Component")), Parameter(label: "count", name: "count", type: .int)],
-                    returns: .named("FilePath.ComponentView"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a new collection containing the specified number of a single, repeated value.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath.ComponentView(repeating: try SwiftValue.unbox(FilePath.Component.self, args["repeatedValue"]!), count: try Int(args["count"]!))
-                return SwiftValue.make(result, as: "FilePath.ComponentView")
-                    }
-                )
+    nonisolated(unsafe) private static let member47: HostSymbol = HostSymbol.initializer(summary: "Creates a new instance of a collection containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "elements", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .named(.init(hostType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath.ComponentView(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
+                return Value(boxing: result, as: .init(hostType: "FilePath.ComponentView"))
+}
 
-    nonisolated(unsafe) private static let member50: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "elements", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .named("FilePath.ComponentView"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a new instance of a collection containing the elements of a sequence.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath.ComponentView(try Value.Bridging.sequence(args["elements"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
-                return SwiftValue.make(result, as: "FilePath.ComponentView")
-                    }
-                )
+    nonisolated(unsafe) private static let member48: HostSymbol = HostSymbol.mutatingMethod("append", summary: "Adds an element to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(hostType: "FilePath.Component")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.append(try arguments[0].unboxing(FilePath.Component.self))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member51: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "append", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "newElement", type: .named("FilePath.Component"))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Adds an element to the end of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.append(try SwiftValue.unbox(FilePath.Component.self, args["newElement"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member49: HostSymbol = HostSymbol.mutatingMethod("append", summary: "Adds the elements of a sequence or collection to the end of this collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.append(contentsOf: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member52: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "append", isStatic: false,
-                    parameters: [Parameter(label: "contentsOf", name: "newElements", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Adds the elements of a sequence or collection to the end of this collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.append(contentsOf: try Value.Bridging.sequence(args["newElements"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member50: HostSymbol = HostSymbol.mutatingMethod("removeFirst", summary: "Removes the specified number of elements from the beginning of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.removeFirst(try Int(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member53: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeFirst", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Removes the specified number of elements from the beginning of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.removeFirst(try Int(args["k"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
-
-    nonisolated(unsafe) private static let member54: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeFirst", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath.Component"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the first element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
+    nonisolated(unsafe) private static let member51: HostSymbol = HostSymbol.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.removeFirst()
-                return .list([SwiftValue.make(result, as: "FilePath.Component"), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+                return (result: Value(boxing: result, as: .init(hostType: "FilePath.Component")), receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member55: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeAll", isStatic: false,
-                    parameters: [Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, defaultValue: .literal(.bool(false)))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Removes all elements from the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.removeAll(keepingCapacity: try Bool(args["keepCapacity"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member52: HostSymbol = HostSymbol.mutatingMethod("removeAll", summary: "Removes all elements from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.removeAll(keepingCapacity: try Bool(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member56: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "reserveCapacity", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "n", type: .int)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.reserveCapacity(try Int(args["n"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member53: HostSymbol = HostSymbol.mutatingMethod("reserveCapacity", summary: "Prepares the collection to store the specified number of elements, when doing so is appropriate for the underlying type.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "n", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.reserveCapacity(try Int(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member57: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "popLast", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Removes and returns the last element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
+    nonisolated(unsafe) private static let member54: HostSymbol = HostSymbol.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.popLast()
-                return .list([(result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+                return (result: (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing), receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member58: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeLast", isStatic: false,
-                    parameters: [],
-                    returns: .named("FilePath.Component"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    attributes: [Symbol.Attribute(name: "discardableResult")], summary: "Removes and returns the last element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
+    nonisolated(unsafe) private static let member55: HostSymbol = HostSymbol.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath.Component")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.removeLast()
-                return .list([SwiftValue.make(result, as: "FilePath.Component"), mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+                return (result: Value(boxing: result, as: .init(hostType: "FilePath.Component")), receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member59: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeLast", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "k", type: .int)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Removes the specified number of elements from the end of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.removeLast(try Int(args["k"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member56: HostSymbol = HostSymbol.mutatingMethod("removeLast", summary: "Removes the specified number of elements from the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.removeLast(try Int(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member60: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "filter", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "isIncluded", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .named("FilePath.ComponentView"), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.filter({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["isIncluded"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return SwiftValue.make(result, as: "FilePath.ComponentView")
-                    }
-                )
+    nonisolated(unsafe) private static let member57: HostSymbol = HostSymbol.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                try receiver.removeAll(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member61: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "removeAll", isStatic: false,
-                    parameters: [Parameter(label: "where", name: "shouldBeRemoved", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: true,
-                    summary: "Removes all the elements that satisfy the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                try receiver.removeAll(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["shouldBeRemoved"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member58: HostSymbol = HostSymbol.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result: [FilePath.Component] = try receiver.filter({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return Value(result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) })
+}
 
-    nonisolated(unsafe) private static let member62: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "forEach", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "body", type: .functionType([.named("FilePath.Component")], .void, throws: true))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                try receiver.forEach({ (a0: FilePath.Component) throws -> Void in _ = try Value.Bridging.closure(interpreter, args["body"]!)([SwiftValue.make(a0, as: "FilePath.Component")]) })
+    nonisolated(unsafe) private static let member59: HostSymbol = HostSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                try receiver.forEach({ (a0: FilePath.Component) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))]) })
                 return .nothing
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member63: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "first", isStatic: false,
-                    parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns the first element of the sequence that satisfies the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.first(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+    nonisolated(unsafe) private static let member60: HostSymbol = HostSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.first(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member64: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "min", isStatic: false,
-                    parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.min(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "FilePath.Component"), SwiftValue.make(a1, as: "FilePath.Component")])) })
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+    nonisolated(unsafe) private static let member61: HostSymbol = HostSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.min(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), Value(boxing: a1, as: .init(hostType: "FilePath.Component"))])) })
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member65: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "max", isStatic: false,
-                    parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    attributes: [Symbol.Attribute(name: "warn_unqualified_access")], summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.max(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "FilePath.Component"), SwiftValue.make(a1, as: "FilePath.Component")])) })
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+    nonisolated(unsafe) private static let member62: HostSymbol = HostSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.max(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), Value(boxing: a1, as: .init(hostType: "FilePath.Component"))])) })
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member66: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "starts", isStatic: false,
-                    parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.parameter("PossiblePrefix.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("FilePath.Component"), .parameter("PossiblePrefix.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["PossiblePrefix.Element"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(args["possiblePrefix"]!), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areEquivalent"]!)([SwiftValue.make(a0, as: "FilePath.Component"), a1])) })
+    nonisolated(unsafe) private static let member63: HostSymbol = HostSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: ["PossiblePrefix.Element"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), a1])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member67: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "starts", isStatic: false,
-                    parameters: [Parameter(label: "with", name: "possiblePrefix", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = receiver.starts(with: try Value.Bridging.sequence(args["possiblePrefix"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
+    nonisolated(unsafe) private static let member64: HostSymbol = HostSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member68: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "elementsEqual", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .someSequence(.parameter("OtherSequence.Element"))), Parameter(label: "by", name: "areEquivalent", type: .functionType([.named("FilePath.Component"), .parameter("OtherSequence.Element")], .bool, throws: true))],
-                    returns: .bool, generics: ["OtherSequence.Element"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(args["other"]!), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areEquivalent"]!)([SwiftValue.make(a0, as: "FilePath.Component"), a1])) })
+    nonisolated(unsafe) private static let member65: HostSymbol = HostSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: ["OtherSequence.Element"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: FilePath.Component, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), a1])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member69: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "elementsEqual", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = receiver.elementsEqual(try Value.Bridging.sequence(args["other"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
+    nonisolated(unsafe) private static let member66: HostSymbol = HostSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member70: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "lexicographicallyPrecedes", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "other", type: .someSequence(.named("FilePath.Component"))), Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(args["other"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) }, by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "FilePath.Component"), SwiftValue.make(a1, as: "FilePath.Component")])) })
+    nonisolated(unsafe) private static let member67: HostSymbol = HostSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) }, by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), Value(boxing: a1, as: .init(hostType: "FilePath.Component"))])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member71: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "contains", isStatic: false,
-                    parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.contains(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
+    nonisolated(unsafe) private static let member68: HostSymbol = HostSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.contains(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member72: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "allSatisfy", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.allSatisfy({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
+    nonisolated(unsafe) private static let member69: HostSymbol = HostSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.allSatisfy({ (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member73: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "contains", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "element", type: .named("FilePath.Component"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the sequence contains the given element.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = receiver.contains(try SwiftValue.unbox(FilePath.Component.self, args["element"]!))
+    nonisolated(unsafe) private static let member70: HostSymbol = HostSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(hostType: "FilePath.Component")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = receiver.contains(try arguments[0].unboxing(FilePath.Component.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member74: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "reduce", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Parameter(label: nil, name: "nextPartialResult", type: .functionType([.parameter("Result"), .named("FilePath.Component")], .parameter("Result"), throws: true))],
-                    returns: .parameter("Result"), generics: ["Result"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns the result of combining the elements of the sequence using the given closure.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.reduce(args["initialResult"]!, { (a0: Value, a1: FilePath.Component) throws -> Value in try Value.Bridging.closure(interpreter, args["nextPartialResult"]!)([a0, SwiftValue.make(a1, as: "FilePath.Component")]) })
+    nonisolated(unsafe) private static let member71: HostSymbol = HostSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(hostType: "FilePath.Component"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: ["Result"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: FilePath.Component) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(hostType: "FilePath.Component"))]) })
                 return result
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member75: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "flatMap", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .someSequence(.parameter("SegmentOfResult.Element")), throws: true))],
-                    returns: .list(.parameter("SegmentOfResult.Element")), generics: ["SegmentOfResult.Element"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result: [Value] = try receiver.flatMap({ (a0: FilePath.Component) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return .list(result)
-                    }
-                )
+    nonisolated(unsafe) private static let member72: HostSymbol = HostSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: ["SegmentOfResult.Element"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result: [Value] = try receiver.flatMap({ (a0: FilePath.Component) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return Value(result)
+}
 
-    nonisolated(unsafe) private static let member76: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "compactMap", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "transform", type: .functionType([.named("FilePath.Component")], .optional(.parameter("ElementOfResult")), throws: true))],
-                    returns: .list(.parameter("ElementOfResult")), generics: ["ElementOfResult"],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, args["transform"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) { $0 } })
-                return .list(result)
-                    }
-                )
+    nonisolated(unsafe) private static let member73: HostSymbol = HostSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: ["ElementOfResult"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) { $0 } })
+                return Value(result)
+}
 
-    nonisolated(unsafe) private static let member77: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "sorted", isStatic: false,
-                    parameters: [Parameter(label: "by", name: "areInIncreasingOrder", type: .functionType([.named("FilePath.Component"), .named("FilePath.Component")], .bool, throws: true))],
-                    returns: .list(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result: [FilePath.Component] = try receiver.sorted(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["areInIncreasingOrder"]!)([SwiftValue.make(a0, as: "FilePath.Component"), SwiftValue.make(a1, as: "FilePath.Component")])) })
-                return .list(result.map { SwiftValue.make($0, as: "FilePath.Component") })
-                    }
-                )
+    nonisolated(unsafe) private static let member74: HostSymbol = HostSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result: [FilePath.Component] = try receiver.sorted(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), Value(boxing: a1, as: .init(hostType: "FilePath.Component"))])) })
+                return Value(result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) })
+}
 
-    nonisolated(unsafe) private static let member78: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "trimPrefix", isStatic: false,
-                    parameters: [Parameter(label: "while", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: true,
-                    summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                try receiver.trimPrefix(while: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member75: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                try receiver.trimPrefix(while: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member79: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "trimPrefix", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "prefix", type: .someSequence(.named("FilePath.Component")))],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Removes `prefix` from the start of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "FilePath.ComponentView")) }
-                receiver.trimPrefix(try Value.Bridging.sequence(args["prefix"]!).map { try SwiftValue.unbox(FilePath.Component.self, $0) })
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "FilePath.ComponentView") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member76: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                receiver.trimPrefix(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(FilePath.Component.self) })
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "FilePath.ComponentView")))
+}
 
-    nonisolated(unsafe) private static let member80: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "==", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("FilePath.ComponentView")), Parameter(label: nil, name: "rhs", type: .named("FilePath.ComponentView"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(FilePath.ComponentView.self, args["lhs"]!)) == (try SwiftValue.unbox(FilePath.ComponentView.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member77: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "FilePath.ComponentView"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "FilePath.ComponentView")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(FilePath.ComponentView.self)) == (try arguments[1].unboxing(FilePath.ComponentView.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member81: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "count", isStatic: false,
-                    parameters: [Parameter(label: "where", name: "predicate", type: .functionType([.named("FilePath.Component")], .bool, throws: true))],
-                    returns: .int, generics: [],
-                    isThrowing: false, isRethrowing: true, isMutating: false,
-                    summary: "Returns the number of elements in the sequence that satisfy the given predicate.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
-                let result = try receiver.count(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, args["predicate"]!)([SwiftValue.make(a0, as: "FilePath.Component")])) })
+    nonisolated(unsafe) private static let member78: HostSymbol = HostSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.count(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member82: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "randomElement", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a random element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member79: HostSymbol = HostSymbol.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.randomElement()
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+}
 
-    nonisolated(unsafe) private static let member83: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "isEmpty", isStatic: false,
-                    parameters: [],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A Boolean value indicating whether the collection is empty.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member80: HostSymbol = HostSymbol.property("isEmpty", summary: "A Boolean value indicating whether the collection is empty.", type: .bool, get: { selfValue in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.isEmpty
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member84: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "first", isStatic: false,
-                    parameters: [],
-                    returns: .optional(.named("FilePath.Component")), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The first element of the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member81: HostSymbol = HostSymbol.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(hostType: "FilePath.Component"))), get: { selfValue in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.first
-                return (result.map { SwiftValue.make($0, as: "FilePath.Component") } ?? .nothing)
-                    }
-                )
+                return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
+})
 
-    nonisolated(unsafe) private static let member85: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "underestimatedCount", isStatic: false,
-                    parameters: [],
-                    returns: .int, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A value less than or equal to the number of elements in the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member82: HostSymbol = HostSymbol.property("underestimatedCount", summary: "A value less than or equal to the number of elements in the collection.", type: .int, get: { selfValue in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.underestimatedCount
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member86: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "count", isStatic: false,
-                    parameters: [],
-                    returns: .int, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The number of elements in the collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: FilePath.ComponentView = try SwiftValue.unbox(FilePath.ComponentView.self, args["self"]!)
+    nonisolated(unsafe) private static let member83: HostSymbol = HostSymbol.property("count", summary: "The number of elements in the collection.", type: .int, get: { selfValue in
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.count
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member87: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [],
-                    returns: .named("FilePath.ComponentView"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates a new, empty collection.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = FilePath.ComponentView()
-                return SwiftValue.make(result, as: "FilePath.ComponentView")
-                    }
-                )
+    nonisolated(unsafe) private static let member84: HostSymbol = HostSymbol.initializer(summary: "Creates a new, empty collection.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "FilePath.ComponentView")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = FilePath.ComponentView()
+                return Value(boxing: result, as: .init(hostType: "FilePath.ComponentView"))
+}
+
+    nonisolated(unsafe) private static let type85: HostType = {
+        var type = HostType(name: "FilePath.ComponentView", members: [member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84])
+        type.genericParameters = []
+        type.conformances = ["Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []]
+        type.associatedTypes = ["Element": .named(.init(hostType: "FilePath.Component"))]
+        type.parse = nil
+        type.literal = nil
+        type.arrayLiteral = nil
+        return type
+    }()
 }

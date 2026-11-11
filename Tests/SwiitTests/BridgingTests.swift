@@ -59,3 +59,17 @@ import Testing
     )
     #expect(throws: Diagnostic.self) { try swiit.evaluate("Date(timeIntervalSince1970: \"x\")") }
 }
+
+@Test func swiftSystemsFilePathChangesInPlaceThroughItsGeneratedDescription() throws {
+    let swiit = Interpreter()
+    let program = """
+        var path: FilePath = "/usr/local"
+        path.append("bin")
+        path.extension = "txt"
+        let last = path.lastComponent!.string
+        path.removeLastComponent()
+        """
+    try swiit.evaluate(program)
+    #expect(try swiit.evaluate("path.string") == "/usr/local")
+    #expect(try swiit.evaluate("last") == "bin.txt")
+}

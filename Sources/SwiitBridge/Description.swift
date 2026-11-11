@@ -7,6 +7,9 @@ import Foundation
 /// types in a signature and the member itself.
 nonisolated(unsafe) var describing = false  // safe: the generator runs on one thread
 
+/// `--inside-swiit`: the output is a file of Swiit's own, which does not import it and is not public.
+nonisolated(unsafe) var insideSwiit = false  // safe: the generator runs on one thread
+
 /// `type` as the `ScriptType` the description's signatures are written in.
 func scriptType(_ type: SType) -> String {
     switch type {

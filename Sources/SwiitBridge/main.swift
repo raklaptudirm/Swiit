@@ -138,8 +138,6 @@ guard let module = modules[graph.module.name] else {
     exit(2)
 }
 let bridgedTypeNames = module.types
-/// `--inside-swiit`: the output is a file of Swiit's own, which does not import it and is not public.
-nonisolated(unsafe) var insideSwiit = false  // safe: the generator runs on one thread
 let access = insideSwiit || !describing ? "internal" : "public"
 for symbol in graph.symbols
 where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {

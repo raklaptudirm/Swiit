@@ -12,6 +12,8 @@ enum Bridge {
     /// Foundation's `Date` and `AttributedString`, from the description the generator writes
     /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
     static let foundation: [BridgedType] = FoundationBridge.types.map { BridgedType(generated: $0) }
+    /// swift-system's `FilePath`, from its description as well (`SystemBridge`).
+    static let system: [BridgedType] = SystemBridge.types.map { BridgedType(generated: $0) }
 
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
