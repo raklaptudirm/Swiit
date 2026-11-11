@@ -377,7 +377,7 @@ nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append(
-        "    nonisolated(unsafe) private static let \(name): \(describing ? "HostSymbol" : "BridgedMember") = \(expression)\n"
+        "    \(describing ? "" : "nonisolated(unsafe) ")private static let \(name): \(describing ? "HostSymbol" : "BridgedMember") = \(expression)\n"
     )
     return name
 }
@@ -544,7 +544,7 @@ for (name, _) in bridgedTypeNames {
             .map { "\(quoted($0)): \(genericParametersDescription($1))" }
         declarations.append(
             """
-                nonisolated(unsafe) private static let \(typeName): HostType = {
+                private static let \(typeName): HostType = {
                     var type = HostType(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
                     type.genericParameters = [\(owner.parameters.map(quoted).joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
