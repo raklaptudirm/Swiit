@@ -226,7 +226,7 @@ extension BridgedMember {
                 returns: returns,
                 generics: function?.generics ?? [],
                 isThrowing: function?.isThrowing ?? false,
-                isRethrowing: false,
+                isRethrowing: function?.throwing == .rethrowing,
                 isMutating: isMutating,
                 attributes: symbol.attributes,
                 summary: member.summary,
@@ -236,7 +236,17 @@ extension BridgedMember {
                         throw interpreter.hostFailure(error, in: "\(typeName).\(member.name)")
                     }
                 },
-                effect: function?.isAsync == true ? .async : .sync
+                parameterDocs: Dictionary(
+                    (function?.parameters ?? [])
+                        .compactMap { parameter in
+                            parameter.documentation.map { (parameter.name, $0) }
+                        },
+                    uniquingKeysWith: { first, _ in first }
+                ),
+                effect: function?.isAsync == true ? .async : .sync,
+                typedThrows: function.flatMap { function in
+                    if case .typed(let type) = function.throwing { type.description } else { nil }
+                }
             )
             made.plain = call
             return made

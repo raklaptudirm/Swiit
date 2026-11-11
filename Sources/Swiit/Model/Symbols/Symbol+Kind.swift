@@ -67,11 +67,30 @@ extension Symbol {
         public var parameters: [Parameter]
         /// What it gives back; `.void` when nothing.
         public var returns: ScriptType
-        public var isThrowing: Bool
+        /// Whether it can throw, and what: any error, only what a closure argument throws, or one
+        /// type of error.
+        public var throwing: Throwing
         public var isAsync: Bool
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
         public var generics: [GenericParameter]
+
+        /// What a function can throw.
+        public enum Throwing: Sendable, Hashable {
+            case no
+            /// `throws`: any error.
+            case any
+            /// `rethrows`: only what the closures it is given throw.
+            case rethrowing
+            /// `throws(Failure)`: errors of this type.
+            case typed(ScriptType)
+        }
+
+        /// Whether it can throw at all, of whatever kind. Setting it says `throws` or nothing.
+        public var isThrowing: Bool {
+            get { throwing != .no }
+            set { throwing = newValue ? .any : .no }
+        }
 
         public init(
             parameters: [Parameter] = [],
@@ -80,10 +99,26 @@ extension Symbol {
             isAsync: Bool = false,
             generics: [GenericParameter] = []
         ) {
+            self.init(
+                parameters: parameters,
+                returns: returns,
+                throwing: isThrowing ? .any : .no,
+                isAsync: isAsync,
+                generics: generics
+            )
+        }
+
+        public init(
+            parameters: [Parameter] = [],
+            returns: ScriptType = .void,
+            throwing: Throwing,
+            isAsync: Bool = false,
+            generics: [GenericParameter] = []
+        ) {
             self.generics = generics
             self.parameters = parameters
             self.returns = returns
-            self.isThrowing = isThrowing
+            self.throwing = throwing
             self.isAsync = isAsync
         }
     }

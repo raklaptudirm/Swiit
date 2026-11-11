@@ -306,3 +306,35 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
     #expect(ScriptType.named(id, [.int]).conforms(to: Symbol.ID(hostType: "Hashable"), in: swiit))
     #expect(ScriptType.named(id, [.int]).conforms(to: .sequence, in: swiit))
 }
+
+@Test func aMemberWrittenFromItsSignatureKeepsRethrowingAndParameterDocs() throws {
+    let swiit = interpreter()
+    var pile = HostType(name: "Pile")
+    pile.members = [
+        .method(
+            "each",
+            signature: Symbol.Function(
+                parameters: [
+                    Symbol.Parameter(
+                        label: nil,
+                        name: "body",
+                        type: .callable,
+                        documentation: "Called with each item."
+                    )
+                ],
+                throwing: .rethrowing
+            )
+        ) { _, _ in .nothing }
+    ]
+    swiit.register(pile)
+
+    let symbol = try #require(
+        ScriptType.named(.init(hostType: "Pile")).members(named: "each", in: swiit).first
+    )
+    guard case .method(let method) = symbol.kind else {
+        Issue.record("not a method")
+        return
+    }
+    #expect(method.function.parameters.first?.documentation == "Called with each item.")
+    #expect(method.function.throwing == .rethrowing)
+}

@@ -31,7 +31,8 @@ extension Interpreter {
                     return made
                 },
                 returns: scriptType(checker.substitute(member.returns, bindings)),
-                isThrowing: member.isThrowing,
+                throwing: member.typedThrows.map { .typed(scriptType(.named($0))) }
+                    ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no),
                 isAsync: member.effect != .sync,
                 generics: member.generics
             )

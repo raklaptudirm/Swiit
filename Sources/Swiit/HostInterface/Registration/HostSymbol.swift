@@ -348,6 +348,68 @@ extension HostSymbol {
         )
     }
 
+    /// A method of a type, from its whole signature, which says what the parameters above cannot:
+    /// `rethrows`, a typed `throws`, the documentation of each parameter.
+    public static func method(
+        _ name: String,
+        summary: String = "",
+        signature: Symbol.Function,
+        body: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
+    ) -> HostSymbol {
+        HostSymbol(
+            name: name,
+            summary: summary,
+            kind: .method(Symbol.Method(function: signature)),
+            body: .method(body)
+        )
+    }
+
+    /// A method that changes its receiver, from its whole signature.
+    public static func mutatingMethod(
+        _ name: String,
+        summary: String = "",
+        signature: Symbol.Function,
+        body:
+            @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws
+            -> (result: Value, receiver: Value)
+    ) -> HostSymbol {
+        HostSymbol(
+            name: name,
+            summary: summary,
+            kind: .method(Symbol.Method(function: signature, isMutating: true)),
+            body: .mutatingMethod(body)
+        )
+    }
+
+    /// A function of the type itself, from its whole signature.
+    public static func staticMethod(
+        _ name: String,
+        summary: String = "",
+        signature: Symbol.Function,
+        body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
+    ) -> HostSymbol {
+        HostSymbol(
+            name: name,
+            summary: summary,
+            kind: .method(Symbol.Method(function: signature, isStatic: true)),
+            body: .staticMethod(body)
+        )
+    }
+
+    /// An initializer, from its whole signature.
+    public static func initializer(
+        summary: String = "",
+        signature: Symbol.Function,
+        body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
+    ) -> HostSymbol {
+        HostSymbol(
+            name: "init",
+            summary: summary,
+            kind: .initializer(signature),
+            body: .initializer(body)
+        )
+    }
+
     /// A property a script can read.
     public static func property(
         _ name: String,
