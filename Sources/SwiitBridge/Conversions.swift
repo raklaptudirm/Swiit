@@ -67,7 +67,10 @@ func fromValue(_ value: String, _ type: SType) -> String {
     case .named("KeyPath", let arguments) where arguments.count == 2:
         return "try Value.Bridging.keyPath(\(value))"
     case .named(let name, let arguments):
-        let box = "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
+        let box =
+            describing
+            ? "try \(value).unboxing(\(canonical(name, arguments)).self)"
+            : "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
         guard arguments.contains(where: isLeaf) else { return box }
         switch name {
         case "Range", "ClosedRange":
@@ -131,7 +134,9 @@ func toValue(_ swift: String, _ type: SType) -> String {
     case .named(let name, let arguments):
         let typeName = quoted(name)
         guard arguments.contains(where: isLeaf) else {
-            return "SwiftValue.make(\(swift), as: \(typeName))"
+            return describing
+                ? "Value(boxing: \(swift), as: .init(hostType: \(typeName)))"
+                : "SwiftValue.make(\(swift), as: \(typeName))"
         }
         let bound = arguments[0]
         switch name {
@@ -143,8 +148,9 @@ func toValue(_ swift: String, _ type: SType) -> String {
                 "Value.Bridging.box(\(swift), as: .init(hostType: \(typeName))) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
-        if case .named(let name, []) = element, leaves[name] == nil { return ".list(\(swift))" }
-        return ".list(\(swift).map { \(toValue("$0", element)) })"
+        let list = describing ? "Value" : ".list"
+        if case .named(let name, []) = element, leaves[name] == nil { return "\(list)(\(swift))" }
+        return "\(list)(\(swift).map { \(toValue("$0", element)) })"
     case .optional(let wrapped): return "(\(swift).map { \(toValue("$0", wrapped)) } ?? .nothing)"
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.

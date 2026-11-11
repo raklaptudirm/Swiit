@@ -4,507 +4,214 @@
 import Foundation
 import Foundation
 
-extension Bridge {
-    internal nonisolated(unsafe) static let foundation: [BridgedType] = [
+import Swiit
 
-        BridgedType(
-            name: "Date", genericParameters: [],
-            conformances: ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []],
-            associatedTypes: ["Stride": .double],
-            parse: nil, literal: nil, arrayLiteral: nil,
-            members: [
-                member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29
-            ]
-        ),
-        BridgedType(
-            name: "AttributedString", genericParameters: [],
-            conformances: ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []],
-            associatedTypes: ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string],
-            parse: nil, literal: { Value.Bridging.textLiteral(AttributedString.self, $0).map { SwiftValue.make($0, as: "AttributedString") } }, arrayLiteral: nil,
-            members: [
-                member30, member31, member32, member33, member34, member35
-            ]
-        ),
+public enum FoundationBridge {
+    public static let types: [HostType] = [
+
+        type29,
+        type35,
     ]
-    nonisolated(unsafe) private static let member0: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "...", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "minimum", type: .named("Date")), Parameter(label: nil, name: "maximum", type: .named("Date"))],
-                    returns: .generic("ClosedRange", [.named("Date")]), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a closed range that contains both of its bounds.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ... (try SwiftValue.unbox(Date.self, args["maximum"]!))
-                return Value.Bridging.box(result, as: .init(hostType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
-                    }
-                )
+    nonisolated(unsafe) private static let member0: HostSymbol = HostSymbol.staticMethod("...", summary: "Returns a closed range that contains both of its bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimum", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "maximum", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "Date"))]), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) ... (try arguments[1].unboxing(Date.self))
+                return Value.Bridging.box(result, as: .init(hostType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: Value(boxing: r.lowerBound, as: .init(hostType: "Date")), upper: Value(boxing: r.upperBound, as: .init(hostType: "Date")))) }
+}
 
-    nonisolated(unsafe) private static let member1: BridgedMember =                 BridgedMember(
-                    kind: .method, name: ">", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the value of the first argument is greater than that of the second argument.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) > (try SwiftValue.unbox(Date.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member1: HostSymbol = HostSymbol.staticMethod("..<", summary: "Returns a half-open range that contains its lower bound but not its upper bound.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimum", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "maximum", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Range"), [.named(.init(hostType: "Date"))]), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) ..< (try arguments[1].unboxing(Date.self))
+                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: Value(boxing: r.lowerBound, as: .init(hostType: "Date")), upper: Value(boxing: r.upperBound, as: .init(hostType: "Date")))) }
+}
+
+    nonisolated(unsafe) private static let member2: HostSymbol = HostSymbol.staticMethod("<", summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) < (try arguments[1].unboxing(Date.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member2: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "<=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the value of the first argument is less than or equal to that of the second argument.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) <= (try SwiftValue.unbox(Date.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member3: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) == (try arguments[1].unboxing(Date.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member3: BridgedMember =                 BridgedMember(
-                    kind: .method, name: ">=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the value of the first argument is greater than or equal to that of the second argument.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) >= (try SwiftValue.unbox(Date.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member4: HostSymbol = HostSymbol.staticProperty("timeIntervalBetween1970AndReferenceDate", summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.", type: .double, get: {
+let result = Date.timeIntervalBetween1970AndReferenceDate
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member4: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "!=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) != (try SwiftValue.unbox(Date.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member5: HostSymbol = HostSymbol.staticProperty("timeIntervalSinceReferenceDate", summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.", type: .double, get: {
+let result = Date.timeIntervalSinceReferenceDate
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member5: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "..<", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "minimum", type: .named("Date")), Parameter(label: nil, name: "maximum", type: .named("Date"))],
-                    returns: .generic("Range", [.named("Date")]), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a half-open range that contains its lower bound but not its upper bound.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["minimum"]!)) ..< (try SwiftValue.unbox(Date.self, args["maximum"]!))
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: SwiftValue.make(r.lowerBound, as: "Date"), upper: SwiftValue.make(r.upperBound, as: "Date"))) }
-                    }
-                )
+    nonisolated(unsafe) private static let member6: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized to the current date and time.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = Date()
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member6: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "<", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "x", type: .named("Date")), Parameter(label: nil, name: "y", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["x"]!)) < (try SwiftValue.unbox(Date.self, args["y"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member7: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to the current date and time by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceNow", name: "timeIntervalSinceNow", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = Date(timeIntervalSinceNow: try Double(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member7: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "==", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "x", type: .named("Date")), Parameter(label: nil, name: "y", type: .named("Date"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["x"]!)) == (try SwiftValue.unbox(Date.self, args["y"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member8: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSince1970", name: "timeIntervalSince1970", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = Date(timeIntervalSince1970: try Double(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member8: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "timeIntervalBetween1970AndReferenceDate", isStatic: true,
-                    parameters: [],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date.timeIntervalBetween1970AndReferenceDate
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member9: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to another given date by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeInterval", name: "timeInterval", type: .double), Symbol.Parameter(label: "since", name: "date", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = Date(timeInterval: try Double(arguments[0]), since: try arguments[1].unboxing(Date.self))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member9: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "timeIntervalSinceReferenceDate", isStatic: true,
-                    parameters: [],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date.timeIntervalSinceReferenceDate
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member10: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceReferenceDate", name: "ti", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = Date(timeIntervalSinceReferenceDate: try Double(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member10: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized to the current date and time.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date()
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member11: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "timeIntervalSinceNow", name: "timeIntervalSinceNow", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized relative to the current date and time by a given number of seconds.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date(timeIntervalSinceNow: try Double(args["timeIntervalSinceNow"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member12: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "timeIntervalSince1970", name: "timeIntervalSince1970", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date(timeIntervalSince1970: try Double(args["timeIntervalSince1970"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member13: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "timeInterval", name: "timeInterval", type: .double), Parameter(label: "since", name: "date", type: .named("Date"))],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized relative to another given date by a given number of seconds.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date(timeInterval: try Double(args["timeInterval"]!), since: try SwiftValue.unbox(Date.self, args["date"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member14: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "timeIntervalSinceReferenceDate", name: "ti", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date(timeIntervalSinceReferenceDate: try Double(args["ti"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member15: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "timeIntervalSinceReferenceDate", isStatic: false,
-                    parameters: [],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns the interval between the date object and 00:00:00 UTC on 1 January 2001.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+    nonisolated(unsafe) private static let member11: HostSymbol = HostSymbol.property("timeIntervalSinceReferenceDate", summary: "The interval between the date value and 00:00:00 UTC on 1 January 2001.", type: .double, get: { selfValue in
+let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSinceReferenceDate
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member16: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "timeIntervalSince", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "date", type: .named("Date"))],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns the interval between the receiver and another given date.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
-                let result = receiver.timeIntervalSince(try SwiftValue.unbox(Date.self, args["date"]!))
+    nonisolated(unsafe) private static let member12: HostSymbol = HostSymbol.method("timeIntervalSince", summary: "Returns the interval between this date and another given date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "date", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: Date = try selfValue.unboxing(Date.self)
+                let result = receiver.timeIntervalSince(try arguments[0].unboxing(Date.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member17: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "timeIntervalSinceNow", isStatic: false,
-                    parameters: [],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The time interval between the date and the current date and time.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+    nonisolated(unsafe) private static let member13: HostSymbol = HostSymbol.property("timeIntervalSinceNow", summary: "The time interval between the date value and the current date and time.", type: .double, get: { selfValue in
+let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSinceNow
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member18: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "timeIntervalSince1970", isStatic: false,
-                    parameters: [],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The interval between the date object and 00:00:00 UTC on 1 January 1970.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+    nonisolated(unsafe) private static let member14: HostSymbol = HostSymbol.property("timeIntervalSince1970", summary: "The interval between the date value and 00:00:00 UTC on 1 January 1970.", type: .double, get: { selfValue in
+let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSince1970
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member19: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "addingTimeInterval", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "timeInterval", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Return a new `Date` by adding a `TimeInterval` to this `Date`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
-                let result = receiver.addingTimeInterval(try Double(args["timeInterval"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member15: HostSymbol = HostSymbol.method("addingTimeInterval", summary: "Creates a new date value by adding a time interval to this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: Date = try selfValue.unboxing(Date.self)
+                let result = receiver.addingTimeInterval(try Double(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member20: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "addTimeInterval", isStatic: false,
-                    parameters: [Parameter(label: nil, name: "timeInterval", type: .double)],
-                    returns: .void, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: true,
-                    summary: "Add a `TimeInterval` to this `Date`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let mover = ReceiverBox.of(args["self"]!)
-                let taken = mover?.take() ?? args["self"]!
-                var receiver: Date = try SwiftValue.unbox(Date.self, consume taken)
-                defer { mover?.put(SwiftValue.make(receiver, as: "Date")) }
-                receiver.addTimeInterval(try Double(args["timeInterval"]!))
-                return .list([.nothing, mover == nil ? SwiftValue.make(receiver, as: "Date") : .nothing])
-                    }
-                )
+    nonisolated(unsafe) private static let member16: HostSymbol = HostSymbol.mutatingMethod("addTimeInterval", summary: "Adds a time interval to this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+var receiver: Date = try selfValue.unboxing(Date.self)
+                receiver.addTimeInterval(try Double(arguments[0]))
+                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "Date")))
+}
 
-    nonisolated(unsafe) private static let member21: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "distantFuture", isStatic: true,
-                    parameters: [],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates and returns a Date value representing a date in the distant future.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date.distantFuture
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member17: HostSymbol = HostSymbol.staticProperty("distantFuture", summary: "A date value representing a date in the distant future.", type: .named(.init(hostType: "Date")), get: {
+let result = Date.distantFuture
+                return Value(boxing: result, as: .init(hostType: "Date"))
+})
 
-    nonisolated(unsafe) private static let member22: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "distantPast", isStatic: true,
-                    parameters: [],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates and returns a Date value representing a date in the distant past.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date.distantPast
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member18: HostSymbol = HostSymbol.staticProperty("distantPast", summary: "A date value representing a date in the distant past.", type: .named(.init(hostType: "Date")), get: {
+let result = Date.distantPast
+                return Value(boxing: result, as: .init(hostType: "Date"))
+})
 
-    nonisolated(unsafe) private static let member23: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "now", isStatic: true,
-                    parameters: [],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` initialized to the current date and time.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = Date.now
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member19: HostSymbol = HostSymbol.staticProperty("now", summary: "Returns a date instance that represents the current date and time, at the moment of access.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 12", "iOS 15", "tvOS 15", "watchOS 8"])], type: .named(.init(hostType: "Date")), get: {
+let result = Date.now
+                return Value(boxing: result, as: .init(hostType: "Date"))
+})
 
-    nonisolated(unsafe) private static let member24: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "+", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` with a specified amount of time added to it.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) + (try Double(args["rhs"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member20: HostSymbol = HostSymbol.staticMethod(">", summary: "Returns true if the left hand `Date` is later in time than the right hand `Date`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) > (try arguments[1].unboxing(Date.self))
+                return result.value
+}
 
-    nonisolated(unsafe) private static let member25: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "-", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("Date")), Parameter(label: nil, name: "rhs", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a `Date` with a specified amount of time subtracted from it.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(Date.self, args["lhs"]!)) - (try Double(args["rhs"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member21: HostSymbol = HostSymbol.staticMethod("<=", summary: "Returns true if the left hand `Date` is earlier in time than or equal to the right hand `Date`.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 27.2", "iOS 27.2", "tvOS 27.2", "watchOS 27.2", "visionOS 27.2"])], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) <= (try arguments[1].unboxing(Date.self))
+                return result.value
+}
 
-    nonisolated(unsafe) private static let member26: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "debugDescription", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of this instance, suitable for debugging.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+    nonisolated(unsafe) private static let member22: HostSymbol = HostSymbol.staticMethod(">=", summary: "Returns true if the left hand `Date` is later in time than or equal to the right hand `Date`.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 27.2", "iOS 27.2", "tvOS 27.2", "watchOS 27.2", "visionOS 27.2"])], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) >= (try arguments[1].unboxing(Date.self))
+                return result.value
+}
+
+    nonisolated(unsafe) private static let member23: HostSymbol = HostSymbol.staticMethod("+", summary: "Returns a date with a specified amount of time added to it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) + (try Double(arguments[1]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
+
+    nonisolated(unsafe) private static let member24: HostSymbol = HostSymbol.staticMethod("-", summary: "Returns a `Date` with a specified amount of time subtracted from it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) - (try Double(arguments[1]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
+
+    nonisolated(unsafe) private static let member25: HostSymbol = HostSymbol.property("debugDescription", summary: "A textual representation of this instance, suitable for debugging.", type: .string, get: { selfValue in
+let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.debugDescription
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member27: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "distance", isStatic: false,
-                    parameters: [Parameter(label: "to", name: "other", type: .named("Date"))],
-                    returns: .double, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns the distance from this value to the given value, expressed as a stride.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
-                let result = receiver.distance(to: try SwiftValue.unbox(Date.self, args["other"]!))
+    nonisolated(unsafe) private static let member26: HostSymbol = HostSymbol.method("distance", summary: "Returns the distance from this date to another date, specified as a time interval.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "other", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: Date = try selfValue.unboxing(Date.self)
+                let result = receiver.distance(to: try arguments[0].unboxing(Date.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member28: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "advanced", isStatic: false,
-                    parameters: [Parameter(label: "by", name: "n", type: .double)],
-                    returns: .named("Date"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a value that is offset the specified distance from this value.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
-                let result = receiver.advanced(by: try Double(args["n"]!))
-                return SwiftValue.make(result, as: "Date")
-                    }
-                )
+    nonisolated(unsafe) private static let member27: HostSymbol = HostSymbol.method("advanced", summary: "Returns a date offset the specified time interval from this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "n", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+let receiver: Date = try selfValue.unboxing(Date.self)
+                let result = receiver.advanced(by: try Double(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "Date"))
+}
 
-    nonisolated(unsafe) private static let member29: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "description", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: Date = try SwiftValue.unbox(Date.self, args["self"]!)
+    nonisolated(unsafe) private static let member28: HostSymbol = HostSymbol.property("description", summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.", type: .string, get: { selfValue in
+let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.description
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member30: BridgedMember =                 BridgedMember(
-                    kind: .property, name: "description", isStatic: false,
-                    parameters: [],
-                    returns: .string, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "A textual representation of this instance.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let receiver: AttributedString = try SwiftValue.unbox(AttributedString.self, args["self"]!)
+    nonisolated(unsafe) private static let type29: HostType = {
+        var type = HostType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
+        type.genericParameters = []
+        type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
+        type.associatedTypes = ["Stride": .double]
+        type.parse = nil
+        type.literal = nil
+        type.arrayLiteral = nil
+        return type
+    }()
+
+    nonisolated(unsafe) private static let member30: HostSymbol = HostSymbol.property("description", summary: "A textual representation of this instance.", type: .string, get: { selfValue in
+let receiver: AttributedString = try selfValue.unboxing(AttributedString.self)
                 let result = receiver.description
                 return result.value
-                    }
-                )
+})
 
-    nonisolated(unsafe) private static let member31: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "!=", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are not equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) != (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
+    nonisolated(unsafe) private static let member31: HostSymbol = HostSymbol.initializer(summary: "Creates an empty attributed string.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = AttributedString()
+                return Value(boxing: result, as: .init(hostType: "AttributedString"))
+}
+
+    nonisolated(unsafe) private static let member32: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(AttributedString.self)) == (try arguments[1].unboxing(AttributedString.self))
                 return result.value
-                    }
-                )
+}
 
-    nonisolated(unsafe) private static let member32: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [],
-                    returns: .named("AttributedString"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = AttributedString()
-                return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
+    nonisolated(unsafe) private static let member33: HostSymbol = HostSymbol.initializer(summary: "Creates an attributed string from the specified string literal, with no attributes.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = AttributedString(stringLiteral: try String(arguments[0]))
+                return Value(boxing: result, as: .init(hostType: "AttributedString"))
+}
 
-    nonisolated(unsafe) private static let member33: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "==", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .bool, generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Returns a Boolean value indicating whether two values are equal.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) == (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
-                return result.value
-                    }
-                )
+    nonisolated(unsafe) private static let member34: HostSymbol = HostSymbol.staticMethod("+", summary: "Concatenates two attributed strings.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments[1].unboxing(AttributedString.self))
+                return Value(boxing: result, as: .init(hostType: "AttributedString"))
+}
 
-    nonisolated(unsafe) private static let member34: BridgedMember =                 BridgedMember(
-                    kind: .initializer, name: "init", isStatic: true,
-                    parameters: [Parameter(label: "stringLiteral", name: "value", type: .string)],
-                    returns: .named("AttributedString"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "Creates an instance initialized to the given string value.",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = AttributedString(stringLiteral: try String(args["value"]!))
-                return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
-
-    nonisolated(unsafe) private static let member35: BridgedMember =                 BridgedMember(
-                    kind: .method, name: "+", isStatic: true,
-                    parameters: [Parameter(label: nil, name: "lhs", type: .named("AttributedString")), Parameter(label: nil, name: "rhs", type: .named("AttributedString"))],
-                    returns: .named("AttributedString"), generics: [],
-                    isThrowing: false, isRethrowing: false, isMutating: false,
-                    summary: "",
-                    body: .native { interpreter, args in
-                        _ = interpreter
-                        let result = (try SwiftValue.unbox(AttributedString.self, args["lhs"]!)) + (try SwiftValue.unbox(AttributedString.self, args["rhs"]!))
-                return SwiftValue.make(result, as: "AttributedString")
-                    }
-                )
+    nonisolated(unsafe) private static let type35: HostType = {
+        var type = HostType(name: "AttributedString", members: [member30, member31, member32, member33, member34])
+        type.genericParameters = []
+        type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
+        type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string]
+        type.parse = nil
+        type.literal = { Value.Bridging.textLiteral(AttributedString.self, $0).map { Value(boxing: $0, as: .init(hostType: "AttributedString")) } }
+        type.arrayLiteral = nil
+        return type
+    }()
 }

@@ -4,7 +4,10 @@
 //
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
-//                [--report <left-out.tsv>]
+//                [--report <left-out.tsv>] [--description] [--inside-swiit]
+//
+// By default the output is Swiit's own internal form (`BridgedType`). With `--description` it is
+// the public one, `HostType` and `HostSymbol`, which compiles in any package that imports Swiit.
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -24,7 +27,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] [--description] [--inside-swiit]\n"
                 .utf8
         )
     )
@@ -46,6 +49,8 @@ do {
         case "--manifest" where i + 1 < rest.count: manifestPath = rest[i + 1]; i += 2
         case "--also" where i + 1 < rest.count: otherPlatformPaths.append(rest[i + 1]); i += 2
         case "--report" where i + 1 < rest.count: reportPath = rest[i + 1]; i += 2
+        case "--description": describing = true; i += 1
+        case "--inside-swiit": insideSwiit = true; i += 1
         default: extraGraphs.append(rest[i]); i += 1
         }
     }
@@ -133,7 +138,9 @@ guard let module = modules[graph.module.name] else {
     exit(2)
 }
 let bridgedTypeNames = module.types
-let access = "internal"
+/// `--inside-swiit`: the output is a file of Swiit's own, which does not import it and is not public.
+nonisolated(unsafe) var insideSwiit = false  // safe: the generator runs on one thread
+let access = insideSwiit || !describing ? "internal" : "public"
 for symbol in graph.symbols
 where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
@@ -145,8 +152,15 @@ externalTypes = Set(module.external + module.types.map(\.0))
 for name in module.external where leaves[name] == nil {
     leaves[name] = Leaf(
         ".named(\(quoted(name)))",
-        { "try SwiftValue.unbox(\(name).self, \($0))" },
-        { "SwiftValue.make(\($0), as: \(quoted(name)))" }
+        {
+            describing
+                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
+        },
+        {
+            describing
+                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
+                : "SwiftValue.make(\($0), as: \(quoted(name)))"
+        }
     )
 }
 
@@ -162,8 +176,15 @@ var typeSources: [String] = []
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
     leaves[name] = Leaf(
         ".named(\(quoted(name)))",
-        { "try SwiftValue.unbox(\(name).self, \($0))" },
-        { "SwiftValue.make(\($0), as: \(quoted(name)))" }
+        {
+            describing
+                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
+        },
+        {
+            describing
+                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
+                : "SwiftValue.make(\($0), as: \(quoted(name)))"
+        }
     )
 }
 do {
@@ -243,8 +264,15 @@ do {
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
     leaves[name] = Leaf(
         ".named(\(quoted(name)))",
-        { "try SwiftValue.unbox(\(name).self, \($0))" },
-        { "SwiftValue.make(\($0), as: \(quoted(name)))" }
+        {
+            describing
+                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
+        },
+        {
+            describing
+                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
+                : "SwiftValue.make(\($0), as: \(quoted(name)))"
+        }
     )
 }
 /// Members Swiit has its own way: the textual form of the types it
@@ -330,8 +358,8 @@ var output = """
     // Don't edit: the bridge generator (swiit-bridge) remakes it.
     import Foundation
     \(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
-    extension Bridge {
-    \(module.types.isEmpty ? "" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
+    \(describing ? "\(insideSwiit ? "" : "import Swiit\n")\n\(access) enum \(module.list.prefix(1).uppercased() + module.list.dropFirst())Bridge {" : "extension Bridge {")
+    \(module.types.isEmpty ? "" : describing ? "    \(access) static let types: [HostType] = [\n" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
 
     """
 var skipped: [String: Int] = [:]
@@ -351,7 +379,7 @@ nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append(
-        "    nonisolated(unsafe) private static let \(name): BridgedMember = \(expression)\n"
+        "    nonisolated(unsafe) private static let \(name): \(describing ? "HostSymbol" : "BridgedMember") = \(expression)\n"
     )
     return name
 }
@@ -498,6 +526,36 @@ for (name, _) in bridgedTypeNames {
             literal =
                 "{ Value.Bridging.textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
         }
+    }
+    if describing {
+        let typeName = "type\(declarations.count)"
+        let associatedTypes = owner.associated
+            .compactMap { key, value -> String? in
+                guard let resolved = resolve(value, context),
+                    supported(resolved, generics: context.generics, asParameter: false)
+                else { return nil }
+                return "\(quoted(key)): \(scriptType(resolved))"
+            }
+            .sorted()
+        let conformanceCode = owner.conformances.sorted { $0.key < $1.key }
+            .map { "\(quoted($0)): \(genericParametersDescription($1))" }
+        declarations.append(
+            """
+                nonisolated(unsafe) private static let \(typeName): HostType = {
+                    var type = HostType(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
+                    type.genericParameters = [\(owner.parameters.map(quoted).joined(separator: ", "))]
+                    type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
+                    type.associatedTypes = [\(associatedTypes.isEmpty ? ":" : associatedTypes.joined(separator: ", "))]
+                    type.parse = \(parse)
+                    type.literal = \(literal)
+                    type.arrayLiteral = \(arrayLiteral)
+                    return type
+                }()
+
+            """
+        )
+        output += "        \(typeName),\n"
+        continue
     }
     output += """
                 BridgedType(

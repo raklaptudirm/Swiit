@@ -9,6 +9,10 @@ import SystemPackage
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 enum Bridge {
+    /// Foundation's `Date` and `AttributedString`, from the description the generator writes
+    /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
+    static let foundation: [BridgedType] = FoundationBridge.types.map { BridgedType(generated: $0) }
+
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
     static var types: [String: BridgedType] { table.withLock { $0 } }

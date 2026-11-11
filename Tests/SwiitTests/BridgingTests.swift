@@ -39,3 +39,23 @@ import Testing
     #expect(Value.Bridging.textLiteral(Character.self, "a") == "a")
     #expect(Value.Bridging.textLiteral(Character.self, "ab") == nil)
 }
+
+@Test func foundationsDateWorksThroughItsGeneratedDescription() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("Date(timeIntervalSince1970: 5).timeIntervalSince1970") == 5.0)
+    #expect(
+        try swiit.evaluate("Date(timeIntervalSince1970: 1) < Date(timeIntervalSince1970: 2)")
+            == true
+    )
+    #expect(
+        try swiit.evaluate(
+            "Date(timeIntervalSince1970: 3) == Date(timeIntervalSince1970: 3)"
+        ) == true
+    )
+    #expect(
+        try swiit.evaluate(
+            "(Date(timeIntervalSince1970: 1)...Date(timeIntervalSince1970: 9)).contains(Date(timeIntervalSince1970: 4))"
+        ) == true
+    )
+    #expect(throws: Diagnostic.self) { try swiit.evaluate("Date(timeIntervalSince1970: \"x\")") }
+}

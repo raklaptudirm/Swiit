@@ -237,7 +237,9 @@ func bridge(
         + parameters.map { "\($0.0.label ?? "_"):\(annotation($0.1))" }.joined(separator: ",") + ")"
 
     // The signature.
-    let parameterCode = parameters.map { parameter, type in
+    if describing && free { throw Unsupported(reason: "free function in a description") }
+    let parameterCode = try parameters.map { parameter, type in
+        if describing { return try describedParameter(parameter, type) }
         // In the order `Parameter` declares them.
         var fields = [
             "label: \(parameter.label.map(quoted) ?? "nil")", "name: \(quoted(parameter.name))",
@@ -251,15 +253,18 @@ func bridge(
         return "Parameter(\(fields.joined(separator: ", ")))"
     }
     // The glue.
-    let argumentList = declaration.parameters.map { parameter -> String in
-        let type = parameters.first { $0.0.name == parameter.name }!.1
-        let value = "args[\(quoted(parameter.name))]"
-        var expr = fromValue("\(value)!", type)
-        if let text = parameter.defaultText, literalDefault(text) == nil {
-            expr = "(\(value) == nil ? \(text) : \(fromValue("\(value)!", type)))"
+    let argumentList = declaration.parameters.enumerated()
+        .map { index, parameter -> String in
+            let type = parameters.first { $0.0.name == parameter.name }!.1
+            let value = describing ? "arguments[\(index)]" : "args[\(quoted(parameter.name))]"
+            let taken = describing ? value : "\(value)!"
+            var expr = fromValue(taken, type)
+            if let text = parameter.defaultText, literalDefault(text) == nil {
+                let missing = describing ? "\(value) == .nothing" : "\(value) == nil"
+                expr = "(\(missing) ? \(text) : \(fromValue(taken, type)))"
+            }
+            return (parameter.label.map { "\($0): " } ?? "") + expr
         }
-        return (parameter.label.map { "\($0): " } ?? "") + expr
-    }
     let arguments = argumentList.joined(separator: ", ")
     let receiverType = selfType(owner)
     let swiftType = spelling(receiverType)
@@ -295,14 +300,11 @@ func bridge(
     let resultType: String
     if case .array = returns { resultType = ": \(spelling(returns))" } else { resultType = "" }
     if declaration.isMutating {
-        // The result, and the receiver as the call left it, for the host to
-        // put back where it came from.
         body +=
             isVoid
             ? "\(tryPrefix)\(target)\n                "
             : "let result\(resultType) = \(tryPrefix)\(target)\n                "
-        body +=
-            "return .list([\(isVoid ? ".nothing" : toValue("result", returns)), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
+        body += mutatingReturn(returns, receiverType, isVoid: isVoid)
     } else if isVoid {
         body += "\(tryPrefix)\(target)\n                return .nothing"
     } else {
@@ -314,24 +316,13 @@ func bridge(
         ? ".initializer" : declaration.kind == .property ? ".property" : ".method"
     // `var extension: String? { get set }`: a setter too, which changes a
     // copy of the receiver and gives it back, as a mutating method does.
-    var setter: String?
-    if declaration.kind == .property, !declaration.isStatic, text.contains("set }") {
-        setter = """
-                            BridgedMember(
-                                kind: .setter, name: \(quoted(declaration.name)), isStatic: false,
-                                parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
-                                returns: .void, generics: [],
-                                isThrowing: false, isRethrowing: false, isMutating: true,
-                                summary: "",
-                                body: .native { interpreter, args in
-                                    _ = interpreter
-                                    var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
-                                    receiver.\(swiftName(declaration.name)) = \(fromValue("args[\"newValue\"]!", returns))
-                                    return .list([.nothing, \(toValue("receiver", receiverType))])
-                                }
-                            )
-            """
-    }
+    let (setter, setterBody) = setterCode(
+        declaration,
+        text: text,
+        swiftType: swiftType,
+        receiverType: receiverType,
+        returns: returns
+    )
     // A function's flags are documented in `help`; a member's are not shown.
     let docs = free ? symbol.parameterDocs : [:]
     let parameterDocs =
@@ -352,6 +343,19 @@ func bridge(
     if parameters.contains(where: { annotation($0.1).hasPrefix(".keyPath") }) {
         body =
             "return try Value.Bridging.withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
+    }
+    if describing {
+        let code = describedMember(
+            declaration,
+            symbol: symbol,
+            text: text,
+            parameters: parameterCode,
+            returns: returns,
+            generics: generics,
+            body: body,
+            setterBody: setterBody
+        )
+        return BridgedMember(key: key, shape: shape, codes: [code])
     }
     let member = """
                         BridgedMember(
@@ -374,6 +378,10 @@ func bridge(
 /// (a collection would be copied whole on every call), and the box gets it back, however the call
 /// ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
+    if describing {
+        return
+            "\(mutating ? "var" : "let") receiver: \(swiftType) = \(fromValue("selfValue", receiverType))\n                "
+    }
     guard mutating else {
         return
             "let receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))\n                "
@@ -388,4 +396,59 @@ func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool)
     body += "var receiver: \(swiftType) = \(conversion)\n                "
     body += "defer { mover?.put(\(toValue("receiver", receiverType))) }\n                "
     return body
+}
+
+/// The end of a mutating member's glue: what it gives back. The description gives the result and
+/// the receiver as the call left it; the internal form also says whether the receiver was moved
+/// out of a box, for the host to put back where it came from.
+func mutatingReturn(_ returns: SType, _ receiverType: SType, isVoid: Bool) -> String {
+    let result = isVoid ? ".nothing" : toValue("result", returns)
+    if describing {
+        return "return (result: \(result), receiver: \(toValue("receiver", receiverType)))"
+    }
+    return
+        "return .list([\(result), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
+}
+
+/// A settable property's setter, which changes a copy of the receiver and gives it back, as a
+/// mutating method does: a member of its own in the internal form, the body of the property's
+/// `set` in the description.
+func setterCode(
+    _ declaration: Declaration,
+    text: String,
+    swiftType: String,
+    receiverType: SType,
+    returns: SType
+) -> (member: String?, body: String?) {
+    guard declaration.kind == .property, !declaration.isStatic, text.contains("set }") else {
+        return (nil, nil)
+    }
+    let name = swiftName(declaration.name)
+    if describing {
+        return (
+            nil,
+            """
+            var receiver: \(swiftType) = \(fromValue("selfValue", receiverType))
+            receiver.\(name) = \(fromValue("newValue", returns))
+            return \(toValue("receiver", receiverType))
+            """
+        )
+    }
+    return (
+        """
+                        BridgedMember(
+                            kind: .setter, name: \(quoted(declaration.name)), isStatic: false,
+                            parameters: [Parameter(label: nil, name: "newValue", type: \(annotation(returns)))],
+                            returns: .void, generics: [],
+                            isThrowing: false, isRethrowing: false, isMutating: true,
+                            summary: "",
+                            body: .native { interpreter, args in
+                                _ = interpreter
+                                var receiver: \(swiftType) = \(fromValue("args[\"self\"]!", receiverType))
+                                receiver.\(name) = \(fromValue("args[\"newValue\"]!", returns))
+                                return .list([.nothing, \(toValue("receiver", receiverType))])
+                            }
+                        )
+        """, nil
+    )
 }

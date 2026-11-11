@@ -38,7 +38,7 @@ extension Value {
     /// A Swift value kept as it is, as a value of the registered host type `type`
     /// (`Symbol.ID(hostType: "FileSize")`): what a member written for a Swift type gives back.
     /// It compares, hashes and sorts as the Swift value does, when its type can.
-    public init<T: Sendable>(boxing value: T, as type: Symbol.ID) {
+    public init<T>(boxing value: T, as type: Symbol.ID) {
         self = SwiftValue.make(value, as: type.name)
     }
 
@@ -162,6 +162,29 @@ extension BridgedType {
             literal: type.literal,
             arrayLiteral: type.arrayLiteral,
             members: type.members.flatMap { BridgedMember.members(of: $0, in: type.name) }
+        )
+    }
+}
+
+extension BridgedType {
+    /// A type a generator described, as the bridged types of the core are: its members are
+    /// bridged, not a host's own, so none is called without an interpreter and a host's member of
+    /// the same shape takes its place.
+    init(generated type: HostType) {
+        let made = BridgedType(type)
+        self.init(
+            name: made.name,
+            genericParameters: made.genericParameters,
+            conformances: made.conformances,
+            associatedTypes: made.associatedTypes,
+            parse: made.parse,
+            literal: made.literal,
+            arrayLiteral: made.arrayLiteral,
+            members: made.members.map {
+                var member = $0
+                member.plain = nil
+                return member
+            }
         )
     }
 }

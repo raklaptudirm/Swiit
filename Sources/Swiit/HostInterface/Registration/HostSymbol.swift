@@ -353,6 +353,7 @@ extension HostSymbol {
     public static func method(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
     ) -> HostSymbol {
@@ -360,6 +361,7 @@ extension HostSymbol {
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature)),
+            attributes: attributes,
             body: .method(body)
         )
     }
@@ -368,6 +370,7 @@ extension HostSymbol {
     public static func mutatingMethod(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body:
             @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws
@@ -377,6 +380,7 @@ extension HostSymbol {
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature, isMutating: true)),
+            attributes: attributes,
             body: .mutatingMethod(body)
         )
     }
@@ -385,6 +389,7 @@ extension HostSymbol {
     public static func staticMethod(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
     ) -> HostSymbol {
@@ -392,6 +397,7 @@ extension HostSymbol {
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature, isStatic: true)),
+            attributes: attributes,
             body: .staticMethod(body)
         )
     }
@@ -399,6 +405,7 @@ extension HostSymbol {
     /// An initializer, from its whole signature.
     public static func initializer(
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
     ) -> HostSymbol {
@@ -406,6 +413,7 @@ extension HostSymbol {
             name: "init",
             summary: summary,
             kind: .initializer(signature),
+            attributes: attributes,
             body: .initializer(body)
         )
     }
@@ -414,6 +422,7 @@ extension HostSymbol {
     public static func property(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         type: ScriptType,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value
     ) -> HostSymbol {
@@ -421,6 +430,7 @@ extension HostSymbol {
             name: name,
             summary: summary,
             kind: .property(Symbol.Property(variable: Symbol.Variable(type: type))),
+            attributes: attributes,
             body: .property(get: get)
         )
     }
@@ -430,6 +440,7 @@ extension HostSymbol {
     public static func property(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         type: ScriptType,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value,
         set: @escaping @Sendable (_ receiver: Value, _ newValue: Value) throws -> Value
@@ -440,6 +451,7 @@ extension HostSymbol {
             kind: .property(
                 Symbol.Property(variable: Symbol.Variable(type: type, isSettable: true))
             ),
+            attributes: attributes,
             body: .settableProperty(get: get, set: set)
         )
     }
@@ -448,6 +460,7 @@ extension HostSymbol {
     public static func staticProperty(
         _ name: String,
         summary: String = "",
+        attributes: [Symbol.Attribute] = [],
         type: ScriptType,
         get: @escaping @Sendable () throws -> Value
     ) -> HostSymbol {
@@ -457,6 +470,7 @@ extension HostSymbol {
             kind: .property(
                 Symbol.Property(variable: Symbol.Variable(type: type), isStatic: true)
             ),
+            attributes: attributes,
             body: .staticProperty(get: get)
         )
     }
