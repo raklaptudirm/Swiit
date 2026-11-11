@@ -76,7 +76,8 @@ extension TypeChecker {
         {
             return
         }
-        let callers = (interpreter.checkerMemory.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere)
+        let callers = (interpreter.checkerMemory.unawaitedCallers[decl.name] ?? [])
+            .subtracting(redeclaredHere)
             .sorted()
         guard !callers.isEmpty else { return }
         let list = callers.map { "'\($0)'" }.joined(separator: ", ")
