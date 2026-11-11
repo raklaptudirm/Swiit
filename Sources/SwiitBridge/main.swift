@@ -4,6 +4,7 @@
 //
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
+//                [--report <left-out.tsv>]
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -23,7 +24,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>]\n"
                 .utf8
         )
     )
@@ -35,6 +36,8 @@ guard arguments.count >= 3 else {
 nonisolated(unsafe) var extraGraphs: [String] = []  // safe: the generator runs on one thread
 nonisolated(unsafe) var manifestPath: String?  // safe: the generator runs on one thread
 nonisolated(unsafe) var otherPlatformPaths: [String] = []  // safe: the generator runs on one thread
+/// `--report <file>`: where to write each member left out, with the reason it was.
+nonisolated(unsafe) var reportPath: String?  // safe: the generator runs on one thread
 do {
     let rest = Array(arguments.dropFirst(3))
     var i = 0
@@ -42,6 +45,7 @@ do {
         switch rest[i] {
         case "--manifest" where i + 1 < rest.count: manifestPath = rest[i + 1]; i += 2
         case "--also" where i + 1 < rest.count: otherPlatformPaths.append(rest[i + 1]); i += 2
+        case "--report" where i + 1 < rest.count: reportPath = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
         }
     }
@@ -331,6 +335,9 @@ var output = """
 
     """
 var skipped: [String: Int] = [:]
+/// Each member the generator could not bridge, as `reason`, the type it is of and its name, for
+/// `--report`. (A reason names what was unsupported, so the same kind of gap groups together.)
+nonisolated(unsafe) var leftOut: [(reason: String, owner: String, member: String)] = []  // safe: the generator runs on one thread
 var counts: [String: Int] = [:]
 /// Each member is a declaration of its own, not an element of one big
 /// array: Swift checks an expression at a time, and 80 closures in a literal
@@ -436,6 +443,7 @@ for (name, _) in bridgedTypeNames {
                 unsupported.reason.split(separator: " ").first.map(String.init) ?? "?",
                 default: 0
             ] += 1
+            leftOut.append((unsupported.reason, name, title))
         }
     }
     let context = Context(owner: owner, generics: Set(owner.genericParameters))
@@ -519,6 +527,7 @@ if let list = module.functions {
             FileHandle.standardError.write(
                 Data("\(symbol.pathComponents[0]): \(unsupported.reason)\n".utf8)
             )
+            leftOut.append((unsupported.reason, "(free function)", symbol.pathComponents[0]))
         }
     }
     output +=
@@ -533,6 +542,16 @@ if let manifestPath {
         members: thisPlatform.sorted()
     )
     .write(to: manifestPath)
+}
+if let reportPath {
+    let lines =
+        leftOut.sorted { ($0.reason, $0.owner, $0.member) < ($1.reason, $1.owner, $1.member) }
+        .map { line -> String in
+            let kind = line.reason.split(separator: " ").first.map(String.init) ?? "?"
+            return "\(kind)\t\(line.reason)\t\(line.owner)\t\(line.member)"
+        }
+    try (["kind\treason\ttype\tmember"] + lines).joined(separator: "\n")
+        .appending("\n").write(toFile: reportPath, atomically: true, encoding: .utf8)
 }
 let total = counts.values.reduce(0, +)
 FileHandle.standardError.write(

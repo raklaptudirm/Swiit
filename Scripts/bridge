@@ -15,6 +15,9 @@ cd "$(dirname "$0")/.."
 if [ "$(uname)" = Darwin ]; then platform=macos; else platform=linux; fi
 graphs=$(mktemp -d)
 trap 'rm -rf "$graphs"' EXIT
+# What the generator left out, and why, one file a module (see `--report`); not kept in git.
+left_out=.build/bridge-left-out
+mkdir -p "$left_out"
 
 # Not the whole package: the glue being made may be what stops it from building.
 swift build --target SystemPackage
@@ -71,7 +74,7 @@ for module in Swift SystemPackage Foundation; do
             if [ -f "$file" ]; then extra+=("$file"); fi
         done
     done
-    platforms=(--manifest "Bridges/$platform/$module.json")
+    platforms=(--manifest "Bridges/$platform/$module.json" --report "$left_out/$module.tsv")
     for other in macos linux; do
         manifest="Bridges/$other/$module.json"
         if [ "$other" != "$platform" ] && [ -f "$manifest" ]; then platforms+=(--also "$manifest"); fi
@@ -79,3 +82,7 @@ for module in Swift SystemPackage Foundation; do
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done
+
+# The gaps by kind, most common first: what closing each in the generator would bring in.
+echo "Left out, by kind (details in $left_out):"
+tail -q -n +2 "$left_out"/*.tsv | cut -f1 | sort | uniq -c | sort -rn | head -15
