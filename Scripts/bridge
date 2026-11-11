@@ -1,5 +1,5 @@
 #!/bin/bash
-# Regenerates the bridges in Sources/Swiit/Bridge/Generated from the symbol
+# Regenerates the bridges in Sources/Swiit/SwiftLibraryBridges/Generated from the symbol
 # graphs of the standard library, Foundation, swift-system and Swiit's own
 # modules. Run it after changing swiit-bridge, the Swift toolchain or
 # swift-system. A graph is read on the platform it's made on, so each
@@ -77,5 +77,5 @@ for module in Swift SystemPackage Foundation; do
         if [ "$other" != "$platform" ] && [ -f "$manifest" ]; then platforms+=(--also "$manifest"); fi
     done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
-        "Sources/Swiit/Bridge/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
+        "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done

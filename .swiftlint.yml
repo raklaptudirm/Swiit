@@ -2,7 +2,7 @@
 # rules that catch real mistakes, plus one of our own for unchecked concurrency.
 excluded:
   - .build
-  - Sources/Swiit/Bridge/Generated
+  - Sources/Swiit/SwiftLibraryBridges/Generated
   - Tests
 disabled_rules:
   - line_length

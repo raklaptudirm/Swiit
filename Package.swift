@@ -32,7 +32,7 @@ let package = Package(
                 .product(name: "SwiftOperators", package: "swift-syntax"),
             ],
             // The prelude is Swift source that is read, not compiled: it is embedded in the target.
-            resources: [.embedInCode("Resources/Prelude.swift")]
+            resources: [.embedInCode("Language/Builtins/Prelude.swift")]
         ),
         // boundaries.txt and programs.txt are data the boundary tests read from the source tree.
         .testTarget(

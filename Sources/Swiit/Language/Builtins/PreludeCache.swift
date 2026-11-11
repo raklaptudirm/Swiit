@@ -1,7 +1,7 @@
 import Foundation
 import Synchronization
 
-/// The builtins' types and signatures are Resources/Prelude.swift, embedded in the target by
+/// The builtins' types and signatures are Language/Builtins/Prelude.swift, embedded in the target by
 /// Package.swift.
 extension Interpreter {
     static let prelude = String(decoding: PackageResources.Prelude_swift, as: UTF8.self)

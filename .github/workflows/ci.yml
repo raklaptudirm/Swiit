@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The bridges in Sources/Swiit/Bridge/Generated are read from this
+      # The bridges in Sources/Swiit/SwiftLibraryBridges/Generated are read from this
       # Swift's symbol graphs, so the newest Xcode is the one they match.
       - uses: maxim-lobanov/setup-xcode@v1
         with:
@@ -98,7 +98,7 @@ jobs:
       - name: Unit tests
         run: swift test
 
-  # The bridges (Sources/Swiit/Bridge/Generated) are made from symbol graphs,
+  # The bridges (Sources/Swiit/SwiftLibraryBridges/Generated) are made from symbol graphs,
   # and a graph is read on the platform it's made on. Each platform's members
   # are kept in Bridges/<platform>, and only what all of them have is bridged,
   # so a member one platform lacks can't break the build on another.

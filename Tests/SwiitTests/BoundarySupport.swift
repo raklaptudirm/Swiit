@@ -5,18 +5,20 @@ import Swiit
 /// rules (Docs/boundaries.md). A support file because it reads source
 /// with Foundation, which the test file can't import beside Testing.
 enum Boundaries {
-    /// The directories of `Sources/Swiit` that stay in the core.
+    /// The directories of `Sources/Swiit` that stay in the core, with everything under them.
     static let coreDirectories = [
-        "Language/Syntax", "Language/Syntax/SwiftSyntax", "Language/Checking",
-        "Language/Interpreter",
-        "Language/Prelude", "Bridge",
-        "Host", "Host/Embedding",
+        "Language", "HostInterface", "SwiftLibraryBridges/HandWritten", "Model/Symbols",
+        "Model/Diagnostics",
     ]
 
     /// The one place the core makes a thread: a run goes on a large stack,
-    /// so deep recursion needs no setup from the embedder (embedding.md, step 5).
+    /// so deep recursion needs no setup from the embedder (embedding.md, step 5). And the two that
+    /// keep a run's state in the thread it is on (`Thread.current`), which makes no thread and
+    /// reaches nothing of the system.
     static let permitted: [String: Set<String>] = [
-        "Host/Embedding/LargeStack.swift": ["Thread", "DispatchSemaphore", "signal("]
+        "HostInterface/LargeStack.swift": ["Thread", "DispatchSemaphore", "signal("],
+        "HostInterface/Registration/Context.swift": ["Thread"],
+        "HostInterface/Registration/Waiting.swift": ["Thread"],
     ]
 
     /// The shell's concepts, by the group the ledger counts them under.
@@ -72,13 +74,18 @@ enum Boundaries {
         var problems: [String] = []
         var seen: Set<String> = []
         for directory in coreDirectories {
-            let url = sources.appendingPathComponent(directory)
-            for name in try FileManager.default.contentsOfDirectory(atPath: url.path).sorted()
-            where name.hasSuffix(".swift") {
-                let file = "\(directory)/\(name)"
+            let root = sources.appendingPathComponent(directory)
+            // Every file under the directory, however deep: a folder added later is checked too.
+            for relative in FileManager.default.enumerator(atPath: root.path)!
+                .compactMap({ $0 as? String }).filter({ $0.hasSuffix(".swift") }).sorted()
+            {
+                let file = "\(directory)/\(relative)"
                 seen.insert(file)
                 let source = code(
-                    of: try String(contentsOf: url.appendingPathComponent(name), encoding: .utf8)
+                    of: try String(
+                        contentsOf: root.appendingPathComponent(relative),
+                        encoding: .utf8
+                    )
                 )
 
                 let reached = matches(operatingSystem, in: source)
