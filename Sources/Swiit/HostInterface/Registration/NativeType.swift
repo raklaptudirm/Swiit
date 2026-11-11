@@ -43,8 +43,9 @@ extension Value {
     }
 
     /// The Swift value this holds, which must be one of type `T`; else it throws the error a
-    /// member's argument of the wrong type does.
-    public func unboxing<T>(_: T.Type = T.self) throws -> T {
+    /// member's argument of the wrong type does. It takes the value, so a body that is the last to
+    /// hold one (`consume`) leaves nothing else holding the Swift value it unwraps.
+    public consuming func unboxing<T>(_: T.Type = T.self) throws -> T {
         try SwiftValue.unbox(T.self, self)
     }
 }
@@ -225,19 +226,18 @@ extension BridgedMember {
         /// ends, and a value that is not in one comes back with the result.
         @Sendable func mutating(
             _ arguments: Arguments,
-            _ body: (_ receiver: Value) throws -> (result: Value, receiver: Value)
+            _ body: (_ receiver: inout Value) throws -> Value
         ) throws -> Value {
             let given = arguments["self"] ?? .nothing
             let mover = ReceiverBox.of(given)
-            let taken = mover?.take() ?? given
-            do {
-                let (result, receiver) = try body(taken)
+            var receiver = mover?.take() ?? given
+            let result: Value
+            do { result = try body(&receiver) } catch {
                 mover?.put(receiver)
-                return .list([result, mover == nil ? receiver : .nothing])
-            } catch {
-                mover?.put(taken)
                 throw error
             }
+            mover?.put(receiver)
+            return .list([result, mover == nil ? receiver : .nothing])
         }
         func make(
             _ kind: BridgedMember.Kind,
@@ -303,7 +303,7 @@ extension BridgedMember {
                     function: function,
                     isMutating: true
                 ) { arguments in
-                    try mutating(arguments) { try body($0, order(arguments)) }
+                    try mutating(arguments) { try body(&$0, order(arguments)) }
                 }
             ]
         case (.method(let method), .staticMethod(let body)):
@@ -336,7 +336,8 @@ extension BridgedMember {
                     isMutating: true
                 ) { arguments in
                     try mutating(arguments) {
-                        (result: .nothing, receiver: try set($0, arguments["newValue"] ?? .nothing))
+                        $0 = try set($0, arguments["newValue"] ?? .nothing)
+                        return .nothing
                     }
                 },
             ]

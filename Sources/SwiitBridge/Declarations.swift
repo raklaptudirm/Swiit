@@ -94,7 +94,8 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         switch word {
         case "static", "class": isStatic = true
         case "mutating": isMutating = true
-        case "nonmutating", "public", "final", "override", "convenience", "required", "optional",
+        case "nonmutating", "consuming", "borrowing", "public", "final", "override", "convenience",
+            "required", "optional",
             "dynamic", "lazy",
             "nonisolated",
             "prefix", "postfix":

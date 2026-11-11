@@ -97,9 +97,12 @@ let receiver: Date = try selfValue.unboxing(Date.self)
 }
 
     nonisolated(unsafe) private static let member16: HostSymbol = HostSymbol.mutatingMethod("addTimeInterval", summary: "Adds a time interval to this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
-var receiver: Date = try selfValue.unboxing(Date.self)
+let taken = selfValue
+                selfValue = .nothing
+                var receiver: Date = try (consume taken).unboxing(Date.self)
+                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Date")) }
                 receiver.addTimeInterval(try Double(arguments[0]))
-                return (result: .nothing, receiver: Value(boxing: receiver, as: .init(hostType: "Date")))
+                return .nothing
 }
 
     nonisolated(unsafe) private static let member17: HostSymbol = HostSymbol.staticProperty("distantFuture", summary: "A date value representing a date in the distant future.", type: .named(.init(hostType: "Date")), get: {

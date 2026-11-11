@@ -23,11 +23,10 @@ public struct HostSymbol: Sendable {
         /// A function that takes what a call bound by parameter name.
         case function(@Sendable (Arguments) throws -> Value)
         case method(@Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value)
-        /// A method that changes its receiver, like `append`: it gives its result and the receiver
-        /// as it is now.
+        /// A method that changes its receiver, like `append`: it changes the receiver in place and
+        /// gives its result.
         case mutatingMethod(
-            @Sendable (_ receiver: Value, _ arguments: [Value]) throws
-                -> (result: Value, receiver: Value)
+            @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
         )
         case staticMethod(@Sendable (_ arguments: [Value]) throws -> Value)
         case property(get: @Sendable (_ receiver: Value) throws -> Value)
@@ -297,8 +296,10 @@ extension HostSymbol {
         )
     }
 
-    /// A method of a type that changes its receiver, like `append`: its body gives the result and
-    /// the receiver as it is now.
+    /// A method of a type that changes its receiver, like `append`: its body changes the receiver in
+    /// place and gives the result. A body that holds the receiver's contents while it changes them
+    /// (a collection) should set the receiver aside first (`receiver = .nothing`) so they are
+    /// not copied.
     public static func mutatingMethod(
         _ name: String,
         summary: String = "",
@@ -307,9 +308,7 @@ extension HostSymbol {
         isThrowing: Bool = false,
         isAsync: Bool = false,
         generics: [Symbol.GenericParameter] = [],
-        body:
-            @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws
-            -> (result: Value, receiver: Value)
+        body: @escaping @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
     ) -> HostSymbol {
         HostSymbol(
             name: name,
@@ -372,9 +371,7 @@ extension HostSymbol {
         summary: String = "",
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
-        body:
-            @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws
-            -> (result: Value, receiver: Value)
+        body: @escaping @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
     ) -> HostSymbol {
         HostSymbol(
             name: name,

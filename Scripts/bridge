@@ -79,9 +79,9 @@ for module in Swift SystemPackage Foundation; do
         manifest="Bridges/$other/$module.json"
         if [ "$other" != "$platform" ] && [ -f "$manifest" ]; then platforms+=(--also "$manifest"); fi
     done
-    # Foundation and swift-system's types are written as the public description (`HostType`), which a client with
-    # bridges of its own writes too; the rest are still Swiit's internal form.
-    case "$module" in Foundation | SystemPackage) platforms+=(--description --inside-swiit) ;; esac
+    # Every module is written as the public description (`HostType`), which a client with bridges of
+    # its own writes too; these are Swiit's own files, so they neither import it nor are public.
+    platforms+=(--description --inside-swiit)
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done

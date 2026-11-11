@@ -12,6 +12,10 @@ enum Bridge {
     /// Foundation's `Date` and `AttributedString`, from the description the generator writes
     /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
     static let foundation: [BridgedType] = FoundationBridge.types.map { BridgedType(generated: $0) }
+    /// The standard library's types, from its description (`StandardLibraryBridge`).
+    static let standardLibrary: [BridgedType] = StandardLibraryBridge.types.map {
+        BridgedType(generated: $0)
+    }
     /// swift-system's `FilePath`, from its description as well (`SystemBridge`).
     static let system: [BridgedType] = SystemBridge.types.map { BridgedType(generated: $0) }
 

@@ -401,7 +401,12 @@ for (name, _) in bridgedTypeNames {
     // what there is (String's `reversed` gives a ReversedCollection, which
     // Swiit has no value for, but Sequence's gives an array).
     let path = name.split(separator: ".").map(String.init)
+    // A declaration written in terms of `Self` is a protocol's, which a newer graph lists under the
+    // type too; the type's own, of the same shape, comes first and is the one that is kept.
     let ownSymbols = graph.symbols.filter { $0.pathComponents.dropLast() == path[...] }
+        .partitioned(by: { symbol in
+            !(symbol.declarationFragments ?? []).map(\.spelling).joined().contains("Self.")
+        })
     var candidates = ownSymbols.map { ($0, [Constraint]()) }
     // A range is a sequence only when `Bound: Strideable` with a
     // SignedInteger stride: for Swiit, when Bound is Int.
@@ -628,3 +633,10 @@ FileHandle.standardError.write(
             .utf8
     )
 )
+
+extension Array {
+    /// The elements that satisfy `predicate`, then the rest, each in their order.
+    func partitioned(by predicate: (Element) -> Bool) -> [Element] {
+        filter(predicate) + filter { !predicate($0) }
+    }
+}

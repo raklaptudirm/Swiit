@@ -23,8 +23,12 @@ private func runOnTheCore(_ source: String) -> (output: String, problem: String?
         do {
             let checked = try TypeChecker(interpreter: interpreter).check(program)
             // As a prompt would: each top-level value statement is shown.
-            _ = try interpreter.run(checked) { value, _ in
-                captured.add(value.debugDescription + "\n")
+            // As the public entry points do: as the main task, which is what a native body's
+            // `Interpreter.running` finds.
+            _ = try interpreter.withMainTask {
+                try interpreter.run(checked) { value, _ in
+                    captured.add(value.debugDescription + "\n")
+                }
             }
             return (output, nil)
         } catch let error as TypeError {

@@ -379,8 +379,19 @@ func bridge(
 /// ends.
 func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool) -> String {
     if describing {
+        guard mutating else {
+            return
+                "let receiver: \(swiftType) = \(fromValue("selfValue", receiverType))\n                "
+        }
+        // The receiver is set aside before it changes, so nothing else holds a collection in it.
+        var conversion = fromValue("taken", receiverType)
+        // Used once as an argument, `taken` ends there, so the receiver holds the only reference.
+        if conversion.components(separatedBy: "taken").count == 2 {
+            conversion = conversion.replacingOccurrences(of: "(taken)", with: "(consume taken)")
+                .replacingOccurrences(of: "taken.unboxing(", with: "(consume taken).unboxing(")
+        }
         return
-            "\(mutating ? "var" : "let") receiver: \(swiftType) = \(fromValue("selfValue", receiverType))\n                "
+            "let taken = selfValue\n                selfValue = .nothing\n                var receiver: \(swiftType) = \(conversion)\n                defer { selfValue = \(toValue("receiver", receiverType)) }\n                "
     }
     guard mutating else {
         return
@@ -398,14 +409,11 @@ func receiverBinding(_ swiftType: String, _ receiverType: SType, mutating: Bool)
     return body
 }
 
-/// The end of a mutating member's glue: what it gives back. The description gives the result and
-/// the receiver as the call left it; the internal form also says whether the receiver was moved
-/// out of a box, for the host to put back where it came from.
+/// The end of a mutating member's glue: what it gives back, for the host to put the receiver back
+/// where it came from (the description puts it back itself, in `selfValue`).
 func mutatingReturn(_ returns: SType, _ receiverType: SType, isVoid: Bool) -> String {
     let result = isVoid ? ".nothing" : toValue("result", returns)
-    if describing {
-        return "return (result: \(result), receiver: \(toValue("receiver", receiverType)))"
-    }
+    if describing { return "return \(result)" }
     return
         "return .list([\(result), mover == nil ? \(toValue("receiver", receiverType)) : .nothing])"
 }

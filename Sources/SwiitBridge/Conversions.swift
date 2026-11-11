@@ -74,7 +74,8 @@ func fromValue(_ value: String, _ type: SType) -> String {
         guard arguments.contains(where: isLeaf) else { return box }
         switch name {
         case "Range", "ClosedRange":
-            return "try bridge\(name)(\(value)) { \(fromValue("$0", arguments[0])) }"
+            let function = name == "Range" ? "range" : "closedRange"
+            return "try Value.Bridging.\(function)(\(value)) { \(fromValue("$0", arguments[0])) }"
         default: return "\(spelling(type))(\(box).map { \(fromValue("$0", arguments[0])) })"
         }
     case .array(let element), .someSequence(let element):
@@ -148,9 +149,9 @@ func toValue(_ swift: String, _ type: SType) -> String {
                 "Value.Bridging.box(\(swift), as: .init(hostType: \(typeName))) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
-        let list = describing ? "Value" : ".list"
-        if case .named(let name, []) = element, leaves[name] == nil { return "\(list)(\(swift))" }
-        return "\(list)(\(swift).map { \(toValue("$0", element)) })"
+        let list = describing ? "Value(list: " : ".list("
+        if case .named(let name, []) = element, leaves[name] == nil { return "\(list)\(swift))" }
+        return "\(list)\(swift).map { \(toValue("$0", element)) })"
     case .optional(let wrapped): return "(\(swift).map { \(toValue("$0", wrapped)) } ?? .nothing)"
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.

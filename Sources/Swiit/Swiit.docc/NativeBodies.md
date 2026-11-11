@@ -58,8 +58,10 @@ calls ``Interpreter/checkForStop()`` as it goes, or a limit or a cancel waits fo
 
 ## A body that changes its receiver
 
-A mutating member of a type is given the value it changes and gives back its result and the value as it is now. If it throws, the value is as
-it was before the call. A property a script assigns is the same: its setter is given the value and gives it back changed.
+A mutating member of a type is given the value it changes as `inout`, changes it in place and gives back its result. If it throws, the value is
+as the body had changed it by then, as in Swift. A body that holds the contents of a collection while it changes them sets the value aside first
+(`receiver = .nothing`), or the collection is copied whole on every call. A property a script assigns is different: its setter is given the value and
+gives it back changed.
 
 ## What is registered, and for how long
 

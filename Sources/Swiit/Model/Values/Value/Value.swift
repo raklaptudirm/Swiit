@@ -57,6 +57,12 @@ public struct Value: Sendable {
     static func function(_ value: any Callable) -> Value { Value(Storage.function(value)) }
 }
 
+extension Value {
+    /// A list of values, as they are: what `Value(items)` would make by converting each one, which
+    /// takes time in step with the list.
+    public init(list values: [Value]) { self = .list(values) }
+}
+
 extension Value: ExpressibleByBooleanLiteral, ExpressibleByIntegerLiteral,
     ExpressibleByFloatLiteral,
     ExpressibleByStringLiteral,

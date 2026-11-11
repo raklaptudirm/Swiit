@@ -261,7 +261,7 @@ private struct ContractTally: Hashable, Sendable, ScriptConvertible {
     var n: Int
 }
 
-@Test func aMutatingMemberGivesItsResultAndTheReceiverAsItIsNow() throws {
+@Test func aMutatingMemberChangesItsReceiverInPlaceAndGivesItsResult() throws {
     let swiit = interpreter()
     swiit.register(
         HostType.Builder<ContractTally>("ContractTally")
@@ -274,11 +274,18 @@ private struct ContractTally: Hashable, Sendable, ScriptConvertible {
             .member(
                 .mutatingMethod("bump", returns: .int) { receiver, _ in
                     let next = ContractTally(n: try ContractTally(receiver).n + 1)
-                    return (result: Value(next.n), receiver: Value(next))
+                    receiver = Value(next)
+                    return Value(next.n)
                 }
             )
             .member(
                 .mutatingMethod("fail", isThrowing: true) { _, _ in throw Boom() }
+            )
+            .member(
+                .mutatingMethod("bumpThenFail", isThrowing: true) { receiver, _ in
+                    receiver = Value(ContractTally(n: try ContractTally(receiver).n + 1))
+                    throw Boom()
+                }
             )
             .member(
                 .property(
@@ -294,10 +301,15 @@ private struct ContractTally: Hashable, Sendable, ScriptConvertible {
     // The copy a `let` holds is not changed by the `var`'s.
     #expect(try swiit.evaluate("var a = ContractTally(); let b = a; a.bump(); a.n") == 1)
     #expect(try swiit.evaluate("b.n") == 0)
-    // A body that fails leaves the receiver as it was.
+    // A body that fails leaves the receiver as it had changed it by then, as in Swift.
     #expect(
         try swiit.evaluate("var f = ContractTally(); f.bump(); do { try f.fail() } catch {}; f.n")
             == 1
+    )
+    #expect(
+        try swiit.evaluate(
+            "var g = ContractTally(); do { try g.bumpThenFail() } catch {}; g.n"
+        ) == 1
     )
     // A property a script assigns is a mutating member too.
     #expect(try swiit.evaluate("var d = ContractTally(); d.double = 10; d.n") == 5)
