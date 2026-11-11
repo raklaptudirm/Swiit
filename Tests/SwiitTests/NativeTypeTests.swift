@@ -309,7 +309,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
 
 @Test func aMemberWrittenFromItsSignatureKeepsRethrowingAndParameterDocs() throws {
     let swiit = interpreter()
-    var pile = HostType(name: "Pile")
+    var pile = HostType(name: "Crate")
     pile.members = [
         .method(
             "each",
@@ -329,7 +329,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
     swiit.register(pile)
 
     let symbol = try #require(
-        ScriptType.named(.init(hostType: "Pile")).members(named: "each", in: swiit).first
+        ScriptType.named(.init(hostType: "Crate")).members(named: "each", in: swiit).first
     )
     guard case .method(let method) = symbol.kind else {
         Issue.record("not a method")

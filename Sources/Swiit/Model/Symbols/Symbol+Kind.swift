@@ -86,9 +86,11 @@ extension Symbol {
             case typed(ScriptType)
         }
 
-        /// Whether it can throw at all, of whatever kind. Setting it says `throws` or nothing.
+        /// Whether it throws errors of its own, as `throws` and `throws(Failure)` do: not a
+        /// `rethrows` function, which throws only what its closures do. Setting it says `throws`
+        /// or nothing.
         public var isThrowing: Bool {
-            get { throwing != .no }
+            get { throwing != .no && throwing != .rethrowing }
             set { throwing = newValue ? .any : .no }
         }
 
