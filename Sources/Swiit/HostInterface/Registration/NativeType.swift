@@ -35,8 +35,16 @@ extension Value {
         String(String(describing: type).prefix { $0 != "<" })
     }
 
-    /// The Swift value this holds, if it holds one of type `T`.
-    func unboxing<T>(_: T.Type = T.self) throws -> T {
+    /// A Swift value kept as it is, as a value of the registered host type `type`
+    /// (`Symbol.ID(hostType: "FileSize")`): what a member written for a Swift type gives back.
+    /// It compares, hashes and sorts as the Swift value does, when its type can.
+    public init<T: Sendable>(boxing value: T, as type: Symbol.ID) {
+        self = SwiftValue.make(value, as: type.name)
+    }
+
+    /// The Swift value this holds, which must be one of type `T`; else it throws the error a
+    /// member's argument of the wrong type does.
+    public func unboxing<T>(_: T.Type = T.self) throws -> T {
         try SwiftValue.unbox(T.self, self)
     }
 }

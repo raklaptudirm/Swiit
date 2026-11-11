@@ -338,3 +338,15 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
     #expect(method.function.parameters.first?.documentation == "Called with each item.")
     #expect(method.function.throwing == .rethrowing)
 }
+
+@Test func aHostBoxesASwiftValueAsTheTypeItRegisteredAndGetsItBack() throws {
+    let swiit = interpreter()
+    let id = swiit.register(HostType.Builder<URL>())
+    let url = try #require(URL(string: "https://example.com/a"))
+
+    let value = Value(boxing: url, as: id)
+
+    #expect(try value.unboxing(URL.self) == url)
+    #expect(value.typeID == id)
+    #expect(throws: (any Error).self) { try Value(integerLiteral: 3).unboxing(URL.self) }
+}
