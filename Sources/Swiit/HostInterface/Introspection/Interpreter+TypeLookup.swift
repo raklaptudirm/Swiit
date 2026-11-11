@@ -39,7 +39,7 @@ extension Interpreter {
             case .function(let parameters, let returns, _, _):
                 parameters.allSatisfy(current) && current(returns)
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
-            case .metatype(let type): current(type)
+            case .metatype(let type), .inOut(let type): current(type)
             }
         }
         return current(type) ? TypeAnnotation(type) : nil

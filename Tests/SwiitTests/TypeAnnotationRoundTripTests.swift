@@ -26,6 +26,7 @@ import Testing
         ]),
         .metatype(.parameter("T")),
         .someSequence(.parameter("E")),
+        .functionType([.inOut(.parameter("R")), .int], .bool, throws: false, async: .sync),
         .functionType([.someSequence(.int)], .bool, throws: false, async: .sync),
         .keyPath(.named("Point"), .int),
     ]

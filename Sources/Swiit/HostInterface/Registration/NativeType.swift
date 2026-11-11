@@ -182,63 +182,75 @@ extension BridgedType {
             literal: made.literal,
             arrayLiteral: made.arrayLiteral,
             members: made.members.map {
-                var member = $0
-                member.plain = nil
-                return member
+                var member = $0; member.plain = nil; return member
             }
         )
     }
 }
 
 extension BridgedMember {
+    /// The members of a Swift type of the core's, written as a host writes its own: bridged, not
+    /// a host's, so none is called without an interpreter and a host's member of the same shape
+    /// takes its place.
+    static func bridged(_ symbols: [HostSymbol], in typeName: String) -> [BridgedMember] {
+        symbols.flatMap { members(of: $0, in: typeName) }
+            .map {
+                var member = $0; member.plain = nil; return member
+            }
+    }
+
+    /// The parameters a script sees, from those a host declared.
+    private static func parameters(_ function: Symbol.Function) -> [Parameter] {
+        function.parameters.map { parameter in
+            var made = Parameter(
+                label: parameter.label,
+                name: parameter.name,
+                type: TypeAnnotation(parameter.type)
+            )
+            switch parameter.arity {
+            case .required: break
+            case .variadic: made.variadic = true
+            case .defaulted(.value(let value)): made.defaultValue = .literal(value)
+            case .defaulted(.computed): made.externalDefault = "…"
+            }
+            return made
+        }
+    }
+
+    /// The arguments in declared order, from what a call bound by name.
+    private static func ordered(_ function: Symbol.Function) -> @Sendable (Arguments) -> [Value] {
+        let slots = function.parameters.map { parameter -> (String, Value) in
+            if case .defaulted(.value(let value)) = parameter.arity {
+                return (parameter.name, value)
+            }
+            return (parameter.name, .nothing)
+        }
+        return { arguments in slots.map { arguments[$0.0] ?? $0.1 } }
+    }
+
+    /// A member that changes its receiver, as the glue for a Swift member does: a variable's value
+    /// is moved into a box for the call, which takes the changed one back however the call
+    /// ends, and a value that is not in one comes back with the result.
+    @Sendable private static func mutating(
+        _ arguments: Arguments,
+        _ body: (_ receiver: inout Value) throws -> Value
+    ) throws -> Value {
+        let given = arguments["self"] ?? .nothing
+        let mover = ReceiverBox.of(given)
+        var receiver = mover?.take() ?? given
+        let result: Value
+        do { result = try body(&receiver) } catch {
+            mover?.put(receiver)
+            throw error
+        }
+        mover?.put(receiver)
+        return .list([result, mover == nil ? receiver : .nothing])
+    }
+
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
     static func members(of member: HostSymbol, in typeName: String) -> [BridgedMember] {
         let symbol = member.symbol
-        func parameters(_ function: Symbol.Function) -> [Parameter] {
-            function.parameters.map { parameter in
-                var made = Parameter(
-                    label: parameter.label,
-                    name: parameter.name,
-                    type: TypeAnnotation(parameter.type)
-                )
-                switch parameter.arity {
-                case .required: break
-                case .variadic: made.variadic = true
-                case .defaulted(.value(let value)): made.defaultValue = .literal(value)
-                case .defaulted(.computed): made.externalDefault = "…"
-                }
-                return made
-            }
-        }
-        /// The arguments in declared order, from what a call bound by name.
-        func ordered(_ function: Symbol.Function) -> @Sendable (Arguments) -> [Value] {
-            let slots = function.parameters.map { parameter -> (String, Value) in
-                if case .defaulted(.value(let value)) = parameter.arity {
-                    return (parameter.name, value)
-                }
-                return (parameter.name, .nothing)
-            }
-            return { arguments in slots.map { arguments[$0.0] ?? $0.1 } }
-        }
-        /// A member that changes its receiver, as the glue for a Swift member does: a variable's value
-        /// is moved into a box for the call, which takes the changed one back however the call
-        /// ends, and a value that is not in one comes back with the result.
-        @Sendable func mutating(
-            _ arguments: Arguments,
-            _ body: (_ receiver: inout Value) throws -> Value
-        ) throws -> Value {
-            let given = arguments["self"] ?? .nothing
-            let mover = ReceiverBox.of(given)
-            var receiver = mover?.take() ?? given
-            let result: Value
-            do { result = try body(&receiver) } catch {
-                mover?.put(receiver)
-                throw error
-            }
-            mover?.put(receiver)
-            return .list([result, mover == nil ? receiver : .nothing])
-        }
         func make(
             _ kind: BridgedMember.Kind,
             isStatic: Bool = false,
@@ -256,7 +268,8 @@ extension BridgedMember {
                 parameters: parameters,
                 returns: returns,
                 generics: function?.generics ?? [],
-                isThrowing: function?.isThrowing ?? false,
+                // `throws(Failure)` is the member's typedThrows: it throws unless Failure is `Never`.
+                isThrowing: function?.throwing == .any,
                 isRethrowing: function?.throwing == .rethrowing,
                 isMutating: isMutating,
                 attributes: symbol.attributes,
@@ -319,9 +332,15 @@ extension BridgedMember {
             ]
         case (.property(let property), .property(let get)):
             return [
-                make(.property, returns: TypeAnnotation(property.variable.type)) {
-                    try get($0["self"] ?? .nothing)
-                }
+                make(
+                    .property,
+                    returns: TypeAnnotation(property.variable.type),
+                    function: Symbol.Function(
+                        returns: property.variable.type,
+                        throwing: property.throwing,
+                        isAsync: property.isAsync
+                    )
+                ) { try get($0["self"] ?? .nothing) }
             ]
         case (.property(let property), .settableProperty(let get, let set)):
             let type = property.variable.type

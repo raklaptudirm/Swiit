@@ -547,6 +547,7 @@ extension TypeAnnotation {
                 elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
             )
         case .metatype(let type): self = .metatype(TypeAnnotation(type))
+        case .inOut(let type): self = .inOut(TypeAnnotation(type))
         }
     }
 }

@@ -97,81 +97,74 @@ final class TaskGroupBox: @unchecked Sendable {  // safe: every access holds its
 }
 
 extension Bridge {
-    private static func group(_ value: Value?) throws -> TaskGroupBox {
-        try SwiftValue.unbox(TaskGroupBox.self, value ?? .nothing)
+    private static func group(_ value: Value) throws -> TaskGroupBox {
+        try SwiftValue.unbox(TaskGroupBox.self, value)
     }
 
-    private static func groupType(_ name: String, isThrowing: Bool) -> BridgedType {
-        let element = TypeAnnotation.parameter("ChildTaskResult")
-        return BridgedType(
+    private static func groupType(_ name: String, isThrowing: Bool) -> HostType {
+        let element = ScriptType.parameter("ChildTaskResult")
+        var type = HostType(
             name: name,
-            genericParameters: ["ChildTaskResult"],
-            conformances: [:],
-            associatedTypes: ["Element": element],
             members: [
-                member(
-                    .method,
+                .method(
                     "addTask",
+                    summary: "Starts the operation as a child task of the group.",
                     parameters: [
-                        Parameter(
+                        Symbol.Parameter(
                             label: "operation",
                             name: "operation",
-                            type: .functionType([], element, throws: isThrowing, async: .async)
+                            type: .function(
+                                parameters: [],
+                                returns: element,
+                                isThrowing: isThrowing,
+                                isAsync: true
+                            )
                         )
-                    ],
-                    returns: .void,
-                    summary: "Starts the operation as a child task of the group."
-                ) { _, arguments in
-                    try group(arguments["self"]).add(arguments["operation"]!)
+                    ]
+                ) { receiver, arguments in
+                    try group(receiver).add(arguments[0])
                     return .nothing
                 },
-                member(
-                    .method,
+                .method(
                     "next",
+                    summary: "The result of the next child to end, or nil when none is left.",
                     returns: .optional(element),
-                    throwing: isThrowing,
-                    effect: .async,
-                    summary: "The result of the next child to end, or nil when none is left."
-                ) { _, arguments in
-                    try group(arguments["self"]).next() ?? .nothing
+                    isThrowing: isThrowing,
+                    isAsync: true
+                ) { receiver, _ in
+                    try group(receiver).next() ?? .nothing
                 },
-                member(
-                    .method,
+                .method(
                     "waitForAll",
-                    returns: .void,
-                    throwing: isThrowing,
-                    effect: .async,
-                    summary: "Waits for every child."
-                ) { _, arguments in
-                    try group(arguments["self"]).waitForAll()
+                    summary: "Waits for every child.",
+                    isThrowing: isThrowing,
+                    isAsync: true
+                ) { receiver, _ in
+                    try group(receiver).waitForAll()
                     return .nothing
                 },
-                member(.method, "cancelAll", returns: .void, summary: "Asks every child to stop.") {
-                    _,
-                    arguments in
-                    try group(arguments["self"]).cancelAll()
+                .method("cancelAll", summary: "Asks every child to stop.") { receiver, _ in
+                    try group(receiver).cancelAll()
                     return .nothing
                 },
-                member(.property, "isEmpty", returns: .bool, summary: "Whether no child is left.") {
-                    _,
-                    arguments in
-                    .bool(try group(arguments["self"]).isEmpty)
+                .property("isEmpty", summary: "Whether no child is left.", type: .bool) {
+                    .bool(try group($0).isEmpty)
                 },
-                member(
-                    .property,
+                .property(
                     "isCancelled",
-                    returns: .bool,
-                    summary: "Whether the group was asked to stop."
+                    summary: "Whether the group was asked to stop.",
+                    type: .bool
                 ) {
-                    _,
-                    arguments in
-                    .bool(try group(arguments["self"]).isCancelled)
+                    .bool(try group($0).isCancelled)
                 },
             ]
         )
+        type.genericParameters = ["ChildTaskResult"]
+        type.associatedTypes = ["Element": element]
+        return type
     }
 
-    nonisolated(unsafe) static let taskGroupTypes: [BridgedType] = [  // safe: set once, before anything reads it
+    static let taskGroupTypes: [HostType] = [
         groupType("TaskGroup", isThrowing: false), groupType("ThrowingTaskGroup", isThrowing: true),
     ]
 

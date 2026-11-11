@@ -415,18 +415,27 @@ extension HostSymbol {
         )
     }
 
-    /// A property a script can read.
+    /// A property a script can read. Reading it needs `await` if it is `isAsync`, and a `try` if it
+    /// `throws`.
     public static func property(
         _ name: String,
         summary: String = "",
         attributes: [Symbol.Attribute] = [],
         type: ScriptType,
+        isAsync: Bool = false,
+        throwing: Symbol.Throwing = .no,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value
     ) -> HostSymbol {
         HostSymbol(
             name: name,
             summary: summary,
-            kind: .property(Symbol.Property(variable: Symbol.Variable(type: type))),
+            kind: .property(
+                Symbol.Property(
+                    variable: Symbol.Variable(type: type),
+                    isAsync: isAsync,
+                    throwing: throwing
+                )
+            ),
             attributes: attributes,
             body: .property(get: get)
         )

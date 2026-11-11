@@ -4,48 +4,54 @@ import Foundation
 
 extension Bridge {
     /// `reduce(into:)`, which changes its accumulator in place, for each of the sequences.
-    nonisolated(unsafe) private static let reduceInto = member(  // safe: set once, before anything reads it
-        .method,
+    private static let reduceInto = HostSymbol.method(
         "reduce",
-        parameters: [
-            Parameter(label: "into", name: "initialResult", type: .parameter("R")),
-            Parameter(
-                label: nil,
-                name: "updateAccumulatingResult",
-                type: .functionType([.inOut(.parameter("R")), .parameter("Element")], .void)
-            ),
-        ],
-        returns: .parameter("R"),
-        generics: ["R"],
-        summary: "Combines the items into one value that each step changes in place."
-    ) { interpreter, arguments in
-        guard let items = Interpreter.items(of: arguments["self"] ?? .nothing) else {
+        summary: "Combines the items into one value that each step changes in place.",
+        signature: Symbol.Function(
+            parameters: [
+                Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("R")),
+                Symbol.Parameter(
+                    name: "updateAccumulatingResult",
+                    type: .function(
+                        parameters: [.inOut(.parameter("R")), .parameter("Element")],
+                        returns: .void
+                    )
+                ),
+            ],
+            returns: .parameter("R"),
+            generics: ["R"]
+        )
+    ) { receiver, arguments in
+        guard let items = Interpreter.items(of: receiver) else {
             throw RuntimeError("reduce needs a sequence")
         }
-        var result = arguments["initialResult"] ?? .nothing
+        let interpreter = try running()
+        var result = arguments[0]
         for item in items {
-            result = try interpreter.callChangingFirst(
-                arguments["updateAccumulatingResult"]!,
-                result,
-                item
-            )
+            result = try interpreter.callChangingFirst(arguments[1], result, item)
         }
         return result
     }
 
+    /// The interpreter running the script code that called a body.
+    static func running() throws -> Interpreter {
+        guard let interpreter = Interpreter.running else {
+            throw RuntimeError("this runs only inside a script")
+        }
+        return interpreter
+    }
+
     /// `String.Index`: a position in a String, as Swift holds it.
-    nonisolated(unsafe) static let stringIndex = BridgedType(  // safe: set once, before anything reads it
-        name: "String.Index",
-        genericParameters: [],
-        conformances: ["Comparable": [], "Equatable": [], "Hashable": []],
-        associatedTypes: [:],
-        members: []
-    )
+    static let stringIndex: HostType = {
+        var type = HostType(name: "String.Index")
+        type.conformances = ["Comparable": [], "Equatable": [], "Hashable": []]
+        return type
+    }()
 
-    private static let indexType = TypeAnnotation.named("String.Index")
+    private static let indexType = ScriptType.named("String.Index")
 
-    private static func text(_ arguments: Arguments) throws -> String {
-        guard case .string(let text)? = arguments["self"]?.storage else {
+    private static func text(_ receiver: Value) throws -> String {
+        guard case .string(let text) = receiver.storage else {
             throw RuntimeError("expected a String")
         }
         return text
@@ -72,49 +78,41 @@ extension Bridge {
         return index
     }
 
-    nonisolated(unsafe) private static let stringIndexMembers: [BridgedMember] = [  // safe: set once, before anything reads it
-        member(
-            .property,
+    private static let stringIndexMembers: [HostSymbol] = [
+        .property(
             "startIndex",
-            returns: indexType,
-            summary: "The position of the first character."
-        ) {
-            _,
-            arguments in
-            box(try text(arguments).startIndex)
+            summary: "The position of the first character.",
+            type: indexType
+        ) { receiver in
+            box(try text(receiver).startIndex)
         },
-        member(
-            .property,
+        .property(
             "endIndex",
-            returns: indexType,
-            summary: "The position after the last character."
-        ) {
-            _,
-            arguments in
-            box(try text(arguments).endIndex)
+            summary: "The position after the last character.",
+            type: indexType
+        ) { receiver in
+            box(try text(receiver).endIndex)
         },
-        member(
-            .method,
+        .method(
             "index",
-            parameters: [Parameter(label: "after", name: "i", type: indexType)],
-            returns: indexType,
-            summary: "The position after the given one."
-        ) { _, arguments in
-            let text = try text(arguments)
+            summary: "The position after the given one.",
+            parameters: [Symbol.Parameter(label: "after", name: "i", type: indexType)],
+            returns: indexType
+        ) { receiver, arguments in
+            let text = try text(receiver)
             return box(
-                text.index(after: try checked(try stringIndexValue(arguments["i"]), in: text))
+                text.index(after: try checked(try stringIndexValue(arguments[0]), in: text))
             )
         },
-        member(
-            .method,
+        .method(
             "index",
-            parameters: [Parameter(label: "before", name: "i", type: indexType)],
-            returns: indexType,
-            summary: "The position before the given one."
-        ) { _, arguments in
-            let text = try text(arguments)
+            summary: "The position before the given one.",
+            parameters: [Symbol.Parameter(label: "before", name: "i", type: indexType)],
+            returns: indexType
+        ) { receiver, arguments in
+            let text = try text(receiver)
             let index = try checked(
-                try stringIndexValue(arguments["i"]),
+                try stringIndexValue(arguments[0]),
                 in: text,
                 allowingEnd: true
             )
@@ -123,20 +121,19 @@ extension Bridge {
             }
             return box(text.index(before: index))
         },
-        member(
-            .method,
+        .method(
             "index",
+            summary: "The position a number of characters from the given one.",
             parameters: [
-                Parameter(label: nil, name: "i", type: indexType),
-                Parameter(label: "offsetBy", name: "n", type: .int),
+                Symbol.Parameter(name: "i", type: indexType),
+                Symbol.Parameter(label: "offsetBy", name: "n", type: .int),
             ],
-            returns: indexType,
-            summary: "The position a number of characters from the given one."
-        ) { _, arguments in
-            let text = try text(arguments)
-            let offset = try Int(arguments["n"]!)
+            returns: indexType
+        ) { receiver, arguments in
+            let text = try text(receiver)
+            let offset = try Int(arguments[1])
             let start = try checked(
-                try stringIndexValue(arguments["i"]),
+                try stringIndexValue(arguments[0]),
                 in: text,
                 allowingEnd: true
             )
@@ -151,93 +148,67 @@ extension Bridge {
             }
             return box(moved)
         },
-        member(
-            .method,
+        .method(
             "distance",
+            summary: "The number of characters between two positions.",
             parameters: [
-                Parameter(label: "from", name: "start", type: indexType),
-                Parameter(label: "to", name: "end", type: indexType),
+                Symbol.Parameter(label: "from", name: "start", type: indexType),
+                Symbol.Parameter(label: "to", name: "end", type: indexType),
             ],
-            returns: .int,
-            summary: "The number of characters between two positions."
-        ) { _, arguments in
-            let text = try text(arguments)
+            returns: .int
+        ) { receiver, arguments in
+            let text = try text(receiver)
             let from = try checked(
-                try stringIndexValue(arguments["start"]),
+                try stringIndexValue(arguments[0]),
                 in: text,
                 allowingEnd: true
             )
             let to = try checked(
-                try stringIndexValue(arguments["end"]),
+                try stringIndexValue(arguments[1]),
                 in: text,
                 allowingEnd: true
             )
             return .int(text.distance(from: from, to: to))
         },
-        member(
-            .method,
+        .method(
             "suffix",
-            parameters: [Parameter(label: "from", name: "start", type: indexType)],
-            returns: .named("Substring"),
-            summary: "The text from a position to the end."
-        ) { _, arguments in
-            let text = try text(arguments)
-            return SwiftValue.make(
-                text[
-                    try checked(
-                        try stringIndexValue(arguments["start"]),
-                        in: text,
-                        allowingEnd: true
-                    )...
-                ],
-                as: "Substring"
-            )
+            summary: "The text from a position to the end.",
+            parameters: [Symbol.Parameter(label: "from", name: "start", type: indexType)],
+            returns: .named("Substring")
+        ) { receiver, arguments in
+            let text = try text(receiver)
+            let start = try checked(try stringIndexValue(arguments[0]), in: text, allowingEnd: true)
+            return SwiftValue.make(text[start...], as: "Substring")
         },
-        member(
-            .method,
+        .method(
             "prefix",
-            parameters: [Parameter(label: "upTo", name: "end", type: indexType)],
-            returns: .named("Substring"),
-            summary: "The text before a position."
-        ) { _, arguments in
-            let text = try text(arguments)
-            return SwiftValue.make(
-                text[
-                    ..<(try checked(
-                        try stringIndexValue(arguments["end"]),
-                        in: text,
-                        allowingEnd: true
-                    ))
-                ],
-                as: "Substring"
-            )
+            summary: "The text before a position.",
+            parameters: [Symbol.Parameter(label: "upTo", name: "end", type: indexType)],
+            returns: .named("Substring")
+        ) { receiver, arguments in
+            let text = try text(receiver)
+            let end = try checked(try stringIndexValue(arguments[0]), in: text, allowingEnd: true)
+            return SwiftValue.make(text[..<end], as: "Substring")
         },
-        member(
-            .method,
+        .method(
             "prefix",
-            parameters: [Parameter(label: "through", name: "end", type: indexType)],
-            returns: .named("Substring"),
-            summary: "The text up to and including a position."
-        ) { _, arguments in
-            let text = try text(arguments)
-            return SwiftValue.make(
-                text[...(try checked(try stringIndexValue(arguments["end"]), in: text))],
-                as: "Substring"
-            )
+            summary: "The text up to and including a position.",
+            parameters: [Symbol.Parameter(label: "through", name: "end", type: indexType)],
+            returns: .named("Substring")
+        ) { receiver, arguments in
+            let text = try text(receiver)
+            let end = try checked(try stringIndexValue(arguments[0]), in: text)
+            return SwiftValue.make(text[...end], as: "Substring")
         },
-        member(
-            .method,
+        .method(
             "firstIndex",
-            parameters: [Parameter(label: "of", name: "element", type: .named("Character"))],
-            returns: .optional(indexType),
-            summary: "The position of the first occurrence of a character."
-        ) { _, arguments in
-            let text = try text(arguments)
+            summary: "The position of the first occurrence of a character.",
+            parameters: [Symbol.Parameter(label: "of", name: "element", type: .named("Character"))],
+            returns: .optional(indexType)
+        ) { receiver, arguments in
+            let text = try text(receiver)
             guard
-                let wanted = try? SwiftValue.unbox(
-                    Character.self,
-                    arguments["element"] ?? .nothing
-                ),
+                let wanted = try? SwiftValue.unbox(Character.self, arguments[0]),
                 let found = text.firstIndex(of: wanted)
             else { return .nothing }
             return box(found)
@@ -278,68 +249,63 @@ extension Bridge {
 
     /// `lazy`, which Swiit reads as the sequence itself: its operators run all at once, not as
     /// items are asked for, which a finite sequence's result cannot tell.
-    private static func lazyMember(_ sequence: TypeAnnotation) -> BridgedMember {
-        member(
-            .property,
+    private static func lazyMember(_ sequence: ScriptType) -> HostSymbol {
+        .property(
             "lazy",
-            returns: sequence,
-            summary: "The sequence itself: Swiit does not defer the work of its operators."
-        ) { _, arguments in arguments["self"] ?? .nothing }
+            summary: "The sequence itself: Swiit does not defer the work of its operators.",
+            type: sequence
+        ) { receiver in receiver }
     }
 
-    nonisolated(unsafe) static let additions: [String: [BridgedMember]] = [  // safe: set once, before anything reads it
+    /// What the table adds to the type named, lowered as the generated members are.
+    static func additions(to typeName: String) -> [BridgedMember] {
+        BridgedMember.bridged(additionTable[typeName] ?? [], in: typeName)
+    }
+
+    static let discardable = [Symbol.Attribute(name: "discardableResult")]
+
+    /// Members of Swift's types that the generator can't bridge, by the type that has them.
+    private static let additionTable: [String: [HostSymbol]] = [
         "Array": [reduceInto, lazyMember(.list(.parameter("Element")))],
-        "Set": [reduceInto, lazyMember(.generic("Set", [.parameter("Element")]))],
-        "ClosedRange": [reduceInto, lazyMember(.generic("ClosedRange", [.parameter("Bound")]))],
-        "Range": [reduceInto, lazyMember(.generic("Range", [.parameter("Bound")]))],
+        "Set": [reduceInto, lazyMember(.named("Set", [.parameter("Element")]))],
+        "ClosedRange": [reduceInto, lazyMember(.named("ClosedRange", [.parameter("Bound")]))],
+        "Range": [reduceInto, lazyMember(.named("Range", [.parameter("Bound")]))],
         "Unicode.Scalar": [
-            member(
-                .property,
+            .property(
                 "value",
-                returns: .int,
-                summary: "The scalar's number, as Unicode gives it."
-            ) {
-                _,
-                arguments in
-                .int(
-                    Int(
-                        try SwiftValue.unbox(Unicode.Scalar.self, arguments["self"] ?? .nothing)
-                            .value
-                    )
-                )
+                summary: "The scalar's number, as Unicode gives it.",
+                type: .int
+            ) { receiver in
+                .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, receiver).value))
             }
         ],
         "String": stringIndexMembers + [
-            member(
-                .method,
+            .method(
                 "replacingOccurrences",
+                summary: "The text with every `target` replaced by `replacement`.",
                 parameters: [
-                    Parameter(label: "of", name: "target", type: .string),
-                    Parameter(label: "with", name: "replacement", type: .string),
+                    Symbol.Parameter(label: "of", name: "target", type: .string),
+                    Symbol.Parameter(label: "with", name: "replacement", type: .string),
                 ],
-                returns: .string,
-                summary: "The text with every `target` replaced by `replacement`."
-            ) { _, arguments in
-                let text = try text(arguments)
-                guard case .string(let target)? = arguments["target"]?.storage,
-                    case .string(let replacement)? = arguments["replacement"]?.storage
+                returns: .string
+            ) { receiver, arguments in
+                let text = try text(receiver)
+                guard case .string(let target) = arguments[0].storage,
+                    case .string(let replacement) = arguments[1].storage, !target.isEmpty
                 else { return .string(text) }
-                guard !target.isEmpty else { return .string(text) }
                 return .string(
                     text.split(separator: target, omittingEmptySubsequences: false)
                         .joined(separator: replacement)
                 )
             },
-            member(
-                .method,
+            .method(
                 "components",
-                parameters: [Parameter(label: "separatedBy", name: "separator", type: .string)],
-                returns: .list(.string),
-                summary: "The parts of the text between the `separator`s."
-            ) { _, arguments in
-                let text = try text(arguments)
-                guard case .string(let separator)? = arguments["separator"]?.storage,
-                    !separator.isEmpty
+                summary: "The parts of the text between the `separator`s.",
+                parameters: [Symbol.Parameter(label: "separatedBy", name: "separator", type: .string)],
+                returns: .list(.string)
+            ) { receiver, arguments in
+                let text = try text(receiver)
+                guard case .string(let separator) = arguments[0].storage, !separator.isEmpty
                 else {
                     return .list([.string(text)])
                 }
@@ -348,66 +314,66 @@ extension Bridge {
                         .map { .string(String($0)) }
                 )
             },
-            member(
-                .initializer,
-                "init",
-                isStatic: true,
-                parameters: [Parameter(label: nil, name: "value", type: .parameter("T"))],
-                returns: .string,
-                generics: [
-                    GenericParameter(
-                        name: "T",
-                        constraints: [.conforms(to: "CustomStringConvertible")]
-                    )
-                ],
-                summary: "The text of a value that has one: String(5), String(2.5)."
-            ) { interpreter, arguments in
-                .string(try interpreter.describing(arguments["value"] ?? .nothing))
+            .initializer(
+                summary: "The text of a value that has one: String(5), String(2.5).",
+                attributes: discardable,
+                signature: Symbol.Function(
+                    parameters: [Symbol.Parameter(name: "value", type: .parameter("T"))],
+                    returns: .string,
+                    generics: [
+                        Symbol.GenericParameter(
+                            name: "T",
+                            constraints: [.conforms(to: "CustomStringConvertible")]
+                        )
+                    ]
+                )
+            ) { arguments in
+                .string(try running().describing(arguments[0]))
             },
         ],
         "Int": [
-            member(
-                .initializer,
-                "init",
-                isStatic: true,
-                parameters: [Parameter(label: nil, name: "value", type: .int)],
-                returns: .int,
+            .initializer(
                 summary:
-                    "The same integer: Int(x) of an Int, which also stands for the fixed-width integers."
-            ) { _, arguments in
-                arguments["value"] ?? .nothing
-            }
+                    "The same integer: Int(x) of an Int, which also stands for the fixed-width integers.",
+                attributes: discardable,
+                signature: Symbol.Function(
+                    parameters: [Symbol.Parameter(name: "value", type: .int)],
+                    returns: .int
+                )
+            ) { arguments in arguments[0] }
         ],
         "Dictionary": [
-            member(
-                .initializer,
-                "init",
-                isStatic: true,
-                parameters: [
-                    Parameter(
-                        label: "grouping",
-                        name: "values",
-                        type: .someSequence(.parameter("E"))
-                    ),
-                    Parameter(
-                        label: "by",
-                        name: "keyForValue",
-                        type: .functionType([.parameter("E")], .parameter("K"))
-                    ),
-                ],
-                returns: .dictionary(.parameter("K"), .list(.parameter("E"))),
-                generics: [
-                    "E", GenericParameter(name: "K", constraints: [.conforms(to: "Hashable")]),
-                ],
-                summary: "The values in lists, by the key each gives."
-            ) { interpreter, arguments in
-                guard let items = Interpreter.items(of: arguments["values"] ?? .nothing) else {
+            .initializer(
+                summary: "The values in lists, by the key each gives.",
+                attributes: discardable,
+                signature: Symbol.Function(
+                    parameters: [
+                        Symbol.Parameter(
+                            label: "grouping",
+                            name: "values",
+                            type: .named(.sequence, [.parameter("E")])
+                        ),
+                        Symbol.Parameter(
+                            label: "by",
+                            name: "keyForValue",
+                            type: .function(parameters: [.parameter("E")], returns: .parameter("K"))
+                        ),
+                    ],
+                    returns: .dictionary(.parameter("K"), .list(.parameter("E"))),
+                    generics: [
+                        "E",
+                        Symbol.GenericParameter(name: "K", constraints: [.hashable]),
+                    ]
+                )
+            ) { arguments in
+                guard let items = Interpreter.items(of: arguments[0]) else {
                     throw RuntimeError("grouping needs a sequence")
                 }
+                let interpreter = try running()
                 var order: [Value] = []
                 var groups: [Value: [Value]] = [:]
                 for item in items {
-                    let key = try interpreter.call(arguments["keyForValue"]!, with: [item])
+                    let key = try interpreter.call(arguments[1], with: [item])
                     if groups[key] == nil { order.append(key) }
                     groups[key, default: []].append(item)
                 }

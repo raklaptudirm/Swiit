@@ -26,13 +26,13 @@ enum Bridge {
     private static let table = Mutex<[String: BridgedType]>(
         Dictionary(
             uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
-                stringIndex
+                BridgedType(generated: stringIndex)
             ])
             .map {
                 (
                     $0.name,
                     $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
-                        .adding(additions[$0.name] ?? [])
+                        .adding(additions(to: $0.name))
                         .withTextInitializer()
                 )
             }
@@ -55,7 +55,7 @@ enum Bridge {
                 } else {
                     table[type.name] =
                         type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
-                        .adding(additions[type.name] ?? [])
+                        .adding(additions(to: type.name))
                         .withTextInitializer()
                 }
             }
@@ -132,19 +132,24 @@ struct BridgedType: Sendable {
                 && $0.parameters[0].type == .string
         }
         guard !hasOne else { return self }
-        return adding([
-            Bridge.member(
-                .initializer,
-                "init",
-                isStatic: true,
-                parameters: [Parameter(label: nil, name: "text", type: .string)],
-                returns: .optional(result),
-                summary: "The value the text spells, or nil."
-            ) { _, arguments in
-                guard case .string(let text)? = arguments["text"]?.storage else { return .nothing }
-                return parse(text) ?? .nothing
-            }
-        ])
+        return adding(
+            BridgedMember.bridged(
+                [
+                    .initializer(
+                        summary: "The value the text spells, or nil.",
+                        attributes: Bridge.discardable,
+                        signature: Symbol.Function(
+                            parameters: [Symbol.Parameter(name: "text", type: .string)],
+                            returns: .optional(ScriptType(result))
+                        )
+                    ) { arguments in
+                        guard case .string(let text) = arguments[0].storage else { return .nothing }
+                        return parse(text) ?? .nothing
+                    }
+                ],
+                in: name
+            )
+        )
     }
 
     /// It, with members written by hand too, where the generator can't make them. A host's own member

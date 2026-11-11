@@ -51,15 +51,37 @@ extension Symbol {
         }
     }
 
+    /// What a function, or reading a property, can throw.
+    public enum Throwing: Sendable, Hashable {
+        case no
+        /// `throws`: any error.
+        case any
+        /// `rethrows`: only what the closures it is given throw.
+        case rethrowing
+        /// `throws(Failure)`: errors of this type.
+        case typed(ScriptType)
+    }
+
     /// A variable that belongs to a type.
     public struct Property: Sendable, Hashable {
         public var variable: Variable
         /// It belongs to the type itself, as a `static` member does, and not to a value of it.
         public var isStatic: Bool
+        /// Reading it needs `await`: `Task.value`.
+        public var isAsync: Bool
+        /// What reading it can throw.
+        public var throwing: Throwing
 
-        public init(variable: Variable, isStatic: Bool = false) {
+        public init(
+            variable: Variable,
+            isStatic: Bool = false,
+            isAsync: Bool = false,
+            throwing: Throwing = .no
+        ) {
             self.variable = variable
             self.isStatic = isStatic
+            self.isAsync = isAsync
+            self.throwing = throwing
         }
     }
 
@@ -74,17 +96,6 @@ extension Symbol {
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
         public var generics: [GenericParameter]
-
-        /// What a function can throw.
-        public enum Throwing: Sendable, Hashable {
-            case no
-            /// `throws`: any error.
-            case any
-            /// `rethrows`: only what the closures it is given throw.
-            case rethrowing
-            /// `throws(Failure)`: errors of this type.
-            case typed(ScriptType)
-        }
 
         /// Whether it throws errors of its own, as `throws` and `throws(Failure)` do: not a
         /// `rethrows` function, which throws only what its closures do. Setting it says `throws`

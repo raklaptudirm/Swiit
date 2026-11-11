@@ -13,6 +13,10 @@ extension Interpreter {
         bindings: [String: TypeAnnotation] = [:],
         isSettable: Bool = false
     ) -> Symbol {
+        func throwing() -> Symbol.Throwing {
+            member.typedThrows.map { .typed(scriptType(.named($0))) }
+                ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no)
+        }
         func function() -> Symbol.Function {
             Symbol.Function(
                 parameters: member.parameters.map {
@@ -31,8 +35,7 @@ extension Interpreter {
                     return made
                 },
                 returns: scriptType(checker.substitute(member.returns, bindings)),
-                throwing: member.typedThrows.map { .typed(scriptType(.named($0))) }
-                    ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no),
+                throwing: throwing(),
                 isAsync: member.effect != .sync,
                 generics: member.generics
             )
@@ -55,7 +58,9 @@ extension Interpreter {
                             type: scriptType(checker.substitute(member.returns, bindings)),
                             isSettable: isSettable
                         ),
-                        isStatic: member.isStatic
+                        isStatic: member.isStatic,
+                        isAsync: member.effect != .sync,
+                        throwing: throwing()
                     )
                 )
             }

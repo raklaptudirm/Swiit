@@ -34,59 +34,19 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    nonisolated(unsafe) static let concurrency: [BridgedType] =  // safe: set once, before anything reads it
-        [
-            BridgedType(
-                name: "Task",
-                genericParameters: ["Success", "Failure"],
-                conformances: ["Hashable": [], "Equatable": []],
-                associatedTypes: [:],
-                members: taskMembers
-            )
-        ] + taskGroupTypes
-
-    static func member(
-        _ kind: BridgedMember.Kind,
-        _ name: String,
-        isStatic: Bool = false,
-        parameters: [Parameter] = [],
-        returns: TypeAnnotation,
-        generics: [GenericParameter] = [],
-        throwing: Bool = false,
-        effect: Effect = .sync,
-        typedThrows: String? = nil,
-        summary: String,
-        _ body: @escaping @Sendable (Interpreter, Arguments) throws -> Value
-    ) -> BridgedMember {
-        BridgedMember(
-            kind: kind,
-            name: name,
-            isStatic: isStatic,
-            parameters: parameters,
-            returns: returns,
-            generics: generics,
-            isThrowing: throwing,
-            isRethrowing: false,
-            isMutating: false,
-            attributes: kind == .initializer ? [Symbol.Attribute(name: "discardableResult")] : [],
-            summary: summary,
-            body: .native(body),
-            effect: effect,
-            typedThrows: typedThrows
-        )
+    static let concurrency: [BridgedType] = ([taskType] + taskGroupTypes).map {
+        BridgedType(generated: $0)
     }
 
-    private static func task(_ value: Value?) throws -> ScriptTask {
-        try SwiftValue.unbox(TaskBox.self, value ?? .nothing).handle
+    private static func task(_ value: Value) throws -> ScriptTask {
+        try SwiftValue.unbox(TaskBox.self, value).handle
     }
 
-    /// Runs `operation` as an unstructured task, as Swift's `Task { }` does:
-    /// it isn't cancelled when the scope that made it ends.
-    private static func start(
-        _ interpreter: Interpreter,
-        _ arguments: Arguments
-    ) throws -> Value {
-        let operation = arguments["operation"]!
+    /// `Task { }`: runs the operation as an unstructured task, as Swift's `Task { }` does: it
+    /// isn't cancelled when the scope that made it ends.
+    private static func start(_ arguments: [Value]) throws -> Value {
+        let interpreter = try running()
+        let operation = arguments[0]
         let handle = try interpreter.startTask(
             host: interpreter.host.makeTaskState(),
             structured: false
@@ -96,52 +56,67 @@ extension Bridge {
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
 
-    nonisolated(unsafe) private static let taskMembers: [BridgedMember] = [  // safe: set once, before anything reads it
-        member(
-            .initializer,
-            "init",
-            isStatic: true,
-            parameters: [
-                Parameter(
-                    label: "operation",
-                    name: "operation",
-                    type: .functionType([], .parameter("Success"), async: .async)
-                )
-            ],
-            returns: .generic("Task", [.parameter("Success"), .named("Never")]),
-            generics: ["Success"],
+    private static let taskType: HostType = {
+        var type = HostType(name: "Task", members: taskMembers)
+        type.genericParameters = ["Success", "Failure"]
+        type.conformances = ["Hashable": [], "Equatable": []]
+        return type
+    }()
+
+    private static let taskMembers: [HostSymbol] = [
+        .initializer(
             summary:
                 "Runs the operation as a task of its own, which goes on while the code that started it does.",
-            start
+            attributes: discardable,
+            signature: Symbol.Function(
+                parameters: [
+                    Symbol.Parameter(
+                        label: "operation",
+                        name: "operation",
+                        type: .function(
+                            parameters: [],
+                            returns: .parameter("Success"),
+                            isAsync: true
+                        )
+                    )
+                ],
+                returns: .named("Task", [.parameter("Success"), .named("Never")]),
+                generics: ["Success"]
+            ),
+            body: start
         ),
-        member(
-            .initializer,
-            "init",
-            isStatic: true,
-            parameters: [
-                Parameter(
-                    label: "operation",
-                    name: "operation",
-                    type: .functionType([], .parameter("Success"), throws: true, async: .async)
-                )
-            ],
-            returns: .generic("Task", [.parameter("Success"), .named("Error")]),
-            generics: ["Success"],
+        .initializer(
             summary:
                 "Runs the throwing operation as a task of its own, which goes on while the code that started it does.",
-            start
+            attributes: discardable,
+            signature: Symbol.Function(
+                parameters: [
+                    Symbol.Parameter(
+                        label: "operation",
+                        name: "operation",
+                        type: .function(
+                            parameters: [],
+                            returns: .parameter("Success"),
+                            isThrowing: true,
+                            isAsync: true
+                        )
+                    )
+                ],
+                returns: .named("Task", [.parameter("Success"), .named("Error")]),
+                generics: ["Success"]
+            ),
+            body: start
         ),
-        member(
-            .property,
+        .property(
             "value",
-            returns: .parameter("Success"),
-            effect: .async,
-            typedThrows: "Failure",
-            summary: "What the task gives, once it has ended; what it threw, if it threw."
-        ) { interpreter, arguments in
-            let handle = try task(arguments["self"])
+            summary: "What the task gives, once it has ended; what it threw, if it threw.",
+            type: .parameter("Success"),
+            isAsync: true,
+            throwing: .typed(.parameter("Failure"))
+        ) { receiver in
+            let handle = try task(receiver)
             do {
-                return try interpreter.joinTask(handle)
+                return try running().joinTask(handle)
             } catch is Cancelled {
                 // The task, not the one waiting, was cancelled.
                 if case .failure(let error)? = handle.rawResult, error is Cancelled {
@@ -150,68 +125,50 @@ extension Bridge {
                 throw Cancelled()
             }
         },
-        member(.method, "cancel", returns: .void, summary: "Asks the task to stop.") {
-            _,
-            arguments in
-            try task(arguments["self"]).cancel()
+        .method("cancel", summary: "Asks the task to stop.") { receiver, _ in
+            try task(receiver).cancel()
             return .nothing
         },
-        member(
-            .property,
+        .property(
             "isCancelled",
-            returns: .bool,
-            summary: "Whether the task has been asked to stop."
+            summary: "Whether the task has been asked to stop.",
+            type: .bool
+        ) { receiver in
+            .bool(try task(receiver).context.cancellation.isSet)
+        },
+        .staticProperty(
+            "isCancelled",
+            summary: "Whether the task running this has been asked to stop.",
+            type: .bool
         ) {
-            _,
-            arguments in
-            .bool(try task(arguments["self"]).context.cancellation.isSet)
+            .bool(try running().task.cancellation.isSet)
         },
-        member(
-            .property,
-            "isCancelled",
-            isStatic: true,
-            returns: .bool,
-            summary: "Whether the task running this has been asked to stop."
-        ) { interpreter, _ in
-            .bool(interpreter.task.cancellation.isSet)
-        },
-        member(
-            .method,
+        .staticMethod(
             "checkCancellation",
-            isStatic: true,
-            returns: .void,
-            throwing: true,
-            summary: "Throws a CancellationError if the task running this has been asked to stop."
-        ) { interpreter, _ in
-            if interpreter.task.cancellation.isSet { throw cancellationError() }
+            summary: "Throws a CancellationError if the task running this has been asked to stop.",
+            isThrowing: true
+        ) { _ in
+            if try running().task.cancellation.isSet { throw cancellationError() }
             return .nothing
         },
-        member(
-            .method,
+        .staticMethod(
             "sleep",
-            isStatic: true,
-            parameters: [Parameter(label: "nanoseconds", name: "duration", type: .int)],
-            returns: .void,
-            throwing: true,
-            effect: .async,
             summary:
-                "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first."
-        ) { interpreter, arguments in
-            let nanoseconds = try Int(arguments["duration"]!)
-            try interpreter.sleep(
-                until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9)
-            )
+                "Waits for at least the given number of nanoseconds, letting other tasks run; throws a CancellationError if the task is cancelled first.",
+            parameters: [Symbol.Parameter(label: "nanoseconds", name: "duration", type: .int)],
+            isThrowing: true,
+            isAsync: true
+        ) { arguments in
+            let nanoseconds = try Int(arguments[0])
+            try running().sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },
-        member(
-            .method,
+        .staticMethod(
             "yield",
-            isStatic: true,
-            returns: .void,
-            effect: .async,
-            summary: "Lets other tasks run before this one goes on."
-        ) { interpreter, _ in
-            _ = interpreter.suspend { sched_yield() }
+            summary: "Lets other tasks run before this one goes on.",
+            isAsync: true
+        ) { _ in
+            _ = try running().suspend { sched_yield() }
             return .nothing
         },
     ]

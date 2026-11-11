@@ -19,6 +19,9 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
     /// are the type's static members, its initializers and the cases of an enum.
     case metatype(ScriptType)
+    /// A parameter of a function type that the function changes in place, as `reduce(into:)`'s
+    /// closure changes its accumulator: `inout Result`. It appears only as a parameter there.
+    case inOut(ScriptType)
 
     /// An element of a tuple type, labeled or not.
     public struct Element: Sendable, Hashable {
@@ -73,6 +76,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
             "(\(parameters.map(\.description).joined(separator: ", ")))"
                 + (isAsync ? " async" : "") + (isThrowing ? " throws" : "") + " -> \(returns)"
         case .metatype(let type): "\(type).Type"
+        case .inOut(let type): "inout \(type)"
         case .tuple(let elements):
             "("
                 + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }

@@ -45,6 +45,7 @@ extension ScriptType {
             case .someSequence(let element): .named(.sequence, [convert(element)])
             case .void: .tuple([])
             case .metatype(let type): .metatype(convert(type))
+            case .inOut(let type): .inOut(convert(type))
             default: .any
             }
     }
