@@ -4,10 +4,10 @@
 //
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
-//                [--report <left-out.tsv>] [--description] [--inside-swiit]
+//                [--report <left-out.tsv>] [--inside-swiit]
 //
-// By default the output is Swiit's own internal form (`BridgedType`). With `--description` it is
-// the public one, `HostType` and `HostSymbol`, which compiles in any package that imports Swiit.
+// The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
+// package that imports Swiit; with `--inside-swiit` it is a file of Swiit's own, which does not.
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -27,7 +27,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] [--description] [--inside-swiit]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] [--inside-swiit]\n"
                 .utf8
         )
     )
@@ -49,7 +49,6 @@ do {
         case "--manifest" where i + 1 < rest.count: manifestPath = rest[i + 1]; i += 2
         case "--also" where i + 1 < rest.count: otherPlatformPaths.append(rest[i + 1]); i += 2
         case "--report" where i + 1 < rest.count: reportPath = rest[i + 1]; i += 2
-        case "--description": describing = true; i += 1
         case "--inside-swiit": insideSwiit = true; i += 1
         default: extraGraphs.append(rest[i]); i += 1
         }
@@ -92,16 +91,12 @@ struct BridgedModule {
     let list: String
     /// The types, with their generic parameters.
     let types: [(String, [String])]
-    /// The name of the list of free functions the output declares, if it bridges them.
-    let functions: String?
     /// Types of other modules that its signatures use, held as they are.
     let external: [String]
 
-    init(_ list: String, _ types: [(String, [String])], _ functions: String?, _ external: [String])
-    {
+    init(_ list: String, _ types: [(String, [String])], _ external: [String]) {
         self.list = list
         self.types = types
-        self.functions = functions
         self.external = external
     }
 }
@@ -117,7 +112,6 @@ let modules: [String: BridgedModule] = [
             ("Dictionary", ["Key", "Value"]),
             ("Optional", ["Wrapped"]), ("Range", ["Bound"]), ("ClosedRange", ["Bound"]),
         ],
-        nil,
         []
     ),
     // FilePath.Root is left out: the standard library's FilePath (SE-0529)
@@ -125,11 +119,10 @@ let modules: [String: BridgedModule] = [
     "SystemPackage": BridgedModule(
         "system",
         [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])],
-        nil,
         []
     ),
     // Foundation's types Swiit holds as Swift's: a date.
-    "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], nil, []),
+    "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], []),
 ]
 guard let module = modules[graph.module.name] else {
     FileHandle.standardError.write(
@@ -138,7 +131,7 @@ guard let module = modules[graph.module.name] else {
     exit(2)
 }
 let bridgedTypeNames = module.types
-let access = insideSwiit || !describing ? "internal" : "public"
+let access = insideSwiit ? "internal" : "public"
 for symbol in graph.symbols
 where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
@@ -146,132 +139,14 @@ where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count
     var reader = Reader(String(text[equals.upperBound...]))
     if let target = try? reader.type() { topLevelAliases[symbol.pathComponents[0]] = target }
 }
-externalTypes = Set(module.external + module.types.map(\.0))
 for name in module.external where leaves[name] == nil {
-    leaves[name] = Leaf(
-        ".named(\(quoted(name)))",
-        {
-            describing
-                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
-        },
-        {
-            describing
-                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
-                : "SwiftValue.make(\($0), as: \(quoted(name)))"
-        }
-    )
+    leaves[name] = boxedLeaf(name)
 }
 
-/// A public enum or struct of the module is declared in Swiit from its
-/// cases or fields (`standardTypes`, Swiit source read with the prelude).
-/// Results only: a struct is made a record by encoding it, an enum a case
-/// by name. Enums come first, for the structs that have them.
-nonisolated(unsafe) var resultOnly: Set<String> = []  // safe: the generator runs on one thread
-nonisolated(unsafe) var enumNames: Set<String> = []  // safe: the generator runs on one thread
-var typeSources: [String] = []
-// A type the module holds as Swift's (`FileSize`) is known before its structs' fields are read,
-// which may be of it.
-for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
-    leaves[name] = Leaf(
-        ".named(\(quoted(name)))",
-        {
-            describing
-                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
-        },
-        {
-            describing
-                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
-                : "SwiftValue.make(\($0), as: \(quoted(name)))"
-        }
-    )
-}
-do {
-    // The module's own types, and when it's read as another module's
-    // addition, the same: what it adds is known as it is declared.
-    let candidates =
-        module.functions != nil
-        ? graph.symbols : graph.symbols.filter { addedByOthers.contains($0.identifier.precise) }
-    let publicTypes = candidates.filter {
-        $0.pathComponents.count == 1 && $0.accessLevel == "public"
-    }
-    for symbol in publicTypes where symbol.kind.identifier == "swift.enum" {
-        let name = symbol.pathComponents[0]
-        // The styles text is shown in belong to the printers, not to a script.
-        if name == "DisplayStyle" { continue }
-        let cases = publicMembers(of: name, "swift.enum.case")
-        // Cases with associated values would need their payloads bridged.
-        guard !cases.isEmpty,
-            !cases.contains(where: {
-                ($0.declarationFragments ?? []).contains { $0.spelling.contains("(") }
-            })
-        else { continue }
-        let protocols = conformances(of: symbol, among: ["Equatable", "Hashable", "Comparable"])
-        typeSources.append(
-            "\(declaredType(symbol))enum \(name)\(protocols.isEmpty ? "" : ": " + protocols.joined(separator: ", ")) {\n    case \(cases.map { $0.pathComponents[1] }.joined(separator: ", "))\n}"
-        )
-        enumNames.insert(name)
-        // A case is found by name among all of them, so it can be an
-        // argument if the enum lists them; if not, it's a result only.
-        let iterable = !conformances(of: symbol, among: ["CaseIterable"]).isEmpty
-        if !iterable { resultOnly.insert(name) }
-        leaves[name] = Leaf(
-            ".named(\(quoted(name)))",
-            { iterable ? "try Value.Bridging.enumCase(\(name).self, \($0))" : "fatalError()" },
-            { "interpreter.declaredCase(\(quoted(name)), String(describing: \($0)))" }
-        )
-    }
-    for symbol in publicTypes where symbol.kind.identifier == "swift.struct" {
-        let name = symbol.pathComponents[0]
-        // A type the module holds as Swift's and bridges the members of is no record.
-        if module.types.contains(where: { $0.0 == name }) { continue }
-        let protocols = conformances(of: symbol, among: ["Equatable", "Hashable", "Encodable"])
-        guard protocols.contains("Encodable") else { continue }
-        let fields = publicMembers(of: name, "swift.property")
-        var declared: [String] = []
-        var patches: [String] = []
-        for field in fields {
-            let text = (field.declarationFragments ?? []).map(\.spelling).joined()
-            guard let declaration = try? parseDeclaration(text), let type = declaration.returns,
-                let found = fieldType(type)
-            else { break }
-            declared.append("    let \(field.pathComponents[1]): \(found.source)")
-            if let patch = found.patch {
-                patches.append("\(quoted(field.pathComponents[1])): \(patch)")
-            }
-        }
-        guard declared.count == fields.count else {
-            FileHandle.standardError.write(
-                Data("\(name): a field Swiit can't hold; left out\n".utf8)
-            )
-            continue
-        }
-        typeSources.append(
-            "\(declaredType(symbol))struct \(name): \(protocols.joined(separator: ", ")) {\n\(declared.joined(separator: "\n"))\n}"
-        )
-        resultOnly.insert(name)
-        let patchesCode = patches.isEmpty ? "" : ", patches: [\(patches.joined(separator: ", "))]"
-        leaves[name] = Leaf(
-            ".named(\(quoted(name)))",
-            { _ in fatalError("a record is a result, not an argument") },
-            { "Value.Bridging.record(interpreter, \($0)\(patchesCode))" }
-        )
-    }
-}
 // Other types that aren't generic, Swiit having no value of its own for
 // them (Character, FilePath), are held as they are, boxed.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
-    leaves[name] = Leaf(
-        ".named(\(quoted(name)))",
-        {
-            describing
-                ? "try \($0).unboxing(\(name).self)" : "try SwiftValue.unbox(\(name).self, \($0))"
-        },
-        {
-            describing
-                ? "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))"
-                : "SwiftValue.make(\($0), as: \(quoted(name)))"
-        }
-    )
+    leaves[name] = boxedLeaf(name)
 }
 /// Members Swiit has its own way: the textual form of the types it
 /// formats, and a dictionary's keys and values, which are arrays rather
@@ -356,8 +231,9 @@ var output = """
     // Don't edit: the bridge generator (swiit-bridge) remakes it.
     import Foundation
     \(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
-    \(describing ? "\(insideSwiit ? "" : "import Swiit\n")\n\(access) enum \(module.list.prefix(1).uppercased() + module.list.dropFirst())Bridge {" : "extension Bridge {")
-    \(module.types.isEmpty ? "" : describing ? "    \(access) static let types: [HostType] = [\n" : "    \(access) nonisolated(unsafe) static let \(module.list): [BridgedType] = [\n")
+    \(insideSwiit ? "" : "import Swiit\n")
+    \(access) enum \(module.list.prefix(1).uppercased() + module.list.dropFirst())Bridge {
+    \(module.types.isEmpty ? "" : "    \(access) static let types: [HostType] = [\n")
 
     """
 var skipped: [String: Int] = [:]
@@ -377,7 +253,7 @@ nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append(
-        "    \(describing ? "" : "nonisolated(unsafe) ")private static let \(name): \(describing ? "HostSymbol" : "BridgedMember") = \(expression)\n"
+        "    private static let \(name): HostSymbol = \(expression)\n"
     )
     return name
 }
@@ -459,7 +335,7 @@ for (name, _) in bridgedTypeNames {
         }
         do {
             let bridged = try bridge(symbol, of: owner, given: conditions)
-            let (key, shape, codes) = (bridged.key, bridged.shape, bridged.codes)
+            let (key, shape) = (bridged.key, bridged.shape)
             // What another module adds is an overload, not a default.
             if index >= ownCount, bridgedShapes.contains(shape),
                 !addedByOthers.contains(symbol.identifier.precise)
@@ -468,7 +344,7 @@ for (name, _) in bridgedTypeNames {
             }
             guard seen.insert(key).inserted else { continue }
             if index < ownCount { bridgedShapes.insert(shape) }
-            members.append(contentsOf: codes.map(declare))
+            members.append(declare(bridged.code))
             counts[name, default: 0] += 1
         } catch let unsupported as Unsupported {
             // SWIIT_BRIDGE_DEBUG=Set: why each of a type's members is left out.
@@ -483,19 +359,6 @@ for (name, _) in bridgedTypeNames {
         }
     }
     let context = Context(owner: owner, generics: Set(owner.genericParameters))
-    let associated = owner.associated
-        .compactMap { key, value -> String? in
-            guard let resolved = resolve(value, context),
-                supported(resolved, generics: context.generics, asParameter: false)
-            else { return nil }
-            return "\(quoted(key)): \(annotation(resolved))"
-        }
-        .sorted()
-    let conformances = owner.conformances.sorted { $0.key < $1.key }
-        .map { proto, needs in
-            let needsCode = genericParametersCode(needs)
-            return "\(quoted(proto)): \(needsCode)"
-        }
     // Text as one of these, from the type's own declarations. `parse`: a
     // failable initializer from text, which can say no (Int, Bool, Double).
     // `literal`: Swift's rules for text literals (String, Character,
@@ -530,7 +393,7 @@ for (name, _) in bridgedTypeNames {
                 "{ Value.Bridging.textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
         }
     }
-    if describing {
+    do {
         let typeName = "type\(declarations.count)"
         let associatedTypes = owner.associated
             .compactMap { key, value -> String? in
@@ -558,54 +421,9 @@ for (name, _) in bridgedTypeNames {
             """
         )
         output += "        \(typeName),\n"
-        continue
     }
-    output += """
-                BridgedType(
-                    name: \(quoted(name)), genericParameters: [\(owner.parameters.map(quoted).joined(separator: ", "))],
-                    conformances: [\(conformances.isEmpty ? ":" : conformances.joined(separator: ", "))],
-                    associatedTypes: [\(associated.isEmpty ? ":" : associated.joined(separator: ", "))],
-                    parse: \(parse), literal: \(literal), arrayLiteral: \(arrayLiteral),
-                    members: [
-                        \(members.joined(separator: ", "))
-                    ]
-                ),
-
-        """
 }
 if !module.types.isEmpty { output += "    ]\n" }
-if let list = module.functions {
-    output += "    /// The module's structs, as Swiit source: declared with the prelude.\n"
-    // What the module is called in the names of its tables: `standard` for
-    // `standardFunctions`.
-    let prefix = String(list.dropLast("Functions".count))
-    output +=
-        "    \(access) static let \(prefix)Types = #\"\"\"\n"
-        + typeSources.joined(separator: "\n\n") + "\n\"\"\"#\n\n"
-    var functions: [String] = []
-    for symbol in graph.symbols
-    where symbol.kind.identifier == "swift.func" && symbol.pathComponents.count == 1
-        && symbol.accessLevel == "public" && available(symbol)
-    {
-        do {
-            let bridged = try bridge(symbol, of: BridgedType(name: "", parameters: []), free: true)
-            functions += bridged.codes.map(declare)
-        } catch let unsupported as Unsupported {
-            FileHandle.standardError.write(
-                Data("\(symbol.pathComponents[0]): \(unsupported.reason)\n".utf8)
-            )
-            leftOut.append(
-                LeftOut(
-                    reason: unsupported.reason,
-                    owner: "(free function)",
-                    member: symbol.pathComponents[0]
-                )
-            )
-        }
-    }
-    output +=
-        "    \(access) nonisolated(unsafe) static let \(list): [BridgedMember] = [\(functions.joined(separator: ", "))]\n"
-}
 output += declarations.joined(separator: "\n") + "}\n"
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)
 if let manifestPath {

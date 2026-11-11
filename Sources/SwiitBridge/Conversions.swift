@@ -1,32 +1,5 @@
 import Foundation
 
-func annotation(_ type: SType) -> String {
-    switch type {
-    case .named(let name, []): return leaves[name]?.annotation ?? ".parameter(\(quoted(name)))"
-    case .named("KeyPath", let arguments) where arguments.count == 2:
-        return ".keyPath(\(annotation(arguments[0])), \(annotation(arguments[1])))"
-    case .named(let name, let arguments):
-        return ".generic(\(quoted(name)), [\(arguments.map(annotation).joined(separator: ", "))])"
-    case .array(let element): return ".list(\(annotation(element)))"
-    case .optional(let wrapped): return ".optional(\(annotation(wrapped)))"
-    case .dictionary(let key, let value):
-        return ".dictionary(\(annotation(key)), \(annotation(value)))"
-    case .someSequence(let element): return ".someSequence(\(annotation(element)))"
-    case .tuple(let elements):
-        if elements.isEmpty { return ".void" }
-        return ".tuple(["
-            + elements.map {
-                ".init(label: \($0.label.map(quoted) ?? "nil"), type: \(annotation($0.type)))"
-            }
-            .joined(separator: ", ") + "])"
-    case .function(let parameters, let result, let throwing, let isAsync):
-        return
-            ".functionType([\(parameters.map(annotation).joined(separator: ", "))], \(annotation(result)), throws: \(throwing)"
-            + (isAsync ? ", async: .async)" : ")")
-    case .member: fatalError("unsupported \(type)")
-    }
-}
-
 /// How Swift spells `type`, with Swiit's values for generic parameters.
 func spelling(_ type: SType) -> String {
     switch type {
@@ -67,10 +40,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
     case .named("KeyPath", let arguments) where arguments.count == 2:
         return "try Value.Bridging.keyPath(\(value))"
     case .named(let name, let arguments):
-        let box =
-            describing
-            ? "try \(value).unboxing(\(canonical(name, arguments)).self)"
-            : "try SwiftValue.unbox(\(canonical(name, arguments)).self, \(value))"
+        let box = "try \(value).unboxing(\(canonical(name, arguments)).self)"
         guard arguments.contains(where: isLeaf) else { return box }
         switch name {
         case "Range", "ClosedRange":
@@ -135,9 +105,7 @@ func toValue(_ swift: String, _ type: SType) -> String {
     case .named(let name, let arguments):
         let typeName = quoted(name)
         guard arguments.contains(where: isLeaf) else {
-            return describing
-                ? "Value(boxing: \(swift), as: .init(hostType: \(typeName)))"
-                : "SwiftValue.make(\(swift), as: \(typeName))"
+            return "Value(boxing: \(swift), as: .init(hostType: \(typeName)))"
         }
         let bound = arguments[0]
         switch name {
@@ -149,9 +117,10 @@ func toValue(_ swift: String, _ type: SType) -> String {
                 "Value.Bridging.box(\(swift), as: .init(hostType: \(typeName))) { \(canonical(name, arguments))($0.map { \(toValue("$0", bound)) }) }"
         }
     case .array(let element):
-        let list = describing ? "Value(list: " : ".list("
-        if case .named(let name, []) = element, leaves[name] == nil { return "\(list)\(swift))" }
-        return "\(list)\(swift).map { \(toValue("$0", element)) })"
+        if case .named(let name, []) = element, leaves[name] == nil {
+            return "Value(list: \(swift))"
+        }
+        return "Value(list: \(swift).map { \(toValue("$0", element)) })"
     case .optional(let wrapped): return "(\(swift).map { \(toValue("$0", wrapped)) } ?? .nothing)"
     case .dictionary(let key, let value):
         // In the receiver's order, as far as it goes.

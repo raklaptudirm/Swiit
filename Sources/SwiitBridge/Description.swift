@@ -1,11 +1,7 @@
 import Foundation
 
-// The output as a public description (`HostType` and `HostSymbol`), which compiles in any package
-// that imports Swiit, in place of the internal `BridgedType` form (`--description`).
-
-/// Whether the output is the description. Read where the two forms differ: the conversions, the
-/// types in a signature and the member itself.
-nonisolated(unsafe) var describing = false  // safe: the generator runs on one thread
+// The output: a description of the types (`HostType` and `HostSymbol`), which compiles in any
+// package that imports Swiit.
 
 /// `--inside-swiit`: the output is a file of Swiit's own, which does not import it and is not public.
 nonisolated(unsafe) var insideSwiit = false  // safe: the generator runs on one thread

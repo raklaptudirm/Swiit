@@ -4,28 +4,29 @@ import Foundation
 
 /// Swiit's own values, and how Swift's are held in them.
 struct Leaf {
-    /// The Swiit type, as the generated source spells it (`.int`, `.named("Date")`).
-    let annotation: String
     /// The Swift to make the Swift value from a Swiit `Value`, and the reverse.
     let from: (String) -> String
     let to: (String) -> String
 
-    init(
-        _ annotation: String,
-        _ from: @escaping (String) -> String,
-        _ to: @escaping (String) -> String
-    ) {
-        self.annotation = annotation
+    init(_ from: @escaping (String) -> String, _ to: @escaping (String) -> String) {
         self.from = from
         self.to = to
     }
 }
 
+/// A Swift type Swiit holds as it is, boxed: a `Date`, a `FilePath`.
+func boxedLeaf(_ name: String) -> Leaf {
+    Leaf(
+        { "try \($0).unboxing(\(name).self)" },
+        { "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))" }
+    )
+}
+
 nonisolated(unsafe) var leaves: [String: Leaf] = [  // safe: the generator runs on one thread
-    "Int": Leaf(".int", { "try Int(\($0))" }, { "\($0).value" }),
-    "Double": Leaf(".double", { "try Double(\($0))" }, { "\($0).value" }),
-    "Bool": Leaf(".bool", { "try Bool(\($0))" }, { "\($0).value" }),
-    "String": Leaf(".string", { "try String(\($0))" }, { "\($0).value" }),
+    "Int": Leaf({ "try Int(\($0))" }, { "\($0).value" }),
+    "Double": Leaf({ "try Double(\($0))" }, { "\($0).value" }),
+    "Bool": Leaf({ "try Bool(\($0))" }, { "\($0).value" }),
+    "String": Leaf({ "try String(\($0))" }, { "\($0).value" }),
 ]
 
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which
