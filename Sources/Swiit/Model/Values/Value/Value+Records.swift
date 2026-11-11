@@ -210,30 +210,4 @@ extension Value {
         default: nil
         }
     }
-
-    /// A described function as a value, for a host object's method to give: `.function(...)` of its
-    /// own making.
-    public init(_ function: HostSymbol) {
-        precondition(
-            function.function != nil,
-            "\(function.name) is a member of a type, not a function"
-        )
-        self = .function(NativeFunction(function))
-    }
-
-    /// A key path: `Value(keyPath: ["owner", "name"])` is `\.owner.name`, which reads the members
-    /// in turn from a value and is a function of it where one is wanted, as in `xs.map(\.name)`.
-    public init(keyPath path: [String]) {
-        self = .function(KeyPathValue(path: path))
-    }
-
-    /// Any `Encodable` as a value: a struct, a list, a string. A struct is of a host type named for
-    /// its Swift type, or of `type` if one is given.
-    public init(encoding value: some Encodable, as type: Symbol.ID? = nil) throws {
-        self = try ValueEncoder().encode(value)
-        if let type, var record = record {
-            record.typeID = type
-            self = Value(record: record)
-        }
-    }
 }

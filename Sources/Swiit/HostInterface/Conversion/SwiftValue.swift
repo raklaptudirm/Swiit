@@ -79,7 +79,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its stat
 
     /// What equality and hashing go by: the value, when it is `Hashable`; the instance, for a class;
     /// else this box.
-    var identity: AnyHashable {
+    var objectIdentity: AnyHashable {
         if let hashable = value as? any Hashable { return AnyHashable(hashable) }
         if type(of: value) is AnyObject.Type {
             return AnyHashable(ObjectIdentifier(value as AnyObject))

@@ -28,17 +28,6 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
             self.label = label
             self.type = type
         }
-
-        /// An element of a Swift type: `Element(label: "by", type: String.self)`.
-        public init<T: ScriptConvertible>(label: String? = nil, type: T.Type) {
-            self.init(label: label, type: ScriptType(type))
-        }
-    }
-
-    /// The type of a Swift type a script can use: `ScriptType(Int.self)`,
-    /// `ScriptType([String].self)`; any `ScriptConvertible`.
-    public init<T: ScriptConvertible>(_ type: T.Type) {
-        self = T.scriptType
     }
 
     public static let any = ScriptType.named(.any)
