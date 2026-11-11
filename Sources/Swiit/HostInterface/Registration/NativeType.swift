@@ -1,22 +1,29 @@
 import Foundation
 
-/// What `HostTypeBuilder` writes and `register` makes a type of: a name and its members, and what
-/// its Swift type says of itself.
-struct HostType: Sendable {
-    var name: String
-    var members: [HostSymbol]
-    /// The protocols its Swift type conforms to, of those Swiit knows: `Equatable`, `Hashable`,
-    /// `Comparable`, `Sequence`. A builder finds them from the type.
-    var conformances: [String] = []
+/// What a host says of a type it offers scripts: a name and its members, and what its Swift type
+/// says of itself. Written with ``Builder`` for a Swift type, or by hand for one a generator
+/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(HostType)``.
+public struct HostType: Sendable {
+    public var name: String
+    /// A generic type's parameters, `Element` for an array, each with what it must be.
+    public var genericParameters: [Symbol.GenericParameter] = []
+    public var members: [HostSymbol]
+    /// The protocols its Swift type conforms to, of those Swiit knows (`Equatable`, `Hashable`,
+    /// `Comparable`, `Sequence`), each with what its generic parameters must be for it: a
+    /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`. A builder finds them from the type.
+    public var conformances: [String: [Symbol.GenericParameter]] = [:]
     /// What its associated types are: `Element` is `String` for a sequence of text.
-    var associatedTypes: [String: ScriptType] = [:]
+    public var associatedTypes: [String: ScriptType] = [:]
     /// A value from text, where text gives a word and the type is wanted.
-    var parse: (@Sendable (String) -> Value?)?
+    public var parse: (@Sendable (String) -> Value?)?
     /// A value from a text literal, where a script writes `"…"` and the type is wanted
     /// (`let column: DisplayColumn = "name"`).
-    var literal: (@Sendable (String) -> Value?)?
+    public var literal: (@Sendable (String) -> Value?)?
+    /// A value from items, for a collection an array literal can be, which is what a parameter
+    /// given several words gets.
+    public var arrayLiteral: (@Sendable ([Value]) -> Value)?
 
-    init(name: String, members: [HostSymbol] = []) {
+    public init(name: String, members: [HostSymbol] = []) {
         self.name = name
         self.members = members
     }
@@ -39,7 +46,7 @@ extension Interpreter {
     /// lacks. It gives the type's ID, which is `Symbol.ID(hostType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
-    public func register<T>(_ builder: HostTypeBuilder<T>) -> Symbol.ID { register(builder.type) }
+    public func register<T>(_ builder: HostType.Builder<T>) -> Symbol.ID { register(builder.type) }
 
     /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
     /// registering a function or a type that takes or gives one does: for an enum that a
@@ -55,11 +62,11 @@ extension Interpreter {
     }
 
     @discardableResult
-    func register(_ type: HostType) -> Symbol.ID {
+    public func register(_ type: HostType) -> Symbol.ID {
         var bridged = BridgedType(type)
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
-        if type.conformances.contains("Sequence"), let element = type.associatedTypes["Element"] {
+        if type.conformances["Sequence"] != nil, let element = type.associatedTypes["Element"] {
             bridged = bridged.adding(
                 itemMembers(
                     of: TypeAnnotation(element),
@@ -140,12 +147,12 @@ extension BridgedType {
     init(_ type: HostType) {
         self.init(
             name: type.name,
-            genericParameters: [],
-            conformances: Dictionary(uniqueKeysWithValues: type.conformances.map { ($0, []) }),
+            genericParameters: type.genericParameters.map(\.name),
+            conformances: type.conformances,
             associatedTypes: type.associatedTypes.mapValues(TypeAnnotation.init),
             parse: type.parse,
             literal: type.literal,
-            arrayLiteral: nil,
+            arrayLiteral: type.arrayLiteral,
             members: type.members.flatMap { BridgedMember.members(of: $0, in: type.name) }
         )
     }
@@ -328,200 +335,204 @@ extension BridgedMember {
 /// Members are key paths and method references, so each one's types are the compiler's and none is
 /// spelled twice; `member(_:)` takes what those cannot say.
 ///
-///     interpreter.register(HostTypeBuilder<URL>()
+///     interpreter.register(HostType.Builder<URL>()
 ///         .property("host", \.host)
 ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
-public struct HostTypeBuilder<T: Sendable>: Sendable {
-    private(set) var type: HostType
+extension HostType {
+    public struct Builder<T: Sendable>: Sendable {
+        private(set) var type: HostType
 
-    /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
-    /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
-    /// `Element`), `Encodable` and `CustomStringConvertible`, a word of text that is one
-    /// (`LosslessStringConvertible`), and a string literal that is one
-    /// (`ExpressibleByStringLiteral`).
-    public init(_ name: String? = nil) {
-        let name = name ?? String(describing: T.self)
-        self.type = HostType(name: name)
-        type.conformances = Self.conformances()
-        if let element = Self.sequenceElement() {
-            type.associatedTypes["Element"] = element
-        }
-        type.parse = Self.parser(named: name)
-        type.literal = Self.literalMaker(named: name)
-    }
-
-    private static func conformances() -> [String] {
-        var found: [String] = []
-        if T.self is any Equatable.Type { found.append("Equatable") }
-        if T.self is any Hashable.Type { found.append("Hashable") }
-        if T.self is any Comparable.Type { found.append("Comparable") }
-        if T.self is any Sequence.Type { found.append("Sequence") }
-        if T.self is any Encodable.Type { found.append("Encodable") }
-        if T.self is any CustomStringConvertible.Type {
-            found.append("CustomStringConvertible")
-        }
-        if T.self is any ExpressibleByStringLiteral.Type {
-            found.append("ExpressibleByStringLiteral")
-        }
-        return found
-    }
-
-    private static func sequenceElement() -> ScriptType? {
-        func element<S: Sequence>(_: S.Type) -> ScriptType {
-            (S.Element.self as? any ScriptConvertible.Type)?.scriptType ?? .any
-        }
-        guard let sequence = T.self as? any Sequence.Type else { return nil }
-        return element(sequence)
-    }
-
-    private static func parser(named name: String) -> (@Sendable (String) -> Value?)? {
-        func parser<L: LosslessStringConvertible>(_: L.Type) -> @Sendable (String) -> Value? {
-            { text in L(text).map { box($0 as! T, as: name) } }
-        }
-        guard let lossless = T.self as? any LosslessStringConvertible.Type else { return nil }
-        return parser(lossless)
-    }
-
-    private static func literalMaker(named name: String) -> (@Sendable (String) -> Value?)? {
-        func maker<L: ExpressibleByStringLiteral>(_: L.Type) -> @Sendable (String) -> Value? {
-            { text in
-                (text as? L.StringLiteralType).map { box(L(stringLiteral: $0) as! T, as: name) }
+        /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
+        /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
+        /// `Element`), `Encodable` and `CustomStringConvertible`, a word of text that is one
+        /// (`LosslessStringConvertible`), and a string literal that is one
+        /// (`ExpressibleByStringLiteral`).
+        public init(_ name: String? = nil) {
+            let name = name ?? String(describing: T.self)
+            self.type = HostType(name: name)
+            type.conformances = Dictionary(
+                uniqueKeysWithValues: Self.conformances().map { ($0, []) }
+            )
+            if let element = Self.sequenceElement() {
+                type.associatedTypes["Element"] = element
             }
+            type.parse = Self.parser(named: name)
+            type.literal = Self.literalMaker(named: name)
         }
-        guard let literal = T.self as? any ExpressibleByStringLiteral.Type else { return nil }
-        return maker(literal)
-    }
 
-    fileprivate static func box(_ value: T, as name: String) -> Value {
-        return SwiftValue.make(value, as: name)
-    }
-
-    /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
-    /// declares them, as registering a function does.
-    private func adding(
-        _ member: HostSymbol,
-        enums: [Value.EnumCase.Enumeration] = []
-    ) -> HostTypeBuilder {
-        var copy = self
-        var member = member
-        member.enums += enums
-        copy.type.members.append(member)
-        return copy
-    }
-
-    /// A member written by hand, for what a key path or a method reference cannot say, such as
-    /// an `async` method: made with `HostSymbol`'s `.method`, `.property` and the rest. A
-    /// function is not a member, and is registered on its own.
-    public func member(_ symbol: HostSymbol) -> HostTypeBuilder {
-        guard symbol.function == nil else {
-            preconditionFailure("\(symbol.name) is a function, not a member of \(type.name)")
+        private static func conformances() -> [String] {
+            var found: [String] = []
+            if T.self is any Equatable.Type { found.append("Equatable") }
+            if T.self is any Hashable.Type { found.append("Hashable") }
+            if T.self is any Comparable.Type { found.append("Comparable") }
+            if T.self is any Sequence.Type { found.append("Sequence") }
+            if T.self is any Encodable.Type { found.append("Encodable") }
+            if T.self is any CustomStringConvertible.Type {
+                found.append("CustomStringConvertible")
+            }
+            if T.self is any ExpressibleByStringLiteral.Type {
+                found.append("ExpressibleByStringLiteral")
+            }
+            return found
         }
-        return adding(symbol)
-    }
 
-    /// A property that reads a key path: `.property("host", \.host)`.
-    public func property<V: ScriptConvertible>(
-        _ name: String,
-        _ keyPath: any KeyPath<T, V> & Sendable
-    ) -> HostTypeBuilder {
-        adding(
-            .property(name, type: V.scriptType) {
-                try $0.unboxing(T.self)[keyPath: keyPath].value
-            },
-            enums: V.swiitEnums
-        )
-    }
+        private static func sequenceElement() -> ScriptType? {
+            func element<S: Sequence>(_: S.Type) -> ScriptType {
+                (S.Element.self as? any ScriptConvertible.Type)?.scriptType ?? .any
+            }
+            guard let sequence = T.self as? any Sequence.Type else { return nil }
+            return element(sequence)
+        }
 
-    /// A method, as a reference to it:
-    /// `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
-    public func method<each Argument: ScriptConvertible, Result: ScriptConvertible>(
-        _ name: String,
-        labels: [String?] = [],
-        throwing: Bool = false,
-        _ function: @escaping @Sendable (T) -> (repeat each Argument) throws -> Result
-    ) -> HostTypeBuilder {
-        adding(
-            .method(
-                name,
-                parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
-                returns: Result.scriptType,
-                isThrowing: throwing
-            ) { receiver, arguments in
-                var index = 0
-                func next() -> Value { defer { index += 1 }; return arguments[index] }
-                return try function(receiver.unboxing(T.self))(
-                    repeat try (each Argument)(next())
-                )
-                .value
-            },
-            enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
-        )
-    }
+        private static func parser(named name: String) -> (@Sendable (String) -> Value?)? {
+            func parser<L: LosslessStringConvertible>(_: L.Type) -> @Sendable (String) -> Value? {
+                { text in L(text).map { box($0 as! T, as: name) } }
+            }
+            guard let lossless = T.self as? any LosslessStringConvertible.Type else { return nil }
+            return parser(lossless)
+        }
 
-    /// A function of the type itself: `.static("now", Date.init)`.
-    public func `static`<each Argument: ScriptConvertible, Result: ScriptConvertible>(
-        _ name: String,
-        labels: [String?] = [],
-        throwing: Bool = false,
-        _ function: @escaping @Sendable (repeat each Argument) throws -> Result
-    ) -> HostTypeBuilder {
-        adding(
-            .staticMethod(
-                name,
-                parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
-                returns: Result.scriptType,
-                isThrowing: throwing
-            ) { arguments in
-                var index = 0
-                func next() -> Value { defer { index += 1 }; return arguments[index] }
-                return try function(repeat try (each Argument)(next())).value
-            },
-            enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
-        )
-    }
+        private static func literalMaker(named name: String) -> (@Sendable (String) -> Value?)? {
+            func maker<L: ExpressibleByStringLiteral>(_: L.Type) -> @Sendable (String) -> Value? {
+                { text in
+                    (text as? L.StringLiteralType).map { box(L(stringLiteral: $0) as! T, as: name) }
+                }
+            }
+            guard let literal = T.self as? any ExpressibleByStringLiteral.Type else { return nil }
+            return maker(literal)
+        }
 
-    /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
-    public func initializer<each Argument: ScriptConvertible>(
-        labels: [String?] = [],
-        throwing: Bool = false,
-        _ make: @escaping @Sendable (repeat each Argument) throws -> T
-    ) -> HostTypeBuilder {
-        let name = type.name
-        return adding(
-            .initializer(
-                parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
-                returns: .named(.host(name)),
-                isThrowing: throwing
-            ) { arguments in
-                var index = 0
-                func next() -> Value { defer { index += 1 }; return arguments[index] }
-                return Self.box(try make(repeat try (each Argument)(next())), as: name)
-            },
-            enums: HostSymbol.enums(repeat (each Argument).self)
-        )
-    }
+        fileprivate static func box(_ value: T, as name: String) -> Value {
+            return SwiftValue.make(value, as: name)
+        }
 
-    /// An initializer that can fail, which a script sees as one that gives an optional:
-    /// `.failableInitializer(URL.init(string:))`.
-    public func failableInitializer<each Argument: ScriptConvertible>(
-        labels: [String?] = [],
-        throwing: Bool = false,
-        _ make: @escaping @Sendable (repeat each Argument) throws -> T?
-    ) -> HostTypeBuilder {
-        let name = type.name
-        return adding(
-            .initializer(
-                parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
-                returns: .named(.optional, [.named(.host(name))]),
-                isThrowing: throwing
-            ) { arguments in
-                var index = 0
-                func next() -> Value { defer { index += 1 }; return arguments[index] }
-                return try make(repeat try (each Argument)(next()))
-                    .map { Self.box($0, as: name) } ?? .nothing
-            },
-            enums: HostSymbol.enums(repeat (each Argument).self)
-        )
+        /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
+        /// declares them, as registering a function does.
+        private func adding(
+            _ member: HostSymbol,
+            enums: [Value.EnumCase.Enumeration] = []
+        ) -> Builder {
+            var copy = self
+            var member = member
+            member.enums += enums
+            copy.type.members.append(member)
+            return copy
+        }
+
+        /// A member written by hand, for what a key path or a method reference cannot say, such as
+        /// an `async` method: made with `HostSymbol`'s `.method`, `.property` and the rest. A
+        /// function is not a member, and is registered on its own.
+        public func member(_ symbol: HostSymbol) -> Builder {
+            guard symbol.function == nil else {
+                preconditionFailure("\(symbol.name) is a function, not a member of \(type.name)")
+            }
+            return adding(symbol)
+        }
+
+        /// A property that reads a key path: `.property("host", \.host)`.
+        public func property<V: ScriptConvertible>(
+            _ name: String,
+            _ keyPath: any KeyPath<T, V> & Sendable
+        ) -> Builder {
+            adding(
+                .property(name, type: V.scriptType) {
+                    try $0.unboxing(T.self)[keyPath: keyPath].value
+                },
+                enums: V.swiitEnums
+            )
+        }
+
+        /// A method, as a reference to it:
+        /// `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
+        public func method<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+            _ name: String,
+            labels: [String?] = [],
+            throwing: Bool = false,
+            _ function: @escaping @Sendable (T) -> (repeat each Argument) throws -> Result
+        ) -> Builder {
+            adding(
+                .method(
+                    name,
+                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    returns: Result.scriptType,
+                    isThrowing: throwing
+                ) { receiver, arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try function(receiver.unboxing(T.self))(
+                        repeat try (each Argument)(next())
+                    )
+                    .value
+                },
+                enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+            )
+        }
+
+        /// A function of the type itself: `.static("now", Date.init)`.
+        public func `static`<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+            _ name: String,
+            labels: [String?] = [],
+            throwing: Bool = false,
+            _ function: @escaping @Sendable (repeat each Argument) throws -> Result
+        ) -> Builder {
+            adding(
+                .staticMethod(
+                    name,
+                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    returns: Result.scriptType,
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try function(repeat try (each Argument)(next())).value
+                },
+                enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+            )
+        }
+
+        /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
+        public func initializer<each Argument: ScriptConvertible>(
+            labels: [String?] = [],
+            throwing: Bool = false,
+            _ make: @escaping @Sendable (repeat each Argument) throws -> T
+        ) -> Builder {
+            let name = type.name
+            return adding(
+                .initializer(
+                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    returns: .named(.host(name)),
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return Self.box(try make(repeat try (each Argument)(next())), as: name)
+                },
+                enums: HostSymbol.enums(repeat (each Argument).self)
+            )
+        }
+
+        /// An initializer that can fail, which a script sees as one that gives an optional:
+        /// `.failableInitializer(URL.init(string:))`.
+        public func failableInitializer<each Argument: ScriptConvertible>(
+            labels: [String?] = [],
+            throwing: Bool = false,
+            _ make: @escaping @Sendable (repeat each Argument) throws -> T?
+        ) -> Builder {
+            let name = type.name
+            return adding(
+                .initializer(
+                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    returns: .named(.optional, [.named(.host(name))]),
+                    isThrowing: throwing
+                ) { arguments in
+                    var index = 0
+                    func next() -> Value { defer { index += 1 }; return arguments[index] }
+                    return try make(repeat try (each Argument)(next()))
+                        .map { Self.box($0, as: name) } ?? .nothing
+                },
+                enums: HostSymbol.enums(repeat (each Argument).self)
+            )
+        }
     }
 }
 

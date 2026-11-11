@@ -40,6 +40,10 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// A function whose signature is not said.
     public static let callable = ScriptType.named(.function)
 
+    /// A generic parameter of the declaration the type is written in: `Element` in
+    /// `func first() -> Element`.
+    public static func parameter(_ name: String) -> ScriptType { .named(.parameter(name)) }
+
     /// `[Element]`, which is `Array<Element>`.
     public static func list(_ element: ScriptType) -> ScriptType { .named(.array, [element]) }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.

@@ -20,7 +20,7 @@
 ### Registering functions, types and globals
 
 - ``register(_:)-(HostSymbol)``
-- ``register(_:)-(HostTypeBuilder<T>)``
+- ``register(_:)-(HostType.Builder<T>)``
 - ``register(_:)-(E.Type)``
 - ``register(_:labels:throwing:_:)-f2lx``
 - ``register(_:labels:throwing:_:)-29d7d``

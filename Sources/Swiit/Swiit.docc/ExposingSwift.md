@@ -11,7 +11,7 @@ parameter types are only known at run time, build a ``HostSymbol`` with ``HostSy
 
 ## Register a Swift value type
 
-``HostTypeBuilder`` makes a Swift value type, such as `URL` or a file size, usable in scripts without declaring it in Swift source. A script can
+``HostType/Builder`` makes a Swift value type, such as `URL` or a file size, usable in scripts without declaring it in Swift source. A script can
 store it, compare it with `==` and `<`, hash it, and call the members you register. The checker validates those calls before the script runs. A
 piece of text becomes a value of the type through its `parse` function.
 
@@ -23,7 +23,7 @@ that only declarations in Swift source name is registered on its own, with `regi
 ## Hand scripts a live object
 
 A class that conforms to ``ScriptConvertible`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
-the ones its ``HostTypeBuilder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
+the ones its ``HostType/Builder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
 ``ScriptConvertible/memberNames`` and ``ScriptConvertible/member(_:)``: a parsed object's keys, a job's fields.
 
 ## Declare types and functions in Swift

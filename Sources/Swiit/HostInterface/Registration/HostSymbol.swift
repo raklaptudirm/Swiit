@@ -1,6 +1,6 @@
 import Foundation
 
-/// What a host offers a script: a function, or a member of a type (`HostTypeBuilder`). It is what a script
+/// What a host offers a script: a function, or a member of a type (`HostType.Builder`). It is what a script
 /// sees, as a `Symbol` (its name, summary, signature and attributes, which `Interpreter.globals(named:)` says
 /// of it as they are), and the Swift that runs when it is used.
 ///

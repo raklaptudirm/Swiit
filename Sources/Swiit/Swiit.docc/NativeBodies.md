@@ -5,7 +5,7 @@ The promises Swiit makes to the Swift code it runs on a script's behalf.
 ## Overview
 
 A script runs inside the interpreter, and sometimes the interpreter runs Swift: the body of a ``HostSymbol`` (a function, or a member of a
-type written with ``HostTypeBuilder``), a closure given to ``Interpreter/register(_:labels:throwing:_:)-f2lx``, or a body that
+type written with ``HostType/Builder``), a closure given to ``Interpreter/register(_:labels:throwing:_:)-f2lx``, or a body that
 ``Interpreter/declare(_:bodies:)`` pairs with a declaration. This article is what such a body may assume. It is a contract, not a description
 of how the evaluator happens to work today: an evaluator that replaces the present one keeps every promise here, or the change says it does
 not.
@@ -64,5 +64,5 @@ it was before the call. A property a script assigns is the same: its setter is g
 ## What is registered, and for how long
 
 A function registered on an interpreter, or declared with ``Interpreter/declare(_:bodies:)``, belongs to that interpreter. The members of a type
-written with ``HostTypeBuilder`` belong to the process: they are registered by the type's name and shared by every interpreter, so such a
+written with ``HostType/Builder`` belong to the process: they are registered by the type's name and shared by every interpreter, so such a
 body does not capture one interpreter. It finds the interpreter that is calling it by being handed the receiver's value, not by holding one.

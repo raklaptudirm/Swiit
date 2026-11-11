@@ -214,7 +214,7 @@ private struct Failure: Encodable { var code: Int }
     swiit.register(computed: "clock", type: .int) { Value(7) }
     // A handle is awaited by its `async` member, as Swift says it.
     swiit.register(
-        HostTypeBuilder<Handle>("Handle")
+        HostType.Builder<Handle>("Handle")
             .member(
                 .method("wait", returns: .int, isAsync: true) { receiver, _ in
                     guard let handle = try? Handle(receiver) else {

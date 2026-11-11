@@ -32,7 +32,7 @@ private final class Node: ScriptConvertible, CustomStringConvertible, @unchecked
     func shout() -> String { label.uppercased() }
 
     static let scriptTypeID = Symbol.ID(hostType: "Node")
-    static let type = HostTypeBuilder<Node>("Node")
+    static let type = HostType.Builder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
 }
@@ -154,7 +154,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
     // function that takes one does.
     let swiit = interpreter()
     swiit.register(
-        HostTypeBuilder<Swatch>()
+        HostType.Builder<Swatch>()
             .property("shade", \.shade)
             .method("flipped", Swatch.flipped)
     )
@@ -182,7 +182,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
 @Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
     let swiit = interpreter()
     swiit.register(
-        HostTypeBuilder<URL>()
+        HostType.Builder<URL>()
             .property("host", \.host)
             .property("path", \.path)
             .method("appending", labels: [nil], URL.appendingPathComponent(_:))
@@ -198,7 +198,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
     let swiit = interpreter()
     swiit.register(
-        HostTypeBuilder<Bytes>("Bytes")
+        HostType.Builder<Bytes>("Bytes")
             .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
             .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } }
     )
@@ -223,7 +223,7 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
     }
     let swiit = interpreter()
     swiit.register(
-        HostTypeBuilder<Lines>("Lines")
+        HostType.Builder<Lines>("Lines")
             .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
     )
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
@@ -249,10 +249,10 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
 }
 
 @Suite struct NativeTypeTests {
-    static func bytesType() -> HostTypeBuilder<Bytes> {
+    static func bytesType() -> HostType.Builder<Bytes> {
         let bytes = Symbol.ID(hostType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
-        return HostTypeBuilder<Bytes>("Bytes")
+        return HostType.Builder<Bytes>("Bytes")
             .member(
                 .initializer(
                     parameters: [.init(label: "count", name: "count", type: Int.self)],
@@ -291,4 +291,18 @@ private struct DataPair: ScriptConvertible, Hashable, CustomStringConvertible,
         #expect(throws: Diagnostic.self) { try interpreter.evaluate("Bytes(count: \"x\")") }
         #expect(throws: Diagnostic.self) { try interpreter.evaluate("Bytes(count: 1).nope") }
     }
+}
+
+@Test func aTypeWrittenByHandSaysWhatItIsGenericOverAndWhatItConformsTo() throws {
+    let swiit = interpreter()
+    var pile = HostType(name: "Pile")
+    pile.genericParameters = ["Element"]
+    pile.conformances = ["Hashable": [], "Sequence": [Symbol.GenericParameter(name: "Element")]]
+    pile.associatedTypes["Element"] = .parameter("Element")
+    pile.arrayLiteral = { _ in .nothing }
+    let id = swiit.register(pile)
+
+    #expect(id == Symbol.ID(hostType: "Pile"))
+    #expect(ScriptType.named(id, [.int]).conforms(to: Symbol.ID(hostType: "Hashable"), in: swiit))
+    #expect(ScriptType.named(id, [.int]).conforms(to: .sequence, in: swiit))
 }

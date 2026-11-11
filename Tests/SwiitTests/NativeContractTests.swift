@@ -264,7 +264,7 @@ private struct ContractTally: Hashable, Sendable, ScriptConvertible {
 @Test func aMutatingMemberGivesItsResultAndTheReceiverAsItIsNow() throws {
     let swiit = interpreter()
     swiit.register(
-        HostTypeBuilder<ContractTally>("ContractTally")
+        HostType.Builder<ContractTally>("ContractTally")
             .member(
                 .initializer(returns: .named(Symbol.ID(hostType: "ContractTally"))) { _ in
                     Value(ContractTally(n: 0))
