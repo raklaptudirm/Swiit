@@ -7,7 +7,7 @@ extension Interpreter {
     ) {
         withMainTask {
             scopes[0].bindings[name] = Binding(computed: read)
-            staticTypes[name] = TypeAnnotation(type)
+            checkerMemory.globalTypes[name] = TypeAnnotation(type)
         }
     }
 

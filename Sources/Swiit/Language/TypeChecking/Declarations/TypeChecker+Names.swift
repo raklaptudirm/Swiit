@@ -9,7 +9,7 @@ extension TypeChecker {
         }
         guard let binding = interpreter.lookup(name) else { return nil }
         if binding.isComputed {
-            return .variable(interpreter.staticTypes[name] ?? .unknown, mutable: false)
+            return .variable(interpreter.checkerMemory.globalTypes[name] ?? .unknown, mutable: false)
         }
         switch binding.value.storage {
         case .object(let type as StructType):
@@ -51,11 +51,11 @@ extension TypeChecker {
         // signature checked, as one a script declares. (A `var` holding a closure may be assigned
         // another, so it stays a value.)
         case .function(let function as Function)
-        where !binding.mutable && interpreter.staticTypes[name] == nil && function.name == name:
+        where !binding.mutable && interpreter.checkerMemory.globalTypes[name] == nil && function.name == name:
             return .functions([signature(function)])
         default:
             return .variable(
-                interpreter.staticTypes[name] ?? type(of: binding.value),
+                interpreter.checkerMemory.globalTypes[name] ?? type(of: binding.value),
                 mutable: binding.mutable
             )
         }

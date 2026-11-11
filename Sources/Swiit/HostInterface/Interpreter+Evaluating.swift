@@ -170,7 +170,7 @@ extension Interpreter {
             let checked = try checker.check(program)
             // What the program declared is typed as written for the next run: `var x: Int? = nil`
             // is an optional Int.
-            staticTypes.merge(checker.declaredGlobals) { $1 }
+            checkerMemory.globalTypes.merge(checker.declaredGlobals) { $1 }
             // The locals of its blocks, functions and closures in frames.
             let resolved = FrameResolver.resolve(program: checked)
             return try withFrame(size: resolved.frameSize) {

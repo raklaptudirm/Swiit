@@ -76,7 +76,7 @@ extension TypeChecker {
         {
             return
         }
-        let callers = (interpreter.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere)
+        let callers = (interpreter.checkerMemory.unawaitedCallers[decl.name] ?? []).subtracting(redeclaredHere)
             .sorted()
         guard !callers.isEmpty else { return }
         let list = callers.map { "'\($0)'" }.joined(separator: ", ")
@@ -88,13 +88,6 @@ extension TypeChecker {
     /// Who calls what without `await`, kept for the redefinition rule; what
     /// this program declares replaces what was declared before.
     func recordUnawaitedCalls() {
-        for name in topLevelUnawaited.keys {
-            for callee in interpreter.unawaitedCallers.keys {
-                interpreter.unawaitedCallers[callee]?.remove(name)
-            }
-        }
-        for (name, callees) in topLevelUnawaited {
-            for callee in callees { interpreter.unawaitedCallers[callee, default: []].insert(name) }
-        }
+        interpreter.checkerMemory.record(unawaitedCalls: topLevelUnawaited)
     }
 }

@@ -48,17 +48,13 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.
     var sequenceMethods: [String: OverloadSet] = [:]
-    /// The declared types of globals, from entries already checked, so a
-    /// later one knows `let xs: [Int] = []` is an [Int].
-    var staticTypes: [String: TypeAnnotation] = [:]
+    /// What the checker remembers from entries already checked.
+    var checkerMemory = CheckerMemory()
     /// What reads source into the tree: SwiftParser's, lowered, unless given another.
     var frontEnd: any SyntaxFrontEnd = SwiftSyntaxFrontEnd()
     /// The file being run, for `#filePath`; nil at the prompt.
     /// The script being run, as errors and `#filePath` name it.
     public var file: String?
-    /// For each function, the functions declared at the prompt that call it
-    /// without `await`, for the redefinition rule (TypeChecker+Effects.swift).
-    var unawaitedCallers: [String: Set<String>] = [:]
     /// Told each simple statement as it finishes, for a host that keeps an
     /// exit status, as the host does.
     /// Whether the host is told as statements finish; not while a `defer` cleans up.
