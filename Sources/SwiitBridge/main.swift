@@ -1,32 +1,34 @@
-// Reads a Swift module's symbol graph and writes the Swift that bridges
-// its types' members to Swiit: each member's signature, for the checker,
-// and glue that converts Swiit values, calls Swift and converts back.
+// Reads a Swift module's symbol graph and writes the Swift that bridges its types' members to
+// Swiit: each member's signature, for the checker, and glue that converts Swiit values, calls
+// Swift and converts back.
 //
-//   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
-//                [--manifest <platform.json>] [--also <other-platform.json>...]
-//                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
-//                [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]
-//                [--function <name>...] [--rename Type.member=name...] [--import <Module>...]
+//   swiit-bridge --package <dir> --module <Target> --output <file> [--config swiit-bridge.json]
+//   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [flags]
+//
+// The first builds from a package's target: the generator makes the symbol graphs itself (with a
+// stub in place of the output, which is part of the module), and bridges what the module has for
+// scripts: each struct or enum that is `ScriptConvertible` and has a public member, and the enums
+// that convert themselves. The configuration names the rest (`Configuration`): types and functions
+// that are not found that way, a type another module defines that this one extends (`Date`), the
+// types other bridges describe, renames. The second is given a graph and everything else in flags;
+// it is how the standard library, Foundation and swift-system are bridged.
+//
+// The flags: `--manifest <file>` writes what this platform has, and `--also <file>` another
+// platform's, so that only what both have is bridged; `--report <file>` writes each member left
+// out, with the reason. `--name <Name>` names the output's enum (`<Name>Bridge`), `--type <Type>`
+// each type to bridge (`Dictionary`, `FilePath.Component`; the graph says what it is generic over),
+// `--function <name>` a top-level function with all its overloads (the output lists them as
+// `functions`), `--access <level>` the access of what it declares (`public`, the default, or
+// `internal`), `--in-module <Module>` the module the output is a file of, which it does not import
+// (`Swiit` for Swiit's own files). `--boxed` names the types another bridge describes (held as Swift
+// values, `Date`), `--convertible` those that convert themselves (`ScriptConvertible`, as an enum
+// does), `--import` a module whose types the glue spells, and `--rename Type.member=name` gives a
+// member another name for scripts (`Date.shown=description`). A member is bridged if it is declared
+// `public`, whatever the access of its type.
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
-// package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
-// `FilePath.Component`), and the graph says what it is generic over. `--name` names the output's
-// enum (`<Name>Bridge`), and `--access` is the access level of what it declares (`public`, the
-// default, or `internal`). `--in-module` is the module the output is a file of, which it does not
-// import (`Swiit` for Swiit's own files). A member is bridged if it is declared `public`,
-// whatever the access of its type. The types the signatures name that the output does not bridge
-// are told too: `--boxed` for those another bridge describes (held as Swift values, `Date`), and
-// `--convertible` for those that convert themselves (`ScriptConvertible`, as an enum does).
-// `--function` names a top-level function to bridge, with all its overloads; the output lists them
-// as `functions`. `--rename` gives a member another name for scripts: a `shown` that is how the
-// type is written, as `Date.shown=description`. A type another module defines is bridged for the
-// members this module adds to it (give the graph of the extensions, `Module@Other.symbols.json`).
-//
-// Scripts/bridge runs it on the standard library, on swift-system
-// (for FilePath) and on Foundation; a client with a library of its own
-// runs it on that. A member is bridged only if every
-// type in its signature is one Swiit can pass or hold (see `supported`); the
-// rest are left out, and counted on stderr.
+// package that imports Swiit. A member is bridged only if every type in its signature is one Swiit
+// can pass or hold (see `supported`); the rest are left out, and counted on stderr.
 //
 // The pieces: SymbolGraph reads the graph; SwiftTypes and Declarations parse
 // a declaration's text; Bridging says what Swiit can hold, and Conversions
@@ -36,7 +38,13 @@ import Foundation
 
 // MARK: Main
 
-let arguments = CommandLine.arguments
+let arguments: [String]
+do {
+    arguments = try preparedArguments()
+} catch {
+    FileHandle.standardError.write(Data("swiit-bridge: \(error)\n".utf8))
+    exit(2)
+}
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
@@ -68,6 +76,10 @@ nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator run
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
 nonisolated(unsafe) var renames: [String: String] = [:]  // safe: the generator runs on one thread
+/// `--config <file>`: settings the flags would give.
+nonisolated(unsafe) var configurationPath: String?  // safe: the generator runs on one thread
+/// Types the module has that scripts do not (the configuration's `skip`).
+nonisolated(unsafe) var skipNames: [String] = []  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
 nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
 /// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
@@ -91,11 +103,31 @@ do {
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
             if pair.count == 2 { renames[pair[0]] = pair[1] }
             i += 2
+        case "--config" where i + 1 < rest.count: configurationPath = rest[i + 1]; i += 2
         case "--access" where i + 1 < rest.count: access = rest[i + 1]; i += 2
         case "--in-module" where i + 1 < rest.count: outputModule = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
         }
     }
+}
+if let configurationPath {
+    let configuration: Configuration
+    do {
+        configuration = try Configuration.read(configurationPath)
+    } catch {
+        FileHandle.standardError.write(Data("swiit-bridge: \(configurationPath): \(error)\n".utf8))
+        exit(2)
+    }
+    bridgeName = bridgeName ?? configuration.name
+    outputModule = outputModule ?? configuration.inModule
+    if access == "public", let level = configuration.access { access = level }
+    typeNames += configuration.types ?? []
+    functionNames += configuration.functions ?? []
+    boxedNames += configuration.boxed ?? []
+    convertibleNames += configuration.convertible ?? []
+    skipNames += configuration.skip ?? []
+    importNames += configuration.imports ?? []
+    renames.merge(configuration.rename ?? [:]) { flag, _ in flag }
 }
 /// What the other platforms declare, by module: a member is bridged only if
 /// every one of them has it.
@@ -127,11 +159,17 @@ let graph: Graph = try {
     return graph
 }()
 
-guard let bridgeName, !typeNames.isEmpty else {
-    FileHandle.standardError.write(
-        Data("swiit-bridge: --name and at least one --type are needed\n".utf8)
-    )
+guard let bridgeName else {
+    FileHandle.standardError.write(Data("swiit-bridge: --name is needed\n".utf8))
     exit(2)
+}
+// Given settings: the types and functions the module has for scripts, and those they name.
+if configurationPath != nil {
+    convertibleNames += selfConvertingEnums(in: graph)
+    typeNames =
+        discoveredTypes(in: graph, skipping: Set(skipNames + convertibleNames + typeNames))
+        + typeNames
+    functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
 /// The types to bridge, with the generic parameters the graph gives each.
 let bridgedTypeNames: [(String, [String])] = try typeNames.map { name in
