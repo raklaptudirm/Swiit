@@ -79,8 +79,8 @@ func genericParametersDescription(_ generics: [String: [String]]) -> String {
 /// body of the closure that runs it.
 func describedMember(
     _ declaration: Declaration,
+    scriptName: String,
     symbol: Symbol,
-    text: String,
     parameters parameterCode: [String],
     returns: SType,
     generics: [String: [String]],
@@ -88,6 +88,7 @@ func describedMember(
     setterBody: String?,
     isFree: Bool = false
 ) -> String {
+    let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     let interpreter =
         body.contains("interpreter") ? "let interpreter = Interpreter.running!\n" : ""
     let throwing =
@@ -95,7 +96,7 @@ func describedMember(
     let signature =
         "Symbol.Function(parameters: [\(parameterCode.joined(separator: ", "))], returns: \(scriptType(returns)), throwing: \(throwing), isAsync: \(declaration.isAsync), generics: \(genericParametersDescription(generics)))"
     let head =
-        "\(quoted(declaration.name)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))"
+        "\(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))"
     let code: String
     switch declaration.kind {
     case .initializer:
@@ -111,7 +112,7 @@ func describedMember(
             "HostSymbol.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
     case .method where isFree:
         code =
-            "HostSymbol.function(name: \(quoted(declaration.name)), summary: \(quoted(symbol.summary)), parameters: [\(parameterCode.joined(separator: ", "))], returns: \(scriptType(returns)), isThrowing: \(declaration.throwing || declaration.rethrowing), generics: \(genericParametersDescription(generics)), \(attributesCode(of: text))body: { arguments in\n\(interpreter)\(body)\n})"
+            "HostSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), parameters: [\(parameterCode.joined(separator: ", "))], returns: \(scriptType(returns)), isThrowing: \(declaration.throwing || declaration.rethrowing), generics: \(genericParametersDescription(generics)), \(attributesCode(of: text))body: { arguments in\n\(interpreter)\(body)\n})"
     case .method where declaration.isStatic:
         code =
             "HostSymbol.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"

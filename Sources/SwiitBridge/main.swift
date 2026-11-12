@@ -6,7 +6,7 @@
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
 //                [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]
-//                [--function <name>...]
+//                [--function <name>...] [--rename Type.member=name...]
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
 // package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
@@ -18,7 +18,9 @@
 // are told too: `--boxed` for those another bridge describes (held as Swift values, `Date`), and
 // `--convertible` for those that convert themselves (`ScriptConvertible`, as an enum does).
 // `--function` names a top-level function to bridge, with all its overloads; the output lists them
-// as `functions`.
+// as `functions`. `--rename` gives a member another name for scripts: a `shown` that is how the
+// type is written, as `Date.shown=description`. A type another module defines is bridged for the
+// members this module adds to it (give the graph of the extensions, `Module@Other.symbols.json`).
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -38,7 +40,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...]\n"
                 .utf8
         )
     )
@@ -62,6 +64,8 @@ nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs o
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--function <name>`: the top-level functions to bridge, every overload of each.
 nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread
+/// `--rename Type.member=name`: a member scripts know under another name than Swift's.
+nonisolated(unsafe) var renames: [String: String] = [:]  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
 nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
 /// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
@@ -80,6 +84,10 @@ do {
         case "--convertible" where i + 1 < rest.count:
             convertibleNames.append(rest[i + 1]); i += 2
         case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
+        case "--rename" where i + 1 < rest.count:
+            let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
+            if pair.count == 2 { renames[pair[0]] = pair[1] }
+            i += 2
         case "--access" where i + 1 < rest.count: access = rest[i + 1]; i += 2
         case "--in-module" where i + 1 < rest.count: outputModule = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
@@ -125,14 +133,18 @@ guard let bridgeName, !typeNames.isEmpty else {
 /// The types to bridge, with the generic parameters the graph gives each.
 let bridgedTypeNames: [(String, [String])] = try typeNames.map { name in
     let path = name.split(separator: ".").map(String.init)
+    // A type another module defines is known here by the extensions this module gives it.
     guard
         let symbol = graph.symbols.first(where: {
             $0.pathComponents == path
-                && ($0.kind.identifier == "swift.struct" || $0.kind.identifier == "swift.enum")
+                && ["swift.struct", "swift.enum", "swift.extension"].contains($0.kind.identifier)
         })
     else {
         FileHandle.standardError.write(
-            Data("swiit-bridge: \(graph.module.name) has no struct or enum \(name)\n".utf8)
+            Data(
+                "swiit-bridge: \(graph.module.name) has no struct, enum or extension of \(name)\n"
+                    .utf8
+            )
         )
         exit(2)
     }

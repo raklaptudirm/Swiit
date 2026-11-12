@@ -317,8 +317,8 @@ func bridge(
     }
     let code = describedMember(
         declaration,
+        scriptName: renames["\(original.name).\(declaration.name)"] ?? declaration.name,
         symbol: symbol,
-        text: text,
         parameters: parameterCode,
         returns: returns,
         generics: generics,
