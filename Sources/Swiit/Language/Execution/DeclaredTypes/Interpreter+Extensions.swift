@@ -243,6 +243,17 @@ extension Interpreter {
         return .function(OverloadSet(name: name, candidates: bound))
     }
 
+    /// The name of the type a type value stands for: a struct's, an enum's, or Swift's.
+    func declaredTypeName(of typeValue: Value) -> String? {
+        guard case .object(let object) = typeValue.storage else { return nil }
+        return switch object {
+        case let type as StructType: type.name
+        case let type as Value.EnumCase.Enumeration: type.name
+        case let type as BridgedTypeName: type.name
+        default: nil
+        }
+    }
+
     /// `P.zero`, `P.make`: what an extension adds to a type as static members.
     func extensionStaticMember(_ name: String, ofTypeNamed typeName: String) throws -> Value? {
         guard let members = typeExtensions[typeName] else { return nil }

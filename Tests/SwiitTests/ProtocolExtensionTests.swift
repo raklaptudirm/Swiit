@@ -40,3 +40,19 @@ import Testing
     _ = try swiit.evaluate("extension Dictionary { var firstKey: Int { keys[0] } }")
     #expect(try swiit.evaluate("[7: 8].firstKey") == 7)
 }
+
+@Test func anExtensionOfABuiltInTypeAddsStaticMembers() throws {
+    let swiit = Interpreter()
+    _ = try swiit.evaluate(
+        """
+        extension Int {
+            static var answer: Int { 42 }
+            static func make(_ n: Int) -> Int { n + 1 }
+        }
+        """
+    )
+    #expect(try swiit.evaluate("Int.answer") == 42)
+    #expect(try swiit.evaluate("Int.make(6)") == 7)
+    // Swift's own static members are still found.
+    #expect(try swiit.evaluate("Int.max") == Value(Int.max))
+}

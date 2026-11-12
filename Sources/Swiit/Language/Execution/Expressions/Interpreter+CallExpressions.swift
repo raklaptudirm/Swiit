@@ -155,14 +155,9 @@ extension Interpreter {
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
-            // `P.make()`: a static method an extension adds to a struct or enum.
-            if case .object(let type as StructType) = base.storage,
-                let methods = typeExtensions[type.name]?.staticMethods[name]
-            {
-                return try callStatic(narrowed(methods, overload), arguments)
-            }
-            if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
-                let methods = typeExtensions[type.name]?.staticMethods[name]
+            // `P.make()`, `Int.make()`: a static method an extension adds to a type.
+            if let typeName = declaredTypeName(of: base),
+                let methods = typeExtensions[typeName]?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }

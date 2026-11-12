@@ -49,18 +49,7 @@ extension TypeChecker {
         case .member(var base, let name):
             // `Int.max`: a static member of a Swift type.
             if case .variable(let typeName) = base, case .swiftType? = lookup(typeName) {
-                guard
-                    let (type, bridged) = try bridgedProperty(
-                        typeName,
-                        receiver: nil,
-                        bindings: [:],
-                        name
-                    )
-                else {
-                    throw TypeError("\(typeName) has no member '\(name)'")
-                }
-                expr = bridged
-                return type
+                return try swiftStaticMember(typeName, name, &expr)
             }
             if !TypeChecker.namesSomething(base, in: self) {
                 let baseType = try typeOf(&base)
@@ -119,5 +108,26 @@ extension TypeChecker {
         default:
             preconditionFailure("typeOfExpression sent this to the wrong group")
         }
+    }
+}
+
+extension TypeChecker {
+    /// `Int.max`, or a static property an extension adds: the type of `name` on the Swift type
+    /// named, with `expr` made the bridged member if it is one.
+    func swiftStaticMember(
+        _ typeName: String,
+        _ name: String,
+        _ expr: inout Expr
+    ) throws -> TypeAnnotation {
+        if case .property(let property)? = describe(named: typeName)?.staticMember(name) {
+            return property.type
+        }
+        guard
+            let (type, bridged) = try bridgedProperty(typeName, receiver: nil, bindings: [:], name)
+        else {
+            throw TypeError("\(typeName) has no member '\(name)'")
+        }
+        expr = bridged
+        return type
     }
 }

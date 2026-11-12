@@ -99,6 +99,13 @@ extension TypeChecker {
                 break
             }
         }
+        // `Int.make()`: a static method an extension adds to a type of Swift's.
+        if case .member(.variable(let typeName), let name) = callee,
+            case .swiftType? = lookup(typeName),
+            case .methods(let methods, _)? = describe(named: typeName)?.staticMember(name)
+        {
+            return try callMember(methods, name, callee: &callee, &arguments)
+        }
         if case .member(.variable(let typeName), let name) = callee,
             case .swiftType? = lookup(typeName)
         {

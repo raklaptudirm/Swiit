@@ -32,13 +32,8 @@ extension Interpreter {
         } else if let found = try extensionMember(name, of: value) {
             return found
         }
-        if case .object(let type as StructType) = value.storage,
-            let found = try extensionStaticMember(name, ofTypeNamed: type.name)
-        {
-            return found
-        }
-        if case .object(let type as Value.EnumCase.Enumeration) = value.storage,
-            let found = try extensionStaticMember(name, ofTypeNamed: type.name)
+        if let typeName = declaredTypeName(of: value),
+            let found = try extensionStaticMember(name, ofTypeNamed: typeName)
         {
             return found
         }
