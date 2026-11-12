@@ -80,6 +80,8 @@ nonisolated(unsafe) var renames: [String: String] = [:]  // safe: the generator 
 nonisolated(unsafe) var configurationPath: String?  // safe: the generator runs on one thread
 /// Types the module has that scripts do not (the configuration's `skip`).
 nonisolated(unsafe) var skipNames: [String] = []  // safe: the generator runs on one thread
+/// The configuration's `discover` setting.
+nonisolated(unsafe) var discoversByAccess = false  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
 nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
 /// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
@@ -126,6 +128,7 @@ if let configurationPath {
     boxedNames += configuration.boxed ?? []
     convertibleNames += configuration.convertible ?? []
     skipNames += configuration.skip ?? []
+    discoversByAccess = configuration.discover == "public"
     importNames += configuration.imports ?? []
     renames.merge(configuration.rename ?? [:]) { flag, _ in flag }
 }
@@ -167,7 +170,12 @@ guard let bridgeName else {
 if configurationPath != nil {
     convertibleNames += selfConvertingEnums(in: graph)
     typeNames =
-        discoveredTypes(in: graph, skipping: Set(skipNames + convertibleNames + typeNames))
+        discoveredTypes(
+            in: graph,
+            // Not the enum this writes, which the module has for the registration of the rest.
+            skipping: Set(skipNames + convertibleNames + typeNames + ["\(bridgeName ?? "")Bridge"]),
+            byAccess: discoversByAccess
+        )
         + typeNames
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }

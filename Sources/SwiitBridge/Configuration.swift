@@ -20,6 +20,11 @@ struct Configuration: Decodable {
     /// Types that convert themselves (`ScriptConvertible`): an enum that is `CaseIterable` does
     /// without being listed.
     var convertible: [String]?
+    /// How to find the types and functions of the module that scripts get, when none are named:
+    /// `"public"` for a module whose whole public surface is for scripts; by default, the types
+    /// that conform to `ScriptConvertible` (for a module that also has an interface for a host
+    /// program) and the functions named.
+    var discover: String?
     /// Types the module has that scripts do not.
     var skip: [String]?
     /// A member scripts know under another name, as `"Date.shown": "description"`.
@@ -163,11 +168,15 @@ private func allConformances(in graph: Graph) -> [String: Set<String>] {
     }
 }
 
-/// The types of the module that scripts get: each struct or enum it defines that is
+/// The types of the module that scripts get: each struct or enum it defines that has a public
+/// member and, unless the module's public surface is all for scripts (`byAccess`), is
 /// `ScriptConvertible` (which a type says by conforming, itself or through a protocol it
-/// refines) and has a public member; less those the settings skip, and the enums that convert
-/// themselves.
-func discoveredTypes(in graph: Graph, skipping skipped: Set<String>) -> [String] {
+/// refines); less those the settings skip, and the enums that convert themselves.
+func discoveredTypes(
+    in graph: Graph,
+    skipping skipped: Set<String>,
+    byAccess: Bool = false
+) -> [String] {
     let conformances = allConformances(in: graph)
     let withPublicMembers = Set(
         graph.symbols.filter { $0.pathComponents.count == 2 && $0.accessLevel == "public" }
@@ -181,7 +190,7 @@ func discoveredTypes(in graph: Graph, skipping skipped: Set<String>) -> [String]
         .map { $0.pathComponents[0] }
         .filter {
             withPublicMembers.contains($0) && !skipped.contains($0)
-                && conformances[$0]?.contains("ScriptConvertible") == true
+                && (byAccess || conformances[$0]?.contains("ScriptConvertible") == true)
         }
         .sorted()
 }
