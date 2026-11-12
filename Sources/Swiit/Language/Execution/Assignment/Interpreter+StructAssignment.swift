@@ -158,6 +158,7 @@ extension Interpreter {
         )
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// `initializing`: this is `self` in an `init`, whose own `let`
     /// properties can be set.
     func updated(
@@ -395,4 +396,5 @@ extension Interpreter {
             throw RuntimeError("cannot assign into \(base.typeName) by index")
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 }

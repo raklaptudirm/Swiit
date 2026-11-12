@@ -34,14 +34,18 @@ opt_in_rules:
   - unavailable_function
   - unowned_variable_capture
   - private_over_fileprivate
+# A type that serves another is nested in it, and one that serves that one inside it: three levels.
+nesting: { type_level: 3 }
+# `ID`, as in `Symbol.ID`, is the name Swift gives such a type.
+type_name: { min_length: 2 }
 cyclomatic_complexity: { warning: 30, error: 60 }
 function_body_length: { warning: 100, error: 200 }
 file_length: { warning: 700, error: 1200 }
 custom_rules:
   unchecked_concurrency_needs_a_reason:
     name: "Unchecked concurrency needs a reason"
-    message: "End the line with `// safe: <why>`: what makes this safe is the compiler's check we switched off."
-    regex: '(@unchecked Sendable|nonisolated\(unsafe\))(?![^\n]*// safe: )'
+    message: "Say why on this line, or in a comment above it (and above its doc comment), as `// safe: <why>`: what makes this safe is the compiler's check we switched off."
+    regex: '(?<!// safe: [^\n]{1,300}\n(?:[ \t]{0,60}///[^\n]{0,200}\n){0,12}[^\n]{0,150})(@unchecked Sendable|nonisolated\(unsafe\))(?![^\n]*// safe: )'
     match_kinds:
       - attribute.builtin
       - keyword

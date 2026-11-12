@@ -1,11 +1,12 @@
 import Foundation
 import Synchronization
 
+// safe: every public method holds the interpreter's lock
 /// The language: its scopes, what the checker remembers between entries, and
 /// the evaluator (the `Interpreter+…` files). It knows nothing of the
 /// terminal, processes or jobs: it reaches the world through its `host`, and
 /// runs only Swift. The host owns one.
-public final class Interpreter: @unchecked Sendable {  // safe: every public method holds the interpreter's lock
+public final class Interpreter: @unchecked Sendable {
     /// How this interpreter is run: where its output goes, how to tell it to stop.
     /// Where its output goes and how it is told to stop; a host may change it between runs.
     public var host: Interpreter.Host
@@ -43,7 +44,8 @@ public final class Interpreter: @unchecked Sendable {  // safe: every public met
     var declaredOperators: [String: String] = [:]
     /// Instances released since a statement began, whose `deinit` runs at the next one.
     let pendingDeinits = Mutex<[ClassInstance]>([])
-    nonisolated(unsafe) var hasPendingDeinits = false  // safe: a hint, set holding `pendingDeinits`; a stale read only delays a `deinit` by a statement
+    // safe: a hint, set holding `pendingDeinits`; a stale read only delays a `deinit` by a statement
+    nonisolated(unsafe) var hasPendingDeinits = false
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.

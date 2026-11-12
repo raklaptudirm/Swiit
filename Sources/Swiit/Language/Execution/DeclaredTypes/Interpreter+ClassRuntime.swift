@@ -1,7 +1,8 @@
 import Foundation
 
+// safe: its state is touched only holding the interpreter lock
 /// A reference held without keeping what it refers to alive: what a `weak` property stores.
-final class WeakReference: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class WeakReference: LanguageObject, @unchecked Sendable {
     weak var target: ClassInstance?
     init(_ target: ClassInstance?) { self.target = target }
     var typeName: String { "weak" }
@@ -18,6 +19,7 @@ extension Interpreter {
         return type
     }
 
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// `class Dog: Animal { … }`, `actor Counter { … }`.
     func declare(_ decl: ClassDecl) throws {
         var conformances = decl.inherited
@@ -214,6 +216,7 @@ extension Interpreter {
             type.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
         }
     }
+    // swiftlint:enable function_body_length
 
     // MARK: Making instances
 
@@ -521,6 +524,7 @@ extension Interpreter {
 
     // MARK: Assigning
 
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
     /// `obj.name = value` (or a change deeper in it): in place, since every holder sees it.
     func updatedInstance(
         _ instance: ClassInstance,
@@ -587,4 +591,5 @@ extension Interpreter {
         }
         instance.storage[name] = wrapped(stored, property)
     }
+    // swiftlint:enable function_parameter_count
 }

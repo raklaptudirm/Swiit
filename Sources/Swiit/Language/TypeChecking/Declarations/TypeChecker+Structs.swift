@@ -109,6 +109,7 @@ extension TypeChecker {
         return profile
     }
 
+    // swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func checkStruct(_ decl: inout StructDecl, isClass: Bool = false) throws {
         let selfType = TypeAnnotation.named(decl.name)
         // Equatable, Hashable and Encodable come from the fields, which must

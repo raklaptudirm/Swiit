@@ -139,6 +139,7 @@ extension TypeChecker {
             + ")"
     }
 
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// Matches `arguments` to `signature`'s parameters by Swift's rules for
     /// labels, defaults, variadics and trailing closures. The cost counts
     /// conversions (a literal Int as a Double, a value made optional, an
@@ -294,6 +295,7 @@ extension TypeChecker {
             solved: bindings
         )
     }
+    // swiftlint:enable function_body_length
 
     /// Whether an argument has a type of its own, apart from context: not a
     /// closure, a `.case`, `nil` or a collection literal, which take theirs

@@ -10,6 +10,7 @@ extension Lowering {
         return lowered
     }
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     private mutating func expressionNode(_ expr: ExprSyntax) throws -> Expr {
         // `o?.i.v`: what follows the `?` goes on only if `o` has a value.
         if let (core, depth) = optionalChainCore(expr) {

@@ -1,5 +1,6 @@
 import Foundation
 
+// swiftlint:disable type_body_length - one type for the whole printer; splitting it is item 17 of Docs/agenda.md
 /// Prints the core's tree as Swift source: the form every construct reduces to. It is for golden
 /// tests of what a rewrite produces, `--emit-swift`, and later compiling the result with `swiftc`
 /// to compare with the interpreter. A construct that only the checker makes, prints as a comment
@@ -31,6 +32,7 @@ struct SwiftPrinter {
         return "{\n" + inner.joined(separator: "\n") + "\n" + pad(indent) + "}"
     }
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     private func statement(_ statement: Statement, indent: Int) -> [String] {
         let p = pad(indent)
         switch statement {
@@ -368,6 +370,7 @@ struct SwiftPrinter {
         }
     }
 
+    // swiftlint:disable:next cyclomatic_complexity - one branch for each case; splitting it is item 17 of Docs/agenda.md
     private func expression(_ expr: Expr) -> String {
         switch expr {
         case .literal(let value): return literal(value)
@@ -385,8 +388,8 @@ struct SwiftPrinter {
         case .attempt(let inner, let kind):
             let mark =
                 switch kind {
-                case .plain: "";
-                case .optional: "?";
+                case .plain: ""
+                case .optional: "?"
                 case .forced: "!"
                 }
             return "try\(mark) \(expression(inner))"
@@ -444,9 +447,9 @@ struct SwiftPrinter {
         case .cast(let inner, let type, let kind):
             let word =
                 switch kind {
-                case .conditional: "as?";
-                case .forced: "as!";
-                case .check: "is";
+                case .conditional: "as?"
+                case .forced: "as!"
+                case .check: "is"
                 case .upcast: "as"
                 }
             return "\(operand(inner)) \(word) \(type)"
@@ -507,3 +510,4 @@ struct SwiftPrinter {
         return result
     }
 }
+// swiftlint:enable type_body_length

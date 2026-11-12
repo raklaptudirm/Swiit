@@ -1,11 +1,12 @@
 import Foundation
 
+// safe: its state is touched only holding the interpreter lock
 /// A Swift value Swiit has no form of its own for, like a `Substring`, a
 /// `Character` or a `URL`, kept as it is. Its type is its Swift type, to
 /// the checker and to you; its members are bridged (see
 /// Docs/swift-interop.md). It compares, hashes and sorts as the Swift
 /// value does, when its type can.
-final class SwiftValue: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class SwiftValue: LanguageObject, @unchecked Sendable {
     let value: Any
     /// Its Swift type, as Swiit writes it: `Substring`.
     let typeName: String

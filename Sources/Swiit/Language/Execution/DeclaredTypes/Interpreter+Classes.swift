@@ -1,7 +1,8 @@
 import Foundation
 
+// safe: its state is touched only holding the interpreter lock
 /// A class a program declares.
-final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
     let id: Symbol.ID
     let superclass: ClassType?
@@ -101,8 +102,9 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {  // s
     var description: String { name }
 }
 
+// safe: its state is touched only holding the interpreter lock
 /// A value of a class: shared by every variable that holds it.
-final class ClassInstance: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ClassInstance: LanguageObject, @unchecked Sendable {
     let type: ClassType
     var storage: [String: Value]
     /// What runs when the last reference goes (the class's `deinit`s), if any.

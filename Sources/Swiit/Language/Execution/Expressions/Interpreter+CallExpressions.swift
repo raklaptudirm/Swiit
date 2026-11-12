@@ -44,6 +44,8 @@ extension Interpreter {
             )
         case .childTask(let literal):
             let operation = try evaluate(.closure(literal))
+            // A task started here is joined before the interpreter goes (`cancelAndJoinTasks`).
+            // swiftlint:disable:next unowned_variable_capture
             let handle = try startTask(host: host.makeTaskState()) { [unowned self] in
                 try call(operation, with: [])
             }
@@ -87,6 +89,7 @@ extension Interpreter {
         }
     }
 
+    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// A call: the callee's overload, a struct or enum made, or a function run.
     func evaluateCall(_ callee: Expr, _ arguments: [Argument]) throws -> Value {
         // A generic function whose body names its type parameters: this call's, bound for it.
@@ -268,6 +271,7 @@ extension Interpreter {
             throw RuntimeError("\(value.typeName) isn't a function")
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     /// `String(n)` in a body nothing has checked (a type a host declared): the checker chooses the
     /// initializer, for the values the call is given.

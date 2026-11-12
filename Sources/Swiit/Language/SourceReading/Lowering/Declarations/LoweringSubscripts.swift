@@ -28,7 +28,7 @@ extension Lowering {
             lowering.leaving = Leaving(function: lowering.leaving.function + 1)
             lowering.anonymous.append(false)
             defer {
-                lowering.locals.removeLast(); (lowering.tryDepth, lowering.leaving) = outer;
+                lowering.locals.removeLast(); (lowering.tryDepth, lowering.leaving) = outer
                 lowering.anonymous.removeLast()
             }
             return try lowering.block(items, scoped: false)

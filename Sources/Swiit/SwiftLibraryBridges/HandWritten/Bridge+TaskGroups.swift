@@ -5,7 +5,8 @@ import Foundation
 
 /// A task group's state: the children's results as they end, and how many are still going.
 final class TaskGroupBox: @unchecked Sendable {  // safe: every access holds its own lock
-    nonisolated(unsafe) let interpreter: Interpreter  // safe: an interpreter is touched only holding its lock
+    // safe: an interpreter is touched only holding its lock
+    nonisolated(unsafe) let interpreter: Interpreter
     let isThrowing: Bool
     private let condition = NSCondition()
     private var finished: [Result<Value, any Error>] = []

@@ -3,6 +3,7 @@ import SwiftSyntax
 // Lowering classes.
 
 extension Lowering {
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
     /// `class Dog: Animal { … }`, `actor Counter { … }`.
     mutating func classDeclaration(
         _ written: String,
@@ -75,4 +76,5 @@ extension Lowering {
         }
         return declaration
     }
+    // swiftlint:enable function_parameter_count
 }

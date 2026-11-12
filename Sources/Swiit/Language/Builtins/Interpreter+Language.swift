@@ -1,6 +1,7 @@
 import Foundation
 
 extension Interpreter {
+    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// Functions Swift's standard library has at the top level, which aren't
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {
@@ -468,6 +469,7 @@ extension Interpreter {
             }
         }
     }
+    // swiftlint:enable cyclomatic_complexity function_body_length
 
     /// What stands for a value's type: the struct's or enum's own, or Swift's by name.
     func typeObject(of value: Value) -> Value {

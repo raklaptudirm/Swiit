@@ -102,6 +102,7 @@ struct BridgedMember {
     var code: String
 }
 
+// swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
 /// The Swift for one member: its signature and glue. A top-level function (`isFree`) has no owner
 /// type: it is called by its name alone.
 func bridge(
@@ -328,6 +329,7 @@ func bridge(
     )
     return BridgedMember(key: key, shape: shape, code: code)
 }
+// swiftlint:enable cyclomatic_complexity function_body_length
 
 /// The glue's first lines for a member with a receiver: it is read from `args["self"]`; a mutating
 /// member's may come in a box, moved out of its variable so nothing else holds it while it changes

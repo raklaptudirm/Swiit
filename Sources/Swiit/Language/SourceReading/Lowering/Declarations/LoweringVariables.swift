@@ -3,6 +3,7 @@ import SwiftSyntax
 // Lowering `let` and `var`: stored and computed variables, and destructuring patterns.
 
 extension Lowering {
+    // swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     mutating func variables(_ node: VariableDeclSyntax) throws -> [Statement] {
         // `async let x = f()`: `f()` starts as a task the scope owns.
         // Who may see it (`private var x`) matters to no one in a program that is one file.
@@ -140,6 +141,7 @@ extension Lowering {
         return statements
     }
 
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// `var total: Int { get { … } set { … } }` outside a type: a getter function, and a setter if
     /// there is one, which a read and an assignment of the name call.
     private mutating func computedVariable(
@@ -282,6 +284,7 @@ extension Lowering {
         }
         return statements
     }
+    // swiftlint:enable function_body_length
 
     /// The declarations that give each name in a tuple pattern its element of `value`.
     static func destructure(_ pattern: Pattern, of value: Expr) -> [Statement] {

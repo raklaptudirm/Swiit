@@ -3,6 +3,7 @@ import Foundation
 extension TypeChecker {
     // MARK: Assignment
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func checkAssignment(_ assignment: inout Assignment) throws {
         guard let symbol = lookup(assignment.root) else {
             throw TypeError("no variable named '\(assignment.root)'")

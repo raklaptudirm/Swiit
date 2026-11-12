@@ -6,7 +6,7 @@
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
 //                [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]
-//                [--function <name>...] [--rename Type.member=name...]
+//                [--function <name>...] [--rename Type.member=name...] [--import <Module>...]
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
 // package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
@@ -40,7 +40,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...]\n"
                 .utf8
         )
     )
@@ -64,6 +64,8 @@ nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs o
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--function <name>`: the top-level functions to bridge, every overload of each.
 nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread
+/// `--import <Module>`: modules the glue names types of, besides the one it bridges.
+nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
 nonisolated(unsafe) var renames: [String: String] = [:]  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
@@ -84,6 +86,7 @@ do {
         case "--convertible" where i + 1 < rest.count:
             convertibleNames.append(rest[i + 1]); i += 2
         case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
+        case "--import" where i + 1 < rest.count: importNames.append(rest[i + 1]); i += 2
         case "--rename" where i + 1 < rest.count:
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
             if pair.count == 2 { renames[pair[0]] = pair[1] }
@@ -191,7 +194,8 @@ let protocolNames = Set(
     graph.symbols.filter { $0.kind.identifier == "swift.protocol" }.map(\.pathComponents[0])
 )
 
-nonisolated(unsafe) var types: [String: BridgedType] = [:]  // safe: the generator runs on one thread
+// safe: the generator runs on one thread
+nonisolated(unsafe) var types: [String: BridgedType] = [:]
 for (name, parameters) in bridgedTypeNames {
     var type = BridgedType(name: name, parameters: parameters)
     let path = name.split(separator: ".").map(String.init)
@@ -248,7 +252,8 @@ for (name, _) in bridgedTypeNames {
 /// is the standard library) and those that add to its types.
 let moduleImports =
     ((graph.module.name == "Swift" || graph.module.name == outputModule ? [] : [graph.module.name])
-    + extraModules)
+    + extraModules + importNames)
+    .filter { $0 != outputModule }
     .map { "import \($0)\n" }.joined()
 var output = """
     // swift-format-ignore-file

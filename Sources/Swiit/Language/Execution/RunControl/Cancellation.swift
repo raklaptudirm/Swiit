@@ -5,9 +5,10 @@ import Synchronization
 // Asking a run to stop, from any thread.
 
 extension Interpreter {
+    // safe: the state is in a `Mutex`; the flag is a word, below
     /// A request to stop, from any thread.
     /// A request to stop a task, which a host can ask about before it waits.
-    public final class Cancellation: @unchecked Sendable {  // safe: the state is in a `Mutex`; the flag is a word, below
+    public final class Cancellation: @unchecked Sendable {
         private struct State {
             var isRequested = false
             /// What wakes the waits going on now, so a request ends them early.
@@ -16,11 +17,12 @@ extension Interpreter {
         }
 
         private let state = Mutex(State())
+        // safe: a word read and written atomically, as the doc above says
         /// What `isSet` reads without the lock, which every step of every script asks. It is a word
         /// written under the lock and read by whoever is running: a stale read only delays the stop by
         /// a step, and a load of a word is atomic where this runs (arm64 and x86-64), as the SIGINT
         /// flag in the host's spawn code is.
-        nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {  // safe: a word read and written atomically, as the doc above says
+        nonisolated(unsafe) private var flag: UnsafeMutablePointer<Int32> = {
             let pointer = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
             pointer.initialize(to: 0)
             return pointer

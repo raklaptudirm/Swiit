@@ -90,8 +90,9 @@ enum Bridge {
 // literal is any text; a grapheme cluster literal, one Character; a
 // Unicode scalar literal, one scalar.
 
+// safe: its state is touched only holding the interpreter lock
 /// A bridged type's name as a value, as in `String(sub)` or `Int.max`.
-final class BridgedTypeName: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class BridgedTypeName: LanguageObject, @unchecked Sendable {
     let name: String
     init(_ name: String) { self.name = name }
     var typeName: String { "type" }

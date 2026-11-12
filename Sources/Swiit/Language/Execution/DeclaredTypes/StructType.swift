@@ -2,11 +2,12 @@ import Foundation
 
 // The runtime form of a struct type, and the receiver a method runs on.
 
+// safe: its state is touched only holding the interpreter lock
 /// A struct's definition. Its values are records with its name as their
 /// type, so they're values like Swift's structs, and tables, `where`,
 /// a host lays them out as it does any record; what the type adds
 /// (computed properties, methods, initializers) is looked up through here.
-final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
     let id: Symbol.ID
     /// Stored properties, in declaration order: the order of a value's fields.

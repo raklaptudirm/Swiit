@@ -180,7 +180,7 @@ extension Lowering {
         anonymous.append(false)
         functionNames.append(name + "(" + parameters.map { ($0.label ?? "_") + ":" }.joined() + ")")
         defer {
-            locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast();
+            locals.removeLast(); (tryDepth, leaving) = outer; anonymous.removeLast()
             functionNames.removeLast()
         }
         let program = try block(body.statements, scoped: false)

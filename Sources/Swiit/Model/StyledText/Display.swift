@@ -29,7 +29,8 @@ public enum DisplayStyle: String, Sendable {
     public static let variable = DisplayStyle.cyan  // a variable, a parameter's name
     public static let path = DisplayStyle.green  // a FilePath, unquoted, unlike a String
     public static let function = DisplayStyle.green  // a function's name
-    public static let comment = DisplayStyle.dim  // secondary text: job numbers, `nil`s, cut-off markers
+    // Secondary text: job numbers, `nil`s, cut-off markers
+    public static let comment = DisplayStyle.dim
     public static let label = DisplayStyle.bold  // table headers, record keys, help sections
     public static let error = DisplayStyle.boldRed
 

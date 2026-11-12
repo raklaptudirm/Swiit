@@ -1,8 +1,9 @@
 extension Value.EnumCase {
+    // safe: its state is touched only holding the interpreter lock
     /// An enum's definition: its name and cases, in order. Declared in Swiit
     /// (`enum FileType { case file, directory }`) or by the host.
     /// Types compare by identity, so two enums with the same name are distinct.
-    final class Enumeration: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+    final class Enumeration: LanguageObject, DeclaredType, @unchecked Sendable {
         struct Case: Sendable, Equatable {
             let name: String
             /// For an enum with raw values (`enum Level: Int`).

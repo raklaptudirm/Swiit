@@ -18,6 +18,7 @@ final class TypeMembers {
 }
 
 extension Interpreter {
+    // swiftlint:disable function_body_length function_parameter_count - a long walk over every case; it threads one state through; splitting it is item 17 of Docs/agenda.md
     /// Builds the functions of a type's declared members into `members`, adding to what is there.
     func fill(
         _ members: TypeMembers,
@@ -162,6 +163,7 @@ extension Interpreter {
             )
         }
     }
+    // swiftlint:enable function_body_length function_parameter_count
 
     /// `extension Int { … }`: members and protocols added to a type, by its name.
     func declare(_ decl: ExtensionDecl) throws {

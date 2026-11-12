@@ -41,6 +41,7 @@ extension Interpreter {
         )
     }
 
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
     /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that
     /// is not lost.
     private func evaluate(
@@ -87,6 +88,7 @@ extension Interpreter {
             throw Diagnostic.of(error)
         }
     }
+    // swiftlint:enable function_parameter_count
 
     /// As `evaluate`, on a thread of the interpreter's own, and cancelled when the calling task is.
     /// The closures run on that thread.
@@ -104,7 +106,8 @@ extension Interpreter {
         nonisolated(unsafe) let completion = completion  // safe: runs holding the interpreter lock
         let outcome: Result<Value, Diagnostic> = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
-                nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
+                // safe: runs holding the interpreter lock
+                nonisolated(unsafe) let interpreter = self
                 startLargeStackThread {
                     continuation.resume(
                         returning: Result { () throws(Diagnostic) -> Value in

@@ -6,9 +6,10 @@ enum FunctionBody: Sendable {
     case native(@Sendable (Interpreter, Arguments) throws -> Value)
 }
 
+// safe: its state is touched only holding the interpreter lock
 /// A Swiit function or closure, or a builtin written in Swift. Both get the
 /// same argument binding, help, overloads and streaming.
-final class Function: Callable, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class Function: Callable, @unchecked Sendable {
     let name: String?
     let parameters: [Parameter]
     let returnType: TypeAnnotation?

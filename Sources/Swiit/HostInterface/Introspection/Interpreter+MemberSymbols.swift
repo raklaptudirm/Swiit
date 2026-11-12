@@ -92,6 +92,7 @@ extension Interpreter {
         return made
     }
 
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a type has, for `ScriptType.members(named:in:)`: its instance members, its static ones, its
     /// initializers, and the cases of an enum. `rawValues` says the raw values of enums not yet
     /// declared (as `check` reads them), by enum and case.
@@ -262,7 +263,8 @@ extension Interpreter {
                 for signature in checker.sequenceSignatures(set) {
                     var made = signature
                     made.parameters = made.parameters.map {
-                        var p = $0; p.type = checker.substitute(p.type, ["Element": element]);
+                        var p = $0
+                        p.type = checker.substitute(p.type, ["Element": element])
                         return p
                     }
                     made.returns = checker.substitute(made.returns, ["Element": element])
@@ -272,4 +274,5 @@ extension Interpreter {
         }
         return found
     }
+    // swiftlint:enable function_body_length
 }

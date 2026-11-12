@@ -75,6 +75,7 @@ func genericParametersDescription(_ generics: [String: [String]]) -> String {
         .joined(separator: ", ") + "]"
 }
 
+// swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
 /// The `HostSymbol` for a member, written as the description: its signature, and the glue as the
 /// body of the closure that runs it.
 func describedMember(
@@ -122,6 +123,7 @@ func describedMember(
     }
     return code
 }
+// swiftlint:enable function_parameter_count
 
 /// A `Symbol.Parameter` for a parameter of a member.
 func describedParameter(_ parameter: Parameter, _ type: SType) throws -> String {

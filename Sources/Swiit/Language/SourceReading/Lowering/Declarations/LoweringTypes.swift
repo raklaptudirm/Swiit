@@ -3,6 +3,7 @@ import SwiftSyntax
 // Lowering type annotations: names, optionals, tuples, functions and generics.
 
 extension Lowering {
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func type(_ node: TypeSyntax) throws -> TypeAnnotation {
         if let identifier = node.as(IdentifierTypeSyntax.self) {
             let name = identifier.name.text

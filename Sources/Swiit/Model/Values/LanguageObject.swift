@@ -45,10 +45,11 @@ extension LanguageObject {
 /// and key paths, and for a host's function as a value.
 protocol Callable: AnyObject, Sendable, CustomStringConvertible {}
 
+// safe: its state is touched only holding the interpreter lock
 /// A mutating member's receiver, moved out of its variable for the call: nothing else holds the
 /// value while the member changes it, so a collection is changed where it is, not copied whole each
 /// time. The member's glue takes it out, and puts it back, changed, however the call ends.
-final class ReceiverBox: LanguageObject, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ReceiverBox: LanguageObject, @unchecked Sendable {
     var value: Value
     init(_ value: Value) { self.value = value }
 

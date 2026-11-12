@@ -161,6 +161,7 @@ extension Interpreter {
         try run(program)
     }
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func run(_ statement: Statement) throws {
         switch statement {
         case .typeExtension(let decl):

@@ -117,6 +117,7 @@ extension Interpreter {
         }
     }
 
+    // swiftlint:disable:next cyclomatic_complexity - one branch for each case; splitting it is item 17 of Docs/agenda.md
     func apply(_ op: BinaryOperator, _ lhs: Value, _ rhs: Value) throws -> Value {
         // Two integers, the common case: nothing below applies to them but the arithmetic.
         if case .int(let a) = lhs.storage, case .int(let b) = rhs.storage {

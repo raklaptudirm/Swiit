@@ -133,7 +133,8 @@ extension Interpreter {
                     name: member.name,
                     isStatic: false,
                     parameters: member.parameters.map {
-                        var made = $0; made.type = checker.substitute($0.type, bindings);
+                        var made = $0
+                        made.type = checker.substitute($0.type, bindings)
                         return made
                     },
                     returns: checker.substitute(member.returns, bindings),
@@ -247,6 +248,7 @@ extension BridgedMember {
         return .list([result, mover == nil ? receiver : .nothing])
     }
 
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
     static func members(of member: HostSymbol, in typeName: String) -> [BridgedMember] {
@@ -384,6 +386,7 @@ extension BridgedMember {
             preconditionFailure("\(member.name) is not a member of a type")
         }
     }
+    // swiftlint:enable function_body_length
 }
 
 // MARK: Writing one
@@ -447,7 +450,7 @@ extension HostType {
 
         private static func parser(named name: String) -> (@Sendable (String) -> Value?)? {
             func parser<L: LosslessStringConvertible>(_: L.Type) -> @Sendable (String) -> Value? {
-                { text in L(text).map { box($0 as! T, as: name) } }
+                { text in L(text).flatMap { ($0 as? T).map { box($0, as: name) } } }
             }
             guard let lossless = T.self as? any LosslessStringConvertible.Type else { return nil }
             return parser(lossless)
@@ -456,7 +459,8 @@ extension HostType {
         private static func literalMaker(named name: String) -> (@Sendable (String) -> Value?)? {
             func maker<L: ExpressibleByStringLiteral>(_: L.Type) -> @Sendable (String) -> Value? {
                 { text in
-                    (text as? L.StringLiteralType).map { box(L(stringLiteral: $0) as! T, as: name) }
+                    (text as? L.StringLiteralType)
+                        .flatMap { (L(stringLiteral: $0) as? T).map { box($0, as: name) } }
                 }
             }
             guard let literal = T.self as? any ExpressibleByStringLiteral.Type else { return nil }

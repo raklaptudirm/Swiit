@@ -29,9 +29,10 @@ nonisolated(unsafe) var leaves: [String: Leaf] = [  // safe: the generator runs 
     "String": Leaf({ "try String(\($0))" }, { "\($0).value" }),
 ]
 
+// safe: the generator runs on one thread
 /// A module's own top-level typealiases (`TimeInterval` is `Double`), which
 /// a signature may use.
-nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]  // safe: the generator runs on one thread
+nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]
 
 /// Generic types Swiit holds as they are, boxed (`SwiftValue`), with Swiit's
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.

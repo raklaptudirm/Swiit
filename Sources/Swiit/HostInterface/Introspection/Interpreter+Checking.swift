@@ -52,7 +52,8 @@ extension Interpreter {
                                 documented.summary =
                                     documentation.summary.isEmpty ? nil : documentation.summary
                                 function.parameters = function.parameters.map {
-                                    var p = $0; p.documentation = documentation.parameters[p.name];
+                                    var p = $0
+                                    p.documentation = documentation.parameters[p.name]
                                     return p
                                 }
                                 documented.kind = .function(function)

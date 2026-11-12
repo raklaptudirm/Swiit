@@ -252,8 +252,10 @@ extension Value.Bridging {
         _ interpreter: Interpreter,
         _ function: Value
     ) -> ([Value]) async throws -> Value {
-        nonisolated(unsafe) let interpreter = interpreter  // safe: runs holding the interpreter lock
-        nonisolated(unsafe) let caller = interpreter.task  // safe: runs holding the interpreter lock
+        // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let interpreter = interpreter
+        // safe: runs holding the interpreter lock
+        nonisolated(unsafe) let caller = interpreter.task
         let function = function
         return { arguments in
             let arguments = arguments

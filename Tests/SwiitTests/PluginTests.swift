@@ -26,7 +26,8 @@ private struct Entry: Encodable {
 
 @Test func scriptEnumsBridgeTheirCases() throws {
     let type = Value.EnumCase.Enumeration.of(Level.self)
-    #expect(type === Value.EnumCase.Enumeration.of(Level.self))  // One type, so values compare equal.
+    // One type, so values compare equal.
+    #expect(type === Value.EnumCase.Enumeration.of(Level.self))
     #expect(type.name == "Level")
     #expect(type.cases.map(\.name) == ["low", "high"])
     #expect(type.cases.map(\.rawValue) == [.string("low"), .string("high")])

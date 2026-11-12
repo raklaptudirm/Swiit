@@ -1,7 +1,8 @@
 import Foundation
 
+// safe: its state is touched only holding the interpreter lock
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
-final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {  // safe: its state is touched only holding the interpreter lock
+final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
     let id: Symbol.ID
     /// The protocols it takes in: `protocol A: B`.

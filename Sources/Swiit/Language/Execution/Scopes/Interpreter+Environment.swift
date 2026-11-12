@@ -31,6 +31,7 @@ extension Interpreter {
         return declared ? moduleName + "." + name : name
     }
 
+    // swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func describing(
         _ value: Value,
         debug: Bool = false,

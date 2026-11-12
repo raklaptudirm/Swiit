@@ -3,6 +3,7 @@ import Foundation
 extension TypeChecker {
     // MARK: Calls
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func callType(
         _ callee: inout Expr,
         _ arguments: inout [Argument],

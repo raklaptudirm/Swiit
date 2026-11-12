@@ -16,8 +16,8 @@ concurrency:
 
 jobs:
   # What the compiler lets through: unchecked concurrency without a stated
-  # reason, forced casts, `try!`, and code too tangled to follow. What is
-  # already in the code is in .swiftlint-baseline.json, so only new findings fail.
+  # reason, forced casts, `try!`, and code too tangled to follow. There is no
+  # baseline: a finding is fixed, or its rule is disabled on that line with the reason.
   lint:
     name: Lint
     runs-on: macos-15
@@ -32,7 +32,7 @@ jobs:
       - name: SwiftLint
         run: |
           brew install swiftlint
-          swiftlint lint --strict --baseline .swiftlint-baseline.json Sources
+          swiftlint lint --strict Sources
 
   # The code is as `swift format` writes it (.swift-format): formatting it again changes nothing.
   format:
