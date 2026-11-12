@@ -85,7 +85,30 @@ extension HostSymbol {
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) -> HostSymbol {
-        let defaults = parameters.map { parameter -> (String, Value?) in
+        function(
+            name: name,
+            summary: summary,
+            attributes: attributes,
+            signature: Symbol.Function(
+                parameters: parameters,
+                returns: returns,
+                isThrowing: isThrowing,
+                generics: generics
+            ),
+            body: body
+        )
+    }
+
+    /// A function, from its whole signature: what says that it rethrows, or throws a type, or is
+    /// `async`. `body` is called with its arguments in declared order, defaults filled in.
+    public static func function(
+        name: String,
+        summary: String = "",
+        attributes: [Symbol.Attribute] = [],
+        signature: Symbol.Function,
+        body: @escaping @Sendable ([Value]) throws -> Value
+    ) -> HostSymbol {
+        let defaults = signature.parameters.map { parameter -> (String, Value?) in
             if case .defaulted(.value(let value)) = parameter.arity {
                 return (parameter.name, value)
             }
@@ -94,12 +117,7 @@ extension HostSymbol {
         return function(
             name: name,
             summary: summary,
-            signature: Symbol.Function(
-                parameters: parameters,
-                returns: returns,
-                isThrowing: isThrowing,
-                generics: generics
-            ),
+            signature: signature,
             attributes: attributes
         ) { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }

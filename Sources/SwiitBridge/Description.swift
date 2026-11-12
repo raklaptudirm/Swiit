@@ -113,7 +113,7 @@ func describedMember(
             "HostSymbol.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
     case .method where isFree:
         code =
-            "HostSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), parameters: [\(parameterCode.joined(separator: ", "))], returns: \(scriptType(returns)), isThrowing: \(declaration.throwing || declaration.rethrowing), generics: \(genericParametersDescription(generics)), \(attributesCode(of: text))body: { arguments in\n\(interpreter)\(body)\n})"
+            "HostSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature), body: { arguments in\n\(interpreter)\(body)\n})"
     case .method where declaration.isStatic:
         code =
             "HostSymbol.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"
