@@ -22,6 +22,9 @@ struct MemberSet {
     var staticProperties: [String: MemberProperty] = [:]
     var staticMethods: [String: [TypeChecker.Signature]] = [:]
     var initializers: [TypeChecker.Signature] = []
+    /// What `value[…]` reads that an extension adds, with whether each can be written.
+    var subscripts: [TypeChecker.Signature] = []
+    var subscriptSettable: [Bool] = []
 }
 
 /// Which set of overloads a method is among, as the interpreter keeps them: the type's own, or the
@@ -65,6 +68,10 @@ extension MemberSet {
             }
         }
         initializers += other.initializers
+        subscripts += other.subscripts.map {
+            var copy = $0; copy.index = subscripts.count + $0.index; return copy
+        }
+        subscriptSettable += other.subscriptSettable
     }
 }
 

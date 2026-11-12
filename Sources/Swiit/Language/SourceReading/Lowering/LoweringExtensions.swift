@@ -52,9 +52,6 @@ extension Lowering {
                 "an extension can't add a stored property: '\(property.name)' (line \(line(of: node)))"
             )
         }
-        guard declaration.subscripts.isEmpty else {
-            throw unsupported("a subscript in an extension", node)
-        }
         return takeNested() + [
             .typeExtension(
                 ExtensionDecl(typeName: target, members: declaration, conformances: conformances)

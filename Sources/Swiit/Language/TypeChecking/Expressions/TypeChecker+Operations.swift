@@ -34,6 +34,11 @@ extension TypeChecker {
             return type
         case .index(var base, var index):
             let baseType = try typeOf(&base)
+            var written = [Argument(value: index)]
+            if let type = try extensionSubscript(on: baseType, &written) {
+                expr = .subscripted(base, written)
+                return type
+            }
             // A subscript a bridged type declares is a member named `subscript`, chosen by the
             // index as an overload is (a String's, by String.Index); a list's and a
             // dictionary's are the interpreter's own.
@@ -65,6 +70,10 @@ extension TypeChecker {
             return type
         case .subscripted(var base, var arguments):
             let baseType = try typeOf(&base)
+            if let type = try extensionSubscript(on: baseType, &arguments) {
+                expr = .subscripted(base, arguments)
+                return type
+            }
             guard case .named(let structName) = baseType, let info = structInfo(named: structName)
             else {
                 throw TypeError("\(baseType) can't be indexed by several values")

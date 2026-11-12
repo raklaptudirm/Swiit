@@ -117,3 +117,20 @@ extension Interpreter {
         return receiver.value
     }
 }
+
+extension Interpreter {
+    /// `value[label: 1]` where an extension adds the subscript to a type that is not a struct or
+    /// a class: the extension's getter, with `value` as `self`; nil if there is none.
+    func extensionSubscript(on target: Value, _ arguments: [Argument]) throws -> Value? {
+        guard target.record == nil, let key = typeKey(of: target),
+            let getters = typeExtensions[key]?.subscriptGetters, !getters.isEmpty
+        else { return nil }
+        let values = try arguments.map {
+            Argument(label: $0.label, value: .literal(try evaluate($0.value)))
+        }
+        let (getter, bindings) = try resolve(OverloadSet(name: "subscript", candidates: getters)) {
+            try self.bind(values, to: $0)
+        }
+        return try invoke(getter, with: bindings, receiver: Receiver(target, mutable: false))
+    }
+}

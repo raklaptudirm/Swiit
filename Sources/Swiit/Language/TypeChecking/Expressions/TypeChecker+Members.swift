@@ -506,3 +506,22 @@ extension TypeChecker {
         }
     }
 }
+
+extension TypeChecker {
+    /// What `value[…]` gives when an extension adds a subscript to a type that is not a struct or
+    /// a class (an `Array`, a `String`, a type of Swift's) and one of them takes the arguments;
+    /// nil to read it as the type itself does.
+    func extensionSubscript(
+        on base: TypeAnnotation,
+        _ arguments: inout [Argument]
+    ) throws -> TypeAnnotation? {
+        if case .named(let name) = base, structInfo(named: name) != nil { return nil }
+        guard let extended = describe(erased(base))?.extended, !extended.subscripts.isEmpty
+        else { return nil }
+        var attempt = arguments
+        guard let chosen = try? resolve(extended.subscripts, &attempt, name: "subscript")
+        else { return nil }
+        arguments = attempt
+        return substitute(chosen.returns, elementBindings(for: base))
+    }
+}

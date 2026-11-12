@@ -177,6 +177,7 @@ extension Interpreter {
             if case .object(let instance as ClassInstance) = target.storage {
                 return try readSubscript(instance, arguments)
             }
+            if let result = try extensionSubscript(on: target, arguments) { return result }
             guard let record = target.record, let type = structType(of: record),
                 !type.subscriptGetters.isEmpty
             else {

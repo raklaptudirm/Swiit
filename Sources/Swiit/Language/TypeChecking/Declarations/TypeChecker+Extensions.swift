@@ -106,6 +106,17 @@ extension TypeChecker {
                 )
             }
             runtime.members.staticMethods = signatures(members.staticMethods)
+            for (index, getter) in members.subscriptGetters.enumerated() {
+                runtime.members.subscripts.append(
+                    Signature(
+                        name: "subscript",
+                        parameters: getter.parameters,
+                        returns: getter.returnType ?? .unknown,
+                        index: index
+                    )
+                )
+                runtime.members.subscriptSettable.append(false)
+            }
             runtime.conformances = members.conformances
             if var existing = info {
                 existing.merge(runtime); info = existing
@@ -150,6 +161,17 @@ extension TypeChecker {
             )
         }
         info.members.staticMethods = signatures(members.staticMethods)
+        for (index, declared) in members.subscripts.enumerated() {
+            info.members.subscripts.append(
+                Signature(
+                    name: "subscript",
+                    parameters: declared.parameters,
+                    returns: declared.returnType,
+                    index: index
+                )
+            )
+            info.members.subscriptSettable.append(false)
+        }
         info.conformances = decl.conformances
         info.members.initializers = members.initializers.map { initializer in
             Signature(
@@ -229,6 +251,17 @@ extension TypeChecker {
             var function = erasingParameters(members.methods[index])
             try checkFunction(&function, self: selfType, mutating: function.isMutating)
             members.methods[index].body = function.body
+        }
+        for index in members.subscripts.indices {
+            let declared = members.subscripts[index]
+            var getter = FunctionDecl(
+                name: "subscript",
+                parameters: declared.parameters,
+                returnType: declared.returnType,
+                body: declared.getter
+            )
+            try checkFunction(&getter, self: selfType)
+            members.subscripts[index].getter = getter.body
         }
         for index in members.staticProperties.indices {
             let property = members.staticProperties[index]

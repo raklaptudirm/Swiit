@@ -56,3 +56,24 @@ import Testing
     // Swift's own static members are still found.
     #expect(try swiit.evaluate("Int.max") == Value(Int.max))
 }
+
+@Test func anExtensionOfABuiltInTypeAddsSubscripts() throws {
+    let swiit = Interpreter()
+    _ = try swiit.evaluate(
+        """
+        extension Array {
+            subscript(safe position: Int) -> Element? {
+                position >= 0 && position < count ? self[position] : nil
+            }
+        }
+        extension String {
+            subscript(position: Int) -> Character { Array(self)[position] }
+        }
+        """
+    )
+    #expect(try swiit.evaluate("[7, 8][safe: 1]") == 8)
+    #expect(try swiit.evaluate("[7, 8][safe: 5]") == .nothing)
+    #expect(try swiit.evaluate("String(\"abc\"[1])") == Value("b"))
+    // The type's own subscripts are still its own.
+    #expect(try swiit.evaluate("[7, 8][0]") == 7)
+}
