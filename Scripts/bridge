@@ -93,7 +93,7 @@ specializations() {
 }
 # Types whose subscripts the interpreter has of its own, and so are not bridged.
 own_subscripts() {
-    case "$1" in Swift) echo ArraySlice Set Range ClosedRange ;; esac
+    case "$1" in Swift) echo Array ArraySlice Dictionary Set Range ClosedRange ;; esac
 }
 # The top-level functions of a module that are bridged.
 functions() {
