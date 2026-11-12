@@ -70,7 +70,31 @@ extension Interpreter {
         } else if let key = typeKey(of: value) {
             declared += typeExtensions[key]?.conformances ?? []
         }
+        declared += bridgedConformances(of: value)
         return conformances(taking: declared)
+    }
+
+    /// The protocols of Swift's that the value's type conforms to, as the bridge records them. A
+    /// conformance that holds for some generic arguments only (`ClosedRange` is a sequence when
+    /// its bounds are integers) is decided for the sequence protocols by whether the value can
+    /// be read as one, and is left out otherwise.
+    private func bridgedConformances(of value: Value) -> [String] {
+        switch value.storage {
+        case .int, .double, .string, .bool, .list, .dictionary: break
+        case .object(let box) where box is SwiftValue: break
+        default: return []
+        }
+        guard let key = typeKey(of: value), let type = Bridge.types[key] else { return [] }
+        return type.conformances.compactMap { name, needs in
+            let met = needs.allSatisfy { parameter in
+                parameter.constraints.allSatisfy {
+                    Bridge.valueProtocols.contains($0.refinementKey)
+                }
+            }
+            return met
+                || Bridge.sequenceProtocols.contains(name) && Interpreter.items(of: value) != nil
+                ? name : nil
+        }
     }
 
     /// What each of `declared` takes in, with them.

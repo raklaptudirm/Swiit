@@ -287,12 +287,13 @@ for (name, _) in bridgedTypeNames {
     let id = typeIDs[name.split(separator: ".").map(String.init)]
     for relationship in graph.relationships
     where relationship.kind == "conformsTo" && relationship.source == id {
-        var proto =
+        let proto =
             relationship.targetFallback.map { String($0.split(separator: ".").last!) }
             ?? symbolsByID[relationship.target]?.pathComponents.last ?? ""
         type.allConformances.insert(proto)
-        if collectionProtocols.contains(proto) { proto = "Sequence" }
-        guard knownProtocols.contains(proto) else { continue }
+        // A collection is a sequence too: the graph names the refinement only.
+        let protocols = collectionProtocols.contains(proto) ? [proto, "Sequence"] : [proto]
+        guard protocols.contains(where: knownProtocols.contains) else { continue }
         // What the generic parameters must be for it, if Swiit can say.
         var needs: [String: [String]] = [:]
         var sayable = true
@@ -310,12 +311,14 @@ for (name, _) in bridgedTypeNames {
         }
         guard sayable else { continue }
         // Of a conformance declared more than once, the least demanding.
-        if let existing = type.conformances[proto],
-            existing.values.map(\.count).reduce(0, +) <= needs.values.map(\.count).reduce(0, +)
-        {
-            continue
+        for proto in protocols where knownProtocols.contains(proto) {
+            if let existing = type.conformances[proto],
+                existing.values.map(\.count).reduce(0, +) <= needs.values.map(\.count).reduce(0, +)
+            {
+                continue
+            }
+            type.conformances[proto] = needs.mapValues { Array(Set($0)).sorted() }
         }
-        type.conformances[proto] = needs.mapValues { Array(Set($0)).sorted() }
     }
     types[name] = type
 }

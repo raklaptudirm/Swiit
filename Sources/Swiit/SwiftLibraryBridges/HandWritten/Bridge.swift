@@ -9,6 +9,15 @@ import SystemPackage
 /// and Docs/swift-interop.md). Each member comes with its signature,
 /// for the checker, and its glue, which calls Swift.
 enum Bridge {
+    /// Swift's protocols that a sequence conforms to by being a collection of one kind or another:
+    /// an extension of one reaches every sequence, as Swiit does not tell them apart.
+    static let sequenceProtocols: Set = [
+        "Sequence", "Collection", "BidirectionalCollection", "RandomAccessCollection",
+    ]
+
+    /// The protocols every script value conforms to, so a generic parameter bound by one is met.
+    static let valueProtocols: Set = ["Equatable", "Hashable", "Comparable"]
+
     /// Foundation's `Date` and `AttributedString`, from the description the generator writes
     /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
     static let foundation: [BridgedType] = FoundationBridge.types.map { BridgedType(generated: $0) }

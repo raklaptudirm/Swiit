@@ -51,7 +51,7 @@ extension TypeChecker {
         var info = ownExtensionLayer(forKey: key)
         let declared =
             (structInfo(named: key)?.conformances ?? enumInfo(named: key)?.conformances ?? [])
-            + (info?.conformances ?? [])
+            + (info?.conformances ?? []) + bridgedProtocols(named: key)
         for proto in declared.flatMap(protocolClosure) where proto != key {
             guard let defaults = ownExtensionLayer(forKey: proto) else { continue }
             if var existing = info {
@@ -72,6 +72,15 @@ extension TypeChecker {
             }
         }
         return info
+    }
+
+    /// The protocols of Swift's that a type of Swift's conforms to, which extensions of those give
+    /// it members for; a type the program declares is not one of those.
+    func bridgedProtocols(named key: String) -> [String] {
+        guard structInfo(named: key) == nil, enumInfo(named: key) == nil,
+            protocolInfo(named: key) == nil
+        else { return [] }
+        return Bridge.types[key].map { Array($0.conformances.keys.sorted()) } ?? []
     }
 
     func ownExtensionLayer(forKey key: String) -> ExtensionLayer? {
@@ -180,6 +189,9 @@ extension TypeChecker {
                 return .named(key)
             }
             if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
+            // A protocol of Swift's that collections share: `self` is whatever conforms, so what
+            // is asked of it is looked up when it runs (see `hasMember`).
+            if Bridge.sequenceProtocols.contains(key) { return .unknown }
             throw TypeError("can't extend '\(key)': it isn't a type Swiit knows")
         }
     }
@@ -268,6 +280,9 @@ extension TypeChecker {
 
     /// Whether the type has a member by that name, for a bare name inside it to mean `self`'s.
     func hasMember(_ type: TypeAnnotation, named name: String) -> Bool {
+        // A value of no type known yet (`self` in an extension of `Collection`) has the members the
+        // collections share, which `Array` has all of.
+        if type == .unknown { return hasMember(.list(.unknown), named: name) }
         if describe(type)?.instanceMember(name) != nil { return true }
         if case .named = type { return false }
         if let (bridgedType, _) = bridged(type) {

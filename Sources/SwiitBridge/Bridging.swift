@@ -47,7 +47,7 @@ let collectionProtocols: Set = [
 /// The protocols a type conforms to, as far as the checker needs to know.
 let knownProtocols: Set = [
     "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence",
-    "StandsForText",
+    "Collection", "BidirectionalCollection", "RandomAccessCollection", "StandsForText",
     "ExpressibleByStringLiteral",
 ]
 /// What Swiit's values (the stand-in for every generic parameter) can be.
