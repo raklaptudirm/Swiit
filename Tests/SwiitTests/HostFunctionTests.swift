@@ -69,3 +69,31 @@ private final class Log: @unchecked Sendable {
         try swiit.evaluate("var m = 1; var n = 2; exchange(m, n, plus: 1)")
     }
 }
+
+@Test func aSubscriptOfAHostTypeIsAMemberNamedSubscript() throws {
+    let swiit = Interpreter()
+    var type = HostType(
+        name: "Ruler",
+        members: [
+            .initializer(
+                summary: "A ruler.",
+                signature: Symbol.Function(parameters: [], returns: .named("Ruler"))
+            ) { _ in SwiftValue.make(3, as: "Ruler") },
+            .method(
+                "subscript",
+                summary: "The mark at a position.",
+                parameters: [Symbol.Parameter(label: nil, name: "position", type: .int)],
+                returns: .string
+            ) { _, arguments in .string("mark \(try Int(arguments[0]))") },
+            .method(
+                "subscript",
+                summary: "The mark from a position.",
+                parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)],
+                returns: .string
+            ) { _, arguments in .string("from \(try Int(arguments[0]))") },
+        ]
+    )
+    type.genericParameters = []
+    swiit.register(type)
+    #expect(try swiit.evaluate("let r = Ruler(); r[2]").description == "mark 2")
+}

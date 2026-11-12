@@ -86,6 +86,10 @@ as_array() {
             DropWhileSequence DropFirstSequence Slice ;;
     esac
 }
+# Types whose subscripts the interpreter has of its own, and so are not bridged.
+own_subscripts() {
+    case "$1" in Swift) echo Array ArraySlice Dictionary Set Range ClosedRange ;; esac
+}
 # The top-level functions of a module that are bridged.
 functions() {
     case "$1" in Swift) echo zip swap ;; esac
@@ -121,6 +125,7 @@ for module in Swift SystemPackage Foundation; do
     for type in $(types "$module"); do platforms+=(--type "$type"); done
     for type in $(as_array "$module"); do platforms+=(--as-array "$type"); done
     for function in $(functions "$module"); do platforms+=(--function "$function"); done
+    for type in $(own_subscripts "$module"); do platforms+=(--own-subscripts "$type"); done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done

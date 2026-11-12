@@ -61,6 +61,8 @@
     "AttributedString\tswift.property\truns",
     "AttributedString\tswift.property\tstartIndex",
     "AttributedString\tswift.property\tunicodeScalars",
+    "AttributedString\tswift.subscript\tsubscript(_:)",
+    "AttributedString\tswift.subscript\tsubscript(dynamicMember:)",
     "Date\tswift.func.op\t!=(_:_:)",
     "Date\tswift.func.op\t+(_:_:)",
     "Date\tswift.func.op\t+=(_:_:)",

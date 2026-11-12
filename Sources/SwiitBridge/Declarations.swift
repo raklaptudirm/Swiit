@@ -29,6 +29,8 @@ struct Declaration {
     let rethrowing: Bool
     /// `async`: its glue waits for it in `suspend` (`bridgeAsync`).
     var isAsync = false
+    /// `subscript(…) -> T`: called as `receiver[…]`; bridged as a method named `subscript`.
+    var isSubscript = false
     /// `throws(E)`: E, a generic parameter only for the error.
     let typedError: String?
     /// Its `where` clause, which the graph doesn't always give separately.
@@ -122,7 +124,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         } while reader.consume(",")
         guard reader.consume(">") else { throw Unsupported(reason: "generics") }
     }
-    func parameterList(_ reader: inout Reader) throws -> [Parameter] {
+    func parameterList(_ reader: inout Reader, isSubscript: Bool = false) throws -> [Parameter] {
         guard reader.consume("(") else { throw Unsupported(reason: "parameters") }
         var parameters: [Parameter] = []
         if reader.consume(")") { return parameters }
@@ -131,7 +133,12 @@ func parseDeclaration(_ text: String) throws -> Declaration {
             guard let first = reader.identifier() else { throw Unsupported(reason: "parameter") }
             var name = first
             var label: String? = first
-            if let second = reader.identifier() { name = second }
+            if let second = reader.identifier() {
+                name = second
+            } else if isSubscript {
+                // A subscript's one name is no label.
+                label = nil
+            }
             if first == "_" { label = nil }
             guard reader.consume(":") else { throw Unsupported(reason: "parameter type") }
             let type = try reader.type()
@@ -219,6 +226,33 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         declaration.isAsync = isAsync
         if reader.consume("where") {
             declaration.constraints = whereConstraints(String(reader.chars[reader.pos...]))
+        }
+        return declaration
+    }
+    if reader.consume("subscript") {
+        try genericParameters(&reader)
+        let parameters = try parameterList(&reader, isSubscript: true)
+        guard reader.consume("->") else { throw Unsupported(reason: "subscript") }
+        let returns = try reader.type()
+        let accessors = String(reader.chars[reader.pos...])
+        if accessors.contains("throws") { throw Unsupported(reason: "throwing subscript") }
+        var declaration = Declaration(
+            kind: .method,
+            name: "subscript",
+            isStatic: isStatic,
+            isMutating: false,
+            isFailable: false,
+            generics: generics,
+            parameters: parameters,
+            returns: returns,
+            throwing: false,
+            rethrowing: false,
+            typedError: nil
+        )
+        declaration.isSubscript = true
+        declaration.isAsync = accessors.contains("async")
+        if let range = accessors.range(of: "where") {
+            declaration.constraints = whereConstraints(String(accessors[range.lowerBound...]))
         }
         return declaration
     }

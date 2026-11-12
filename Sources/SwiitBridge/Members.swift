@@ -297,6 +297,9 @@ func bridge(
             argumentList.count == 1
             ? "\(declaration.name)(\(argumentList[0]))"
             : "(\(argumentList[0])) \(declaration.name) (\(argumentList[1]))"
+    case .method where declaration.isSubscript:
+        // `receiver[index]`, with its labels if it has any.
+        target = "receiver[\(arguments)]"
     case .method where isFree: target = "\(swiftName(declaration.name))(\(arguments))"
     case .method:
         target =

@@ -33,7 +33,28 @@ extension TypeChecker {
             expr = .binary(op, lhs, rhs)
             return type
         case .index(var base, var index):
-            let type = try indexType(&base, &index)
+            let baseType = try typeOf(&base)
+            // A subscript a bridged type declares is a member named `subscript`, chosen by the
+            // index as an overload is (a String's, by String.Index); a list's and a
+            // dictionary's are the interpreter's own.
+            if let (bridgedType, bindings) = bridged(baseType),
+                bridgedType.members.contains(where: { $0.kind == .method && $0.name == "subscript" }
+                )
+            {
+                var arguments = [Argument(value: index)]
+                let (type, bridgedExpr) = try bridgedCall(
+                    bridgedType.name,
+                    kind: .method,
+                    isStatic: false,
+                    receiver: base,
+                    bindings: bindings,
+                    name: "subscript",
+                    &arguments
+                )
+                expr = bridgedExpr
+                return type
+            }
+            let type = try indexType(of: baseType, &index)
             expr = .index(base, index)
             return type
         case .subscripted(var base, var arguments):

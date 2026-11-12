@@ -80,6 +80,8 @@ nonisolated(unsafe) var namedFunctions: Set<String> = []  // safe: the generator
 nonisolated(unsafe) var asArrayNames: [String] = []  // safe: the generator runs on one thread
 /// `--preconditions <file>`: when a member would trap, and what a script is told (`Preconditions.swift`).
 nonisolated(unsafe) var preconditionsPath: String?  // safe: the generator runs on one thread
+/// `--own-subscripts <Type>`: types whose subscripts the interpreter has of its own (a list's).
+nonisolated(unsafe) var ownSubscripts: Set<String> = []  // safe: the generator runs on one thread
 /// `--import <Module>`: modules the glue names types of, besides the one it bridges.
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
@@ -111,6 +113,8 @@ do {
         case "--as-array" where i + 1 < rest.count: asArrayNames.append(rest[i + 1]); i += 2
         case "--preconditions" where i + 1 < rest.count:
             preconditionsPath = rest[i + 1]; i += 2
+        case "--own-subscripts" where i + 1 < rest.count:
+            ownSubscripts.insert(rest[i + 1]); i += 2
         case "--import" where i + 1 < rest.count: importNames.append(rest[i + 1]); i += 2
         case "--rename" where i + 1 < rest.count:
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
@@ -363,7 +367,7 @@ for (name, _) in bridgedTypeNames {
     var members: [String] = []
     let kinds = [
         "swift.method", "swift.property", "swift.init", "swift.type.method", "swift.type.property",
-        "swift.func.op",
+        "swift.func.op", "swift.subscript",
     ]
     // Its own members, then those of the protocols it conforms to, whether
     // required or added by an extension (`Collection.contains`,
@@ -418,6 +422,7 @@ for (name, _) in bridgedTypeNames {
         }
         // The interpreter's own, which a host does not call.
         if title.hasPrefix("swiit") { continue }
+        if symbol.kind.identifier == "swift.subscript" && ownSubscripts.contains(name) { continue }
         if isOperator && graph.module.name == "Swift" { continue }
         if swiitOwn[name]?.contains(title) ?? false { continue }
         // What this platform declares, whether or not the generator can bridge

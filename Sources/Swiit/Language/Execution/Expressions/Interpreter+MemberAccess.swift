@@ -128,6 +128,14 @@ extension Interpreter {
     // swiftlint:enable cyclomatic_complexity function_body_length
 
     func element(of base: Value, at index: Value) throws -> Value {
+        // A subscript a bridged type declares, where the checker did not know the type.
+        switch base.storage {
+        case .list, .dictionary: break
+        default:
+            if base.record == nil, let subscripted = bridgedMethods("subscript", of: base) {
+                return try call(subscripted, with: [index])
+            }
+        }
         if case .string(let text) = base.storage { return try Bridge.subscriptString(text, index) }
         if case .dictionary(let dictionary) = base.storage {
             return dictionary[index] ?? .nothing
