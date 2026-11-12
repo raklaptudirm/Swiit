@@ -16,9 +16,12 @@ concurrency:
   group: docs-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Building the docs needs Xcode, so it is a macOS job: it runs, and the site is published, only when
+# the repository variable MACOS_RUNNERS is 'true'. It is off for now.
 jobs:
   build:
     name: Build
+    if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 30
     steps:

@@ -7,9 +7,10 @@
 # what all the platforms there have: CI makes Linux's (see
 # .github/workflows/ci.yml), and a member only one has can't break the other.
 #
-# CI's Xcode (the latest stable) may be older than the one on a developer's machine, and its SDK
-# documents and lists some members differently: when CI says the bridges are out of date, commit the
-# files its job kept (the artifact `bridges-macos`) rather than the ones made here.
+# The Xcode on a developer's machine and CI's (the latest stable) can differ, and the SDKs document
+# and list some members differently. While the macOS jobs run (see ci.yml), when CI says the bridges
+# are out of date, commit the files its job kept (the artifact `bridges-macos`) rather than the ones
+# made here; with them off, the files made here are the ones.
 #
 # A client with bridges of its own (a host may have them) runs the generator
 # itself: `swift run --package-path <Swiit> -c release swiit-bridge --help`.

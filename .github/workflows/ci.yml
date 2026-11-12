@@ -2,6 +2,10 @@ name: CI
 
 # Swiit on its own, where it is meant to run: macOS and Linux.
 
+# The jobs on macOS (lint, format, the macOS tests, the macOS bridges, the docs) run only when the
+# repository variable MACOS_RUNNERS is 'true': they are off for now, as the hosted macOS runners
+# are scarce, and the same checks are run locally. Linux runs always.
+
 on:
   push:
     branches: [main]
@@ -20,6 +24,7 @@ jobs:
   # baseline: a finding is fixed, or its rule is disabled on that line with the reason.
   lint:
     name: Lint
+    if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 15
     steps:
@@ -37,6 +42,7 @@ jobs:
   # The code is as `swift format` writes it (.swift-format): formatting it again changes nothing.
   format:
     name: Format
+    if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 10
     steps:
@@ -53,6 +59,7 @@ jobs:
 
   macos:
     name: macOS
+    if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 60
     steps:
@@ -104,6 +111,7 @@ jobs:
   # so a member one platform lacks can't break the build on another.
   bridges-macos:
     name: Bridges (macOS)
+    if: ${{ vars.MACOS_RUNNERS == 'true' }}
     runs-on: macos-15
     timeout-minutes: 60
     steps:
