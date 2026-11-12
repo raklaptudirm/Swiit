@@ -88,7 +88,7 @@ as_array() {
 }
 # The top-level functions of a module that are bridged.
 functions() {
-    case "$1" in Swift) echo zip ;; esac
+    case "$1" in Swift) echo zip swap ;; esac
 }
 
 for module in Swift SystemPackage Foundation; do

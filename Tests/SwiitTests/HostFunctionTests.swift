@@ -37,3 +37,35 @@ private final class Log: @unchecked Sendable {
     #expect(throws: (any Error).self) { try swiit.evaluate(#"print("ran"); described(1)"#) }
     #expect(log.text == "")
 }
+
+@Test func aHostFunctionChangesTheVariablesItIsGivenInPlace() throws {
+    let swiit = Interpreter()
+    swiit.register(
+        HostSymbol.function(
+            name: "exchange",
+            signature: Symbol.Function(
+                parameters: [
+                    Symbol.Parameter(label: nil, name: "a", type: .inOut(.int)),
+                    Symbol.Parameter(label: nil, name: "b", type: .inOut(.int)),
+                    Symbol.Parameter(label: "plus", name: "extra", type: .int),
+                ],
+                returns: .int
+            ),
+            updating: { arguments in
+                (arguments[0], arguments[1]) = (arguments[1], arguments[0])
+                return arguments[2]
+            }
+        )
+    )
+    #expect(
+        try swiit.evaluate("var x = 1; var y = 2; exchange(&x, &y, plus: 7); [x, y]").description
+            == "[2, 1]"
+    )
+    #expect(
+        try swiit.evaluate("var p = 1; var q = 2; exchange(&p, &q, plus: 7)").description == "7"
+    )
+    // Without the marks a call is refused, as for any function with `inout` parameters.
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate("var m = 1; var n = 2; exchange(m, n, plus: 1)")
+    }
+}

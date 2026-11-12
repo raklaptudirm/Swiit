@@ -90,7 +90,8 @@ func describedMember(
     generics: [String: [String]],
     body: String,
     setterBody: String?,
-    isFree: Bool = false
+    isFree: Bool = false,
+    updates: Bool = false
 ) -> String {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     let interpreter =
@@ -116,7 +117,7 @@ func describedMember(
             "HostSymbol.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
     case .method where isFree:
         code =
-            "HostSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature), body: { arguments in\n\(interpreter)\(body)\n})"
+            "HostSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature), \(updates ? "updating" : "body"): { arguments in\n\(interpreter)\(body)\n})"
     case .method where declaration.isStatic:
         code =
             "HostSymbol.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"

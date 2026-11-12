@@ -441,21 +441,7 @@ extension Interpreter {
         guard let (signature, call) = export.function else {
             preconditionFailure("\(export.name) is a member of a type, not a function")
         }
-        let parameters = signature.parameters.map { parameter -> Parameter in
-            var made = Parameter(
-                label: parameter.label,
-                name: parameter.name,
-                type: TypeAnnotation(parameter.type)
-            )
-            switch parameter.arity {
-            case .required: break
-            case .variadic: made.variadic = true
-            case .defaulted(.value(let value)): made.defaultValue = .literal(value)
-            case .defaulted(.computed): made.externalDefault = "…"
-            }
-            made.showsByType = parameter.showsByType
-            return made
-        }
+        let parameters = signature.parameters.map { Parameter(described: $0) }
         var docs: [String: String] = [:]
         for parameter in signature.parameters {
             if let doc = parameter.documentation { docs[parameter.name] = doc }
@@ -597,5 +583,31 @@ extension Interpreter {
                     ?? arguments[position]
             }
         )
+    }
+}
+
+extension Parameter {
+    /// The parameter a script sees, from the one a host described: an `inout` type is a parameter
+    /// the function changes in place.
+    init(described parameter: Symbol.Parameter) {
+        var type = parameter.type
+        var isInout = false
+        if case .inOut(let inner) = type {
+            type = inner
+            isInout = true
+        }
+        self.init(
+            label: parameter.label,
+            name: parameter.name,
+            type: TypeAnnotation(type),
+            isInout: isInout
+        )
+        switch parameter.arity {
+        case .required: break
+        case .variadic: variadic = true
+        case .defaulted(.value(let value)): defaultValue = .literal(value)
+        case .defaulted(.computed): externalDefault = "…"
+        }
+        showsByType = parameter.showsByType
     }
 }

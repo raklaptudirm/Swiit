@@ -73,29 +73,6 @@ extension Interpreter {
                 ),
                 named: "type"
             )
-        // `swap(&a, &b)`: each takes what the other held, through the call's `inout` write-back.
-        scopes[0]
-            .declare(
-                Function(
-                    name: "swap",
-                    parameters: [
-                        Parameter(label: nil, name: "a", type: .any, isInout: true),
-                        Parameter(label: nil, name: "b", type: .any, isInout: true),
-                    ],
-                    returnType: nil,
-                    body: .native { interpreter, arguments in
-                        interpreter.task.inoutOutputs = [
-                            arguments["b"] ?? .nothing, arguments["a"] ?? .nothing,
-                        ]
-                        return .nothing
-                    },
-                    documentation: Documentation(
-                        summary: "Exchanges the values of two variables.",
-                        parameters: [:]
-                    )
-                ),
-                named: "swap"
-            )
         for (name, isThrowing) in [("withTaskGroup", false), ("withThrowingTaskGroup", true)] {
             scopes[0].declare(Bridge.taskGroupFunction(name, isThrowing: isThrowing), named: name)
         }
@@ -309,7 +286,7 @@ extension Interpreter {
                 )
             )
         }
-        // The standard library's own top-level functions, as the generator reads them (`zip`).
+        // The standard library's own top-level functions, as the generator reads them (`zip`, `swap`).
         for function in StandardLibraryBridge.functions { declare(function) }
         // `abs`, `min` and `max`, for the numbers and strings there are.
         for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {

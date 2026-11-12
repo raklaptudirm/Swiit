@@ -122,6 +122,34 @@ extension HostSymbol {
         ) { arguments in try body(defaults.map { arguments[$0.0] ?? $0.1 ?? .nothing }) }
     }
 
+    /// A function that changes some of its arguments in place, as Swift's `inout` does: the
+    /// parameters typed `.inOut(T)` in its signature. `body` gets all the arguments in declared
+    /// order, and what it leaves in the `inout` ones is put back in the variables the call passed
+    /// (`swap(&a, &b)`).
+    public static func function(
+        name: String,
+        summary: String = "",
+        attributes: [Symbol.Attribute] = [],
+        signature: Symbol.Function,
+        updating body: @escaping @Sendable (_ arguments: inout [Value]) throws -> Value
+    ) -> HostSymbol {
+        let changed = signature.parameters.indices.filter {
+            if case .inOut = signature.parameters[$0].type { true } else { false }
+        }
+        return function(
+            name: name,
+            summary: summary,
+            attributes: attributes,
+            signature: signature,
+            body: { arguments in
+                var values = arguments
+                let result = try body(&values)
+                Interpreter.running?.task.inoutOutputs = changed.map { values[$0] }
+                return result
+            }
+        )
+    }
+
     /// A function whose result is a Swift type:
     /// `HostSymbol.function(name: "size", returns: Int.self) { _ in 3 }`.
     public static func function<T: ScriptConvertible>(

@@ -23,7 +23,7 @@ internal enum StandardLibraryBridge {
         type690,
         type748,
     ]
-    internal static let functions: [HostSymbol] = [member749]
+    internal static let functions: [HostSymbol] = [member749, member750]
     private static let member0: HostSymbol = HostSymbol.initializer(summary: "Creates a string containing the given character.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "c", type: .named(.init(hostType: "Character")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String(try arguments[0].unboxing(Character.self))
                 return result.value
@@ -1533,21 +1533,18 @@ let receiver: Int = try Int(selfValue)
 
     private static let member219: HostSymbol = HostSymbol.method("multipliedReportingOverflow", summary: "Returns the product of this value and the given value, along with a Boolean value indicating whether overflow occurred in the operation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "other", type: .int)], returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Int = try Int(selfValue)
-                let by = try Int(arguments[0])
                 let result = receiver.multipliedReportingOverflow(by: try Int(arguments[0]))
                 return Value.Bridging.tuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
 }
 
     private static let member220: HostSymbol = HostSymbol.method("dividedReportingOverflow", summary: "Returns the quotient obtained by dividing this value by the given value, along with a Boolean value indicating whether overflow occurred in the operation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "other", type: .int)], returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Int = try Int(selfValue)
-                let by = try Int(arguments[0])
                 let result = receiver.dividedReportingOverflow(by: try Int(arguments[0]))
                 return Value.Bridging.tuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
 }
 
     private static let member221: HostSymbol = HostSymbol.method("remainderReportingOverflow", summary: "Returns the remainder after dividing this value by the given value, along with a Boolean value indicating whether overflow occurred during division.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "dividingBy", name: "other", type: .int)], returns: .tuple([.init(label: "partialValue", type: .int), .init(label: "overflow", type: .bool)]), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Int = try Int(selfValue)
-                let dividingBy = try Int(arguments[0])
                 let result = receiver.remainderReportingOverflow(dividingBy: try Int(arguments[0]))
                 return Value.Bridging.tuple(result) { t in [("partialValue", t.0.value), ("overflow", t.1.value)] }
 }
@@ -2162,39 +2159,30 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
 
     private static let member317: HostSymbol = HostSymbol.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let after = try Int(arguments[0])
                 let result = receiver.index(after: try Int(arguments[0]))
                 return result.value
 }
 
     private static let member318: HostSymbol = HostSymbol.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let before = try Int(arguments[0])
                 let result = receiver.index(before: try Int(arguments[0]))
                 return result.value
 }
 
     private static let member319: HostSymbol = HostSymbol.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let _0 = try Int(arguments[0])
-                let offsetBy = try Int(arguments[1])
                 let result = receiver.index(try Int(arguments[0]), offsetBy: try Int(arguments[1]))
                 return result.value
 }
 
     private static let member320: HostSymbol = HostSymbol.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let _0 = try Int(arguments[0])
-                let offsetBy = try Int(arguments[1])
-                let limitedBy = try Int(arguments[2])
                 let result = receiver.index(try Int(arguments[0]), offsetBy: try Int(arguments[1]), limitedBy: try Int(arguments[2]))
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member321: HostSymbol = HostSymbol.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int), Symbol.Parameter(label: "to", name: "end", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let from = try Int(arguments[0])
-                let to = try Int(arguments[1])
                 let result = receiver.distance(from: try Int(arguments[0]), to: try Int(arguments[1]))
                 return result.value
 }
@@ -2838,39 +2826,30 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
 
     private static let member405: HostSymbol = HostSymbol.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let after = try Int(arguments[0])
                 let result = receiver.index(after: try Int(arguments[0]))
                 return result.value
 }
 
     private static let member406: HostSymbol = HostSymbol.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let before = try Int(arguments[0])
                 let result = receiver.index(before: try Int(arguments[0]))
                 return result.value
 }
 
     private static let member407: HostSymbol = HostSymbol.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let _0 = try Int(arguments[0])
-                let offsetBy = try Int(arguments[1])
                 let result = receiver.index(try Int(arguments[0]), offsetBy: try Int(arguments[1]))
                 return result.value
 }
 
     private static let member408: HostSymbol = HostSymbol.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let _0 = try Int(arguments[0])
-                let offsetBy = try Int(arguments[1])
-                let limitedBy = try Int(arguments[2])
                 let result = receiver.index(try Int(arguments[0]), offsetBy: try Int(arguments[1]), limitedBy: try Int(arguments[2]))
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member409: HostSymbol = HostSymbol.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int), Symbol.Parameter(label: "to", name: "end", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: ["Element"])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let from = try Int(arguments[0])
-                let to = try Int(arguments[1])
                 let result = receiver.distance(from: try Int(arguments[0]), to: try Int(arguments[1]))
                 return result.value
 }
@@ -5294,5 +5273,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member749: HostSymbol = HostSymbol.function(name: "zip", summary: "Creates a sequence of pairs built out of two underlying sequences.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "sequence1", type: .named(.sequence, [.parameter("Sequence1.Element")])), Symbol.Parameter(label: nil, name: "sequence2", type: .named(.sequence, [.parameter("Sequence2.Element")]))], returns: .list(.tuple([.init(label: nil, type: .parameter("Sequence1.Element")), .init(label: nil, type: .parameter("Sequence2.Element"))])), throwing: .no, isAsync: false, generics: ["Sequence1.Element", "Sequence2.Element"]), body: { arguments in
 let result = zip(try Value.Bridging.sequence(arguments[0]), try Value.Bridging.sequence(arguments[1]))
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [(nil, t.0), (nil, t.1)] } })
+})
+
+    private static let member750: HostSymbol = HostSymbol.function(name: "swap", summary: "Exchanges the values of the two arguments.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "a", type: .inOut(.parameter("T"))), Symbol.Parameter(label: nil, name: "b", type: .inOut(.parameter("T")))], returns: .void, throwing: .no, isAsync: false, generics: ["T"]), updating: { arguments in
+var a0: Value = arguments[0]
+                var a1: Value = arguments[1]
+                swap(&a0, &a1)
+                arguments[0] = a0
+                arguments[1] = a1
+                return .nothing
 })
 }

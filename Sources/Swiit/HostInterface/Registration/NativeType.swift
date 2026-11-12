@@ -202,20 +202,7 @@ extension BridgedMember {
 
     /// The parameters a script sees, from those a host declared.
     private static func parameters(_ function: Symbol.Function) -> [Parameter] {
-        function.parameters.map { parameter in
-            var made = Parameter(
-                label: parameter.label,
-                name: parameter.name,
-                type: TypeAnnotation(parameter.type)
-            )
-            switch parameter.arity {
-            case .required: break
-            case .variadic: made.variadic = true
-            case .defaulted(.value(let value)): made.defaultValue = .literal(value)
-            case .defaulted(.computed): made.externalDefault = "…"
-            }
-            return made
-        }
+        function.parameters.map { Parameter(described: $0) }
     }
 
     /// The arguments in declared order, from what a call bound by name.

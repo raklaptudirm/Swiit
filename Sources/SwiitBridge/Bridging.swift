@@ -219,8 +219,9 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
                 return supported(parameter, generics: generics, asParameter: false)
             }
             && supported(result, generics: generics, asParameter: false)
-    case .inOut:
-        return false
+    case .inOut(let inner):
+        // A parameter a function changes in place.
+        return asParameter && supported(inner, generics: generics, asParameter: false)
     case .held(let element):
         return !asParameter && supported(element, generics: generics, asParameter: false)
     case .member:

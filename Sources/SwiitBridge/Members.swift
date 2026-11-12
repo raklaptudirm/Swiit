@@ -236,6 +236,12 @@ func bridge(
         if !mentioned { throw Unsupported(reason: "uninferrable generic \(parameter)") }
     }
 
+    // A function changes its arguments in place by writing them back (`updating:`); a member's
+    // call does not (`formIndex(after:)`).
+    let changed = parameters.indices.filter {
+        if case .inOut = parameters[$0].1 { true } else { false }
+    }
+    if !changed.isEmpty && !isFree { throw Unsupported(reason: "inout parameter of a member") }
     let shape =
         "\(declaration.kind) \(declaration.isStatic) \(declaration.name)("
         + parameters.map { "\($0.0.label ?? "_"):" }.joined() + ")"
@@ -252,7 +258,8 @@ func bridge(
     // The glue.
     let conversions = declaration.parameters.enumerated()
         .map { index, parameter -> String in
-            let type = parameters.first { $0.0.name == parameter.name }!.1
+            var type = parameters.first { $0.0.name == parameter.name }!.1
+            if case .inOut(let inner) = type { type = inner }
             let value = "arguments[\(index)]"
             var expr = fromValue(value, parameter.isVariadic ? .array(type) : type)
             if let text = parameter.defaultText, literalDefault(text) == nil {
@@ -273,7 +280,9 @@ func bridge(
     let argumentList = declaration.parameters.enumerated()
         .map { index, parameter -> String in
             let expr =
-                conditions.isEmpty ? conversions[index] : conditionVariable(parameter, at: index)
+                changed.contains(index)
+                ? "&a\(index)"
+                : conditions.isEmpty ? conversions[index] : conditionVariable(parameter, at: index)
             return (parameter.label.map { "\($0): " } ?? "") + expr
         }
     let arguments = argumentList.joined(separator: ", ")
@@ -303,9 +312,16 @@ func bridge(
     if !declaration.isStatic && declaration.kind != .initializer {
         body += receiverBinding(swiftType, receiverType, mutating: declaration.isMutating)
     }
-    if !checked.isEmpty {
+    // What it changes in place: a copy for the call, put back in the arguments after it.
+    var writeBack = ""
+    for index in changed {
+        guard case .inOut(let inner) = parameters[index].1 else { continue }
+        body += "var a\(index): \(spelling(inner)) = \(conversions[index])\n                "
+        writeBack += "arguments[\(index)] = \(toValue("a\(index)", inner))\n                "
+    }
+    if !conditions.isEmpty {
         body += preconditionLines(
-            checked,
+            conditions,
             parameters: declaration.parameters,
             conversions: conversions
         )
@@ -328,10 +344,10 @@ func bridge(
             : "let result\(resultType) = \(tryPrefix)\(target)\n                "
         body += mutatingReturn(returns, isVoid: isVoid)
     } else if isVoid {
-        body += "\(tryPrefix)\(target)\n                return .nothing"
+        body += "\(tryPrefix)\(target)\n                \(writeBack)return .nothing"
     } else {
         body +=
-            "let result\(resultType) = \(tryPrefix)\(target)\n                return \(toValue("result", returns))"
+            "let result\(resultType) = \(tryPrefix)\(target)\n                \(writeBack)return \(toValue("result", returns))"
     }
     // `var extension: String? { get set }`: a setter too, which changes a copy of the receiver
     // and gives it back, as a mutating method does.
@@ -362,7 +378,8 @@ func bridge(
         generics: generics,
         body: body,
         setterBody: setterBody,
-        isFree: isFree
+        isFree: isFree,
+        updates: !changed.isEmpty
     )
     return BridgedMember(key: key, shape: shape, code: code)
 }

@@ -147,3 +147,18 @@ import Testing
         try swiit.evaluate("[1, 2, 3].split(separator: 2).map { $0.count }").description == "[1, 1]"
     )
 }
+
+@Test func aGeneratedFunctionChangesTheVariablesItIsGivenInPlace() throws {
+    let swiit = Interpreter()
+    #expect(
+        try swiit.evaluate("var a = 1; var b = 2; swap(&a, &b); [a, b]").description == "[2, 1]"
+    )
+    #expect(
+        try swiit.evaluate("var xs = [1, 2]; var ys = [3]; swap(&xs, &ys); [xs, ys]").description
+            == "[[3], [1, 2]]"
+    )
+    // Both are the one type, as in Swift.
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate("var s = \"a\"; var n = 5; swap(&s, &n)")
+    }
+}
