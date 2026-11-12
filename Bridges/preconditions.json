@@ -1,0 +1,310 @@
+[
+  {
+    "member": "prefix(_:)",
+    "when": "_0 < 0",
+    "error": "a length can't be negative: \\(_0)"
+  },
+  {
+    "member": "suffix(_:)",
+    "when": "_0 < 0",
+    "error": "a length can't be negative: \\(_0)"
+  },
+  {
+    "member": "dropFirst(_:)",
+    "when": "_0 < 0",
+    "error": "a length can't be negative: \\(_0)"
+  },
+  {
+    "member": "dropLast(_:)",
+    "when": "_0 < 0",
+    "error": "a length can't be negative: \\(_0)"
+  },
+  {
+    "member": "removeFirst()",
+    "when": "self.isEmpty",
+    "error": "can't remove from an empty collection"
+  },
+  {
+    "member": "removeLast()",
+    "when": "self.isEmpty",
+    "error": "can't remove from an empty collection"
+  },
+  {
+    "member": "removeFirst(_:)",
+    "when": "_0 < 0 || _0 > self.count",
+    "error": "can't remove \\(_0) elements"
+  },
+  {
+    "member": "removeLast(_:)",
+    "when": "_0 < 0 || _0 > self.count",
+    "error": "can't remove \\(_0) elements"
+  },
+  {
+    "member": "reserveCapacity(_:)",
+    "when": "_0 < 0",
+    "error": "a capacity can't be negative: \\(_0)"
+  },
+  {
+    "member": "init(repeating:count:)",
+    "when": "count < 0",
+    "error": "a count can't be negative: \\(count)"
+  },
+  {
+    "member": "split(separator:maxSplits:omittingEmptySubsequences:)",
+    "when": "maxSplits < 0",
+    "error": "maxSplits can't be negative: \\(maxSplits)"
+  },
+  {
+    "member": "split(maxSplits:omittingEmptySubsequences:whereSeparator:)",
+    "when": "maxSplits < 0",
+    "error": "maxSplits can't be negative: \\(maxSplits)"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring"
+    ],
+    "member": "remove(at:)",
+    "when": "at < self.startIndex || at >= self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring"
+    ],
+    "member": "insert(_:at:)",
+    "when": "at < self.startIndex || at > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "swapAt(_:_:)",
+    "when": "_0 < self.startIndex || _0 >= self.endIndex || _1 < self.startIndex || _1 >= self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring"
+    ],
+    "member": "removeSubrange(_:)",
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring"
+    ],
+    "member": "replaceSubrange(_:with:)",
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring",
+      "Set",
+      "Dictionary",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "prefix(upTo:)",
+    "when": "upTo < self.startIndex || upTo > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring",
+      "Set",
+      "Dictionary",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "prefix(through:)",
+    "when": "through < self.startIndex || through >= self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice",
+      "String",
+      "Substring",
+      "Set",
+      "Dictionary",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "suffix(from:)",
+    "when": "from < self.startIndex || from > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "String",
+      "Substring",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "index(after:)",
+    "when": "after < self.startIndex || after >= self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "String",
+      "Substring",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "index(before:)",
+    "when": "before <= self.startIndex || before > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "String",
+      "Substring",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "index(_:offsetBy:)",
+    "when": "_0 < self.startIndex || _0 > self.endIndex || (offsetBy >= 0 ? self.index(_0, offsetBy: offsetBy, limitedBy: self.endIndex) : self.index(_0, offsetBy: offsetBy, limitedBy: self.startIndex)) == nil",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "String",
+      "Substring",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "index(_:offsetBy:limitedBy:)",
+    "when": "_0 < self.startIndex || _0 > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "String",
+      "Substring",
+      "Range",
+      "ClosedRange"
+    ],
+    "member": "distance(from:to:)",
+    "when": "from < self.startIndex || from > self.endIndex || to < self.startIndex || to > self.endIndex",
+    "error": "index out of range"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "quotientAndRemainder(dividingBy:)",
+    "when": "dividingBy == 0 || (self == Int.min && dividingBy == -1)",
+    "error": "can't divide by \\(dividingBy)"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "advanced(by:)",
+    "when": "self.addingReportingOverflow(by).overflow",
+    "error": "arithmetic overflow"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "distance(to:)",
+    "when": "to.subtractingReportingOverflow(self).overflow",
+    "error": "arithmetic overflow"
+  },
+  {
+    "member": "..<(_:_:)",
+    "when": "_0 > _1",
+    "error": "a range needs its lower bound not past its upper"
+  },
+  {
+    "member": "...(_:_:)",
+    "when": "_0 > _1",
+    "error": "a range needs its lower bound not past its upper"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "index(after:)",
+    "safe": "its indices are integers, and it only adds and subtracts"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "index(before:)",
+    "safe": "its indices are integers, and it only adds and subtracts"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "index(_:offsetBy:)",
+    "safe": "its indices are integers, and it only adds and subtracts"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "index(_:offsetBy:limitedBy:)",
+    "safe": "its indices are integers, and it only adds and subtracts"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "distance(from:to:)",
+    "safe": "its indices are integers, and it only adds and subtracts"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "dividedReportingOverflow(by:)",
+    "safe": "it reports an overflow, and a division by zero, in its result"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "remainderReportingOverflow(dividingBy:)",
+    "safe": "it reports an overflow, and a division by zero, in its result"
+  },
+  {
+    "types": [
+      "Int"
+    ],
+    "member": "multipliedReportingOverflow(by:)",
+    "safe": "it reports an overflow, and a division by zero, in its result"
+  }
+]

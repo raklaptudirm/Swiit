@@ -117,12 +117,17 @@ for module in Swift SystemPackage Foundation; do
     # These are Swiit's own files, so they neither import it nor are public; a client with bridges
     # of its own leaves these out.
     platforms+=(--name "$(bridge_name "$module")" --access internal --in-module Swiit)
+    platforms+=(--preconditions Bridges/preconditions.json)
     for type in $(types "$module"); do platforms+=(--type "$type"); done
     for type in $(as_array "$module"); do platforms+=(--as-array "$type"); done
     for function in $(functions "$module"); do platforms+=(--function "$function"); done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done
+
+# Members that look as if they trap on some arguments and have no entry in Bridges/preconditions.json.
+unchecked=$(tail -q -n +2 "$left_out"/*-unchecked.tsv | wc -l | tr -d ' ')
+echo "Unchecked, of a shape that can trap ($unchecked; details in $left_out/*-unchecked.tsv)"
 
 # The gaps by kind, most common first: what closing each in the generator would bring in.
 echo "Left out, by kind (details in $left_out):"

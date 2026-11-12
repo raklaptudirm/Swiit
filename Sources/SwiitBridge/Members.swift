@@ -250,7 +250,7 @@ func bridge(
     let parameterCode = try parameters.map { try describedParameter($0, $1) }
 
     // The glue.
-    let argumentList = declaration.parameters.enumerated()
+    let conversions = declaration.parameters.enumerated()
         .map { index, parameter -> String in
             let type = parameters.first { $0.0.name == parameter.name }!.1
             let value = "arguments[\(index)]"
@@ -258,6 +258,22 @@ func bridge(
             if let text = parameter.defaultText, literalDefault(text) == nil {
                 expr = "(\(value) == .nothing ? \(text) : \(fromValue(value, type)))"
             }
+            return expr
+        }
+    // A member that would trap on some arguments checks them first, from their own names.
+    let checked = applicablePreconditions(
+        of: owner.name,
+        declaration,
+        parameterTypes: parameters.map { spelling($0.1) }
+    )
+    let conditions = checked.filter { $0.when != nil }
+    if checked.isEmpty && looksAsIfItCanTrap(declaration) {
+        uncheckedMembers.append("\(owner.name)\t\(memberKey(declaration))")
+    }
+    let argumentList = declaration.parameters.enumerated()
+        .map { index, parameter -> String in
+            let expr =
+                conditions.isEmpty ? conversions[index] : conditionVariable(parameter, at: index)
             return (parameter.label.map { "\($0): " } ?? "") + expr
         }
     let arguments = argumentList.joined(separator: ", ")
@@ -286,6 +302,13 @@ func bridge(
     var body = ""
     if !declaration.isStatic && declaration.kind != .initializer {
         body += receiverBinding(swiftType, receiverType, mutating: declaration.isMutating)
+    }
+    if !checked.isEmpty {
+        body += preconditionLines(
+            checked,
+            parameters: declaration.parameters,
+            conversions: conversions
+        )
     }
     let isVoid = if case .tuple(let elements) = returns, elements.isEmpty { true } else { false }
     // A result that's an array is typed, so Swift picks the overload the

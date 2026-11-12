@@ -23,7 +23,8 @@
 // (`Swiit` for Swiit's own files). `--boxed` names the types another bridge describes (held as Swift
 // values, `Date`), `--convertible` those that convert themselves (`ScriptConvertible`, as an enum
 // does), `--import` a module whose types the glue spells, and `--rename Type.member=name` gives a
-// member another name for scripts (`Date.shown=description`). A member is bridged if it is declared
+// member another name for scripts (`Date.shown=description`). `--preconditions` names the table of
+// members that trap on some arguments (`Bridges/preconditions.json`), which the glue checks first. A member is bridged if it is declared
 // `public`, whatever the access of its type.
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
@@ -48,7 +49,7 @@ do {
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...] [--as-array <Type>...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...] [--as-array <Type>...] [--preconditions <file>]\n"
                 .utf8
         )
     )
@@ -77,6 +78,8 @@ nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator run
 nonisolated(unsafe) var namedFunctions: Set<String> = []  // safe: the generator runs on one thread
 /// `--as-array <Type>`: lazy sequence types held as the array they give (`HeldSequences.swift`).
 nonisolated(unsafe) var asArrayNames: [String] = []  // safe: the generator runs on one thread
+/// `--preconditions <file>`: when a member would trap, and what a script is told (`Preconditions.swift`).
+nonisolated(unsafe) var preconditionsPath: String?  // safe: the generator runs on one thread
 /// `--import <Module>`: modules the glue names types of, besides the one it bridges.
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
@@ -106,6 +109,8 @@ do {
             convertibleNames.append(rest[i + 1]); i += 2
         case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
         case "--as-array" where i + 1 < rest.count: asArrayNames.append(rest[i + 1]); i += 2
+        case "--preconditions" where i + 1 < rest.count:
+            preconditionsPath = rest[i + 1]; i += 2
         case "--import" where i + 1 < rest.count: importNames.append(rest[i + 1]); i += 2
         case "--rename" where i + 1 < rest.count:
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
@@ -170,6 +175,7 @@ let graph: Graph = try {
 }()
 
 do {
+    if let preconditionsPath { try loadPreconditions(preconditionsPath) }
     try loadHeldSequences(asArrayNames, in: graph)
 } catch {
     FileHandle.standardError.write(Data("swiit-bridge: \(error)\n".utf8))
@@ -567,6 +573,11 @@ if let reportPath {
         }
     try (["kind\treason\ttype\tmember"] + lines).joined(separator: "\n")
         .appending("\n").write(toFile: reportPath, atomically: true, encoding: .utf8)
+}
+if let reportPath {
+    let unchecked = reportPath.replacingOccurrences(of: ".tsv", with: "-unchecked.tsv")
+    try (["type\tmember"] + uncheckedMembers.sorted()).joined(separator: "\n")
+        .appending("\n").write(toFile: unchecked, atomically: true, encoding: .utf8)
 }
 let total = counts.values.reduce(0, +)
 FileHandle.standardError.write(

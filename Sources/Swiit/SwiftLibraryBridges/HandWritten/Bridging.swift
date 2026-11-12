@@ -208,6 +208,12 @@ extension Value.Bridging {
         { arguments in try interpreter.call(function, with: arguments) }
     }
 
+    /// Fails with `message` unless `condition` holds: what the glue of a member that would trap
+    /// on some arguments checks first.
+    public static func require(_ condition: Bool, _ message: @autoclosure () -> String) throws {
+        guard condition else { throw SwiitError(message()) }
+    }
+
     /// Calls a script closure that changes some of its arguments in place (Swift's `inout`): what
     /// it gave back, and the value it left in each argument at `positions`, in that order. A
     /// bridged closure of `(inout Result, Element) -> ()` is
