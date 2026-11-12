@@ -203,7 +203,7 @@ for (name, _) in bridgedTypeNames {
             relationship.targetFallback.map { String($0.split(separator: ".").last!) }
             ?? symbolsByID[relationship.target]?.pathComponents.last ?? ""
         type.allConformances.insert(proto)
-        if proto == "Collection" || proto == "BidirectionalCollection" { proto = "Sequence" }
+        if collectionProtocols.contains(proto) { proto = "Sequence" }
         guard knownProtocols.contains(proto) else { continue }
         // What the generic parameters must be for it, if Swiit can say.
         var needs: [String: [String]] = [:]

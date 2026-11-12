@@ -37,6 +37,12 @@ nonisolated(unsafe) var topLevelAliases: [String: SType] = [:]  // safe: the gen
 /// values for their generic parameters: a `Set<Int>` is a `Set<Value>`.
 let boxes: Set = ["Set", "ArraySlice", "Range", "ClosedRange"]
 
+/// The protocols that refine `Sequence` in ways Swiit does not tell apart: a type that conforms to
+/// one is a sequence to it.
+let collectionProtocols: Set = [
+    "Collection", "BidirectionalCollection", "RandomAccessCollection",
+]
+
 /// The protocols a type conforms to, as far as the checker needs to know.
 let knownProtocols: Set = [
     "Equatable", "Hashable", "Comparable", "CustomStringConvertible", "Encodable", "Sequence",
