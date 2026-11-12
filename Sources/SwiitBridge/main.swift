@@ -23,8 +23,8 @@
 //
 // The pieces: SymbolGraph reads the graph; SwiftTypes and Declarations parse
 // a declaration's text; Bridging says what Swiit can hold, and Conversions
-// how a value crosses; Members makes one member's glue; ModuleTypes reads a
-// module's own structs and enums. This file is the program that uses them.
+// how a value crosses; Members makes one member's glue; Description writes the
+// types as `HostType`s. This file is the program that uses them.
 import Foundation
 
 // MARK: Main
