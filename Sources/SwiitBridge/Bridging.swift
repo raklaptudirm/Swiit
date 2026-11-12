@@ -204,22 +204,16 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
             return supported(element.type, generics: generics, asParameter: false)
         }
     case .function(let parameters, let result, _, let isAsync):
-        // A closure that changes its first argument in place (`reduce(into:)`'s) gives nothing
-        // else, and is called at once.
-        if case .inOut = parameters.first {
-            guard case .tuple(let elements) = result, elements.isEmpty, !isAsync else {
-                return false
-            }
-        }
-        return asParameter
-            && parameters.enumerated()
-                .allSatisfy { index, parameter in
-                    if case .inOut(let inner) = parameter {
-                        return index == 0
-                            && supported(inner, generics: generics, asParameter: false)
-                    }
-                    return supported(parameter, generics: generics, asParameter: false)
+        // A closure that changes arguments in place (`reduce(into:)`'s) is called at once, and
+        // waits for no one.
+        let changes = parameters.contains { if case .inOut = $0 { true } else { false } }
+        return asParameter && !(changes && isAsync)
+            && parameters.allSatisfy { parameter in
+                if case .inOut(let inner) = parameter {
+                    return supported(inner, generics: generics, asParameter: false)
                 }
+                return supported(parameter, generics: generics, asParameter: false)
+            }
             && supported(result, generics: generics, asParameter: false)
     case .inOut:
         return false

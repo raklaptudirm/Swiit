@@ -553,17 +553,22 @@ extension TypeAnnotation {
 }
 
 extension Interpreter {
-    /// Calls a closure whose first argument it changes in place (`reduce(into:)`'s), giving what
-    /// it left in the first.
-    func callChangingFirst(_ value: Value, _ first: Value, _ rest: [Value]) throws -> Value {
-        guard case .function(let function as Function) = value.storage, !function.parameters.isEmpty
+    /// Calls a closure that changes some of its arguments in place (Swift's `inout`, as
+    /// `reduce(into:)`'s does its first): what it gave back, and what it left in each of the
+    /// arguments at `positions`, in the order of `positions`.
+    func callChanging(
+        _ value: Value,
+        _ arguments: [Value],
+        at positions: [Int]
+    ) throws -> (result: Value, changed: [Value]) {
+        guard case .function(let function as Function) = value.storage,
+            positions.allSatisfy({ function.parameters.indices.contains($0) })
         else {
-            return try {
-                _ = try call(value, with: [first] + rest); return first
-            }()
+            let result = try call(value, with: arguments)
+            return (result, positions.map { arguments[$0] })
         }
         var parameters = function.parameters
-        parameters[0].isInout = true
+        for position in positions { parameters[position].isInout = true }
         let changing = Function(
             name: function.name,
             parameters: parameters,
@@ -578,10 +583,19 @@ extension Interpreter {
             effect: function.effect,
             generics: function.generics
         )
-        let unlabeled = ([first] + rest).map { Argument(label: nil, value: .literal($0)) }
-        _ = try invoke(changing, with: try bind(unlabeled, to: changing).bindings)
+        let unlabeled = arguments.map { Argument(label: nil, value: .literal($0)) }
+        let result = try invoke(changing, with: try bind(unlabeled, to: changing).bindings)
+        // Left in the order of the parameters that are `inout`.
         let outputs = task.inoutOutputs
         task.inoutOutputs = []
-        return outputs.first ?? first
+        let ordered = parameters.indices.filter { parameters[$0].isInout }
+        return (
+            result,
+            positions.map { position in
+                ordered.firstIndex(of: position)
+                    .flatMap { outputs.indices.contains($0) ? outputs[$0] : nil }
+                    ?? arguments[position]
+            }
+        )
     }
 }

@@ -74,6 +74,21 @@ import Testing
     #expect(try swiit.evaluate("last") == "bin.txt")
 }
 
+@Test func aClosureThatChangesSeveralArgumentsLeavesEachChangedValue() throws {
+    let swiit = Interpreter()
+    let function = try swiit.evaluate(
+        "let swapped: (inout Int, Int, inout Int) -> Int = { let t = $0; $0 = $2; $2 = t; return $1 }; swapped"
+    )
+    let outcome = try Value.Bridging.changing(
+        swiit,
+        function,
+        [Value(integerLiteral: 1), Value(integerLiteral: 2), Value(integerLiteral: 3)],
+        at: [0, 2]
+    )
+    #expect(outcome.result.description == "2")
+    #expect(outcome.changed.map(\.description) == ["3", "1"])
+}
+
 @Test func reduceIntoChangesItsAccumulatorInPlaceOnEachKindOfSequence() throws {
     let swiit = Interpreter()
     #expect(try swiit.evaluate("[1, 2, 3].reduce(into: 0) { $0 += $1 }").description == "6")

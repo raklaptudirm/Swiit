@@ -80,21 +80,36 @@ func fromValue(_ value: String, _ type: SType) -> String {
             }
         return
             "try Value.Bridging.tuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
-    case .function(let parameters, _, _, _)
-    where { if case .inOut = parameters.first { true } else { false } }():
-        // `(inout A, B) -> ()`: the script closure leaves its changed first argument as its
-        // result (`Value.Bridging.changingFirst`).
-        guard case .inOut(let first)? = parameters.first else { fatalError("unreachable") }
-        let rest = parameters.dropFirst()
+    case .function(let parameters, let result, _, _)
+    where parameters.contains(where: { if case .inOut = $0 { true } else { false } }):
+        // `(inout A, B) -> R`: the script closure's changed arguments come back with its result
+        // (`Value.Bridging.changing`), and the ones Swift passed in place are set to them.
         let names = parameters.indices.map { "a\($0)" }
-        let typed =
-            (["a0: inout \(spelling(first))"]
-            + zip(names.dropFirst(), rest).map { "\($0): \(spelling($1))" })
-            .joined(separator: ", ")
-        let others = zip(names.dropFirst(), rest).map { toValue($0, $1) }.joined(separator: ", ")
-        let changed =
-            "try Value.Bridging.changingFirst(interpreter, \(value), \(toValue("a0", first)), [\(others)])"
-        return "{ (\(typed)) throws -> Void in a0 = \(fromValue(changed, first)) }"
+        var inPlace: [Int] = []
+        var typed: [String] = []
+        var passed: [String] = []
+        for (index, parameter) in parameters.enumerated() {
+            if case .inOut(let inner) = parameter {
+                inPlace.append(index)
+                typed.append("\(names[index]): inout \(spelling(inner))")
+                passed.append(toValue(names[index], inner))
+            } else {
+                typed.append("\(names[index]): \(spelling(parameter))")
+                passed.append(toValue(names[index], parameter))
+            }
+        }
+        let positions = inPlace.map(String.init).joined(separator: ", ")
+        var lines = [
+            "let outcome = try Value.Bridging.changing(interpreter, \(value), [\(passed.joined(separator: ", "))], at: [\(positions)])"
+        ]
+        for (slot, index) in inPlace.enumerated() {
+            guard case .inOut(let inner) = parameters[index] else { continue }
+            lines.append("\(names[index]) = \(fromValue("outcome.changed[\(slot)]", inner))")
+        }
+        let isVoid = if case .tuple(let elements) = result, elements.isEmpty { true } else { false }
+        if !isVoid { lines.append("return \(fromValue("outcome.result", result))") }
+        return
+            "{ (\(typed.joined(separator: ", "))) throws -> \(isVoid ? "Void" : spelling(result)) in\n\(lines.joined(separator: "\n"))\n}"
     case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
         let arguments = zip(names, parameters).map { toValue($0, $1) }.joined(separator: ", ")
