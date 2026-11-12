@@ -85,3 +85,26 @@ extension Sequence {
         return pairs
     }
 }
+
+extension String {
+    /// The text split at its newlines; an empty text has no lines.
+    var lines: [String] {
+        isEmpty ? [] : split(separator: "\n", omittingEmptySubsequences: false).map { String($0) }
+    }
+}
+
+extension Dictionary {
+    /// The keys, as an array in the dictionary's order.
+    var keys: [Key] {
+        var result: [Key] = []
+        for (key, _) in self { result.append(key) }
+        return result
+    }
+
+    /// The values, as an array in the dictionary's order.
+    var values: [Value] {
+        var result: [Value] = []
+        for (_, value) in self { result.append(value) }
+        return result
+    }
+}

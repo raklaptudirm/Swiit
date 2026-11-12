@@ -3,7 +3,7 @@ import Foundation
 // Evaluating member access and subscripts on values.
 
 extension Interpreter {
-    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable cyclomatic_complexity - one branch for each case; splitting it is item 17 of Docs/agenda.md
     /// Record fields first, then the few members values have.
     func member(_ name: String, of value: Value) throws -> Value {
         if case .enumValue(let enumValue) = value.storage, name == "rawValue" {
@@ -98,8 +98,7 @@ extension Interpreter {
             return found
         }
         if value.record != nil, let found = try extensionMember(name, of: value) { return found }
-        // Swiit's own kinds, and its views of Swift's, as the checker's
-        // `memberType(of:_:)` types them.
+        // A record's fields, then (below) Swift's own members of the other kinds.
         switch (value.storage, name) {
         case _ where value.record?[name] != nil: return value.record![name]!
         case (_, "count") where value.record != nil: return .int(value.record!.count)
@@ -107,15 +106,6 @@ extension Interpreter {
         case (_, "keys") where value.record != nil:
             return .list(value.record!.keys.map(Value.string))
         case (_, "values") where value.record != nil: return .list(value.record!.map(\.value))
-        case (.dictionary(let dictionary), "keys"): return .list(Array(dictionary.keys))
-        case (.dictionary(let dictionary), "values"): return .list(Array(dictionary.values))
-        case (.string(let text), "lines"):
-            return .list(
-                text.isEmpty
-                    ? []
-                    : text.split(separator: "\n", omittingEmptySubsequences: false)
-                        .map { .string(String($0)) }
-            )
         case _ where value.record != nil:
             throw RuntimeError("\(value.record!.typeName ?? "Tuple") has no field '\(name)'")
         default:
@@ -125,7 +115,7 @@ extension Interpreter {
             throw RuntimeError("\(value.typeName) has no member '\(name)'")
         }
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable cyclomatic_complexity
 
     func element(of base: Value, at index: Value) throws -> Value {
         // A subscript a bridged type declares, where the checker did not know the type.

@@ -325,21 +325,7 @@ extension TypeChecker {
         default:
             break
         }
-        // Swiit's own kinds, and the views it gives Swift's: until step 4
-        // of the foundations makes them Swift types, their members are here
-        // and in the interpreter's `member(_:of:)`.
-        let members: [String: TypeAnnotation]
-        switch base {
-        case .dictionary(let key, let value):
-            // Arrays in the dictionary's order, not Swift's unordered views.
-            members = ["keys": .list(key), "values": .list(value)]
-        case .string:
-            members = ["lines": .list(.string)]
-        default:
-            members = [:]
-        }
-        guard let type = members[name] else { throw TypeError("\(base) has no member '\(name)'") }
-        return type
+        throw TypeError("\(base) has no member '\(name)'")
     }
 
     /// `x.name` on a `@dynamicMemberLookup` type that has no member of that name: the arguments of

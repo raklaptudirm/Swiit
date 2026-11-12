@@ -29,3 +29,14 @@ import Testing
     #expect(try swiit.evaluate("\"a\" is Collection") == true)
     #expect(try swiit.evaluate("[1: 2] is Sequence") == true)
 }
+
+@Test func theViewsOfADictionaryAndOfTextAreDeclaredMembers() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("[1: 2].keys") == [1])
+    #expect(try swiit.evaluate("[1: 2].values") == [2])
+    #expect(try swiit.evaluate("\"a\\nb\".lines") == Value(["a", "b"] as [String]))
+    #expect(try swiit.evaluate("\"\".lines") == Value([] as [String]))
+    // They are found as any extension's members are, so a script can read them in its own.
+    _ = try swiit.evaluate("extension Dictionary { var firstKey: Int { keys[0] } }")
+    #expect(try swiit.evaluate("[7: 8].firstKey") == 7)
+}
