@@ -102,14 +102,17 @@ struct BridgedMember {
     var code: String
 }
 
-/// The Swift for one member: its signature and glue.
+/// The Swift for one member: its signature and glue. A top-level function (`isFree`) has no owner
+/// type: it is called by its name alone.
 func bridge(
     _ symbol: Symbol,
     of original: BridgedType,
-    given conditions: [Constraint] = []
+    given conditions: [Constraint] = [],
+    isFree: Bool = false
 ) throws -> BridgedMember {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
-    let declaration = try parseDeclaration(text)
+    var declaration = try parseDeclaration(text)
+    if isFree { declaration.isStatic = true }
     if declaration.isMutating && declaration.isStatic { throw Unsupported(reason: "mutating") }
     var owner = original
     let constraints =
@@ -259,6 +262,7 @@ func bridge(
             argumentList.count == 1
             ? "\(declaration.name)(\(argumentList[0]))"
             : "(\(argumentList[0])) \(declaration.name) (\(argumentList[1]))"
+    case .method where isFree: target = "\(swiftName(declaration.name))(\(arguments))"
     case .method:
         target =
             (declaration.isStatic ? swiftType : "receiver")
@@ -319,7 +323,8 @@ func bridge(
         returns: returns,
         generics: generics,
         body: body,
-        setterBody: setterBody
+        setterBody: setterBody,
+        isFree: isFree
     )
     return BridgedMember(key: key, shape: shape, code: code)
 }

@@ -15,7 +15,7 @@ struct Declaration {
     enum Kind { case method, property, initializer }
     let kind: Kind
     let name: String
-    let isStatic: Bool
+    var isStatic: Bool
     let isMutating: Bool
     let isFailable: Bool
     /// Its own generic parameters, with the protocols written beside them.

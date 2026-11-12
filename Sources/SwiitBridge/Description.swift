@@ -85,7 +85,8 @@ func describedMember(
     returns: SType,
     generics: [String: [String]],
     body: String,
-    setterBody: String?
+    setterBody: String?,
+    isFree: Bool = false
 ) -> String {
     let interpreter =
         body.contains("interpreter") ? "let interpreter = Interpreter.running!\n" : ""
@@ -108,6 +109,9 @@ func describedMember(
         let set = setterBody.map { ", set: { selfValue, newValue in\n\($0)\n}" } ?? ""
         code =
             "HostSymbol.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
+    case .method where isFree:
+        code =
+            "HostSymbol.function(name: \(quoted(declaration.name)), summary: \(quoted(symbol.summary)), parameters: [\(parameterCode.joined(separator: ", "))], returns: \(scriptType(returns)), isThrowing: \(declaration.throwing || declaration.rethrowing), generics: \(genericParametersDescription(generics)), \(attributesCode(of: text))body: { arguments in\n\(interpreter)\(body)\n})"
     case .method where declaration.isStatic:
         code =
             "HostSymbol.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"

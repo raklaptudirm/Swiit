@@ -6,6 +6,7 @@
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
 //                [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]
+//                [--function <name>...]
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
 // package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
@@ -16,6 +17,8 @@
 // whatever the access of its type. The types the signatures name that the output does not bridge
 // are told too: `--boxed` for those another bridge describes (held as Swift values, `Date`), and
 // `--convertible` for those that convert themselves (`ScriptConvertible`, as an enum does).
+// `--function` names a top-level function to bridge, with all its overloads; the output lists them
+// as `functions`.
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -35,7 +38,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...]\n"
                 .utf8
         )
     )
@@ -57,6 +60,8 @@ nonisolated(unsafe) var typeNames: [String] = []  // safe: the generator runs on
 nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs on one thread
 /// `--convertible <Type>`: types that are `ScriptConvertible`, and cross as their own value.
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
+/// `--function <name>`: the top-level functions to bridge, every overload of each.
+nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
 nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
 /// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
@@ -74,6 +79,7 @@ do {
         case "--boxed" where i + 1 < rest.count: boxedNames.append(rest[i + 1]); i += 2
         case "--convertible" where i + 1 < rest.count:
             convertibleNames.append(rest[i + 1]); i += 2
+        case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
         case "--access" where i + 1 < rest.count: access = rest[i + 1]; i += 2
         case "--in-module" where i + 1 < rest.count: outputModule = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
@@ -432,6 +438,37 @@ for (name, _) in bridgedTypeNames {
     }
 }
 output += "    ]\n"
+if !functionNames.isEmpty {
+    var functions: [String] = []
+    for name in functionNames {
+        let candidates = graph.symbols.filter {
+            $0.pathComponents.count == 1 && $0.pathComponents[0].hasPrefix("\(name)(")
+                && $0.kind.identifier == "swift.func" && available($0)
+        }
+        if candidates.isEmpty {
+            FileHandle.standardError.write(
+                Data("swiit-bridge: \(graph.module.name) has no function \(name)\n".utf8)
+            )
+            exit(2)
+        }
+        var seen: Set<String> = []
+        for symbol in candidates {
+            do {
+                let bridged = try bridge(
+                    symbol,
+                    of: BridgedType(name: "", parameters: []),
+                    isFree: true
+                )
+                guard seen.insert(bridged.key).inserted else { continue }
+                functions.append(declare(bridged.code))
+            } catch let unsupported as Unsupported {
+                leftOut.append(LeftOut(reason: unsupported.reason, owner: "", member: name))
+            }
+        }
+    }
+    output +=
+        "    \(access) static let functions: [HostSymbol] = [\(functions.joined(separator: ", "))]\n"
+}
 output += declarations.joined(separator: "\n") + "}\n"
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)
 if let manifestPath {
