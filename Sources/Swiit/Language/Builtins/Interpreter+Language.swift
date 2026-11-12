@@ -309,40 +309,8 @@ extension Interpreter {
                 )
             )
         }
-        // `zip(a, b)`: pairs of what two sequences hold, as far as the shorter goes. Swift's
-        // lazy `Zip2Sequence` is held as the array it would give.
-        declare(
-            HostSymbol.function(
-                name: "zip",
-                summary: "Pairs of the items of two sequences, up to the end of the shorter.",
-                parameters: [
-                    Symbol.Parameter(label: nil, name: "first", type: .any),
-                    Symbol.Parameter(label: nil, name: "second", type: .any),
-                ],
-                returnType: .list(.any),
-                isThrowing: false,
-                call: { arguments in
-                    func items(_ value: Value?) throws -> AnyIterator<Value> {
-                        guard let value else { return AnyIterator { nil } }
-                        if case .string(let text) = value.storage {
-                            return AnyIterator(text.lazy.map { .string(String($0)) }.makeIterator())
-                        }
-                        guard let items = Interpreter.items(of: value) else {
-                            throw RuntimeError("zip can't read a \(value.typeName)")
-                        }
-                        return items
-                    }
-                    let first = try items(arguments["first"])
-                    let second = try items(arguments["second"])
-                    var pairs: [Value] = []
-                    while let a = first.next(), let b = second.next() {
-                        try interpreter.checkInterrupt()
-                        pairs.append(Value(record: Value.Record(["0": a, "1": b])))
-                    }
-                    return .list(pairs)
-                }
-            )
-        )
+        // The standard library's own top-level functions, as the generator reads them (`zip`).
+        for function in StandardLibraryBridge.functions { declare(function) }
         // `abs`, `min` and `max`, for the numbers and strings there are.
         for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
             declare(

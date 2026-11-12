@@ -217,16 +217,6 @@ extension Bridge {
         )
     }
 
-    /// `lazy`, which Swiit reads as the sequence itself: its operators run all at once, not as
-    /// items are asked for, which a finite sequence's result cannot tell.
-    private static func lazyMember(_ sequence: ScriptType) -> HostSymbol {
-        .property(
-            "lazy",
-            summary: "The sequence itself: Swiit does not defer the work of its operators.",
-            type: sequence
-        ) { receiver in receiver }
-    }
-
     /// What the table adds to the type named, lowered as the generated members are.
     static func additions(to typeName: String) -> [BridgedMember] {
         BridgedMember.bridged(additionTable[typeName] ?? [], in: typeName)
@@ -236,10 +226,6 @@ extension Bridge {
 
     /// Members of Swift's types that the generator can't bridge, by the type that has them.
     private static let additionTable: [String: [HostSymbol]] = [
-        "Array": [lazyMember(.list(.parameter("Element")))],
-        "Set": [lazyMember(.named("Set", [.parameter("Element")]))],
-        "ClosedRange": [lazyMember(.named("ClosedRange", [.parameter("Bound")]))],
-        "Range": [lazyMember(.named("Range", [.parameter("Bound")]))],
         "Unicode.Scalar": [
             .property(
                 "value",

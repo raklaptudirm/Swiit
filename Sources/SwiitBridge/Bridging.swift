@@ -105,6 +105,8 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
     case .named("Self", []):
         return selfType(owner)
     case .named(let name, let arguments):
+        // A lazy sequence type that is held as the array it gives.
+        if let held = resolveHeld(name, arguments, context) { return held }
         if arguments.isEmpty, let element = context.sequences[name] {
             return resolve(element, context).map(SType.someSequence)
         }
@@ -166,6 +168,8 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
         return .function(resolved, result, throwing: throwing, async: isAsync)
     case .inOut(let inner):
         return resolve(inner, context).map(SType.inOut)
+    case .held(let element):
+        return resolve(element, context).map(SType.held)
     case .someSequence:
         return type
     }
@@ -217,6 +221,8 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
             && supported(result, generics: generics, asParameter: false)
     case .inOut:
         return false
+    case .held(let element):
+        return !asParameter && supported(element, generics: generics, asParameter: false)
     case .member:
         return false
     }

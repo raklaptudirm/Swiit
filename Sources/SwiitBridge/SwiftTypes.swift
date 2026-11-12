@@ -12,6 +12,8 @@ indirect enum SType: Equatable {
     case function([SType], SType, throwing: Bool, async: Bool = false)
     /// `inout T`: a function's parameter that it changes in place.
     case inOut(SType)
+    /// A lazy sequence type (`Zip2Sequence`) held as the array of `T` it gives.
+    case held(SType)
     case tuple([Element])
     /// A parameter `S` where `S: Sequence, S.Element == E`: any sequence of
     /// E, which the glue passes as an array.

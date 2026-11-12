@@ -78,6 +78,18 @@ types() {
     esac
 }
 
+# Swift's lazy sequence types that a member gives, held as the arrays they give; each ends.
+as_array() {
+    case "$1" in
+        Swift) echo Zip2Sequence LazySequence EnumeratedSequence ReversedCollection PrefixSequence \
+            DropWhileSequence DropFirstSequence ;;
+    esac
+}
+# The top-level functions of a module that are bridged.
+functions() {
+    case "$1" in Swift) echo zip ;; esac
+}
+
 for module in Swift SystemPackage Foundation; do
     graph "$module"
     extra=()
@@ -105,6 +117,8 @@ for module in Swift SystemPackage Foundation; do
     # of its own leaves these out.
     platforms+=(--name "$(bridge_name "$module")" --access internal --in-module Swiit)
     for type in $(types "$module"); do platforms+=(--type "$type"); done
+    for type in $(as_array "$module"); do platforms+=(--as-array "$type"); done
+    for function in $(functions "$module"); do platforms+=(--function "$function"); done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done

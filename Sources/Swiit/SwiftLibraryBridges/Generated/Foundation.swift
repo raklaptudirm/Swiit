@@ -8,115 +8,95 @@ import Foundation
 internal enum FoundationBridge {
     internal static let types: [HostType] = [
 
-        type30,
-        type37,
+        type29,
+        type35,
     ]
     private static let member0: HostSymbol = HostSymbol.staticMethod("...", summary: "Returns a closed range that contains both of its bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimum", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "maximum", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "Date"))]), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) ... (try arguments[1].unboxing(Date.self))
                 return Value.Bridging.box(result, as: .init(hostType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: Value(boxing: r.lowerBound, as: .init(hostType: "Date")), upper: Value(boxing: r.upperBound, as: .init(hostType: "Date")))) }
 }
 
-    private static let member1: HostSymbol = HostSymbol.staticMethod(">", summary: "Returns a Boolean value indicating whether the value of the first argument is greater than that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
-let result = (try arguments[0].unboxing(Date.self)) > (try arguments[1].unboxing(Date.self))
-                return result.value
-}
-
-    private static let member2: HostSymbol = HostSymbol.staticMethod("<=", summary: "Returns a Boolean value indicating whether the value of the first argument is less than or equal to that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
-let result = (try arguments[0].unboxing(Date.self)) <= (try arguments[1].unboxing(Date.self))
-                return result.value
-}
-
-    private static let member3: HostSymbol = HostSymbol.staticMethod(">=", summary: "Returns a Boolean value indicating whether the value of the first argument is greater than or equal to that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
-let result = (try arguments[0].unboxing(Date.self)) >= (try arguments[1].unboxing(Date.self))
-                return result.value
-}
-
-    private static let member4: HostSymbol = HostSymbol.staticMethod("!=", summary: "Returns a Boolean value indicating whether two values are not equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
-let result = (try arguments[0].unboxing(Date.self)) != (try arguments[1].unboxing(Date.self))
-                return result.value
-}
-
-    private static let member5: HostSymbol = HostSymbol.staticMethod("..<", summary: "Returns a half-open range that contains its lower bound but not its upper bound.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimum", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "maximum", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Range"), [.named(.init(hostType: "Date"))]), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member1: HostSymbol = HostSymbol.staticMethod("..<", summary: "Returns a half-open range that contains its lower bound but not its upper bound.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimum", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "maximum", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Range"), [.named(.init(hostType: "Date"))]), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) ..< (try arguments[1].unboxing(Date.self))
                 return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: Value(boxing: r.lowerBound, as: .init(hostType: "Date")), upper: Value(boxing: r.upperBound, as: .init(hostType: "Date")))) }
 }
 
-    private static let member6: HostSymbol = HostSymbol.staticMethod("<", summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member2: HostSymbol = HostSymbol.staticMethod("<", summary: "Returns a Boolean value indicating whether the value of the first argument is less than that of the second argument.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) < (try arguments[1].unboxing(Date.self))
                 return result.value
 }
 
-    private static let member7: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member3: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "y", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) == (try arguments[1].unboxing(Date.self))
                 return result.value
 }
 
-    private static let member8: HostSymbol = HostSymbol.staticProperty("timeIntervalBetween1970AndReferenceDate", summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.", type: .double, get: {
+    private static let member4: HostSymbol = HostSymbol.staticProperty("timeIntervalBetween1970AndReferenceDate", summary: "The number of seconds from 1 January 1970 to the reference date, 1 January 2001.", type: .double, get: {
 let result = Date.timeIntervalBetween1970AndReferenceDate
                 return result.value
 })
 
-    private static let member9: HostSymbol = HostSymbol.staticProperty("timeIntervalSinceReferenceDate", summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.", type: .double, get: {
+    private static let member5: HostSymbol = HostSymbol.staticProperty("timeIntervalSinceReferenceDate", summary: "The interval between 00:00:00 UTC on 1 January 2001 and the current date and time.", type: .double, get: {
 let result = Date.timeIntervalSinceReferenceDate
                 return result.value
 })
 
-    private static let member10: HostSymbol = HostSymbol.initializer(summary: "Returns a `Date` initialized to the current date and time.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member6: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized to the current date and time.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Date()
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member11: HostSymbol = HostSymbol.initializer(summary: "Returns a `Date` initialized relative to the current date and time by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceNow", name: "timeIntervalSinceNow", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member7: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to the current date and time by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceNow", name: "timeIntervalSinceNow", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Date(timeIntervalSinceNow: try Double(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member12: HostSymbol = HostSymbol.initializer(summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSince1970", name: "timeIntervalSince1970", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member8: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to 00:00:00 UTC on 1 January 1970 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSince1970", name: "timeIntervalSince1970", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Date(timeIntervalSince1970: try Double(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member13: HostSymbol = HostSymbol.initializer(summary: "Returns a `Date` initialized relative to another given date by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeInterval", name: "timeInterval", type: .double), Symbol.Parameter(label: "since", name: "date", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member9: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to another given date by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeInterval", name: "timeInterval", type: .double), Symbol.Parameter(label: "since", name: "date", type: .named(.init(hostType: "Date")))], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Date(timeInterval: try Double(arguments[0]), since: try arguments[1].unboxing(Date.self))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member14: HostSymbol = HostSymbol.initializer(summary: "Returns a `Date` initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceReferenceDate", name: "ti", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member10: HostSymbol = HostSymbol.initializer(summary: "Creates a date value initialized relative to 00:00:00 UTC on 1 January 2001 by a given number of seconds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "timeIntervalSinceReferenceDate", name: "ti", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Date(timeIntervalSinceReferenceDate: try Double(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member15: HostSymbol = HostSymbol.property("timeIntervalSinceReferenceDate", summary: "Returns the interval between the date object and 00:00:00 UTC on 1 January 2001.", type: .double, get: { selfValue in
+    private static let member11: HostSymbol = HostSymbol.property("timeIntervalSinceReferenceDate", summary: "The interval between the date value and 00:00:00 UTC on 1 January 2001.", type: .double, get: { selfValue in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSinceReferenceDate
                 return result.value
 })
 
-    private static let member16: HostSymbol = HostSymbol.method("timeIntervalSince", summary: "Returns the interval between the receiver and another given date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "date", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member12: HostSymbol = HostSymbol.method("timeIntervalSince", summary: "Returns the interval between this date and another given date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "date", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSince(try arguments[0].unboxing(Date.self))
                 return result.value
 }
 
-    private static let member17: HostSymbol = HostSymbol.property("timeIntervalSinceNow", summary: "The time interval between the date and the current date and time.", type: .double, get: { selfValue in
+    private static let member13: HostSymbol = HostSymbol.property("timeIntervalSinceNow", summary: "The time interval between the date value and the current date and time.", type: .double, get: { selfValue in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSinceNow
                 return result.value
 })
 
-    private static let member18: HostSymbol = HostSymbol.property("timeIntervalSince1970", summary: "The interval between the date object and 00:00:00 UTC on 1 January 1970.", type: .double, get: { selfValue in
+    private static let member14: HostSymbol = HostSymbol.property("timeIntervalSince1970", summary: "The interval between the date value and 00:00:00 UTC on 1 January 1970.", type: .double, get: { selfValue in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.timeIntervalSince1970
                 return result.value
 })
 
-    private static let member19: HostSymbol = HostSymbol.method("addingTimeInterval", summary: "Return a new `Date` by adding a `TimeInterval` to this `Date`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member15: HostSymbol = HostSymbol.method("addingTimeInterval", summary: "Creates a new date value by adding a time interval to this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.addingTimeInterval(try Double(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member20: HostSymbol = HostSymbol.mutatingMethod("addTimeInterval", summary: "Add a `TimeInterval` to this `Date`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member16: HostSymbol = HostSymbol.mutatingMethod("addTimeInterval", summary: "Adds a time interval to this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "timeInterval", type: .double)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Date = try (consume taken).unboxing(Date.self)
@@ -125,57 +105,72 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member21: HostSymbol = HostSymbol.staticProperty("distantFuture", summary: "Creates and returns a Date value representing a date in the distant future.", type: .named(.init(hostType: "Date")), get: {
+    private static let member17: HostSymbol = HostSymbol.staticProperty("distantFuture", summary: "A date value representing a date in the distant future.", type: .named(.init(hostType: "Date")), get: {
 let result = Date.distantFuture
                 return Value(boxing: result, as: .init(hostType: "Date"))
 })
 
-    private static let member22: HostSymbol = HostSymbol.staticProperty("distantPast", summary: "Creates and returns a Date value representing a date in the distant past.", type: .named(.init(hostType: "Date")), get: {
+    private static let member18: HostSymbol = HostSymbol.staticProperty("distantPast", summary: "A date value representing a date in the distant past.", type: .named(.init(hostType: "Date")), get: {
 let result = Date.distantPast
                 return Value(boxing: result, as: .init(hostType: "Date"))
 })
 
-    private static let member23: HostSymbol = HostSymbol.staticProperty("now", summary: "Returns a `Date` initialized to the current date and time.", type: .named(.init(hostType: "Date")), get: {
+    private static let member19: HostSymbol = HostSymbol.staticProperty("now", summary: "Returns a date instance that represents the current date and time, at the moment of access.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 12", "iOS 15", "tvOS 15", "watchOS 8"])], type: .named(.init(hostType: "Date")), get: {
 let result = Date.now
                 return Value(boxing: result, as: .init(hostType: "Date"))
 })
 
-    private static let member24: HostSymbol = HostSymbol.staticMethod("+", summary: "Returns a `Date` with a specified amount of time added to it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member20: HostSymbol = HostSymbol.staticMethod(">", summary: "Returns true if the left hand `Date` is later in time than the right hand `Date`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) > (try arguments[1].unboxing(Date.self))
+                return result.value
+}
+
+    private static let member21: HostSymbol = HostSymbol.staticMethod("<=", summary: "Returns true if the left hand `Date` is earlier in time than or equal to the right hand `Date`.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 27.2", "iOS 27.2", "tvOS 27.2", "watchOS 27.2", "visionOS 27.2"])], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) <= (try arguments[1].unboxing(Date.self))
+                return result.value
+}
+
+    private static let member22: HostSymbol = HostSymbol.staticMethod(">=", summary: "Returns true if the left hand `Date` is later in time than or equal to the right hand `Date`.", attributes: [Symbol.Attribute(name: "backDeployed", arguments: ["before: macOS 27.2", "iOS 27.2", "tvOS 27.2", "watchOS 27.2", "visionOS 27.2"])], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "Date")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+let result = (try arguments[0].unboxing(Date.self)) >= (try arguments[1].unboxing(Date.self))
+                return result.value
+}
+
+    private static let member23: HostSymbol = HostSymbol.staticMethod("+", summary: "Returns a date with a specified amount of time added to it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) + (try Double(arguments[1]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member25: HostSymbol = HostSymbol.staticMethod("-", summary: "Returns a `Date` with a specified amount of time subtracted from it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member24: HostSymbol = HostSymbol.staticMethod("-", summary: "Returns a `Date` with a specified amount of time subtracted from it.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "Date"))), Symbol.Parameter(label: nil, name: "rhs", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(Date.self)) - (try Double(arguments[1]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member26: HostSymbol = HostSymbol.property("debugDescription", summary: "A textual representation of this instance, suitable for debugging.", type: .string, get: { selfValue in
+    private static let member25: HostSymbol = HostSymbol.property("debugDescription", summary: "A textual representation of this instance, suitable for debugging.", type: .string, get: { selfValue in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.debugDescription
                 return result.value
 })
 
-    private static let member27: HostSymbol = HostSymbol.method("distance", summary: "Returns the distance from this value to the given value, expressed as a stride.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "other", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member26: HostSymbol = HostSymbol.method("distance", summary: "Returns the distance from this date to another date, specified as a time interval.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "other", type: .named(.init(hostType: "Date")))], returns: .double, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.distance(to: try arguments[0].unboxing(Date.self))
                 return result.value
 }
 
-    private static let member28: HostSymbol = HostSymbol.method("advanced", summary: "Returns a value that is offset the specified distance from this value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "n", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member27: HostSymbol = HostSymbol.method("advanced", summary: "Returns a date offset the specified time interval from this date.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "n", type: .double)], returns: .named(.init(hostType: "Date")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.advanced(by: try Double(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "Date"))
 }
 
-    private static let member29: HostSymbol = HostSymbol.property("description", summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.", type: .string, get: { selfValue in
+    private static let member28: HostSymbol = HostSymbol.property("description", summary: "The representation is useful for debugging only. There are a number of options to acquire a formatted string for a date including: date formatters (see [NSDateFormatter](//apple_ref/occ/cl/NSDateFormatter) and [Data Formatting Guide](//apple_ref/doc/uid/10000029i)), and the `Date` function `description(locale:)`.", type: .string, get: { selfValue in
 let receiver: Date = try selfValue.unboxing(Date.self)
                 let result = receiver.description
                 return result.value
 })
 
-    private static let type30: HostType = {
-        var type = HostType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29])
+    private static let type29: HostType = {
+        var type = HostType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
         type.associatedTypes = ["Stride": .double]
@@ -185,39 +180,34 @@ let receiver: Date = try selfValue.unboxing(Date.self)
         return type
     }()
 
-    private static let member31: HostSymbol = HostSymbol.property("description", summary: "A textual representation of this instance.", type: .string, get: { selfValue in
+    private static let member30: HostSymbol = HostSymbol.property("description", summary: "A textual representation of this instance.", type: .string, get: { selfValue in
 let receiver: AttributedString = try selfValue.unboxing(AttributedString.self)
                 let result = receiver.description
                 return result.value
 })
 
-    private static let member32: HostSymbol = HostSymbol.staticMethod("!=", summary: "Returns a Boolean value indicating whether two values are not equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
-let result = (try arguments[0].unboxing(AttributedString.self)) != (try arguments[1].unboxing(AttributedString.self))
-                return result.value
-}
-
-    private static let member33: HostSymbol = HostSymbol.initializer(summary: "", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member31: HostSymbol = HostSymbol.initializer(summary: "Creates an empty attributed string.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = AttributedString()
                 return Value(boxing: result, as: .init(hostType: "AttributedString"))
 }
 
-    private static let member34: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member32: HostSymbol = HostSymbol.staticMethod("==", summary: "Returns a Boolean value indicating whether two values are equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(AttributedString.self)) == (try arguments[1].unboxing(AttributedString.self))
                 return result.value
 }
 
-    private static let member35: HostSymbol = HostSymbol.initializer(summary: "Creates an instance initialized to the given string value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member33: HostSymbol = HostSymbol.initializer(summary: "Creates an attributed string from the specified string literal, with no attributes.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = AttributedString(stringLiteral: try String(arguments[0]))
                 return Value(boxing: result, as: .init(hostType: "AttributedString"))
 }
 
-    private static let member36: HostSymbol = HostSymbol.staticMethod("+", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member34: HostSymbol = HostSymbol.staticMethod("+", summary: "Concatenates two attributed strings.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "AttributedString"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "AttributedString")))], returns: .named(.init(hostType: "AttributedString")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments[1].unboxing(AttributedString.self))
                 return Value(boxing: result, as: .init(hostType: "AttributedString"))
 }
 
-    private static let type37: HostType = {
-        var type = HostType(name: "AttributedString", members: [member31, member32, member33, member34, member35, member36])
+    private static let type35: HostType = {
+        var type = HostType(name: "AttributedString", members: [member30, member31, member32, member33, member34])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string]

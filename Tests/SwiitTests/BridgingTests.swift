@@ -118,3 +118,20 @@ import Testing
     #expect(try swiit.evaluate("total(1, 2, 3)").description == "6")
     #expect(try swiit.evaluate("total()").description == "0")
 }
+
+@Test func aLazySequenceASwiftMemberGivesIsHeldAsTheArrayItGives() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("zip([1, 2, 3], [\"a\", \"b\"]).count").description == "2")
+    #expect(try swiit.evaluate("zip([1, 2], \"xy\").map { $0.1 }").description == "[x, y]")
+    #expect(
+        try swiit.evaluate("[10, 20].enumerated().map { $0.offset + $0.element }").description
+            == "[10, 21]"
+    )
+    #expect(
+        try swiit.evaluate("[3, 1, 2].lazy.map { $0 * 2 }.filter { $0 > 2 }").description
+            == "[6, 4]"
+    )
+    #expect(try swiit.evaluate("(1...4).reversed().map { $0 }").description == "[4, 3, 2, 1]")
+    #expect(try swiit.evaluate("[1, 2, 3, 4].prefix(while: { $0 < 3 })").description == "[1, 2]")
+    #expect(try swiit.evaluate("[1, 2, 3, 4].drop(while: { $0 < 3 })").description == "[3, 4]")
+}

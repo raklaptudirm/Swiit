@@ -48,7 +48,7 @@ do {
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...] [--as-array <Type>...]\n"
                 .utf8
         )
     )
@@ -75,6 +75,8 @@ nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator run
 /// The functions named, as opposed to found: all their overloads are bridged, whatever their access;
 /// of a found one, the public overloads.
 nonisolated(unsafe) var namedFunctions: Set<String> = []  // safe: the generator runs on one thread
+/// `--as-array <Type>`: lazy sequence types held as the array they give (`HeldSequences.swift`).
+nonisolated(unsafe) var asArrayNames: [String] = []  // safe: the generator runs on one thread
 /// `--import <Module>`: modules the glue names types of, besides the one it bridges.
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
@@ -103,6 +105,7 @@ do {
         case "--convertible" where i + 1 < rest.count:
             convertibleNames.append(rest[i + 1]); i += 2
         case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
+        case "--as-array" where i + 1 < rest.count: asArrayNames.append(rest[i + 1]); i += 2
         case "--import" where i + 1 < rest.count: importNames.append(rest[i + 1]); i += 2
         case "--rename" where i + 1 < rest.count:
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
@@ -133,6 +136,7 @@ if let configurationPath {
     skipNames += configuration.skip ?? []
     discoversByAccess = configuration.discover == "public"
     importNames += configuration.imports ?? []
+    asArrayNames += configuration.asArray ?? []
     renames.merge(configuration.rename ?? [:]) { flag, _ in flag }
 }
 /// What the other platforms declare, by module: a member is bridged only if
@@ -165,6 +169,12 @@ let graph: Graph = try {
     return graph
 }()
 
+do {
+    try loadHeldSequences(asArrayNames, in: graph)
+} catch {
+    FileHandle.standardError.write(Data("swiit-bridge: \(error)\n".utf8))
+    exit(2)
+}
 guard let bridgeName else {
     FileHandle.standardError.write(Data("swiit-bridge: --name is needed\n".utf8))
     exit(2)

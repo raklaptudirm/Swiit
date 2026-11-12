@@ -19,6 +19,7 @@ func spelling(_ type: SType) -> String {
         return
             "(\(parameters.map(spelling).joined(separator: ", ")))\(isAsync ? " async" : "")\(throwing ? " throws" : "") -> \(spelling(result))"
     case .inOut(let inner): return "inout \(spelling(inner))"
+    case .held(let element): return "[\(spelling(element))]"
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -125,7 +126,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
             return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"
         }
         return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromValue(call, result)) }"
-    case .inOut: fatalError("unsupported \(type)")
+    case .inOut, .held: fatalError("unsupported \(type)")
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -166,6 +167,12 @@ func toValue(_ swift: String, _ type: SType) -> String {
                 "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
             }
         return "Value.Bridging.tuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
+    case .held(let element):
+        // Swift's sequence, as the array it gives.
+        if case .named(let name, []) = element, leaves[name] == nil {
+            return "Value(list: Array(\(swift)))"
+        }
+        return "Value(list: Array(\(swift)).map { \(toValue("$0", element)) })"
     case .someSequence, .function, .inOut, .member: fatalError("unsupported \(type)")
     }
 }

@@ -31,6 +31,8 @@ struct Configuration: Decodable {
     var rename: [String: String]?
     /// Modules the glue names types of, besides the one it bridges.
     var imports: [String]?
+    /// Lazy sequence types a member may give, held as the array they give.
+    var asArray: [String]?
 }
 
 /// The value after `flag` in `arguments`, and the arguments without the pair.
