@@ -110,3 +110,19 @@ func elementOf(_ type: SType) -> SType? {
     default: return nil
     }
 }
+
+/// Whether a lazy sequence type that is held as an array is somewhere in `type`.
+func containsHeld(_ type: SType) -> Bool {
+    switch type {
+    case .held: return true
+    case .array(let element), .optional(let element), .someSequence(let element),
+        .inOut(let element):
+        return containsHeld(element)
+    case .dictionary(let key, let value): return containsHeld(key) || containsHeld(value)
+    case .tuple(let elements): return elements.contains { containsHeld($0.type) }
+    case .named(_, let arguments): return arguments.contains(where: containsHeld)
+    case .member(let base, _): return containsHeld(base)
+    case .function(let parameters, let result, _, _):
+        return parameters.contains(where: containsHeld) || containsHeld(result)
+    }
+}

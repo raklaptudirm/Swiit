@@ -315,7 +315,12 @@ func bridge(
     // signature came from: `Sequence.dropLast() -> [Element]`, not the
     // Slice a Set's own Collection conformance would give.
     let resultType: String
-    if case .array = returns { resultType = ": \(spelling(returns))" } else { resultType = "" }
+    // (Not where a lazy sequence is in it: Swift's type there is not the array's.)
+    if case .array = returns, !containsHeld(returns) {
+        resultType = ": \(spelling(returns))"
+    } else {
+        resultType = ""
+    }
     if declaration.isMutating {
         body +=
             isVoid

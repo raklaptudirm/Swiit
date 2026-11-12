@@ -83,7 +83,7 @@ types() {
 as_array() {
     case "$1" in
         Swift) echo Zip2Sequence LazySequence EnumeratedSequence ReversedCollection PrefixSequence \
-            DropWhileSequence DropFirstSequence ;;
+            DropWhileSequence DropFirstSequence Slice ;;
     esac
 }
 # The top-level functions of a module that are bridged.

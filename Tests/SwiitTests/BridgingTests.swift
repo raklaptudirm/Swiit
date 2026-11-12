@@ -135,3 +135,15 @@ import Testing
     #expect(try swiit.evaluate("[1, 2, 3, 4].prefix(while: { $0 < 3 })").description == "[1, 2]")
     #expect(try swiit.evaluate("[1, 2, 3, 4].drop(while: { $0 < 3 })").description == "[3, 4]")
 }
+
+@Test func aSliceASwiftMemberGivesIsHeldAsTheArrayOfItsElements() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("Set([7]).dropFirst(1).count").description == "0")
+    #expect(try swiit.evaluate("(1...5).dropFirst(2).map { $0 }").description == "[3, 4, 5]")
+    #expect(try swiit.evaluate("(1...5).prefix(2).count").description == "2")
+    #expect(try swiit.evaluate("[\"a\": 1].dropLast(1).count").description == "0")
+    // A result that is an array of them.
+    #expect(
+        try swiit.evaluate("[1, 2, 3].split(separator: 2).map { $0.count }").description == "[1, 1]"
+    )
+}
