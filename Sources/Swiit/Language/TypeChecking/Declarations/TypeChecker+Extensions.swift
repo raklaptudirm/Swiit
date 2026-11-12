@@ -17,13 +17,8 @@ extension TypeChecker {
 
     /// What names a type extensions can add to: `Int`, `Array`, a struct's own name.
     func extensionKey(of type: TypeAnnotation) -> String? {
-        switch type {
-        case .int: "Int"
-        case .double: "Double"
-        case .string: "String"
-        case .bool: "Bool"
-        case .list: "Array"
-        case .dictionary: "Dictionary"
+        if let builtin = Value.Builtin(type) { return builtin.name }
+        return switch type {
         case .named(let name): name
         case .generic(let name, _): name
         default: nil
@@ -175,25 +170,17 @@ extension TypeChecker {
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
     func selfType(ofExtensionOf key: String) throws -> TypeAnnotation {
-        switch key {
-        case "Int": return .int
-        case "Double": return .double
-        case "String": return .string
-        case "Bool": return .bool
-        case "Array": return .list(.unknown)
-        case "Dictionary": return .dictionary(.unknown, .unknown)
-        default:
-            if structInfo(named: key) != nil || enumInfo(named: key) != nil
-                || protocolInfo(named: key) != nil
-            {
-                return .named(key)
-            }
-            if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
-            // A protocol of Swift's that collections share: `self` is whatever conforms, so what
-            // is asked of it is looked up when it runs (see `hasMember`).
-            if Bridge.sequenceProtocols.contains(key) { return .unknown }
-            throw TypeError("can't extend '\(key)': it isn't a type Swiit knows")
+        if let builtin = Value.Builtin(named: key) { return builtin.annotation }
+        if structInfo(named: key) != nil || enumInfo(named: key) != nil
+            || protocolInfo(named: key) != nil
+        {
+            return .named(key)
         }
+        if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
+        // A protocol of Swift's that collections share: `self` is whatever conforms, so what
+        // is asked of it is looked up when it runs (see `hasMember`).
+        if Bridge.sequenceProtocols.contains(key) { return .unknown }
+        throw TypeError("can't extend '\(key)': it isn't a type Swiit knows")
     }
 
     /// `parameters` (a collection's `Element`) aren't known inside the extension: they fit

@@ -45,14 +45,9 @@ extension Interpreter {
     func typeValue(of annotation: TypeAnnotation) -> Value? {
         let name: String
         switch annotation {
-        case .int: name = "Int"
-        case .double: name = "Double"
-        case .string: name = "String"
-        case .bool: name = "Bool"
+        case _ where Value.Builtin(annotation) != nil: name = Value.Builtin(annotation)!.name
         case .named(let named): name = named
         case .generic(let named, _): name = named
-        case .list: name = "Array"
-        case .dictionary: name = "Dictionary"
         case .parameter(let parameter): return lookup(parameter)?.value
         default: return nil
         }
