@@ -17,7 +17,11 @@ struct Symbol: Decodable {
     struct Kind: Decodable { let identifier: String }
     struct Identifier: Decodable { let precise: String }
     struct Extension: Decodable { let constraints: [Constraint]? }
-    struct Generics: Decodable { let constraints: [Constraint]? }
+    struct GenericParameter: Decodable { let name: String }
+    struct Generics: Decodable {
+        let parameters: [GenericParameter]?
+        let constraints: [Constraint]?
+    }
     struct Doc: Decodable { struct Line: Decodable { let text: String }; let lines: [Line] }
     let kind: Kind
     let identifier: Identifier

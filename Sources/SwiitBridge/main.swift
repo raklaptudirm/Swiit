@@ -4,10 +4,16 @@
 //
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
-//                [--report <left-out.tsv>] [--inside-swiit]
+//                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
+//                [--in-module <Module>]
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
-// package that imports Swiit; with `--inside-swiit` it is a file of Swiit's own, which does not.
+// package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
+// `FilePath.Component`), and the graph says what it is generic over. `--name` names the output's
+// enum (`<Name>Bridge`), and `--access` is the access level of what it declares (`public`, the
+// default, or `internal`). `--in-module` is the module the output is a file of, which it does not
+// import (`Swiit` for Swiit's own files). A member is bridged if it is declared `public`,
+// whatever the access of its type.
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -27,7 +33,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] [--inside-swiit]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>]\n"
                 .utf8
         )
     )
@@ -41,6 +47,14 @@ nonisolated(unsafe) var manifestPath: String?  // safe: the generator runs on on
 nonisolated(unsafe) var otherPlatformPaths: [String] = []  // safe: the generator runs on one thread
 /// `--report <file>`: where to write each member left out, with the reason it was.
 nonisolated(unsafe) var reportPath: String?  // safe: the generator runs on one thread
+/// `--name <Name>`: the output declares `<Name>Bridge`.
+nonisolated(unsafe) var bridgeName: String?  // safe: the generator runs on one thread
+/// `--type <Type>`: the types to bridge, by the name the module gives them.
+nonisolated(unsafe) var typeNames: [String] = []  // safe: the generator runs on one thread
+/// `--access <level>`: the access level of what the output declares.
+nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
+/// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
+nonisolated(unsafe) var outputModule: String?  // safe: the generator runs on one thread
 do {
     let rest = Array(arguments.dropFirst(3))
     var i = 0
@@ -49,7 +63,10 @@ do {
         case "--manifest" where i + 1 < rest.count: manifestPath = rest[i + 1]; i += 2
         case "--also" where i + 1 < rest.count: otherPlatformPaths.append(rest[i + 1]); i += 2
         case "--report" where i + 1 < rest.count: reportPath = rest[i + 1]; i += 2
-        case "--inside-swiit": insideSwiit = true; i += 1
+        case "--name" where i + 1 < rest.count: bridgeName = rest[i + 1]; i += 2
+        case "--type" where i + 1 < rest.count: typeNames.append(rest[i + 1]); i += 2
+        case "--access" where i + 1 < rest.count: access = rest[i + 1]; i += 2
+        case "--in-module" where i + 1 < rest.count: outputModule = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
         }
     }
@@ -84,54 +101,28 @@ let graph: Graph = try {
     return graph
 }()
 
-/// What's bridged from each module: its types, with their generic
-/// parameters, and the name of the list the output declares.
-struct BridgedModule {
-    /// The name of the list the output declares.
-    let list: String
-    /// The types, with their generic parameters.
-    let types: [(String, [String])]
-    /// Types of other modules that its signatures use, held as they are.
-    let external: [String]
-
-    init(_ list: String, _ types: [(String, [String])], _ external: [String]) {
-        self.list = list
-        self.types = types
-        self.external = external
-    }
-}
-
-let modules: [String: BridgedModule] = [
-    "Swift": BridgedModule(
-        "standardLibrary",
-        [
-            ("String", []), ("Substring", []), ("Character", []), ("Unicode.Scalar", []),
-            ("Int", []), ("Double", []),
-            ("Bool", []),
-            ("Array", ["Element"]), ("ArraySlice", ["Element"]), ("Set", ["Element"]),
-            ("Dictionary", ["Key", "Value"]),
-            ("Optional", ["Wrapped"]), ("Range", ["Bound"]), ("ClosedRange", ["Bound"]),
-        ],
-        []
-    ),
-    // FilePath.Root is left out: the standard library's FilePath (SE-0529)
-    // calls it Anchor.
-    "SystemPackage": BridgedModule(
-        "system",
-        [("FilePath", []), ("FilePath.Component", []), ("FilePath.ComponentView", [])],
-        []
-    ),
-    // Foundation's types Swiit holds as Swift's: a date.
-    "Foundation": BridgedModule("foundation", [("Date", []), ("AttributedString", [])], []),
-]
-guard let module = modules[graph.module.name] else {
+guard let bridgeName, !typeNames.isEmpty else {
     FileHandle.standardError.write(
-        Data("swiit-bridge: nothing to bridge from \(graph.module.name)\n".utf8)
+        Data("swiit-bridge: --name and at least one --type are needed\n".utf8)
     )
     exit(2)
 }
-let bridgedTypeNames = module.types
-let access = insideSwiit ? "internal" : "public"
+/// The types to bridge, with the generic parameters the graph gives each.
+let bridgedTypeNames: [(String, [String])] = try typeNames.map { name in
+    let path = name.split(separator: ".").map(String.init)
+    guard
+        let symbol = graph.symbols.first(where: {
+            $0.pathComponents == path
+                && ($0.kind.identifier == "swift.struct" || $0.kind.identifier == "swift.enum")
+        })
+    else {
+        FileHandle.standardError.write(
+            Data("swiit-bridge: \(graph.module.name) has no struct or enum \(name)\n".utf8)
+        )
+        exit(2)
+    }
+    return (name, symbol.swiftGenerics?.parameters?.map(\.name) ?? [])
+}
 for symbol in graph.symbols
 where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count == 1 {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
@@ -139,10 +130,6 @@ where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count
     var reader = Reader(String(text[equals.upperBound...]))
     if let target = try? reader.type() { topLevelAliases[symbol.pathComponents[0]] = target }
 }
-for name in module.external where leaves[name] == nil {
-    leaves[name] = boxedLeaf(name)
-}
-
 // Other types that aren't generic, Swiit having no value of its own for
 // them (Character, FilePath), are held as they are, boxed.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
@@ -225,15 +212,22 @@ for (name, _) in bridgedTypeNames {
     types[name] = type
 }
 
+/// The modules the output imports: the one it bridges (unless the output is a file of it, or it
+/// is the standard library) and those that add to its types.
+let moduleImports =
+    ((graph.module.name == "Swift" || graph.module.name == outputModule ? [] : [graph.module.name])
+    + extraModules)
+    .map { "import \($0)\n" }.joined()
 var output = """
     // swift-format-ignore-file
     // Generated by swiit-bridge from the \(graph.module.name) module's symbol graph.
     // Don't edit: the bridge generator (swiit-bridge) remakes it.
     import Foundation
-    \(graph.module.name == "Swift" ? "" : "import \(graph.module.name)\n")\(module.external.isEmpty ? "" : "import SystemPackage\n")\(extraModules.map { "import \($0)\n" }.joined())
-    \(insideSwiit ? "" : "import Swiit\n")
-    \(access) enum \(module.list.prefix(1).uppercased() + module.list.dropFirst())Bridge {
-    \(module.types.isEmpty ? "" : "    \(access) static let types: [HostType] = [\n")
+    \(moduleImports)
+    \(outputModule == "Swiit" ? "" : "import Swiit\n")
+    \(access) enum \(bridgeName)Bridge {
+        \(access) static let types: [HostType] = [
+
 
     """
 var skipped: [String: Int] = [:]
@@ -423,7 +417,7 @@ for (name, _) in bridgedTypeNames {
         output += "        \(typeName),\n"
     }
 }
-if !module.types.isEmpty { output += "    ]\n" }
+output += "    ]\n"
 output += declarations.joined(separator: "\n") + "}\n"
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)
 if let manifestPath {

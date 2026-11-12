@@ -55,6 +55,24 @@ output() {
         *) echo "$1" ;;
     esac
 }
+# What the output is called (`<Name>Bridge`), and the types of the module it bridges.
+bridge_name() {
+    case "$1" in
+        Swift) echo StandardLibrary ;;
+        SystemPackage) echo System ;;
+        *) echo "$1" ;;
+    esac
+}
+types() {
+    case "$1" in
+        Swift) echo String Substring Character Unicode.Scalar Int Double Bool Array ArraySlice Set \
+            Dictionary Optional Range ClosedRange ;;
+        # FilePath.Root is left out: the standard library's FilePath (SE-0529) calls it Anchor.
+        SystemPackage) echo FilePath FilePath.Component FilePath.ComponentView ;;
+        # Foundation's types Swiit holds as Swift's: a date.
+        Foundation) echo Date AttributedString ;;
+    esac
+}
 
 for module in Swift SystemPackage Foundation; do
     graph "$module"
@@ -80,8 +98,9 @@ for module in Swift SystemPackage Foundation; do
         if [ "$other" != "$platform" ] && [ -f "$manifest" ]; then platforms+=(--also "$manifest"); fi
     done
     # These are Swiit's own files, so they neither import it nor are public; a client with bridges
-    # of its own leaves the flag out.
-    platforms+=(--inside-swiit)
+    # of its own leaves these out.
+    platforms+=(--name "$(bridge_name "$module")" --access internal --in-module Swiit)
+    for type in $(types "$module"); do platforms+=(--type "$type"); done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"
 done

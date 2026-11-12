@@ -3,9 +3,6 @@ import Foundation
 // The output: a description of the types (`HostType` and `HostSymbol`), which compiles in any
 // package that imports Swiit.
 
-/// `--inside-swiit`: the output is a file of Swiit's own, which does not import it and is not public.
-nonisolated(unsafe) var insideSwiit = false  // safe: the generator runs on one thread
-
 /// `type` as the `ScriptType` the description's signatures are written in.
 func scriptType(_ type: SType) -> String {
     switch type {
