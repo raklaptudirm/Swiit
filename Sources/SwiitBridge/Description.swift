@@ -42,6 +42,7 @@ func hostType(_ name: String, _ arguments: [SType] = []) -> String {
 
 /// What a parameter's `Symbol.Parameter` says of whether a call may leave it out.
 func arityCode(of parameter: Parameter, type: SType) throws -> String {
+    if parameter.isVariadic { return ", arity: .variadic" }
     guard let text = parameter.defaultText else { return "" }
     if text == "true" || text == "false" || Int(text) != nil || Double(text) != nil
         || (text.hasPrefix("\"") && text.hasSuffix("\"") && !text.contains("\\("))

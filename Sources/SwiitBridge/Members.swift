@@ -201,6 +201,12 @@ func bridge(
     }
     for parameter in allGenerics where generics[parameter] == nil { generics[parameter] = [] }
 
+    // Swift cannot pass an array on as variadic arguments, so a variadic member is called through
+    // the overload that takes the array, which its author writes beside it.
+    if declaration.parameters.contains(where: \.isVariadic), !hasArrayOverload(symbol, declaration)
+    {
+        throw Unsupported(reason: "variadic")
+    }
     var parameters: [(Parameter, SType)] = []
     for parameter in declaration.parameters {
         guard let type = resolve(parameter.type, context),
@@ -235,7 +241,10 @@ func bridge(
         + parameters.map { "\($0.0.label ?? "_"):" }.joined() + ")"
     let key =
         "\(declaration.kind) \(declaration.isStatic) \(declaration.name)("
-        + parameters.map { "\($0.0.label ?? "_"):\(scriptType($0.1))" }.joined(separator: ",") + ")"
+        + parameters.map {
+            "\($0.0.label ?? "_"):\(scriptType($0.1))\($0.0.isVariadic ? "..." : "")"
+        }
+        .joined(separator: ",") + ")"
 
     // The signature.
     let parameterCode = try parameters.map { try describedParameter($0, $1) }
@@ -245,7 +254,7 @@ func bridge(
         .map { index, parameter -> String in
             let type = parameters.first { $0.0.name == parameter.name }!.1
             let value = "arguments[\(index)]"
-            var expr = fromValue(value, type)
+            var expr = fromValue(value, parameter.isVariadic ? .array(type) : type)
             if let text = parameter.defaultText, literalDefault(text) == nil {
                 expr = "(\(value) == .nothing ? \(text) : \(fromValue(value, type)))"
             }
@@ -374,4 +383,25 @@ func setterCode(
         receiver.\(swiftName(declaration.name)) = \(fromValue("newValue", returns))
         return \(toValue("receiver", receiverType))
         """
+}
+
+/// Whether the module also declares the member with an array where `declaration` has variadic
+/// arguments: the same name and labels, `[T]` for `T...`.
+func hasArrayOverload(_ symbol: Symbol, _ declaration: Declaration) -> Bool {
+    graph.symbols.contains { other in
+        guard other.pathComponents == symbol.pathComponents,
+            other.identifier.precise != symbol.identifier.precise,
+            let text = Optional((other.declarationFragments ?? []).map(\.spelling).joined()),
+            let sibling = try? parseDeclaration(text),
+            sibling.name == declaration.name,
+            sibling.parameters.count == declaration.parameters.count
+        else { return false }
+        return zip(declaration.parameters, sibling.parameters)
+            .allSatisfy { mine, theirs in
+                mine.label == theirs.label
+                    && (mine.isVariadic
+                        ? theirs.type == .array(mine.type) && !theirs.isVariadic
+                        : mine.type == theirs.type && !theirs.isVariadic)
+            }
+    }
 }

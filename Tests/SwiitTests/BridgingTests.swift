@@ -102,3 +102,19 @@ import Testing
         try swiit.evaluate(#""abc".reduce(into: "") { $0 = String($1) + $0 }"#).description == "cba"
     )
 }
+
+@Test func aVariadicParameterOfAHostFunctionArrivesAsAList() throws {
+    let swiit = Interpreter()
+    swiit.register(
+        HostSymbol.function(
+            name: "total",
+            parameters: [Symbol.Parameter(name: "values", type: .int, arity: .variadic)],
+            returns: .int
+        ) { arguments in
+            let items = try Value.Bridging.list(arguments[0])
+            return Value(integerLiteral: try items.map { try Int($0) }.reduce(0, +))
+        }
+    )
+    #expect(try swiit.evaluate("total(1, 2, 3)").description == "6")
+    #expect(try swiit.evaluate("total()").description == "0")
+}

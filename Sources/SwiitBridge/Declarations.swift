@@ -5,8 +5,11 @@ import Foundation
 struct Parameter {
     let label: String?
     let name: String
+    /// The type of one of its arguments, if it is variadic.
     let type: SType
     let defaultText: String?
+    /// `T...`: it takes any number of arguments.
+    var isVariadic = false
 }
 
 /// A member's declaration, as far as its text says; its constraints come
@@ -132,7 +135,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
             if first == "_" { label = nil }
             guard reader.consume(":") else { throw Unsupported(reason: "parameter type") }
             let type = try reader.type()
-            if reader.consume("...") { throw Unsupported(reason: "variadic") }
+            let isVariadic = reader.consume("...")
             var defaultText: String?
             if reader.consume("=") {
                 // Up to the next comma or `)` at this depth.
@@ -147,7 +150,13 @@ func parseDeclaration(_ text: String) throws -> Declaration {
                 defaultText = text.trimmingCharacters(in: .whitespaces)
             }
             parameters.append(
-                Parameter(label: label, name: name, type: type, defaultText: defaultText)
+                Parameter(
+                    label: label,
+                    name: name,
+                    type: type,
+                    defaultText: defaultText,
+                    isVariadic: isVariadic
+                )
             )
         } while reader.consume(",")
         guard reader.consume(")") else { throw Unsupported(reason: "parameters end") }
@@ -182,7 +191,13 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         var parameters = try parameterList(&reader)
         if isOperator {
             parameters = parameters.map {
-                Parameter(label: nil, name: $0.name, type: $0.type, defaultText: $0.defaultText)
+                Parameter(
+                    label: nil,
+                    name: $0.name,
+                    type: $0.type,
+                    defaultText: $0.defaultText,
+                    isVariadic: $0.isVariadic
+                )
             }
         }
         let (throwing, rethrowing) = try effects(&reader)

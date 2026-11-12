@@ -72,6 +72,9 @@ nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs o
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--function <name>`: the top-level functions to bridge, every overload of each.
 nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread
+/// The functions named, as opposed to found: all their overloads are bridged, whatever their access;
+/// of a found one, the public overloads.
+nonisolated(unsafe) var namedFunctions: Set<String> = []  // safe: the generator runs on one thread
 /// `--import <Module>`: modules the glue names types of, besides the one it bridges.
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
@@ -177,6 +180,7 @@ if configurationPath != nil {
             byAccess: discoversByAccess
         )
         + typeNames
+    namedFunctions = Set(functionNames)
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
 /// The types to bridge, with the generic parameters the graph gives each.
@@ -507,6 +511,8 @@ if !functionNames.isEmpty {
         let candidates = graph.symbols.filter {
             $0.pathComponents.count == 1 && $0.pathComponents[0].hasPrefix("\(name)(")
                 && $0.kind.identifier == "swift.func" && available($0)
+                && (configurationPath == nil || namedFunctions.contains(name)
+                    || $0.accessLevel == "public")
         }
         if candidates.isEmpty {
             FileHandle.standardError.write(

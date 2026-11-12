@@ -82,7 +82,7 @@ func preparedArguments() throws -> [String] {
 
     let directory = try symbolGraphs(
         of: package,
-        minimumAccess: level == "public" ? "public" : "internal"
+        minimumAccess: "internal"
     )
     let graph = "\(directory)/\(module).symbols.json"
     let extensions = try FileManager.default.contentsOfDirectory(atPath: directory)
@@ -92,7 +92,9 @@ func preparedArguments() throws -> [String] {
     return [arguments[0], graph, output] + arguments.dropFirst() + extensions
 }
 
-/// Writes the symbol graphs of a package's targets with SwiftPM, and gives the directory.
+/// Writes the symbol graphs of a package's targets with SwiftPM, and gives the directory. Down to
+/// the internal declarations: a member that is called through one (the array overload of a
+/// variadic one) is not public, and only its being there is read.
 private func symbolGraphs(of package: String, minimumAccess: String) throws -> String {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -186,6 +188,7 @@ func discoveredTypes(
         .filter {
             $0.pathComponents.count == 1
                 && ["swift.struct", "swift.enum"].contains($0.kind.identifier)
+                && (!byAccess || $0.accessLevel == "public")
         }
         .map { $0.pathComponents[0] }
         .filter {
