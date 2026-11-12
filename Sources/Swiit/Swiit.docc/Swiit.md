@@ -39,7 +39,7 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - <doc:NativeBodies>
 - ``HostSymbol``
 - ``HostType/Builder``
-- ``ScriptConvertible``
+- ``BridgedType``
 
 ### Errors, symbols and declarations
 

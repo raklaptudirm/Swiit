@@ -55,7 +55,7 @@ extension LanguageObject {
     var dataFields: [(key: Value, value: Value)]? {
         // A held value is data if it names its members: a parsed object's keys, a job's fields.
         guard let box = self as? SwiftValue,
-            (box.value as? any ScriptConvertible)?.memberNames != nil
+            (box.value as? any BridgedType)?.memberNames != nil
         else { return nil }
         var fields: [(key: Value, value: Value)] = []
         for name in memberNames {

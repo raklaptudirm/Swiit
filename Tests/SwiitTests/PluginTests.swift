@@ -2,7 +2,7 @@ import Testing
 
 @testable import Swiit
 
-private enum Level: String, CaseIterable, ScriptConvertible {
+private enum Level: String, CaseIterable, BridgedType {
     case low, high
 }
 

@@ -87,9 +87,9 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {
         }
         return AnyHashable(ObjectIdentifier(self))
     }
-    /// What the held value answers for at run time, if it says (`ScriptConvertible.memberNames`).
-    var memberNames: [String] { (value as? any ScriptConvertible)?.memberNames ?? [] }
-    func member(_ name: String) -> Value? { (value as? any ScriptConvertible)?.member(name) }
+    /// What the held value answers for at run time, if it says (`BridgedType.memberNames`).
+    var memberNames: [String] { (value as? any BridgedType)?.memberNames ?? [] }
+    func member(_ name: String) -> Value? { (value as? any BridgedType)?.member(name) }
     var description: String {
         registered("description") ?? String(describing: value)
     }

@@ -152,7 +152,7 @@ extension HostSymbol {
 
     /// A function whose result is a Swift type:
     /// `HostSymbol.function(name: "size", returns: Int.self) { _ in 3 }`.
-    public static func function<T: ScriptConvertible>(
+    public static func function<T: BridgedType>(
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
@@ -218,12 +218,12 @@ extension HostSymbol {
 extension HostSymbol {
     /// The parameters a Swift closure's argument types make, labeled as `labels` says (`nil` or
     /// missing for none).
-    static func parameters<each Argument: ScriptConvertible>(
+    static func parameters<each Argument: BridgedType>(
         _: repeat (each Argument).Type,
         labels: [String?]
     ) -> [Symbol.Parameter] {
         var made: [Symbol.Parameter] = []
-        func add<A: ScriptConvertible>(_: A.Type) {
+        func add<A: BridgedType>(_: A.Type) {
             let label = labels.indices.contains(made.count) ? labels[made.count] : nil
             made.append(
                 Symbol.Parameter(label: label, name: label ?? "argument\(made.count)", type: A.self)
@@ -235,19 +235,19 @@ extension HostSymbol {
 
     /// The Swift enums the types name, which a script learns by registering what takes or gives
     /// them.
-    static func enums<each Argument: ScriptConvertible>(
+    static func enums<each Argument: BridgedType>(
         _: repeat (each Argument).Type
     ) -> [Value.EnumCase.Enumeration] {
         var found: [Value.EnumCase.Enumeration] = []
-        func add<A: ScriptConvertible>(_: A.Type) { found += A.swiitEnums }
+        func add<A: BridgedType>(_: A.Type) { found += A.swiitEnums }
         repeat add((each Argument).self)
         return found
     }
 
     /// A Swift closure as a function scripts can call. Its parameters and result convert as
-    /// `ScriptConvertible` says, and a script sees an ordinary function: `labels` are its argument
+    /// `BridgedType` says, and a script sees an ordinary function: `labels` are its argument
     /// labels (`nil` or missing for none), and a wrong argument is the usual type error.
-    public static func function<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+    public static func function<each Argument: BridgedType, Result: BridgedType>(
         _ name: String,
         summary: String = "",
         labels: [String?] = [],
@@ -273,7 +273,7 @@ extension HostSymbol {
     }
 
     /// As above, for a closure that returns nothing.
-    public static func function<each Argument: ScriptConvertible>(
+    public static func function<each Argument: BridgedType>(
         _ name: String,
         summary: String = "",
         labels: [String?] = [],

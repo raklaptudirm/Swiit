@@ -34,9 +34,9 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    static let concurrency: [BridgedType] = ([taskType] + taskGroupTypes)
+    static let concurrency: [LoweredType] = ([taskType] + taskGroupTypes)
         .map {
-            BridgedType(generated: $0)
+            LoweredType(generated: $0)
         }
 
     private static func task(_ value: Value) throws -> ScriptTask {

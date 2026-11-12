@@ -4,18 +4,18 @@ import Foundation
 
 extension Value {
     /// A Swift value as a value: a number, text, a list, a dictionary, an optional, or any type that
-    /// says scripts can have it (`extension URL: ScriptConvertible {}`).
-    public init<T: ScriptConvertible>(_ value: T) { self = value.value }
+    /// says scripts can have it (`extension URL: BridgedType {}`).
+    public init<T: BridgedType>(_ value: T) { self = value.value }
 
     /// Whether the value is an instance of the Swift type `T`, as `casting(to:)` says.
-    public func isInstance<T: ScriptConvertible>(of type: T.Type) -> Bool {
+    public func isInstance<T: BridgedType>(of type: T.Type) -> Bool {
         casting(to: type) != nil
     }
 
     /// The value as a `T` if it is one: strict, as `as?` is. An `Int` is not a `Double`, and a list
     /// casts only if every element does. `try T(value)` is the throwing form, and converts as a
     /// script's call does.
-    public func casting<T: ScriptConvertible>(to type: T.Type = T.self) -> T? {
+    public func casting<T: BridgedType>(to type: T.Type = T.self) -> T? {
         // The plain ones, which a host asks per item, without building a value to compare.
         switch storage {
         case .int(let value) where T.self == Int.self: return value as? T

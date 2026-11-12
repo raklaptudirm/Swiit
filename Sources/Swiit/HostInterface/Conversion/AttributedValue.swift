@@ -7,4 +7,4 @@ extension Value {
     }
 }
 
-extension AttributedString: ScriptConvertible {}
+extension AttributedString: BridgedType {}

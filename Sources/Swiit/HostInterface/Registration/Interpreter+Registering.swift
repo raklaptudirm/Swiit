@@ -23,7 +23,7 @@ extension Interpreter {
     /// registered. A closure that gives a `Value` gives scripts an `Any`; one that gives a type
     /// a script declared is registered as `HostSymbol.function(name:returns:body:)`, with
     /// `.named(id)` of that type for `returns`.
-    public func register<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+    public func register<each Argument: BridgedType, Result: BridgedType>(
         _ name: String,
         labels: [String?] = [],
         throwing: Bool = false,
@@ -33,7 +33,7 @@ extension Interpreter {
     }
 
     /// As above, for a closure that returns nothing.
-    public func register<each Argument: ScriptConvertible>(
+    public func register<each Argument: BridgedType>(
         _ name: String,
         labels: [String?] = [],
         throwing: Bool = false,

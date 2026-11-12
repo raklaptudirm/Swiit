@@ -29,7 +29,7 @@ extension Value {
         case let double as Double: return .double(double)
         case let string as String: return .string(string)
         case let date as Date: return .date(date)
-        case let convertible as any ScriptConvertible: return convertible.value
+        case let convertible as any BridgedType: return convertible.value
         case let url as URL: return .string(url.isFileURL ? url.path : url.absoluteString)
         case let integer as any BinaryInteger:
             return Int(exactly: integer).map(Value.int) ?? .double(Double(integer))
@@ -96,7 +96,7 @@ private final class Slot {
     ) throws {
         switch value {
         case let date as Date: slot.value = .date(date)
-        case let convertible as any ScriptConvertible: slot.value = convertible.value
+        case let convertible as any BridgedType: slot.value = convertible.value
         case let url as URL: slot.value = .string(url.isFileURL ? url.path : url.absoluteString)
         case let decimal as Decimal:
             slot.value = .double(NSDecimalNumber(decimal: decimal).doubleValue)

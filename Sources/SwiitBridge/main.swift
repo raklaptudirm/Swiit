@@ -7,7 +7,7 @@
 //
 // The first builds from a package's target: the generator makes the symbol graphs itself (with a
 // stub in place of the output, which is part of the module), and bridges what the module has for
-// scripts: each struct or enum that is `ScriptConvertible` and has a public member, and the enums
+// scripts: each struct or enum that is `BridgedType` and has a public member, and the enums
 // that convert themselves. The configuration names the rest (`Configuration`): types and functions
 // that are not found that way, a type another module defines that this one extends (`Date`), the
 // types other bridges describe, renames. The second is given a graph and everything else in flags;
@@ -21,7 +21,7 @@
 // `functions`), `--access <level>` the access of what it declares (`public`, the default, or
 // `internal`), `--in-module <Module>` the module the output is a file of, which it does not import
 // (`Swiit` for Swiit's own files). `--boxed` names the types another bridge describes (held as Swift
-// values, `Date`), `--convertible` those that convert themselves (`ScriptConvertible`, as an enum
+// values, `Date`), `--convertible` those that convert themselves (`BridgedType`, as an enum
 // does), `--import` a module whose types the glue spells, and `--rename Type.member=name` gives a
 // member another name for scripts (`Date.shown=description`). `--preconditions` names the table of
 // members that trap on some arguments (`Bridges/preconditions.json`), which the glue checks first. A member is bridged if it is declared
@@ -69,7 +69,7 @@ nonisolated(unsafe) var bridgeName: String?  // safe: the generator runs on one 
 nonisolated(unsafe) var typeNames: [String] = []  // safe: the generator runs on one thread
 /// `--boxed <Type>`: types another bridge describes, held as they are.
 nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs on one thread
-/// `--convertible <Type>`: types that are `ScriptConvertible`, and cross as their own value.
+/// `--convertible <Type>`: types that are `BridgedType`, and cross as their own value.
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--function <name>`: the top-level functions to bridge, every overload of each.
 nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread

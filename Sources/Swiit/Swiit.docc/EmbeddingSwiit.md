@@ -18,8 +18,8 @@ let swiit = Interpreter(
 ## Register functions and types
 
 ``Interpreter/register(_:labels:throwing:_:)-f2lx`` makes a Swift closure callable by name. Each parameter and the result must conform to
-``ScriptConvertible``. `Int`, `Double`, `String`, `Bool`, `Date`, `Value`, optionals, arrays and dictionaries of those, and `CaseIterable` enums
-already do, and a `Hashable & Sendable` type can adopt it with `extension URL: ScriptConvertible {}`. To expose a Swift value
+``BridgedType``. `Int`, `Double`, `String`, `Bool`, `Date`, `Value`, optionals, arrays and dictionaries of those, and `CaseIterable` enums
+already do, and a `Hashable & Sendable` type can adopt it with `extension URL: BridgedType {}`. To expose a Swift value
 type, a live object or a set of declarations, see <doc:ExposingSwift>.
 
 ## Evaluate source

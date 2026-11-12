@@ -9,7 +9,7 @@ The documentation, with guides to embedding it and the whole host API, is at
 <https://raklaptudirm.github.io/Swiit/>.
 
 - `Sources/Swiit`: the interpreter: the language, the host API (`Interpreter`,
-  `Value`, `HostSymbol`, `ScriptConvertible`), the bridges to Swift's own types,
+  `Value`, `HostSymbol`, `BridgedType`), the bridges to Swift's own types,
   and the DocC catalog (`Swiit.docc`).
 - `Sources/SwiitBridge`: `swiit-bridge`, which makes the bridges from the symbol
   graphs of Swift's modules (`Scripts/bridge`).

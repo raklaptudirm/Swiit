@@ -20,19 +20,19 @@ enum Bridge {
 
     /// Foundation's `Date` and `AttributedString`, from the description the generator writes
     /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
-    static let foundation: [BridgedType] = FoundationBridge.types.map { BridgedType(generated: $0) }
+    static let foundation: [LoweredType] = FoundationBridge.types.map { LoweredType(generated: $0) }
     /// The standard library's types, from its description (`StandardLibraryBridge`).
-    static let standardLibrary: [BridgedType] = StandardLibraryBridge.types.map {
-        BridgedType(generated: $0)
+    static let standardLibrary: [LoweredType] = StandardLibraryBridge.types.map {
+        LoweredType(generated: $0)
     }
     /// swift-system's `FilePath`, from its description as well (`SystemBridge`).
-    static let system: [BridgedType] = SystemBridge.types.map { BridgedType(generated: $0) }
+    static let system: [LoweredType] = SystemBridge.types.map { LoweredType(generated: $0) }
 
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
-    static var types: [String: BridgedType] { table.withLock { $0 } }
+    static var types: [String: LoweredType] { table.withLock { $0 } }
 
-    private static let table = Mutex<[String: BridgedType]>(
+    private static let table = Mutex<[String: LoweredType]>(
         Dictionary(
             uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency)
                 .map {
@@ -48,7 +48,7 @@ enum Bridge {
 
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
     /// the members it adds to types the core has. Registering one again is no change.
-    static func register(_ more: [BridgedType]) {
+    static func register(_ more: [LoweredType]) {
         table.withLock { table in
             for type in more {
                 if let existing = table[type.name] {
@@ -84,7 +84,7 @@ enum Bridge {
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     static func type(
         of annotation: TypeAnnotation
-    ) -> (BridgedType, [String: TypeAnnotation])? {
+    ) -> (LoweredType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
             type.genericParameters.count == arguments.count
         else { return nil }
@@ -108,7 +108,7 @@ final class BridgedTypeName: LanguageObject, @unchecked Sendable {
     var description: String { name }
 }
 
-struct BridgedType: Sendable {
+struct LoweredType: Sendable {
     /// `String`, `Substring`, `Array`.
     let name: String
     /// A generic type's parameters: `Element` for Array.
@@ -133,7 +133,7 @@ struct BridgedType: Sendable {
     /// It, with the initializer from text Swift gives a type that can be read from it: Swift's
     /// `Double.init?<S: StringProtocol>(_: S)` takes a `String` as well as the `Substring` it is
     /// bridged with, so `Double(text)` does. Nothing is added to a type with one already.
-    func withTextInitializer() -> BridgedType {
+    func withTextInitializer() -> LoweredType {
         guard let parse, let result = TypeAnnotation.spelled(name) else { return self }
         let hasOne = members.contains {
             $0.kind == .initializer && $0.parameters.count == 1 && $0.parameters[0].label == nil
@@ -163,7 +163,7 @@ struct BridgedType: Sendable {
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
     /// host says how a type shows; one registered twice is not added again.
-    func adding(_ extra: [BridgedMember]) -> BridgedType {
+    func adding(_ extra: [BridgedMember]) -> LoweredType {
         func same(_ a: BridgedMember, _ b: BridgedMember) -> Bool {
             a.kind == b.kind && a.name == b.name && a.isStatic == b.isStatic
                 && a.parameters.map(\.label) == b.parameters.map(\.label)
@@ -174,7 +174,7 @@ struct BridgedType: Sendable {
         }
         let extra = extra.filter { new in !kept.contains { same($0, new) } }
         guard !extra.isEmpty || kept.count != members.count else { return self }
-        return BridgedType(
+        return LoweredType(
             name: name,
             genericParameters: genericParameters,
             conformances: conformances,
@@ -187,11 +187,11 @@ struct BridgedType: Sendable {
     }
 
     /// It, conforming to `protocols` too, whatever its generic parameters are.
-    func conforming(to protocols: [String]) -> BridgedType {
+    func conforming(to protocols: [String]) -> LoweredType {
         guard !protocols.isEmpty else { return self }
         var all = conformances
         for name in protocols { all[name] = [] }
-        return BridgedType(
+        return LoweredType(
             name: name,
             genericParameters: genericParameters,
             conformances: all,

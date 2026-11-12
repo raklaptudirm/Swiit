@@ -62,7 +62,7 @@ extension TypeChecker {
 
     /// The Swift type a Swiit type is, with its generic parameters bound:
     /// `[Int]` is Array with Element Int.
-    func bridged(_ type: TypeAnnotation) -> (BridgedType, [String: TypeAnnotation])? {
+    func bridged(_ type: TypeAnnotation) -> (LoweredType, [String: TypeAnnotation])? {
         Bridge.type(of: type)
     }
 
@@ -70,7 +70,7 @@ extension TypeChecker {
     /// to `proto`: a ClosedRange<Int> is a Sequence, a ClosedRange<Double>
     /// isn't.
     func bridgedConforms(
-        _ bridgedType: BridgedType,
+        _ bridgedType: LoweredType,
         _ bindings: [String: TypeAnnotation],
         to proto: String
     ) -> Bool {

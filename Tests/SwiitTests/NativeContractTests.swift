@@ -257,7 +257,7 @@ private struct Boom: Error, CustomStringConvertible {
 
 // MARK: Values and receivers
 
-private struct ContractTally: Hashable, Sendable, ScriptConvertible {
+private struct ContractTally: Hashable, Sendable, BridgedType {
     var n: Int
 }
 

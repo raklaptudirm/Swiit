@@ -60,7 +60,7 @@ extension Interpreter {
     /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
     /// registering a function or a type that takes or gives one does: for an enum that a
     /// host's declarations name (`declare(_:bodies:)`) and nothing registered has yet.
-    public func register<E: ScriptConvertible & CaseIterable & Hashable & Sendable>(_: E.Type) {
+    public func register<E: BridgedType & CaseIterable & Hashable & Sendable>(_: E.Type) {
         let enumeration = Value.EnumCase.Enumeration.of(E.self)
         withMainTask {
             scopes[1].bindings[enumeration.name] = Binding(
@@ -72,7 +72,7 @@ extension Interpreter {
 
     @discardableResult
     public func register(_ type: HostType) -> Symbol.ID {
-        var bridged = BridgedType(type)
+        var bridged = LoweredType(type)
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
         if type.conformances["Sequence"] != nil, let element = type.associatedTypes["Element"] {
@@ -153,7 +153,7 @@ extension Interpreter {
     }
 }
 
-extension BridgedType {
+extension LoweredType {
     init(_ type: HostType) {
         self.init(
             name: type.name,
@@ -168,12 +168,12 @@ extension BridgedType {
     }
 }
 
-extension BridgedType {
+extension LoweredType {
     /// A type a generator described, as the bridged types of the core are: its members are
     /// bridged, not a host's own, so none is called without an interpreter and a host's member of
     /// the same shape takes its place.
     init(generated type: HostType) {
-        let made = BridgedType(type)
+        let made = LoweredType(type)
         self.init(
             name: made.name,
             genericParameters: made.genericParameters,
@@ -429,7 +429,7 @@ extension HostType {
 
         private static func sequenceElement() -> ScriptType? {
             func element<S: Sequence>(_: S.Type) -> ScriptType {
-                (S.Element.self as? any ScriptConvertible.Type)?.scriptType ?? .any
+                (S.Element.self as? any BridgedType.Type)?.scriptType ?? .any
             }
             guard let sequence = T.self as? any Sequence.Type else { return nil }
             return element(sequence)
@@ -482,7 +482,7 @@ extension HostType {
         }
 
         /// A property that reads a key path: `.property("host", \.host)`.
-        public func property<V: ScriptConvertible>(
+        public func property<V: BridgedType>(
             _ name: String,
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
@@ -496,7 +496,7 @@ extension HostType {
 
         /// A method, as a reference to it:
         /// `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
-        public func method<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+        public func method<each Argument: BridgedType, Result: BridgedType>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -521,7 +521,7 @@ extension HostType {
         }
 
         /// A function of the type itself: `.static("now", Date.init)`.
-        public func `static`<each Argument: ScriptConvertible, Result: ScriptConvertible>(
+        public func `static`<each Argument: BridgedType, Result: BridgedType>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -543,7 +543,7 @@ extension HostType {
         }
 
         /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
-        public func initializer<each Argument: ScriptConvertible>(
+        public func initializer<each Argument: BridgedType>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T
@@ -565,7 +565,7 @@ extension HostType {
 
         /// An initializer that can fail, which a script sees as one that gives an optional:
         /// `.failableInitializer(URL.init(string:))`.
-        public func failableInitializer<each Argument: ScriptConvertible>(
+        public func failableInitializer<each Argument: BridgedType>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T?
@@ -589,15 +589,15 @@ extension HostType {
 }
 
 /// A `Sendable` type becomes one a script can hold and a host function can take and give by
-/// saying so: `extension URL: ScriptConvertible {}`. It is held as it is, under its Swift name.
-extension ScriptConvertible where Self: Sendable {
+/// saying so: `extension URL: BridgedType {}`. It is held as it is, under its Swift name.
+extension BridgedType where Self: Sendable {
     public static var scriptType: ScriptType { .named(.host(Value.hostName(of: Self.self))) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
-extension Set: ScriptConvertible where Element: Hashable {
+extension Set: BridgedType where Element: Hashable {
     public static var scriptType: ScriptType { .named(.set, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "Set") }
@@ -606,7 +606,7 @@ extension Set: ScriptConvertible where Element: Hashable {
 /// Any sequence a script holds, read one item at a time so a range of a billion is never a list: a
 /// list's items, a set's, a range of Ints, a host type's text. A value that isn't one is an error.
 /// A script's own iterators, which can throw, are read by the interpreter's `for`.
-extension AnySequence: ScriptConvertible where Element == Value {
+extension AnySequence: BridgedType where Element == Value {
     public static var scriptType: ScriptType { .named(.sequence, [.any]) }
     public init(_ swiitValue: Value) throws {
         guard let items = Interpreter.items(of: swiitValue) else {
@@ -617,7 +617,7 @@ extension AnySequence: ScriptConvertible where Element == Value {
     public var value: Value { .list(Array(self)) }
 }
 
-extension ArraySlice: ScriptConvertible {
+extension ArraySlice: BridgedType {
     public static var scriptType: ScriptType { .named(.arraySlice, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "ArraySlice") }

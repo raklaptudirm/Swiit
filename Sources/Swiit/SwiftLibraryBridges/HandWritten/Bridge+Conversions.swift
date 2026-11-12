@@ -1,7 +1,7 @@
 import Foundation
 import SystemPackage
 
-extension FilePath: ScriptConvertible {}
+extension FilePath: BridgedType {}
 
 /// A path as Swiit holds it: a FilePath.
 func pathValue(_ path: String) -> Value {

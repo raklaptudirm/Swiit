@@ -41,7 +41,7 @@ private final class Mark: @unchecked Sendable {
     init(_ label: String) { self.label = label }
 }
 
-private final class Handle: ScriptConvertible, CustomStringConvertible, @unchecked Sendable {
+private final class Handle: BridgedType, CustomStringConvertible, @unchecked Sendable {
     let task: ScriptTask
     init(_ task: ScriptTask) { self.task = task }
     var description: String { "Handle" }
