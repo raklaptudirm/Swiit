@@ -199,3 +199,40 @@ import Testing
         #expect("\(error)".contains("s.index(s.startIndex, offsetBy: n)"))
     }
 }
+
+@Test func aGenericMemberIsBridgedOnceForEachTypeItIsSpecializedTo() throws {
+    let swiit = Interpreter()
+    // `stride` for Int and for Double.
+    #expect(
+        try swiit.evaluate("Array(stride(from: 0, to: 10, by: 3))").description == "[0, 3, 6, 9]"
+    )
+    #expect(
+        try swiit.evaluate("Array(stride(from: 0, through: 6, by: 3))").description == "[0, 3, 6]"
+    )
+    #expect(try swiit.evaluate("Array(stride(from: 3, to: 0, by: -1))").description == "[3, 2, 1]")
+    #expect(
+        try swiit.evaluate("Array(stride(from: 0.0, to: 1.0, by: 0.5))").description == "[0.0, 0.5]"
+    )
+    #expect(try swiit.evaluate("for i in stride(from: 0, to: 3, by: 1) { }; 1").description == "1")
+    // A step that is zero, or a stride far too long to hold, is an error, not a hang.
+    #expect(throws: (any Error).self) { try swiit.evaluate("stride(from: 0, to: 5, by: 0)") }
+    #expect(throws: (any Error).self) { try swiit.evaluate("stride(from: 0, to: Int.max, by: 1)") }
+    // A subscript by either kind of range.
+    #expect(
+        try swiit
+            .evaluate(
+                "let s = \"hello\"; let i = s.index(s.startIndex, offsetBy: 1); s[i...i]"
+            )
+            .description == "e"
+    )
+    #expect(
+        try swiit
+            .evaluate(
+                "let s = \"hello\"; let i = s.index(s.startIndex, offsetBy: 1); let t = s[i..<s.endIndex]; t[t.startIndex...t.startIndex]"
+            )
+            .description == "e"
+    )
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate("let s = \"hi\"; s[s.startIndex...s.endIndex]")
+    }
+}

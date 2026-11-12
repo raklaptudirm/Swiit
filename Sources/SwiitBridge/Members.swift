@@ -109,16 +109,20 @@ func bridge(
     _ symbol: Symbol,
     of original: BridgedType,
     given conditions: [Constraint] = [],
-    isFree: Bool = false
+    isFree: Bool = false,
+    binding bindings: [String: SType] = [:]
 ) throws -> BridgedMember {
     let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
     var declaration = try parseDeclaration(text)
     if isFree { declaration.isStatic = true }
+    let names = Set(bindings.keys)
+    if !bindings.isEmpty { declaration.specialize(bindings) }
     if declaration.isMutating && declaration.isStatic { throw Unsupported(reason: "mutating") }
     var owner = original
     let constraints =
-        conditions + (symbol.swiftExtension?.constraints ?? [])
-        + (symbol.swiftGenerics?.constraints ?? [])
+        (conditions + (symbol.swiftExtension?.constraints ?? [])
+        + (symbol.swiftGenerics?.constraints ?? []))
+        .filter { !$0.mentions(names) }
         + declaration.constraints
     var ownGenerics = declaration.generics
     if let error = declaration.typedError { ownGenerics.removeValue(forKey: error) }
@@ -452,4 +456,42 @@ func hasArrayOverload(_ symbol: Symbol, _ declaration: Declaration) -> Bool {
                         : mine.type == theirs.type && !theirs.isVariadic)
             }
     }
+}
+
+/// The members one declaration gives: one, or one for each way to bind a generic parameter that a
+/// `--specialize` lists.
+func bridgeAll(
+    _ symbol: Symbol,
+    of original: BridgedType,
+    given conditions: [Constraint] = [],
+    isFree: Bool = false
+) throws -> [BridgedMember] {
+    let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
+    let variants = specializationBindings(
+        of: try parseDeclaration(text),
+        symbol,
+        given: conditions
+    )
+    guard !variants.isEmpty else {
+        return [try bridge(symbol, of: original, given: conditions, isFree: isFree)]
+    }
+    var made: [BridgedMember] = []
+    var failure: Unsupported?
+    for bindings in variants {
+        do {
+            made.append(
+                try bridge(
+                    symbol,
+                    of: original,
+                    given: conditions,
+                    isFree: isFree,
+                    binding: bindings
+                )
+            )
+        } catch let unsupported as Unsupported {
+            failure = unsupported
+        }
+    }
+    if made.isEmpty, let failure { throw failure }
+    return made
 }

@@ -97,17 +97,6 @@
       "String",
       "Substring"
     ],
-    "member": "removeSubrange(_:)",
-    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
-    "error": "range out of bounds"
-  },
-  {
-    "types": [
-      "Array",
-      "ArraySlice",
-      "String",
-      "Substring"
-    ],
     "member": "replaceSubrange(_:with:)",
     "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
     "error": "range out of bounds"
@@ -330,5 +319,92 @@
     ],
     "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
     "error": "String index is out of bounds"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "removeSubrange(_:)",
+    "parameters": [
+      "Range<Int>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "Array",
+      "ArraySlice"
+    ],
+    "member": "removeSubrange(_:)",
+    "parameters": [
+      "ClosedRange<Int>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound >= self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "String",
+      "Substring"
+    ],
+    "member": "removeSubrange(_:)",
+    "parameters": [
+      "Range<String.Index>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "String",
+      "Substring"
+    ],
+    "member": "removeSubrange(_:)",
+    "parameters": [
+      "ClosedRange<String.Index>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound >= self.endIndex",
+    "error": "range out of bounds"
+  },
+  {
+    "types": [
+      "String",
+      "Substring"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "ClosedRange<String.Index>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound >= self.endIndex",
+    "error": "String index is out of bounds"
+  },
+  {
+    "member": "stride(from:to:by:)",
+    "when": "by == 0",
+    "error": "the step can't be 0"
+  },
+  {
+    "member": "stride(from:to:by:)",
+    "when": "(Double(to) - Double(from)) / Double(by) > 100_000_000",
+    "error": "that stride has too many values"
+  },
+  {
+    "member": "stride(from:through:by:)",
+    "when": "by == 0",
+    "error": "the step can't be 0"
+  },
+  {
+    "member": "stride(from:through:by:)",
+    "when": "(Double(through) - Double(from)) / Double(by) > 100_000_000",
+    "error": "that stride has too many values"
+  },
+  {
+    "types": [
+      "String.Index"
+    ],
+    "member": "init(_:within:)",
+    "safe": "it gives nil for a position that is not in the string"
   }
 ]

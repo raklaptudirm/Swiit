@@ -1,7 +1,7 @@
 import Foundation
 
 extension Interpreter {
-    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// Functions Swift's standard library has at the top level, which aren't
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {
@@ -286,7 +286,7 @@ extension Interpreter {
                 )
             )
         }
-        // The standard library's own top-level functions, as the generator reads them (`zip`, `swap`).
+        // The standard library's own top-level functions, as the generator reads them (`zip`, `swap`, `stride`).
         for function in StandardLibraryBridge.functions { declare(function) }
         // `abs`, `min` and `max`, for the numbers and strings there are.
         for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
@@ -349,72 +349,8 @@ extension Interpreter {
                 )
             }
         }
-        // `stride(from:to:by:)` and `stride(from:through:by:)`, for Int and Double.
-        for (end, inclusive) in [("to", false), ("through", true)] {
-            for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
-                declare(
-                    HostSymbol.function(
-                        name: "stride",
-                        summary:
-                            "The values from `from` to `\(end)` `\(end == "to" ? "(not including it)" : "")`, `by` apart, as \(name)s.",
-                        parameters: [
-                            Symbol.Parameter(label: "from", name: "from", type: type),
-                            Symbol.Parameter(label: end, name: end, type: type),
-                            Symbol.Parameter(label: "by", name: "by", type: type),
-                        ],
-                        returnType: .list(type),
-                        isThrowing: false,
-                        call: { arguments in
-                            guard let start = arguments["from"], let stop = arguments[end],
-                                let step = arguments["by"]
-                            else { return .list([]) }
-                            if case .int(let a) = start.storage, case .int(let b) = stop.storage,
-                                case .int(let s) = step.storage
-                            {
-                                guard s != 0 else {
-                                    throw RuntimeError("stride: the step can't be 0")
-                                }
-                                var values: [Value] = []
-                                var current = a
-                                while s > 0
-                                    ? (inclusive ? current <= b : current < b)
-                                    : (inclusive ? current >= b : current > b)
-                                {
-                                    try interpreter.checkInterrupt()
-                                    values.append(.int(current))
-                                    let (next, overflow) = current.addingReportingOverflow(s)
-                                    if overflow { break }
-                                    current = next
-                                }
-                                return .list(values)
-                            }
-                            guard let a = start.asDouble, let b = stop.asDouble,
-                                let s = step.asDouble
-                            else {
-                                return .list([])
-                            }
-                            guard s != 0 else { throw RuntimeError("stride: the step can't be 0") }
-                            var values: [Value] = []
-                            var index = 0.0
-                            while true {
-                                let current = a + index * s
-                                guard
-                                    s > 0
-                                        ? (inclusive ? current <= b : current < b)
-                                        : (inclusive ? current >= b : current > b)
-                                else { break }
-                                try interpreter.checkInterrupt()
-                                values.append(.double(current))
-                                index += 1
-                            }
-                            return .list(values)
-                        }
-                    )
-                )
-            }
-        }
     }
-    // swiftlint:enable cyclomatic_complexity function_body_length
+    // swiftlint:enable function_body_length
 
     /// What stands for a value's type: the struct's or enum's own, or Swift's by name.
     func typeObject(of value: Value) -> Value {

@@ -22,9 +22,9 @@ struct Declaration {
     let isMutating: Bool
     let isFailable: Bool
     /// Its own generic parameters, with the protocols written beside them.
-    let generics: [String: [String]]
-    let parameters: [Parameter]
-    let returns: SType?
+    var generics: [String: [String]]
+    var parameters: [Parameter]
+    var returns: SType?
     let throwing: Bool
     let rethrowing: Bool
     /// `async`: its glue waits for it in `suspend` (`bridgeAsync`).
@@ -252,7 +252,7 @@ func parseDeclaration(_ text: String) throws -> Declaration {
         declaration.isSubscript = true
         declaration.isAsync = accessors.contains("async")
         if let range = accessors.range(of: "where") {
-            declaration.constraints = whereConstraints(String(accessors[range.lowerBound...]))
+            declaration.constraints = whereConstraints(String(accessors[range.upperBound...]))
         }
         return declaration
     }

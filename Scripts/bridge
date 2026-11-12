@@ -83,8 +83,13 @@ types() {
 as_array() {
     case "$1" in
         Swift) echo Zip2Sequence LazySequence EnumeratedSequence ReversedCollection PrefixSequence \
-            DropWhileSequence DropFirstSequence Slice ;;
+            DropWhileSequence DropFirstSequence Slice StrideTo StrideThrough ;;
     esac
+}
+# The types a generic parameter is bound to, one member for each, where Swiit cannot hold it as a
+# generic: a number of either kind for `stride`, either kind of range for a range expression.
+specializations() {
+    case "$1" in Swift) echo Strideable=Int,Double RangeExpression=Range,ClosedRange ;; esac
 }
 # Types whose subscripts the interpreter has of its own, and so are not bridged.
 own_subscripts() {
@@ -92,7 +97,7 @@ own_subscripts() {
 }
 # The top-level functions of a module that are bridged.
 functions() {
-    case "$1" in Swift) echo zip swap ;; esac
+    case "$1" in Swift) echo zip swap stride ;; esac
 }
 
 for module in Swift SystemPackage Foundation; do
@@ -125,6 +130,7 @@ for module in Swift SystemPackage Foundation; do
     for type in $(types "$module"); do platforms+=(--type "$type"); done
     for type in $(as_array "$module"); do platforms+=(--as-array "$type"); done
     for function in $(functions "$module"); do platforms+=(--function "$function"); done
+    for binding in $(specializations "$module"); do platforms+=(--specialize "$binding"); done
     for type in $(own_subscripts "$module"); do platforms+=(--own-subscripts "$type"); done
     swift run -c release swiit-bridge "$graphs/$module.symbols.json" \
         "Sources/Swiit/SwiftLibraryBridges/Generated/$(output "$module").swift" ${extra[@]+"${extra[@]}"} "${platforms[@]}"

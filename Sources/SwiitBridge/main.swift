@@ -82,6 +82,7 @@ nonisolated(unsafe) var asArrayNames: [String] = []  // safe: the generator runs
 nonisolated(unsafe) var preconditionsPath: String?  // safe: the generator runs on one thread
 /// `--own-subscripts <Type>`: types whose subscripts the interpreter has of its own (a list's).
 nonisolated(unsafe) var ownSubscripts: Set<String> = []  // safe: the generator runs on one thread
+/// `--specialize Protocol=Type,Type` (`Specialization.swift`).
 /// `--import <Module>`: modules the glue names types of, besides the one it bridges.
 nonisolated(unsafe) var importNames: [String] = []  // safe: the generator runs on one thread
 /// `--rename Type.member=name`: a member scripts know under another name than Swift's.
@@ -115,6 +116,7 @@ do {
             preconditionsPath = rest[i + 1]; i += 2
         case "--own-subscripts" where i + 1 < rest.count:
             ownSubscripts.insert(rest[i + 1]); i += 2
+        case "--specialize" where i + 1 < rest.count: addSpecialization(rest[i + 1]); i += 2
         case "--import" where i + 1 < rest.count: importNames.append(rest[i + 1]); i += 2
         case "--rename" where i + 1 < rest.count:
             let pair = rest[i + 1].split(separator: "=", maxSplits: 1).map(String.init)
@@ -436,18 +438,19 @@ for (name, _) in bridgedTypeNames {
             continue
         }
         do {
-            let bridged = try bridge(symbol, of: owner, given: conditions)
-            let (key, shape) = (bridged.key, bridged.shape)
-            // What another module adds is an overload, not a default.
-            if index >= ownCount, bridgedShapes.contains(shape),
-                !addedByOthers.contains(symbol.identifier.precise)
-            {
-                continue
+            for bridged in try bridgeAll(symbol, of: owner, given: conditions) {
+                let (key, shape) = (bridged.key, bridged.shape)
+                // What another module adds is an overload, not a default.
+                if index >= ownCount, bridgedShapes.contains(shape),
+                    !addedByOthers.contains(symbol.identifier.precise)
+                {
+                    continue
+                }
+                guard seen.insert(key).inserted else { continue }
+                if index < ownCount { bridgedShapes.insert(shape) }
+                members.append(declare(bridged.code))
+                counts[name, default: 0] += 1
             }
-            guard seen.insert(key).inserted else { continue }
-            if index < ownCount { bridgedShapes.insert(shape) }
-            members.append(declare(bridged.code))
-            counts[name, default: 0] += 1
         } catch let unsupported as Unsupported {
             // SWIIT_BRIDGE_DEBUG=Set: why each of a type's members is left out.
             if ProcessInfo.processInfo.environment["SWIIT_BRIDGE_DEBUG"] == name {
@@ -544,13 +547,14 @@ if !functionNames.isEmpty {
         var seen: Set<String> = []
         for symbol in candidates {
             do {
-                let bridged = try bridge(
+                for bridged in try bridgeAll(
                     symbol,
                     of: BridgedType(name: "", parameters: []),
                     isFree: true
-                )
-                guard seen.insert(bridged.key).inserted else { continue }
-                functions.append(declare(bridged.code))
+                ) {
+                    guard seen.insert(bridged.key).inserted else { continue }
+                    functions.append(declare(bridged.code))
+                }
             } catch let unsupported as Unsupported {
                 leftOut.append(LeftOut(reason: unsupported.reason, owner: "", member: name))
             }

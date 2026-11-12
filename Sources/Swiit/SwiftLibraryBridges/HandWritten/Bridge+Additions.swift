@@ -18,29 +18,6 @@ extension Bridge {
         return text
     }
 
-    /// `text[a...b]`, which the generated subscript of a range cannot be: Swift's takes any range
-    /// expression, and the generator does not yet make one member for each kind of range.
-    private static let closedRangeSubscript = HostSymbol.method(
-        "subscript",
-        summary: "The part of the text between two positions, the second included.",
-        parameters: [
-            Symbol.Parameter(
-                name: "r",
-                type: .named("ClosedRange", [.named("String.Index")])
-            )
-        ],
-        returns: .named("Substring")
-    ) { receiver, arguments in
-        let text = try text(receiver)
-        let range = try Value.Bridging.closedRange(arguments[0]) {
-            try SwiftValue.unbox(String.Index.self, $0)
-        }
-        guard range.lowerBound >= text.startIndex, range.upperBound < text.endIndex else {
-            throw RuntimeError("String index is out of bounds")
-        }
-        return SwiftValue.make(text[range], as: "Substring")
-    }
-
     /// What the table adds to the type named, lowered as the generated members are.
     static func additions(to typeName: String) -> [BridgedMember] {
         BridgedMember.bridged(additionTable[typeName] ?? [], in: typeName)
@@ -59,7 +36,7 @@ extension Bridge {
                 .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, receiver).value))
             }
         ],
-        "String": [closedRangeSubscript] + [
+        "String": [
             .method(
                 "replacingOccurrences",
                 summary: "The text with every `target` replaced by `replacement`.",

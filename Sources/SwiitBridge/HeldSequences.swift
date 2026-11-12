@@ -23,17 +23,23 @@ func loadHeldSequences(_ names: [String], in graph: Graph) throws {
         else { throw Failure("\(graph.module.name) has no struct \(name) to hold as an array") }
         // Where the standard library says its elements: on the type, or on its iterator, which
         // some versions say only there, or which the type's own alias points to.
+        let parameters = symbol.swiftGenerics?.parameters?.map(\.name) ?? []
         var target: SType
         if let own = try? elementAlias([name], in: graph) {
             target = own
             if case .member(.member(.named(name, _), "Iterator"), "Element") = own {
                 target = try elementAlias([name, "Iterator"], in: graph)
             }
+        } else if let viaIterator = try? elementAlias([name, "Iterator"], in: graph) {
+            target = viaIterator
+        } else if parameters.contains("Element") {
+            // `StrideTo<Element>`: its elements are what it is generic over.
+            target = .named("Element", [])
         } else {
-            target = try elementAlias([name, "Iterator"], in: graph)
+            throw Failure("\(name) has no Element to hold as an array")
         }
         heldSequences[name] = HeldSequence(
-            parameters: symbol.swiftGenerics?.parameters?.map(\.name) ?? [],
+            parameters: parameters,
             element: target
         )
     }
