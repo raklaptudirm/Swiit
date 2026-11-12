@@ -127,6 +127,17 @@ jobs:
             exit 1
           fi
 
+      # The bridges are read from the SDK this job has, which may be older than the one a developer
+      # runs: what it made is here to commit.
+      - name: Keep the bridges this job made
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridges-macos
+          path: |
+            Sources/Swiit/SwiftLibraryBridges/Generated
+            Bridges
+
   bridges-linux:
     name: Bridges (Linux)
     runs-on: ubuntu-latest
