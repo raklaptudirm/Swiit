@@ -126,28 +126,7 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
             return .dictionary(resolved[0], resolved[1])
         }
         return .named(name, resolved)
-    case .member(let base, let name):
-        // `S.Element`, for a sequence parameter S.
-        if case .named(let parameter, []) = base, let element = context.sequences[parameter] {
-            return name == "Element" ? resolve(element, context) : nil
-        }
-        // `FilePath.Component`: a nested type that's bridged too.
-        if case .named(let outer, []) = base, types["\(outer).\(name)"] != nil {
-            return .named("\(outer).\(name)", [])
-        }
-        guard let resolvedBase = resolve(base, context) else { return nil }
-        // `Self.Element`: a generic parameter (on Array) or an associated type.
-        if resolvedBase == selfType(owner) {
-            if owner.genericParameters.contains(name) { return .named(name, []) }
-            if let target = owner.associated[name] { return resolve(target, context) }
-        }
-        // `Bound.Stride`, with Bound fixed to Int: Int's own.
-        if case .named(let leaf, []) = resolvedBase, let other = types[leaf],
-            let target = other.associated[name]
-        {
-            return resolve(target, Context(owner: other, generics: []))
-        }
-        return nil
+    case .member(let base, let name): return resolveMember(base, name, context)
     case .array(let element): return resolve(element, context).map(SType.array)
     case .optional(let wrapped): return resolve(wrapped, context).map(SType.optional)
     case .dictionary(let key, let value):
@@ -173,6 +152,35 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
     case .someSequence:
         return type
     }
+}
+
+/// `Base.name` as a member of the context's owner sees it: a sequence parameter's element, a
+/// nested type, an associated type.
+func resolveMember(_ base: SType, _ name: String, _ context: Context) -> SType? {
+    let owner = context.owner
+    // `S.Element`, for a sequence parameter S.
+    if case .named(let parameter, []) = base, let element = context.sequences[parameter] {
+        return name == "Element" ? resolve(element, context) : nil
+    }
+    // `FilePath.Component`: a nested type that's bridged too.
+    if case .named(let outer, []) = base, types["\(outer).\(name)"] != nil {
+        return .named("\(outer).\(name)", [])
+    }
+    guard let resolvedBase = resolve(base, context) else { return nil }
+    // `Self.Element`: a generic parameter (on Array) or an associated type.
+    if resolvedBase == selfType(owner) {
+        if owner.genericParameters.contains(name) { return .named(name, []) }
+        // `Self.Index` of a String, which has a type of its own to hold: `String.Index`.
+        if types["\(owner.name).\(name)"] != nil { return .named("\(owner.name).\(name)", []) }
+        if let target = owner.associated[name] { return resolve(target, context) }
+    }
+    // `Bound.Stride`, with Bound fixed to Int: Int's own.
+    if case .named(let leaf, []) = resolvedBase, let other = types[leaf],
+        let target = other.associated[name]
+    {
+        return resolve(target, Context(owner: other, generics: []))
+    }
+    return nil
 }
 
 /// A leaf type or a generic parameter: what can be in a box or a dictionary.

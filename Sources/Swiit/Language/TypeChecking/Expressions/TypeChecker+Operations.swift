@@ -42,17 +42,23 @@ extension TypeChecker {
                 )
             {
                 var arguments = [Argument(value: index)]
-                let (type, bridgedExpr) = try bridgedCall(
-                    bridgedType.name,
-                    kind: .method,
-                    isStatic: false,
-                    receiver: base,
-                    bindings: bindings,
-                    name: "subscript",
-                    &arguments
-                )
-                expr = bridgedExpr
-                return type
+                do {
+                    let (type, bridgedExpr) = try bridgedCall(
+                        bridgedType.name,
+                        kind: .method,
+                        isStatic: false,
+                        receiver: base,
+                        bindings: bindings,
+                        name: "subscript",
+                        &arguments
+                    )
+                    expr = bridgedExpr
+                    return type
+                } catch {
+                    // A String has a message of its own for an index that is not a position.
+                    if baseType == .string { _ = try indexType(of: baseType, &index) }
+                    throw error
+                }
             }
             let type = try indexType(of: baseType, &index)
             expr = .index(base, index)

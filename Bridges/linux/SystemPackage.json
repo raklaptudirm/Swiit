@@ -156,7 +156,8 @@
     "FilePath.ComponentView\tswift.property\tlast",
     "FilePath.ComponentView\tswift.property\tlazy",
     "FilePath.ComponentView\tswift.property\tstartIndex",
-    "FilePath.ComponentView\tswift.property\tunderestimatedCount"
+    "FilePath.ComponentView\tswift.property\tunderestimatedCount",
+    "FilePath.ComponentView\tswift.subscript\tsubscript(_:)"
   ],
   "module" : "SystemPackage",
   "platform" : "linux"

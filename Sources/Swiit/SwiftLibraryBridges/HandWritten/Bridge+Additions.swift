@@ -11,15 +11,6 @@ extension Bridge {
         return interpreter
     }
 
-    /// `String.Index`: a position in a String, as Swift holds it.
-    static let stringIndex: HostType = {
-        var type = HostType(name: "String.Index")
-        type.conformances = ["Comparable": [], "Equatable": [], "Hashable": []]
-        return type
-    }()
-
-    private static let indexType = ScriptType.named("String.Index")
-
     private static func text(_ receiver: Value) throws -> String {
         guard case .string(let text) = receiver.storage else {
             throw RuntimeError("expected a String")
@@ -27,194 +18,27 @@ extension Bridge {
         return text
     }
 
-    static func stringIndexValue(_ value: Value?) throws -> String.Index {
-        try SwiftValue.unbox(String.Index.self, value ?? .nothing)
-    }
-
-    private static func box(_ index: String.Index) -> Value {
-        SwiftValue.make(index, as: "String.Index")
-    }
-
-    /// A position inside the text (or at its end), which a subscript or `index(…)` needs.
-    private static func checked(
-        _ index: String.Index,
-        in text: String,
-        allowingEnd: Bool = false
-    ) throws -> String.Index {
-        guard index >= text.startIndex, allowingEnd ? index <= text.endIndex : index < text.endIndex
-        else {
+    /// `text[a...b]`, which the generated subscript of a range cannot be: Swift's takes any range
+    /// expression, and the generator does not yet make one member for each kind of range.
+    private static let closedRangeSubscript = HostSymbol.method(
+        "subscript",
+        summary: "The part of the text between two positions, the second included.",
+        parameters: [
+            Symbol.Parameter(
+                name: "r",
+                type: .named("ClosedRange", [.named("String.Index")])
+            )
+        ],
+        returns: .named("Substring")
+    ) { receiver, arguments in
+        let text = try text(receiver)
+        let range = try Value.Bridging.closedRange(arguments[0]) {
+            try SwiftValue.unbox(String.Index.self, $0)
+        }
+        guard range.lowerBound >= text.startIndex, range.upperBound < text.endIndex else {
             throw RuntimeError("String index is out of bounds")
         }
-        return index
-    }
-
-    private static let stringIndexMembers: [HostSymbol] = [
-        .property(
-            "startIndex",
-            summary: "The position of the first character.",
-            type: indexType
-        ) { receiver in
-            box(try text(receiver).startIndex)
-        },
-        .property(
-            "endIndex",
-            summary: "The position after the last character.",
-            type: indexType
-        ) { receiver in
-            box(try text(receiver).endIndex)
-        },
-        .method(
-            "index",
-            summary: "The position after the given one.",
-            parameters: [Symbol.Parameter(label: "after", name: "i", type: indexType)],
-            returns: indexType
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            return box(
-                text.index(after: try checked(try stringIndexValue(arguments[0]), in: text))
-            )
-        },
-        .method(
-            "index",
-            summary: "The position before the given one.",
-            parameters: [Symbol.Parameter(label: "before", name: "i", type: indexType)],
-            returns: indexType
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let index = try checked(
-                try stringIndexValue(arguments[0]),
-                in: text,
-                allowingEnd: true
-            )
-            guard index > text.startIndex else {
-                throw RuntimeError("String index is out of bounds")
-            }
-            return box(text.index(before: index))
-        },
-        .method(
-            "index",
-            summary: "The position a number of characters from the given one.",
-            parameters: [
-                Symbol.Parameter(name: "i", type: indexType),
-                Symbol.Parameter(label: "offsetBy", name: "n", type: .int),
-            ],
-            returns: indexType
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let offset = try Int(arguments[1])
-            let start = try checked(
-                try stringIndexValue(arguments[0]),
-                in: text,
-                allowingEnd: true
-            )
-            guard
-                let moved = text.index(
-                    start,
-                    offsetBy: offset,
-                    limitedBy: offset >= 0 ? text.endIndex : text.startIndex
-                )
-            else {
-                throw RuntimeError("String index is out of bounds")
-            }
-            return box(moved)
-        },
-        .method(
-            "distance",
-            summary: "The number of characters between two positions.",
-            parameters: [
-                Symbol.Parameter(label: "from", name: "start", type: indexType),
-                Symbol.Parameter(label: "to", name: "end", type: indexType),
-            ],
-            returns: .int
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let from = try checked(
-                try stringIndexValue(arguments[0]),
-                in: text,
-                allowingEnd: true
-            )
-            let to = try checked(
-                try stringIndexValue(arguments[1]),
-                in: text,
-                allowingEnd: true
-            )
-            return .int(text.distance(from: from, to: to))
-        },
-        .method(
-            "suffix",
-            summary: "The text from a position to the end.",
-            parameters: [Symbol.Parameter(label: "from", name: "start", type: indexType)],
-            returns: .named("Substring")
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let start = try checked(try stringIndexValue(arguments[0]), in: text, allowingEnd: true)
-            return SwiftValue.make(text[start...], as: "Substring")
-        },
-        .method(
-            "prefix",
-            summary: "The text before a position.",
-            parameters: [Symbol.Parameter(label: "upTo", name: "end", type: indexType)],
-            returns: .named("Substring")
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let end = try checked(try stringIndexValue(arguments[0]), in: text, allowingEnd: true)
-            return SwiftValue.make(text[..<end], as: "Substring")
-        },
-        .method(
-            "prefix",
-            summary: "The text up to and including a position.",
-            parameters: [Symbol.Parameter(label: "through", name: "end", type: indexType)],
-            returns: .named("Substring")
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            let end = try checked(try stringIndexValue(arguments[0]), in: text)
-            return SwiftValue.make(text[...end], as: "Substring")
-        },
-        .method(
-            "firstIndex",
-            summary: "The position of the first occurrence of a character.",
-            parameters: [Symbol.Parameter(label: "of", name: "element", type: .named("Character"))],
-            returns: .optional(indexType)
-        ) { receiver, arguments in
-            let text = try text(receiver)
-            guard
-                let wanted = try? SwiftValue.unbox(Character.self, arguments[0]),
-                let found = text.firstIndex(of: wanted)
-            else { return .nothing }
-            return box(found)
-        },
-    ]
-
-    /// `text[index]`, or `text[range]`: a Character, or a Substring.
-    static func subscriptString(_ text: String, _ index: Value) throws -> Value {
-        if let single = try? stringIndexValue(index) {
-            return .string(String(text[try checked(single, in: text)]))
-        }
-        if case .object(let box as SwiftValue) = index.storage {
-            if let range = box.value as? Range<Value> {
-                let low = try checked(
-                    try stringIndexValue(range.lowerBound),
-                    in: text,
-                    allowingEnd: true
-                )
-                let high = try checked(
-                    try stringIndexValue(range.upperBound),
-                    in: text,
-                    allowingEnd: true
-                )
-                guard low <= high else { throw RuntimeError("String index range is out of bounds") }
-                return SwiftValue.make(text[low..<high], as: "Substring")
-            }
-            if let range = box.value as? ClosedRange<Value> {
-                let low = try checked(try stringIndexValue(range.lowerBound), in: text)
-                let high = try checked(try stringIndexValue(range.upperBound), in: text)
-                guard low <= high else { throw RuntimeError("String index range is out of bounds") }
-                return SwiftValue.make(text[low...high], as: "Substring")
-            }
-        }
-        throw RuntimeError(
-            "a String is indexed by String.Index, not \(index.typeName): write s.index(s.startIndex, offsetBy: n)"
-        )
+        return SwiftValue.make(text[range], as: "Substring")
     }
 
     /// What the table adds to the type named, lowered as the generated members are.
@@ -235,7 +59,7 @@ extension Bridge {
                 .int(Int(try SwiftValue.unbox(Unicode.Scalar.self, receiver).value))
             }
         ],
-        "String": stringIndexMembers + [
+        "String": [closedRangeSubscript] + [
             .method(
                 "replacingOccurrences",
                 summary: "The text with every `target` replaced by `replacement`.",

@@ -306,5 +306,29 @@
     ],
     "member": "multipliedReportingOverflow(by:)",
     "safe": "it reports an overflow, and a division by zero, in its result"
+  },
+  {
+    "types": [
+      "String",
+      "Substring"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "String.Index"
+    ],
+    "when": "_0 < self.startIndex || _0 >= self.endIndex",
+    "error": "String index is out of bounds"
+  },
+  {
+    "types": [
+      "String",
+      "Substring"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "Range<String.Index>"
+    ],
+    "when": "_0.lowerBound < self.startIndex || _0.upperBound > self.endIndex",
+    "error": "String index is out of bounds"
   }
 ]

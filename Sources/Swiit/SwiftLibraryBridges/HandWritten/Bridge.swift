@@ -25,17 +25,15 @@ enum Bridge {
 
     private static let table = Mutex<[String: BridgedType]>(
         Dictionary(
-            uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency + [
-                BridgedType(generated: stringIndex)
-            ])
-            .map {
-                (
-                    $0.name,
-                    $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
-                        .adding(additions(to: $0.name))
-                        .withTextInitializer()
-                )
-            }
+            uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency)
+                .map {
+                    (
+                        $0.name,
+                        $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
+                            .adding(additions(to: $0.name))
+                            .withTextInitializer()
+                    )
+                }
         )
     )
 

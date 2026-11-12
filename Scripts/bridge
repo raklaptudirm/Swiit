@@ -70,7 +70,7 @@ bridge_name() {
 }
 types() {
     case "$1" in
-        Swift) echo String Substring Character Unicode.Scalar Int Double Bool Array ArraySlice Set \
+        Swift) echo String String.Index Substring Character Unicode.Scalar Int Double Bool Array ArraySlice Set \
             Dictionary Optional Range ClosedRange ;;
         # FilePath.Root is left out: the standard library's FilePath (SE-0529) calls it Anchor.
         SystemPackage) echo FilePath FilePath.Component FilePath.ComponentView ;;

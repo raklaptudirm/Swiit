@@ -162,3 +162,40 @@ import Testing
         try swiit.evaluate("var s = \"a\"; var n = 5; swap(&s, &n)")
     }
 }
+
+@Test func aStringIsIndexedByItsOwnPositionsThroughTheGeneratedSubscripts() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("let s = \"hello\"; s[s.startIndex]").description == "h")
+    #expect(
+        try swiit.evaluate("let s = \"hello\"; s[s.index(after: s.startIndex)]").description == "e"
+    )
+    #expect(
+        try swiit
+            .evaluate(
+                "let s = \"hello\"; let i = s.index(s.startIndex, offsetBy: 1); s[i..<s.endIndex]"
+            )
+            .description == "ello"
+    )
+    #expect(
+        try swiit
+            .evaluate(
+                "let s = \"hello\"; let i = s.index(s.startIndex, offsetBy: 1); s[i...i]"
+            )
+            .description == "e"
+    )
+    // A Substring is indexed by the same positions.
+    #expect(
+        try swiit.evaluate("let s = \"hello\"; let t = s.dropFirst(2); t[t.startIndex]").description
+            == "l"
+    )
+    #expect(throws: (any Error).self) {
+        try swiit.evaluate("let s = \"hello\"; s[s.endIndex]")
+    }
+    // An integer is not a position, and the message says what to write.
+    do {
+        _ = try swiit.evaluate("let s = \"hello\"; s[2]")
+        Issue.record("a String was indexed by an Int")
+    } catch {
+        #expect("\(error)".contains("s.index(s.startIndex, offsetBy: n)"))
+    }
+}

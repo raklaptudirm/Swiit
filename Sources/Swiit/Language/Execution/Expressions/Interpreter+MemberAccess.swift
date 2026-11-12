@@ -136,7 +136,6 @@ extension Interpreter {
                 return try call(subscripted, with: [index])
             }
         }
-        if case .string(let text) = base.storage { return try Bridge.subscriptString(text, index) }
         if case .dictionary(let dictionary) = base.storage {
             return dictionary[index] ?? .nothing
         }
