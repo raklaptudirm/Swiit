@@ -21,9 +21,15 @@ func loadHeldSequences(_ names: [String], in graph: Graph) throws {
                 $0.pathComponents == [name] && $0.kind.identifier == "swift.struct"
             })
         else { throw Failure("\(graph.module.name) has no struct \(name) to hold as an array") }
-        var target = try elementAlias([name], in: graph)
-        // `typealias Element = EnumeratedSequence<Base>.Iterator.Element`: the iterator's says.
-        if case .member(.member(.named(name, _), "Iterator"), "Element") = target {
+        // Where the standard library says its elements: on the type, or on its iterator, which
+        // some versions say only there, or which the type's own alias points to.
+        var target: SType
+        if let own = try? elementAlias([name], in: graph) {
+            target = own
+            if case .member(.member(.named(name, _), "Iterator"), "Element") = own {
+                target = try elementAlias([name, "Iterator"], in: graph)
+            }
+        } else {
             target = try elementAlias([name, "Iterator"], in: graph)
         }
         heldSequences[name] = HeldSequence(
