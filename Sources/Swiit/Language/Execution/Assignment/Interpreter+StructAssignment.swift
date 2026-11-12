@@ -18,6 +18,10 @@ extension Interpreter {
             return lvalue(base).map { ($0.0, $0.1 + [.indexDefault(key, fallback)]) }
         case .forceUnwrap(let base):
             return lvalue(base).map { ($0.0, $0.1 + [.unwrap]) }
+        case .bridged:
+            return expr.subscriptPlace.flatMap { place in
+                lvalue(place.receiver).map { ($0.0, $0.1 + [.index(place.index)]) }
+            }
         default:
             return nil
         }
@@ -110,6 +114,10 @@ extension Interpreter {
             case .forceUnwrap(let inner):
                 path.insert(.unwrap, at: 0)
                 current = inner
+            case .bridged where current.subscriptPlace != nil:
+                let subscripted = current.subscriptPlace!
+                path.insert(.index(subscripted.index), at: 0)
+                current = subscripted.receiver
             case .variable(let root):
                 try assign(Assignment(root: root, path: path, op: nil, value: .literal(value)))
                 return

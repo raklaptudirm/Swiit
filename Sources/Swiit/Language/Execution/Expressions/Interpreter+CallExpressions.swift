@@ -72,6 +72,9 @@ extension Interpreter {
         case .call(let callee, let arguments):
             return try evaluateCall(callee, arguments)
         case .bridged(let typeName, let member, let receiver, let arguments):
+            if let place = expr.subscriptPlace {
+                return try readSubscript(of: place, type: typeName, member: member)
+            }
             return try runBridged(typeName, member, receiver: receiver, arguments)
         case .voidValue(let operand):
             _ = try evaluate(operand)

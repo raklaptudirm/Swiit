@@ -78,12 +78,15 @@ func preconditionLines(
         }
     for entry in entries {
         guard let when = entry.when, let error = entry.error else { continue }
-        let condition = when.replacingOccurrences(
-            of: #"\bself\b"#,
-            with: "receiver",
-            options: .regularExpression
-        )
-        let message = error.replacingOccurrences(of: "\"", with: "\\\"")
+        func receiverNamed(_ text: String) -> String {
+            text.replacingOccurrences(
+                of: #"\bself\b"#,
+                with: "receiver",
+                options: .regularExpression
+            )
+        }
+        let condition = receiverNamed(when)
+        let message = receiverNamed(error).replacingOccurrences(of: "\"", with: "\\\"")
         lines.append("try Value.Bridging.require(!(\(condition)), \"\(message)\")")
     }
     return lines.joined(separator: "\n                ") + "\n                "

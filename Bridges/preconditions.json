@@ -406,5 +406,38 @@
     ],
     "member": "init(_:within:)",
     "safe": "it gives nil for a position that is not in the string"
+  },
+  {
+    "types": [
+      "Array"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "Int"
+    ],
+    "when": "_0 < 0 || _0 >= self.count",
+    "error": "index \\(_0) is out of range for a list of \\(self.count)"
+  },
+  {
+    "types": [
+      "Array"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "Range<Int>"
+    ],
+    "when": "_0.lowerBound < 0 || _0.upperBound > self.count",
+    "error": "range \\(_0.lowerBound)..<\\(_0.upperBound) is out of range for a list of \\(self.count)"
+  },
+  {
+    "types": [
+      "Array"
+    ],
+    "member": "subscript(_:)",
+    "parameters": [
+      "ClosedRange<Int>"
+    ],
+    "when": "_0.lowerBound < 0 || _0.upperBound >= self.count",
+    "error": "range \\(_0.lowerBound)..<\\(_0.upperBound + 1) is out of range for a list of \\(self.count)"
   }
 ]
