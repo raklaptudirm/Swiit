@@ -5,7 +5,7 @@
 //   swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...]
 //                [--manifest <platform.json>] [--also <other-platform.json>...]
 //                [--report <left-out.tsv>] --name <Name> --type <Type>... [--access <level>]
-//                [--in-module <Module>]
+//                [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]
 //
 // The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
 // package that imports Swiit. `--type` names each type to bridge (`Dictionary`,
@@ -13,7 +13,9 @@
 // enum (`<Name>Bridge`), and `--access` is the access level of what it declares (`public`, the
 // default, or `internal`). `--in-module` is the module the output is a file of, which it does not
 // import (`Swiit` for Swiit's own files). A member is bridged if it is declared `public`,
-// whatever the access of its type.
+// whatever the access of its type. The types the signatures name that the output does not bridge
+// are told too: `--boxed` for those another bridge describes (held as Swift values, `Date`), and
+// `--convertible` for those that convert themselves (`ScriptConvertible`, as an enum does).
 //
 // Scripts/bridge runs it on the standard library, on swift-system
 // (for FilePath) and on Foundation; a client with a library of its own
@@ -33,7 +35,7 @@ let arguments = CommandLine.arguments
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...]\n"
                 .utf8
         )
     )
@@ -51,6 +53,10 @@ nonisolated(unsafe) var reportPath: String?  // safe: the generator runs on one 
 nonisolated(unsafe) var bridgeName: String?  // safe: the generator runs on one thread
 /// `--type <Type>`: the types to bridge, by the name the module gives them.
 nonisolated(unsafe) var typeNames: [String] = []  // safe: the generator runs on one thread
+/// `--boxed <Type>`: types another bridge describes, held as they are.
+nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs on one thread
+/// `--convertible <Type>`: types that are `ScriptConvertible`, and cross as their own value.
+nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--access <level>`: the access level of what the output declares.
 nonisolated(unsafe) var access = "public"  // safe: the generator runs on one thread
 /// `--in-module <Module>`: the module the output is a file of, if it is one of a module's own.
@@ -65,6 +71,9 @@ do {
         case "--report" where i + 1 < rest.count: reportPath = rest[i + 1]; i += 2
         case "--name" where i + 1 < rest.count: bridgeName = rest[i + 1]; i += 2
         case "--type" where i + 1 < rest.count: typeNames.append(rest[i + 1]); i += 2
+        case "--boxed" where i + 1 < rest.count: boxedNames.append(rest[i + 1]); i += 2
+        case "--convertible" where i + 1 < rest.count:
+            convertibleNames.append(rest[i + 1]); i += 2
         case "--access" where i + 1 < rest.count: access = rest[i + 1]; i += 2
         case "--in-module" where i + 1 < rest.count: outputModule = rest[i + 1]; i += 2
         default: extraGraphs.append(rest[i]); i += 1
@@ -130,6 +139,11 @@ where symbol.kind.identifier == "swift.typealias" && symbol.pathComponents.count
     var reader = Reader(String(text[equals.upperBound...]))
     if let target = try? reader.type() { topLevelAliases[symbol.pathComponents[0]] = target }
 }
+for name in boxedNames { leaves[name] = boxedLeaf(name) }
+for name in convertibleNames {
+    leaves[name] = Leaf({ "try \(name)(\($0))" }, { "\($0).value" })
+}
+
 // Other types that aren't generic, Swiit having no value of its own for
 // them (Character, FilePath), are held as they are, boxed.
 for (name, parameters) in bridgedTypeNames where parameters.isEmpty && leaves[name] == nil {
