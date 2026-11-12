@@ -18,6 +18,7 @@ func spelling(_ type: SType) -> String {
     case .function(let parameters, let result, let throwing, let isAsync):
         return
             "(\(parameters.map(spelling).joined(separator: ", ")))\(isAsync ? " async" : "")\(throwing ? " throws" : "") -> \(spelling(result))"
+    case .inOut(let inner): return "inout \(spelling(inner))"
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -79,6 +80,21 @@ func fromValue(_ value: String, _ type: SType) -> String {
             }
         return
             "try Value.Bridging.tuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
+    case .function(let parameters, _, _, _)
+    where { if case .inOut = parameters.first { true } else { false } }():
+        // `(inout A, B) -> ()`: the script closure leaves its changed first argument as its
+        // result (`Value.Bridging.changingFirst`).
+        guard case .inOut(let first)? = parameters.first else { fatalError("unreachable") }
+        let rest = parameters.dropFirst()
+        let names = parameters.indices.map { "a\($0)" }
+        let typed =
+            (["a0: inout \(spelling(first))"]
+            + zip(names.dropFirst(), rest).map { "\($0): \(spelling($1))" })
+            .joined(separator: ", ")
+        let others = zip(names.dropFirst(), rest).map { toValue($0, $1) }.joined(separator: ", ")
+        let changed =
+            "try Value.Bridging.changingFirst(interpreter, \(value), \(toValue("a0", first)), [\(others)])"
+        return "{ (\(typed)) throws -> Void in a0 = \(fromValue(changed, first)) }"
     case .function(let parameters, let result, _, let isAsync):
         let names = parameters.indices.map { "a\($0)" }
         let arguments = zip(names, parameters).map { toValue($0, $1) }.joined(separator: ", ")
@@ -94,6 +110,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
             return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"
         }
         return "{ (\(typed)) \(effects) -> \(spelling(result)) in \(fromValue(call, result)) }"
+    case .inOut: fatalError("unsupported \(type)")
     case .member: fatalError("unsupported \(type)")
     }
 }
@@ -134,7 +151,7 @@ func toValue(_ swift: String, _ type: SType) -> String {
                 "(\(element.label.map(quoted) ?? "nil"), \(toValue("t.\(index)", element.type)))"
             }
         return "Value.Bridging.tuple(\(swift)) { t in [\(parts.joined(separator: ", "))] }"
-    case .someSequence, .function, .member: fatalError("unsupported \(type)")
+    case .someSequence, .function, .inOut, .member: fatalError("unsupported \(type)")
     }
 }
 

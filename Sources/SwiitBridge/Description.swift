@@ -29,6 +29,7 @@ func scriptType(_ type: SType) -> String {
     case .function(let parameters, let result, let throwing, let isAsync):
         return
             ".function(parameters: [\(parameters.map(scriptType).joined(separator: ", "))], returns: \(scriptType(result)), isThrowing: \(throwing), isAsync: \(isAsync))"
+    case .inOut(let inner): return ".inOut(\(scriptType(inner)))"
     case .member: fatalError("unsupported \(type)")
     }
 }

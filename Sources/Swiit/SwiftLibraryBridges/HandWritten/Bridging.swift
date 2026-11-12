@@ -208,6 +208,18 @@ extension Value.Bridging {
         { arguments in try interpreter.call(function, with: arguments) }
     }
 
+    /// Calls a script closure whose first parameter it changes in place (Swift's `inout`): the
+    /// value it left there, so a bridged closure of `(inout Result, Element) -> ()` is
+    /// `result = try changingFirst(interpreter, closure, result, [element])`.
+    public static func changingFirst(
+        _ interpreter: Interpreter,
+        _ function: Value,
+        _ first: Value,
+        _ rest: [Value]
+    ) throws -> Value {
+        try interpreter.callChangingFirst(function, first, rest)
+    }
+
     /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
     /// cancelling the task cancels it.
     public static func awaiting(

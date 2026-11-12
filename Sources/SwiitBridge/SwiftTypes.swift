@@ -10,6 +10,8 @@ indirect enum SType: Equatable {
     case dictionary(SType, SType)
     case optional(SType)
     case function([SType], SType, throwing: Bool, async: Bool = false)
+    /// `inout T`: a function's parameter that it changes in place.
+    case inOut(SType)
     case tuple([Element])
     /// A parameter `S` where `S: Sequence, S.Element == E`: any sequence of
     /// E, which the glue passes as an array.
@@ -95,12 +97,13 @@ struct Reader {
         var result: SType
         pos = skipSpacesCopy()
         for word in [
-            "some ", "any ", "inout ", "borrowing ", "consuming ", "sending ", "__owned ",
+            "some ", "any ", "borrowing ", "consuming ", "sending ", "__owned ",
             "__shared ",
         ]
         where consume(word.trimmingCharacters(in: .whitespaces)) {
             throw Unsupported(reason: word)
         }
+        if consume("inout") { return .inOut(try type()) }
         while consume("@escaping") {}
         if consume("@autoclosure") { throw Unsupported(reason: "@autoclosure") }
         if consume("[") {

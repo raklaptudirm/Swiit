@@ -164,6 +164,8 @@ func resolve(_ type: SType, _ context: Context) -> SType? {
             return nil
         }
         return .function(resolved, result, throwing: throwing, async: isAsync)
+    case .inOut(let inner):
+        return resolve(inner, context).map(SType.inOut)
     case .someSequence:
         return type
     }
@@ -201,10 +203,26 @@ func supported(_ type: SType, generics: Set<String>, asParameter: Bool) -> Bool 
             if case .function = element.type { return false }
             return supported(element.type, generics: generics, asParameter: false)
         }
-    case .function(let parameters, let result, _, _):
+    case .function(let parameters, let result, _, let isAsync):
+        // A closure that changes its first argument in place (`reduce(into:)`'s) gives nothing
+        // else, and is called at once.
+        if case .inOut = parameters.first {
+            guard case .tuple(let elements) = result, elements.isEmpty, !isAsync else {
+                return false
+            }
+        }
         return asParameter
-            && parameters.allSatisfy { supported($0, generics: generics, asParameter: false) }
+            && parameters.enumerated()
+                .allSatisfy { index, parameter in
+                    if case .inOut(let inner) = parameter {
+                        return index == 0
+                            && supported(inner, generics: generics, asParameter: false)
+                    }
+                    return supported(parameter, generics: generics, asParameter: false)
+                }
             && supported(result, generics: generics, asParameter: false)
+    case .inOut:
+        return false
     case .member:
         return false
     }

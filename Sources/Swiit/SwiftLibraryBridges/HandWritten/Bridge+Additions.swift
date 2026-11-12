@@ -28,7 +28,7 @@ extension Bridge {
         let interpreter = try running()
         var result = arguments[0]
         for item in items {
-            result = try interpreter.callChangingFirst(arguments[1], result, item)
+            result = try interpreter.callChangingFirst(arguments[1], result, [item])
         }
         return result
     }
