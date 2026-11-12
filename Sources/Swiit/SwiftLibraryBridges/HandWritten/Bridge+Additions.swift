@@ -3,36 +3,6 @@ import Foundation
 // Members of Swift's types that the generator can't bridge, written by hand.
 
 extension Bridge {
-    /// `reduce(into:)`, which changes its accumulator in place, for each of the sequences.
-    private static let reduceInto = HostSymbol.method(
-        "reduce",
-        summary: "Combines the items into one value that each step changes in place.",
-        signature: Symbol.Function(
-            parameters: [
-                Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("R")),
-                Symbol.Parameter(
-                    name: "updateAccumulatingResult",
-                    type: .function(
-                        parameters: [.inOut(.parameter("R")), .parameter("Element")],
-                        returns: .void
-                    )
-                ),
-            ],
-            returns: .parameter("R"),
-            generics: ["R"]
-        )
-    ) { receiver, arguments in
-        guard let items = Interpreter.items(of: receiver) else {
-            throw RuntimeError("reduce needs a sequence")
-        }
-        let interpreter = try running()
-        var result = arguments[0]
-        for item in items {
-            result = try interpreter.callChangingFirst(arguments[1], result, [item])
-        }
-        return result
-    }
-
     /// The interpreter running the script code that called a body.
     static func running() throws -> Interpreter {
         guard let interpreter = Interpreter.running else {
@@ -266,10 +236,10 @@ extension Bridge {
 
     /// Members of Swift's types that the generator can't bridge, by the type that has them.
     private static let additionTable: [String: [HostSymbol]] = [
-        "Array": [reduceInto, lazyMember(.list(.parameter("Element")))],
-        "Set": [reduceInto, lazyMember(.named("Set", [.parameter("Element")]))],
-        "ClosedRange": [reduceInto, lazyMember(.named("ClosedRange", [.parameter("Bound")]))],
-        "Range": [reduceInto, lazyMember(.named("Range", [.parameter("Bound")]))],
+        "Array": [lazyMember(.list(.parameter("Element")))],
+        "Set": [lazyMember(.named("Set", [.parameter("Element")]))],
+        "ClosedRange": [lazyMember(.named("ClosedRange", [.parameter("Bound")]))],
+        "Range": [lazyMember(.named("Range", [.parameter("Bound")]))],
         "Unicode.Scalar": [
             .property(
                 "value",

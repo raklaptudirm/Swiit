@@ -10,7 +10,7 @@ internal enum SystemBridge {
 
         type33,
         type43,
-        type88,
+        type89,
     ]
     private static let member0: HostSymbol = HostSymbol.staticMethod("!=", summary: "Returns a Boolean value indicating whether two values are not equal.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "lhs", type: .named(.init(hostType: "FilePath"))), Symbol.Parameter(label: nil, name: "rhs", type: .named(.init(hostType: "FilePath")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = (try arguments[0].unboxing(FilePath.self)) != (try arguments[1].unboxing(FilePath.self))
@@ -565,28 +565,35 @@ let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.Component
                 return result
 }
 
-    private static let member80: HostSymbol = HostSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: ["SegmentOfResult.Element"])) { selfValue, arguments in
+    private static let member80: HostSymbol = HostSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(hostType: "FilePath.Component"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: ["Result"])) { selfValue, arguments in
+let interpreter = Interpreter.running!
+let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
+                let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: FilePath.Component) throws -> Void in a0 = try Value.Bridging.changingFirst(interpreter, arguments[1], a0, [Value(boxing: a1, as: .init(hostType: "FilePath.Component"))]) })
+                return result
+}
+
+    private static let member81: HostSymbol = HostSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: ["SegmentOfResult.Element"])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [Value] = try receiver.flatMap({ (a0: FilePath.Component) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
                 return Value(list: result)
 }
 
-    private static let member81: HostSymbol = HostSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: ["ElementOfResult"])) { selfValue, arguments in
+    private static let member82: HostSymbol = HostSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: ["ElementOfResult"])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [Value] = try receiver.compactMap({ (a0: FilePath.Component) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member82: HostSymbol = HostSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member83: HostSymbol = HostSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "FilePath.Component")), .named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "FilePath.Component"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result: [FilePath.Component] = try receiver.sorted(by: { (a0: FilePath.Component, a1: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component")), Value(boxing: a1, as: .init(hostType: "FilePath.Component"))])) })
                 return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) })
 }
 
-    private static let member83: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member84: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
@@ -596,7 +603,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member84: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member85: HostSymbol = HostSymbol.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "FilePath.Component"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: FilePath.ComponentView = try (consume taken).unboxing(FilePath.ComponentView.self)
@@ -605,27 +612,27 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member85: HostSymbol = HostSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member86: HostSymbol = HostSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "FilePath.Component"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = try receiver.count(where: { (a0: FilePath.Component) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "FilePath.Component"))])) })
                 return result.value
 }
 
-    private static let member86: HostSymbol = HostSymbol.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member87: HostSymbol = HostSymbol.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "FilePath.Component"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.randomElement()
                 return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
 }
 
-    private static let member87: HostSymbol = HostSymbol.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(hostType: "FilePath.Component"))), get: { selfValue in
+    private static let member88: HostSymbol = HostSymbol.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(hostType: "FilePath.Component"))), get: { selfValue in
 let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.ComponentView.self)
                 let result = receiver.first
                 return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
 })
 
-    private static let type88: HostType = {
-        var type = HostType(name: "FilePath.ComponentView", members: [member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85, member86, member87])
+    private static let type89: HostType = {
+        var type = HostType(name: "FilePath.ComponentView", members: [member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85, member86, member87, member88])
         type.genericParameters = []
         type.conformances = ["Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []]
         type.associatedTypes = ["Element": .named(.init(hostType: "FilePath.Component"))]

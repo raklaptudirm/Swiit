@@ -73,3 +73,17 @@ import Testing
     #expect(try swiit.evaluate("path.string") == "/usr/local")
     #expect(try swiit.evaluate("last") == "bin.txt")
 }
+
+@Test func reduceIntoChangesItsAccumulatorInPlaceOnEachKindOfSequence() throws {
+    let swiit = Interpreter()
+    #expect(try swiit.evaluate("[1, 2, 3].reduce(into: 0) { $0 += $1 }").description == "6")
+    #expect(try swiit.evaluate("Set([1, 2]).reduce(into: 0) { $0 += $1 }").description == "3")
+    #expect(try swiit.evaluate("(1...4).reduce(into: 1) { $0 *= $1 }").description == "24")
+    #expect(
+        try swiit.evaluate("(0..<3).reduce(into: [Int]()) { $0.append($1 * 2) }").description
+            == "[0, 2, 4]"
+    )
+    #expect(
+        try swiit.evaluate(#""abc".reduce(into: "") { $0 = String($1) + $0 }"#).description == "cba"
+    )
+}
