@@ -301,7 +301,9 @@ extension Bridge {
             .method(
                 "components",
                 summary: "The parts of the text between the `separator`s.",
-                parameters: [Symbol.Parameter(label: "separatedBy", name: "separator", type: .string)],
+                parameters: [
+                    Symbol.Parameter(label: "separatedBy", name: "separator", type: .string)
+                ],
                 returns: .list(.string)
             ) { receiver, arguments in
                 let text = try text(receiver)

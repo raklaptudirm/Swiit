@@ -34,9 +34,10 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    static let concurrency: [BridgedType] = ([taskType] + taskGroupTypes).map {
-        BridgedType(generated: $0)
-    }
+    static let concurrency: [BridgedType] = ([taskType] + taskGroupTypes)
+        .map {
+            BridgedType(generated: $0)
+        }
 
     private static func task(_ value: Value) throws -> ScriptTask {
         try SwiftValue.unbox(TaskBox.self, value).handle
@@ -160,7 +161,8 @@ extension Bridge {
             isAsync: true
         ) { arguments in
             let nanoseconds = try Int(arguments[0])
-            try running().sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
+            try running()
+                .sleep(until: Date(timeIntervalSinceNow: Double(max(nanoseconds, 0)) / 1e9))
             return .nothing
         },
         .staticMethod(

@@ -122,6 +122,7 @@ jobs:
           if [ -n "$changes" ]; then
             git status --short -- Sources Bridges
             git diff --stat -- Sources Bridges
+            git diff -- Sources Bridges | head -150
             echo "::error::The bridges are out of date: run Scripts/bridge and commit the result."
             exit 1
           fi
