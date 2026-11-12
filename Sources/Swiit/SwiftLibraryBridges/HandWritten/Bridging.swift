@@ -211,7 +211,7 @@ extension Value.Bridging {
     /// Fails with `message` unless `condition` holds: what the glue of a member that would trap
     /// on some arguments checks first.
     public static func require(_ condition: Bool, _ message: @autoclosure () -> String) throws {
-        guard condition else { throw SwiitError(message()) }
+        guard condition else { throw RuntimeError(message()) }
     }
 
     /// Calls a script closure that changes some of its arguments in place (Swift's `inout`): what

@@ -77,3 +77,10 @@ import Testing
     // The type's own subscripts are still its own.
     #expect(try swiit.evaluate("[7, 8][0]") == 7)
 }
+
+@Test func anEntryOfAListOfClosuresCanBeCalled() throws {
+    let swiit = Interpreter()
+    #expect(
+        try swiit.evaluate("var fs: [() -> Int] = [{ 10 }, { 20 }]\nfs[1]()") == 20
+    )
+}

@@ -13,7 +13,12 @@ extension TypeChecker {
         case .call(var callee, var arguments):
             let type = try callType(&callee, &arguments, expected: expected)
             // A bridged member stands for the whole call.
-            if case .bridged = callee { expr = callee } else { expr = .call(callee, arguments) }
+            // (A subscript's read is a value, and what is called.)
+            if case .bridged = callee, callee.subscriptPlace == nil {
+                expr = callee
+            } else {
+                expr = .call(callee, arguments)
+            }
             return type
         case .bridged(let typeName, let index, var receiver, var arguments):
             // Made by the checker, and typed again when what holds it is (an
