@@ -285,7 +285,7 @@ extension BridgedMember {
             return made
         }
         switch (symbol.kind, member.body) {
-        case (.method(let method), .method(let body)):
+        case (.member(.method(let method)), .method(let body)):
             let function = method.function, order = ordered(function)
             return [
                 make(
@@ -295,7 +295,7 @@ extension BridgedMember {
                     function: function
                 ) { try body($0["self"] ?? .nothing, order($0)) }
             ]
-        case (.method(let method), .mutatingMethod(let body)):
+        case (.member(.method(let method)), .mutatingMethod(let body)):
             let function = method.function, order = ordered(function)
             return [
                 make(
@@ -308,7 +308,7 @@ extension BridgedMember {
                     try mutating(arguments) { try body(&$0, order(arguments)) }
                 }
             ]
-        case (.method(let method), .staticMethod(let body)):
+        case (.member(.method(let method)), .staticMethod(let body)):
             let function = method.function, order = ordered(function)
             return [
                 make(
@@ -319,7 +319,7 @@ extension BridgedMember {
                     function: function
                 ) { try body(order($0)) }
             ]
-        case (.property(let property), .property(let get)):
+        case (.member(.property(let property)), .property(let get)):
             return [
                 make(
                     .property,
@@ -331,7 +331,7 @@ extension BridgedMember {
                     )
                 ) { try get($0["self"] ?? .nothing) }
             ]
-        case (.property(let property), .settableProperty(let get, let set)):
+        case (.member(.property(let property)), .settableProperty(let get, let set)):
             let type = property.variable.type
             return [
                 make(.property, returns: TypeAnnotation(type)) { try get($0["self"] ?? .nothing) },
@@ -349,7 +349,7 @@ extension BridgedMember {
                     }
                 },
             ]
-        case (.property(let property), .staticProperty(let get)):
+        case (.member(.property(let property)), .staticProperty(let get)):
             return [
                 make(
                     .property,
@@ -357,7 +357,7 @@ extension BridgedMember {
                     returns: TypeAnnotation(property.variable.type)
                 ) { _ in try get() }
             ]
-        case (.initializer(let function), .initializer(let body)):
+        case (.member(.initializer(let function)), .initializer(let body)):
             let order = ordered(function)
             return [
                 make(

@@ -57,7 +57,7 @@ extension Interpreter {
             let bridged = scopes[0].bindings.sorted { $0.key < $1.key }
                 .compactMap { name, binding -> Symbol? in
                     if case .object(is BridgedTypeName) = binding.value.storage {
-                        var symbol = Symbol(name: name, kind: .structure)
+                        var symbol = Symbol(name: name, kind: .type(.structure))
                         symbol.id = .host(name)
                         symbol.isBuiltin = true
                         return symbol

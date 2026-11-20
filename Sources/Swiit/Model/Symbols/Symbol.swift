@@ -59,8 +59,8 @@ public struct Symbol: Sendable, Hashable {
     /// The function this is, if it is one: a function, a method or an initializer.
     public var function: Function? {
         switch kind {
-        case .function(let function), .initializer(let function): function
-        case .method(let method): method.function
+        case .function(let function), .member(.initializer(let function)): function
+        case .member(.method(let method)): method.function
         default: nil
         }
     }
@@ -69,33 +69,24 @@ public struct Symbol: Sendable, Hashable {
     public var variable: Variable? {
         switch kind {
         case .variable(let variable): variable
-        case .property(let property): property.variable
+        case .member(.property(let property)): property.variable
         default: nil
         }
     }
 
     /// Whether it is a type: a struct, an enum, a class, an actor or a protocol.
     public var isType: Bool {
-        switch kind {
-        case .structure, .enumeration, .class, .actor, .protocol: true
-        case .function, .variable, .method, .property, .initializer, .enumCase: false
-        }
+        if case .type = kind { true } else { false }
     }
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names.
     public var scriptType: ScriptType {
         switch kind {
-        case .function, .method, .initializer:
-            .function(
-                parameters: function!.parameters.map(\.type),
-                returns: function!.returns,
-                isThrowing: function!.isThrowing,
-                isAsync: function!.isAsync
-            )
-        case .variable, .property: variable!.type
-        case .structure, .enumeration, .class, .actor, .protocol: .named(id ?? .host(name))
-        case .enumCase: .any
+        case .function, .member(.method), .member(.initializer): .function(function!.functionType)
+        case .variable, .member(.property): variable!.type
+        case .type: .named(id ?? .host(name))
+        case .member(.enumCase): .any
         }
     }
 }

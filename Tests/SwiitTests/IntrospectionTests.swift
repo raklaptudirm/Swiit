@@ -76,7 +76,7 @@ private struct Point: Encodable { var x: Int }
     #expect(
         Set(
             members.filter {
-                if case .initializer = $0.kind { false } else { true }
+                if case .member(.initializer) = $0.kind { false } else { true }
             }
             .map(\.name)
         ) == ["x", "scaled"]
@@ -84,7 +84,7 @@ private struct Point: Encodable { var x: Int }
     // A type's functions and variables are methods and properties; a global's are not.
     #expect(
         members.contains {
-            if case .method(let method) = $0.kind {
+            if case .member(.method(let method)) = $0.kind {
                 $0.name == "scaled" && !method.isStatic
             } else {
                 false
@@ -93,7 +93,7 @@ private struct Point: Encodable { var x: Int }
     )
     #expect(
         members.contains {
-            if case .property(let property) = $0.kind {
+            if case .member(.property(let property)) = $0.kind {
                 $0.name == "x" && property.variable.isSettable
             } else {
                 false
@@ -105,7 +105,7 @@ private struct Point: Encodable { var x: Int }
     )
     // And what belongs to the type: its memberwise initializer.
     let initializers = members.filter {
-        if case .initializer = $0.kind { true } else { false }
+        if case .member(.initializer) = $0.kind { true } else { false }
     }
     #expect(initializers.count == 1)
     #expect(try swiit.scriptType(ofExpression: "Point(x: 1)") == swiit.type("Point"))

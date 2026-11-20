@@ -20,9 +20,9 @@ extension Interpreter {
             return members(of: instance, named: name)
                 .filter {
                     switch $0.kind {
-                    case .method(let method): method.isStatic
-                    case .property(let property): property.isStatic
-                    case .initializer, .enumCase: true
+                    case .member(.method(let method)): method.isStatic
+                    case .member(.property(let property)): property.isStatic
+                    case .member(.initializer), .member(.enumCase): true
                     default: false
                     }
                 }
@@ -78,10 +78,10 @@ extension Interpreter {
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
         let kind: Symbol.Kind =
             switch type {
-            case is StructType: .structure
-            case is Value.EnumCase.Enumeration: .enumeration
-            case let type as ClassType: type.isActor ? .actor : .class
-            default: .protocol
+            case is StructType: .type(.structure)
+            case is Value.EnumCase.Enumeration: .type(.enumeration)
+            case let type as ClassType: .type(type.isActor ? .actor : .class)
+            default: .type(.protocol)
             }
         var symbol = Symbol(name: name, kind: kind)
         symbol.id = type.id
@@ -155,9 +155,9 @@ extension Interpreter {
                     )
                 )
             }
-        case .structType: return [Symbol(name: name, kind: .structure)]
-        case .enumType: return [Symbol(name: name, kind: .enumeration)]
-        case .protocolType: return [Symbol(name: name, kind: .protocol)]
+        case .structType: return [Symbol(name: name, kind: .type(.structure))]
+        case .enumType: return [Symbol(name: name, kind: .type(.enumeration))]
+        case .protocolType: return [Symbol(name: name, kind: .type(.protocol))]
         case .variable(let type, let mutable):
             return [
                 Symbol(

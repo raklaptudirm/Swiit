@@ -129,7 +129,7 @@ private func interpreter(
     // An enum it declares has its cases to ask for, before it exists to run.
     let cases = declared.members["Kind"]?
         .filter {
-            if case .enumCase = $0.kind { true } else { false }
+            if case .member(.enumCase) = $0.kind { true } else { false }
         }
     #expect(cases?.map(\.name) == ["a", "b"])
     #expect(declared.symbols.first { $0.name == "f" }?.summary == "Says f.")

@@ -36,7 +36,7 @@ private struct Point: Encodable { var x: Int }
     #expect(first != second)
     // Both IDs still resolve, to their own declarations; a type written with the stale one is no
     // longer the type its name means.
-    #expect(first.symbol(in: swiit)?.kind == .structure)
+    #expect(first.symbol(in: swiit)?.kind == .type(.structure))
     #expect(second.symbol(in: swiit)?.id == second)
     #expect(ScriptType.named(first).members(in: swiit).isEmpty)
     #expect(!ScriptType.named(second).members(in: swiit).isEmpty)

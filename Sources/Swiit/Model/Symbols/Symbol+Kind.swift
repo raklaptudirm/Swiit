@@ -5,24 +5,46 @@ import Synchronization
 // What a symbol is: a variable, a function, a method, a property or a type, and what each holds.
 
 extension Symbol {
-    /// What a symbol is. A type is one of the five Swift declares; what it has is for
-    /// `ScriptType.members(named:in:)` to say.
+    /// What a symbol is: a type, a global function or variable, or a member of a type. What a type
+    /// has is for `ScriptType.members(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
+        /// A type, of the five kinds Swift declares.
+        case type(TypeKind)
         /// A function, as a script declares or a host registers one.
         case function(Function)
         /// A global: its type, and whether a script can assign to it.
         case variable(Variable)
-        /// A method of a type: a function that also says whether it changes its value and whether
-        /// it is the type's own.
+        /// Something a type has.
+        case member(Member)
+
+        /// Written as a symbol is declared: a method, a property, an initializer or an enum case of a
+        /// type.
+        public static func method(_ method: Method) -> Kind { .member(.method(method)) }
+        public static func property(_ property: Property) -> Kind { .member(.property(property)) }
+        public static func initializer(_ function: Function) -> Kind {
+            .member(.initializer(function))
+        }
+        public static func enumCase(parameters: [Parameter], rawValue: Value?) -> Kind {
+            .member(.enumCase(parameters: parameters, rawValue: rawValue))
+        }
+    }
+
+    /// The kinds of type Swift declares.
+    public enum TypeKind: Sendable, Hashable {
+        case structure, enumeration, `class`, actor, `protocol`
+    }
+
+    /// What a type has: a method, a property, an initializer or a case.
+    public enum Member: Sendable, Hashable {
+        /// A function that also says whether it changes its value and whether it is the type's own.
         case method(Method)
-        /// A property of a type: a variable that also says whether it is the type's own.
+        /// A variable that also says whether it is the type's own.
         case property(Property)
-        /// An initializer of a type: what it takes, and the type it makes.
+        /// What it takes, and the type it makes.
         case initializer(Function)
         /// A case of an enum: the values it carries (none for most), and its raw value when the
         /// enum has them.
         case enumCase(parameters: [Parameter], rawValue: Value?)
-        case structure, enumeration, `class`, actor, `protocol`
     }
 
     /// A variable: its type, and whether a script can assign to it.

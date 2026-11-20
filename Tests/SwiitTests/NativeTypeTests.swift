@@ -174,7 +174,7 @@ private struct DataPair: BridgedType, Hashable, CustomStringConvertible,
     let shade = Symbol.ID(named: "Shade", in: swiit)
     #expect(shade != nil)
     let cases = ScriptType.named(shade!).members(in: swiit)
-        .filter { if case .enumCase = $0.kind { true } else { false } }
+        .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
     #expect(cases.map(\.name) == ["light", "dark"])
     #expect(try shade.flatMap { $0.enumCase(named: "light", in: swiit) }.map(Shade.init) == .light)
 }
@@ -331,7 +331,7 @@ private struct DataPair: BridgedType, Hashable, CustomStringConvertible,
     let symbol = try #require(
         ScriptType.named(.init(hostType: "Crate")).members(named: "each", in: swiit).first
     )
-    guard case .method(let method) = symbol.kind else {
+    guard case .member(.method(let method)) = symbol.kind else {
         Issue.record("not a method")
         return
     }
