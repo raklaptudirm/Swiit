@@ -172,6 +172,11 @@ private func allConformances(in graph: Graph) -> [String: Set<String>] {
     }
 }
 
+/// Whether each type of the module is `BridgedType`, by itself or through a protocol it refines.
+func bridgedTypesDeclaredIn(_ graph: Graph) -> Set<String> {
+    Set(allConformances(in: graph).filter { $0.value.contains("BridgedType") }.map(\.key))
+}
+
 /// The types of the module that scripts get: each struct or enum it defines that has a public
 /// member and, unless the module's public surface is all for scripts (`byAccess`), is
 /// `BridgedType` (which a type says by conforming, itself or through a protocol it

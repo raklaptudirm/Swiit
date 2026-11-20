@@ -175,7 +175,7 @@ let receiver: Date = try selfValue.unboxing(Date.self)
                 return result.value
 })
 
-    private static let type29: HostType = {
+    fileprivate static let type29: HostType = {
         var type = HostType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
@@ -212,7 +212,7 @@ let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments
                 return Value(boxing: result, as: .init(hostType: "AttributedString"))
 }
 
-    private static let type35: HostType = {
+    fileprivate static let type35: HostType = {
         var type = HostType(name: "AttributedString", members: [member30, member31, member32, member33, member34])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]

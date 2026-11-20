@@ -205,6 +205,19 @@ if configurationPath != nil {
     namedFunctions = Set(functionNames)
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
+/// The types the module being bridged defines, which it can say are `BridgedType`: what the output
+/// writes for them is their `hostType`, and the conformance where they have none.
+let ownedTypeNames: [String] =
+    configurationPath != nil && graph.module.name == outputModule
+    ? discoveredTypes(
+        in: graph,
+        skipping: Set(skipNames + convertibleNames + ["\(bridgeName ?? "")Bridge"]),
+        byAccess: discoversByAccess
+    )
+    : []
+let alreadyBridgedTypes = bridgedTypesDeclaredIn(graph)
+// safe: the generator runs on one thread
+nonisolated(unsafe) var hostTypeNames: [String: String] = [:]
 /// The types to bridge, with the generic parameters the graph gives each.
 let bridgedTypeNames: [(String, [String])] = try typeNames.map { name in
     let path = name.split(separator: ".").map(String.init)
@@ -515,7 +528,7 @@ for (name, _) in bridgedTypeNames {
             .map { "\(quoted($0)): \(genericParametersDescription($1))" }
         declarations.append(
             """
-                private static let \(typeName): HostType = {
+                fileprivate static let \(typeName): HostType = {
                     var type = HostType(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
                     type.genericParameters = [\(owner.parameters.map(quoted).joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
@@ -529,6 +542,7 @@ for (name, _) in bridgedTypeNames {
             """
         )
         output += "        \(typeName),\n"
+        hostTypeNames[name] = typeName
     }
 }
 output += "    ]\n"
@@ -567,6 +581,19 @@ if !functionNames.isEmpty {
         "    \(access) static let functions: [ImplementedSymbol] = [\(functions.joined(separator: ", "))]\n"
 }
 output += declarations.joined(separator: "\n") + "}\n"
+// A type of the module says what scripts see of it, and is `BridgedType` if it did not say so.
+for name in ownedTypeNames {
+    guard let typeName = hostTypeNames[name], types[name]?.parameters.isEmpty ?? true else {
+        continue
+    }
+    output += """
+
+        extension \(name)\(alreadyBridgedTypes.contains(name) ? "" : ": BridgedType") {
+            \(access) static var hostType: HostType { \(bridgeName)Bridge.\(typeName) }
+        }
+
+        """
+}
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)
 if let manifestPath {
     try Manifest(

@@ -8,6 +8,9 @@ import Foundation
 /// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
 /// registered members (`HostType.Builder`) are its members. A type that answers for members it only
 /// knows at run time also conforms to ``DynamicMembers``.
+///
+/// The bridge generator (`swiit-bridge`), run on a module, writes `hostType` for each type the module
+/// defines for scripts, and the conformance itself for one that does not declare it.
 public protocol BridgedType {
     /// What scripts see of the type: its name, documentation, members and conformances. The default
     /// is a type of that Swift name with no members; a type with members says them here, and is
