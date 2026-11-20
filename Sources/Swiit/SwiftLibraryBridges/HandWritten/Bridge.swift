@@ -104,7 +104,7 @@ struct BridgedMember: Sendable {
     let isStatic: Bool
     let parameters: [Parameter]
     let returns: TypeAnnotation
-    let generics: [GenericParameter]
+    let generics: [Symbol]
     let isThrowing: Bool
     let isRethrowing: Bool
     /// Changes its receiver, like `append`. Its glue gives the result and
@@ -135,7 +135,7 @@ struct BridgedMember: Sendable {
         isStatic: Bool,
         parameters: [Parameter],
         returns: TypeAnnotation,
-        generics: [GenericParameter],
+        generics: [Symbol],
         isThrowing: Bool,
         isRethrowing: Bool,
         isMutating: Bool,

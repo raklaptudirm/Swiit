@@ -188,16 +188,16 @@ private struct Point: Encodable { var x: Int }
 @Test func typeParametersCarryTheirConstraintsAsTypes() throws {
     let swiit = interpreter()
     // A host function's own type parameters, with and without constraints.
-    let t = Symbol.GenericParameter(name: "T", constraints: [.comparable, .hashable])
-    let u: Symbol.GenericParameter = "U"
+    let t = Symbol.genericParameter("T", constraints: [.comparable, .hashable])
+    let u = Symbol.genericParameter("U")
     swiit.register(
         ImplementedSymbol.function(
             name: "pick",
             parameters: [
-                Symbol.Parameter(name: "a", type: t.type),
-                Symbol.Parameter(name: "b", type: u.type),
+                Symbol.Parameter(name: "a", type: .parameter("T")),
+                Symbol.Parameter(name: "b", type: .parameter("U")),
             ],
-            returns: t.type,
+            returns: .parameter("T"),
             generics: [t, u],
             body: { $0[0] }
         )

@@ -3,7 +3,7 @@ import Foundation
 extension TypeChecker {
     // MARK: Names
 
-    func lookup(_ name: String) -> Symbol? {
+    func lookup(_ name: String) -> ScopeEntry? {
         for scope in scopes.reversed() {
             if let symbol = scope[name] { return symbol }
         }

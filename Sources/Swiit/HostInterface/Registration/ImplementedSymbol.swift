@@ -81,7 +81,7 @@ extension ImplementedSymbol {
         parameters: [Symbol.Parameter] = [],
         returns: ScriptType = .void,
         isThrowing: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
+        generics: [Symbol] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) -> ImplementedSymbol {
@@ -158,7 +158,7 @@ extension ImplementedSymbol {
         parameters: [Symbol.Parameter] = [],
         returns: T.Type,
         isThrowing: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
+        generics: [Symbol] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
     ) -> ImplementedSymbol {
@@ -308,7 +308,7 @@ extension ImplementedSymbol {
         _ returns: ScriptType,
         _ isThrowing: Bool,
         _ isAsync: Bool = false,
-        _ generics: [Symbol.GenericParameter] = []
+        _ generics: [Symbol] = []
     ) -> Symbol.Function {
         Symbol.Function(
             parameters: parameters,
@@ -327,7 +327,7 @@ extension ImplementedSymbol {
         returns: ScriptType = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
+        generics: [Symbol] = [],
         body: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
     ) -> ImplementedSymbol {
         ImplementedSymbol(
@@ -353,7 +353,7 @@ extension ImplementedSymbol {
         returns: ScriptType = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
+        generics: [Symbol] = [],
         body: @escaping @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
     ) -> ImplementedSymbol {
         ImplementedSymbol(
@@ -377,7 +377,7 @@ extension ImplementedSymbol {
         returns: ScriptType = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
-        generics: [Symbol.GenericParameter] = [],
+        generics: [Symbol] = [],
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
     ) -> ImplementedSymbol {
         ImplementedSymbol(

@@ -5,49 +5,40 @@ import Synchronization
 // A function's parameters and generic parameters.
 
 extension Symbol {
-    /// A type parameter of a function, with what it asks of the type given for it:
-    /// `sorted<Element: Comparable>`.
-    public struct GenericParameter: Sendable, Hashable, ExpressibleByStringLiteral {
-        public var name: String
-        public var constraints: [Constraint]
+    /// What a type must be to be given for a type parameter.
+    public enum Constraint: Sendable, Hashable {
+        /// It conforms to a protocol: `Comparable`, `Hashable`, or one a script declares.
+        case conforms(to: ScriptType)
+        /// It is exactly this type, as `where Element == Int` says.
+        case equals(ScriptType)
 
-        /// What a type must be to be given for a type parameter.
-        public enum Constraint: Sendable, Hashable {
-            /// It conforms to a protocol: `Comparable`, `Hashable`, or one a script declares.
-            case conforms(to: ScriptType)
-            /// It is exactly this type, as `where Element == Int` says.
-            case equals(ScriptType)
+        /// The module's own tables are written with the names of the types they mean.
+        public static let comparable = Constraint.conforms(to: .named("Comparable"))
+        public static let hashable = Constraint.conforms(to: .named("Hashable"))
+        public static let equatable = Constraint.conforms(to: .named("Equatable"))
 
-            /// The module's own tables are written with the names of the types they mean.
-            public static let comparable = Constraint.conforms(to: .named("Comparable"))
-            public static let hashable = Constraint.conforms(to: .named("Hashable"))
-            public static let equatable = Constraint.conforms(to: .named("Equatable"))
+        static func conforms(to name: String) -> Constraint { .conforms(to: .named(name)) }
+        static func equals(_ name: String) -> Constraint { .equals(.named(name)) }
 
-            static func conforms(to name: String) -> Constraint { .conforms(to: .named(name)) }
-            static func equals(_ name: String) -> Constraint { .equals(.named(name)) }
-
-            /// What one constraint is among others when they are compared: a protocol by its name,
-            /// an exact type by that name after an `=`.
-            var refinementKey: String {
-                switch self {
-                case .conforms(let proto): proto.description
-                case .equals(let exact): "=" + exact.description
-                }
+        /// What one constraint is among others when they are compared: a protocol by its name,
+        /// an exact type by that name after an `=`.
+        var refinementKey: String {
+            switch self {
+            case .conforms(let proto): proto.description
+            case .equals(let exact): "=" + exact.description
             }
         }
+    }
 
-        /// The parameter as a type, for a signature that uses it: `T` in `(T, T) -> T`.
-        public var type: ScriptType { .named(.parameter(name)) }
+    /// A type parameter, with what it asks of the type given for it: `Element` in `Array<Element>`,
+    /// `T` in `func f<T: Comparable>`.
+    public static func genericParameter(_ name: String, constraints: [Constraint] = []) -> Symbol {
+        Symbol(name: name, kind: .genericParameter(constraints: constraints))
+    }
 
-        public init(name: String, constraints: [Constraint] = []) {
-            self.name = name
-            self.constraints = constraints
-        }
-
-        /// A type parameter with no constraints, by its name.
-        public init(stringLiteral name: String) {
-            self.init(name: name)
-        }
+    /// What a type given for it must be, if this is a generic parameter.
+    public var constraints: [Constraint] {
+        if case .genericParameter(let constraints) = kind { constraints } else { [] }
     }
 
     /// A parameter of a function.

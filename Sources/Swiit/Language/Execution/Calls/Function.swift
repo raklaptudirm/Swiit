@@ -27,7 +27,7 @@ final class Function: Callable, @unchecked Sendable {
     /// `async` if declared so.
     let effect: Effect
     /// Type parameters and their constraints, for a generic builtin.
-    let generics: [GenericParameter]
+    let generics: [Symbol]
     /// Of those, the ones its body names: a call binds them (`specialized`).
     let typeParameters: Set<String>
     /// The names of its `inout` parameters, which a call hands back.
@@ -54,7 +54,7 @@ final class Function: Callable, @unchecked Sendable {
         isThrowing: Bool = false,
         isRethrowing: Bool = false,
         effect: Effect = .sync,
-        generics: [GenericParameter] = [],
+        generics: [Symbol] = [],
         isFailable: Bool = false,
         isConvenience: Bool = false,
         typeParameters: Set<String> = [],

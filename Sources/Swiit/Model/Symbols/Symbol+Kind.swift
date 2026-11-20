@@ -16,6 +16,8 @@ extension Symbol {
         case variable(Variable)
         /// Something a type has.
         case member(Member)
+        /// A type parameter, with what it asks of the type given for it.
+        case genericParameter(constraints: [Constraint])
 
         /// Written as a symbol is declared: a method, a property, an initializer or an enum case of a
         /// type.
@@ -117,7 +119,7 @@ extension Symbol {
         public var isAsync: Bool
         /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
-        public var generics: [GenericParameter]
+        public var generics: [Symbol]
 
         /// What a value of this function has as a type: the shape without the labels, names, defaults
         /// and documentation. A `rethrows` function's type throws, as a closure of it does.
@@ -143,7 +145,7 @@ extension Symbol {
             returns: ScriptType = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
-            generics: [GenericParameter] = []
+            generics: [Symbol] = []
         ) {
             self.init(
                 parameters: parameters,
@@ -159,7 +161,7 @@ extension Symbol {
             returns: ScriptType = .void,
             throwing: Throwing,
             isAsync: Bool = false,
-            generics: [GenericParameter] = []
+            generics: [Symbol] = []
         ) {
             self.generics = generics
             self.parameters = parameters

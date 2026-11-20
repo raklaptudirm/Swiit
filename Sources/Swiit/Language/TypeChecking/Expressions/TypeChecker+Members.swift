@@ -94,7 +94,8 @@ extension TypeChecker {
         }
         guard
             let element = bridgedType.annotatedAssociatedTypes["Element"]
-                ?? (bridgedType.genericParameters.contains("Element") ? .parameter("Element") : nil)
+                ?? (bridgedType.genericParameterNames.contains("Element")
+                    ? .parameter("Element") : nil)
         else { return nil }
         return substitute(element, bindings)
     }

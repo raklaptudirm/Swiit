@@ -99,7 +99,7 @@ extension TypeChecker {
     /// a struct or enum by declaring it (an enum without associated values
     /// is Equatable and Hashable anyway, as in Swift).
     /// Whether `type` is what a type parameter's constraint asks for.
-    func satisfies(_ type: TypeAnnotation, _ constraint: GenericParameter.Constraint) -> Bool {
+    func satisfies(_ type: TypeAnnotation, _ constraint: Swiit.Symbol.Constraint) -> Bool {
         switch constraint {
         case .conforms(let proto): conforms(type, to: proto.description)
         case .equals(let exact): type == .unknown || type.description == exact.description

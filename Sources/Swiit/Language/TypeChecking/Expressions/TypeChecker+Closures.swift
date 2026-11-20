@@ -52,7 +52,7 @@ extension TypeChecker {
             expectedParameters = parameters
             expectedResult = result
         }
-        var names: [String: Symbol] = [:]
+        var names: [String: ScopeEntry] = [:]
         // `[weak self]`: what is taken, which is an optional if it is weak.
         for index in closure.captures.indices {
             let type = try typeOf(&closure.captures[index].value)

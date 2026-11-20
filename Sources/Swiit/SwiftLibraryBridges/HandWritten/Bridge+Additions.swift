@@ -80,8 +80,8 @@ extension Bridge {
                     parameters: [Symbol.Parameter(name: "value", type: .parameter("T"))],
                     returns: .string,
                     generics: [
-                        Symbol.GenericParameter(
-                            name: "T",
+                        .genericParameter(
+                            "T",
                             constraints: [.conforms(to: "CustomStringConvertible")]
                         )
                     ]
@@ -120,8 +120,8 @@ extension Bridge {
                     ],
                     returns: .dictionary(.parameter("K"), .list(.parameter("E"))),
                     generics: [
-                        "E",
-                        Symbol.GenericParameter(name: "K", constraints: [.hashable]),
+                        .genericParameter("E"),
+                        .genericParameter("K", constraints: [.hashable]),
                     ]
                 )
             ) { arguments in

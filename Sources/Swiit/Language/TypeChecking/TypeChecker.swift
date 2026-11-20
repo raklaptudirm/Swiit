@@ -49,7 +49,7 @@ final class TypeChecker {
         var index = 0
         /// Its type parameters and the protocols each must conform to:
         /// `sorted<V: Comparable>(by:)`, and a sequence method's `Element`.
-        var generics: [GenericParameter] = []
+        var generics: [Swiit.Symbol] = []
         /// Of those, the ones its body names (`T()`, `x as? T`), which a call tells it the types
         /// of.
         var typeParameters: Set<String> = []
@@ -72,7 +72,7 @@ final class TypeChecker {
             isRethrowing: Bool = false,
             effect: Effect = .sync,
             index: Int = 0,
-            generics: [GenericParameter] = []
+            generics: [Swiit.Symbol] = []
         ) {
             self.effect = effect
             self.name = name
@@ -86,7 +86,8 @@ final class TypeChecker {
         }
     }
 
-    enum Symbol {
+    /// What a name means in a scope: a variable, functions, a type.
+    enum ScopeEntry {
         case protocolType(TypeProfile)
         case variable(TypeAnnotation, mutable: Bool)
         case functions([Signature])
@@ -145,7 +146,7 @@ final class TypeChecker {
     /// written into a lookup that runs.
 
     /// What the program declares, innermost last, on top of the host's names.
-    var scopes: [[String: Symbol]] = [[:]]
+    var scopes: [[String: ScopeEntry]] = [[:]]
     var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]
     /// The type of error the last call resolved throws, for the throwing site that follows it.

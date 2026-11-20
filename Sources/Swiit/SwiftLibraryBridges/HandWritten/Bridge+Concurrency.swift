@@ -59,7 +59,7 @@ extension Bridge {
 
     private static let taskType: ImplementedType = {
         var type = ImplementedType(name: "Task", members: taskMembers)
-        type.genericParameters = ["Success", "Failure"]
+        type.genericParameters = [.genericParameter("Success"), .genericParameter("Failure")]
         type.conformances = ["Hashable": [], "Equatable": []]
         return type
     }()
@@ -82,7 +82,7 @@ extension Bridge {
                     )
                 ],
                 returns: .named("Task", [.parameter("Success"), .named("Never")]),
-                generics: ["Success"]
+                generics: [.genericParameter("Success")]
             ),
             body: start
         ),
@@ -104,7 +104,7 @@ extension Bridge {
                     )
                 ],
                 returns: .named("Task", [.parameter("Success"), .named("Error")]),
-                generics: ["Success"]
+                generics: [.genericParameter("Success")]
             ),
             body: start
         ),

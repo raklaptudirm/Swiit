@@ -297,8 +297,8 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 @Test func aTypeWrittenByHandSaysWhatItIsGenericOverAndWhatItConformsTo() throws {
     let swiit = interpreter()
     var pile = ImplementedType(name: "Pile")
-    pile.genericParameters = ["Element"]
-    pile.conformances = ["Hashable": [], "Sequence": [Symbol.GenericParameter(name: "Element")]]
+    pile.genericParameters = [.genericParameter("Element")]
+    pile.conformances = ["Hashable": [], "Sequence": [Symbol.genericParameter("Element")]]
     pile.associatedTypes["Element"] = .parameter("Element")
     let id = swiit.register(pile)
 

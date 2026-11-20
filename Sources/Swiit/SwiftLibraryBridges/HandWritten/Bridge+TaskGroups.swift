@@ -160,7 +160,7 @@ extension Bridge {
                 },
             ]
         )
-        type.genericParameters = ["ChildTaskResult"]
+        type.genericParameters = [.genericParameter("ChildTaskResult")]
         type.associatedTypes = ["Element": element]
         return type
     }
@@ -209,7 +209,7 @@ extension Bridge {
             ),
             isThrowing: isThrowing,
             effect: .async,
-            generics: ["Result"]
+            generics: [.genericParameter("Result")]
         )
     }
 }

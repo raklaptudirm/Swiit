@@ -49,7 +49,7 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - ``Symbol``
 - ``TypeRef``
 - ``Symbol/Attribute``
-- ``Symbol/GenericParameter``
+- ``Symbol/Constraint``
 - ``Interpreter/Declarations``
 
 ### Output streams and styled text

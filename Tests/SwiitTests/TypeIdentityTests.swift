@@ -61,7 +61,7 @@ private struct Point: Encodable { var x: Int }
     try swiit.evaluate("struct Int2 { var x = 0 }")
     #expect(TypeRef(named: "Int2", in: swiit) != TypeRef(hostType: "Int2"))
     // A parameter is a reference with nothing under it.
-    let element = Symbol.GenericParameter(name: "Element").type
+    let element = ScriptType.parameter("Element")
     guard case .named(let parameter, _) = element else { return }
     #expect(parameter.symbol(in: swiit) == nil)
     #expect(parameter != TypeRef(hostType: "Element"))

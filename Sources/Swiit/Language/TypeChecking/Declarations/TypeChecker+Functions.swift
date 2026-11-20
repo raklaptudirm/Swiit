@@ -73,7 +73,7 @@ extension TypeChecker {
             decl.body = try resultBuilt(decl.body, by: builder)
             decl.resultBuilder = nil
         }
-        var names: [String: Symbol] = [:]
+        var names: [String: ScopeEntry] = [:]
         for index in decl.parameters.indices {
             let parameter = decl.parameters[index]
             if decl.parameters[index].defaultValue != nil {

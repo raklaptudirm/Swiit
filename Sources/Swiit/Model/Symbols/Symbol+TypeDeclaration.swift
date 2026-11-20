@@ -7,10 +7,10 @@ extension Symbol {
         /// What a script sees of the type: its name, documentation, attributes and kind.
         public var symbol: Symbol
         /// A generic type's parameters, `Element` for an array, each with what it must be.
-        public var genericParameters: [GenericParameter] = []
+        public var genericParameters: [Symbol] = []
         /// The protocols it conforms to, each with what its generic parameters must be for it: a
         /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`.
-        public var conformances: [String: [GenericParameter]] = [:]
+        public var conformances: [String: [Symbol]] = [:]
         /// What its associated types are: `Element` is `String` for a sequence of text.
         public var associatedTypes: [String: ScriptType] = [:]
 

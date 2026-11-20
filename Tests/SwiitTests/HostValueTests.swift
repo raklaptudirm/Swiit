@@ -268,7 +268,7 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.call("Int", arguments: [(nil, Value("7"))]) == swiit.evaluate(#"Int("7")"#))
     #expect(try swiit.make(.int, arguments: [(nil, Value("9"))]) == 9)
     // Not a type, or a Swift type nothing registered.
-    if case .named(let parameter, _) = Symbol.GenericParameter(name: "Element").type {
+    if case .named(let parameter, _) = ScriptType.parameter("Element") {
         #expect(throws: Diagnostic.self) { try swiit.make(parameter) }
     }
     #expect(throws: Diagnostic.self) { try swiit.call("NoSuchType", arguments: [(nil, Value(1))]) }
@@ -342,4 +342,14 @@ private struct Point: Encodable { var x: Int }
     #expect(hosted.conformances.keys.contains("Hashable"))
     #expect(bridged.conformances.keys.contains("Collection"))
     #expect(swiit.declaration(ofType: "Nothing") == nil)
+}
+
+@Test func aTypeParameterIsASymbolOfItsOwnKind() {
+    let element = Symbol.genericParameter("T", constraints: [.comparable])
+
+    #expect(element.kind == .genericParameter(constraints: [.comparable]))
+    #expect(element.constraints == [.comparable])
+    #expect(element.scriptType == .parameter("T"))
+    #expect(!element.isType)
+    #expect(Symbol(name: "x", kind: .variable(Symbol.Variable(type: .int))).constraints.isEmpty)
 }

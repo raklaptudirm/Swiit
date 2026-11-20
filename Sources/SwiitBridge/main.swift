@@ -528,7 +528,7 @@ for (name, _) in bridgedTypeNames {
             """
                 fileprivate static let \(typeName): ImplementedType = {
                     var type = ImplementedType(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
-                    type.genericParameters = [\(owner.parameters.map(quoted).joined(separator: ", "))]
+                    type.genericParameters = [\(owner.parameters.map { ".genericParameter(\(quoted($0)))" }.joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
                     type.associatedTypes = [\(associatedTypes.isEmpty ? ":" : associatedTypes.joined(separator: ", "))]
                     return type

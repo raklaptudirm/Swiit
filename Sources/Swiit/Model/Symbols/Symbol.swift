@@ -80,15 +80,14 @@ public struct Symbol: Sendable, Hashable {
     }
 
     /// Its type as a value: a function's is a function type (parameter types in order, what it
-    /// returns); a variable's is its own; a type's is the type it names.
+    /// returns); a variable's is its own; a type's is the type it names; a type parameter's is itself.
     public var scriptType: ScriptType {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
         case .variable, .member(.property): variable!.type
         case .type: .named(typeRef ?? .host(name))
         case .member(.enumCase): .any
+        case .genericParameter: .parameter(name)
         }
     }
 }
-
-typealias GenericParameter = Symbol.GenericParameter

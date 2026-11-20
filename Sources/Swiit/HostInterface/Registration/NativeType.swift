@@ -18,11 +18,11 @@ public struct ImplementedType: Sendable {
         get { declaration.name }
         set { declaration.name = newValue }
     }
-    public var genericParameters: [Symbol.GenericParameter] {
+    public var genericParameters: [Symbol] {
         get { declaration.genericParameters }
         set { declaration.genericParameters = newValue }
     }
-    public var conformances: [String: [Symbol.GenericParameter]] {
+    public var conformances: [String: [Symbol]] {
         get { declaration.conformances }
         set { declaration.conformances = newValue }
     }

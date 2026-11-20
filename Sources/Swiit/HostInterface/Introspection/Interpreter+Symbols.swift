@@ -168,7 +168,7 @@ extension Interpreter {
         return values
     }
 
-    func declaredSymbols(of name: String, _ symbol: TypeChecker.Symbol) -> [Symbol] {
+    func declaredSymbols(of name: String, _ symbol: TypeChecker.ScopeEntry) -> [Symbol] {
         switch symbol {
         case .functions(let signatures):
             return signatures.map { signature in

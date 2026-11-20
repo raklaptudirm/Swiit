@@ -57,7 +57,7 @@ func arityCode(of parameter: Parameter, type: SType) throws -> String {
     return ", arity: .defaulted(.computed)"
 }
 
-/// The type parameters of a declaration with what each is constrained to, as `Symbol.GenericParameter`s.
+/// The type parameters of a declaration with what each is constrained to, as generic parameter symbols.
 func genericParametersDescription(_ generics: [String: [String]]) -> String {
     func constraint(_ text: String) -> [String] {
         text.components(separatedBy: " & ")
@@ -71,8 +71,8 @@ func genericParametersDescription(_ generics: [String: [String]]) -> String {
         + generics.sorted { $0.key < $1.key }
         .map { name, constraints in
             constraints.isEmpty
-                ? quoted(name)
-                : "Symbol.GenericParameter(name: \(quoted(name)), constraints: ["
+                ? ".genericParameter(\(quoted(name)))"
+                : ".genericParameter(\(quoted(name)), constraints: ["
                     + constraints.flatMap(constraint).joined(separator: ", ") + "])"
         }
         .joined(separator: ", ") + "]"

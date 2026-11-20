@@ -95,12 +95,12 @@ extension Lowering {
     func genericParameters(
         _ clause: GenericParameterClauseSyntax?,
         where whereClause: GenericWhereClauseSyntax? = nil
-    ) -> [GenericParameter] {
-        var generics: [GenericParameter] = []
+    ) -> [Symbol] {
+        var generics: [Symbol] = []
         for parameter in clause?.parameters ?? [] {
             generics.append(
-                GenericParameter(
-                    name: parameter.name.text,
+                .genericParameter(
+                    parameter.name.text,
                     constraints: parameter.inheritedType.map(constraints(of:)) ?? []
                 )
             )
@@ -110,13 +110,16 @@ extension Lowering {
                 let left = conformance.leftType.as(IdentifierTypeSyntax.self),
                 let index = generics.firstIndex(where: { $0.name == left.name.text })
             else { continue }
-            generics[index].constraints += constraints(of: conformance.rightType)
+            generics[index] = .genericParameter(
+                generics[index].name,
+                constraints: generics[index].constraints + constraints(of: conformance.rightType)
+            )
         }
         return generics
     }
 
     /// What `Comparable` or `Comparable & Hashable` asks of a type: it conforms to each.
-    private func constraints(of type: TypeSyntax) -> [GenericParameter.Constraint] {
+    private func constraints(of type: TypeSyntax) -> [Symbol.Constraint] {
         if let composition = type.as(CompositionTypeSyntax.self) {
             return composition.elements.flatMap { constraints(of: $0.type) }
         }

@@ -5,7 +5,7 @@ extension TypeChecker {
 
     func checkBlock(
         _ program: inout Program,
-        declaring names: [String: Symbol] = [:],
+        declaring names: [String: ScopeEntry] = [:],
         newScope: Bool = false
     ) throws {
         if newScope { scopes.append(names) }
@@ -185,7 +185,7 @@ extension TypeChecker {
             }
             if catchesAll { thrownSeen.removeSubrange(seenBefore...) }
             for index in clauses.indices {
-                var bound: [String: Symbol] = [:]
+                var bound: [String: ScopeEntry] = [:]
                 if clauses[index].patterns.isEmpty {
                     bound["error"] = .variable(errorType, mutable: false)
                 } else {
@@ -275,7 +275,7 @@ extension TypeChecker {
             let sequence = try typeOf(&loop.sequence)
             if loop.isAwait { try checkAsyncLoop(loop, over: sequence) }
             let element = try elementType(of: sequence, async: loop.isAwait)
-            var bound: [String: Symbol] = [:]
+            var bound: [String: ScopeEntry] = [:]
             try checkPattern(&loop.pattern, against: element, binding: &bound)
             try checkBlock(&loop.body, declaring: bound, newScope: true)
             statement = .forLoop(loop)
@@ -371,8 +371,8 @@ extension TypeChecker {
     }
 
     /// Checks an `if`'s condition, giving what it binds for the `then` branch.
-    func checkCondition(_ node: inout IfStatement) throws -> [String: Symbol] {
-        var bound: [String: Symbol] = [:]
+    func checkCondition(_ node: inout IfStatement) throws -> [String: ScopeEntry] {
+        var bound: [String: ScopeEntry] = [:]
         switch node.condition {
         case .expression(var condition):
             try checkCondition(&condition)
@@ -397,7 +397,7 @@ extension TypeChecker {
     func checkSwitch(_ node: inout SwitchStatement) throws {
         let subject = try typeOf(&node.subject)
         for index in node.cases.indices {
-            var bound: [String: Symbol] = [:]
+            var bound: [String: ScopeEntry] = [:]
             for patternIndex in node.cases[index].patterns.indices {
                 try checkPattern(
                     &node.cases[index].patterns[patternIndex],
@@ -418,7 +418,7 @@ extension TypeChecker {
     func checkPattern(
         _ pattern: inout Pattern,
         against written: TypeAnnotation,
-        binding bound: inout [String: Symbol]
+        binding bound: inout [String: ScopeEntry]
     ) throws {
         let type = erased(written)
         switch pattern {
