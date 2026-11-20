@@ -55,7 +55,7 @@ let valueProtocols: Set = ["Equatable", "Hashable", "Comparable"]
 /// Constraints every Swiit value meets, so they say nothing.
 let alwaysMet: Set = ["Copyable", "Escapable", "Sendable", "SendableMetatype"]
 
-struct BridgedType {
+struct LoweredHostType {
     /// `String`, `Set`.
     let name: String
     /// Its generic parameters, all of them.
@@ -79,7 +79,7 @@ struct BridgedType {
 
 /// What a member's types are resolved against.
 struct Context {
-    var owner: BridgedType
+    var owner: LoweredHostType
     /// The member's own generic parameters, and the owner's.
     var generics: Set<String>
     /// Its parameters that are sequences, with their elements.
@@ -87,7 +87,7 @@ struct Context {
 }
 
 /// The type a member's `Self` is.
-func selfType(_ owner: BridgedType) -> SType {
+func selfType(_ owner: LoweredHostType) -> SType {
     let arguments = owner.parameters.map { owner.fixed[$0] ?? .named($0, []) }
     switch owner.name {
     case "Array": return .array(arguments[0])

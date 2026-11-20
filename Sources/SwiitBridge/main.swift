@@ -7,7 +7,7 @@
 //
 // The first builds from a package's target: the generator makes the symbol graphs itself (with a
 // stub in place of the output, which is part of the module), and bridges what the module has for
-// scripts: each struct or enum that is `BridgedType` and has a public member, and the enums
+// scripts: each struct or enum that is `BridgedValue` and has a public member, and the enums
 // that convert themselves. The configuration names the rest (`Configuration`): types and functions
 // that are not found that way, a type another module defines that this one extends (`Date`), the
 // types other bridges describe, renames. The second is given a graph and everything else in flags;
@@ -21,7 +21,7 @@
 // `functions`), `--access <level>` the access of what it declares (`public`, the default, or
 // `internal`), `--in-module <Module>` the module the output is a file of, which it does not import
 // (`Swiit` for Swiit's own files). `--boxed` names the types another bridge describes (held as Swift
-// values, `Date`), `--convertible` those that convert themselves (`BridgedType`, as an enum
+// values, `Date`), `--convertible` those that convert themselves (`BridgedValue`, as an enum
 // does), `--import` a module whose types the glue spells, and `--rename Type.member=name` gives a
 // member another name for scripts (`Date.shown=description`). `--preconditions` names the table of
 // members that trap on some arguments (`Bridges/preconditions.json`), which the glue checks first. A member is bridged if it is declared
@@ -69,7 +69,7 @@ nonisolated(unsafe) var bridgeName: String?  // safe: the generator runs on one 
 nonisolated(unsafe) var typeNames: [String] = []  // safe: the generator runs on one thread
 /// `--boxed <Type>`: types another bridge describes, held as they are.
 nonisolated(unsafe) var boxedNames: [String] = []  // safe: the generator runs on one thread
-/// `--convertible <Type>`: types that are `BridgedType`, and cross as their own value.
+/// `--convertible <Type>`: types that are `BridgedValue`, and cross as their own value.
 nonisolated(unsafe) var convertibleNames: [String] = []  // safe: the generator runs on one thread
 /// `--function <name>`: the top-level functions to bridge, every overload of each.
 nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator runs on one thread
@@ -205,7 +205,7 @@ if configurationPath != nil {
     namedFunctions = Set(functionNames)
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
-/// The types the module being bridged defines, which it can say are `BridgedType`: what the output
+/// The types the module being bridged defines, which it can say are `BridgedValue`: what the output
 /// writes for them is their `hostType`, and the conformance where they have none.
 let ownedTypeNames: [String] =
     configurationPath != nil && graph.module.name == outputModule
@@ -280,9 +280,9 @@ let protocolNames = Set(
 )
 
 // safe: the generator runs on one thread
-nonisolated(unsafe) var types: [String: BridgedType] = [:]
+nonisolated(unsafe) var types: [String: LoweredHostType] = [:]
 for (name, parameters) in bridgedTypeNames {
-    var type = BridgedType(name: name, parameters: parameters)
+    var type = LoweredHostType(name: name, parameters: parameters)
     let path = name.split(separator: ".").map(String.init)
     for symbol in graph.symbols
     where symbol.pathComponents.dropLast() == path[...]
@@ -380,7 +380,7 @@ func declare(_ expression: String) -> String {
 for (name, _) in bridgedTypeNames {
     // A type of another module is known to the generator as it is: what is made is only what this
     // module adds to it.
-    let owner = types[name] ?? BridgedType(name: name, parameters: [])
+    let owner = types[name] ?? LoweredHostType(name: name, parameters: [])
     var seen: Set<String> = []
     var members: [String] = []
     let kinds = [
@@ -566,7 +566,7 @@ if !functionNames.isEmpty {
             do {
                 for bridged in try bridgeAll(
                     symbol,
-                    of: BridgedType(name: "", parameters: []),
+                    of: LoweredHostType(name: "", parameters: []),
                     isFree: true
                 ) {
                     guard seen.insert(bridged.key).inserted else { continue }
@@ -581,14 +581,14 @@ if !functionNames.isEmpty {
         "    \(access) static let functions: [ImplementedSymbol] = [\(functions.joined(separator: ", "))]\n"
 }
 output += declarations.joined(separator: "\n") + "}\n"
-// A type of the module says what scripts see of it, and is `BridgedType` if it did not say so.
+// A type of the module says what scripts see of it, and is `BridgedValue` if it did not say so.
 for name in ownedTypeNames {
     guard let typeName = hostTypeNames[name], types[name]?.parameters.isEmpty ?? true else {
         continue
     }
     output += """
 
-        extension \(name)\(alreadyBridgedTypes.contains(name) ? "" : ": BridgedType") {
+        extension \(name)\(alreadyBridgedTypes.contains(name) ? "" : ": BridgedValue") {
             \(access) static var hostType: HostType { \(bridgeName)Bridge.\(typeName) }
         }
 

@@ -1,7 +1,7 @@
 import Foundation
 import SystemPackage
 
-extension FilePath: BridgedType {}
+extension FilePath: BridgedValue {}
 
 /// A path as Swiit holds it: a FilePath.
 func pathValue(_ path: String) -> Value {

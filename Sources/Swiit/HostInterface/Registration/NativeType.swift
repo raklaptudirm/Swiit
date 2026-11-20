@@ -77,7 +77,7 @@ extension Interpreter {
     /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
     /// registering a function or a type that takes or gives one does: for an enum that a
     /// host's declarations name (`declare(_:bodies:)`) and nothing registered has yet.
-    public func register<E: BridgedType & CaseIterable & Hashable & Sendable>(_: E.Type) {
+    public func register<E: BridgedValue & CaseIterable & Hashable & Sendable>(_: E.Type) {
         let enumeration = Value.EnumCase.Enumeration.of(E.self)
         withMainTask {
             scopes[1].bindings[enumeration.name] = Binding(
@@ -440,7 +440,7 @@ extension HostType {
 
         private static func sequenceElement() -> ScriptType? {
             func element<S: Sequence>(_: S.Type) -> ScriptType {
-                (S.Element.self as? any BridgedType.Type)?.scriptType ?? .any
+                (S.Element.self as? any BridgedValue.Type)?.scriptType ?? .any
             }
             guard let sequence = T.self as? any Sequence.Type else { return nil }
             return element(sequence)
@@ -493,7 +493,7 @@ extension HostType {
         }
 
         /// A property that reads a key path: `.property("host", \.host)`.
-        public func property<V: BridgedType>(
+        public func property<V: BridgedValue>(
             _ name: String,
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
@@ -507,7 +507,7 @@ extension HostType {
 
         /// A method, as a reference to it:
         /// `.method("appending", labels: [nil], URL.appendingPathComponent(_:))`.
-        public func method<each Argument: BridgedType, Result: BridgedType>(
+        public func method<each Argument: BridgedValue, Result: BridgedValue>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -535,7 +535,7 @@ extension HostType {
         }
 
         /// A function of the type itself: `.static("now", Date.init)`.
-        public func `static`<each Argument: BridgedType, Result: BridgedType>(
+        public func `static`<each Argument: BridgedValue, Result: BridgedValue>(
             _ name: String,
             labels: [String?] = [],
             throwing: Bool = false,
@@ -560,7 +560,7 @@ extension HostType {
         }
 
         /// How a script makes one: `.initializer(labels: ["string"], URL.init(string:))`.
-        public func initializer<each Argument: BridgedType>(
+        public func initializer<each Argument: BridgedValue>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T
@@ -585,7 +585,7 @@ extension HostType {
 
         /// An initializer that can fail, which a script sees as one that gives an optional:
         /// `.failableInitializer(URL.init(string:))`.
-        public func failableInitializer<each Argument: BridgedType>(
+        public func failableInitializer<each Argument: BridgedValue>(
             labels: [String?] = [],
             throwing: Bool = false,
             _ make: @escaping @Sendable (repeat each Argument) throws -> T?
@@ -612,15 +612,15 @@ extension HostType {
 }
 
 /// A `Sendable` type becomes one a script can hold and a host function can take and give by
-/// saying so: `extension URL: BridgedType {}`. It is held as it is, under its Swift name.
-extension BridgedType where Self: Sendable {
-    public static var scriptType: ScriptType { .named(.host(hostType.name)) }
+/// saying so: `extension URL: BridgedValue {}`. It is held as it is, under its Swift name.
+extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
+    public static var scriptType: ScriptType { .named(.host(hostType.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
-extension Set: BridgedType where Element: Hashable {
+extension Set: BridgedValue where Element: Hashable {
     public static var scriptType: ScriptType { .named(.set, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "Set") }
@@ -629,7 +629,7 @@ extension Set: BridgedType where Element: Hashable {
 /// Any sequence a script holds, read one item at a time so a range of a billion is never a list: a
 /// list's items, a set's, a range of Ints, a host type's text. A value that isn't one is an error.
 /// A script's own iterators, which can throw, are read by the interpreter's `for`.
-extension AnySequence: BridgedType where Element == Value {
+extension AnySequence: BridgedValue where Element == Value {
     public static var scriptType: ScriptType { .named(.sequence, [.any]) }
     public init(_ swiitValue: Value) throws {
         guard let items = Interpreter.items(of: swiitValue) else {
@@ -640,7 +640,7 @@ extension AnySequence: BridgedType where Element == Value {
     public var value: Value { .list(Array(self)) }
 }
 
-extension ArraySlice: BridgedType {
+extension ArraySlice: BridgedValue {
     public static var scriptType: ScriptType { .named(.arraySlice, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "ArraySlice") }

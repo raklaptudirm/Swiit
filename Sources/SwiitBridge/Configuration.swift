@@ -17,12 +17,12 @@ struct Configuration: Decodable {
     var functions: [String]?
     /// Types another bridge describes, held as they are.
     var boxed: [String]?
-    /// Types that convert themselves (`BridgedType`): an enum that is `CaseIterable` does
+    /// Types that convert themselves (`BridgedValue`): an enum that is `CaseIterable` does
     /// without being listed.
     var convertible: [String]?
     /// How to find the types and functions of the module that scripts get, when none are named:
     /// `"public"` for a module whose whole public surface is for scripts; by default, the types
-    /// that conform to `BridgedType` (for a module that also has an interface for a host
+    /// that conform to `BridgedValue` (for a module that also has an interface for a host
     /// program) and the functions named.
     var discover: String?
     /// Types the module has that scripts do not.
@@ -172,14 +172,14 @@ private func allConformances(in graph: Graph) -> [String: Set<String>] {
     }
 }
 
-/// Whether each type of the module is `BridgedType`, by itself or through a protocol it refines.
+/// Whether each type of the module is `BridgedValue`, by itself or through a protocol it refines.
 func bridgedTypesDeclaredIn(_ graph: Graph) -> Set<String> {
-    Set(allConformances(in: graph).filter { $0.value.contains("BridgedType") }.map(\.key))
+    Set(allConformances(in: graph).filter { $0.value.contains("BridgedValue") }.map(\.key))
 }
 
 /// The types of the module that scripts get: each struct or enum it defines that has a public
 /// member and, unless the module's public surface is all for scripts (`byAccess`), is
-/// `BridgedType` (which a type says by conforming, itself or through a protocol it
+/// `BridgedValue` (which a type says by conforming, itself or through a protocol it
 /// refines); less those the settings skip, and the enums that convert themselves.
 func discoveredTypes(
     in graph: Graph,
@@ -200,19 +200,19 @@ func discoveredTypes(
         .map { $0.pathComponents[0] }
         .filter {
             withPublicMembers.contains($0) && !skipped.contains($0)
-                && (byAccess || conformances[$0]?.contains("BridgedType") == true)
+                && (byAccess || conformances[$0]?.contains("BridgedValue") == true)
         }
         .sorted()
 }
 
-/// The enums of the module that are `CaseIterable` and `BridgedType`: scripts get them as
+/// The enums of the module that are `CaseIterable` and `BridgedValue`: scripts get them as
 /// the enums they are.
 func selfConvertingEnums(in graph: Graph) -> [String] {
     let conformances = allConformances(in: graph)
     return graph.symbols
         .filter { $0.kind.identifier == "swift.enum" && $0.pathComponents.count == 1 }
         .map { $0.pathComponents[0] }
-        .filter { conformances[$0]?.isSuperset(of: ["CaseIterable", "BridgedType"]) == true }
+        .filter { conformances[$0]?.isSuperset(of: ["CaseIterable", "BridgedValue"]) == true }
 }
 
 /// The names of the module's public top-level functions.

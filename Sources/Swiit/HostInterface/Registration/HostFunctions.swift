@@ -27,7 +27,7 @@ extension Symbol.Parameter {
 
 extension Symbol.Parameter {
     /// A parameter of a Swift type: `Symbol.Parameter(name: "count", type: Int.self)`.
-    public init<T: BridgedType>(
+    public init<T: BridgedValue>(
         label: String? = nil,
         name: String,
         type: T.Type,
@@ -45,7 +45,7 @@ extension Value {
     init(returning result: Any) throws {
         switch result {
         case is Void: self = .nothing
-        case let value as any BridgedType: self = value.value
+        case let value as any BridgedValue: self = value.value
         case let data as any Encodable: self = try ValueEncoder().encode(data)
         default: throw SwiitError("can't return a \(type(of: result)) to Swiit; make it Encodable")
         }
@@ -53,19 +53,19 @@ extension Value {
 }
 
 /// What the host checks a parameter's arguments against.
-func swiitParameterType<T: BridgedType>(_ type: T.Type) -> ScriptType { T.scriptType }
-func swiitParameterEnums<T: BridgedType>(_ type: T.Type) -> [Value.EnumCase.Enumeration] {
+func swiitParameterType<T: BridgedValue>(_ type: T.Type) -> ScriptType { T.scriptType }
+func swiitParameterEnums<T: BridgedValue>(_ type: T.Type) -> [Value.EnumCase.Enumeration] {
     T.swiitEnums
 }
 
 /// What a function returns, for signatures and help.
 func swiitReturnType(_ type: Any.Type) -> ScriptType {
-    (type as? any BridgedType.Type)?.scriptType ?? .any
+    (type as? any BridgedValue.Type)?.scriptType ?? .any
 }
 
 /// An argument the macro-generated code converts: a clear message naming
 /// the function and parameter when it doesn't fit.
-func swiitArgument<T: BridgedType>(
+func swiitArgument<T: BridgedValue>(
     _ arguments: Arguments,
     _ name: String,
     of function: String,

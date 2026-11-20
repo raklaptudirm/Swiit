@@ -15,14 +15,14 @@ parameter types are only known at run time, build a ``ImplementedSymbol`` with `
 store it, compare it with `==` and `<`, hash it, and call the members you register. The checker validates those calls before the script runs. A
 piece of text becomes a value of the type through its `parse` function.
 
-A `CaseIterable` Swift enum that conforms to ``BridgedType`` is an enum in scripts: `.dark` is one of its cases, `case .dark:` matches
+A `CaseIterable` Swift enum that conforms to ``BridgedValue`` is an enum in scripts: `.dark` is one of its cases, `case .dark:` matches
 it, `rawValue` is its own, and if it is `Comparable` its cases compare in the order they are declared, as Swift's own `<` does. Registering a type declares every such enum its members take or give, as registering a function declares the
 ones it takes or gives, so a struct with a `shade: Shade` property needs nothing more for scripts to name `Shade`. An enum
 that only declarations in Swift source name is registered on its own, with `register(Shade.self)`.
 
 ## Hand scripts a live object
 
-A class that conforms to ``BridgedType`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
+A class that conforms to ``BridgedValue`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
 the ones its ``HostType/Builder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
 ``DynamicMembers/memberNames`` and ``DynamicMembers/member(_:)``: a parsed object's keys, a job's fields.
 
@@ -35,4 +35,4 @@ marked `@dynamicMemberLookup`, so that `env.HOME` calls its `subscript(dynamicMe
 ## How values cross over
 
 A script sees every argument and result as a ``Value``, and a ``ScriptType`` names its type, such as `.int` or `.list(.string)`.
-``BridgedType`` is the protocol a Swift type adopts to convert to and from `Value`.
+``BridgedValue`` is the protocol a Swift type adopts to convert to and from `Value`.

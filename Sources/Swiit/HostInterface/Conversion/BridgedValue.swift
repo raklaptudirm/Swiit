@@ -1,17 +1,22 @@
 import Foundation
 
 /// A Swift type that crosses into scripts: a host function can take and give it, and scripts can name
-/// it. It says what scripts see of it (`hostType`), what type to check a parameter against
-/// (`scriptType`), and how a `Value` becomes one and one becomes a `Value`.
+/// it. It says how a `Value` becomes one and one becomes a `Value`, what scripts see of the type
+/// (`hostType`) and what type to check a parameter against (`scriptType`).
 ///
-/// A type that is `Sendable` conforms with no more than `extension URL: BridgedType {}`: it is held as
+/// A type that is `Sendable` conforms with no more than `extension URL: BridgedValue {}`: it is held as
 /// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
 /// registered members (`HostType.Builder`) are its members. A type that answers for members it only
 /// knows at run time also conforms to ``DynamicMembers``.
 ///
 /// The bridge generator (`swiit-bridge`), run on a module, writes `hostType` for each type the module
 /// defines for scripts, and the conformance itself for one that does not declare it.
-public protocol BridgedType {
+public protocol BridgedValue {
+    /// The Swift value a script value stands for, or an error saying what was expected instead.
+    init(_ swiitValue: Value) throws
+    /// The script value this Swift value is.
+    var value: Value { get }
+
     /// What scripts see of the type: its name, documentation, members and conformances. The default
     /// is a type of that Swift name with no members; a type with members says them here, and is
     /// registered with ``Interpreter/register(_:)-(HostType)``.
@@ -19,11 +24,9 @@ public protocol BridgedType {
     /// The type a parameter of this type is checked against. For a type held as it is, the type
     /// `hostType` names.
     static var scriptType: ScriptType { get }
-    init(_ swiitValue: Value) throws
-    var value: Value { get }
 }
 
-extension BridgedType {
+extension BridgedValue {
     public static var hostType: HostType { HostType(name: Value.hostName(of: Self.self)) }
 }
 
@@ -32,7 +35,7 @@ extension BridgedType {
 /// by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [Value.EnumCase.Enumeration] { get } }
 
-extension BridgedType {
+extension BridgedValue {
     /// The enums `scriptType` names.
     static var swiitEnums: [Value.EnumCase.Enumeration] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }

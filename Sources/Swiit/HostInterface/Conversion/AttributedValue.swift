@@ -7,4 +7,4 @@ extension Value {
     }
 }
 
-extension AttributedString: BridgedType {}
+extension AttributedString: BridgedValue {}

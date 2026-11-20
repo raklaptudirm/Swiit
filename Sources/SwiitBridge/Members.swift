@@ -107,7 +107,7 @@ struct BridgedMember {
 /// type: it is called by its name alone.
 func bridge(
     _ symbol: Symbol,
-    of original: BridgedType,
+    of original: LoweredHostType,
     given conditions: [Constraint] = [],
     isFree: Bool = false,
     binding bindings: [String: SType] = [:]
@@ -462,7 +462,7 @@ func hasArrayOverload(_ symbol: Symbol, _ declaration: Declaration) -> Bool {
 /// `--specialize` lists.
 func bridgeAll(
     _ symbol: Symbol,
-    of original: BridgedType,
+    of original: LoweredHostType,
     given conditions: [Constraint] = [],
     isFree: Bool = false
 ) throws -> [BridgedMember] {

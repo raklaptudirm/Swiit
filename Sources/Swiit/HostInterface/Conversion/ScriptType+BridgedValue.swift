@@ -4,15 +4,15 @@ import Foundation
 
 extension ScriptType {
     /// The type of a Swift type a script can use: `ScriptType(Int.self)`,
-    /// `ScriptType([String].self)`; any `BridgedType`.
-    public init<T: BridgedType>(_ type: T.Type) {
+    /// `ScriptType([String].self)`; any `BridgedValue`.
+    public init<T: BridgedValue>(_ type: T.Type) {
         self = T.scriptType
     }
 }
 
 extension ScriptType.TupleElement {
     /// An element of a Swift type: `TupleElement(label: "by", type: String.self)`.
-    public init<T: BridgedType>(label: String? = nil, type: T.Type) {
+    public init<T: BridgedValue>(label: String? = nil, type: T.Type) {
         self.init(label: label, type: ScriptType(type))
     }
 }

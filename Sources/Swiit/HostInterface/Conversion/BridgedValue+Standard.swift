@@ -1,12 +1,12 @@
 import Foundation
 
-extension Value: BridgedType {
+extension Value: BridgedValue {
     public static var scriptType: ScriptType { .any }
     public init(_ swiitValue: Value) { self = swiitValue }
     public var value: Value { self }
 }
 
-extension Int: BridgedType {
+extension Int: BridgedValue {
     public static var scriptType: ScriptType { .int }
     public init(_ swiitValue: Value) throws {
         guard case .int(let value) = swiitValue.storage else {
@@ -17,7 +17,7 @@ extension Int: BridgedType {
     public var value: Value { .int(self) }
 }
 
-extension Double: BridgedType {
+extension Double: BridgedValue {
     public static var scriptType: ScriptType { .double }
     public init(_ swiitValue: Value) throws {
         switch swiitValue.storage {
@@ -29,7 +29,7 @@ extension Double: BridgedType {
     public var value: Value { .double(self) }
 }
 
-extension String: BridgedType {
+extension String: BridgedValue {
     public static var scriptType: ScriptType { .string }
     public init(_ swiitValue: Value) throws {
         guard case .string(let value) = swiitValue.storage else {
@@ -40,7 +40,7 @@ extension String: BridgedType {
     public var value: Value { .string(self) }
 }
 
-extension Bool: BridgedType {
+extension Bool: BridgedValue {
     public static var scriptType: ScriptType { .bool }
     public init(_ swiitValue: Value) throws {
         guard case .bool(let value) = swiitValue.storage else {
@@ -51,7 +51,7 @@ extension Bool: BridgedType {
     public var value: Value { .bool(self) }
 }
 
-extension Date: BridgedType {
+extension Date: BridgedValue {
     public static var scriptType: ScriptType { .named("Date") }
     public init(_ swiitValue: Value) throws {
         guard let value = swiitValue.date else { throw SwiitError.expected("Date", swiitValue) }
@@ -60,11 +60,11 @@ extension Date: BridgedType {
     public var value: Value { .date(self) }
 }
 
-extension Array: ValueEnums where Element: BridgedType {}
-extension Dictionary: ValueEnums where Key: BridgedType, Value: BridgedType {}
-extension Optional: ValueEnums where Wrapped: BridgedType {}
+extension Array: ValueEnums where Element: BridgedValue {}
+extension Dictionary: ValueEnums where Key: BridgedValue, Value: BridgedValue {}
+extension Optional: ValueEnums where Wrapped: BridgedValue {}
 
-extension Array: BridgedType where Element: BridgedType {
+extension Array: BridgedValue where Element: BridgedValue {
     public static var scriptType: ScriptType { .list(Element.scriptType) }
     static var enumTypes: [Value.EnumCase.Enumeration] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
@@ -79,7 +79,7 @@ extension Array: BridgedType where Element: BridgedType {
     public var value: Value { .list(map(\.value)) }
 }
 
-extension Dictionary: BridgedType where Key: BridgedType, Value: BridgedType {
+extension Dictionary: BridgedValue where Key: BridgedValue, Value: BridgedValue {
     public static var scriptType: ScriptType { .dictionary(Key.scriptType, Value.scriptType) }
     static var enumTypes: [Swiit.Value.EnumCase.Enumeration] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
@@ -95,7 +95,7 @@ extension Dictionary: BridgedType where Key: BridgedType, Value: BridgedType {
     }
 }
 
-extension Optional: BridgedType where Wrapped: BridgedType {
+extension Optional: BridgedValue where Wrapped: BridgedValue {
     public static var scriptType: ScriptType { .optional(Wrapped.scriptType) }
     static var enumTypes: [Value.EnumCase.Enumeration] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {

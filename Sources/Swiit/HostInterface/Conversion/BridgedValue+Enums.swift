@@ -4,14 +4,10 @@ import Synchronization
 /// A Swift enum without associated values is an enum scripts can use (as a parameter, `volume .high`
 /// or `volume(.high)`, a result, and in `switch`) by saying it converts:
 ///
-///     public enum Level: String, CaseIterable, BridgedType { case low, high }
+///     public enum Level: String, CaseIterable, BridgedValue { case low, high }
 ///
 /// The host learns it by name from the functions that take it.
-extension BridgedType where Self: CaseIterable & Hashable & Sendable {
-    public static var scriptType: ScriptType {
-        .named(Value.EnumCase.Enumeration.of(Self.self).name)
-    }
-
+extension BridgedValue where Self: CaseIterable & Hashable & Sendable {
     public init(_ swiitValue: Value) throws {
         guard case .enumValue(let value) = swiitValue.storage,
             value.type === Value.EnumCase.Enumeration.of(Self.self),
@@ -29,6 +25,10 @@ extension BridgedType where Self: CaseIterable & Hashable & Sendable {
                 name: String(describing: self)
             )
         )
+    }
+
+    public static var scriptType: ScriptType {
+        .named(Value.EnumCase.Enumeration.of(Self.self).name)
     }
 }
 

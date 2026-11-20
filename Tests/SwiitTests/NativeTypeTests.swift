@@ -25,7 +25,7 @@ private func interpreter(
     )
 }
 
-private final class Node: BridgedType, CustomStringConvertible, @unchecked Sendable {
+private final class Node: BridgedValue, CustomStringConvertible, @unchecked Sendable {
     let label: String
     init(_ label: String) { self.label = label }
     var description: String { "Node(\(label))" }
@@ -47,26 +47,26 @@ extension Value {
     fileprivate var mirror: Mirror { Mirror(reflecting: self) }
 }
 
-struct Bytes: Comparable, Hashable, Sendable, BridgedType {
+struct Bytes: Comparable, Hashable, Sendable, BridgedValue {
     var count: Int
     static func < (a: Bytes, b: Bytes) -> Bool { a.count < b.count }
 }
 
-extension URL: BridgedType {}
+extension URL: BridgedValue {}
 
-enum Shade: String, CaseIterable, Comparable, Hashable, Sendable, BridgedType {
+enum Shade: String, CaseIterable, Comparable, Hashable, Sendable, BridgedValue {
     case light, dark
 
     static func < (a: Shade, b: Shade) -> Bool { a == .light && b == .dark }
 }
 
-struct Swatch: Hashable, Sendable, BridgedType {
+struct Swatch: Hashable, Sendable, BridgedValue {
     var shade: Shade
     func flipped() -> Shade { shade == .light ? .dark : .light }
 }
 
 /// A thing: a class, which is equal only to itself, and says its members at run time.
-private final class Pair: BridgedType, DynamicMembers, CustomStringConvertible,
+private final class Pair: BridgedValue, DynamicMembers, CustomStringConvertible,
     CustomDebugStringConvertible,
     @unchecked Sendable
 {
@@ -79,7 +79,7 @@ private final class Pair: BridgedType, DynamicMembers, CustomStringConvertible,
 }
 
 /// Data: a struct, which is equal to another that holds the same.
-private struct DataPair: BridgedType, DynamicMembers, Hashable, CustomStringConvertible,
+private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringConvertible,
     CustomDebugStringConvertible, Sendable
 {
     let a: Int, b: Int
