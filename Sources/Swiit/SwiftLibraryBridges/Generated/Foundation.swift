@@ -6,7 +6,7 @@ import Foundation
 
 
 internal enum FoundationBridge {
-    internal static let types: [HostType] = [
+    internal static let types: [ImplementedType] = [
 
         type29,
         type35,
@@ -175,8 +175,8 @@ let receiver: Date = try selfValue.unboxing(Date.self)
                 return result.value
 })
 
-    fileprivate static let type29: HostType = {
-        var type = HostType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
+    fileprivate static let type29: ImplementedType = {
+        var type = ImplementedType(name: "Date", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
         type.associatedTypes = ["Stride": .double]
@@ -209,8 +209,8 @@ let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments
                 return Value(boxing: result, as: .init(hostType: "AttributedString"))
 }
 
-    fileprivate static let type35: HostType = {
-        var type = HostType(name: "AttributedString", members: [member30, member31, member32, member33, member34])
+    fileprivate static let type35: ImplementedType = {
+        var type = ImplementedType(name: "AttributedString", members: [member30, member31, member32, member33, member34])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string]

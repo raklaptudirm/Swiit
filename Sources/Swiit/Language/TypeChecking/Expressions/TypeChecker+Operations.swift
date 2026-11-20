@@ -43,7 +43,7 @@ extension TypeChecker {
             // index as an overload is (a String's, by String.Index); a list's and a
             // dictionary's are the interpreter's own.
             if let (bridgedType, bindings) = bridged(baseType),
-                bridgedType.members.contains(where: { $0.kind == .method && $0.name == "subscript" }
+                bridgedType.lowered.contains(where: { $0.kind == .method && $0.name == "subscript" }
                 )
             {
                 var arguments = [Argument(value: index)]

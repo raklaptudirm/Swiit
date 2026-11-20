@@ -1,6 +1,6 @@
 import Foundation
 
-// The output: a description of the types (`HostType` and `ImplementedSymbol`), which compiles in any
+// The output: a description of the types (`ImplementedType` and `ImplementedSymbol`), which compiles in any
 // package that imports Swiit.
 
 /// `type` as the `ScriptType` the description's signatures are written in.

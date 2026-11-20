@@ -2,8 +2,8 @@ import Foundation
 
 /// What a host says of a type it offers scripts: a name and its members, and what its Swift type
 /// says of itself. Written with ``Builder`` for a Swift type, or by hand for one a generator
-/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(HostType)``.
-public struct HostType: Sendable {
+/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(ImplementedType)``.
+public struct ImplementedType: Sendable {
     /// What is said of the type: its symbol (a name, documentation and attributes; a host type is
     /// held by value under its Swift name, so it is a structure), its generic parameters, the
     /// protocols its Swift type conforms to of those Swiit knows (`Equatable`, `Hashable`,
@@ -31,6 +31,19 @@ public struct HostType: Sendable {
         set { declaration.associatedTypes = newValue }
     }
     public var members: [ImplementedSymbol]
+    /// What a value of the type is: one of the core's kinds with storage of its own, or a Swift value
+    /// held as it is. The kinds a program declares join these as the type record grows.
+    var representation = Representation.held
+    /// The members as the checker and the interpreter run them, from `members`, when the type is
+    /// registered.
+    var lowered: [BridgedMember] = []
+
+    enum Representation: Sendable {
+        /// One of the kinds the interpreter stores itself, such as a list or a string.
+        case builtin(Value.Builtin)
+        /// A Swift value kept as it is under its Swift name.
+        case held
+    }
     public init(name: String, members: [ImplementedSymbol] = []) {
         declaration = Symbol.TypeDeclaration(name: name)
         self.members = members
@@ -63,7 +76,9 @@ extension Interpreter {
     /// lacks. It gives the type's ID, which is `Symbol.ID(hostType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
-    public func register<T>(_ builder: HostType.Builder<T>) -> Symbol.ID { register(builder.type) }
+    public func register<T>(_ builder: ImplementedType.Builder<T>) -> Symbol.ID {
+        register(builder.type)
+    }
 
     /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
     /// registering a function or a type that takes or gives one does: for an enum that a
@@ -79,8 +94,8 @@ extension Interpreter {
     }
 
     @discardableResult
-    public func register(_ type: HostType) -> Symbol.ID {
-        var bridged = LoweredType(type)
+    public func register(_ type: ImplementedType) -> Symbol.ID {
+        var bridged = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
         if type.conformances["Sequence"] != nil, let element = type.associatedTypes["Element"] {
@@ -116,7 +131,7 @@ extension Interpreter {
         guard let array = Bridge.types["Array"] else { return [] }
         let checker = TypeChecker(interpreter: self)
         let bindings = ["Element": element]
-        return array.members
+        return array.lowered
             .filter {
                 !$0.isStatic && !$0.isMutating && ($0.kind == .method || $0.kind == .property)
                     && !own.contains($0.name)
@@ -161,27 +176,54 @@ extension Interpreter {
     }
 }
 
-extension LoweredType {
-    init(_ type: HostType) {
-        self.init(
-            declaration: type.declaration,
-            members: type.members.flatMap { BridgedMember.members(of: $0, in: type.name) }
-        )
+extension ImplementedType {
+    /// The generic parameters' names, which the checker binds.
+    var genericParameterNames: [String] { declaration.genericParameters.map(\.name) }
+    /// The associated types as the checker writes them.
+    var annotatedAssociatedTypes: [String: TypeAnnotation] {
+        declaration.associatedTypes.mapValues(TypeAnnotation.init)
     }
-}
 
-extension LoweredType {
-    /// A type a generator described, as the bridged types of the core are: its members are
-    /// bridged, not a host's own, so none is called without an interpreter and a host's member of
-    /// the same shape takes its place.
-    init(generated type: HostType) {
-        let made = LoweredType(type)
-        self.init(
-            declaration: made.declaration,
-            members: made.members.map {
+    /// It, with its members lowered. A type of the core is bridged: its members are not a host's own,
+    /// so none is called without an interpreter and a host's member of the same shape takes its place
+    /// (a generated description is one); it is `builtin` if the interpreter stores its values itself.
+    func lowering(ofTheCore core: Bool = false) -> ImplementedType {
+        var made = self
+        made.lowered = members.flatMap { BridgedMember.members(of: $0, in: name) }
+        if core {
+            made.lowered = made.lowered.map {
                 var member = $0; member.plain = nil; return member
             }
-        )
+            made.representation = Value.Builtin(named: name).map(Representation.builtin) ?? .held
+        }
+        return made
+    }
+
+    /// It, with members written by hand too, where the generator can't make them. A host's own member
+    /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
+    /// host says how a type shows; one registered twice is not added again.
+    func adding(_ extra: [BridgedMember]) -> ImplementedType {
+        func same(_ a: BridgedMember, _ b: BridgedMember) -> Bool {
+            a.kind == b.kind && a.name == b.name && a.isStatic == b.isStatic
+                && a.parameters.map(\.label) == b.parameters.map(\.label)
+                && a.parameters.map(\.type) == b.parameters.map(\.type)
+        }
+        let kept = lowered.filter { old in
+            !extra.contains { new in new.plain != nil && old.plain == nil && same(old, new) }
+        }
+        let extra = extra.filter { new in !kept.contains { same($0, new) } }
+        guard !extra.isEmpty || kept.count != lowered.count else { return self }
+        var made = self
+        made.lowered = kept + extra
+        return made
+    }
+
+    /// It, conforming to `protocols` too, whatever its generic parameters are.
+    func conforming(to protocols: [String]) -> ImplementedType {
+        guard !protocols.isEmpty else { return self }
+        var made = self
+        for name in protocols { made.declaration.conformances[name] = [] }
+        return made
     }
 }
 
@@ -382,12 +424,12 @@ extension BridgedMember {
 /// Members are key paths and method references, so each one's types are the compiler's and none is
 /// spelled twice; `member(_:)` takes what those cannot say.
 ///
-///     interpreter.register(HostType.Builder<URL>()
+///     interpreter.register(ImplementedType.Builder<URL>()
 ///         .property("host", \.host)
 ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
-extension HostType {
+extension ImplementedType {
     public struct Builder<T: Sendable>: Sendable {
-        private(set) var type: HostType
+        private(set) var type: ImplementedType
 
         /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
         /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
@@ -396,7 +438,7 @@ extension HostType {
         /// (`ExpressibleByStringLiteral`).
         public init(_ name: String? = nil) {
             let name = name ?? String(describing: T.self)
-            self.type = HostType(name: name)
+            self.type = ImplementedType(name: name)
             type.conformances = Dictionary(
                 uniqueKeysWithValues: Self.conformances().map { ($0, []) }
             )
@@ -627,7 +669,7 @@ extension HostType {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var scriptType: ScriptType { .named(.host(hostType.name)) }
+    public static var scriptType: ScriptType { .named(.host(implementedType.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.

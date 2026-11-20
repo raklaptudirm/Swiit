@@ -319,7 +319,7 @@ extension TypeChecker {
         // like `sorted(by: \.size)`.
         var bridgedError: TypeError?
         if let (bridgedType, bindings) = bridged(base),
-            bridgedType.members.contains(where: {
+            bridgedType.lowered.contains(where: {
                 $0.kind == .method && !$0.isStatic && $0.name == name
             })
         {

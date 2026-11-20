@@ -374,7 +374,7 @@ extension Interpreter {
         case (.member(let name), .object(let box as SwiftValue)):
             // A Swift property with a setter: get it, change it, set it on a copy.
             guard
-                let setter = Bridge.types[box.typeName]?.members
+                let setter = Bridge.types[box.typeName]?.lowered
                     .first(where: { $0.kind == .setter && $0.name == name }),
                 let current = try bridgedProperty(name, of: base)
             else {

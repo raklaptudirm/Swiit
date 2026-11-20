@@ -23,7 +23,7 @@ extension TypeChecker {
         case .bridged(let typeName, let index, var receiver, var arguments):
             // Made by the checker, and typed again when what holds it is (an
             // operator's overloads, each tried): the same type, the same effects.
-            guard let member = Bridge.types[typeName]?.members[index] else { return .unknown }
+            guard let member = Bridge.types[typeName]?.lowered[index] else { return .unknown }
             var bindings: [String: TypeAnnotation] = [:]
             if var base = receiver {
                 // `async let x`'s reads: `x` itself is the task.

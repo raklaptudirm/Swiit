@@ -6,7 +6,7 @@ import SystemPackage
 
 
 internal enum SystemBridge {
-    internal static let types: [HostType] = [
+    internal static let types: [ImplementedType] = [
 
         type32,
         type41,
@@ -235,8 +235,8 @@ let taken = selfValue
                 return .nothing
 }
 
-    fileprivate static let type32: HostType = {
-        var type = HostType(name: "FilePath", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31])
+    fileprivate static let type32: ImplementedType = {
+        var type = ImplementedType(name: "FilePath", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = [:]
@@ -288,8 +288,8 @@ let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.sel
                 return result.value
 })
 
-    fileprivate static let type41: HostType = {
-        var type = HostType(name: "FilePath.Component", members: [member33, member34, member35, member36, member37, member38, member39, member40])
+    fileprivate static let type41: ImplementedType = {
+        var type = ImplementedType(name: "FilePath.Component", members: [member33, member34, member35, member36, member37, member38, member39, member40])
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = [:]
@@ -626,8 +626,8 @@ let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.Component
                 return (result.map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } ?? .nothing)
 })
 
-    fileprivate static let type86: HostType = {
-        var type = HostType(name: "FilePath.ComponentView", members: [member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85])
+    fileprivate static let type86: ImplementedType = {
+        var type = ImplementedType(name: "FilePath.ComponentView", members: [member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85])
         type.genericParameters = []
         type.conformances = ["BidirectionalCollection": [], "Collection": [], "Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []]
         type.associatedTypes = ["Element": .named(.init(hostType: "FilePath.Component"))]

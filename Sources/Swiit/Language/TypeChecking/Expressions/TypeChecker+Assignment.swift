@@ -108,13 +108,13 @@ extension TypeChecker {
                     type = .unknown
                 } else if case .member(let name) = assignment.path[index],
                     let (bridgedType, bindings) = bridged(type),
-                    bridgedType.members.contains(where: {
+                    bridgedType.lowered.contains(where: {
                         $0.kind == .property && !$0.isStatic && $0.name == name
                     })
                 {
                     // `p.extension = "md"`: a Swift property with a setter.
                     guard
-                        let setter = bridgedType.members.first(where: {
+                        let setter = bridgedType.lowered.first(where: {
                             $0.kind == .setter && $0.name == name
                         })
                     else {

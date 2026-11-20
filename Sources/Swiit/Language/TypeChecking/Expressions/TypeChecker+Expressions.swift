@@ -144,7 +144,7 @@ extension TypeChecker {
                 return .metatype(TypeAnnotation.spelled(typeName) ?? .named(typeName))
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).
-                let value = Bridge.types["Task"]!.members
+                let value = Bridge.types["Task"]!.lowered
                     .firstIndex { $0.kind == .property && !$0.isStatic && $0.name == "value" }!
                 expr = .bridged(
                     type: "Task",

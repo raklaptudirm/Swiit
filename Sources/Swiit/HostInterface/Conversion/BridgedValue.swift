@@ -2,14 +2,14 @@ import Foundation
 
 /// A Swift type that crosses into scripts: a host function can take and give it, and scripts can name
 /// it. It says how a `Value` becomes one and one becomes a `Value`, what scripts see of the type
-/// (`hostType`) and what type to check a parameter against (`scriptType`).
+/// (`implementedType`) and what type to check a parameter against (`scriptType`).
 ///
 /// A type that is `Sendable` conforms with no more than `extension URL: BridgedValue {}`: it is held as
 /// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
-/// registered members (`HostType.Builder`) are its members. A type that answers for members it only
+/// registered members (`ImplementedType.Builder`) are its members. A type that answers for members it only
 /// knows at run time also conforms to ``DynamicMembers``.
 ///
-/// The bridge generator (`swiit-bridge`), run on a module, writes `hostType` for each type the module
+/// The bridge generator (`swiit-bridge`), run on a module, writes `implementedType` for each type the module
 /// defines for scripts, and the conformance itself for one that does not declare it.
 public protocol BridgedValue {
     /// The Swift value a script value stands for, or an error saying what was expected instead.
@@ -19,15 +19,17 @@ public protocol BridgedValue {
 
     /// What scripts see of the type: its name, documentation, members and conformances. The default
     /// is a type of that Swift name with no members; a type with members says them here, and is
-    /// registered with ``Interpreter/register(_:)-(HostType)``.
-    static var hostType: HostType { get }
+    /// registered with ``Interpreter/register(_:)-(ImplementedType)``.
+    static var implementedType: ImplementedType { get }
     /// The type a parameter of this type is checked against. For a type held as it is, the type
-    /// `hostType` names.
+    /// `implementedType` names.
     static var scriptType: ScriptType { get }
 }
 
 extension BridgedValue {
-    public static var hostType: HostType { HostType(name: Value.hostName(of: Self.self)) }
+    public static var implementedType: ImplementedType {
+        ImplementedType(name: Value.hostName(of: Self.self))
+    }
 }
 
 /// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their

@@ -491,7 +491,7 @@ extension Interpreter {
                 .annotated(let inner, _), .voidValue(let inner):
                 expression = inner
             case .bridged(let type, let member, _, _):
-                guard let found = Bridge.types[type]?.members[member] else { return nil }
+                guard let found = Bridge.types[type]?.lowered[member] else { return nil }
                 return bridgedSymbol(found, checker: TypeChecker(interpreter: self))
             case .call:
                 return task.lastCallee.map { symbol(of: $0, named: "closure") }

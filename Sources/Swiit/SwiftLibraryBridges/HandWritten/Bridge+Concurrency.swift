@@ -34,9 +34,9 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    static let concurrency: [LoweredType] = ([taskType] + taskGroupTypes)
+    static let concurrency: [ImplementedType] = ([taskType] + taskGroupTypes)
         .map {
-            LoweredType(generated: $0)
+            $0.lowering(ofTheCore: true)
         }
 
     private static func task(_ value: Value) throws -> ScriptTask {
@@ -57,8 +57,8 @@ extension Bridge {
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
 
-    private static let taskType: HostType = {
-        var type = HostType(name: "Task", members: taskMembers)
+    private static let taskType: ImplementedType = {
+        var type = ImplementedType(name: "Task", members: taskMembers)
         type.genericParameters = ["Success", "Failure"]
         type.conformances = ["Hashable": [], "Equatable": []]
         return type

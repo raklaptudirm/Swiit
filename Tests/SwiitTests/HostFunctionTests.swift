@@ -72,7 +72,7 @@ private final class Log: @unchecked Sendable {
 
 @Test func aSubscriptOfAHostTypeIsAMemberNamedSubscript() throws {
     let swiit = Interpreter()
-    var type = HostType(
+    var type = ImplementedType(
         name: "Ruler",
         members: [
             .initializer(

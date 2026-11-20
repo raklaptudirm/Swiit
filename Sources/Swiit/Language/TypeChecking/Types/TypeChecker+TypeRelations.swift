@@ -271,7 +271,7 @@ extension TypeChecker {
 
     func elementType(of type: TypeAnnotation, async: Bool = false) throws -> TypeAnnotation {
         if case .named(let name) = type,
-            let element = Bridge.types[name]?.associatedTypes["Element"]
+            let element = Bridge.types[name]?.annotatedAssociatedTypes["Element"]
         {
             return element
         }
@@ -280,7 +280,7 @@ extension TypeChecker {
             // What `for await` reads: an AsyncSequence of the bridged types (a task group).
             if let (bridgedType, bindings) = bridged(type),
                 bridgedType.conformances["AsyncSequence"] != nil,
-                let element = bridgedType.associatedTypes["Element"]
+                let element = bridgedType.annotatedAssociatedTypes["Element"]
             {
                 return substitute(element, bindings)
             }

@@ -237,9 +237,9 @@ extension Interpreter {
         // A bridged Swift type's.
         if let (bridgedType, bindings) = checker.bridged(type) {
             let settable = Set(
-                bridgedType.members.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
+                bridgedType.lowered.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
             )
-            for member in bridgedType.members
+            for member in bridgedType.lowered
             where member.kind != .setter && (name == nil || name == member.name) {
                 found.append(
                     bridgedSymbol(

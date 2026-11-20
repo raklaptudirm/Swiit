@@ -102,9 +102,9 @@ extension Bridge {
         try SwiftValue.unbox(TaskGroupBox.self, value)
     }
 
-    private static func groupType(_ name: String, isThrowing: Bool) -> HostType {
+    private static func groupType(_ name: String, isThrowing: Bool) -> ImplementedType {
         let element = ScriptType.parameter("ChildTaskResult")
-        var type = HostType(
+        var type = ImplementedType(
             name: name,
             members: [
                 .method(
@@ -165,7 +165,7 @@ extension Bridge {
         return type
     }
 
-    static let taskGroupTypes: [HostType] = [
+    static let taskGroupTypes: [ImplementedType] = [
         groupType("TaskGroup", isThrowing: false), groupType("ThrowingTaskGroup", isThrowing: true),
     ]
 

@@ -192,7 +192,9 @@ extension TypeChecker {
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
     func selfType(ofExtensionOf key: String) throws -> TypeAnnotation {
-        if let builtin = Value.Builtin(named: key) { return builtin.annotation }
+        if case .builtin(let builtin)? = Bridge.types[key]?.representation {
+            return builtin.annotation
+        }
         if structInfo(named: key) != nil || enumInfo(named: key) != nil
             || protocolInfo(named: key) != nil
         {
@@ -306,7 +308,7 @@ extension TypeChecker {
         if describe(type)?.instanceMember(name) != nil { return true }
         if case .named = type { return false }
         if let (bridgedType, _) = bridged(type) {
-            return bridgedType.members.contains { !$0.isStatic && $0.name == name }
+            return bridgedType.lowered.contains { !$0.isStatic && $0.name == name }
         }
         return false
     }

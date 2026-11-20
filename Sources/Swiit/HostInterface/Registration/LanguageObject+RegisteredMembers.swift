@@ -6,7 +6,7 @@ extension LanguageObject {
     /// The registered members of its type, unless it says.
     var memberNames: [String] {
         var seen = Set<String>()
-        return (Bridge.types[typeName]?.members ?? [])
+        return (Bridge.types[typeName]?.lowered ?? [])
             .filter { !$0.isStatic && ($0.kind == .method || $0.kind == .property) }
             .map(\.name).filter { seen.insert($0).inserted }
     }
@@ -15,7 +15,7 @@ extension LanguageObject {
     /// object.
     func member(_ name: String) -> Value? {
         guard
-            let member = Bridge.types[typeName]?.members
+            let member = Bridge.types[typeName]?.lowered
                 .first(where: { $0.name == name && !$0.isStatic && !$0.isMutating }),
             let plain = member.plain
         else { return nil }

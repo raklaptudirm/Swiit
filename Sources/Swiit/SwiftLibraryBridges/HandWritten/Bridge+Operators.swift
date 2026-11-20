@@ -11,7 +11,7 @@ extension Bridge {
         var seen: Set<String> = []
         return typeNames.filter { seen.insert($0).inserted }
             .flatMap { name in
-                (types[name]?.members ?? [])
+                (types[name]?.lowered ?? [])
                     .filter {
                         $0.isStatic && $0.kind == .method && $0.name == symbol
                             && $0.parameters.count == arity

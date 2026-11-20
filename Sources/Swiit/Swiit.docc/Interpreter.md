@@ -20,7 +20,7 @@
 ### Registering functions, types and globals
 
 - ``register(_:)-(ImplementedSymbol)``
-- ``register(_:)-(HostType.Builder<T>)``
+- ``register(_:)-(ImplementedType.Builder<T>)``
 - ``register(_:)-(E.Type)``
 - ``register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)``
 - ``register(_:labels:throwing:_:)-(_,_,_,(Argument)->Void)``
