@@ -312,3 +312,16 @@ private struct Point: Encodable { var x: Int }
     #expect(typed.description == "(Int) throws(MyError) -> Int")
     #expect(plain != throwing && throwing != typed)
 }
+
+@Test func aHostTypeSaysWhatItIsWithItsSymbol() {
+    let swiit = interpreter()
+    var gizmo = HostType(name: "Gizmo")
+    gizmo.symbol.summary = "A thing the host offers."
+    swiit.register(gizmo)
+
+    let described = swiit.types.first { $0.name == "Gizmo" }
+
+    #expect(gizmo.name == "Gizmo")
+    #expect(described?.summary == "A thing the host offers.")
+    #expect(described?.kind == .type(.structure))
+}

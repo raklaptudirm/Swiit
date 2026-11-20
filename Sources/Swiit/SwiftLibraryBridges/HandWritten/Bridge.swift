@@ -109,8 +109,9 @@ final class BridgedTypeName: LanguageObject, @unchecked Sendable {
 }
 
 struct LoweredType: Sendable {
-    /// `String`, `Substring`, `Array`.
-    let name: String
+    /// What a script sees of the type: `String`, `Substring`, `Array`, with its documentation.
+    let symbol: Symbol
+    var name: String { symbol.name }
     /// A generic type's parameters: `Element` for Array.
     let genericParameters: [String]
     /// The protocols it conforms to, of those Swiit knows, each with what
@@ -175,7 +176,7 @@ struct LoweredType: Sendable {
         let extra = extra.filter { new in !kept.contains { same($0, new) } }
         guard !extra.isEmpty || kept.count != members.count else { return self }
         return LoweredType(
-            name: name,
+            symbol: symbol,
             genericParameters: genericParameters,
             conformances: conformances,
             associatedTypes: associatedTypes,
@@ -192,7 +193,7 @@ struct LoweredType: Sendable {
         var all = conformances
         for name in protocols { all[name] = [] }
         return LoweredType(
-            name: name,
+            symbol: symbol,
             genericParameters: genericParameters,
             conformances: all,
             associatedTypes: associatedTypes,
@@ -204,7 +205,7 @@ struct LoweredType: Sendable {
     }
 
     init(
-        name: String,
+        symbol: Symbol,
         genericParameters: [String],
         conformances: [String: [GenericParameter]],
         associatedTypes: [String: TypeAnnotation],
@@ -213,7 +214,7 @@ struct LoweredType: Sendable {
         arrayLiteral: (@Sendable ([Value]) -> Value)? = nil,
         members: [BridgedMember]
     ) {
-        self.name = name
+        self.symbol = symbol
         self.genericParameters = genericParameters
         self.conformances = conformances
         self.associatedTypes = associatedTypes

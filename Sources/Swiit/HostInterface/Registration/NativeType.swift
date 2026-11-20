@@ -4,7 +4,16 @@ import Foundation
 /// says of itself. Written with ``Builder`` for a Swift type, or by hand for one a generator
 /// describes, and made a type scripts can use by ``Interpreter/register(_:)-(HostType)``.
 public struct HostType: Sendable {
-    public var name: String
+    /// What a script sees of the type: its name, documentation and attributes. A host type is held
+    /// by value under its Swift name, so it is a structure.
+    public var symbol: Symbol
+    public var name: String {
+        get { symbol.name }
+        set {
+            symbol.name = newValue
+            symbol.id = .host(newValue)
+        }
+    }
     /// A generic type's parameters, `Element` for an array, each with what it must be.
     public var genericParameters: [Symbol.GenericParameter] = []
     public var members: [ImplementedSymbol]
@@ -24,7 +33,8 @@ public struct HostType: Sendable {
     public var arrayLiteral: (@Sendable ([Value]) -> Value)?
 
     public init(name: String, members: [ImplementedSymbol] = []) {
-        self.name = name
+        symbol = Symbol(name: name, kind: .type(.structure))
+        symbol.id = .host(name)
         self.members = members
     }
 }
@@ -156,7 +166,7 @@ extension Interpreter {
 extension LoweredType {
     init(_ type: HostType) {
         self.init(
-            name: type.name,
+            symbol: type.symbol,
             genericParameters: type.genericParameters.map(\.name),
             conformances: type.conformances,
             associatedTypes: type.associatedTypes.mapValues(TypeAnnotation.init),
@@ -175,7 +185,7 @@ extension LoweredType {
     init(generated type: HostType) {
         let made = LoweredType(type)
         self.init(
-            name: made.name,
+            symbol: made.symbol,
             genericParameters: made.genericParameters,
             conformances: made.conformances,
             associatedTypes: made.associatedTypes,
