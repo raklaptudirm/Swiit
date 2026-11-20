@@ -74,6 +74,35 @@ extension Interpreter {
         }
     }
 
+    /// What is said of the type named `name`: a type the program declares, a type a host offers or a
+    /// type the core bridges are described the same way. Nil if no type has that name.
+    public func declaration(ofType name: String) -> Symbol.TypeDeclaration? {
+        withMainTask {
+            if case .object(let type as any DeclaredType)? = lookup(name)?.value.storage {
+                var declaration = Symbol.TypeDeclaration(symbol: typeSymbol(named: name, type))
+                for protocolName in declaredConformances(of: type) {
+                    declaration.conformances[protocolName] = []
+                }
+                return declaration
+            }
+            return Bridge.types[name]?.declaration
+        }
+    }
+
+    /// The protocols a declared type says it conforms to, and extensions gave it.
+    private func declaredConformances(of type: any DeclaredType) -> [String] {
+        let declared: [String]
+        switch type {
+        case let structType as StructType: declared = structType.conformances
+        case let enumType as Value.EnumCase.Enumeration:
+            declared = enumConformances[ObjectIdentifier(enumType)] ?? []
+        case let classType as ClassType: declared = classType.allConformances
+        case let protocolType as ProtocolType: declared = protocolType.inherited
+        default: declared = []
+        }
+        return conformances(ofTypeNamed: type.id.name, declared: declared)
+    }
+
     /// A declared type as a symbol.
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
         let kind: Symbol.Kind =

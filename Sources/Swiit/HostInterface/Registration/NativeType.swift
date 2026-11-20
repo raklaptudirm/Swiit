@@ -4,25 +4,33 @@ import Foundation
 /// says of itself. Written with ``Builder`` for a Swift type, or by hand for one a generator
 /// describes, and made a type scripts can use by ``Interpreter/register(_:)-(HostType)``.
 public struct HostType: Sendable {
-    /// What a script sees of the type: its name, documentation and attributes. A host type is held
-    /// by value under its Swift name, so it is a structure.
-    public var symbol: Symbol
-    public var name: String {
-        get { symbol.name }
-        set {
-            symbol.name = newValue
-            symbol.id = .host(newValue)
-        }
+    /// What is said of the type: its symbol (a name, documentation and attributes; a host type is
+    /// held by value under its Swift name, so it is a structure), its generic parameters, the
+    /// protocols its Swift type conforms to of those Swiit knows (`Equatable`, `Hashable`,
+    /// `Comparable`, `Sequence`) and its associated types. A builder finds the conformances from the
+    /// type.
+    public var declaration: Symbol.TypeDeclaration
+    public var symbol: Symbol {
+        get { declaration.symbol }
+        set { declaration.symbol = newValue }
     }
-    /// A generic type's parameters, `Element` for an array, each with what it must be.
-    public var genericParameters: [Symbol.GenericParameter] = []
+    public var name: String {
+        get { declaration.name }
+        set { declaration.name = newValue }
+    }
+    public var genericParameters: [Symbol.GenericParameter] {
+        get { declaration.genericParameters }
+        set { declaration.genericParameters = newValue }
+    }
+    public var conformances: [String: [Symbol.GenericParameter]] {
+        get { declaration.conformances }
+        set { declaration.conformances = newValue }
+    }
+    public var associatedTypes: [String: ScriptType] {
+        get { declaration.associatedTypes }
+        set { declaration.associatedTypes = newValue }
+    }
     public var members: [ImplementedSymbol]
-    /// The protocols its Swift type conforms to, of those Swiit knows (`Equatable`, `Hashable`,
-    /// `Comparable`, `Sequence`), each with what its generic parameters must be for it: a
-    /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`. A builder finds them from the type.
-    public var conformances: [String: [Symbol.GenericParameter]] = [:]
-    /// What its associated types are: `Element` is `String` for a sequence of text.
-    public var associatedTypes: [String: ScriptType] = [:]
     /// A value from text, where text gives a word and the type is wanted.
     public var parse: (@Sendable (String) -> Value?)?
     /// A value from a text literal, where a script writes `"…"` and the type is wanted
@@ -33,8 +41,7 @@ public struct HostType: Sendable {
     public var arrayLiteral: (@Sendable ([Value]) -> Value)?
 
     public init(name: String, members: [ImplementedSymbol] = []) {
-        symbol = Symbol(name: name, kind: .type(.structure))
-        symbol.id = .host(name)
+        declaration = Symbol.TypeDeclaration(name: name)
         self.members = members
     }
 }
@@ -166,10 +173,7 @@ extension Interpreter {
 extension LoweredType {
     init(_ type: HostType) {
         self.init(
-            symbol: type.symbol,
-            genericParameters: type.genericParameters.map(\.name),
-            conformances: type.conformances,
-            associatedTypes: type.associatedTypes.mapValues(TypeAnnotation.init),
+            declaration: type.declaration,
             parse: type.parse,
             literal: type.literal,
             arrayLiteral: type.arrayLiteral,
@@ -185,10 +189,7 @@ extension LoweredType {
     init(generated type: HostType) {
         let made = LoweredType(type)
         self.init(
-            symbol: made.symbol,
-            genericParameters: made.genericParameters,
-            conformances: made.conformances,
-            associatedTypes: made.associatedTypes,
+            declaration: made.declaration,
             parse: made.parse,
             literal: made.literal,
             arrayLiteral: made.arrayLiteral,

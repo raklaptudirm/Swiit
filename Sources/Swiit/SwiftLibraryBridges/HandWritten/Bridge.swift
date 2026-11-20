@@ -109,17 +109,17 @@ final class BridgedTypeName: LanguageObject, @unchecked Sendable {
 }
 
 struct LoweredType: Sendable {
-    /// What a script sees of the type: `String`, `Substring`, `Array`, with its documentation.
-    let symbol: Symbol
-    var name: String { symbol.name }
-    /// A generic type's parameters: `Element` for Array.
-    let genericParameters: [String]
-    /// The protocols it conforms to, of those Swiit knows, each with what
-    /// its generic parameters must be for it: a ClosedRange is a Sequence
-    /// when its Bound is Int (`["Bound": ["=Int"]]`).
-    let conformances: [String: [GenericParameter]]
-    /// Its associated types: `Element` is `Character` for String.
-    let associatedTypes: [String: TypeAnnotation]
+    /// What is said of the type: `String`, `Substring`, `Array`, with its documentation, its generic
+    /// parameters, the protocols it conforms to (a ClosedRange is a Sequence when its Bound is Int)
+    /// and its associated types (`Element` is `Character` for String).
+    let declaration: Symbol.TypeDeclaration
+    var symbol: Symbol { declaration.symbol }
+    var name: String { declaration.name }
+    var genericParameters: [String] { declaration.genericParameters.map(\.name) }
+    var conformances: [String: [GenericParameter]] { declaration.conformances }
+    var associatedTypes: [String: TypeAnnotation] {
+        declaration.associatedTypes.mapValues(TypeAnnotation.init)
+    }
     /// Text as one, through the type's failable initializer from text
     /// (`Int("42")`); nil if the text isn't one.
     var parse: (@Sendable (String) -> Value?)?
@@ -176,10 +176,7 @@ struct LoweredType: Sendable {
         let extra = extra.filter { new in !kept.contains { same($0, new) } }
         guard !extra.isEmpty || kept.count != members.count else { return self }
         return LoweredType(
-            symbol: symbol,
-            genericParameters: genericParameters,
-            conformances: conformances,
-            associatedTypes: associatedTypes,
+            declaration: declaration,
             parse: parse,
             literal: literal,
             arrayLiteral: arrayLiteral,
@@ -190,13 +187,10 @@ struct LoweredType: Sendable {
     /// It, conforming to `protocols` too, whatever its generic parameters are.
     func conforming(to protocols: [String]) -> LoweredType {
         guard !protocols.isEmpty else { return self }
-        var all = conformances
-        for name in protocols { all[name] = [] }
+        var changed = declaration
+        for name in protocols { changed.conformances[name] = [] }
         return LoweredType(
-            symbol: symbol,
-            genericParameters: genericParameters,
-            conformances: all,
-            associatedTypes: associatedTypes,
+            declaration: changed,
             parse: parse,
             literal: literal,
             arrayLiteral: arrayLiteral,
@@ -205,19 +199,13 @@ struct LoweredType: Sendable {
     }
 
     init(
-        symbol: Symbol,
-        genericParameters: [String],
-        conformances: [String: [GenericParameter]],
-        associatedTypes: [String: TypeAnnotation],
+        declaration: Symbol.TypeDeclaration,
         parse: (@Sendable (String) -> Value?)? = nil,
         literal: (@Sendable (String) -> Value?)? = nil,
         arrayLiteral: (@Sendable ([Value]) -> Value)? = nil,
         members: [BridgedMember]
     ) {
-        self.symbol = symbol
-        self.genericParameters = genericParameters
-        self.conformances = conformances
-        self.associatedTypes = associatedTypes
+        self.declaration = declaration
         self.parse = parse
         self.literal = literal
         self.arrayLiteral = arrayLiteral

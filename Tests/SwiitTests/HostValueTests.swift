@@ -325,3 +325,21 @@ private struct Point: Encodable { var x: Int }
     #expect(described?.summary == "A thing the host offers.")
     #expect(described?.kind == .type(.structure))
 }
+
+@Test func aDeclaredTypeAndAHostTypeAreDescribedTheSameWay() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Point: Equatable { var x: Int }")
+    var widget = HostType(name: "Widget")
+    widget.conformances = ["Hashable": []]
+    swiit.register(widget)
+
+    let declared = try #require(swiit.declaration(ofType: "Point"))
+    let hosted = try #require(swiit.declaration(ofType: "Widget"))
+    let bridged = try #require(swiit.declaration(ofType: "String"))
+
+    #expect(declared.symbol.kind == .type(.structure))
+    #expect(declared.conformances.keys.contains("Equatable"))
+    #expect(hosted.conformances.keys.contains("Hashable"))
+    #expect(bridged.conformances.keys.contains("Collection"))
+    #expect(swiit.declaration(ofType: "Nothing") == nil)
+}
