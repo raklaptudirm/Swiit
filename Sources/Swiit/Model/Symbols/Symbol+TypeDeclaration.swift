@@ -21,14 +21,14 @@ extension Symbol {
         /// A type held by value under its name, as a host's is: a structure.
         public init(name: String) {
             symbol = Symbol(name: name, kind: .type(.structure))
-            symbol.id = .host(name)
+            symbol.typeRef = .host(name)
         }
 
         public var name: String {
             get { symbol.name }
             set {
                 symbol.name = newValue
-                symbol.id = .host(newValue)
+                symbol.typeRef = .host(newValue)
             }
         }
     }

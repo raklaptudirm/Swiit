@@ -7,7 +7,7 @@ import Synchronization
 /// Names a type, or stands where one would be: what `register` gives back, what
 /// `TypeRef(named:in:)` finds, what `Value.typeRef` has, and what `ScriptType.named` and
 /// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
-/// `TypeRef(named:in:)`, `Symbol.id`, a value's `typeRef`), and mints one only for a Swift type it
+/// `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`), and mints one only for a Swift type it
 /// registers (`init(hostType:)`).
 ///
 /// A reference is one of three kinds:
@@ -105,5 +105,5 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
 
     /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
     /// conformance would offer to every host.
-    static func ~= (name: String, id: TypeRef) -> Bool { id.name == name }
+    static func ~= (name: String, reference: TypeRef) -> Bool { reference.name == name }
 }

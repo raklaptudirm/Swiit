@@ -4,7 +4,7 @@ import Foundation
 /// A class a program declares.
 final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
-    let id: TypeRef
+    let typeRef: TypeRef
     let superclass: ClassType?
     let isActor: Bool
     /// Stored properties this class declares, in order, and their defaults.
@@ -35,7 +35,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         conformances: [String]
     ) {
         self.name = name
-        self.id = .declare(name)
+        self.typeRef = .declare(name)
         self.superclass = superclass
         self.isActor = isActor
         self.stored = stored

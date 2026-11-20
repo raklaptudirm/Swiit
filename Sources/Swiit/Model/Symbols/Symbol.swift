@@ -42,7 +42,7 @@ public struct Symbol: Sendable, Hashable {
     public var isBuiltin = false
     /// The type's reference, for a type. Nil for any other symbol, and for a type described by `check`
     /// before the source is run, which declares nothing yet.
-    public internal(set) var id: TypeRef?
+    public internal(set) var typeRef: TypeRef?
 
     public init(
         name: String,
@@ -85,7 +85,7 @@ public struct Symbol: Sendable, Hashable {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
         case .variable, .member(.property): variable!.type
-        case .type: .named(id ?? .host(name))
+        case .type: .named(typeRef ?? .host(name))
         case .member(.enumCase): .any
         }
     }

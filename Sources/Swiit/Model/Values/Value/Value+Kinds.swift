@@ -56,8 +56,8 @@ extension Value {
             }
         case .named(let name, _):
             switch self.storage {
-            case .structure(let structure): return structure.id == name
-            case .enumValue(let value): return value.type.id == name
+            case .structure(let structure): return structure.typeRef == name
+            case .enumValue(let value): return value.type.typeRef == name
             case .object: return typeRef == name
             default: return false
             }

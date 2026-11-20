@@ -9,8 +9,8 @@ extension TypeRef {
     /// the core bridges. Nil when there is none. A host asks once, after loading the source that
     /// declares the type, and keeps the answer.
     public init?(named name: String, in interpreter: Interpreter) {
-        guard let id = interpreter.typeRef(named: name) else { return nil }
-        self = id
+        guard let found = interpreter.typeRef(named: name) else { return nil }
+        self = found
     }
 
     /// What the reference names: a script's declaration (even one a later declaration of the same name

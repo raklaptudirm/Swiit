@@ -18,11 +18,11 @@ extension Value {
         case .list: .array
         case .dictionary: .dictionary
         case .tuple, .function: nil
-        case .structure(let structure): structure.id
-        case .enumValue(let value): value.type.id
+        case .structure(let structure): structure.typeRef
+        case .enumValue(let value): value.type.typeRef
         case .object(let object):
             if let instance = object as? ClassInstance {
-                instance.type.id
+                instance.type.typeRef
             } else if let box = object as? SwiftValue {
                 .host(box.typeName)
             } else if object is any LanguageObject {
@@ -39,20 +39,20 @@ extension Value {
     /// instance of a type a script declares of the same name, which members and display already
     /// treat it as. A protocol it conforms to is not asked here, since that takes an
     /// interpreter: `ScriptType.conforms(to:in:)` is.
-    public func isInstance(of id: TypeRef) -> Bool {
-        if id == .any { return true }
-        if case .function = self.storage { return id == .function }
+    public func isInstance(of expected: TypeRef) -> Bool {
+        if expected == .any { return true }
+        if case .function = self.storage { return expected == .function }
         guard let own = typeRef else { return false }
-        if own == id { return true }
+        if own == expected { return true }
         if case .structure(let structure) = self.storage, case .host = own.kind,
-            case .declared = id.kind, structure.typeName == id.name
+            case .declared = expected.kind, structure.typeName == expected.name
         {
             return true
         }
         if case .object(let object) = self.storage, let instance = object as? ClassInstance {
             var type = instance.type.superclass
             while let current = type {
-                if current.id == id { return true }
+                if current.typeRef == expected { return true }
                 type = current.superclass
             }
         }

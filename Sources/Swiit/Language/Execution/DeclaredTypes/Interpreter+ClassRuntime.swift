@@ -199,7 +199,7 @@ extension Interpreter {
                 )
             )
         }
-        declaredTypes[type.id] = type
+        declaredTypes[type.typeRef] = type
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
         // Bound first, so a static value can be made of the class itself.
         for property in members.staticProperties where property.getter == nil {

@@ -100,7 +100,7 @@ extension Interpreter {
         case let protocolType as ProtocolType: declared = protocolType.inherited
         default: declared = []
         }
-        return conformances(ofTypeNamed: type.id.name, declared: declared)
+        return conformances(ofTypeNamed: type.typeRef.name, declared: declared)
     }
 
     /// A declared type as a symbol.
@@ -113,7 +113,7 @@ extension Interpreter {
             default: .type(.protocol)
             }
         var symbol = Symbol(name: name, kind: kind)
-        symbol.id = type.id
+        symbol.typeRef = type.typeRef
         return symbol
     }
 

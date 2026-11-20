@@ -154,12 +154,12 @@ extension Value {
         /// A struct value of a Swift type, by name.
         init(typeName: String) { record = Value.Record(typeName: typeName) }
 
-        /// A struct value of the type `id` names.
-        init(id: TypeRef) { record = Value.Record(typeRef: id) }
+        /// A struct value of the type `typeRef` names.
+        init(typeRef: TypeRef) { record = Value.Record(typeRef: typeRef) }
 
         /// What type it is a value of. A struct a program declares has that declaration's reference; one
         /// from a Swift value (`FileEntry`) has a host reference.
-        var id: TypeRef { record.typeRef! }
+        var typeRef: TypeRef { record.typeRef! }
 
         /// The type's name, which picks how it's displayed.
         var typeName: String { record.typeName ?? "" }

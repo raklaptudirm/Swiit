@@ -67,7 +67,7 @@ extension Interpreter {
     func scriptType(_ annotation: TypeAnnotation) -> ScriptType {
         ScriptType(annotation) { name in
             guard case .object(let object)? = self.lookup(name)?.value.storage else { return nil }
-            return (object as? any DeclaredType)?.id
+            return (object as? any DeclaredType)?.typeRef
         }
     }
 }

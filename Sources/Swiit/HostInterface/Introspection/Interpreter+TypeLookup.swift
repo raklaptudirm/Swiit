@@ -6,36 +6,37 @@ import Synchronization
 
 extension Interpreter {
     func typeRef(named name: String) -> TypeRef? {
-        (globals(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
+        (globals(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.typeRef).first
     }
 
-    func symbol(for id: TypeRef) -> Symbol? {
+    func symbol(for typeRef: TypeRef) -> Symbol? {
         withMainTask {
-            switch id.kind {
+            switch typeRef.kind {
             case .declared:
-                declaredTypes[id].map { typeSymbol(named: id.name, $0) }
+                declaredTypes[typeRef].map { typeSymbol(named: typeRef.name, $0) }
             case .host:
-                types.first { $0.id == id }
+                types.first { $0.typeRef == typeRef }
             case .parameter:
                 nil
             }
         }
     }
 
-    /// Whether `id` still means what it did: a declared reference whose declaration is no longer the one
+    /// Whether `typeRef` still means what it did: a declared reference whose declaration is no longer the one
     /// its name means (another `struct Point` was declared since) has gone stale, and a type
     /// written with it is not the type its name means now.
-    func isCurrent(_ id: TypeRef) -> Bool {
-        guard case .declared = id.kind else { return true }
-        guard case .object(let object)? = lookup(id.name)?.value.storage else { return false }
-        return (object as? any DeclaredType)?.id == id
+    func isCurrent(_ typeRef: TypeRef) -> Bool {
+        guard case .declared = typeRef.kind else { return true }
+        guard case .object(let object)? = lookup(typeRef.name)?.value.storage else { return false }
+        return (object as? any DeclaredType)?.typeRef == typeRef
     }
 
     /// A type as the checker reads it, or nil when it names a declared type that has gone stale.
     func annotation(_ type: ScriptType) -> TypeAnnotation? {
         func current(_ type: ScriptType) -> Bool {
             switch type {
-            case .named(let id, let arguments): isCurrent(id) && arguments.allSatisfy(current)
+            case .named(let typeRef, let arguments):
+                isCurrent(typeRef) && arguments.allSatisfy(current)
             case .function(let function):
                 function.parameters.allSatisfy(current) && current(function.returns)
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
@@ -60,7 +61,7 @@ extension Interpreter {
                         var symbol =
                             Bridge.types[name]?.symbol
                             ?? Symbol(name: name, kind: .type(.structure))
-                        symbol.id = .host(name)
+                        symbol.typeRef = .host(name)
                         symbol.isBuiltin = true
                         return symbol
                     } else {

@@ -54,7 +54,7 @@ extension Interpreter {
             payloadTypes[enumCase.name] = enumCase.associated.map(\.type)
         }
         let type = Value.EnumCase.Enumeration(declaring: decl.name, cases: cases)
-        declaredTypes[type.id] = type
+        declaredTypes[type.typeRef] = type
         type.payloadTypes = payloadTypes
         type.conformances = decl.conformances
         type.typeParameters = decl.typeParameters
