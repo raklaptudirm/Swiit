@@ -480,38 +480,36 @@ for (name, _) in bridgedTypeNames {
         }
     }
     let context = Context(owner: owner, generics: Set(owner.genericParameters))
-    // Text as one of these, from the type's own declarations. `parse`: a
-    // failable initializer from text, which can say no (Int, Bool, Double).
-    // `literal`: Swift's rules for text literals (String, Character,
-    // FilePath), picked by the most specific literal protocol it conforms to.
-    var parse = "nil"
-    var literal = "nil"
-    // `arrayLiteral`: items as one, for a generic collection an array
-    // literal can be (Array, Set, ArraySlice), through its initializer from
-    // any sequence: what several words for one parameter become.
-    var arrayLiteral = "nil"
-    if owner.parameters.count == 1, owner.allConformances.contains("ExpressibleByArrayLiteral"),
-        graph.symbols.contains(where: {
-            $0.pathComponents == [name, $0.pathComponents.last!]
-                && $0.kind.identifier == "swift.init" && available($0) && isSequenceInitializer($0)
-        })
-    {
-        let collection = selfType(owner)
-        arrayLiteral = "{ \(toValue("\(spelling(collection))($0)", collection)) }"
-    }
+    // A type read from text by a generic initializer (`Double.init?<S: StringProtocol>(_:)`) has no
+    // initializer taking a `String` of its own, which a script's text is: write one.
     if owner.parameters.isEmpty {
         let selfType = SType.named(name, [])
-        if graph.symbols.contains(where: {
-            $0.pathComponents == name.split(separator: ".").map(String.init) + [
-                $0.pathComponents.last!
-            ]
+        let path = name.split(separator: ".").map(String.init)
+        let textInitializers = graph.symbols.filter {
+            $0.pathComponents == path + [$0.pathComponents.last!]
                 && $0.kind.identifier == "swift.init" && available($0) && isTextInitializer($0)
-        }) {
-            parse = "{ \(name)($0).map { \(toValue("$0", selfType)) } }"
         }
-        if owner.allConformances.contains("ExpressibleByUnicodeScalarLiteral") {
-            literal =
-                "{ Value.Bridging.textLiteral(\(name).self, $0).map { \(toValue("$0", selfType)) } }"
+        let takesString = textInitializers.contains { symbol in
+            let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
+            if case .named("String", [])? = (try? parseDeclaration(text))?.parameters.first?.type {
+                return true
+            }
+            return false
+        }
+        if !textInitializers.isEmpty, !takesString {
+            members.append(
+                declare(
+                    """
+                    ImplementedSymbol.initializer(summary: "The value the text spells, or nil.", \
+                    signature: Symbol.Function(parameters: [Symbol.Parameter(name: "text", type: .string)], \
+                    returns: .optional(\(scriptType(selfType))))) { arguments in
+                    guard case .string(let text) = arguments[0].storage else { return .nothing }
+                    return \(name)(text).map { \(toValue("$0", selfType)) } ?? .nothing
+                    }
+                    """
+                )
+            )
+            counts[name, default: 0] += 1
         }
     }
     do {
@@ -533,9 +531,6 @@ for (name, _) in bridgedTypeNames {
                     type.genericParameters = [\(owner.parameters.map(quoted).joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
                     type.associatedTypes = [\(associatedTypes.isEmpty ? ":" : associatedTypes.joined(separator: ", "))]
-                    type.parse = \(parse)
-                    type.literal = \(literal)
-                    type.arrayLiteral = \(arrayLiteral)
                     return type
                 }()
 

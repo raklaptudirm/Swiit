@@ -40,7 +40,6 @@ enum Bridge {
                         $0.name,
                         $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
                             .adding(additions(to: $0.name))
-                            .withTextInitializer()
                     )
                 }
         )
@@ -54,30 +53,14 @@ enum Bridge {
                 if let existing = table[type.name] {
                     // A library adds members to a type the core has (`String.styled`), as an
                     // extension does.
-                    var extended = existing.adding(type.members)
-                    // How text becomes one, if the type did not have a way.
-                    if extended.parse == nil { extended.parse = type.parse }
-                    if extended.literal == nil { extended.literal = type.literal }
-                    table[type.name] = extended.withTextInitializer()
+                    table[type.name] = existing.adding(type.members)
                 } else {
                     table[type.name] =
                         type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
                         .adding(additions(to: type.name))
-                        .withTextInitializer()
                 }
             }
         }
-    }
-
-    /// Text as a value of the type named, if the type can be text and the
-    /// text is one: through its failable initializer from text (`Int`), or
-    /// as a text literal (`Character`, `FilePath`). A word of text,
-    /// or a string literal where the type is wanted, is converted so.
-    static func value(of typeName: String, from text: String) -> Value?? {
-        guard let type = types[typeName], type.parse != nil || type.literal != nil else {
-            return nil
-        }
-        return .some(type.parse?(text) ?? type.literal?(text))
     }
 
     /// The bridged type Swiit's type annotation is, and its generic
@@ -120,46 +103,7 @@ struct LoweredType: Sendable {
     var associatedTypes: [String: TypeAnnotation] {
         declaration.associatedTypes.mapValues(TypeAnnotation.init)
     }
-    /// Text as one, through the type's failable initializer from text
-    /// (`Int("42")`); nil if the text isn't one.
-    var parse: (@Sendable (String) -> Value?)?
-    /// Text as one by Swift's rules for text literals (`Character`,
-    /// `FilePath`); nil if the text can't be that literal.
-    var literal: (@Sendable (String) -> Value?)?
-    /// Items as one, for a collection an array literal can be (Array, Set):
-    /// what a parameter given several words gets.
-    var arrayLiteral: (@Sendable ([Value]) -> Value)?
     let members: [BridgedMember]
-
-    /// It, with the initializer from text Swift gives a type that can be read from it: Swift's
-    /// `Double.init?<S: StringProtocol>(_: S)` takes a `String` as well as the `Substring` it is
-    /// bridged with, so `Double(text)` does. Nothing is added to a type with one already.
-    func withTextInitializer() -> LoweredType {
-        guard let parse, let result = TypeAnnotation.spelled(name) else { return self }
-        let hasOne = members.contains {
-            $0.kind == .initializer && $0.parameters.count == 1 && $0.parameters[0].label == nil
-                && $0.parameters[0].type == .string
-        }
-        guard !hasOne else { return self }
-        return adding(
-            BridgedMember.bridged(
-                [
-                    .initializer(
-                        summary: "The value the text spells, or nil.",
-                        attributes: Bridge.discardable,
-                        signature: Symbol.Function(
-                            parameters: [Symbol.Parameter(name: "text", type: .string)],
-                            returns: .optional(ScriptType(result))
-                        )
-                    ) { arguments in
-                        guard case .string(let text) = arguments[0].storage else { return .nothing }
-                        return parse(text) ?? .nothing
-                    }
-                ],
-                in: name
-            )
-        )
-    }
 
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
@@ -177,9 +121,6 @@ struct LoweredType: Sendable {
         guard !extra.isEmpty || kept.count != members.count else { return self }
         return LoweredType(
             declaration: declaration,
-            parse: parse,
-            literal: literal,
-            arrayLiteral: arrayLiteral,
             members: kept + extra
         )
     }
@@ -191,24 +132,15 @@ struct LoweredType: Sendable {
         for name in protocols { changed.conformances[name] = [] }
         return LoweredType(
             declaration: changed,
-            parse: parse,
-            literal: literal,
-            arrayLiteral: arrayLiteral,
             members: members
         )
     }
 
     init(
         declaration: Symbol.TypeDeclaration,
-        parse: (@Sendable (String) -> Value?)? = nil,
-        literal: (@Sendable (String) -> Value?)? = nil,
-        arrayLiteral: (@Sendable ([Value]) -> Value)? = nil,
         members: [BridgedMember]
     ) {
         self.declaration = declaration
-        self.parse = parse
-        self.literal = literal
-        self.arrayLiteral = arrayLiteral
         self.members = members
     }
 }

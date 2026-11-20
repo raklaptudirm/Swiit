@@ -35,11 +35,6 @@ import Testing
     _ = swiit
 }
 
-@Test func aTextLiteralIsOnlyWhatTheTypeCanBe() {
-    #expect(Value.Bridging.textLiteral(Character.self, "a") == "a")
-    #expect(Value.Bridging.textLiteral(Character.self, "ab") == nil)
-}
-
 @Test func foundationsDateWorksThroughItsGeneratedDescription() throws {
     let swiit = Interpreter()
     #expect(try swiit.evaluate("Date(timeIntervalSince1970: 5).timeIntervalSince1970") == 5.0)

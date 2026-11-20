@@ -101,13 +101,11 @@ extension TypeChecker {
             switch value.storage {
             case .int where expected == .double || expected == .optional(.double):
                 return .double  // `let x: Double = 1`
-            case .string(let text) where expected.flatMap(textLiteralType) != nil:
+            case .string(let text)
+            where try expected.flatMap({ try textLiteral(text, as: $0) }) != nil:
                 // A string literal is whatever text literal type is wanted, as in
                 // Swift: a Character, a Substring, a FilePath. Made now, once.
-                let (name, make) = textLiteralType(expected!)!
-                guard let made = make(text) else {
-                    throw TypeError("\(Value.quoted(text)) isn't a \(name) literal")
-                }
+                let (name, made) = try textLiteral(text, as: expected!)!
                 expr = .literal(made)
                 return .named(name)
             case .nothing:

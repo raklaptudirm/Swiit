@@ -300,7 +300,6 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     pile.genericParameters = ["Element"]
     pile.conformances = ["Hashable": [], "Sequence": [Symbol.GenericParameter(name: "Element")]]
     pile.associatedTypes["Element"] = .parameter("Element")
-    pile.arrayLiteral = { _ in .nothing }
     let id = swiit.register(pile)
 
     #expect(id == Symbol.ID(hostType: "Pile"))

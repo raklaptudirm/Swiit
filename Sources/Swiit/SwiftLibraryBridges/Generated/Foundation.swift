@@ -180,9 +180,6 @@ let receiver: Date = try selfValue.unboxing(Date.self)
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "Hashable": []]
         type.associatedTypes = ["Stride": .double]
-        type.parse = nil
-        type.literal = nil
-        type.arrayLiteral = nil
         return type
     }()
 
@@ -217,9 +214,6 @@ let result = (try arguments[0].unboxing(AttributedString.self)) + (try arguments
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .string, "StringLiteralType": .string, "UnicodeScalarLiteralType": .string]
-        type.parse = nil
-        type.literal = { Value.Bridging.textLiteral(AttributedString.self, $0).map { Value(boxing: $0, as: .init(hostType: "AttributedString")) } }
-        type.arrayLiteral = nil
         return type
     }()
 }

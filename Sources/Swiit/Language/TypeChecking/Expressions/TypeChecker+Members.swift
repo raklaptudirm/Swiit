@@ -209,14 +209,42 @@ extension TypeChecker {
         try effectSite(member.effect, what)
     }
 
-    /// The initializer of `typeName` taking one unlabeled `from`, if any.
-    /// The bridged type a string literal can be where `expected` is wanted:
-    /// one that's ExpressibleByStringLiteral, or an optional of one.
-    func textLiteralType(_ expected: TypeAnnotation) -> (String, (String) -> Value?)? {
+    /// A string literal where a type with literal initializers is wanted, made as Swift makes one:
+    /// the text is a scalar, a character or a string, and the type's own initializer for the most
+    /// specific of those kinds it has takes it (`init(unicodeScalarLiteral:)`,
+    /// `init(extendedGraphemeClusterLiteral:)` or `init(stringLiteral:)`). Nil if `expected` is not
+    /// a type that has any; an error if it has some and none takes this text.
+    func textLiteral(_ text: String, as expected: TypeAnnotation) throws -> (String, Value)? {
         switch expected {
-        case .named(let name): Bridge.types[name]?.literal.map { (name, $0) }
-        case .optional(let wrapped): textLiteralType(wrapped)
-        default: nil
+        case .optional(let wrapped): return try textLiteral(text, as: wrapped)
+        case .named(let name):
+            guard let type = Bridge.types[name] else { return nil }
+            let initializers = type.members.enumerated()
+                .filter {
+                    $0.element.kind == .initializer && $0.element.parameters.count == 1
+                        && $0.element.parameters[0].label.map(TextLiteralKind.init(label:)) != nil
+                }
+            guard !initializers.isEmpty else { return nil }
+            for kind in TextLiteralKind.applicable(to: text) {
+                for (index, member) in initializers
+                where member.parameters[0].label == kind.label {
+                    guard let argument = kind.argument(text, for: member.parameters[0].type)
+                    else { continue }
+                    do {
+                        let made = try interpreter.runBridged(
+                            name,
+                            index,
+                            receiver: nil,
+                            [Argument(label: kind.label, value: .literal(argument))]
+                        )
+                        return (name, made)
+                    } catch {
+                        throw TypeError("\(Value.quoted(text)) isn't a \(name) literal: \(error)")
+                    }
+                }
+            }
+            throw TypeError("\(Value.quoted(text)) isn't a \(name) literal")
+        default: return nil
         }
     }
 

@@ -292,29 +292,4 @@ extension Value.Bridging {
             }
         }
     }
-
-    public static func textLiteral<T: ExpressibleByStringLiteral>(_: T.Type, _ text: String) -> T?
-    where T.StringLiteralType == String {
-        T(stringLiteral: text)
-    }
-
-    public static func textLiteral<T: ExpressibleByExtendedGraphemeClusterLiteral>(
-        _: T.Type,
-        _ text: String
-    ) -> T?
-    where T.ExtendedGraphemeClusterLiteralType == Character {
-        guard let character = text.first, text.dropFirst().isEmpty else { return nil }
-        return T(extendedGraphemeClusterLiteral: character)
-    }
-
-    public static func textLiteral<T: ExpressibleByUnicodeScalarLiteral>(
-        _: T.Type,
-        _ text: String
-    ) -> T?
-    where T.UnicodeScalarLiteralType == Unicode.Scalar {
-        guard let scalar = text.unicodeScalars.first, text.unicodeScalars.dropFirst().isEmpty else {
-            return nil
-        }
-        return T(unicodeScalarLiteral: scalar)
-    }
 }

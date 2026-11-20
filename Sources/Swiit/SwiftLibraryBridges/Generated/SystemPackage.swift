@@ -240,9 +240,6 @@ let taken = selfValue
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = [:]
-        type.parse = nil
-        type.literal = { Value.Bridging.textLiteral(FilePath.self, $0).map { Value(boxing: $0, as: .init(hostType: "FilePath")) } }
-        type.arrayLiteral = nil
         return type
     }()
 
@@ -296,9 +293,6 @@ let receiver: FilePath.Component = try selfValue.unboxing(FilePath.Component.sel
         type.genericParameters = []
         type.conformances = ["CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": []]
         type.associatedTypes = [:]
-        type.parse = { FilePath.Component($0).map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } }
-        type.literal = { Value.Bridging.textLiteral(FilePath.Component.self, $0).map { Value(boxing: $0, as: .init(hostType: "FilePath.Component")) } }
-        type.arrayLiteral = nil
         return type
     }()
 
@@ -637,9 +631,6 @@ let receiver: FilePath.ComponentView = try selfValue.unboxing(FilePath.Component
         type.genericParameters = []
         type.conformances = ["BidirectionalCollection": [], "Collection": [], "Encodable": [], "Equatable": [], "Hashable": [], "Sequence": []]
         type.associatedTypes = ["Element": .named(.init(hostType: "FilePath.Component"))]
-        type.parse = nil
-        type.literal = nil
-        type.arrayLiteral = nil
         return type
     }()
 }

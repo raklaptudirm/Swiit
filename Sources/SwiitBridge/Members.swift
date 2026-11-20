@@ -67,20 +67,6 @@ func isTextInitializer(_ symbol: Symbol) -> Bool {
     }
 }
 
-/// `init<S: Sequence>(_ elements: S) where S.Element == Element`: an
-/// initializer taking one unlabeled sequence of any kind.
-func isSequenceInitializer(_ symbol: Symbol) -> Bool {
-    let text = (symbol.declarationFragments ?? []).map(\.spelling).joined()
-    guard let declaration = try? parseDeclaration(text), !declaration.isFailable,
-        declaration.parameters.count == 1,
-        declaration.parameters[0].label == nil,
-        case .named(let generic, []) = declaration.parameters[0].type
-    else { return false }
-    let constraints = (symbol.swiftGenerics?.constraints ?? []) + declaration.constraints
-    return (declaration.generics[generic] ?? []).contains("Sequence")
-        || constraints.contains { $0.lhs == generic && $0.rhs == "Sequence" }
-}
-
 func parseType(_ text: String) throws -> SType {
     var reader = Reader(text)
     return try reader.type()

@@ -31,15 +31,6 @@ public struct HostType: Sendable {
         set { declaration.associatedTypes = newValue }
     }
     public var members: [ImplementedSymbol]
-    /// A value from text, where text gives a word and the type is wanted.
-    public var parse: (@Sendable (String) -> Value?)?
-    /// A value from a text literal, where a script writes `"…"` and the type is wanted
-    /// (`let column: DisplayColumn = "name"`).
-    public var literal: (@Sendable (String) -> Value?)?
-    /// A value from items, for a collection an array literal can be, which is what a parameter
-    /// given several words gets.
-    public var arrayLiteral: (@Sendable ([Value]) -> Value)?
-
     public init(name: String, members: [ImplementedSymbol] = []) {
         declaration = Symbol.TypeDeclaration(name: name)
         self.members = members
@@ -174,9 +165,6 @@ extension LoweredType {
     init(_ type: HostType) {
         self.init(
             declaration: type.declaration,
-            parse: type.parse,
-            literal: type.literal,
-            arrayLiteral: type.arrayLiteral,
             members: type.members.flatMap { BridgedMember.members(of: $0, in: type.name) }
         )
     }
@@ -190,9 +178,6 @@ extension LoweredType {
         let made = LoweredType(type)
         self.init(
             declaration: made.declaration,
-            parse: made.parse,
-            literal: made.literal,
-            arrayLiteral: made.arrayLiteral,
             members: made.members.map {
                 var member = $0; member.plain = nil; return member
             }
@@ -418,8 +403,7 @@ extension HostType {
             if let element = Self.sequenceElement() {
                 type.associatedTypes["Element"] = element
             }
-            type.parse = Self.parser(named: name)
-            type.literal = Self.literalMaker(named: name)
+            type.members += Self.textInitializers(named: name)
         }
 
         private static func conformances() -> [String] {
@@ -446,23 +430,50 @@ extension HostType {
             return element(sequence)
         }
 
-        private static func parser(named name: String) -> (@Sendable (String) -> Value?)? {
-            func parser<L: LosslessStringConvertible>(_: L.Type) -> @Sendable (String) -> Value? {
-                { text in L(text).flatMap { ($0 as? T).map { box($0, as: name) } } }
-            }
-            guard let lossless = T.self as? any LosslessStringConvertible.Type else { return nil }
-            return parser(lossless)
-        }
-
-        private static func literalMaker(named name: String) -> (@Sendable (String) -> Value?)? {
-            func maker<L: ExpressibleByStringLiteral>(_: L.Type) -> @Sendable (String) -> Value? {
-                { text in
-                    (text as? L.StringLiteralType)
-                        .flatMap { (L(stringLiteral: $0) as? T).map { box($0, as: name) } }
+        /// The initializers a type has from the protocols that read it from text: `init?(_ text:)` for a
+        /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
+        /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
+        private static func textInitializers(named name: String) -> [ImplementedSymbol] {
+            let own = ScriptType.named(Symbol.ID(hostType: name))
+            func fromText<L: LosslessStringConvertible>(_: L.Type) -> ImplementedSymbol {
+                .initializer(
+                    summary: "The value the text spells, or nil.",
+                    signature: Symbol.Function(
+                        parameters: [Symbol.Parameter(name: "text", type: .string)],
+                        returns: .optional(own)
+                    )
+                ) { arguments in
+                    guard case .string(let text) = arguments[0].storage,
+                        let value = L(text) as? T
+                    else { return .nothing }
+                    return box(value, as: name)
                 }
             }
-            guard let literal = T.self as? any ExpressibleByStringLiteral.Type else { return nil }
-            return maker(literal)
+            func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> ImplementedSymbol {
+                .initializer(
+                    summary: "The value the string literal is.",
+                    signature: Symbol.Function(
+                        parameters: [
+                            Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)
+                        ],
+                        returns: own
+                    )
+                ) { arguments in
+                    guard case .string(let text) = arguments[0].storage,
+                        let literal = text as? L.StringLiteralType,
+                        let value = L(stringLiteral: literal) as? T
+                    else { return .nothing }
+                    return box(value, as: name)
+                }
+            }
+            var found: [ImplementedSymbol] = []
+            if let lossless = T.self as? any LosslessStringConvertible.Type {
+                found.append(fromText(lossless))
+            }
+            if let literal = T.self as? any ExpressibleByStringLiteral.Type {
+                found.append(fromLiteral(literal))
+            }
+            return found
         }
 
         fileprivate static func box(_ value: T, as name: String) -> Value {
