@@ -3,12 +3,12 @@ import Foundation
 // Which declared type a value is an instance of.
 
 extension Value {
-    /// The type the value is of, as an ID: a script's struct, enum or class by its declaration's,
+    /// The type the value is of, as a reference: a script's struct, enum or class by its declaration's,
     /// a Swift type's by its name, and `Int`, `String`, `Array`, `Optional` (for `nil`) and the
-    /// rest of Swift's own. Nil for a tuple or a function, which no type declares. The ID may name
-    /// nothing the interpreter knows (an encoded Swift value's), and `Symbol.ID.symbol(in:)`
+    /// rest of Swift's own. Nil for a tuple or a function, which no type declares. The reference may name
+    /// nothing the interpreter knows (an encoded Swift value's), and `TypeRef.symbol(in:)`
     /// then gives nil.
-    public var typeID: Symbol.ID? {
+    public var typeRef: TypeRef? {
         switch self.storage {
         case .nothing: .optional
         case .bool: .bool
@@ -39,10 +39,10 @@ extension Value {
     /// instance of a type a script declares of the same name, which members and display already
     /// treat it as. A protocol it conforms to is not asked here, since that takes an
     /// interpreter: `ScriptType.conforms(to:in:)` is.
-    public func isInstance(of id: Symbol.ID) -> Bool {
+    public func isInstance(of id: TypeRef) -> Bool {
         if id == .any { return true }
         if case .function = self.storage { return id == .function }
-        guard let own = typeID else { return false }
+        guard let own = typeRef else { return false }
         if own == id { return true }
         if case .structure(let structure) = self.storage, case .host = own.kind,
             case .declared = id.kind, structure.typeName == id.name

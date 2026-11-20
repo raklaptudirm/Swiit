@@ -7,7 +7,7 @@ import Synchronization
 /// `Set<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
 /// class is a fact about its declaration: `Interpreter.globals(named:)` says.
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
-    case named(Symbol.ID, [ScriptType] = [])
+    case named(TypeRef, [ScriptType] = [])
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
     case function(FunctionType)
     case tuple([TupleElement])

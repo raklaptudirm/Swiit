@@ -57,9 +57,9 @@ extension Value {
     }
 
     /// A Swift value kept as it is, as a value of the registered host type `type`
-    /// (`Symbol.ID(hostType: "FileSize")`): what a member written for a Swift type gives back.
+    /// (`TypeRef(hostType: "FileSize")`): what a member written for a Swift type gives back.
     /// It compares, hashes and sorts as the Swift value does, when its type can.
-    public init<T>(boxing value: T, as type: Symbol.ID) {
+    public init<T>(boxing value: T, as type: TypeRef) {
         self = SwiftValue.make(value, as: type.name)
     }
 
@@ -73,10 +73,10 @@ extension Value {
 
 extension Interpreter {
     /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
-    /// lacks. It gives the type's ID, which is `Symbol.ID(hostType: name)`: the same promises hold
+    /// lacks. It gives the type's reference, which is `TypeRef(hostType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
-    public func register<T>(_ builder: ImplementedType.Builder<T>) -> Symbol.ID {
+    public func register<T>(_ builder: ImplementedType.Builder<T>) -> TypeRef {
         register(builder.type)
     }
 
@@ -94,7 +94,7 @@ extension Interpreter {
     }
 
     @discardableResult
-    public func register(_ type: ImplementedType) -> Symbol.ID {
+    public func register(_ type: ImplementedType) -> TypeRef {
         var bridged = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
@@ -476,7 +476,7 @@ extension ImplementedType {
         /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
         /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
         private static func textInitializers(named name: String) -> [ImplementedSymbol] {
-            let own = ScriptType.named(Symbol.ID(hostType: name))
+            let own = ScriptType.named(TypeRef(hostType: name))
             func fromText<L: LosslessStringConvertible>(_: L.Type) -> ImplementedSymbol {
                 .initializer(
                     summary: "The value the text spells, or nil.",

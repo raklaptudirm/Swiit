@@ -21,7 +21,7 @@ extension Value.EnumCase {
 
         let name: String
         let cases: [Case]
-        let id: Symbol.ID
+        let id: TypeRef
         /// The protocols a host's enum conforms to in Swift, of those that change what a script may
         /// do with it beyond what every enum without payloads can: `Comparable`, whose `<` goes by
         /// the cases' order, as Swift's own does.
@@ -95,8 +95,8 @@ extension Value {
         let name: String
         /// The enum it is a case of.
         var typeName: String { type.name }
-        /// The ID of the enum it is a case of.
-        var id: Symbol.ID { type.id }
+        /// The reference of the enum it is a case of.
+        var id: TypeRef { type.id }
         /// In the order the case declares them.
         let values: [Value]
 

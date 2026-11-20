@@ -7,7 +7,7 @@ import Testing
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
     fileprivate func type(_ name: String) -> ScriptType {
-        .named(Symbol.ID(named: name, in: self)!)
+        .named(TypeRef(named: name, in: self)!)
     }
 }
 
@@ -165,7 +165,7 @@ private struct Failure: Encodable { var code: Int }
 @Test func aHostFunctionCanSayItGivesAScriptsStruct() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("struct P { var x: Int }")
-    let id = try #require(Symbol.ID(named: "P", in: swiit))
+    let id = try #require(TypeRef(named: "P", in: swiit))
     swiit.register(
         ImplementedSymbol.function(name: "hostP", returns: .named(id)) { _ in
             try swiit.make(id, arguments: [("x", Value(5))])
@@ -187,10 +187,10 @@ private struct Failure: Encodable { var code: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Kind { case file, directory }")
     #expect(
-        Symbol.ID(named: "Kind", in: swiit)!.enumCase(named: "file", in: swiit)?.description
+        TypeRef(named: "Kind", in: swiit)!.enumCase(named: "file", in: swiit)?.description
             == "file"
     )
-    #expect(Symbol.ID(named: "Kind", in: swiit)!.enumCase(named: "nope", in: swiit) == nil)
+    #expect(TypeRef(named: "Kind", in: swiit)!.enumCase(named: "nope", in: swiit) == nil)
     #expect(swiit.converted(Value(3), to: .int) == 3)
     #expect(swiit.converted(Value("3"), to: .int) == nil)
     // A Character is held as a one-letter String. Any other Swift type text is not, as in Swift,
@@ -205,7 +205,7 @@ private struct Failure: Encodable { var code: Int }
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit
-    let handle = Symbol.ID(hostType: "Handle")
+    let handle = TypeRef(hostType: "Handle")
     swiit.register(
         ImplementedSymbol.function(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))

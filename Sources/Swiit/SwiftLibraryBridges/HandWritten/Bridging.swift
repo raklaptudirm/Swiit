@@ -181,7 +181,7 @@ extension Value.Bridging {
     /// a `Set<Value>`).
     public static func box<T, Boxed>(
         _ value: T,
-        as type: Symbol.ID,
+        as type: TypeRef,
         _ convert: (T) -> Boxed
     ) -> Value {
         SwiftValue.make(convert(value), as: type.name)
@@ -189,7 +189,7 @@ extension Value.Bridging {
 
     public static func box<T, Boxed: Hashable>(
         _ value: T,
-        as type: Symbol.ID,
+        as type: TypeRef,
         _ convert: (T) -> Boxed
     ) -> Value {
         SwiftValue.make(convert(value), as: type.name)

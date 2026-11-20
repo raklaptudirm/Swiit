@@ -31,7 +31,7 @@ private final class Node: BridgedValue, CustomStringConvertible, @unchecked Send
     var description: String { "Node(\(label))" }
     func shout() -> String { label.uppercased() }
 
-    static let scriptTypeID = Symbol.ID(hostType: "Node")
+    static let scriptTypeID = TypeRef(hostType: "Node")
     static let type = ImplementedType.Builder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
@@ -172,7 +172,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     #expect(try Shade(swiit.evaluate("swatch.shade")) == .dark)
 
     // It's an enum to a host too: its cases are listed, and a case is had by name.
-    let shade = Symbol.ID(named: "Shade", in: swiit)
+    let shade = TypeRef(named: "Shade", in: swiit)
     #expect(shade != nil)
     let cases = ScriptType.named(shade!).members(in: swiit)
         .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
@@ -251,7 +251,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 
 @Suite struct NativeTypeTests {
     static func bytesType() -> ImplementedType.Builder<Bytes> {
-        let bytes = Symbol.ID(hostType: "Bytes")
+        let bytes = TypeRef(hostType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
         return ImplementedType.Builder<Bytes>("Bytes")
             .member(
@@ -302,8 +302,8 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     pile.associatedTypes["Element"] = .parameter("Element")
     let id = swiit.register(pile)
 
-    #expect(id == Symbol.ID(hostType: "Pile"))
-    #expect(ScriptType.named(id, [.int]).conforms(to: Symbol.ID(hostType: "Hashable"), in: swiit))
+    #expect(id == TypeRef(hostType: "Pile"))
+    #expect(ScriptType.named(id, [.int]).conforms(to: TypeRef(hostType: "Hashable"), in: swiit))
     #expect(ScriptType.named(id, [.int]).conforms(to: .sequence, in: swiit))
 }
 
@@ -347,6 +347,6 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     let value = Value(boxing: url, as: id)
 
     #expect(try value.unboxing(URL.self) == url)
-    #expect(value.typeID == id)
+    #expect(value.typeRef == id)
     #expect(throws: (any Error).self) { try Value(integerLiteral: 3).unboxing(URL.self) }
 }

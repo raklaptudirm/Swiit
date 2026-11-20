@@ -7,7 +7,7 @@ extension Interpreter {
         inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
     }
 
-    func value(forCase name: String, in enumType: Symbol.ID) -> Value? {
+    func value(forCase name: String, in enumType: TypeRef) -> Value? {
         inCurrentTask {
             guard let type = self.enumType(named: enumType.name),
                 let definition = type.case(named: name),
@@ -33,9 +33,9 @@ extension Interpreter {
     }
 }
 
-extension Symbol.ID {
-    /// A case without associated values of the enum the ID names, a script's or the host's:
-    /// `id.enumCase(named: "directory", in: interpreter)`. Nil if the ID names no enum, or the enum
+extension TypeRef {
+    /// A case without associated values of the enum the reference names, a script's or the host's:
+    /// `id.enumCase(named: "directory", in: interpreter)`. Nil if the reference names no enum, or the enum
     /// has no such case.
     public func enumCase(named name: String, in interpreter: Interpreter) -> Value? {
         interpreter.value(forCase: name, in: self)

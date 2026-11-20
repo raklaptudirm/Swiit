@@ -22,30 +22,30 @@ extension Value {
         private(set) var keys: [String] = []
         fileprivate var storage: [String: Value] = [:]
         /// The type it is a value of, which picks how it's displayed; nil for a tuple. A struct a
-        /// program declares has that declaration's ID; one from a Swift value (`FileEntry`) has a
-        /// host ID, by the Swift type's name.
-        var typeID: Symbol.ID?
+        /// program declares has that declaration's reference; one from a Swift value (`FileEntry`) has a
+        /// host reference, by the Swift type's name.
+        var typeRef: TypeRef?
 
         var typeName: String? {
-            get { typeID?.name }
-            set { typeID = newValue.map(Symbol.ID.host) }
+            get { typeRef?.name }
+            set { typeRef = newValue.map(TypeRef.host) }
         }
 
-        init(typeID: Symbol.ID? = nil) {
-            self.typeID = typeID
+        init(typeRef: TypeRef? = nil) {
+            self.typeRef = typeRef
         }
 
         init(typeName: String?) {
-            self.typeID = typeName.map(Symbol.ID.host)
+            self.typeRef = typeName.map(TypeRef.host)
         }
 
-        init(_ fields: KeyValuePairs<String, Value>, typeID: Symbol.ID? = nil) {
-            self.typeID = typeID
+        init(_ fields: KeyValuePairs<String, Value>, typeRef: TypeRef? = nil) {
+            self.typeRef = typeRef
             for (key, value) in fields { self[key] = value }
         }
 
         init(_ fields: KeyValuePairs<String, Value>, typeName: String?) {
-            self.init(fields, typeID: typeName.map(Symbol.ID.host))
+            self.init(fields, typeRef: typeName.map(TypeRef.host))
         }
 
         subscript(key: String) -> Value? {
@@ -155,11 +155,11 @@ extension Value {
         init(typeName: String) { record = Value.Record(typeName: typeName) }
 
         /// A struct value of the type `id` names.
-        init(id: Symbol.ID) { record = Value.Record(typeID: id) }
+        init(id: TypeRef) { record = Value.Record(typeRef: id) }
 
-        /// What type it is a value of. A struct a program declares has that declaration's ID; one
-        /// from a Swift value (`FileEntry`) has a host ID.
-        var id: Symbol.ID { record.typeID! }
+        /// What type it is a value of. A struct a program declares has that declaration's reference; one
+        /// from a Swift value (`FileEntry`) has a host reference.
+        var id: TypeRef { record.typeRef! }
 
         /// The type's name, which picks how it's displayed.
         var typeName: String { record.typeName ?? "" }

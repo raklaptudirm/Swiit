@@ -7,7 +7,7 @@ import Testing
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
     fileprivate func type(_ name: String) -> ScriptType {
-        .named(Symbol.ID(named: name, in: self)!)
+        .named(TypeRef(named: name, in: self)!)
     }
 }
 
@@ -86,13 +86,13 @@ private struct Point: Encodable { var x: Int }
         func twice(_ n: Int) -> Int { n * 2 }
         """
     )
-    #expect(try swiit.evaluate("3").typeID == .int)
-    #expect(try swiit.evaluate("[1, 2]").typeID == .array)
+    #expect(try swiit.evaluate("3").typeRef == .int)
+    #expect(try swiit.evaluate("[1, 2]").typeRef == .array)
     #expect(try swiit.evaluate("(a: 1, b: 2)").mirror.displayStyle == .tuple)
     #expect(try swiit.evaluate("Point(x: 1, y: 2)").mirror.displayStyle == .struct)
-    #expect(try swiit.evaluate("Level.high").typeID?.name == "Level")
+    #expect(try swiit.evaluate("Level.high").typeRef?.name == "Level")
     #expect(try swiit.evaluate("twice").isInstance(of: .function))
-    #expect(Value.nothing.typeID == .optional)
+    #expect(Value.nothing.typeRef == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
     let three = try swiit.evaluate("3")
     #expect(three.casting(to: Int.self) == 3)
@@ -118,7 +118,7 @@ private struct Point: Encodable { var x: Int }
     )
     // An enum's case, and the declaration kind of a type.
     let high = try swiit.evaluate("Level.high")
-    #expect(high.typeID?.name == "Level" && high.mirror.displayStyle == .enum)
+    #expect(high.typeRef?.name == "Level" && high.mirror.displayStyle == .enum)
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
     #expect(swiit.globals(named: "Point").first?.kind == .type(.structure))
     #expect(swiit.globals(named: "Level").first?.kind == .type(.enumeration))
@@ -142,7 +142,7 @@ private struct Point: Encodable { var x: Int }
     #expect(Value(3).casting(to: Value.self) == Value(3))
     // A tuple, a struct and a function are told apart by their mirrors and their types.
     let tuple = try swiit.evaluate("(a: 1)")
-    #expect(tuple.mirror.displayStyle == .tuple && tuple.typeID == nil)
+    #expect(tuple.mirror.displayStyle == .tuple && tuple.typeRef == nil)
     #expect(tuple.entry("a") == Value(1))
     try swiit.evaluate("struct Point { var x = 1 }")
     let point = try swiit.evaluate("Point(x: 1)")
@@ -150,7 +150,7 @@ private struct Point: Encodable { var x: Int }
     #expect(point.entry("x") == Value(1))
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A Swift value held as it is has the host ID of its registered name.
-    #expect(Value(Bytes(count: 1)).typeID == Symbol.ID(hostType: "Bytes"))
+    #expect(Value(Bytes(count: 1)).typeRef == TypeRef(hostType: "Bytes"))
 }
 
 @Test func anEnumCaseIsItsTypeAndNameAndWhatItCarries() throws {
@@ -162,7 +162,7 @@ private struct Point: Encodable { var x: Int }
         """
     )
     let high = try swiit.evaluate("Level.high")
-    #expect(high.typeID == Symbol.ID(named: "Level", in: swiit))
+    #expect(high.typeRef == TypeRef(named: "Level", in: swiit))
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
     #expect(high.mirror.children.isEmpty)  // a case that carries nothing is its description
     // What it carries is one child labeled with the case's name, as Swift's own mirror has it: a
@@ -176,17 +176,17 @@ private struct Point: Encodable { var x: Int }
     #expect((try? swiit.value(forMember: "rawValue", of: failedValue)) == nil)
     #expect((try? swiit.value(forMember: "rawValue", of: Value(3))) == nil)
     // An enum with a raw type is RawRepresentable, as in Swift; the others are not.
-    let level = ScriptType.named(try #require(Symbol.ID(named: "Level", in: swiit)))
-    let outcome = ScriptType.named(try #require(Symbol.ID(named: "Outcome", in: swiit)))
+    let level = ScriptType.named(try #require(TypeRef(named: "Level", in: swiit)))
+    let outcome = ScriptType.named(try #require(TypeRef(named: "Outcome", in: swiit)))
     #expect(level.conforms(to: .rawRepresentable, in: swiit))
     #expect(!outcome.conforms(to: .rawRepresentable, in: swiit))
     // One unlabeled value is the child itself.
     try swiit.evaluate("enum Wrapped { case one(Int) }")
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
-    let symbol = try #require(failedValue.typeID.flatMap { $0.symbol(in: swiit) })
+    let symbol = try #require(failedValue.typeRef.flatMap { $0.symbol(in: swiit) })
     #expect(symbol.kind == .type(.enumeration))
-    let cases = ScriptType.named(try #require(failedValue.typeID)).members(in: swiit)
+    let cases = ScriptType.named(try #require(failedValue.typeRef)).members(in: swiit)
         .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
 }
@@ -250,12 +250,12 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     try swiit.evaluate("struct Point { var x: Int; var y = 0 }")
     let point = try swiit.call("Point", arguments: [("x", Value(1)), ("y", Value(2))])
-    #expect(point.typeID == Symbol.ID(named: "Point", in: swiit))
+    #expect(point.typeRef == TypeRef(named: "Point", in: swiit))
     #expect(point.mirror.children.map(\.label) == ["x", "y"])
     #expect(try swiit.evaluate("Point(x: 1, y: 2)") == point)
     // Through the ID, which must be a type the program declares and still means.
-    let id = try #require(Symbol.ID(named: "Point", in: swiit))
-    #expect(try swiit.make(id, arguments: [("x", Value(3))]).typeID == id)
+    let id = try #require(TypeRef(named: "Point", in: swiit))
+    #expect(try swiit.make(id, arguments: [("x", Value(3))]).typeRef == id)
     try swiit.evaluate("struct Point { var z: Int }")
     #expect(throws: Diagnostic.self) { try swiit.make(id, arguments: [("x", Value(3))]) }
 }

@@ -36,7 +36,7 @@
 
 ### Looking up symbols and types
 
-A type's members, a type ID's declaration and a candidate list's overload are asked of ``ScriptType``, ``Symbol/ID`` and a sequence of ``Symbol``.
+A type's members, a type reference's declaration and a candidate list's overload are asked of ``ScriptType``, ``TypeRef`` and a sequence of ``Symbol``.
 
 - ``globals(named:)``
 - ``types``

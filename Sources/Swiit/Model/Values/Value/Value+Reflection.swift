@@ -13,7 +13,7 @@ import Foundation
 ///   Swift's own do, one child labeled with the case's name if it carries anything: the value
 ///   itself if it is one unlabeled value, else a tuple of them.
 ///
-/// Its type is `typeID`; `Mirror.subjectType` is `Value`.
+/// Its type is `typeRef`; `Mirror.subjectType` is `Value`.
 extension Value: CustomReflectable {
     public var customMirror: Mirror {
         switch storage {

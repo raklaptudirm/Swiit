@@ -1,5 +1,5 @@
-/// A type with an ID: one a program declares (a struct, class, actor, enum or protocol), or an enum
+/// A type with a reference: one a program declares (a struct, class, actor, enum or protocol), or an enum
 /// the host provides.
 protocol DeclaredType: AnyObject {
-    var id: Symbol.ID { get }
+    var id: TypeRef { get }
 }

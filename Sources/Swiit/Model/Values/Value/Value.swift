@@ -6,7 +6,7 @@ import Foundation
 /// which is why it lives in its own dynamic library.
 public struct Value: Sendable {
     // The representation is the interpreter's: a host builds a value with its initializers,
-    // literals and static members, and reads one with `casting(to:)`, `typeID`, `isInstance(of:)`,
+    // literals and static members, and reads one with `casting(to:)`, `typeRef`, `isInstance(of:)`,
     // `entries` and the views (`tuple`, `structure`, `enumCase`), so a new representation never
     // breaks it.
     var storage: Storage

@@ -4,7 +4,7 @@ import Foundation
 /// A protocol a program declares: what a value of a type conforming to it can be asked as.
 final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
-    let id: Symbol.ID
+    let id: TypeRef
     /// The protocols it takes in: `protocol A: B`.
     let inherited: [String]
     /// What it asks of a conforming type.

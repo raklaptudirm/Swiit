@@ -47,7 +47,7 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - <doc:ReadingDiagnostics>
 - ``Diagnostic``
 - ``Symbol``
-- ``Symbol/ID``
+- ``TypeRef``
 - ``Symbol/Attribute``
 - ``Symbol/GenericParameter``
 - ``Interpreter/Declarations``

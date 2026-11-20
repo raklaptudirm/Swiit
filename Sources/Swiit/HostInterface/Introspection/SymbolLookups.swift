@@ -4,17 +4,17 @@ import Synchronization
 
 // Looking up what a type is and has, from the types themselves.
 
-extension Symbol.ID {
-    /// The ID of the type a script can name `name`: one it or the host declares, or one of Swift's
+extension TypeRef {
+    /// The reference of the type a script can name `name`: one it or the host declares, or one of Swift's
     /// the core bridges. Nil when there is none. A host asks once, after loading the source that
     /// declares the type, and keeps the answer.
     public init?(named name: String, in interpreter: Interpreter) {
-        guard let id = interpreter.typeID(named: name) else { return nil }
+        guard let id = interpreter.typeRef(named: name) else { return nil }
         self = id
     }
 
-    /// What the ID names: a script's declaration (even one a later declaration of the same name
-    /// hides), or a type the host registers or the core bridges. Nil for an ID that names nothing:
+    /// What the reference names: a script's declaration (even one a later declaration of the same name
+    /// hides), or a type the host registers or the core bridges. Nil for a reference that names nothing:
     /// a Swift type that is not registered (an encoded value's), a declared type of another
     /// interpreter, a generic parameter.
     public func symbol(in interpreter: Interpreter) -> Symbol? {

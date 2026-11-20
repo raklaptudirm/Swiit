@@ -70,7 +70,7 @@ extension Value {
             return self
         case (.tuple(let elements), .tuple), (.tuple(let elements), .structure):
             guard let record = record, record.count == elements.count else { return nil }
-            var converted = Value.Record(typeID: record.typeID)
+            var converted = Value.Record(typeRef: record.typeRef)
             for (index, (element, field)) in zip(elements, record).enumerated() {
                 guard
                     element.label == nil || element.label == field.key

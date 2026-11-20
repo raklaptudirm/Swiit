@@ -3,7 +3,7 @@ import Foundation
 // What kind a value is, and what Swift type it can be read as without a conversion.
 
 extension Value {
-    /// What a value is made of, as the interpreter says it. A host asks `typeID`, `isInstance(of:)`
+    /// What a value is made of, as the interpreter says it. A host asks `typeRef`, `isInstance(of:)`
     /// and the views (`tuple`, `structure`, `enumCase`, `function`) instead, and makes its own
     /// taxonomy of them if it wants one to switch over.
     enum Kind: Sendable {
@@ -58,7 +58,7 @@ extension Value {
             switch self.storage {
             case .structure(let structure): return structure.id == name
             case .enumValue(let value): return value.type.id == name
-            case .object: return typeID == name
+            case .object: return typeRef == name
             default: return false
             }
         case .tuple(let elements):

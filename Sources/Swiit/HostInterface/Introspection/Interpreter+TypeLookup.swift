@@ -5,11 +5,11 @@ import Synchronization
 // Looking types up by identity, and asking what they conform to.
 
 extension Interpreter {
-    func typeID(named name: String) -> Symbol.ID? {
+    func typeRef(named name: String) -> TypeRef? {
         (globals(named: name) + types.filter { $0.name == name }).lazy.compactMap(\.id).first
     }
 
-    func symbol(for id: Symbol.ID) -> Symbol? {
+    func symbol(for id: TypeRef) -> Symbol? {
         withMainTask {
             switch id.kind {
             case .declared:
@@ -22,10 +22,10 @@ extension Interpreter {
         }
     }
 
-    /// Whether `id` still means what it did: a declared ID whose declaration is no longer the one
+    /// Whether `id` still means what it did: a declared reference whose declaration is no longer the one
     /// its name means (another `struct Point` was declared since) has gone stale, and a type
     /// written with it is not the type its name means now.
-    func isCurrent(_ id: Symbol.ID) -> Bool {
+    func isCurrent(_ id: TypeRef) -> Bool {
         guard case .declared = id.kind else { return true }
         guard case .object(let object)? = lookup(id.name)?.value.storage else { return false }
         return (object as? any DeclaredType)?.id == id
@@ -71,7 +71,7 @@ extension Interpreter {
         }
     }
 
-    func conforms(_ type: ScriptType, to proto: Symbol.ID) -> Bool {
+    func conforms(_ type: ScriptType, to proto: TypeRef) -> Bool {
         inCurrentTask {
             guard isCurrent(proto), let annotation = annotation(type) else { return false }
             return TypeChecker(interpreter: self).conforms(annotation, to: proto.name)

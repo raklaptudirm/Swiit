@@ -7,8 +7,8 @@ import Synchronization
 extension ScriptType {
     /// The type an annotation names. `declared` says which declaration a name means, for the names
     /// of types a program declares; a name it does not know is a host type's.
-    init(_ annotation: TypeAnnotation, declared: (String) -> Symbol.ID? = { _ in nil }) {
-        func reference(_ name: String) -> Symbol.ID { declared(name) ?? .host(name) }
+    init(_ annotation: TypeAnnotation, declared: (String) -> TypeRef? = { _ in nil }) {
+        func reference(_ name: String) -> TypeRef { declared(name) ?? .host(name) }
         func convert(_ annotation: TypeAnnotation) -> ScriptType {
             ScriptType(annotation, declared: declared)
         }
@@ -57,7 +57,7 @@ extension ScriptType {
     /// Whether values of this type have what the protocol asks (`Comparable`, `Hashable`,
     /// `Sequence`, or one a script declares), as the checker reads it. False for a type or a
     /// protocol that is a declaration `interpreter` no longer means by its name.
-    public func conforms(to proto: Symbol.ID, in interpreter: Interpreter) -> Bool {
+    public func conforms(to proto: TypeRef, in interpreter: Interpreter) -> Bool {
         interpreter.conforms(self, to: proto)
     }
 }

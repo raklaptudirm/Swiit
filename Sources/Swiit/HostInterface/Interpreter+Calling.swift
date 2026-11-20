@@ -31,12 +31,12 @@ extension Interpreter {
     }
 
     /// A value of a type, made by calling its initializer with `arguments`, as `call` does by the
-    /// type's name but by its ID: how a host builds a struct or a class of the program's own, with
-    /// the declaration's ID, its defaults and its checks, or a Swift type (`Int`, a registered
-    /// `FileSize`) from its initializers. It throws for an ID that names no such type: another
+    /// type's name but by its reference: how a host builds a struct or a class of the program's own, with
+    /// the declaration's reference, its defaults and its checks, or a Swift type (`Int`, a registered
+    /// `FileSize`) from its initializers. It throws for a reference that names no such type: another
     /// interpreter's, one declared again since, or a Swift type that is not registered.
     public func make(
-        _ type: Symbol.ID,
+        _ type: TypeRef,
         arguments: [(label: String?, value: Value)] = []
     ) throws(Diagnostic) -> Value {
         let current = inCurrentTask {

@@ -7,7 +7,7 @@ import Testing
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
     fileprivate func type(_ name: String) -> ScriptType {
-        .named(Symbol.ID(named: name, in: self)!)
+        .named(TypeRef(named: name, in: self)!)
     }
 }
 

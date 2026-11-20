@@ -9,7 +9,7 @@ import Foundation
 /// (computed properties, methods, initializers) is looked up through here.
 final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
-    let id: Symbol.ID
+    let id: TypeRef
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
     let computed: [String: Function]

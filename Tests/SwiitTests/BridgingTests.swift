@@ -23,7 +23,7 @@ import Testing
 
 @Test func aBridgeBoxesARangeAsTheTypeItSaysAndReadsItBack() throws {
     let swiit = Interpreter()
-    let boxed = Value.Bridging.box(1...3, as: Symbol.ID(hostType: "ClosedRange")) {
+    let boxed = Value.Bridging.box(1...3, as: TypeRef(hostType: "ClosedRange")) {
         ClosedRange<Value>(
             uncheckedBounds: (
                 Value(integerLiteral: $0.lowerBound), Value(integerLiteral: $0.upperBound)

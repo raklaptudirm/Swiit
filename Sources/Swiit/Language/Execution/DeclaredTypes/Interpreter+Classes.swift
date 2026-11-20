@@ -4,7 +4,7 @@ import Foundation
 /// A class a program declares.
 final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let name: String
-    let id: Symbol.ID
+    let id: TypeRef
     let superclass: ClassType?
     let isActor: Bool
     /// Stored properties this class declares, in order, and their defaults.

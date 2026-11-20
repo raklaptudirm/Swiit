@@ -27,9 +27,9 @@ public final class Interpreter: @unchecked Sendable {
     let lock = InterpreterLock()
     /// Tasks started and not yet ended.
     var runningTasks = 0
-    /// The types programs have declared, by ID, including those a later declaration of the same
+    /// The types programs have declared, by reference, including those a later declaration of the same
     /// name has since hidden.
-    var declaredTypes: [Symbol.ID: any DeclaredType] = [:]
+    var declaredTypes: [TypeRef: any DeclaredType] = [:]
     /// The module a program's types are in, shown before their names where Swift shows it
     /// (`main.Point`).
     var moduleName = "main"

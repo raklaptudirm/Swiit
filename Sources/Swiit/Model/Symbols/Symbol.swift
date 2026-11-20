@@ -40,9 +40,9 @@ public struct Symbol: Sendable, Hashable {
     public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
-    /// The type's ID, for a type. Nil for any other symbol, and for a type described by `check`
+    /// The type's reference, for a type. Nil for any other symbol, and for a type described by `check`
     /// before the source is run, which declares nothing yet.
-    public internal(set) var id: ID?
+    public internal(set) var id: TypeRef?
 
     public init(
         name: String,

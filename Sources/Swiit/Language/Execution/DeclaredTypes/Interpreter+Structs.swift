@@ -205,11 +205,11 @@ extension Interpreter {
         return type
     }
 
-    /// The declaration of a struct value's type: the one its ID names for a type a program
+    /// The declaration of a struct value's type: the one its reference names for a type a program
     /// declared, so a value of a type since redeclared keeps its own; for a value of a Swift type,
     /// the struct its name means in scope, if a program declared one.
     func structType(of record: Value.Record) -> StructType? {
-        guard let id = record.typeID else { return nil }
+        guard let id = record.typeRef else { return nil }
         if case .declared = id.kind { return declaredTypes[id] as? StructType }
         return structType(named: id.name)
     }
@@ -242,7 +242,7 @@ extension Interpreter {
         }
         guard let initializers = chosenInitializers else {
             let bound = try bind(values, to: type.memberwise).bindings
-            var record = Value.Record(typeID: type.id)
+            var record = Value.Record(typeRef: type.id)
             for property in type.stored {
                 if let value = bound[property.name] {
                     record[property.name] = value
@@ -257,7 +257,7 @@ extension Interpreter {
             try self.bind(values, to: $0)
         }
         // Defaults first, then whatever the initializer sets.
-        var start = Value.Record(typeID: type.id)
+        var start = Value.Record(typeRef: type.id)
         for property in type.stored {
             if let defaultValue = property.defaultValue {
                 start[property.name] = try storedValue(defaultValue, for: property, of: type)
@@ -274,7 +274,7 @@ extension Interpreter {
             throw RuntimeError("\(type.name).init must leave self a \(type.name)")
         }
         // In declaration order, whatever order the initializer set them in.
-        var record = Value.Record(typeID: type.id)
+        var record = Value.Record(typeRef: type.id)
         for property in type.stored {
             guard let value = made[property.name] else {
                 throw RuntimeError("\(type.name).init must set '\(property.name)'")
