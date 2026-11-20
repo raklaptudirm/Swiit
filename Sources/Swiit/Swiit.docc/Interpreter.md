@@ -22,8 +22,8 @@
 - ``register(_:)-(HostSymbol)``
 - ``register(_:)-(HostType.Builder<T>)``
 - ``register(_:)-(E.Type)``
-- ``register(_:labels:throwing:_:)-f2lx``
-- ``register(_:labels:throwing:_:)-29d7d``
+- ``register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)``
+- ``register(_:labels:throwing:_:)-(_,_,_,(Argument)->Void)``
 - ``register(computed:type:_:)``
 - ``declare(_:bodies:)``
 - ``subscript(_:)``
