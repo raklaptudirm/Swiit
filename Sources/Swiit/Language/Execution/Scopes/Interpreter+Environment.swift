@@ -80,7 +80,7 @@ extension Interpreter {
             return qualified(enumValue.type.name) + "." + enumValue.name
         case .enumValue(let enumValue) where !enumValue.values.isEmpty:
             let labels = enumValue.definition?.labels ?? []
-            let payloads = enumPayloadTypes[ObjectIdentifier(enumValue.type)]?[enumValue.name] ?? []
+            let payloads = enumValue.type.payloadTypes[enumValue.name] ?? []
             return (debug ? qualified(enumValue.type.name) + "." : "") + enumValue.name + "("
                 + (try enumValue.values.enumerated()
                 .map { index, item in

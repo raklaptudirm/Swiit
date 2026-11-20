@@ -50,7 +50,7 @@ extension Interpreter {
         case .structure(let structure):
             if let type = structType(of: structure.record) { declared = type.conformances }
         case .enumValue(let enumValue):
-            declared = enumConformances[ObjectIdentifier(enumValue.type)] ?? []
+            declared = enumValue.type.conformances
         case .object(let instance as ClassInstance):
             declared = instance.type.allConformances
         default:
@@ -119,9 +119,7 @@ extension Interpreter {
             declared =
                 structType.conformances + (typeExtensions[structType.name]?.conformances ?? [])
         case let enumType as Value.EnumCase.Enumeration:
-            declared =
-                (enumConformances[ObjectIdentifier(enumType)] ?? [])
-                + (typeExtensions[enumType.name]?.conformances ?? [])
+            declared = enumType.conformances + (typeExtensions[enumType.name]?.conformances ?? [])
         case let classType as ClassType:
             declared = classType.allConformances
             for above in classType.chain {

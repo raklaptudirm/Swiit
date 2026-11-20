@@ -25,7 +25,12 @@ extension Value.EnumCase {
         /// The protocols a host's enum conforms to in Swift, of those that change what a script may
         /// do with it beyond what every enum without payloads can: `Comparable`, whose `<` goes by
         /// the cases' order, as Swift's own does.
-        let conformances: [String]
+        var conformances: [String]
+        /// The types of each case's associated values, by case, for checking them. The labels are on
+        /// the cases; the types are checker annotations, which only a program's enum has.
+        var payloadTypes: [String: [TypeAnnotation]] = [:]
+        /// A generic enum's type parameters, `Element` in `enum Tree<Element>`.
+        var typeParameters: [String] = []
 
         /// An enum the host provides, named by the Swift type's name.
         init(name: String, cases: [Case], conformances: [String] = []) {

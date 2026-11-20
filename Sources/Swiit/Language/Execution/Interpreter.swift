@@ -27,17 +27,12 @@ public final class Interpreter: @unchecked Sendable {
     let lock = InterpreterLock()
     /// Tasks started and not yet ended.
     var runningTasks = 0
-    /// Each enum's associated value types, by case, for checking them.
-    var enumPayloadTypes: [ObjectIdentifier: [String: [TypeAnnotation]]] = [:]
-    /// The protocols each enum declares.
-    var enumConformances: [ObjectIdentifier: [String]] = [:]
     /// The types programs have declared, by ID, including those a later declaration of the same
     /// name has since hidden.
     var declaredTypes: [Symbol.ID: any DeclaredType] = [:]
     /// The module a program's types are in, shown before their names where Swift shows it
     /// (`main.Point`).
     var moduleName = "main"
-    var enumTypeParameters: [ObjectIdentifier: [String]] = [:]
     /// What each enum adds to its cases: computed properties, methods, and the static ones.
     var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
     /// The operators and precedence groups declared at the prompt, by what they declare, as source.

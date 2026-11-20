@@ -95,7 +95,7 @@ extension Interpreter {
         switch type {
         case let structType as StructType: declared = structType.conformances
         case let enumType as Value.EnumCase.Enumeration:
-            declared = enumConformances[ObjectIdentifier(enumType)] ?? []
+            declared = enumType.conformances
         case let classType as ClassType: declared = classType.allConformances
         case let protocolType as ProtocolType: declared = protocolType.inherited
         default: declared = []

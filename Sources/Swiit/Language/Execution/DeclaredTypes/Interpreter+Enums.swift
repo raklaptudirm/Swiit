@@ -55,9 +55,9 @@ extension Interpreter {
         }
         let type = Value.EnumCase.Enumeration(declaring: decl.name, cases: cases)
         declaredTypes[type.id] = type
-        enumPayloadTypes[ObjectIdentifier(type)] = payloadTypes
-        enumConformances[ObjectIdentifier(type)] = decl.conformances
-        enumTypeParameters[ObjectIdentifier(type)] = decl.typeParameters
+        type.payloadTypes = payloadTypes
+        type.conformances = decl.conformances
+        type.typeParameters = decl.typeParameters
         scopes[scopes.count - 1].bindings[decl.name] = Binding(value: .object(type), mutable: false)
         try declareMembers(of: decl, on: type)
     }
@@ -201,7 +201,7 @@ extension Interpreter {
                 "\(written) has \(definition.labels.count) associated values, not \(arguments.count)"
             )
         }
-        let types = enumPayloadTypes[ObjectIdentifier(type)]?[name] ?? []
+        let types = type.payloadTypes[name] ?? []
         var values: [Value] = []
         for (index, argument) in arguments.enumerated() {
             guard argument.label == definition.labels[index] else {
@@ -477,7 +477,7 @@ extension Interpreter {
             return name == "Error"
                 || structType(named: name)?.conformances.contains("Error") == true
         case .enumValue(let enumValue):
-            return enumConformances[ObjectIdentifier(enumValue.type)]?.contains("Error") == true
+            return enumValue.type.conformances.contains("Error")
         case .object(let instance as ClassInstance):
             return instance.type.allConformances.contains("Error")
         default:

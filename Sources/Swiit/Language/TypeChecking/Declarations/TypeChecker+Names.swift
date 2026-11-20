@@ -169,7 +169,7 @@ extension TypeChecker {
     }
 
     func enumInfo(_ type: Value.EnumCase.Enumeration) -> TypeProfile {
-        let payloads = interpreter.enumPayloadTypes[ObjectIdentifier(type)] ?? [:]
+        let payloads = type.payloadTypes
         var profile = TypeProfile(name: type.name, kind: .enumeration)
         profile.cases = type.cases.map { enumCase in
             (
@@ -189,9 +189,8 @@ extension TypeChecker {
             default: nil
             }
         // What a script's enum declares, or what a host's conforms to in Swift.
-        profile.conformances =
-            type.conformances + (interpreter.enumConformances[ObjectIdentifier(type)] ?? [])
-        profile.typeParameters = interpreter.enumTypeParameters[ObjectIdentifier(type)] ?? []
+        profile.conformances = type.conformances
+        profile.typeParameters = type.typeParameters
         if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in
