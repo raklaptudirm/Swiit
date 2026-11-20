@@ -7,7 +7,7 @@ extension Interpreter {
     func installLanguageFunctions() {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         func declare(_ export: HostSymbol) {
-            scopes[0].declare(hostFunction(export), named: export.name)
+            scopes[0].declare(Self.hostFunction(export), named: export.name)
         }
         let condition = Symbol.Parameter(label: nil, name: "condition", type: .bool)
         let message = Symbol.Parameter(

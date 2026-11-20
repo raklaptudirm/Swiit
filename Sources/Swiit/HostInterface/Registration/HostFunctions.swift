@@ -37,21 +37,6 @@ extension Symbol.Parameter {
     }
 }
 
-// safe: its state is touched only holding the interpreter lock
-/// A host's function or method as a value, as `repo.log` gives it. The
-/// host calls it like any other function.
-final class NativeFunction: Callable, @unchecked Sendable {
-    let function: HostSymbol
-
-    init(_ function: HostSymbol) {
-        self.function = function
-    }
-
-    var description: String {
-        "(Function)"
-    }
-}
-
 // MARK: Converting values
 
 extension Value {

@@ -259,9 +259,6 @@ extension Interpreter {
             return try invoke(function, with: bindings)
         case .function(let function as Function):
             return try invoke(function, with: try bind(values, to: function).bindings)
-        case .function(let native as NativeFunction):
-            let function = hostFunction(native.function)
-            return try invoke(function, with: try bind(values, to: function).bindings)
         case .function(let keyPath as KeyPathValue):
             guard values.count == 1 else { throw RuntimeError("a key path reads one value") }
             return try keyPath.read(from: try evaluate(values[0].value), in: self)

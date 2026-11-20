@@ -10,6 +10,6 @@ extension Value {
             function.function != nil,
             "\(function.name) is a member of a type, not a function"
         )
-        self = .function(NativeFunction(function))
+        self = .function(Interpreter.hostFunction(function))
     }
 }

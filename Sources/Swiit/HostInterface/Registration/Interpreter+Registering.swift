@@ -15,7 +15,7 @@ extension Interpreter {
             for type in function.enums {
                 scopes[1].bindings[type.name] = Binding(value: .object(type), mutable: false)
             }
-            scopes[1].declare(hostFunction(function), named: function.name)
+            scopes[1].declare(Self.hostFunction(function), named: function.name)
         }
     }
 

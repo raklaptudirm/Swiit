@@ -239,9 +239,6 @@ extension Interpreter {
             return try invoke(function, with: bindings)
         case .function(let function as Function):
             return try invoke(function, with: try bind(unlabeled, to: function).bindings)
-        case .function(let native as NativeFunction):
-            let function = hostFunction(native.function)
-            return try invoke(function, with: try bind(unlabeled, to: function).bindings)
         case .function(let keyPath as KeyPathValue):
             guard arguments.count == 1 else { throw RuntimeError("a key path reads one value") }
             return try keyPath.read(from: arguments[0], in: self)
@@ -437,7 +434,7 @@ extension Interpreter {
 extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
-    func hostFunction(_ export: HostSymbol) -> Function {
+    static func hostFunction(_ export: HostSymbol) -> Function {
         guard let (signature, call) = export.function else {
             preconditionFailure("\(export.name) is a member of a type, not a function")
         }
