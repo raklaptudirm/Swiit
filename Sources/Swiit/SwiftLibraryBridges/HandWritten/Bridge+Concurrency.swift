@@ -64,7 +64,7 @@ extension Bridge {
         return type
     }()
 
-    private static let taskMembers: [HostSymbol] = [
+    private static let taskMembers: [ImplementedSymbol] = [
         .initializer(
             summary:
                 "Runs the operation as a task of its own, which goes on while the code that started it does.",

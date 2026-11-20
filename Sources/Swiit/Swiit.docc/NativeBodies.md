@@ -4,7 +4,7 @@ The promises Swiit makes to the Swift code it runs on a script's behalf.
 
 ## Overview
 
-A script runs inside the interpreter, and sometimes the interpreter runs Swift: the body of a ``HostSymbol`` (a function, or a member of a
+A script runs inside the interpreter, and sometimes the interpreter runs Swift: the body of a ``ImplementedSymbol`` (a function, or a member of a
 type written with ``HostType/Builder``), a closure given to ``Interpreter/register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)``, or a body that
 ``Interpreter/declare(_:bodies:)`` pairs with a declaration. This article is what such a body may assume. It is a contract, not a description
 of how the evaluator happens to work today: an evaluator that replaces the present one keeps every promise here, or the change says it does

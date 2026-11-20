@@ -27,7 +27,7 @@
 // members that trap on some arguments (`Bridges/preconditions.json`), which the glue checks first. A member is bridged if it is declared
 // `public`, whatever the access of its type.
 //
-// The output is a description of the types, `HostType` and `HostSymbol`, which compiles in any
+// The output is a description of the types, `HostType` and `ImplementedSymbol`, which compiles in any
 // package that imports Swiit. A member is bridged only if every type in its signature is one Swiit
 // can pass or hold (see `supported`); the rest are left out, and counted on stderr.
 //
@@ -359,7 +359,7 @@ nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append(
-        "    private static let \(name): HostSymbol = \(expression)\n"
+        "    private static let \(name): ImplementedSymbol = \(expression)\n"
     )
     return name
 }
@@ -564,7 +564,7 @@ if !functionNames.isEmpty {
         }
     }
     output +=
-        "    \(access) static let functions: [HostSymbol] = [\(functions.joined(separator: ", "))]\n"
+        "    \(access) static let functions: [ImplementedSymbol] = [\(functions.joined(separator: ", "))]\n"
 }
 output += declarations.joined(separator: "\n") + "}\n"
 try output.write(to: URL(fileURLWithPath: arguments[2]), atomically: true, encoding: .utf8)

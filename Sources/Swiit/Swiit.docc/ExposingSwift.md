@@ -6,8 +6,8 @@ point, listed here in that order.
 ## Register a closure as a function
 
 ``Interpreter/register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)`` takes a name and a closure, such as `register("double") { (n: Int) in n * 2 }`. When the
-parameter types are only known at run time, build a ``HostSymbol`` with ``HostSymbol/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,ScriptType,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
-``Interpreter/register(_:)-(HostSymbol)``.
+parameter types are only known at run time, build a ``ImplementedSymbol`` with ``ImplementedSymbol/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,ScriptType,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
+``Interpreter/register(_:)-(ImplementedSymbol)``.
 
 ## Register a Swift value type
 

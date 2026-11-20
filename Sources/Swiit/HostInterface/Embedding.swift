@@ -42,7 +42,7 @@ extension Interpreter {
     func installPrint() {
         nonisolated(unsafe) let interpreter = self  // safe: runs holding the interpreter lock
         let print = Self.hostFunction(
-            HostSymbol.function(
+            ImplementedSymbol.function(
                 name: "print",
                 summary: "Writes its arguments to the output, separated by spaces, then a newline.",
                 parameters: [

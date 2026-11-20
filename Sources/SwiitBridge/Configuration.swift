@@ -76,7 +76,7 @@ func preparedArguments() throws -> [String] {
     \(inModule == "Swiit" ? "" : "import Swiit\n")
     \(level) enum \(name ?? "Generated")Bridge {
         \(level) static let types: [HostType] = []
-        \(level) static let functions: [HostSymbol] = []
+        \(level) static let functions: [ImplementedSymbol] = []
     }
 
     """

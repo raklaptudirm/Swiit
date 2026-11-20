@@ -7,7 +7,7 @@ public struct HostType: Sendable {
     public var name: String
     /// A generic type's parameters, `Element` for an array, each with what it must be.
     public var genericParameters: [Symbol.GenericParameter] = []
-    public var members: [HostSymbol]
+    public var members: [ImplementedSymbol]
     /// The protocols its Swift type conforms to, of those Swiit knows (`Equatable`, `Hashable`,
     /// `Comparable`, `Sequence`), each with what its generic parameters must be for it: a
     /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`. A builder finds them from the type.
@@ -23,7 +23,7 @@ public struct HostType: Sendable {
     /// given several words gets.
     public var arrayLiteral: (@Sendable ([Value]) -> Value)?
 
-    public init(name: String, members: [HostSymbol] = []) {
+    public init(name: String, members: [ImplementedSymbol] = []) {
         self.name = name
         self.members = members
     }
@@ -193,7 +193,7 @@ extension BridgedMember {
     /// The members of a Swift type of the core's, written as a host writes its own: bridged, not
     /// a host's, so none is called without an interpreter and a host's member of the same shape
     /// takes its place.
-    static func bridged(_ symbols: [HostSymbol], in typeName: String) -> [BridgedMember] {
+    static func bridged(_ symbols: [ImplementedSymbol], in typeName: String) -> [BridgedMember] {
         symbols.flatMap { members(of: $0, in: typeName) }
             .map {
                 var member = $0; member.plain = nil; return member
@@ -238,7 +238,7 @@ extension BridgedMember {
     // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
-    static func members(of member: HostSymbol, in typeName: String) -> [BridgedMember] {
+    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
         let symbol = member.symbol
         func make(
             _ kind: BridgedMember.Kind,
@@ -461,7 +461,7 @@ extension HostType {
         /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
         /// declares them, as registering a function does.
         private func adding(
-            _ member: HostSymbol,
+            _ member: ImplementedSymbol,
             enums: [Value.EnumCase.Enumeration] = []
         ) -> Builder {
             var copy = self
@@ -472,9 +472,9 @@ extension HostType {
         }
 
         /// A member written by hand, for what a key path or a method reference cannot say, such as
-        /// an `async` method: made with `HostSymbol`'s `.method`, `.property` and the rest. A
+        /// an `async` method: made with `ImplementedSymbol`'s `.method`, `.property` and the rest. A
         /// function is not a member, and is registered on its own.
-        public func member(_ symbol: HostSymbol) -> Builder {
+        public func member(_ symbol: ImplementedSymbol) -> Builder {
             guard symbol.function == nil else {
                 preconditionFailure("\(symbol.name) is a function, not a member of \(type.name)")
             }
@@ -505,7 +505,10 @@ extension HostType {
             adding(
                 .method(
                     name,
-                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    parameters: ImplementedSymbol.parameters(
+                        repeat (each Argument).self,
+                        labels: labels
+                    ),
                     returns: Result.scriptType,
                     isThrowing: throwing
                 ) { receiver, arguments in
@@ -516,7 +519,7 @@ extension HostType {
                     )
                     .value
                 },
-                enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+                enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
             )
         }
 
@@ -530,7 +533,10 @@ extension HostType {
             adding(
                 .staticMethod(
                     name,
-                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    parameters: ImplementedSymbol.parameters(
+                        repeat (each Argument).self,
+                        labels: labels
+                    ),
                     returns: Result.scriptType,
                     isThrowing: throwing
                 ) { arguments in
@@ -538,7 +544,7 @@ extension HostType {
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
                     return try function(repeat try (each Argument)(next())).value
                 },
-                enums: HostSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+                enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
             )
         }
 
@@ -551,7 +557,10 @@ extension HostType {
             let name = type.name
             return adding(
                 .initializer(
-                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    parameters: ImplementedSymbol.parameters(
+                        repeat (each Argument).self,
+                        labels: labels
+                    ),
                     returns: .named(.host(name)),
                     isThrowing: throwing
                 ) { arguments in
@@ -559,7 +568,7 @@ extension HostType {
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
                     return Self.box(try make(repeat try (each Argument)(next())), as: name)
                 },
-                enums: HostSymbol.enums(repeat (each Argument).self)
+                enums: ImplementedSymbol.enums(repeat (each Argument).self)
             )
         }
 
@@ -573,7 +582,10 @@ extension HostType {
             let name = type.name
             return adding(
                 .initializer(
-                    parameters: HostSymbol.parameters(repeat (each Argument).self, labels: labels),
+                    parameters: ImplementedSymbol.parameters(
+                        repeat (each Argument).self,
+                        labels: labels
+                    ),
                     returns: .named(.optional, [.named(.host(name))]),
                     isThrowing: throwing
                 ) { arguments in
@@ -582,7 +594,7 @@ extension HostType {
                     return try make(repeat try (each Argument)(next()))
                         .map { Self.box($0, as: name) } ?? .nothing
                 },
-                enums: HostSymbol.enums(repeat (each Argument).self)
+                enums: ImplementedSymbol.enums(repeat (each Argument).self)
             )
         }
     }

@@ -41,7 +41,7 @@ private final class Log: @unchecked Sendable {
 @Test func aHostFunctionChangesTheVariablesItIsGivenInPlace() throws {
     let swiit = Interpreter()
     swiit.register(
-        HostSymbol.function(
+        ImplementedSymbol.function(
             name: "exchange",
             signature: Symbol.Function(
                 parameters: [

@@ -5,7 +5,7 @@ import Foundation
 extension Value {
     /// A described function as a value, for a host object's method to give: `.function(...)` of its
     /// own making.
-    public init(_ function: HostSymbol) {
+    public init(_ function: ImplementedSymbol) {
         precondition(
             function.function != nil,
             "\(function.name) is a member of a type, not a function"

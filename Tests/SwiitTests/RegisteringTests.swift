@@ -109,7 +109,7 @@ private struct Failure: Encodable { var code: Int }
     let log = Log()
     let swiit = interpreter(log: log)
     swiit.register(
-        HostSymbol.function(name: "fail", returns: .int, isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "fail", returns: .int, isThrowing: true) { _ in
             throw Diagnostic.runtime(
                 "nope",
                 thrown: try Value(encoding: Failure(code: 7)),
@@ -118,7 +118,7 @@ private struct Failure: Encodable { var code: Int }
         }
     )
     swiit.register(
-        HostSymbol.function(name: "stop", isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "stop", isThrowing: true) { _ in
             throw Diagnostic.fatal("stopped", cause: Stop())
         }
     )
@@ -167,7 +167,7 @@ private struct Failure: Encodable { var code: Int }
     _ = try swiit.evaluate("struct P { var x: Int }")
     let id = try #require(Symbol.ID(named: "P", in: swiit))
     swiit.register(
-        HostSymbol.function(name: "hostP", returns: .named(id)) { _ in
+        ImplementedSymbol.function(name: "hostP", returns: .named(id)) { _ in
             try swiit.make(id, arguments: [("x", Value(5))])
         }
     )
@@ -207,7 +207,7 @@ private struct Failure: Encodable { var code: Int }
     nonisolated(unsafe) let running = swiit
     let handle = Symbol.ID(hostType: "Handle")
     swiit.register(
-        HostSymbol.function(name: "spawn", returns: .named(handle)) { _ in
+        ImplementedSymbol.function(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))
         }
     )
