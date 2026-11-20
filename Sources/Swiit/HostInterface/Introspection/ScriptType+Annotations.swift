@@ -27,7 +27,9 @@ extension ScriptType {
             case .generic(let name, let arguments): .named(reference(name), arguments.map(convert))
             case .tuple(let elements):
                 .tuple(
-                    elements.map { ScriptType.Element(label: $0.label, type: convert($0.type)) }
+                    elements.map {
+                        ScriptType.TupleElement(label: $0.label, type: convert($0.type))
+                    }
                 )
             case .functionType(let parameters, let returns, let throwing, let effect):
                 .function(

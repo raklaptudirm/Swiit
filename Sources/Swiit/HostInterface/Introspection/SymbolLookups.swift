@@ -38,7 +38,7 @@ extension Sequence where Element == Symbol {
     /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
     /// or several do.
     public func overload(
-        arguments: [ScriptType.Element],
+        arguments: [ScriptType.TupleElement],
         in interpreter: Interpreter
     ) throws(Diagnostic) -> Symbol {
         try interpreter.overload(among: Array(self), arguments: arguments)

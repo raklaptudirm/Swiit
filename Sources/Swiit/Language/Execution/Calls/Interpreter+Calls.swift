@@ -521,12 +521,12 @@ extension TypeAnnotation {
             self =
                 arguments.isEmpty
                 ? .named(name.name) : .generic(name.name, arguments.map(TypeAnnotation.init))
-        case .function(let parameters, let returns, let isThrowing, let isAsync):
+        case .function(let function):
             self = .functionType(
-                parameters.map(TypeAnnotation.init),
-                TypeAnnotation(returns),
-                throws: isThrowing,
-                async: isAsync ? .async : .sync
+                function.parameters.map(TypeAnnotation.init),
+                TypeAnnotation(function.returns),
+                throws: function.isThrowing,
+                async: function.isAsync ? .async : .sync
             )
         case .tuple(let elements):
             self = .tuple(

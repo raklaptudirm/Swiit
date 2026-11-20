@@ -295,3 +295,20 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("struct Q { var `in` = 5; func `case`() -> Int { `in` } }")
     #expect(try swiit.evaluate("Q().in + Q().case()") == Value(10))
 }
+
+@Test func aFunctionTypeSaysWhatItThrows() {
+    let plain = ScriptType.function(parameters: [.int], returns: .int)
+    let throwing = ScriptType.function(parameters: [.int], returns: .int, isThrowing: true)
+    let typed = ScriptType.function(
+        ScriptType.FunctionType(
+            parameters: [.int],
+            returns: .int,
+            throwing: .typed(.named(.init(hostType: "MyError")))
+        )
+    )
+
+    #expect(plain.description == "(Int) -> Int")
+    #expect(throwing.description == "(Int) throws -> Int")
+    #expect(typed.description == "(Int) throws(MyError) -> Int")
+    #expect(plain != throwing && throwing != typed)
+}

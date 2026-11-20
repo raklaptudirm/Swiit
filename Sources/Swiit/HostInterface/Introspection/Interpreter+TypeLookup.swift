@@ -36,8 +36,8 @@ extension Interpreter {
         func current(_ type: ScriptType) -> Bool {
             switch type {
             case .named(let id, let arguments): isCurrent(id) && arguments.allSatisfy(current)
-            case .function(let parameters, let returns, _, _):
-                parameters.allSatisfy(current) && current(returns)
+            case .function(let function):
+                function.parameters.allSatisfy(current) && current(function.returns)
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
             case .metatype(let type), .inOut(let type): current(type)
             }

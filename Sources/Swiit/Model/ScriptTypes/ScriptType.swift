@@ -9,13 +9,8 @@ import Synchronization
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     case named(Symbol.ID, [ScriptType] = [])
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
-    case function(
-        parameters: [ScriptType],
-        returns: ScriptType,
-        isThrowing: Bool = false,
-        isAsync: Bool = false
-    )
-    case tuple([Element])
+    case function(FunctionType)
+    case tuple([TupleElement])
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
     /// are the type's static members, its initializers and the cases of an enum.
     case metatype(ScriptType)
@@ -23,8 +18,34 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// closure changes its accumulator: `inout Result`. It appears only as a parameter there.
     case inOut(ScriptType)
 
+    /// The shape of a function type: what it takes, what it gives back, and the effects Swift writes
+    /// after its parameters. A declaration's `Symbol.Function` has the same shape and adds what only a
+    /// declaration has (labels, names, defaults, documentation, generics).
+    public struct FunctionType: Sendable, Hashable {
+        public var parameters: [ScriptType]
+        public var returns: ScriptType
+        /// Whether it throws, and what. A function type is never `rethrowing`: only a declaration is.
+        public var throwing: Symbol.Throwing
+        public var isAsync: Bool
+
+        public init(
+            parameters: [ScriptType],
+            returns: ScriptType,
+            throwing: Symbol.Throwing = .no,
+            isAsync: Bool = false
+        ) {
+            self.parameters = parameters
+            self.returns = returns
+            self.throwing = throwing
+            self.isAsync = isAsync
+        }
+
+        /// Whether it throws errors of its own: `throws` and `throws(Failure)`.
+        public var isThrowing: Bool { throwing != .no && throwing != .rethrowing }
+    }
+
     /// An element of a tuple type, labeled or not.
-    public struct Element: Sendable, Hashable {
+    public struct TupleElement: Sendable, Hashable {
         public var label: String?
         public var type: ScriptType
         public init(label: String? = nil, type: ScriptType) {
@@ -58,6 +79,23 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         .named(.optional, [wrapped])
     }
 
+    /// A function type written with the effects as flags: `.function(parameters: [.int], returns: .int)`.
+    public static func function(
+        parameters: [ScriptType],
+        returns: ScriptType,
+        isThrowing: Bool = false,
+        isAsync: Bool = false
+    ) -> ScriptType {
+        .function(
+            FunctionType(
+                parameters: parameters,
+                returns: returns,
+                throwing: isThrowing ? .any : .no,
+                isAsync: isAsync
+            )
+        )
+    }
+
     /// A named type by its text, which the module's own tables and checker are written in.
     static func named(_ name: String, _ arguments: [ScriptType] = []) -> ScriptType {
         .named(.host(name), arguments)
@@ -72,9 +110,10 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         case .named(let name, let arguments):
             arguments.isEmpty
                 ? name.name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
-        case .function(let parameters, let returns, let isThrowing, let isAsync):
-            "(\(parameters.map(\.description).joined(separator: ", ")))"
-                + (isAsync ? " async" : "") + (isThrowing ? " throws" : "") + " -> \(returns)"
+        case .function(let function):
+            "(\(function.parameters.map(\.description).joined(separator: ", ")))"
+                + (function.isAsync ? " async" : "") + function.throwingText
+                + " -> \(function.returns)"
         case .metatype(let type): "\(type).Type"
         case .inOut(let type): "inout \(type)"
         case .tuple(let elements):
@@ -82,6 +121,17 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
                 + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
                 .joined(separator: ", ")
                 + ")"
+        }
+    }
+}
+
+extension ScriptType.FunctionType {
+    /// ` throws`, ` throws(Failure)` or nothing, as Swift writes it after the parameters.
+    fileprivate var throwingText: String {
+        switch throwing {
+        case .no, .rethrowing: ""
+        case .any: " throws"
+        case .typed(let failure): " throws(\(failure))"
         }
     }
 }

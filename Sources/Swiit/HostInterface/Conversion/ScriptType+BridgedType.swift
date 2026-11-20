@@ -10,8 +10,8 @@ extension ScriptType {
     }
 }
 
-extension ScriptType.Element {
-    /// An element of a Swift type: `Element(label: "by", type: String.self)`.
+extension ScriptType.TupleElement {
+    /// An element of a Swift type: `TupleElement(label: "by", type: String.self)`.
     public init<T: BridgedType>(label: String? = nil, type: T.Type) {
         self.init(label: label, type: ScriptType(type))
     }

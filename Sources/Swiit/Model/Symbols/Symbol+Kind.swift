@@ -97,6 +97,17 @@ extension Symbol {
         /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
         public var generics: [GenericParameter]
 
+        /// What a value of this function has as a type: the shape without the labels, names, defaults
+        /// and documentation. A `rethrows` function's type throws, as a closure of it does.
+        public var functionType: ScriptType.FunctionType {
+            ScriptType.FunctionType(
+                parameters: parameters.map(\.type),
+                returns: returns,
+                throwing: throwing == .rethrowing ? .any : throwing,
+                isAsync: isAsync
+            )
+        }
+
         /// Whether it throws errors of its own, as `throws` and `throws(Failure)` do: not a
         /// `rethrows` function, which throws only what its closures do. Setting it says `throws`
         /// or nothing.
