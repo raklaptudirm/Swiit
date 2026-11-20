@@ -185,7 +185,7 @@ extension Interpreter {
 
     /// What names a value's type: `Int`, a struct's own name, `Array`.
     func typeKey(of value: Value) -> String? {
-        if let builtin = value.builtinKind { return builtin.name }
+        if let name = value.representation?.name { return name }
         return switch value.storage {
         case .structure(let structure): structure.record.typeName
         case .enumValue(let enumValue): enumValue.type.name

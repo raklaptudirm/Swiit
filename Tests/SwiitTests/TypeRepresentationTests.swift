@@ -11,14 +11,10 @@ import Testing
     }
 
     for (name, kind) in [
-        ("Int", Value.Builtin.int), ("Double", .double), ("Bool", .bool),
+        ("Int", ImplementedType.Representation.int), ("Double", .double), ("Bool", .bool),
         ("String", .string), ("Array", .list), ("Dictionary", .dictionary),
     ] {
-        guard case .builtin(let found)? = representation(of: name) else {
-            Issue.record("\(name) should be builtin")
-            continue
-        }
-        #expect(found == kind)
+        #expect(representation(of: name) == kind)
     }
     for name in ["Set", "Substring", "Character", "Range", "ClosedRange", "Date"] {
         guard case .held? = representation(of: name) else {
@@ -40,17 +36,19 @@ import Testing
 }
 
 @Test func aTypesRepresentationIsHowItsValuesAreStored() throws {
-    let samples: [Value.Builtin: Value] = [
+    let samples: [ImplementedType.Representation: Value] = [
         .bool: .bool(true), .int: .int(1), .double: .double(1), .string: .string("a"),
         .list: .list([]), .dictionary: .dictionary([:]),
     ]
-    #expect(Set(samples.keys) == Set(Value.Builtin.allCases))
+    #expect(Set(samples.keys) == Set(ImplementedType.Representation.allCases).subtracting([.held]))
 
     for (kind, sample) in samples {
-        let type = try #require(Bridge.types[kind.name])
+        let name = try #require(kind.name)
+        let type = try #require(Bridge.types[name])
 
+        #expect(type.representation == kind)
         #expect(type.representation.encodes(sample.storage))
-        #expect(sample.builtinKind == kind)
+        #expect(sample.representation == kind)
     }
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")

@@ -180,7 +180,7 @@ extension ImplementedType {
 
     /// It, with its members lowered. A type of the core is bridged: its members are not a host's own,
     /// so none is called without an interpreter and a host's member of the same shape takes its place
-    /// (a generated description is one); it is `builtin` if the interpreter stores its values itself.
+    /// (a generated description is one); its representation is the one the interpreter stores itself, if it is one of those.
     func lowering(ofTheCore core: Bool = false) -> ImplementedType {
         var made = self
         made.lowered = members.flatMap { BridgedMember.members(of: $0, in: name) }
@@ -188,7 +188,7 @@ extension ImplementedType {
             made.lowered = made.lowered.map {
                 var member = $0; member.plain = nil; return member
             }
-            made.representation = Value.Builtin(named: name).map(Representation.builtin) ?? .held
+            made.representation = Representation(named: name) ?? .held
         }
         return made
     }

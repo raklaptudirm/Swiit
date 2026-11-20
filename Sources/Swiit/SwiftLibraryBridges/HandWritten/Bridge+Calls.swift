@@ -87,7 +87,7 @@ extension Interpreter {
     func bridgedProperty(_ name: String, of value: Value) throws -> Value? {
         let typeName: String? =
             switch value.storage {
-            case _ where value.builtinKind != nil: value.builtinKind!.name
+            case _ where value.representation?.name != nil: value.representation!.name
             case .object(let box as SwiftValue): box.typeName
             // A host's object, if its type was registered.
             case .object(let object) where !(object is LanguageObject): object.typeName
@@ -136,7 +136,7 @@ extension Interpreter {
     func bridgedMethods(_ name: String, of value: Value) -> Value? {
         let typeName: String? =
             switch value.storage {
-            case _ where value.builtinKind != nil: value.builtinKind!.name
+            case _ where value.representation?.name != nil: value.representation!.name
             case .object(let box as SwiftValue): box.typeName
             // A host's object, if its type was registered.
             case .object(let object) where !(object is LanguageObject): object.typeName

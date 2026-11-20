@@ -5,23 +5,70 @@ extension ImplementedType {
     /// truth: `Value.Storage` is how a value of such a type is encoded, and this file says how, in both
     /// directions. A type's representation says which storage its values have, and a value's storage
     /// says which representation its type has.
-    enum Representation: Sendable, Equatable {
-        /// One of the kinds the interpreter stores itself, such as a list or a string.
-        case builtin(Value.Builtin)
+    enum Representation: CaseIterable, Sendable, Equatable {
+        /// The kinds the interpreter stores itself, for speed. Each is otherwise an ordinary Swift
+        /// type: it has a name, bridged members, conformances and extensions like any other.
+        case bool, int, double, string, list, dictionary
         /// A Swift value kept as it is under its Swift name.
         case held
+
+        /// Swift's name for the type, for the kinds the interpreter stores itself: `Array` for a list.
+        var name: String? {
+            switch self {
+            case .bool: "Bool"
+            case .int: "Int"
+            case .double: "Double"
+            case .string: "String"
+            case .list: "Array"
+            case .dictionary: "Dictionary"
+            case .held: nil
+            }
+        }
+
+        /// The representation of the type Swift calls `name`, if the interpreter stores its values.
+        init?(named name: String) {
+            guard let found = Self.allCases.first(where: { $0.name == name }) else { return nil }
+            self = found
+        }
+
+        /// The annotation for the type, with what it holds not known, for the kinds the interpreter
+        /// stores itself.
+        var annotation: TypeAnnotation? {
+            switch self {
+            case .bool: .bool
+            case .int: .int
+            case .double: .double
+            case .string: .string
+            case .list: .list(.unknown)
+            case .dictionary: .dictionary(.unknown, .unknown)
+            case .held: nil
+            }
+        }
+
+        /// The representation of the type an annotation names, if the interpreter stores its values.
+        init?(_ annotation: TypeAnnotation) {
+            switch annotation {
+            case .bool: self = .bool
+            case .int: self = .int
+            case .double: self = .double
+            case .string: self = .string
+            case .list: self = .list
+            case .dictionary: self = .dictionary
+            default: return nil
+            }
+        }
 
         /// The representation of the type a value with this storage is of, if the storage is one of
         /// the encodings of a representation known so far. A struct, an enum, a class instance, a
         /// tuple, a function and nothing have none yet.
         init?(encoding storage: Value.Storage) {
             switch storage {
-            case .bool: self = .builtin(.bool)
-            case .int: self = .builtin(.int)
-            case .double: self = .builtin(.double)
-            case .string: self = .builtin(.string)
-            case .list: self = .builtin(.list)
-            case .dictionary: self = .builtin(.dictionary)
+            case .bool: self = .bool
+            case .int: self = .int
+            case .double: self = .double
+            case .string: self = .string
+            case .list: self = .list
+            case .dictionary: self = .dictionary
             case .object(let object) where object is SwiftValue: self = .held
             default: return nil
             }
@@ -35,12 +82,9 @@ extension ImplementedType {
 }
 
 extension Value {
-    /// Which of the core's kinds this is a value of, if its storage is one of theirs.
-    var builtinKind: Builtin? {
-        if case .builtin(let kind)? = ImplementedType.Representation(encoding: storage) {
-            kind
-        } else {
-            nil
-        }
+    /// The representation of the type this is a value of, if its storage is one the interpreter
+    /// knows the type of.
+    var representation: ImplementedType.Representation? {
+        ImplementedType.Representation(encoding: storage)
     }
 }

@@ -4,7 +4,8 @@ extension Expr {
     /// place, and reading it through the bridge must not make it a value.
     var subscriptPlace: (receiver: Expr, index: Expr)? {
         guard case .bridged(let type, let member, let receiver?, let arguments) = self,
-            arguments.count == 1, case .builtin? = Bridge.types[type]?.representation,
+            arguments.count == 1,
+            [.list, .dictionary].contains(Bridge.types[type]?.representation),
             let bridged = Bridge.types[type], bridged.lowered.indices.contains(member),
             bridged.lowered[member].kind == .method, bridged.lowered[member].name == "subscript"
         else { return nil }

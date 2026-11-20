@@ -17,7 +17,7 @@ extension TypeChecker {
 
     /// What names a type extensions can add to: `Int`, `Array`, a struct's own name.
     func extensionKey(of type: TypeAnnotation) -> String? {
-        if let builtin = Value.Builtin(type) { return builtin.name }
+        if let name = ImplementedType.Representation(type)?.name { return name }
         return switch type {
         case .named(let name): name
         case .generic(let name, _): name
@@ -192,8 +192,8 @@ extension TypeChecker {
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
     func selfType(ofExtensionOf key: String) throws -> TypeAnnotation {
-        if case .builtin(let builtin)? = Bridge.types[key]?.representation {
-            return builtin.annotation
+        if let annotation = Bridge.types[key]?.representation.annotation {
+            return annotation
         }
         if structInfo(named: key) != nil || enumInfo(named: key) != nil
             || protocolInfo(named: key) != nil
