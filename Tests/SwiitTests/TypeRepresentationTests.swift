@@ -38,3 +38,24 @@ import Testing
         return
     }
 }
+
+@Test func aTypesRepresentationIsHowItsValuesAreStored() throws {
+    let samples: [Value.Builtin: Value] = [
+        .bool: .bool(true), .int: .int(1), .double: .double(1), .string: .string("a"),
+        .list: .list([]), .dictionary: .dictionary([:]),
+    ]
+    #expect(Set(samples.keys) == Set(Value.Builtin.allCases))
+
+    for (kind, sample) in samples {
+        let type = try #require(Bridge.types[kind.name])
+
+        #expect(type.representation.encodes(sample.storage))
+        #expect(sample.builtinKind == kind)
+    }
+    // A held value is stored as the Swift value it is.
+    let held = SwiftValue.make(Set<Value>(), as: "Set")
+    let set = try #require(Bridge.types["Set"])
+
+    #expect(set.representation.encodes(held.storage))
+    #expect(!set.representation.encodes(Value.int(1).storage))
+}

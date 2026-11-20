@@ -23,19 +23,6 @@ extension Value {
             self = found
         }
 
-        /// The type a value's storage is, if it is one of these.
-        init?(_ storage: Value.Storage) {
-            switch storage {
-            case .bool: self = .bool
-            case .int: self = .int
-            case .double: self = .double
-            case .string: self = .string
-            case .list: self = .list
-            case .dictionary: self = .dictionary
-            default: return nil
-            }
-        }
-
         /// The type an annotation names, if it is one of these.
         init?(_ annotation: TypeAnnotation) {
             switch annotation {

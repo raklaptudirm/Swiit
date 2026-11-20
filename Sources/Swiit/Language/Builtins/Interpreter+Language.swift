@@ -356,7 +356,7 @@ extension Interpreter {
     func typeObject(of value: Value) -> Value {
         let name: String
         switch value.storage {
-        case _ where Value.Builtin(value.storage) != nil: name = Value.Builtin(value.storage)!.name
+        case _ where value.builtinKind != nil: name = value.builtinKind!.name
         case .enumValue(let enumValue): return .object(enumValue.type)
         case .tuple:
             // A tuple is of the type its elements make: `(x: Int, Double)`.

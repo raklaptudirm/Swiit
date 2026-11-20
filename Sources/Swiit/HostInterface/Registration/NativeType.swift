@@ -38,12 +38,6 @@ public struct ImplementedType: Sendable {
     /// registered.
     var lowered: [BridgedMember] = []
 
-    enum Representation: Sendable {
-        /// One of the kinds the interpreter stores itself, such as a list or a string.
-        case builtin(Value.Builtin)
-        /// A Swift value kept as it is under its Swift name.
-        case held
-    }
     public init(name: String, members: [ImplementedSymbol] = []) {
         declaration = Symbol.TypeDeclaration(name: name)
         self.members = members
