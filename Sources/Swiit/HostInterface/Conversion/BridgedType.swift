@@ -1,27 +1,27 @@
 import Foundation
 
-/// A Swift type that can be a parameter: the host hands it a `Value`, and
-/// it says what type the host should check for.
+/// A Swift type that crosses into scripts: a host function can take and give it, and scripts can name
+/// it. It says what scripts see of it (`hostType`), what type to check a parameter against
+/// (`scriptType`), and how a `Value` becomes one and one becomes a `Value`.
 ///
-/// It is also how a type is held as it is: a type that is `Sendable` and conforms with no more than
-/// `extension URL: BridgedType {}` is held under its Swift name, by value if it is `Hashable`
-/// and by identity if it is a class, and its registered members are its members (`HostType.Builder`). A
-/// type that answers for members it only knows at run time, like a parsed object's keys, says them.
+/// A type that is `Sendable` conforms with no more than `extension URL: BridgedType {}`: it is held as
+/// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
+/// registered members (`HostType.Builder`) are its members. A type that answers for members it only
+/// knows at run time also conforms to ``DynamicMembers``.
 public protocol BridgedType {
+    /// What scripts see of the type: its name, documentation, members and conformances. The default
+    /// is a type of that Swift name with no members; a type with members says them here, and is
+    /// registered with ``Interpreter/register(_:)-(HostType)``.
+    static var hostType: HostType { get }
+    /// The type a parameter of this type is checked against. For a type held as it is, the type
+    /// `hostType` names.
     static var scriptType: ScriptType { get }
     init(_ swiitValue: Value) throws
     var value: Value { get }
-    /// The names of the members it answers for at run time, in order, or nil, the default, if all
-    /// its members are registered. A type with names is laid out as a record is, in a table and in
-    /// JSON.
-    var memberNames: [String]? { get }
-    /// A member answered at run time, after the registered ones; nil if there is none.
-    func member(_ name: String) -> Value?
 }
 
 extension BridgedType {
-    public var memberNames: [String]? { nil }
-    public func member(_ name: String) -> Value? { nil }
+    public static var hostType: HostType { HostType(name: Value.hostName(of: Self.self)) }
 }
 
 /// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their

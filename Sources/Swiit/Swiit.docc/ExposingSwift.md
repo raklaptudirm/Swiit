@@ -24,7 +24,7 @@ that only declarations in Swift source name is registered on its own, with `regi
 
 A class that conforms to ``BridgedType`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
 the ones its ``HostType/Builder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
-``BridgedType/memberNames`` and ``BridgedType/member(_:)``: a parsed object's keys, a job's fields.
+``DynamicMembers/memberNames`` and ``DynamicMembers/member(_:)``: a parsed object's keys, a job's fields.
 
 ## Declare types and functions in Swift
 

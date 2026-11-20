@@ -54,9 +54,7 @@ extension LanguageObject {
     /// has none: it is one value, like a `FileSize`.
     var dataFields: [(key: Value, value: Value)]? {
         // A held value is data if it names its members: a parsed object's keys, a job's fields.
-        guard let box = self as? SwiftValue,
-            (box.value as? any BridgedType)?.memberNames != nil
-        else { return nil }
+        guard let box = self as? SwiftValue, box.value is any DynamicMembers else { return nil }
         var fields: [(key: Value, value: Value)] = []
         for name in memberNames {
             guard let value = member(name) else { continue }

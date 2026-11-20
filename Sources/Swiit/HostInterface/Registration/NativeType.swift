@@ -613,7 +613,7 @@ extension HostType {
 /// A `Sendable` type becomes one a script can hold and a host function can take and give by
 /// saying so: `extension URL: BridgedType {}`. It is held as it is, under its Swift name.
 extension BridgedType where Self: Sendable {
-    public static var scriptType: ScriptType { .named(.host(Value.hostName(of: Self.self))) }
+    public static var scriptType: ScriptType { .named(.host(hostType.name)) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
 }

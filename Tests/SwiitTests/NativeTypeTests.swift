@@ -66,26 +66,27 @@ struct Swatch: Hashable, Sendable, BridgedType {
 }
 
 /// A thing: a class, which is equal only to itself, and says its members at run time.
-private final class Pair: BridgedType, CustomStringConvertible, CustomDebugStringConvertible,
+private final class Pair: BridgedType, DynamicMembers, CustomStringConvertible,
+    CustomDebugStringConvertible,
     @unchecked Sendable
 {
     let a: Int, b: Int
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
     var description: String { "Pair" }
     var debugDescription: String { "Pair(\(a), \(b))" }
-    var memberNames: [String]? { ["a", "b"] }
+    var memberNames: [String] { ["a", "b"] }
     func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
 }
 
 /// Data: a struct, which is equal to another that holds the same.
-private struct DataPair: BridgedType, Hashable, CustomStringConvertible,
+private struct DataPair: BridgedType, DynamicMembers, Hashable, CustomStringConvertible,
     CustomDebugStringConvertible, Sendable
 {
     let a: Int, b: Int
     init(_ a: Int, _ b: Int) { (self.a, self.b) = (a, b) }
     var description: String { "DataPair" }
     var debugDescription: String { "DataPair(\(a), \(b))" }
-    var memberNames: [String]? { ["a", "b"] }
+    var memberNames: [String] { ["a", "b"] }
     func member(_ name: String) -> Value? { name == "a" ? Value(a) : name == "b" ? Value(b) : nil }
 }
 

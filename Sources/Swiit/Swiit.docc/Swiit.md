@@ -40,6 +40,7 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - ``ImplementedSymbol``
 - ``HostType/Builder``
 - ``BridgedType``
+- ``DynamicMembers``
 
 ### Errors, symbols and declarations
 
