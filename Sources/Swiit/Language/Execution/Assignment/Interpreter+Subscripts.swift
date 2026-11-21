@@ -12,7 +12,7 @@ extension Interpreter {
             Argument(label: $0.label, value: .literal(try evaluate($0.value)))
         }
         let (getter, bindings) = try resolve(
-            OverloadSet(name: "subscript", candidates: owner.subscriptGetters)
+            OverloadSet(name: "subscript", candidates: owner.members.subscriptGetters)
         ) {
             try self.bind(values, to: $0)
         }
@@ -36,12 +36,12 @@ extension Interpreter {
             Argument(label: $0.label, value: .literal(try evaluate($0.value)))
         }
         let (getter, bindings) = try resolve(
-            OverloadSet(name: "subscript", candidates: owner.subscriptGetters)
+            OverloadSet(name: "subscript", candidates: owner.members.subscriptGetters)
         ) {
             try self.bind(values, to: $0)
         }
-        guard let position = owner.subscriptGetters.firstIndex(where: { $0 === getter }),
-            let setter = owner.subscriptSetters[position]
+        guard let position = owner.members.subscriptGetters.firstIndex(where: { $0 === getter }),
+            let setter = owner.members.subscriptSetters[position]
         else {
             throw RuntimeError(
                 "cannot assign through \(instance.type.name)'s subscript: it's get-only"

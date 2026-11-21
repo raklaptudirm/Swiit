@@ -367,6 +367,29 @@ private struct Point: Encodable { var x: Int }
     #expect(declared.conformances.keys.contains("Hashable"))
 }
 
+@Test func aClassesDeclarationNamesWhatItAndAnExtensionGaveIt() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("class Base: Sendable {}")
+    _ = try swiit.evaluate("class Leaf: Base {}")
+    let before = try #require(swiit.declaration(ofType: "Leaf"))
+    #expect(before.symbol.kind == .type(.class))
+    #expect(before.conformances.keys.contains("Sendable"))
+    #expect(!before.conformances.keys.contains("Hashable"))
+
+    _ = try swiit.evaluate("extension Leaf: Hashable {}")
+
+    let after = try #require(swiit.declaration(ofType: "Leaf"))
+    #expect(after.conformances.keys.contains("Hashable"))
+}
+
+@Test func aClassFromAnEarlierProgramCanBeSubclassed() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("class Base { var n = 1 }")
+    _ = try swiit.evaluate("class Leaf: Base {}")
+
+    #expect(try swiit.evaluate("Leaf().n") == Value(1))
+}
+
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
     let element = Symbol.genericParameter("T", constraints: [.comparable])
 

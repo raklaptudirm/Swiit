@@ -16,6 +16,8 @@ extension TypeImplementation {
         /// One of an enum's cases, with the values of its payload: an enum a program declares or a
         /// host offers.
         case enumeration
+        /// An instance of a class a program declares, shared by every variable that holds it.
+        case reference
 
         /// Swift's name for the type, for the kinds the interpreter stores itself: `Array` for a list.
         var name: String? {
@@ -26,7 +28,7 @@ extension TypeImplementation {
             case .string: "String"
             case .list: "Array"
             case .dictionary: "Dictionary"
-            case .held, .record, .enumeration: nil
+            case .held, .record, .enumeration, .reference: nil
             }
         }
 
@@ -46,7 +48,7 @@ extension TypeImplementation {
             case .string: .string
             case .list: .list(.unknown)
             case .dictionary: .dictionary(.unknown, .unknown)
-            case .held, .record, .enumeration: nil
+            case .held, .record, .enumeration, .reference: nil
             }
         }
 
@@ -64,8 +66,8 @@ extension TypeImplementation {
         }
 
         /// The representation of the type a value with this storage is of, if the storage is one of
-        /// the encodings of a representation known so far. A class instance, a class instance, a
-        /// tuple, a function and nothing have none yet.
+        /// the encodings of a representation known so far. A tuple, a function and nothing have none
+        /// yet.
         init?(encoding storage: Value.Storage) {
             switch storage {
             case .bool: self = .bool
@@ -77,6 +79,7 @@ extension TypeImplementation {
             case .object(let object) where object is SwiftValue: self = .held
             case .structure: self = .record
             case .enumValue: self = .enumeration
+            case .object(let object) where object is ClassInstance: self = .reference
             default: return nil
             }
         }

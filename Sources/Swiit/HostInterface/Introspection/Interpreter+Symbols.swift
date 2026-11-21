@@ -80,6 +80,7 @@ extension Interpreter {
         withMainTask {
             switch lookup(name)?.value.storage {
             case .object(let type as StructType)?: return type.declaration
+            case .object(let type as ClassType)?: return type.declaration
             case .object(let type as Value.EnumCase.Enumeration)?:
                 if let enumType = enumTypes[ObjectIdentifier(type)] { return enumType.declaration }
             default: break

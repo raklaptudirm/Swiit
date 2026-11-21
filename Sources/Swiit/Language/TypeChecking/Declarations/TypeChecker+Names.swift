@@ -17,13 +17,13 @@ extension TypeChecker {
         switch binding.value.storage {
         case .object(let type as StructType):
             let key = ObjectIdentifier(type)
-            if let profile = structProfiles[key] { return .structType(profile) }
+            if let profile = typeProfiles[key] { return .structType(profile) }
             let profile = structInfo(type)
-            structProfiles[key] = profile
+            typeProfiles[key] = profile
             return .structType(profile)
         case .object(let type as ClassType):
             // What an earlier program declared is read as it was declared.
-            guard let declaration = type.declaration else {
+            guard let declaration = type.source else {
                 return .variable(.unknown, mutable: false)
             }
             var parent: TypeProfile?
@@ -32,14 +32,23 @@ extension TypeChecker {
             {
                 parent = info
             }
-            let info = try? classInfo(
-                declaration,
-                superclass: parent,
-                conformances: type.conformances
-            )
-            return info.map { .structType($0) } ?? .variable(.unknown, mutable: false)
+            let key = ObjectIdentifier(type)
+            if let profile = typeProfiles[key] { return .structType(profile) }
+            guard
+                let info = try? classInfo(
+                    declaration,
+                    superclass: parent,
+                    conformances: type.conformances
+                )
+            else { return .variable(.unknown, mutable: false) }
+            typeProfiles[key] = info
+            return .structType(info)
         case .object(let type as Value.EnumCase.Enumeration):
-            return .enumType(enumInfo(type))
+            let key = ObjectIdentifier(type)
+            if let profile = typeProfiles[key] { return .enumType(profile) }
+            let profile = enumInfo(type)
+            typeProfiles[key] = profile
+            return .enumType(profile)
         case .object(let type as ProtocolType):
             return .protocolType(protocolInfo(type.declaration))
         case .object(let type as BridgedTypeName):

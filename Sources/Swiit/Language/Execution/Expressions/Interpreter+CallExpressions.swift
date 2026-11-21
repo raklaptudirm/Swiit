@@ -138,11 +138,8 @@ extension Interpreter {
             // `Counter.make()`: a static or class method, inherited ones too.
             if case .object(let type as ClassType) = base.storage {
                 for next in type.chain {
-                    if let methods = next.staticMethods[name] {
-                        return try callStatic(
-                            narrowed(OverloadSet(name: name, candidates: methods), overload),
-                            arguments
-                        )
+                    if let methods = next.members.staticMethods[name] {
+                        return try callStatic(narrowed(methods, overload), arguments)
                     }
                 }
             }

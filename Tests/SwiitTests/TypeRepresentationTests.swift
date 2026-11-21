@@ -43,7 +43,7 @@ import Testing
     #expect(
         Set(samples.keys)
             == Set(TypeImplementation.Representation.allCases)
-            .subtracting([.held, .record, .enumeration])
+            .subtracting([.held, .record, .enumeration, .reference])
     )
 
     for (kind, sample) in samples {
@@ -69,6 +69,14 @@ import Testing
 
     #expect(axis.representation == .enumeration)
     #expect(TypeImplementation.Representation.enumeration.encodes(axis.storage))
+
+    // A class instance is a reference, and the type says so.
+    _ = try swiit.evaluate("class Node { var n = 0 }")
+    let node = try swiit.evaluate("Node()")
+
+    #expect(node.representation == .reference)
+    #expect(TypeImplementation.Representation.reference.encodes(node.storage))
+    #expect(!TypeImplementation.Representation.reference.encodes(pair.storage))
 
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")

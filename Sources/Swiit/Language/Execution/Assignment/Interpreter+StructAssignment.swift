@@ -329,7 +329,7 @@ extension Interpreter {
             return base
         case (.member(let name), .object(let type as ClassType)):
             // `Counter.total += 1`: a static var of the class.
-            guard let slot = type.chain.lazy.compactMap({ $0.statics[name] }).first else {
+            guard let slot = type.chain.lazy.compactMap({ $0.members.statics[name] }).first else {
                 throw RuntimeError(
                     "cannot assign to '\(name)': \(type.name) has no static property '\(name)'"
                 )

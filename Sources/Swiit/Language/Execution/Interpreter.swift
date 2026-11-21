@@ -108,11 +108,7 @@ extension Interpreter {
             .mapValues { binding in
                 if binding.isFunction { return .function }
                 if binding.isComputed { return .variable }
-                if case .object(is Value.EnumCase.Enumeration) = binding.value.storage {
-                    return .type
-                }
-                if case .object(is StructType) = binding.value.storage { return .type }
-                if case .object(is ProtocolType) = binding.value.storage { return .type }
+                if case .object(is any DeclaredType) = binding.value.storage { return .type }
                 if case .object(is BridgedTypeName) = binding.value.storage { return .type }
                 return .variable
             }

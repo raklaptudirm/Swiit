@@ -9,22 +9,20 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let isActor: Bool
     /// Stored properties this class declares, in order, and their defaults.
     let stored: [PropertyDecl]
-    var computed: [String: Function] = [:]
-    var setters: [String: Function] = [:]
+    /// What the class declares itself, not what it inherits: computed properties and their setters,
+    /// methods, initializers, statics and subscripts, kept as a struct, an enum and an extension do.
+    let members = TypeMembers()
+    /// How its instances are stored: as a reference, shared by every variable that holds it.
+    let representation = TypeImplementation.Representation.reference
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
-    var methods: [String: [Function]] = [:]
-    var initializers: [Function] = []
     var deinitializer: Function?
-    var subscriptGetters: [Function] = []
-    var subscriptSetters: [Function?] = []
-    var staticComputed: [String: Function] = [:]
-    var staticMethods: [String: [Function]] = [:]
-    var statics: [String: StructType.StaticValue] = [:]
-    let staticProperties: [PropertyDecl]
     /// The protocols it names itself.
     let conformances: [String]
-    /// What it was declared as, which the checker reads again for a later program.
-    var declaration: ClassDecl?
+    /// What it was declared as in source, which the checker reads again for a later program.
+    var source: ClassDecl?
+    /// What is said of the type, kept here so that every reader sees the same thing. An extension that
+    /// adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
+    var declaration: TypeDeclaration
 
     init(
         name: String,
@@ -39,8 +37,12 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.superclass = superclass
         self.isActor = isActor
         self.stored = stored
-        self.staticProperties = staticProperties
         self.conformances = conformances
+        members.staticProperties = staticProperties
+        var symbol = Symbol(name: name, kind: .type(isActor ? .actor : .class))
+        symbol.typeRef = typeRef
+        declaration = TypeDeclaration(symbol: symbol)
+        for protocolName in allConformances { declaration.conformances[protocolName] = [] }
     }
 
     /// This class and each it comes from, nearest first.
@@ -64,12 +66,12 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
 
     /// The methods by that name, the nearest class's first, one for each signature (the nearer
     /// overrides). The subscripts of the nearest class that declares any.
-    var subscriptOwner: ClassType? { chain.first { !$0.subscriptGetters.isEmpty } }
+    var subscriptOwner: ClassType? { chain.first { !$0.members.subscriptGetters.isEmpty } }
 
     func allMethods(_ name: String) -> [Function] {
         var found: [Function] = []
         for type in chain {
-            for method in type.methods[name] ?? []
+            for method in type.members.methods[name]?.candidates ?? []
             where !found.contains(where: { $0.hasSameSignature(as: method) }) {
                 found.append(method)
             }
@@ -85,11 +87,11 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     }
 
     func computedProperty(_ name: String) -> Function? {
-        chain.lazy.compactMap { $0.computed[name] }.first
+        chain.lazy.compactMap { $0.members.computed[name] }.first
     }
 
     func setter(_ name: String) -> Function? {
-        chain.lazy.compactMap { $0.setters[name] }.first
+        chain.lazy.compactMap { $0.members.setters[name] }.first
     }
 
     func observer(_ name: String) -> (willSet: Function?, didSet: Function?)? {

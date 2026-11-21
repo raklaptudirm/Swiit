@@ -37,11 +37,14 @@ extension Interpreter {
             staticProperties: members.staticProperties,
             conformances: conformances
         )
-        type.declaration = decl
+        type.source = decl
+        var declaredMethods: [String: [Function]] = [:]
+        var declaredStaticMethods: [String: [Function]] = [:]
+        var declaredInitializers: [Function] = []
         func make(_ function: Function) -> Function { function.owner = type; return function }
         for property in members.properties {
             if let getter = property.getter {
-                type.computed[property.name] = make(
+                type.members.computed[property.name] = make(
                     Function(
                         name: property.name,
                         parameters: [],
@@ -52,7 +55,7 @@ extension Interpreter {
                 )
             }
             if let setter = property.setter {
-                type.setters[property.name] = make(
+                type.members.setters[property.name] = make(
                     Function(
                         name: property.name,
                         parameters: [
@@ -93,7 +96,7 @@ extension Interpreter {
             }
         }
         for method in members.methods {
-            type.methods[method.name, default: []]
+            declaredMethods[method.name, default: []]
                 .append(
                     make(
                         Function(
@@ -111,7 +114,7 @@ extension Interpreter {
                 )
         }
         for initializer in members.initializers {
-            type.initializers.append(
+            declaredInitializers.append(
                 make(
                     Function(
                         name: "\(decl.name).init",
@@ -129,7 +132,7 @@ extension Interpreter {
             )
         }
         for declared in members.subscripts {
-            type.subscriptGetters.append(
+            type.members.subscriptGetters.append(
                 make(
                     Function(
                         name: "subscript",
@@ -140,7 +143,7 @@ extension Interpreter {
                     )
                 )
             )
-            type.subscriptSetters.append(
+            type.members.subscriptSetters.append(
                 declared.setter.map { setter in
                     make(
                         Function(
@@ -159,7 +162,7 @@ extension Interpreter {
         }
         for property in members.staticProperties {
             if let getter = property.getter {
-                type.staticComputed[property.name] = make(
+                type.members.staticComputed[property.name] = make(
                     Function(
                         name: property.name,
                         parameters: [],
@@ -171,7 +174,7 @@ extension Interpreter {
             }
         }
         for method in members.staticMethods {
-            type.staticMethods[method.name, default: []]
+            declaredStaticMethods[method.name, default: []]
                 .append(
                     make(
                         Function(
@@ -186,6 +189,18 @@ extension Interpreter {
                         )
                     )
                 )
+        }
+        type.members.methods = declaredMethods.mapValues {
+            OverloadSet(name: $0[0].name!, candidates: $0)
+        }
+        type.members.staticMethods = declaredStaticMethods.mapValues {
+            OverloadSet(name: $0[0].name!, candidates: $0)
+        }
+        if !declaredInitializers.isEmpty {
+            type.members.initializers = OverloadSet(
+                name: "\(decl.name).init",
+                candidates: declaredInitializers
+            )
         }
         if let body = decl.deinitializer {
             type.deinitializer = make(
@@ -213,7 +228,10 @@ extension Interpreter {
                 }
                 value = conforming
             }
-            type.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
+            type.members.statics[property.name] = StructType.StaticValue(
+                value,
+                mutable: property.mutable
+            )
         }
     }
     // swiftlint:enable function_body_length
@@ -223,8 +241,9 @@ extension Interpreter {
     /// Every initializer an instance of the class may be made by: its own, or, if it declares no
     /// designated one, those it inherits.
     func initializers(of type: ClassType) -> [Function] {
-        if type.initializers.contains(where: { !$0.isConvenience }) { return type.initializers }
-        return type.initializers + (type.superclass.map(initializers(of:)) ?? [])
+        let own = type.members.initializers?.candidates ?? []
+        if own.contains(where: { !$0.isConvenience }) { return own }
+        return own + (type.superclass.map(initializers(of:)) ?? [])
     }
 
     /// What a stored property starts as: its default, or nil if an optional `var`.
@@ -442,11 +461,11 @@ extension Interpreter {
     /// included.
     func classStaticMember(_ name: String, of type: ClassType) throws -> Value? {
         for next in type.chain {
-            if let getter = next.staticComputed[name] { return try invoke(getter, with: [:]) }
-            if let slot = next.statics[name] { return slot.value }
-            if let methods = next.staticMethods[name] {
-                return .function(OverloadSet(name: name, candidates: methods))
+            if let getter = next.members.staticComputed[name] {
+                return try invoke(getter, with: [:])
             }
+            if let slot = next.members.statics[name] { return slot.value }
+            if let methods = next.members.staticMethods[name] { return .function(methods) }
         }
         return nil
     }
