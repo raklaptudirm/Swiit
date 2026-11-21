@@ -24,7 +24,7 @@ extension LanguageObject {
         case .property: return try? plain(["self": receiver])
         case .method:
             return Value(
-                ImplementedSymbol.function(
+                SymbolImplementation.function(
                     name: name,
                     summary: member.summary,
                     signature: Symbol.Function(

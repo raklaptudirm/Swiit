@@ -27,14 +27,14 @@
 // members that trap on some arguments (`Bridges/preconditions.json`), which the glue checks first. A member is bridged if it is declared
 // `public`, whatever the access of its type.
 //
-// The output is a description of the types, `ImplementedType` and `ImplementedSymbol`, which compiles in any
+// The output is a description of the types, `TypeImplementation` and `SymbolImplementation`, which compiles in any
 // package that imports Swiit. A member is bridged only if every type in its signature is one Swiit
 // can pass or hold (see `supported`); the rest are left out, and counted on stderr.
 //
 // The pieces: SymbolGraph reads the graph; SwiftTypes and Declarations parse
 // a declaration's text; Bridging says what Swiit can hold, and Conversions
 // how a value crosses; Members makes one member's glue; Description writes the
-// types as `ImplementedType`s. This file is the program that uses them.
+// types as `TypeImplementation`s. This file is the program that uses them.
 import Foundation
 
 // MARK: Main
@@ -206,7 +206,7 @@ if configurationPath != nil {
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
 /// The types the module being bridged defines, which it can say are `BridgedValue`: what the output
-/// writes for them is their `implementedType`, and the conformance where they have none.
+/// writes for them is their `typeImplementation`, and the conformance where they have none.
 let ownedTypeNames: [String] =
     configurationPath != nil && graph.module.name == outputModule
     ? discoveredTypes(
@@ -351,7 +351,7 @@ var output = """
     \(moduleImports)
     \(outputModule == "Swiit" ? "" : "import Swiit\n")
     \(access) enum \(bridgeName)Bridge {
-        \(access) static let types: [ImplementedType] = [
+        \(access) static let types: [TypeImplementation] = [
 
 
     """
@@ -372,7 +372,7 @@ nonisolated(unsafe) var declarations: [String] = []  // safe: the generator runs
 func declare(_ expression: String) -> String {
     let name = "member\(declarations.count)"
     declarations.append(
-        "    private static let \(name): ImplementedSymbol = \(expression)\n"
+        "    private static let \(name): SymbolImplementation = \(expression)\n"
     )
     return name
 }
@@ -500,7 +500,7 @@ for (name, _) in bridgedTypeNames {
             members.append(
                 declare(
                     """
-                    ImplementedSymbol.initializer(summary: "The value the text spells, or nil.", \
+                    SymbolImplementation.initializer(summary: "The value the text spells, or nil.", \
                     signature: Symbol.Function(parameters: [Symbol.Parameter(name: "text", type: .string)], \
                     returns: .optional(\(scriptType(selfType))))) { arguments in
                     guard case .string(let text) = arguments[0].storage else { return .nothing }
@@ -526,8 +526,8 @@ for (name, _) in bridgedTypeNames {
             .map { "\(quoted($0)): \(genericParametersDescription($1))" }
         declarations.append(
             """
-                fileprivate static let \(typeName): ImplementedType = {
-                    var type = ImplementedType(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
+                fileprivate static let \(typeName): TypeImplementation = {
+                    var type = TypeImplementation(name: \(quoted(name)), members: [\(members.joined(separator: ", "))])
                     type.genericParameters = [\(owner.parameters.map { ".genericParameter(\(quoted($0)))" }.joined(separator: ", "))]
                     type.conformances = [\(conformanceCode.isEmpty ? ":" : conformanceCode.joined(separator: ", "))]
                     type.associatedTypes = [\(associatedTypes.isEmpty ? ":" : associatedTypes.joined(separator: ", "))]
@@ -573,7 +573,7 @@ if !functionNames.isEmpty {
         }
     }
     output +=
-        "    \(access) static let functions: [ImplementedSymbol] = [\(functions.joined(separator: ", "))]\n"
+        "    \(access) static let functions: [SymbolImplementation] = [\(functions.joined(separator: ", "))]\n"
 }
 output += declarations.joined(separator: "\n") + "}\n"
 // A type of the module says what scripts see of it, and is `BridgedValue` if it did not say so.
@@ -584,7 +584,7 @@ for name in ownedTypeNames {
     output += """
 
         extension \(name)\(alreadyBridgedTypes.contains(name) ? "" : ": BridgedValue") {
-            \(access) static var implementedType: ImplementedType { \(bridgeName)Bridge.\(typeName) }
+            \(access) static var typeImplementation: TypeImplementation { \(bridgeName)Bridge.\(typeName) }
         }
 
         """

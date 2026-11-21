@@ -2,14 +2,14 @@ import Foundation
 
 /// What a host says of a type it offers scripts: a name and its members, and what its Swift type
 /// says of itself. Written with ``Builder`` for a Swift type, or by hand for one a generator
-/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(ImplementedType)``.
-public struct ImplementedType: Sendable {
+/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(TypeImplementation)``.
+public struct TypeImplementation: Sendable {
     /// What is said of the type: its symbol (a name, documentation and attributes; a host type is
     /// held by value under its Swift name, so it is a structure), its generic parameters, the
     /// protocols its Swift type conforms to of those Swiit knows (`Equatable`, `Hashable`,
     /// `Comparable`, `Sequence`) and its associated types. A builder finds the conformances from the
     /// type.
-    public var declaration: Symbol.TypeDeclaration
+    public var declaration: TypeDeclaration
     public var symbol: Symbol {
         get { declaration.symbol }
         set { declaration.symbol = newValue }
@@ -30,7 +30,7 @@ public struct ImplementedType: Sendable {
         get { declaration.associatedTypes }
         set { declaration.associatedTypes = newValue }
     }
-    public var members: [ImplementedSymbol]
+    public var members: [SymbolImplementation]
     /// What a value of the type is: one of the core's kinds with storage of its own, or a Swift value
     /// held as it is. The kinds a program declares join these as the type record grows.
     var representation = Representation.held
@@ -38,8 +38,8 @@ public struct ImplementedType: Sendable {
     /// registered.
     var lowered: [BridgedMember] = []
 
-    public init(name: String, members: [ImplementedSymbol] = []) {
-        declaration = Symbol.TypeDeclaration(name: name)
+    public init(name: String, members: [SymbolImplementation] = []) {
+        declaration = TypeDeclaration(name: name)
         self.members = members
     }
 }
@@ -70,7 +70,7 @@ extension Interpreter {
     /// lacks. It gives the type's reference, which is `TypeRef(hostType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
-    public func register<T>(_ builder: ImplementedType.Builder<T>) -> TypeRef {
+    public func register<T>(_ builder: TypeImplementation.Builder<T>) -> TypeRef {
         register(builder.type)
     }
 
@@ -88,7 +88,7 @@ extension Interpreter {
     }
 
     @discardableResult
-    public func register(_ type: ImplementedType) -> TypeRef {
+    public func register(_ type: TypeImplementation) -> TypeRef {
         var bridged = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
@@ -170,7 +170,7 @@ extension Interpreter {
     }
 }
 
-extension ImplementedType {
+extension TypeImplementation {
     /// The generic parameters' names, which the checker binds.
     var genericParameterNames: [String] { declaration.genericParameters.map(\.name) }
     /// The associated types as the checker writes them.
@@ -181,7 +181,7 @@ extension ImplementedType {
     /// It, with its members lowered. A type of the core is bridged: its members are not a host's own,
     /// so none is called without an interpreter and a host's member of the same shape takes its place
     /// (a generated description is one); its representation is the one the interpreter stores itself, if it is one of those.
-    func lowering(ofTheCore core: Bool = false) -> ImplementedType {
+    func lowering(ofTheCore core: Bool = false) -> TypeImplementation {
         var made = self
         made.lowered = members.flatMap { BridgedMember.members(of: $0, in: name) }
         if core {
@@ -196,7 +196,7 @@ extension ImplementedType {
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
     /// host says how a type shows; one registered twice is not added again.
-    func adding(_ extra: [BridgedMember]) -> ImplementedType {
+    func adding(_ extra: [BridgedMember]) -> TypeImplementation {
         func same(_ a: BridgedMember, _ b: BridgedMember) -> Bool {
             a.kind == b.kind && a.name == b.name && a.isStatic == b.isStatic
                 && a.parameters.map(\.label) == b.parameters.map(\.label)
@@ -213,7 +213,7 @@ extension ImplementedType {
     }
 
     /// It, conforming to `protocols` too, whatever its generic parameters are.
-    func conforming(to protocols: [String]) -> ImplementedType {
+    func conforming(to protocols: [String]) -> TypeImplementation {
         guard !protocols.isEmpty else { return self }
         var made = self
         for name in protocols { made.declaration.conformances[name] = [] }
@@ -225,7 +225,7 @@ extension BridgedMember {
     /// The members of a Swift type of the core's, written as a host writes its own: bridged, not
     /// a host's, so none is called without an interpreter and a host's member of the same shape
     /// takes its place.
-    static func bridged(_ symbols: [ImplementedSymbol], in typeName: String) -> [BridgedMember] {
+    static func bridged(_ symbols: [SymbolImplementation], in typeName: String) -> [BridgedMember] {
         symbols.flatMap { members(of: $0, in: typeName) }
             .map {
                 var member = $0; member.plain = nil; return member
@@ -270,7 +270,7 @@ extension BridgedMember {
     // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
-    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
+    static func members(of member: SymbolImplementation, in typeName: String) -> [BridgedMember] {
         let symbol = member.symbol
         func make(
             _ kind: BridgedMember.Kind,
@@ -418,12 +418,12 @@ extension BridgedMember {
 /// Members are key paths and method references, so each one's types are the compiler's and none is
 /// spelled twice; `member(_:)` takes what those cannot say.
 ///
-///     interpreter.register(ImplementedType.Builder<URL>()
+///     interpreter.register(TypeImplementation.Builder<URL>()
 ///         .property("host", \.host)
 ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
-extension ImplementedType {
+extension TypeImplementation {
     public struct Builder<T: Sendable>: Sendable {
-        private(set) var type: ImplementedType
+        private(set) var type: TypeImplementation
 
         /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
         /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
@@ -432,7 +432,7 @@ extension ImplementedType {
         /// (`ExpressibleByStringLiteral`).
         public init(_ name: String? = nil) {
             let name = name ?? String(describing: T.self)
-            self.type = ImplementedType(name: name)
+            self.type = TypeImplementation(name: name)
             type.conformances = Dictionary(
                 uniqueKeysWithValues: Self.conformances().map { ($0, []) }
             )
@@ -469,9 +469,9 @@ extension ImplementedType {
         /// The initializers a type has from the protocols that read it from text: `init?(_ text:)` for a
         /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
         /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
-        private static func textInitializers(named name: String) -> [ImplementedSymbol] {
+        private static func textInitializers(named name: String) -> [SymbolImplementation] {
             let own = ScriptType.named(TypeRef(hostType: name))
-            func fromText<L: LosslessStringConvertible>(_: L.Type) -> ImplementedSymbol {
+            func fromText<L: LosslessStringConvertible>(_: L.Type) -> SymbolImplementation {
                 .initializer(
                     summary: "The value the text spells, or nil.",
                     signature: Symbol.Function(
@@ -485,7 +485,7 @@ extension ImplementedType {
                     return box(value, as: name)
                 }
             }
-            func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> ImplementedSymbol {
+            func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> SymbolImplementation {
                 .initializer(
                     summary: "The value the string literal is.",
                     signature: Symbol.Function(
@@ -502,7 +502,7 @@ extension ImplementedType {
                     return box(value, as: name)
                 }
             }
-            var found: [ImplementedSymbol] = []
+            var found: [SymbolImplementation] = []
             if let lossless = T.self as? any LosslessStringConvertible.Type {
                 found.append(fromText(lossless))
             }
@@ -519,7 +519,7 @@ extension ImplementedType {
         /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
         /// declares them, as registering a function does.
         private func adding(
-            _ member: ImplementedSymbol,
+            _ member: SymbolImplementation,
             enums: [Value.EnumCase.Enumeration] = []
         ) -> Builder {
             var copy = self
@@ -530,9 +530,9 @@ extension ImplementedType {
         }
 
         /// A member written by hand, for what a key path or a method reference cannot say, such as
-        /// an `async` method: made with `ImplementedSymbol`'s `.method`, `.property` and the rest. A
+        /// an `async` method: made with `SymbolImplementation`'s `.method`, `.property` and the rest. A
         /// function is not a member, and is registered on its own.
-        public func member(_ symbol: ImplementedSymbol) -> Builder {
+        public func member(_ symbol: SymbolImplementation) -> Builder {
             guard symbol.function == nil else {
                 preconditionFailure("\(symbol.name) is a function, not a member of \(type.name)")
             }
@@ -563,7 +563,7 @@ extension ImplementedType {
             adding(
                 .method(
                     name,
-                    parameters: ImplementedSymbol.parameters(
+                    parameters: SymbolImplementation.parameters(
                         repeat (each Argument).self,
                         labels: labels
                     ),
@@ -577,7 +577,7 @@ extension ImplementedType {
                     )
                     .value
                 },
-                enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+                enums: SymbolImplementation.enums(repeat (each Argument).self) + Result.swiitEnums
             )
         }
 
@@ -591,7 +591,7 @@ extension ImplementedType {
             adding(
                 .staticMethod(
                     name,
-                    parameters: ImplementedSymbol.parameters(
+                    parameters: SymbolImplementation.parameters(
                         repeat (each Argument).self,
                         labels: labels
                     ),
@@ -602,7 +602,7 @@ extension ImplementedType {
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
                     return try function(repeat try (each Argument)(next())).value
                 },
-                enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
+                enums: SymbolImplementation.enums(repeat (each Argument).self) + Result.swiitEnums
             )
         }
 
@@ -615,7 +615,7 @@ extension ImplementedType {
             let name = type.name
             return adding(
                 .initializer(
-                    parameters: ImplementedSymbol.parameters(
+                    parameters: SymbolImplementation.parameters(
                         repeat (each Argument).self,
                         labels: labels
                     ),
@@ -626,7 +626,7 @@ extension ImplementedType {
                     func next() -> Value { defer { index += 1 }; return arguments[index] }
                     return Self.box(try make(repeat try (each Argument)(next())), as: name)
                 },
-                enums: ImplementedSymbol.enums(repeat (each Argument).self)
+                enums: SymbolImplementation.enums(repeat (each Argument).self)
             )
         }
 
@@ -640,7 +640,7 @@ extension ImplementedType {
             let name = type.name
             return adding(
                 .initializer(
-                    parameters: ImplementedSymbol.parameters(
+                    parameters: SymbolImplementation.parameters(
                         repeat (each Argument).self,
                         labels: labels
                     ),
@@ -652,7 +652,7 @@ extension ImplementedType {
                     return try make(repeat try (each Argument)(next()))
                         .map { Self.box($0, as: name) } ?? .nothing
                 },
-                enums: ImplementedSymbol.enums(repeat (each Argument).self)
+                enums: SymbolImplementation.enums(repeat (each Argument).self)
             )
         }
     }
@@ -663,7 +663,7 @@ extension ImplementedType {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var scriptType: ScriptType { .named(.host(implementedType.name)) }
+    public static var scriptType: ScriptType { .named(.host(typeImplementation.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.

@@ -32,7 +32,7 @@ private final class Node: BridgedValue, CustomStringConvertible, @unchecked Send
     func shout() -> String { label.uppercased() }
 
     static let scriptTypeID = TypeRef(hostType: "Node")
-    static let type = ImplementedType.Builder<Node>("Node")
+    static let type = TypeImplementation.Builder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
 }
@@ -155,7 +155,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     // function that takes one does.
     let swiit = interpreter()
     swiit.register(
-        ImplementedType.Builder<Swatch>()
+        TypeImplementation.Builder<Swatch>()
             .property("shade", \.shade)
             .method("flipped", Swatch.flipped)
     )
@@ -183,7 +183,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 @Test func aForeignTypeIsRegisteredFromKeyPathsAndMethodReferences() throws {
     let swiit = interpreter()
     swiit.register(
-        ImplementedType.Builder<URL>()
+        TypeImplementation.Builder<URL>()
             .property("host", \.host)
             .property("path", \.path)
             .method("appending", labels: [nil], URL.appendingPathComponent(_:))
@@ -199,7 +199,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
     let swiit = interpreter()
     swiit.register(
-        ImplementedType.Builder<Bytes>("Bytes")
+        TypeImplementation.Builder<Bytes>("Bytes")
             .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
             .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } }
     )
@@ -224,7 +224,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     }
     let swiit = interpreter()
     swiit.register(
-        ImplementedType.Builder<Lines>("Lines")
+        TypeImplementation.Builder<Lines>("Lines")
             .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
     )
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
@@ -249,11 +249,11 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     #expect(Value(thing).mirror.children.map(\.label) == ["a", "b"])
 }
 
-@Suite struct NativeTypeTests {
-    static func bytesType() -> ImplementedType.Builder<Bytes> {
+@Suite struct TypeImplementationTests {
+    static func bytesType() -> TypeImplementation.Builder<Bytes> {
         let bytes = TypeRef(hostType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
-        return ImplementedType.Builder<Bytes>("Bytes")
+        return TypeImplementation.Builder<Bytes>("Bytes")
             .member(
                 .initializer(
                     parameters: [.init(label: "count", name: "count", type: Int.self)],
@@ -296,7 +296,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 
 @Test func aTypeWrittenByHandSaysWhatItIsGenericOverAndWhatItConformsTo() throws {
     let swiit = interpreter()
-    var pile = ImplementedType(name: "Pile")
+    var pile = TypeImplementation(name: "Pile")
     pile.genericParameters = [.genericParameter("Element")]
     pile.conformances = ["Hashable": [], "Sequence": [Symbol.genericParameter("Element")]]
     pile.associatedTypes["Element"] = .parameter("Element")
@@ -309,7 +309,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 
 @Test func aMemberWrittenFromItsSignatureKeepsRethrowingAndParameterDocs() throws {
     let swiit = interpreter()
-    var pile = ImplementedType(name: "Crate")
+    var pile = TypeImplementation(name: "Crate")
     pile.members = [
         .method(
             "each",
@@ -341,7 +341,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 
 @Test func aHostBoxesASwiftValueAsTheTypeItRegisteredAndGetsItBack() throws {
     let swiit = interpreter()
-    let id = swiit.register(ImplementedType.Builder<URL>())
+    let id = swiit.register(TypeImplementation.Builder<URL>())
     let url = try #require(URL(string: "https://example.com/a"))
 
     let value = Value(boxing: url, as: id)

@@ -191,7 +191,7 @@ private struct Point: Encodable { var x: Int }
     let t = Symbol.genericParameter("T", constraints: [.comparable, .hashable])
     let u = Symbol.genericParameter("U")
     swiit.register(
-        ImplementedSymbol.function(
+        SymbolImplementation.function(
             name: "pick",
             parameters: [
                 Symbol.Parameter(name: "a", type: .parameter("T")),
@@ -223,7 +223,7 @@ private struct Point: Encodable { var x: Int }
     #expect(ScriptType([String: Int].self) == .dictionary(.string, .int))
     let swiit = interpreter()
     swiit.register(
-        ImplementedSymbol.function(
+        SymbolImplementation.function(
             name: "scale",
             summary: "Multiplies.",
             parameters: [

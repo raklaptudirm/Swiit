@@ -5,7 +5,7 @@ import Testing
 
 // Timing of the paths the type record touches, run only when asked (`SWIIT_TIMING=1 swift test -c
 // release --filter timing`). Each script runs seven times and its median is printed, to compare with
-// the baseline recorded in Docs/implemented-type.md.
+// the baseline recorded in Docs/type-implementation.md.
 
 private let scripts: [(name: String, source: String)] = [
     (

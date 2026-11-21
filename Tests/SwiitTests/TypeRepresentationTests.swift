@@ -6,12 +6,12 @@ import Testing
 // type is a Swift value held as it is.
 
 @Test func theCoresKindsAreBuiltInAndTheRestAreHeld() throws {
-    func representation(of name: String) -> ImplementedType.Representation? {
+    func representation(of name: String) -> TypeImplementation.Representation? {
         Bridge.types[name]?.representation
     }
 
     for (name, kind) in [
-        ("Int", ImplementedType.Representation.int), ("Double", .double), ("Bool", .bool),
+        ("Int", TypeImplementation.Representation.int), ("Double", .double), ("Bool", .bool),
         ("String", .string), ("Array", .list), ("Dictionary", .dictionary),
     ] {
         #expect(representation(of: name) == kind)
@@ -27,7 +27,7 @@ import Testing
 @Test func aTypeAHostRegistersIsHeld() {
     let swiit = Interpreter()
     let name = "Held\(Int.random(in: 0..<1_000_000))"
-    swiit.register(ImplementedType(name: name))
+    swiit.register(TypeImplementation(name: name))
 
     guard case .held? = Bridge.types[name]?.representation else {
         Issue.record("\(name) should be held")
@@ -36,13 +36,13 @@ import Testing
 }
 
 @Test func aTypesRepresentationIsHowItsValuesAreStored() throws {
-    let samples: [ImplementedType.Representation: Value] = [
+    let samples: [TypeImplementation.Representation: Value] = [
         .bool: .bool(true), .int: .int(1), .double: .double(1), .string: .string("a"),
         .list: .list([]), .dictionary: .dictionary([:]),
     ]
     #expect(
         Set(samples.keys)
-            == Set(ImplementedType.Representation.allCases)
+            == Set(TypeImplementation.Representation.allCases)
             .subtracting([.held, .record])
     )
 
@@ -60,8 +60,8 @@ import Testing
     let pair = try swiit.evaluate("Pair(a: 1)")
 
     #expect(pair.representation == .record)
-    #expect(ImplementedType.Representation.record.encodes(pair.storage))
-    #expect(!ImplementedType.Representation.record.encodes(Value.int(1).storage))
+    #expect(TypeImplementation.Representation.record.encodes(pair.storage))
+    #expect(!TypeImplementation.Representation.record.encodes(Value.int(1).storage))
 
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")

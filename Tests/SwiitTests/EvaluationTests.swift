@@ -203,7 +203,7 @@ private func interpreter(
 @Test func aHostAsksTheFunctionAStatementCalledForItsAttributes() throws {
     let swiit = interpreter()
     swiit.register(
-        ImplementedSymbol.function(
+        SymbolImplementation.function(
             name: "quiet",
             returns: Int.self,
             attributes: [Symbol.Attribute(name: "discardableResult")],

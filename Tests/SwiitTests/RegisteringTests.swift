@@ -109,7 +109,7 @@ private struct Failure: Encodable { var code: Int }
     let log = Log()
     let swiit = interpreter(log: log)
     swiit.register(
-        ImplementedSymbol.function(name: "fail", returns: .int, isThrowing: true) { _ in
+        SymbolImplementation.function(name: "fail", returns: .int, isThrowing: true) { _ in
             throw Diagnostic.runtime(
                 "nope",
                 thrown: try Value(encoding: Failure(code: 7)),
@@ -118,7 +118,7 @@ private struct Failure: Encodable { var code: Int }
         }
     )
     swiit.register(
-        ImplementedSymbol.function(name: "stop", isThrowing: true) { _ in
+        SymbolImplementation.function(name: "stop", isThrowing: true) { _ in
             throw Diagnostic.fatal("stopped", cause: Stop())
         }
     )
@@ -167,7 +167,7 @@ private struct Failure: Encodable { var code: Int }
     _ = try swiit.evaluate("struct P { var x: Int }")
     let id = try #require(TypeRef(named: "P", in: swiit))
     swiit.register(
-        ImplementedSymbol.function(name: "hostP", returns: .named(id)) { _ in
+        SymbolImplementation.function(name: "hostP", returns: .named(id)) { _ in
             try swiit.make(id, arguments: [("x", Value(5))])
         }
     )
@@ -207,14 +207,14 @@ private struct Failure: Encodable { var code: Int }
     nonisolated(unsafe) let running = swiit
     let handle = TypeRef(hostType: "Handle")
     swiit.register(
-        ImplementedSymbol.function(name: "spawn", returns: .named(handle)) { _ in
+        SymbolImplementation.function(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))
         }
     )
     swiit.register(computed: "clock", type: .int) { Value(7) }
     // A handle is awaited by its `async` member, as Swift says it.
     swiit.register(
-        ImplementedType.Builder<Handle>("Handle")
+        TypeImplementation.Builder<Handle>("Handle")
             .member(
                 .method("wait", returns: .int, isAsync: true) { receiver, _ in
                     guard let handle = try? Handle(receiver) else {

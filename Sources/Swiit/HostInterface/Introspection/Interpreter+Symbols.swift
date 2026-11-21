@@ -76,13 +76,13 @@ extension Interpreter {
 
     /// What is said of the type named `name`: a type the program declares, a type a host offers or a
     /// type the core bridges are described the same way. Nil if no type has that name.
-    public func declaration(ofType name: String) -> Symbol.TypeDeclaration? {
+    public func declaration(ofType name: String) -> TypeDeclaration? {
         withMainTask {
             if case .object(let type as StructType)? = lookup(name)?.value.storage {
                 return type.declaration
             }
             if case .object(let type as any DeclaredType)? = lookup(name)?.value.storage {
-                var declaration = Symbol.TypeDeclaration(symbol: typeSymbol(named: name, type))
+                var declaration = TypeDeclaration(symbol: typeSymbol(named: name, type))
                 for protocolName in declaredConformances(of: type) {
                     declaration.conformances[protocolName] = []
                 }

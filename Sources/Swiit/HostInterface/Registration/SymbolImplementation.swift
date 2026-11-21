@@ -1,6 +1,6 @@
 import Foundation
 
-/// What a host offers a script: a function, or a member of a type (`ImplementedType.Builder`). It is what a script
+/// What a host offers a script: a function, or a member of a type (`TypeImplementation.Builder`). It is what a script
 /// sees, as a `Symbol` (its name, summary, signature and attributes, which `Interpreter.globals(named:)` says
 /// of it as they are), and the Swift that runs when it is used.
 ///
@@ -10,7 +10,7 @@ import Foundation
 /// The two always agree: the only ways to make one are the functions here, and each makes the
 /// `Symbol.Kind` and the body that fit each other, so a static method cannot be given a receiver nor
 /// a settable property no setter.
-public struct ImplementedSymbol: Sendable {
+public struct SymbolImplementation: Sendable {
     /// What a script sees.
     public let symbol: Symbol
     let body: Body
@@ -72,7 +72,7 @@ public struct ImplementedSymbol: Sendable {
 
 // MARK: Functions
 
-extension ImplementedSymbol {
+extension SymbolImplementation {
     /// A function whose shape may be known only at run time: it is checked like any function the
     /// script declares. `body` is called with its arguments in declared order, defaults filled in.
     public static func function(
@@ -84,7 +84,7 @@ extension ImplementedSymbol {
         generics: [Symbol] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         function(
             name: name,
             summary: summary,
@@ -107,7 +107,7 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable ([Value]) throws -> Value
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         let defaults = signature.parameters.map { parameter -> (String, Value?) in
             if case .defaulted(.value(let value)) = parameter.arity {
                 return (parameter.name, value)
@@ -132,7 +132,7 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         updating body: @escaping @Sendable (_ arguments: inout [Value]) throws -> Value
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         let changed = signature.parameters.indices.filter {
             if case .inOut = signature.parameters[$0].type { true } else { false }
         }
@@ -151,7 +151,7 @@ extension ImplementedSymbol {
     }
 
     /// A function whose result is a Swift type:
-    /// `ImplementedSymbol.function(name: "size", returns: Int.self) { _ in 3 }`.
+    /// `SymbolImplementation.function(name: "size", returns: Int.self) { _ in 3 }`.
     public static func function<T: BridgedValue>(
         name: String,
         summary: String = "",
@@ -161,7 +161,7 @@ extension ImplementedSymbol {
         generics: [Symbol] = [],
         attributes: [Symbol.Attribute] = [],
         body: @escaping @Sendable ([Value]) throws -> Value
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         function(
             name: name,
             summary: summary,
@@ -181,8 +181,8 @@ extension ImplementedSymbol {
         signature: Symbol.Function,
         attributes: [Symbol.Attribute] = [],
         call: @escaping @Sendable (Arguments) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .function(signature),
@@ -199,7 +199,7 @@ extension ImplementedSymbol {
         returnType: ScriptType?,
         isThrowing: Bool = false,
         call: @escaping @Sendable (Arguments) throws -> Value
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         function(
             name: name,
             summary: summary,
@@ -215,7 +215,7 @@ extension ImplementedSymbol {
 
 // MARK: Typed functions
 
-extension ImplementedSymbol {
+extension SymbolImplementation {
     /// The parameters a Swift closure's argument types make, labeled as `labels` says (`nil` or
     /// missing for none).
     static func parameters<each Argument: BridgedValue>(
@@ -253,7 +253,7 @@ extension ImplementedSymbol {
         labels: [String?] = [],
         throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Result
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         var symbol = function(
             name: name,
             summary: summary,
@@ -279,7 +279,7 @@ extension ImplementedSymbol {
         labels: [String?] = [],
         throwing: Bool = false,
         _ body: @escaping @Sendable (repeat each Argument) throws -> Void
-    ) -> ImplementedSymbol {
+    ) -> SymbolImplementation {
         var symbol = function(
             name: name,
             summary: summary,
@@ -302,7 +302,7 @@ extension ImplementedSymbol {
 
 // MARK: Members
 
-extension ImplementedSymbol {
+extension SymbolImplementation {
     private static func signature(
         _ parameters: [Symbol.Parameter],
         _ returns: ScriptType,
@@ -329,8 +329,8 @@ extension ImplementedSymbol {
         isAsync: Bool = false,
         generics: [Symbol] = [],
         body: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(
@@ -355,8 +355,8 @@ extension ImplementedSymbol {
         isAsync: Bool = false,
         generics: [Symbol] = [],
         body: @escaping @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(
@@ -379,8 +379,8 @@ extension ImplementedSymbol {
         isAsync: Bool = false,
         generics: [Symbol] = [],
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(
@@ -401,8 +401,8 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ receiver: Value, _ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature)),
@@ -418,8 +418,8 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ receiver: inout Value, _ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature, isMutating: true)),
@@ -435,8 +435,8 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .method(Symbol.Method(function: signature, isStatic: true)),
@@ -451,8 +451,8 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         signature: Symbol.Function,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: "init",
             summary: summary,
             kind: .initializer(signature),
@@ -471,8 +471,8 @@ extension ImplementedSymbol {
         isAsync: Bool = false,
         throwing: Symbol.Throwing = .no,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .property(
@@ -496,8 +496,8 @@ extension ImplementedSymbol {
         type: ScriptType,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value,
         set: @escaping @Sendable (_ receiver: Value, _ newValue: Value) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .property(
@@ -515,8 +515,8 @@ extension ImplementedSymbol {
         attributes: [Symbol.Attribute] = [],
         type: ScriptType,
         get: @escaping @Sendable () throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: name,
             summary: summary,
             kind: .property(
@@ -535,8 +535,8 @@ extension ImplementedSymbol {
         returns: ScriptType,
         isThrowing: Bool = false,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
-    ) -> ImplementedSymbol {
-        ImplementedSymbol(
+    ) -> SymbolImplementation {
+        SymbolImplementation(
             name: "init",
             summary: summary,
             kind: .initializer(signature(parameters, returns, isThrowing)),

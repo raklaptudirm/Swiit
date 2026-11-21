@@ -37,8 +37,8 @@ let answer = try swiit.evaluate("double(21)")   // 42
 
 - <doc:ExposingSwift>
 - <doc:NativeBodies>
-- ``ImplementedSymbol``
-- ``ImplementedType/Builder``
+- ``SymbolImplementation``
+- ``TypeImplementation/Builder``
 - ``BridgedValue``
 - ``DynamicMembers``
 

@@ -101,7 +101,7 @@ import Testing
 @Test func aVariadicParameterOfAHostFunctionArrivesAsAList() throws {
     let swiit = Interpreter()
     swiit.register(
-        ImplementedSymbol.function(
+        SymbolImplementation.function(
             name: "total",
             parameters: [Symbol.Parameter(name: "values", type: .int, arity: .variadic)],
             returns: .int

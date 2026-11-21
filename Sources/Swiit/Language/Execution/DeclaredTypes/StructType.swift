@@ -16,10 +16,10 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// initializers, statics and subscripts. A struct, an enum and an extension keep them the same way.
     let members = TypeMembers()
     /// How its values are stored: as records of the stored properties.
-    let representation = ImplementedType.Representation.record
+    let representation = TypeImplementation.Representation.record
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a conformance updates it through `Interpreter.refreshDeclaration(of:)`.
-    var declaration: Symbol.TypeDeclaration
+    var declaration: TypeDeclaration
     let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
     let conformances: [String]
@@ -55,7 +55,7 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.typeRef = .declare(name)
         var symbol = Symbol(name: name, kind: .type(.structure))
         symbol.typeRef = typeRef
-        declaration = Symbol.TypeDeclaration(symbol: symbol)
+        declaration = TypeDeclaration(symbol: symbol)
         for protocolName in conformances { declaration.conformances[protocolName] = [] }
         self.conformances = conformances
         self.stored = stored

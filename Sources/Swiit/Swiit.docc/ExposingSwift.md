@@ -6,12 +6,12 @@ point, listed here in that order.
 ## Register a closure as a function
 
 ``Interpreter/register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)`` takes a name and a closure, such as `register("double") { (n: Int) in n * 2 }`. When the
-parameter types are only known at run time, build a ``ImplementedSymbol`` with ``ImplementedSymbol/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,ScriptType,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
-``Interpreter/register(_:)-(ImplementedSymbol)``.
+parameter types are only known at run time, build a ``SymbolImplementation`` with ``SymbolImplementation/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,ScriptType,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
+``Interpreter/register(_:)-(SymbolImplementation)``.
 
 ## Register a Swift value type
 
-``ImplementedType/Builder`` makes a Swift value type, such as `URL` or a file size, usable in scripts without declaring it in Swift source. A script can
+``TypeImplementation/Builder`` makes a Swift value type, such as `URL` or a file size, usable in scripts without declaring it in Swift source. A script can
 store it, compare it with `==` and `<`, hash it, and call the members you register. The checker validates those calls before the script runs. A
 piece of text becomes a value of the type through its `parse` function.
 
@@ -23,7 +23,7 @@ that only declarations in Swift source name is registered on its own, with `regi
 ## Hand scripts a live object
 
 A class that conforms to ``BridgedValue`` reaches scripts by reference: it is equal only to itself unless it is `Hashable`. Its members are
-the ones its ``ImplementedType/Builder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
+the ones its ``TypeImplementation/Builder`` registers, and a type, class or struct, can answer for names looked up only at run time by saying
 ``DynamicMembers/memberNames`` and ``DynamicMembers/member(_:)``: a parsed object's keys, a job's fields.
 
 ## Declare types and functions in Swift

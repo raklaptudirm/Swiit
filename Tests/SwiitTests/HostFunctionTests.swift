@@ -41,7 +41,7 @@ private final class Log: @unchecked Sendable {
 @Test func aHostFunctionChangesTheVariablesItIsGivenInPlace() throws {
     let swiit = Interpreter()
     swiit.register(
-        ImplementedSymbol.function(
+        SymbolImplementation.function(
             name: "exchange",
             signature: Symbol.Function(
                 parameters: [
@@ -72,7 +72,7 @@ private final class Log: @unchecked Sendable {
 
 @Test func aSubscriptOfAHostTypeIsAMemberNamedSubscript() throws {
     let swiit = Interpreter()
-    var type = ImplementedType(
+    var type = TypeImplementation(
         name: "Ruler",
         members: [
             .initializer(

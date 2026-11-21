@@ -1,6 +1,6 @@
 import Foundation
 
-// The output: a description of the types (`ImplementedType` and `ImplementedSymbol`), which compiles in any
+// The output: a description of the types (`TypeImplementation` and `SymbolImplementation`), which compiles in any
 // package that imports Swiit.
 
 /// `type` as the `ScriptType` the description's signatures are written in.
@@ -79,7 +79,7 @@ func genericParametersDescription(_ generics: [String: [String]]) -> String {
 }
 
 // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
-/// The `ImplementedSymbol` for a member, written as the description: its signature, and the glue as the
+/// The `SymbolImplementation` for a member, written as the description: its signature, and the glue as the
 /// body of the closure that runs it.
 func describedMember(
     _ declaration: Declaration,
@@ -106,24 +106,24 @@ func describedMember(
     switch declaration.kind {
     case .initializer:
         code =
-            "ImplementedSymbol.initializer(summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"
+            "SymbolImplementation.initializer(summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"
     case .property where declaration.isStatic:
         code =
-            "ImplementedSymbol.staticProperty(\(head)type: \(scriptType(returns)), get: {\n\(interpreter)\(body)\n})"
+            "SymbolImplementation.staticProperty(\(head)type: \(scriptType(returns)), get: {\n\(interpreter)\(body)\n})"
     case .property:
         let receiverBody = "selfValue in\n\(interpreter)\(body)\n}"
         let set = setterBody.map { ", set: { selfValue, newValue in\n\($0)\n}" } ?? ""
         code =
-            "ImplementedSymbol.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
+            "SymbolImplementation.property(\(head)type: \(scriptType(returns)), get: { \(receiverBody)\(set))"
     case .method where isFree:
         code =
-            "ImplementedSymbol.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature), \(updates ? "updating" : "body"): { arguments in\n\(interpreter)\(body)\n})"
+            "SymbolImplementation.function(name: \(quoted(scriptName)), summary: \(quoted(symbol.summary)), \(attributesCode(of: text))signature: \(signature), \(updates ? "updating" : "body"): { arguments in\n\(interpreter)\(body)\n})"
     case .method where declaration.isStatic:
         code =
-            "ImplementedSymbol.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"
+            "SymbolImplementation.staticMethod(\(head)signature: \(signature)) { arguments in\n\(interpreter)\(body)\n}"
     case .method:
         code =
-            "ImplementedSymbol.\(declaration.isMutating ? "mutatingMethod" : "method")(\(head)signature: \(signature)) { selfValue, arguments in\n\(interpreter)\(body)\n}"
+            "SymbolImplementation.\(declaration.isMutating ? "mutatingMethod" : "method")(\(head)signature: \(signature)) { selfValue, arguments in\n\(interpreter)\(body)\n}"
     }
     return code
 }
