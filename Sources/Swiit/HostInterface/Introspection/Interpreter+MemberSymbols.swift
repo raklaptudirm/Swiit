@@ -98,7 +98,6 @@ extension Interpreter {
         return made
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a type has, for `TypeExpression.members(named:in:)`: its instance members, its static ones, its
     /// initializers, and the cases of an enum. `rawValues` says the raw values of enums not yet
     /// declared (as `check` reads them), by enum and case.
@@ -110,150 +109,18 @@ extension Interpreter {
     ) -> [Symbol] {
         let checker = checker ?? TypeChecker(interpreter: self)
         var found: [Symbol] = []
-        func function(
-            _ signature: TypeChecker.Signature,
-            dropping receiver: Bool = false
-        ) -> Symbol.Signature {
-            var parameters = signature.parameters
-            if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
-            return Symbol.Signature(
-                parameters: parameters.map {
-                    parameter($0, documentation: signature.documentation?.parameters[$0.name])
-                },
-                returns: typeExpression(signature.returns),
-                isThrowing: signature.isThrowing,
-                isAsync: signature.effect != .sync,
-                generics: signature.generics
-            )
-        }
-        func add(
-            _ signature: TypeChecker.Signature,
-            dropping receiver: Bool = false,
-            isStatic: Bool = false
-        ) {
-            found.append(
-                .method(
-                    Symbol.Method(
-                        name: signature.name,
-                        summary: signature.documentation.map(\.summary)
-                            .flatMap { $0.isEmpty ? nil : $0 },
-                        attributes: signature.attributes,
-                        signature: function(signature, dropping: receiver),
-                        isMutating: signature.isMutating,
-                        isStatic: isStatic
-                    )
-                )
-            )
-        }
         // A struct's, enum's or host object's own.
         if let profile = checker.describe(type) {
-            for (member, signatures) in profile.declared.methods where name == nil || name == member
-            {
-                signatures.forEach { add($0) }
-            }
-            for (member, signatures) in profile.extended.methods where name == nil || name == member
-            {
-                signatures.forEach { add($0) }
-            }
-            for (member, property) in profile.declared.properties
-            where name == nil || name == member {
-                found.append(
-                    .property(
-                        Symbol.Property(
-                            name: member,
-                            type: typeExpression(property.type),
-                            isSettable: property.isSettable
-                        )
-                    )
-                )
-            }
-            // What belongs to the type itself.
-            for set in [profile.declared, profile.extended] {
-                for (member, signatures) in set.staticMethods where name == nil || name == member {
-                    signatures.forEach { add($0, isStatic: true) }
-                }
-            }
-            for (member, property) in profile.declared.staticProperties
-            where name == nil || name == member {
-                found.append(
-                    .property(
-                        Symbol.Property(
-                            name: member,
-                            type: typeExpression(property.type),
-                            isSettable: property.isSettable,
-                            isStatic: true
-                        )
-                    )
-                )
-            }
-            if name == nil || name == "init" {
-                // A struct with none of its own is made by its memberwise one.
-                var initializers = profile.declared.initializers
-                if initializers.isEmpty, profile.kind == .structure,
-                    let memberwise = profile.memberwise
-                {
-                    initializers = [memberwise]
-                }
-                for initializer in initializers {
-                    found.append(
-                        .initializer(
-                            Symbol.Initializer(
-                                attributes: initializer.attributes,
-                                signature: function(initializer)
-                            )
-                        )
-                    )
-                }
-            }
-            for member in profile.associatedTypes where name == nil || name == member {
-                found.append(
-                    .associatedType(
-                        Symbol.AssociatedType(name: member, role: .requirement(constraints: []))
-                    )
-                )
-            }
-            if profile.kind == .enumeration {
-                let runtime = enumType(named: profile.name)
-                for enumCase in profile.cases where name == nil || name == enumCase.name {
-                    let raw =
-                        rawValues[profile.name]?[enumCase.name]
-                        ?? runtime?.case(named: enumCase.name)?.rawValue
-                    found.append(
-                        .enumCase(
-                            Symbol.EnumCase(
-                                name: enumCase.name,
-                                payload: enumCase.payload.map {
-                                    TypeExpression.Tuple.Element(
-                                        label: $0.label,
-                                        type: typeExpression($0.type)
-                                    )
-                                },
-                                rawValue: raw
-                            )
-                        )
-                    )
-                }
-            }
+            found += declaredMemberSymbols(of: profile, named: name, rawValues: rawValues)
         }
         // A bridged Swift type's.
         if let (bridgedType, bindings) = checker.bridged(type) {
-            let settable = Set(
-                bridgedType.lowered.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
+            found += bridgedMemberSymbols(
+                of: bridgedType,
+                bindings: bindings,
+                named: name,
+                checker: checker
             )
-            for member in bridgedType.lowered
-            where member.kind != .setter && (name == nil || name == member.name) {
-                found.append(
-                    bridgedSymbol(
-                        member,
-                        checker: checker,
-                        bindings: bindings,
-                        isSettable: settable.contains(member.name)
-                    )
-                )
-            }
-            for member in bridgedType.members where name == nil || name == member.name {
-                if case .associatedType = member.symbol { found.append(member.symbol) }
-            }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which
         // `TypeExpression.named(.sequence).members(in:)` lists alone.
@@ -264,20 +131,190 @@ extension Interpreter {
             holder = .unknown
         }
         if let element = holder {
-            for (member, set) in sequenceMethods where name == nil || name == member {
-                for signature in checker.sequenceSignatures(set) {
-                    var made = signature
-                    made.parameters = made.parameters.map {
-                        var p = $0
-                        p.type = checker.substitute(p.type, ["Element": element])
-                        return p
-                    }
-                    made.returns = checker.substitute(made.returns, ["Element": element])
-                    add(made, dropping: true)
+            found += sequenceMemberSymbols(of: element, named: name, checker: checker)
+        }
+        return found
+    }
+
+    /// A signature the checker wrote, as a symbol's; without `self` for a method of a value.
+    private func signature(
+        _ signature: TypeChecker.Signature,
+        dropping receiver: Bool = false
+    ) -> Symbol.Signature {
+        var parameters = signature.parameters
+        if receiver, parameters.first?.name == "self" { parameters.removeFirst() }
+        return Symbol.Signature(
+            parameters: parameters.map {
+                parameter($0, documentation: signature.documentation?.parameters[$0.name])
+            },
+            returns: typeExpression(signature.returns),
+            isThrowing: signature.isThrowing,
+            isAsync: signature.effect != .sync,
+            generics: signature.generics
+        )
+    }
+
+    private func methodSymbol(
+        _ method: TypeChecker.Signature,
+        dropping receiver: Bool = false,
+        isStatic: Bool = false
+    ) -> Symbol {
+        .method(
+            Symbol.Method(
+                name: method.name,
+                summary: method.documentation.map(\.summary).flatMap { $0.isEmpty ? nil : $0 },
+                attributes: method.attributes,
+                signature: signature(method, dropping: receiver),
+                isMutating: method.isMutating,
+                isStatic: isStatic
+            )
+        )
+    }
+
+    /// What a struct, an enum or a host object declares, and what extensions add.
+    private func declaredMemberSymbols(
+        of profile: TypeProfile,
+        named name: String?,
+        rawValues: [String: [String: Value]]
+    ) -> [Symbol] {
+        func wanted(_ member: String) -> Bool { name == nil || name == member }
+        var found: [Symbol] = []
+        for set in [profile.declared, profile.extended] {
+            for (member, signatures) in set.methods where wanted(member) {
+                found += signatures.map { methodSymbol($0) }
+            }
+        }
+        for (member, property) in profile.declared.properties where wanted(member) {
+            found.append(
+                .property(
+                    Symbol.Property(
+                        name: member,
+                        type: typeExpression(property.type),
+                        isSettable: property.isSettable
+                    )
+                )
+            )
+        }
+        // What belongs to the type itself.
+        for set in [profile.declared, profile.extended] {
+            for (member, signatures) in set.staticMethods where wanted(member) {
+                found += signatures.map { methodSymbol($0, isStatic: true) }
+            }
+        }
+        for (member, property) in profile.declared.staticProperties where wanted(member) {
+            found.append(
+                .property(
+                    Symbol.Property(
+                        name: member,
+                        type: typeExpression(property.type),
+                        isSettable: property.isSettable,
+                        isStatic: true
+                    )
+                )
+            )
+        }
+        if wanted("init") { found += initializerSymbols(of: profile) }
+        for member in profile.associatedTypes where wanted(member) {
+            found.append(
+                .associatedType(
+                    Symbol.AssociatedType(name: member, role: .requirement(constraints: []))
+                )
+            )
+        }
+        if profile.kind == .enumeration {
+            found += caseSymbols(of: profile, named: name, rawValues: rawValues)
+        }
+        return found
+    }
+
+    private func initializerSymbols(of profile: TypeProfile) -> [Symbol] {
+        // A struct with none of its own is made by its memberwise one.
+        var initializers = profile.declared.initializers
+        if initializers.isEmpty, profile.kind == .structure, let memberwise = profile.memberwise {
+            initializers = [memberwise]
+        }
+        return initializers.map { initializer in
+            .initializer(
+                Symbol.Initializer(
+                    attributes: initializer.attributes,
+                    signature: signature(initializer)
+                )
+            )
+        }
+    }
+
+    private func caseSymbols(
+        of profile: TypeProfile,
+        named name: String?,
+        rawValues: [String: [String: Value]]
+    ) -> [Symbol] {
+        let runtime = enumType(named: profile.name)
+        return profile.cases.filter { name == nil || name == $0.name }
+            .map { enumCase in
+                let raw =
+                    rawValues[profile.name]?[enumCase.name]
+                    ?? runtime?.case(named: enumCase.name)?.rawValue
+                return .enumCase(
+                    Symbol.EnumCase(
+                        name: enumCase.name,
+                        payload: enumCase.payload.map {
+                            TypeExpression.Tuple.Element(
+                                label: $0.label,
+                                type: typeExpression($0.type)
+                            )
+                        },
+                        rawValue: raw
+                    )
+                )
+            }
+    }
+
+    /// What a bridged Swift type has, with its generic parameters bound as `bindings` says.
+    private func bridgedMemberSymbols(
+        of bridgedType: ImplementedType,
+        bindings: [String: TypeAnnotation],
+        named name: String?,
+        checker: TypeChecker
+    ) -> [Symbol] {
+        var found: [Symbol] = []
+        let settable = Set(
+            bridgedType.lowered.filter { $0.kind == .setter && !$0.isStatic }.map(\.name)
+        )
+        for member in bridgedType.lowered
+        where member.kind != .setter && (name == nil || name == member.name) {
+            found.append(
+                bridgedSymbol(
+                    member,
+                    checker: checker,
+                    bindings: bindings,
+                    isSettable: settable.contains(member.name)
+                )
+            )
+        }
+        for member in bridgedType.members where name == nil || name == member.name {
+            if case .associatedType = member.symbol { found.append(member.symbol) }
+        }
+        return found
+    }
+
+    /// The methods every sequence of `element` has.
+    private func sequenceMemberSymbols(
+        of element: TypeAnnotation,
+        named name: String?,
+        checker: TypeChecker
+    ) -> [Symbol] {
+        var found: [Symbol] = []
+        for (member, set) in sequenceMethods where name == nil || name == member {
+            for var made in checker.sequenceSignatures(set) {
+                made.parameters = made.parameters.map {
+                    var p = $0
+                    p.type = checker.substitute(p.type, ["Element": element])
+                    return p
                 }
+                made.returns = checker.substitute(made.returns, ["Element": element])
+                found.append(methodSymbol(made, dropping: true))
             }
         }
         return found
     }
-    // swiftlint:enable function_body_length
 }

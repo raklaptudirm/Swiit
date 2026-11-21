@@ -122,12 +122,12 @@ extension BridgedMember {
         return .list([result, mover == nil ? receiver : .nothing])
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
-    /// What a script can call, from what a host wrote: a settable property is a property and its
-    /// setter.
-    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
-        let symbol = member.symbol
-        func make(
+    /// What a host wrote as one lowered member, which `members(of:in:)` makes one or two of.
+    private struct Lowering {
+        let member: ImplementedSymbol
+        let typeName: String
+
+        func callAsFunction(
             _ kind: BridgedMember.Kind,
             isStatic: Bool = false,
             name: String? = nil,
@@ -148,12 +148,12 @@ extension BridgedMember {
                 isThrowing: function?.throwing == .any,
                 isRethrowing: function?.throwing == .rethrowing,
                 isMutating: isMutating,
-                attributes: symbol.attributes,
+                attributes: member.symbol.attributes,
                 summary: member.summary,
                 // An error it throws is one a script can catch, as a function's is.
-                body: .native { interpreter, arguments in
+                body: .native { [typeName, name = member.name] interpreter, arguments in
                     do { return try call(arguments) } catch {
-                        throw interpreter.hostFailure(error, in: "\(typeName).\(member.name)")
+                        throw interpreter.hostFailure(error, in: "\(typeName).\(name)")
                     }
                 },
                 parameterDocs: Dictionary(
@@ -175,6 +175,13 @@ extension BridgedMember {
             made.plain = call
             return made
         }
+    }
+
+    /// What a script can call, from what a host wrote: a settable property is a property and its
+    /// setter.
+    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
+        let symbol = member.symbol
+        let make = Lowering(member: member, typeName: typeName)
         switch (symbol, member.body) {
         case (.method(let method), .method(let body)):
             let function = method.signature, order = ordered(function)
@@ -267,5 +274,4 @@ extension BridgedMember {
             preconditionFailure("\(member.name) is not a member of a type")
         }
     }
-    // swiftlint:enable function_body_length
 }
