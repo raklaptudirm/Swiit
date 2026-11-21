@@ -373,8 +373,8 @@ private let rows: [Row] = [
         language,
         "`#if os(…)` and `canImport`",
         .works,
-        "#if os(macOS)\nlet r = 1\n#else\nlet r = 2\n#endif\nr",
-        gives: "1"
+        "#if os(macOS)\nlet r = 1\n#elseif os(Linux)\nlet r = 1\n#else\nlet r = 2\n#endif\n#if canImport(Foundation)\nlet s = 1\n#else\nlet s = 2\n#endif\nr + s",
+        gives: "2"
     ),
     Row(
         language,
