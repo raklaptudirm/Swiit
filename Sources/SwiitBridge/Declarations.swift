@@ -74,7 +74,7 @@ func whereConstraints(_ text: String) -> [Constraint] {
     return constraints
 }
 
-// swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
+// swiftlint:disable:next function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
 func parseDeclaration(_ text: String) throws -> Declaration {
     var reader = Reader(text)
     var isStatic = false

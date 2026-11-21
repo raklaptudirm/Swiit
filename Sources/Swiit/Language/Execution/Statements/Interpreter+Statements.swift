@@ -161,7 +161,6 @@ extension Interpreter {
         try run(program)
     }
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
     func run(_ statement: Statement) throws {
         switch statement {
         case .typeExtension(let decl):
@@ -188,29 +187,7 @@ extension Interpreter {
         case .structDecl(let decl):
             try declare(decl)
         case .function(let decl):
-            // Captures the scope it's bound in, so it can call itself.
-            let function = Function(
-                name: decl.name,
-                parameters: decl.parameters,
-                returnType: decl.returnType,
-                body: .swiit(decl.body),
-                captured: captureScopes(decl.names),
-                documentation: decl.documentation,
-                attributes: decl.attributes,
-                isThrowing: decl.isThrowing,
-                effect: decl.effect,
-                typeParameters: decl.runtimeTypeParameters
-            )
-            // A function of a builtin's name overloads it: `print(_ p: Point)` beside
-            // `print(_ items: Any...)`.
-            let current = scopes[scopes.count - 1]
-            if current.bindings[decl.name] == nil, scopes.count > 1,
-                let builtin = scopes[0].bindings[decl.name],
-                builtin.isFunction
-            {
-                current.bindings[decl.name] = builtin
-            }
-            current.declare(function, named: decl.name)
+            declareFunction(decl)
         case .enumDecl(let decl):
             try declare(decl)
         case .expression(let expr):
@@ -221,15 +198,7 @@ extension Interpreter {
         // run leaves them as a statement that did nothing.
         case .doCatch(let body, let clauses):
             finished(statement, nil)
-            do {
-                try runBlock(body)
-            } catch let error as RuntimeError {
-                guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error")
-                else {
-                    throw error
-                }
-                try runBlock(clauses[index].body, declaring: bindings)
-            }
+            try runDoCatch(body, clauses)
             return
         case .throwStatement(let expr):
             let value = try evaluate(expr)
@@ -250,17 +219,7 @@ extension Interpreter {
             return
         case .whileLoop(let loop):
             finished(statement, nil)
-            if loop.isRepeat {
-                repeat {
-                    guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else {
-                        break
-                    }
-                } while try isTrue(loop.condition)
-                return
-            }
-            while try isTrue(loop.condition) {
-                guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
-            }
+            try runWhile(loop)
             return
         case .fallthroughStatement:
             throw ControlFlow.fallthroughCase
@@ -286,6 +245,57 @@ extension Interpreter {
             throw ControlFlow.continueLoop(label)
         }
         finished(statement, nil)
+    }
+
+    /// A function declared at the top level or in a block: it captures the scope it is bound in, so
+    /// it can call itself.
+    private func declareFunction(_ decl: FunctionDecl) {
+        let function = Function(
+            name: decl.name,
+            parameters: decl.parameters,
+            returnType: decl.returnType,
+            body: .swiit(decl.body),
+            captured: captureScopes(decl.names),
+            documentation: decl.documentation,
+            attributes: decl.attributes,
+            isThrowing: decl.isThrowing,
+            effect: decl.effect,
+            typeParameters: decl.runtimeTypeParameters
+        )
+        // A function of a builtin's name overloads it: `print(_ p: Point)` beside
+        // `print(_ items: Any...)`.
+        let current = scopes[scopes.count - 1]
+        if current.bindings[decl.name] == nil, scopes.count > 1,
+            let builtin = scopes[0].bindings[decl.name],
+            builtin.isFunction
+        {
+            current.bindings[decl.name] = builtin
+        }
+        current.declare(function, named: decl.name)
+    }
+
+    private func runDoCatch(_ body: Program, _ clauses: [SwitchCase]) throws {
+        do {
+            try runBlock(body)
+        } catch let error as RuntimeError {
+            guard let (index, bindings) = try firstMatch(clauses, error.value, anyName: "error")
+            else {
+                throw error
+            }
+            try runBlock(clauses[index].body, declaring: bindings)
+        }
+    }
+
+    private func runWhile(_ loop: WhileLoop) throws {
+        if loop.isRepeat {
+            repeat {
+                guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
+            } while try isTrue(loop.condition)
+            return
+        }
+        while try isTrue(loop.condition) {
+            guard try runLoopBody(loop.body, declaring: [:], label: loop.label) else { break }
+        }
     }
 
     /// An expression statement at the top level: evaluated, and shown to the

@@ -1,7 +1,7 @@
 import Foundation
 
 extension Interpreter {
-    // swiftlint:disable function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// Functions Swift's standard library has at the top level, which aren't
     /// members of a type, so the bridge has no type to put them on.
     func installLanguageFunctions() {

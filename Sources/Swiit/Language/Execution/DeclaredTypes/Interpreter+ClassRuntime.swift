@@ -19,7 +19,7 @@ extension Interpreter {
         return type
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// `class Dog: Animal { … }`, `actor Counter { … }`.
     func declare(_ decl: ClassDecl) throws {
         var conformances = decl.inherited
@@ -543,7 +543,7 @@ extension Interpreter {
 
     // MARK: Assigning
 
-    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 25 of Docs/agenda.md
     /// `obj.name = value` (or a change deeper in it): in place, since every holder sees it.
     func updatedInstance(
         _ instance: ClassInstance,

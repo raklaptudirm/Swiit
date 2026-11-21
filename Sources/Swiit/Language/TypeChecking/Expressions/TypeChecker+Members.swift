@@ -125,7 +125,7 @@ extension TypeChecker {
         return (type, .bridged(type: typeName, member: index, receiver: receiver, arguments: []))
     }
 
-    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 25 of Docs/agenda.md
     /// A bridged method or initializer called with `arguments`: the overload
     /// is chosen here, and the call written as the member it is.
     func bridgedCall(

@@ -92,7 +92,7 @@ extension Interpreter {
         }
     }
 
-    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// A call: the callee's overload, a struct or enum made, or a function run.
     func evaluateCall(_ callee: Expr, _ arguments: [Argument]) throws -> Value {
         // A generic function whose body names its type parameters: this call's, bound for it.

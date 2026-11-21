@@ -3,7 +3,7 @@ import Foundation
 // Evaluating member access and subscripts on values.
 
 extension Interpreter {
-    // swiftlint:disable cyclomatic_complexity - one branch for each case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable cyclomatic_complexity - one branch for each case; splitting it is item 25 of Docs/agenda.md
     /// Record fields first, then the few members values have.
     func member(_ name: String, of value: Value) throws -> Value {
         if case .enumValue(let enumValue) = value.storage, name == "rawValue" {

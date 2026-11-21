@@ -41,7 +41,7 @@ extension Interpreter {
         )
     }
 
-    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_parameter_count - it threads one state through; splitting it is item 25 of Docs/agenda.md
     /// `alreadyCancelled` is asked once the run has started afresh, so a request made before that
     /// is not lost.
     private func evaluate(

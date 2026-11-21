@@ -153,7 +153,7 @@ extension TypeChecker {
         }
     }
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// What a statement does: control flow, errors, expressions.
     private func checkControl(_ statement: inout Statement) throws {
         switch statement {
@@ -414,7 +414,7 @@ extension TypeChecker {
         }
     }
 
-    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable:next cyclomatic_complexity function_body_length - one branch for each case; a long walk over every case; splitting it is item 25 of Docs/agenda.md
     func checkPattern(
         _ pattern: inout Pattern,
         against written: TypeAnnotation,

@@ -3,7 +3,7 @@ import Foundation
 extension Interpreter {
     // MARK: Declaring
 
-    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
+    // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 25 of Docs/agenda.md
     /// `natives`: Swift bodies for the methods the prelude declares without
     /// one, by `Type.method`.
     func declare(_ decl: StructDecl, natives: [String: FunctionBody] = [:]) throws {
