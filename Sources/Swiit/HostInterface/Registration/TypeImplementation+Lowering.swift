@@ -4,7 +4,7 @@ import Foundation
 
 extension TypeImplementation {
     /// The generic parameters' names, which the checker binds.
-    var genericParameterNames: [String] { declaration.genericParameters.map(\.name) }
+    var genericParameterNames: [String] { genericParameters.map(\.name) }
     /// The types it binds its protocols' associated types to: `Element` is `String` for a sequence of
     /// text.
     var associatedTypes: [String: TypeExpression] {
@@ -60,7 +60,7 @@ extension TypeImplementation {
     func conforming(to protocols: [String]) -> TypeImplementation {
         guard !protocols.isEmpty else { return self }
         var made = self
-        for name in protocols { made.declaration.conformances[name] = [] }
+        for name in protocols { made.symbol.nominal?.conformances[name] = [] }
         return made
     }
 }

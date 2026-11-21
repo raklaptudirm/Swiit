@@ -19,7 +19,7 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let representation = TypeImplementation.Representation.record
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a conformance updates it through `Interpreter.refreshDeclaration(of:)`.
-    var declaration: TypeDeclaration
+    var symbol: Symbol
     let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
     let conformances: [String]
@@ -53,10 +53,9 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     ) {
         self.name = name
         self.typeRef = .declare(name)
-        declaration = TypeDeclaration(
-            symbol: Symbol(name: name, kind: .type(.structure, typeRef))
-        )
-        for protocolName in conformances { declaration.conformances[protocolName] = [] }
+        var nominal = Symbol.Nominal(kind: .structure, typeRef: typeRef)
+        for protocolName in conformances { nominal.conformances[protocolName] = [] }
+        symbol = Symbol(name: name, kind: .type(nominal))
         self.conformances = conformances
         self.stored = stored
         self.memberwise = memberwise

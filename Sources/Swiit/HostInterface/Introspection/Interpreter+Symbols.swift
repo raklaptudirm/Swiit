@@ -74,33 +74,35 @@ extension Interpreter {
         }
     }
 
-    /// What is said of the type named `name`: a type the program declares, a type a host offers or a
-    /// type the core bridges are described the same way. Nil if no type has that name.
-    public func declaration(ofType name: String) -> TypeDeclaration? {
+    /// The symbol of the type named `name`: a type the program declares, a type a host offers or a
+    /// type the core bridges are described the same way, with its kind, reference, generic parameters
+    /// and conformances (those extensions gave it too) in `Symbol.nominal`. Nil if no type has that
+    /// name.
+    public func symbol(ofType name: String) -> Symbol? {
         withMainTask {
-            if let record = record(ofTypeNamed: name) { return record.declaration }
+            if let record = record(ofTypeNamed: name) { return record.symbol }
             // An enum a host offers has no record, only its cases.
             if case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value.storage {
-                var declaration = TypeDeclaration(symbol: typeSymbol(named: name, type))
+                var symbol = typeSymbol(named: name, type)
                 for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
-                    declaration.conformances[protocolName] = []
+                    symbol.nominal?.conformances[protocolName] = []
                 }
-                return declaration
+                return symbol
             }
-            return Bridge.types[name]?.declaration
+            return Bridge.types[name]?.symbol
         }
     }
 
     /// A declared type as a symbol.
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
-        let kind: TypeDeclaration.Kind =
+        let kind: Symbol.Nominal.Kind =
             switch type {
             case is StructType: .structure
             case is Value.EnumCase.Enumeration: .enumeration
             case let type as ClassType: type.isActor ? .actor : .class
             default: .protocol
             }
-        return Symbol(name: name, kind: .type(kind, type.typeRef))
+        return Symbol(name: name, kind: .type(Symbol.Nominal(kind: kind, typeRef: type.typeRef)))
     }
 
     /// What a function is, as a symbol: `name` when it has none of its own.
@@ -171,9 +173,27 @@ extension Interpreter {
                 )
             }
         // A type the source being checked declares: nothing is declared under its reference yet.
-        case .structType: return [Symbol(name: name, kind: .type(.structure, .declare(name)))]
-        case .enumType: return [Symbol(name: name, kind: .type(.enumeration, .declare(name)))]
-        case .protocolType: return [Symbol(name: name, kind: .type(.protocol, .declare(name)))]
+        case .structType:
+            return [
+                Symbol(
+                    name: name,
+                    kind: .type(Symbol.Nominal(kind: .structure, typeRef: .declare(name)))
+                )
+            ]
+        case .enumType:
+            return [
+                Symbol(
+                    name: name,
+                    kind: .type(Symbol.Nominal(kind: .enumeration, typeRef: .declare(name)))
+                )
+            ]
+        case .protocolType:
+            return [
+                Symbol(
+                    name: name,
+                    kind: .type(Symbol.Nominal(kind: .protocol, typeRef: .declare(name)))
+                )
+            ]
         case .variable(let type, let mutable):
             return [
                 Symbol(

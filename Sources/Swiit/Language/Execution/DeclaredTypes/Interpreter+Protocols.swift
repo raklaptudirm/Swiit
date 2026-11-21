@@ -14,17 +14,16 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     let representation = TypeImplementation.Representation.requirements
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a protocol updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var declaration: TypeDeclaration
+    var symbol: Symbol
 
     init(_ source: ProtocolDecl) {
         self.name = source.name
         self.typeRef = .declare(source.name)
         self.inherited = source.inherited
         self.source = source
-        declaration = TypeDeclaration(
-            symbol: Symbol(name: name, kind: .type(.protocol, typeRef))
-        )
-        for protocolName in inherited { declaration.conformances[protocolName] = [] }
+        var nominal = Symbol.Nominal(kind: .protocol, typeRef: typeRef)
+        for protocolName in inherited { nominal.conformances[protocolName] = [] }
+        symbol = Symbol(name: name, kind: .type(nominal))
     }
 
     var typeName: String { "protocol" }

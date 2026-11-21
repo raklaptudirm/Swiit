@@ -59,7 +59,12 @@ extension Interpreter {
                     if case .object(is NativeTypeName) = binding.value.storage {
                         var symbol =
                             Bridge.types[name]?.symbol
-                            ?? Symbol(name: name, kind: .type(.structure, .native(name)))
+                            ?? Symbol(
+                                name: name,
+                                kind: .type(
+                                    Symbol.Nominal(kind: .structure, typeRef: .native(name))
+                                )
+                            )
                         symbol.isBuiltin = true
                         return symbol
                     } else {

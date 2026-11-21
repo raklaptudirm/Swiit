@@ -333,53 +333,53 @@ private struct Point: Encodable { var x: Int }
     widget.conformances = ["Hashable": []]
     swiit.register(widget)
 
-    let declared = try #require(swiit.declaration(ofType: "Point"))
-    let hosted = try #require(swiit.declaration(ofType: "Widget"))
-    let bridged = try #require(swiit.declaration(ofType: "String"))
+    let declared = try #require(swiit.symbol(ofType: "Point"))
+    let hosted = try #require(swiit.symbol(ofType: "Widget"))
+    let bridged = try #require(swiit.symbol(ofType: "String"))
 
-    #expect(declared.symbol.typeKind == .structure)
-    #expect(declared.conformances.keys.contains("Equatable"))
-    #expect(hosted.conformances.keys.contains("Hashable"))
-    #expect(bridged.conformances.keys.contains("Collection"))
-    #expect(swiit.declaration(ofType: "Nothing") == nil)
+    #expect(declared.typeKind == .structure)
+    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
+    #expect(hosted.nominal?.conformances.keys.contains("Hashable") == true)
+    #expect(bridged.nominal?.conformances.keys.contains("Collection") == true)
+    #expect(swiit.symbol(ofType: "Nothing") == nil)
 }
 
 @Test func aStructsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("struct Point { var x: Int }")
-    #expect(try #require(swiit.declaration(ofType: "Point")).conformances.isEmpty)
+    #expect(try #require(swiit.symbol(ofType: "Point")).nominal?.conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Point: Equatable {}")
 
-    let declared = try #require(swiit.declaration(ofType: "Point"))
-    #expect(declared.conformances.keys.contains("Equatable"))
+    let declared = try #require(swiit.symbol(ofType: "Point"))
+    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
 }
 
 @Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Axis { case x, y }")
-    #expect(try #require(swiit.declaration(ofType: "Axis")).symbol.typeKind == .enumeration)
-    #expect(try #require(swiit.declaration(ofType: "Axis")).conformances.isEmpty)
+    #expect(try #require(swiit.symbol(ofType: "Axis")).typeKind == .enumeration)
+    #expect(try #require(swiit.symbol(ofType: "Axis")).nominal?.conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Axis: Hashable {}")
 
-    let declared = try #require(swiit.declaration(ofType: "Axis"))
-    #expect(declared.conformances.keys.contains("Hashable"))
+    let declared = try #require(swiit.symbol(ofType: "Axis"))
+    #expect(declared.nominal?.conformances.keys.contains("Hashable") == true)
 }
 
 @Test func aClassesDeclarationNamesWhatItAndAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("class Base: Sendable {}")
     _ = try swiit.evaluate("class Leaf: Base {}")
-    let before = try #require(swiit.declaration(ofType: "Leaf"))
-    #expect(before.symbol.typeKind == .class)
-    #expect(before.conformances.keys.contains("Sendable"))
-    #expect(!before.conformances.keys.contains("Hashable"))
+    let before = try #require(swiit.symbol(ofType: "Leaf"))
+    #expect(before.typeKind == .class)
+    #expect(before.nominal?.conformances.keys.contains("Sendable") == true)
+    #expect(before.nominal?.conformances.keys.contains("Hashable") == false)
 
     _ = try swiit.evaluate("extension Leaf: Hashable {}")
 
-    let after = try #require(swiit.declaration(ofType: "Leaf"))
-    #expect(after.conformances.keys.contains("Hashable"))
+    let after = try #require(swiit.symbol(ofType: "Leaf"))
+    #expect(after.nominal?.conformances.keys.contains("Hashable") == true)
 }
 
 @Test func aClassFromAnEarlierProgramCanBeSubclassed() throws {
@@ -394,10 +394,10 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("protocol Shape: Equatable { var sides: Int { get } }")
 
-    let declared = try #require(swiit.declaration(ofType: "Shape"))
+    let declared = try #require(swiit.symbol(ofType: "Shape"))
 
-    #expect(declared.symbol.typeKind == .protocol)
-    #expect(declared.conformances.keys.contains("Equatable"))
+    #expect(declared.typeKind == .protocol)
+    #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
 }
 
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {

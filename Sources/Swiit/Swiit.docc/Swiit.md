@@ -44,8 +44,8 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - ``Symbol/Kind``
 - ``Symbol/Attribute``
 - ``Symbol/Constraint``
-- ``TypeDeclaration``
-- ``TypeDeclaration/Kind``
+- ``Symbol/Nominal``
+- ``Symbol/Nominal/Kind``
 - ``Interpreter/Declarations``
 
 ### Registering Swift functions, types and objects

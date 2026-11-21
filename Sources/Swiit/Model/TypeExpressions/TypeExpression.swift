@@ -7,7 +7,7 @@ import Synchronization
 /// tuple type, a metatype, or a generic parameter. A ``TypeRef`` says which type a name is; an
 /// expression says how a type is written with it, so it can have arguments, and a function type has
 /// no reference of its own. Whether a named type is a struct, an enum or a class is a fact about its
-/// declaration (``TypeDeclaration``): `Interpreter.globals(named:)` says.
+/// declaration (``Symbol/Nominal``): `Interpreter.globals(named:)` says.
 public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible {
     case named(TypeRef, [TypeExpression] = [])
     /// A generic parameter of the declaration the type is written in: `Element` in

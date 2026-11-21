@@ -14,13 +14,12 @@ final class EnumType: @unchecked Sendable {
     let members = TypeMembers()
     /// What is said of the type, kept here so that every reader sees the same thing. An extension
     /// that adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var declaration: TypeDeclaration
+    var symbol: Symbol
 
     init(_ enumeration: Value.EnumCase.Enumeration) {
         self.enumeration = enumeration
-        declaration = TypeDeclaration(
-            symbol: Symbol(name: enumeration.name, kind: .type(.enumeration, enumeration.typeRef))
-        )
-        for protocolName in enumeration.conformances { declaration.conformances[protocolName] = [] }
+        var nominal = Symbol.Nominal(kind: .enumeration, typeRef: enumeration.typeRef)
+        for protocolName in enumeration.conformances { nominal.conformances[protocolName] = [] }
+        symbol = Symbol(name: enumeration.name, kind: .type(nominal))
     }
 }

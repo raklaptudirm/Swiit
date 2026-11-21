@@ -4,27 +4,26 @@ import Foundation
 /// says of itself. Written with ``BridgedType`` for a Swift type, or by hand for one a generator
 /// describes, and made a type scripts can use by ``Interpreter/register(_:)-(TypeImplementation)``.
 public struct TypeImplementation: Sendable {
-    /// What is said of the type: its symbol (a name, documentation and attributes; a host type is
-    /// held by value under its Swift name, so it is a structure), its generic parameters, the
-    /// protocols its Swift type conforms to of those Swiit knows (`Equatable`, `Hashable`,
-    /// `Comparable`, `Sequence`) and its associated types. A builder finds the conformances from the
+    /// What a script sees of the type: a symbol of kind `.type` (a name, documentation and attributes,
+    /// and its kind, reference, generic parameters and the protocols its Swift type conforms to of
+    /// those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
+    /// value under its Swift name, so it is a structure. A builder finds the conformances from the
     /// type.
-    public var declaration: TypeDeclaration
-    public var symbol: Symbol {
-        get { declaration.symbol }
-        set { declaration.symbol = newValue }
-    }
+    public var symbol: Symbol
     public var name: String {
-        get { declaration.name }
-        set { declaration.name = newValue }
+        get { symbol.name }
+        set {
+            symbol.name = newValue
+            symbol.nominal?.typeRef = .native(newValue)
+        }
     }
     public var genericParameters: [Symbol] {
-        get { declaration.genericParameters }
-        set { declaration.genericParameters = newValue }
+        get { symbol.nominal?.genericParameters ?? [] }
+        set { symbol.nominal?.genericParameters = newValue }
     }
     public var conformances: [String: [Symbol]] {
-        get { declaration.conformances }
-        set { declaration.conformances = newValue }
+        get { symbol.nominal?.conformances ?? [:] }
+        set { symbol.nominal?.conformances = newValue }
     }
     public var members: [SymbolImplementation]
     /// What a value of the type is: one of the core's kinds with storage of its own, or a Swift value
@@ -35,7 +34,10 @@ public struct TypeImplementation: Sendable {
     var lowered: [BridgedMember] = []
 
     public init(name: String, members: [SymbolImplementation] = []) {
-        declaration = TypeDeclaration(name: name)
+        symbol = Symbol(
+            name: name,
+            kind: .type(Symbol.Nominal(kind: .structure, typeRef: .native(name)))
+        )
         self.members = members
     }
 }
