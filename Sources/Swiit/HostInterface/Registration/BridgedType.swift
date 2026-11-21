@@ -23,7 +23,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         let name = name ?? String(describing: T.self)
         self.type = ImplementedType(name: name)
         type.conformances = Dictionary(
-            uniqueKeysWithValues: Self.conformances().map { ($0, []) }
+            uniqueKeysWithValues: Self.conformances().map { (TypeRef(nativeType: $0), []) }
         )
         if let element = Self.sequenceElement() {
             type.members.append(.associatedType("Element", binding: element))

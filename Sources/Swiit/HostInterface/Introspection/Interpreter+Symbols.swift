@@ -75,16 +75,26 @@ extension Interpreter {
     /// A declared type as a symbol, with its kind, reference, generic parameters and conformances,
     /// those extensions gave it too. Whichever way a type's symbol is asked for gives this one.
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol.Nominal {
-        if let record = record(of: type) { return record.symbol }
-        // An enum a host offers has no record, only its cases.
-        var symbol = Symbol.Nominal(name: name, kind: .enumeration, typeRef: type.typeRef)
-        if let enumeration = type as? Value.EnumCase.Enumeration {
-            for protocolName in conformances(ofTypeNamed: name, declared: enumeration.conformances)
-            {
-                symbol.conformances[protocolName] = []
-            }
+        var symbol: Symbol.Nominal
+        var declared: [String] = []
+        if let record = record(of: type) {
+            symbol = record.symbol
+            declared = record.declaredConformances
+        } else {
+            // An enum a host offers has no record, only its cases.
+            symbol = Symbol.Nominal(name: name, kind: .enumeration, typeRef: type.typeRef)
+            declared = (type as? Value.EnumCase.Enumeration)?.conformances ?? []
+        }
+        for protocolName in conformances(ofTypeNamed: name, declared: declared) {
+            symbol.conformances[protocolRef(named: protocolName)] = []
         }
         return symbol
+    }
+
+    /// The reference to a protocol a type names: the script's declaration of it, or the Swift one
+    /// of that name.
+    private func protocolRef(named name: String) -> TypeRef {
+        protocolType(named: name)?.typeRef ?? TypeRef(nativeType: name)
     }
 
     /// What a function is, as a symbol: `name` when it has none of its own.

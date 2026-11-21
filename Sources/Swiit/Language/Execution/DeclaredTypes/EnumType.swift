@@ -12,9 +12,9 @@ final class EnumType: @unchecked Sendable {
     /// How its values are stored: as one of the cases.
     let representation = ImplementedType.Representation.enumeration
     let members = TypeMembers()
-    /// What is said of the type, kept here so that every reader sees the same thing. An extension
-    /// that adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol.Nominal
+    /// What is said of the type, apart from its conformances, which `Interpreter.typeSymbol` adds
+    /// because extensions give them too.
+    let symbol: Symbol.Nominal
 
     init(_ enumeration: Value.EnumCase.Enumeration) {
         self.enumeration = enumeration
@@ -23,6 +23,5 @@ final class EnumType: @unchecked Sendable {
             kind: .enumeration,
             typeRef: enumeration.typeRef
         )
-        for protocolName in enumeration.conformances { symbol.conformances[protocolName] = [] }
     }
 }

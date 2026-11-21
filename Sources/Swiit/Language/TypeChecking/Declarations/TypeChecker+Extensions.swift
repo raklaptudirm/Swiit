@@ -75,7 +75,7 @@ extension TypeChecker {
         guard structInfo(named: key) == nil, enumInfo(named: key) == nil,
             protocolInfo(named: key) == nil
         else { return [] }
-        return Bridge.types[key].map { Array($0.conformances.keys.sorted()) } ?? []
+        return Bridge.types[key].map { $0.conformanceNames.sorted() } ?? []
     }
 
     func ownExtensionLayer(forKey key: String) -> ExtensionLayer? {

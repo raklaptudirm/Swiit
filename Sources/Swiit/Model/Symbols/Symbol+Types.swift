@@ -24,7 +24,7 @@ extension Symbol {
         public var genericParameters: [GenericParameter]
         /// The protocols it conforms to, each with what its generic parameters must be for it: a
         /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`.
-        public var conformances: [String: [GenericParameter]]
+        public var conformances: [TypeRef: [GenericParameter]]
 
         /// The type of this symbol as a value: the type it names.
         public var typeExpression: TypeExpression { .named(typeRef) }
@@ -36,7 +36,7 @@ extension Symbol {
             kind: Kind,
             typeRef: TypeRef,
             genericParameters: [GenericParameter] = [],
-            conformances: [String: [GenericParameter]] = [:]
+            conformances: [TypeRef: [GenericParameter]] = [:]
         ) {
             header = Header(name: name, summary: summary, attributes: attributes)
             self.kind = kind

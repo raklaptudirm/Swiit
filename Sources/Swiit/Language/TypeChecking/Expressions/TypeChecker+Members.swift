@@ -74,7 +74,7 @@ extension TypeChecker {
         _ bindings: [String: TypeAnnotation],
         to proto: String
     ) -> Bool {
-        guard let needs = bridgedType.conformances[proto] else {
+        guard let needs = bridgedType.conformance(named: proto) else {
             return proto == "CustomStringConvertible"
         }
         return needs.allSatisfy { parameter in
@@ -517,7 +517,7 @@ extension TypeChecker {
                 "a String is indexed by String.Index, not \(written): write s.index(s.startIndex, offsetBy: n)"
             )
         case .named(let name)
-        where Bridge.types[name]?.conformances["Sequence"] != nil
+        where Bridge.types[name]?.conformance(named: "Sequence") != nil
             && Bridge.types[name]?.annotatedAssociatedTypes["Element"] != nil:
             // A Swift sequence Swiit holds is indexed by position (a host type's text, by line).
             try expect(&index, .int, "an element's index")

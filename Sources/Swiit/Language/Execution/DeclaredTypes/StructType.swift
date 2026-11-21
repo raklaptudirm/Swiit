@@ -17,9 +17,9 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let members = TypeMembers()
     /// How its values are stored: as records of the stored properties.
     let representation = ImplementedType.Representation.record
-    /// What is said of the type, kept here so that every reader sees the same thing. An extension that
-    /// adds a conformance updates it through `Interpreter.refreshDeclaration(of:)`.
-    var symbol: Symbol.Nominal
+    /// What is said of the type, apart from its conformances, which `Interpreter.typeSymbol` adds
+    /// because extensions give them too.
+    let symbol: Symbol.Nominal
     let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
     let conformances: [String]
@@ -54,7 +54,6 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.name = name
         self.typeRef = .declare(name)
         symbol = Symbol.Nominal(name: name, kind: .structure, typeRef: typeRef)
-        for protocolName in conformances { symbol.conformances[protocolName] = [] }
         self.conformances = conformances
         self.stored = stored
         self.memberwise = memberwise

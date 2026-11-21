@@ -172,7 +172,6 @@ extension Interpreter {
         let members = typeExtensions[decl.typeName] ?? TypeMembers()
         typeExtensions[decl.typeName] = members
         members.conformances += decl.conformances
-        refreshDeclaration(ofTypeNamed: decl.typeName)
         let source = decl.members
         try fill(
             members,

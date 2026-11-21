@@ -293,7 +293,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     let swiit = interpreter()
     var pile = ImplementedType(name: "Pile")
     pile.genericParameters = [Symbol.GenericParameter(name: "Element")]
-    pile.conformances = ["Hashable": [], "Sequence": [Symbol.GenericParameter(name: "Element")]]
+    pile.conformances = [.hashable: [], .sequence: [Symbol.GenericParameter(name: "Element")]]
     pile.members.append(.associatedType("Element", binding: .parameter("Element")))
     let id = swiit.register(pile)
 
@@ -351,7 +351,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 @Test func anAssociatedTypeIsAMemberOfTheTypeThatBindsIt() throws {
     let swiit = interpreter()
     var lines = ImplementedType(name: "Lines")
-    lines.conformances = ["Sequence": []]
+    lines.conformances = [.sequence: []]
     lines.members.append(.associatedType("Element", binding: .string))
     let id = swiit.register(lines)
 

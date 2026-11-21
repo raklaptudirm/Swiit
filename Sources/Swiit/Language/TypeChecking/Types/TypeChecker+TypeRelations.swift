@@ -279,7 +279,7 @@ extension TypeChecker {
         if case .generic = type {
             // What `for await` reads: an AsyncSequence of the bridged types (a task group).
             if let (bridgedType, bindings) = bridged(type),
-                bridgedType.conformances["AsyncSequence"] != nil,
+                bridgedType.conformance(named: "AsyncSequence") != nil,
                 let element = bridgedType.annotatedAssociatedTypes["Element"]
             {
                 return substitute(element, bindings)

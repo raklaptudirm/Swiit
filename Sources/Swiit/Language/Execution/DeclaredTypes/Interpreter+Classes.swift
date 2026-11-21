@@ -20,9 +20,9 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     let conformances: [String]
     /// What it was declared as in source, which the checker reads again for a later program.
     var source: ClassDecl?
-    /// What is said of the type, kept here so that every reader sees the same thing. An extension that
-    /// adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol.Nominal
+    /// What is said of the type, apart from its conformances, which `Interpreter.typeSymbol` adds
+    /// because extensions give them too.
+    let symbol: Symbol.Nominal
 
     init(
         name: String,
@@ -40,7 +40,6 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.conformances = conformances
         members.staticProperties = staticProperties
         symbol = Symbol.Nominal(name: name, kind: isActor ? .actor : .class, typeRef: typeRef)
-        for protocolName in allConformances { symbol.conformances[protocolName] = [] }
     }
 
     /// This class and each it comes from, nearest first.

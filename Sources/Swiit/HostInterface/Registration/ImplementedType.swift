@@ -21,7 +21,7 @@ public struct ImplementedType: Sendable {
         get { symbol.genericParameters }
         set { symbol.genericParameters = newValue }
     }
-    public var conformances: [String: [Symbol.GenericParameter]] {
+    public var conformances: [TypeRef: [Symbol.GenericParameter]] {
         get { symbol.conformances }
         set { symbol.conformances = newValue }
     }
@@ -87,7 +87,8 @@ extension Interpreter {
         var bridged = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
-        if type.conformances["Sequence"] != nil, let element = type.associatedTypes["Element"] {
+        if type.conformance(named: "Sequence") != nil, let element = type.associatedTypes["Element"]
+        {
             bridged = bridged.adding(
                 itemMembers(
                     of: TypeAnnotation(element),

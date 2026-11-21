@@ -31,7 +31,18 @@ extension Value {
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
     /// optional string), else nil.
     public func casting(to type: TypeExpression) -> Value? {
-        matches(type) ? self : nil
+        isInstance(of: type) ? self : nil
+    }
+
+    /// Whether the value is an instance of the type: a struct, an enum or a class by its
+    /// reference, a list of ints, an optional string, `Any`, or a function. A class is also an
+    /// instance of the classes it inherits from, as Swift's `is` says. A struct value that came
+    /// from a Swift value (an encoded one, or one a host built by the type's name) also counts as
+    /// an instance of a script's type of the same name, which is how members and display already
+    /// treat it. A protocol is not asked here, because that takes an interpreter. Use
+    /// `TypeExpression.conforms(to:in:)` for that.
+    public func isInstance(of type: TypeExpression) -> Bool {
+        matches(type)
     }
 
     private func matches(_ type: TypeExpression) -> Bool {
@@ -54,13 +65,7 @@ extension Value {
             return dictionary.allSatisfy {
                 $0.key.matches(arguments[0]) && $0.value.matches(arguments[1])
             }
-        case .named(let name, _):
-            switch self.storage {
-            case .structure(let structure): return structure.typeRef == name
-            case .enumValue(let value): return value.type.typeRef == name
-            case .object: return typeRef == name
-            default: return false
-            }
+        case .named(let reference, _): return isInstance(ofReference: reference)
         case .tuple(let elements):
             guard case .tuple(let tuple) = self.storage, tuple.count == elements.count
             else {

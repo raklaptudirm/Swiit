@@ -523,7 +523,7 @@ for (name, _) in bridgedTypeNames {
             }
             .sorted()
         let conformanceCode = owner.conformances.sorted { $0.key < $1.key }
-            .map { "\(quoted($0)): \(genericParametersDescription($1))" }
+            .map { "TypeRef(nativeType: \(quoted($0))): \(genericParametersDescription($1))" }
         declarations.append(
             """
                 fileprivate static let \(typeName): ImplementedType = {

@@ -3,6 +3,15 @@ import Foundation
 // What a type a host wrote becomes for the checker and the interpreter: its members lowered.
 
 extension ImplementedType {
+    /// What the type needs of its generic parameters to conform to the protocol of Swift's called
+    /// `name`; nil when it does not conform.
+    func conformance(named name: String) -> [Symbol.GenericParameter]? {
+        conformances[TypeRef(nativeType: name)]
+    }
+
+    /// The names of the protocols it conforms to.
+    var conformanceNames: [String] { conformances.keys.map(\.name) }
+
     /// The generic parameters' names, which the checker binds.
     var genericParameterNames: [String] { genericParameters.map(\.name) }
     /// The types it binds its protocols' associated types to: `Element` is `String` for a sequence of
@@ -62,7 +71,7 @@ extension ImplementedType {
     func conforming(to protocols: [String]) -> ImplementedType {
         guard !protocols.isEmpty else { return self }
         var made = self
-        for name in protocols { made.symbol.conformances[name] = [] }
+        for name in protocols { made.symbol.conformances[TypeRef(nativeType: name)] = [] }
         return made
     }
 }

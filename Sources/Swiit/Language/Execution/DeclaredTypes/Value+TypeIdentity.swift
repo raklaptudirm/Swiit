@@ -33,15 +33,8 @@ extension Value {
         }
     }
 
-    /// Whether the value is an instance of the type `expected` names: that exact type, a class that
-    /// inherits from it, or `Any`, as Swift's `is` says. A struct value that came from a Swift
-    /// value (an encoded one, or one a host built by the type's name) also counts as an instance of
-    /// a script's type of the same name, which is how members and display already treat it. A
-    /// protocol is not asked here, because that takes an interpreter. Use
-    /// `TypeExpression.conforms(to:in:)` for that.
-    public func isInstance(of expected: TypeRef) -> Bool {
-        if expected == .any { return true }
-        if case .function = self.storage { return expected == .function }
+    /// Whether the value's type is `expected` or one it inherits from, by reference.
+    func isInstance(ofReference expected: TypeRef) -> Bool {
         guard let own = typeRef else { return false }
         if own == expected { return true }
         if case .structure(let structure) = self.storage, case .native = own.kind,

@@ -62,7 +62,7 @@ extension Bridge {
         type.genericParameters = [
             Symbol.GenericParameter(name: "Success"), Symbol.GenericParameter(name: "Failure"),
         ]
-        type.conformances = ["Hashable": [], "Equatable": []]
+        type.conformances = [.hashable: [], .equatable: []]
         return type
     }()
 

@@ -32,7 +32,7 @@ final class ValueStream {
         case .object(let box as SwiftValue)
         where Bridge.types[box.typeName]
             .map({
-                !$0.genericParameters.isEmpty || $0.conformances["Sequence"] != nil
+                !$0.genericParameters.isEmpty || $0.conformance(named: "Sequence") != nil
             }) == true:
             items = Interpreter.items(of: value) ?? AnyIterator([value].makeIterator())
         default:

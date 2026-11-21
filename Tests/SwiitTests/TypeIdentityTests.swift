@@ -104,18 +104,18 @@ private struct Point: Encodable { var x: Int }
     let point = try #require(TypeRef(named: "Point", in: swiit))
     let animal = try #require(TypeRef(named: "Animal", in: swiit))
     let dog = try #require(TypeRef(named: "Dog", in: swiit))
-    #expect(try swiit.evaluate("Point(x: 1)").isInstance(of: point))
-    #expect(try swiit.evaluate("Dog()").isInstance(of: dog))
-    #expect(try swiit.evaluate("Dog()").isInstance(of: animal))  // a subclass is its superclass
-    #expect(try !swiit.evaluate("Animal()").isInstance(of: dog))
+    #expect(try swiit.evaluate("Point(x: 1)").isInstance(of: .named(point)))
+    #expect(try swiit.evaluate("Dog()").isInstance(of: .named(dog)))
+    #expect(try swiit.evaluate("Dog()").isInstance(of: .named(animal)))  // a subclass is its superclass
+    #expect(try !swiit.evaluate("Animal()").isInstance(of: .named(dog)))
     #expect(Value(3).isInstance(of: .any))
     #expect(Value(3).isInstance(of: .int))
     #expect(!Value(3).isInstance(of: .string))
     #expect(Value(3).isInstance(of: Int.self))
-    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
+    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .callable))
     // A struct value of a Swift type stands for the same-named type a script declares.
     #expect(
-        try Value(encoding: Point(x: 1)).isInstance(of: point)
+        try Value(encoding: Point(x: 1)).isInstance(of: .named(point))
     )
 }
 
@@ -128,5 +128,5 @@ private struct Point: Encodable { var x: Int }
     // The old value still has the old type's members, and is not an instance of the new one.
     #expect(try swiit.evaluate("old.twice") == 4)
     #expect(try swiit.evaluate("Point(x: 2).twice") == 6)
-    #expect(!old.isInstance(of: try #require(TypeRef(named: "Point", in: swiit))))
+    #expect(!old.isInstance(of: .named(try #require(TypeRef(named: "Point", in: swiit)))))
 }

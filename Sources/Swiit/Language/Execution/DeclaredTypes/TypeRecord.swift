@@ -6,9 +6,9 @@ import Foundation
 protocol TypeRecord: AnyObject {
     var typeRef: TypeRef { get }
     var representation: ImplementedType.Representation { get }
-    /// What is said of the type. An extension that adds a conformance updates it through
-    /// `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol.Nominal { get set }
+    /// What is said of the type, apart from its conformances, which `Interpreter.typeSymbol` adds
+    /// because extensions give them too.
+    var symbol: Symbol.Nominal { get }
     /// The protocols it names itself, and, for a class, those of the classes it comes from.
     var declaredConformances: [String] { get }
 }
@@ -51,14 +51,6 @@ extension Interpreter {
         case .object(let type as ProtocolType)?: type
         case .object(let type as Value.EnumCase.Enumeration)?: enumTypes[ObjectIdentifier(type)]
         default: nil
-        }
-    }
-
-    /// Brings the stored declaration of a type up to date with the protocols extensions have given it.
-    func refreshDeclaration(ofTypeNamed name: String) {
-        guard let record = record(ofTypeNamed: name) else { return }
-        for protocolName in conformances(ofTypeNamed: name, declared: record.declaredConformances) {
-            record.symbol.conformances[protocolName] = []
         }
     }
 }

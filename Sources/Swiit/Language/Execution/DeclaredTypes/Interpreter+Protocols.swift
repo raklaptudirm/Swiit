@@ -12,9 +12,9 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// What it asks of the types that conform: no value is of a protocol, so it has requirements and
     /// no storage.
     let representation = ImplementedType.Representation.requirements
-    /// What is said of the type, kept here so that every reader sees the same thing. An extension that
-    /// adds a protocol updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
-    var symbol: Symbol.Nominal
+    /// What is said of the type, apart from its conformances, which `Interpreter.typeSymbol` adds
+    /// because extensions give them too.
+    let symbol: Symbol.Nominal
 
     init(_ source: ProtocolDecl) {
         self.name = source.name
@@ -22,7 +22,6 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.inherited = source.inherited
         self.source = source
         symbol = Symbol.Nominal(name: name, kind: .protocol, typeRef: typeRef)
-        for protocolName in inherited { symbol.conformances[protocolName] = [] }
     }
 
     var typeName: String { "protocol" }
@@ -93,7 +92,8 @@ extension Interpreter {
         default: return []
         }
         guard let key = typeKey(of: value), let type = Bridge.types[key] else { return [] }
-        return type.conformances.compactMap { name, needs in
+        return type.conformances.compactMap { protocolRef, needs in
+            let name = protocolRef.name
             let met = needs.allSatisfy { parameter in
                 parameter.constraints.allSatisfy {
                     Bridge.valueProtocols.contains($0.refinementKey)

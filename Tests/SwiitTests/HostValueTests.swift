@@ -91,7 +91,7 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("(a: 1, b: 2)").mirror.displayStyle == .tuple)
     #expect(try swiit.evaluate("Point(x: 1, y: 2)").mirror.displayStyle == .struct)
     #expect(try swiit.evaluate("Level.high").typeRef?.name == "Level")
-    #expect(try swiit.evaluate("twice").isInstance(of: .function))
+    #expect(try swiit.evaluate("twice").isInstance(of: .callable))
     #expect(Value.nothing.typeRef == .optional)
     // `cast` is `as?`: an Int is an Int, not a Double; a list casts if every element does.
     let three = try swiit.evaluate("3")
@@ -149,7 +149,7 @@ private struct Point: Encodable { var x: Int }
     let point = try swiit.evaluate("Point(x: 1)")
     #expect(point.mirror.displayStyle == .struct)
     #expect(point.entry("x") == Value(1))
-    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
+    #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .callable))
     // A Swift value held as it is has the host ID of its registered name.
     #expect(Value(Bytes(count: 1)).typeRef == TypeRef(nativeType: "Bytes"))
 }
@@ -331,7 +331,7 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("struct Point: Equatable { var x: Int }")
     var widget = ImplementedType(name: "Widget")
-    widget.conformances = ["Hashable": []]
+    widget.conformances = [.hashable: []]
     swiit.register(widget)
 
     let declared = try #require(typeSymbol("Point", in: swiit))
@@ -339,9 +339,9 @@ private struct Point: Encodable { var x: Int }
     let bridged = try #require(typeSymbol("String", in: swiit))
 
     #expect(declared.kind == .structure)
-    #expect(declared.conformances.keys.contains("Equatable") == true)
-    #expect(hosted.conformances.keys.contains("Hashable") == true)
-    #expect(bridged.conformances.keys.contains("Collection") == true)
+    #expect(declared.conformances.keys.contains(.equatable) == true)
+    #expect(hosted.conformances.keys.contains(.hashable) == true)
+    #expect(bridged.conformances.keys.contains(TypeRef(nativeType: "Collection")) == true)
     #expect(typeSymbol("Nothing", in: swiit) == nil)
 }
 
@@ -353,7 +353,7 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("extension Point: Equatable {}")
 
     let declared = try #require(typeSymbol("Point", in: swiit))
-    #expect(declared.conformances.keys.contains("Equatable") == true)
+    #expect(declared.conformances.keys.contains(.equatable) == true)
 }
 
 @Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
@@ -365,7 +365,7 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("extension Axis: Hashable {}")
 
     let declared = try #require(typeSymbol("Axis", in: swiit))
-    #expect(declared.conformances.keys.contains("Hashable") == true)
+    #expect(declared.conformances.keys.contains(.hashable) == true)
 }
 
 @Test func aClassesDeclarationNamesWhatItAndAnExtensionGaveIt() throws {
@@ -374,13 +374,13 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("class Leaf: Base {}")
     let before = try #require(typeSymbol("Leaf", in: swiit))
     #expect(before.kind == .class)
-    #expect(before.conformances.keys.contains("Sendable") == true)
-    #expect(before.conformances.keys.contains("Hashable") == false)
+    #expect(before.conformances.keys.contains(TypeRef(nativeType: "Sendable")) == true)
+    #expect(before.conformances.keys.contains(.hashable) == false)
 
     _ = try swiit.evaluate("extension Leaf: Hashable {}")
 
     let after = try #require(typeSymbol("Leaf", in: swiit))
-    #expect(after.conformances.keys.contains("Hashable") == true)
+    #expect(after.conformances.keys.contains(.hashable) == true)
 }
 
 @Test func aClassFromAnEarlierProgramCanBeSubclassed() throws {
@@ -398,7 +398,7 @@ private struct Point: Encodable { var x: Int }
     let declared = try #require(typeSymbol("Shape", in: swiit))
 
     #expect(declared.kind == .protocol)
-    #expect(declared.conformances.keys.contains("Equatable") == true)
+    #expect(declared.conformances.keys.contains(.equatable) == true)
 }
 
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
@@ -491,7 +491,7 @@ private struct Point: Encodable { var x: Int }
     let inGlobals = try #require(swiit.globals(named: "Pip").first?.nominal)
     let inTypes = try #require(swiit.types.first { $0.name == "Pip" })
 
-    #expect(byName.conformances.keys.contains("Hashable"))
+    #expect(byName.conformances.keys.contains(.hashable))
     #expect(byReference == byName)
     #expect(inGlobals == byName)
     #expect(inTypes == byName)
@@ -527,4 +527,16 @@ extension Symbol {
     fileprivate var method: Symbol.Method? {
         if case .method(let method) = self { method } else { nil }
     }
+}
+
+@Test func aTypeNamesAProtocolAScriptDeclaredByItsOwnReference() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("protocol Shape {}\nstruct Square: Shape, Equatable {}")
+
+    let square = try #require(TypeRef(named: "Square", in: swiit)?.symbol(in: swiit))
+    let shape = try #require(TypeRef(named: "Shape", in: swiit))
+
+    #expect(square.conformances.keys.contains(shape))
+    #expect(square.conformances.keys.contains(.equatable))
+    #expect(shape != TypeRef(nativeType: "Shape"))
 }

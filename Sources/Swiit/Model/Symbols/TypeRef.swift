@@ -5,7 +5,7 @@ import Synchronization
 // A reference to a type: the declaration it is, not the name it goes by.
 
 /// Names one type. `register` returns one, `TypeRef(named:in:)` finds one, `Value.typeRef` has one, and
-/// `TypeExpression.named` and `Value.isInstance(of:)` take one. A host gets a reference from the
+/// `TypeExpression.named` and `Value.isInstance(of:)` (through a `TypeExpression`) take one. A host gets a reference from the
 /// interpreter (`register`, `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`) and makes one
 /// itself only for a Swift type it registers (`init(nativeType:)`).
 ///
@@ -95,6 +95,9 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     public static let keyPath = TypeRef.native("KeyPath")
     public static let sequence = TypeRef.native("Sequence")
     public static let rawRepresentable = TypeRef.native("RawRepresentable")
+    public static let equatable = TypeRef.native("Equatable")
+    public static let hashable = TypeRef.native("Hashable")
+    public static let comparable = TypeRef.native("Comparable")
 
     /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
     /// conformance would offer to every host.
