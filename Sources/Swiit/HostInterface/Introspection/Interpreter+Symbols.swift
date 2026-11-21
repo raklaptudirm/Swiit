@@ -93,16 +93,14 @@ extension Interpreter {
 
     /// A declared type as a symbol.
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
-        let kind: Symbol.Kind =
+        let kind: TypeDeclaration.Kind =
             switch type {
-            case is StructType: .type(.structure)
-            case is Value.EnumCase.Enumeration: .type(.enumeration)
-            case let type as ClassType: .type(type.isActor ? .actor : .class)
-            default: .type(.protocol)
+            case is StructType: .structure
+            case is Value.EnumCase.Enumeration: .enumeration
+            case let type as ClassType: type.isActor ? .actor : .class
+            default: .protocol
             }
-        var symbol = Symbol(name: name, kind: kind)
-        symbol.typeRef = type.typeRef
-        return symbol
+        return Symbol(name: name, kind: .type(kind, type.typeRef))
     }
 
     /// What a function is, as a symbol: `name` when it has none of its own.
@@ -172,9 +170,10 @@ extension Interpreter {
                     )
                 )
             }
-        case .structType: return [Symbol(name: name, kind: .type(.structure))]
-        case .enumType: return [Symbol(name: name, kind: .type(.enumeration))]
-        case .protocolType: return [Symbol(name: name, kind: .type(.protocol))]
+        // A type the source being checked declares: nothing is declared under its reference yet.
+        case .structType: return [Symbol(name: name, kind: .type(.structure, .declare(name)))]
+        case .enumType: return [Symbol(name: name, kind: .type(.enumeration, .declare(name)))]
+        case .protocolType: return [Symbol(name: name, kind: .type(.protocol, .declare(name)))]
         case .variable(let type, let mutable):
             return [
                 Symbol(

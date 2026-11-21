@@ -21,9 +21,9 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.typeRef = .declare(source.name)
         self.inherited = source.inherited
         self.source = source
-        var symbol = Symbol(name: name, kind: .type(.protocol))
-        symbol.typeRef = typeRef
-        declaration = TypeDeclaration(symbol: symbol)
+        declaration = TypeDeclaration(
+            symbol: Symbol(name: name, kind: .type(.protocol, typeRef))
+        )
         for protocolName in inherited { declaration.conformances[protocolName] = [] }
     }
 

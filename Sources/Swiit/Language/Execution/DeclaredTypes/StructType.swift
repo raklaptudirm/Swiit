@@ -53,9 +53,9 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     ) {
         self.name = name
         self.typeRef = .declare(name)
-        var symbol = Symbol(name: name, kind: .type(.structure))
-        symbol.typeRef = typeRef
-        declaration = TypeDeclaration(symbol: symbol)
+        declaration = TypeDeclaration(
+            symbol: Symbol(name: name, kind: .type(.structure, typeRef))
+        )
         for protocolName in conformances { declaration.conformances[protocolName] = [] }
         self.conformances = conformances
         self.stored = stored

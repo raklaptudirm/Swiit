@@ -39,9 +39,9 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.stored = stored
         self.conformances = conformances
         members.staticProperties = staticProperties
-        var symbol = Symbol(name: name, kind: .type(isActor ? .actor : .class))
-        symbol.typeRef = typeRef
-        declaration = TypeDeclaration(symbol: symbol)
+        declaration = TypeDeclaration(
+            symbol: Symbol(name: name, kind: .type(isActor ? .actor : .class, typeRef))
+        )
         for protocolName in allConformances { declaration.conformances[protocolName] = [] }
     }
 

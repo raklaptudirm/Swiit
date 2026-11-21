@@ -18,9 +18,9 @@ final class EnumType: @unchecked Sendable {
 
     init(_ enumeration: Value.EnumCase.Enumeration) {
         self.enumeration = enumeration
-        var symbol = Symbol(name: enumeration.name, kind: .type(.enumeration))
-        symbol.typeRef = enumeration.typeRef
-        declaration = TypeDeclaration(symbol: symbol)
+        declaration = TypeDeclaration(
+            symbol: Symbol(name: enumeration.name, kind: .type(.enumeration, enumeration.typeRef))
+        )
         for protocolName in enumeration.conformances { declaration.conformances[protocolName] = [] }
     }
 }

@@ -22,15 +22,16 @@ public struct TypeDeclaration: Sendable, Hashable {
 
     /// A type held by value under its name, as a host's is: a structure.
     public init(name: String) {
-        symbol = Symbol(name: name, kind: .type(.structure))
-        symbol.typeRef = .native(name)
+        symbol = Symbol(name: name, kind: .type(.structure, .native(name)))
     }
 
     public var name: String {
         get { symbol.name }
         set {
             symbol.name = newValue
-            symbol.typeRef = .native(newValue)
+            if case .type(let kind, _) = symbol.kind {
+                symbol.kind = .type(kind, .native(newValue))
+            }
         }
     }
 }

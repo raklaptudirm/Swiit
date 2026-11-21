@@ -8,8 +8,8 @@ extension Symbol {
     /// What a symbol is: a type, a global function or variable, or a member of a type. What a type
     /// has is for `TypeExpression.members(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
-        /// A type, of the five kinds Swift declares.
-        case type(TypeDeclaration.Kind)
+        /// A type: which of the five kinds Swift declares, and the reference that names it.
+        case type(TypeDeclaration.Kind, TypeRef)
         /// A function, as a script declares or a host registers one.
         case function(Function)
         /// A global: its type, and whether a script can assign to it.

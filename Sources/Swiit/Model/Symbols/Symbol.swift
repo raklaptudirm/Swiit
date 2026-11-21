@@ -40,9 +40,16 @@ public struct Symbol: Sendable, Hashable {
     public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
-    /// The type's reference, for a type. Nil for any other symbol, and for a type described by `check`
-    /// before the source is run, which declares nothing yet.
-    public internal(set) var typeRef: TypeRef?
+    /// The type's reference, for a type: nil for any other symbol. A type that `check` describes
+    /// before its source is run has a reference nothing is declared under yet.
+    public var typeRef: TypeRef? {
+        if case .type(_, let typeRef) = kind { typeRef } else { nil }
+    }
+
+    /// Which kind of type this is, if it is one.
+    public var typeKind: TypeDeclaration.Kind? {
+        if case .type(let kind, _) = kind { kind } else { nil }
+    }
 
     public init(
         name: String,
@@ -86,7 +93,7 @@ public struct Symbol: Sendable, Hashable {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
         case .variable, .member(.property): variable!.type
-        case .type: .named(typeRef ?? .native(name))
+        case .type(_, let typeRef): .named(typeRef)
         case .member(.enumCase): .any
         case .member(.associatedType(.binding(let type))): type
         case .member(.associatedType(.requirement)), .genericParameter: .parameter(name)

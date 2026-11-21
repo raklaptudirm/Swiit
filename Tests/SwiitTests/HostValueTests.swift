@@ -120,8 +120,8 @@ private struct Point: Encodable { var x: Int }
     let high = try swiit.evaluate("Level.high")
     #expect(high.typeRef?.name == "Level" && high.mirror.displayStyle == .enum)
     #expect((try? swiit.value(forMember: "rawValue", of: high)) == Value(2))
-    #expect(swiit.globals(named: "Point").first?.kind == .type(.structure))
-    #expect(swiit.globals(named: "Level").first?.kind == .type(.enumeration))
+    #expect(swiit.globals(named: "Point").first?.typeKind == .structure)
+    #expect(swiit.globals(named: "Level").first?.typeKind == .enumeration)
     #expect(swiit.globals(named: "twice").first?.function != nil)
     swiit["limit"] = 3
     #expect(
@@ -185,7 +185,7 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("Wrapped.one(5)").mirror.children.first?.value as? Value == Value(5))
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
     let symbol = try #require(failedValue.typeRef.flatMap { $0.symbol(in: swiit) })
-    #expect(symbol.kind == .type(.enumeration))
+    #expect(symbol.typeKind == .enumeration)
     let cases = TypeExpression.named(try #require(failedValue.typeRef)).members(in: swiit)
         .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
@@ -323,7 +323,7 @@ private struct Point: Encodable { var x: Int }
 
     #expect(gizmo.name == "Gizmo")
     #expect(described?.summary == "A thing the host offers.")
-    #expect(described?.kind == .type(.structure))
+    #expect(described?.typeKind == .structure)
 }
 
 @Test func aDeclaredTypeAndAHostTypeAreDescribedTheSameWay() throws {
@@ -337,7 +337,7 @@ private struct Point: Encodable { var x: Int }
     let hosted = try #require(swiit.declaration(ofType: "Widget"))
     let bridged = try #require(swiit.declaration(ofType: "String"))
 
-    #expect(declared.symbol.kind == .type(.structure))
+    #expect(declared.symbol.typeKind == .structure)
     #expect(declared.conformances.keys.contains("Equatable"))
     #expect(hosted.conformances.keys.contains("Hashable"))
     #expect(bridged.conformances.keys.contains("Collection"))
@@ -358,7 +358,7 @@ private struct Point: Encodable { var x: Int }
 @Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Axis { case x, y }")
-    #expect(try #require(swiit.declaration(ofType: "Axis")).symbol.kind == .type(.enumeration))
+    #expect(try #require(swiit.declaration(ofType: "Axis")).symbol.typeKind == .enumeration)
     #expect(try #require(swiit.declaration(ofType: "Axis")).conformances.isEmpty)
 
     _ = try swiit.evaluate("extension Axis: Hashable {}")
@@ -372,7 +372,7 @@ private struct Point: Encodable { var x: Int }
     _ = try swiit.evaluate("class Base: Sendable {}")
     _ = try swiit.evaluate("class Leaf: Base {}")
     let before = try #require(swiit.declaration(ofType: "Leaf"))
-    #expect(before.symbol.kind == .type(.class))
+    #expect(before.symbol.typeKind == .class)
     #expect(before.conformances.keys.contains("Sendable"))
     #expect(!before.conformances.keys.contains("Hashable"))
 
@@ -396,7 +396,7 @@ private struct Point: Encodable { var x: Int }
 
     let declared = try #require(swiit.declaration(ofType: "Shape"))
 
-    #expect(declared.symbol.kind == .type(.protocol))
+    #expect(declared.symbol.typeKind == .protocol)
     #expect(declared.conformances.keys.contains("Equatable"))
 }
 
@@ -455,4 +455,16 @@ private struct Point: Encodable { var x: Int }
         Symbol.Function(returns: .int, throwing: .typed(.int)).functionType.throwing == .typed(.int)
     )
     #expect(!Symbol.Function(returns: .int, throwing: .no).functionType.isThrowing)
+}
+
+@Test func everyTypeSymbolHasItsReferenceAndNoOtherSymbolDoes() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Point { var x = 0 }; func area() -> Int { 1 }; let size = 3")
+
+    let types = swiit.types
+    let others = swiit.globals().filter { !$0.isType }
+
+    #expect(!types.isEmpty && types.allSatisfy { $0.typeRef != nil && $0.typeKind != nil })
+    #expect(!others.isEmpty && others.allSatisfy { $0.typeRef == nil && $0.typeKind == nil })
+    #expect(swiit.globals(named: "Point").first?.typeRef == TypeRef(named: "Point", in: swiit))
 }
