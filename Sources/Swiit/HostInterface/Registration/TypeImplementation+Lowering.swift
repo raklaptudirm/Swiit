@@ -154,7 +154,11 @@ extension BridgedMember {
                 ),
                 effect: function?.isAsync == true ? .async : .sync,
                 typedThrows: function.flatMap { function in
-                    if case .typed(let type) = function.throwing { type.description } else { nil }
+                    if case .throwing(.typed(let type)) = function.throwing {
+                        type.description
+                    } else {
+                        nil
+                    }
                 }
             )
             made.plain = call

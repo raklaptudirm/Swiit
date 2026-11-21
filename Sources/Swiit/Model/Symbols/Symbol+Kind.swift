@@ -94,23 +94,28 @@ extension Symbol {
         }
     }
 
-    /// What a function, or reading a property, can throw.
+    /// What a function, or reading a property, can throw: what a function type can, or only what the
+    /// closures it is given throw, which only a declaration says (`rethrows`).
     public enum Throwing: Sendable, Hashable {
-        case no
-        /// `throws`: any error.
-        case any
         /// `rethrows`: only what the closures it is given throw.
         case rethrowing
+        /// What its type throws: nothing, any error, or errors of one type.
+        case throwing(ScriptType.FunctionType.Throwing)
+
+        public static let no = Throwing.throwing(.no)
+        /// `throws`: any error.
+        public static let any = Throwing.throwing(.any)
         /// `throws(Failure)`: errors of this type.
-        case typed(ScriptType)
+        public static func typed(_ failure: ScriptType) -> Throwing {
+            .throwing(.typed(failure))
+        }
 
         /// What the type of a function that throws this way throws: a `rethrows` function's type
         /// throws, as a closure of it does.
         var functionTypeThrowing: ScriptType.FunctionType.Throwing {
             switch self {
-            case .no: .no
-            case .any, .rethrowing: .any
-            case .typed(let failure): .typed(failure)
+            case .rethrowing: .any
+            case .throwing(let throwing): throwing
             }
         }
     }
