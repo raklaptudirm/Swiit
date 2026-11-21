@@ -106,7 +106,8 @@ private struct Point: Encodable { var x: Int }
     let dog = try #require(TypeRef(named: "Dog", in: swiit))
     #expect(try swiit.evaluate("Point(x: 1)").isInstance(of: .named(point)))
     #expect(try swiit.evaluate("Dog()").isInstance(of: .named(dog)))
-    #expect(try swiit.evaluate("Dog()").isInstance(of: .named(animal)))  // a subclass is its superclass
+    // A subclass is its superclass.
+    #expect(try swiit.evaluate("Dog()").isInstance(of: .named(animal)))
     #expect(try !swiit.evaluate("Animal()").isInstance(of: .named(dog)))
     #expect(Value(3).isInstance(of: .any))
     #expect(Value(3).isInstance(of: .int))
