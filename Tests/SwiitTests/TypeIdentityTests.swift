@@ -55,16 +55,16 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     #expect(TypeRef.int.symbol(in: swiit)?.name == "Int")
     #expect(TypeRef(named: "Int", in: swiit) == .int)
-    #expect(TypeRef(hostType: "Int") == .int)
+    #expect(TypeRef(nativeType: "Int") == .int)
     // A host type nobody registered names nothing, and a script's type is never a host's.
-    #expect(TypeRef(hostType: "Nope").symbol(in: swiit) == nil)
+    #expect(TypeRef(nativeType: "Nope").symbol(in: swiit) == nil)
     try swiit.evaluate("struct Int2 { var x = 0 }")
-    #expect(TypeRef(named: "Int2", in: swiit) != TypeRef(hostType: "Int2"))
+    #expect(TypeRef(named: "Int2", in: swiit) != TypeRef(nativeType: "Int2"))
     // A parameter is a reference with nothing under it.
     let element = ScriptType.parameter("Element")
     guard case .named(let parameter, _) = element else { return }
     #expect(parameter.symbol(in: swiit) == nil)
-    #expect(parameter != TypeRef(hostType: "Element"))
+    #expect(parameter != TypeRef(nativeType: "Element"))
 }
 
 @Test func aValueHasTheIDOfItsType() throws {
@@ -88,7 +88,7 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("Dog()").typeRef == TypeRef(named: "Dog", in: swiit))
     // A struct value of a Swift type is a host ID, by name, and names nothing registered.
     let encoded = try Value(encoding: Point(x: 1))
-    #expect(encoded.typeRef == TypeRef(hostType: "Point"))
+    #expect(encoded.typeRef == TypeRef(nativeType: "Point"))
     #expect(encoded.typeRef != point.typeRef)
 }
 

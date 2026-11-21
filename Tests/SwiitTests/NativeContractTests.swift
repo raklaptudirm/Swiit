@@ -268,7 +268,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
     swiit.register(
         TypeImplementation.Builder<ContractTally>("ContractTally")
             .member(
-                .initializer(returns: .named(TypeRef(hostType: "ContractTally"))) { _ in
+                .initializer(returns: .named(TypeRef(nativeType: "ContractTally"))) { _ in
                     Value(ContractTally(n: 0))
                 }
             )

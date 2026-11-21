@@ -85,7 +85,7 @@ public struct Symbol: Sendable, Hashable {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
         case .variable, .member(.property): variable!.type
-        case .type: .named(typeRef ?? .host(name))
+        case .type: .named(typeRef ?? .native(name))
         case .member(.enumCase): .any
         case .genericParameter: .parameter(name)
         }

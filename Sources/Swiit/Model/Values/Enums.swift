@@ -36,7 +36,7 @@ extension Value.EnumCase {
         init(name: String, cases: [Case], conformances: [String] = []) {
             self.name = name
             self.cases = cases
-            self.typeRef = .host(name)
+            self.typeRef = .native(name)
             self.conformances = conformances
         }
 

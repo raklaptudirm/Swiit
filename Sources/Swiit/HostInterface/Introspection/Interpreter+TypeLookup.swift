@@ -14,10 +14,8 @@ extension Interpreter {
             switch typeRef.kind {
             case .declared:
                 declaredTypes[typeRef].map { typeSymbol(named: typeRef.name, $0) }
-            case .host:
+            case .native:
                 types.first { $0.typeRef == typeRef }
-            case .parameter:
-                nil
             }
         }
     }
@@ -39,6 +37,7 @@ extension Interpreter {
                 isCurrent(typeRef) && arguments.allSatisfy(current)
             case .function(let function):
                 function.parameters.allSatisfy(current) && current(function.returns)
+            case .parameter: true
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
             case .metatype(let type), .inOut(let type): current(type)
             }
@@ -61,7 +60,7 @@ extension Interpreter {
                         var symbol =
                             Bridge.types[name]?.symbol
                             ?? Symbol(name: name, kind: .type(.structure))
-                        symbol.typeRef = .host(name)
+                        symbol.typeRef = .native(name)
                         symbol.isBuiltin = true
                         return symbol
                     } else {

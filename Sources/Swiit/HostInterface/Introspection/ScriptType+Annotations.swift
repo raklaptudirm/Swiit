@@ -8,7 +8,7 @@ extension ScriptType {
     /// The type an annotation names. `declared` says which declaration a name means, for the names
     /// of types a program declares; a name it does not know is a host type's.
     init(_ annotation: TypeAnnotation, declared: (String) -> TypeRef? = { _ in nil }) {
-        func reference(_ name: String) -> TypeRef { declared(name) ?? .host(name) }
+        func reference(_ name: String) -> TypeRef { declared(name) ?? .native(name) }
         func convert(_ annotation: TypeAnnotation) -> ScriptType {
             ScriptType(annotation, declared: declared)
         }
@@ -40,8 +40,7 @@ extension ScriptType {
                 )
             case .keyPath(let root, let value):
                 .named(.keyPath, [convert(root), convert(value)])
-            // A type parameter (`Element`) is named, and nothing is declared under the name.
-            case .parameter(let name): .named(.parameter(name))
+            case .parameter(let name): .parameter(name)
             // `Sequence` takes no type argument in Swift, so `Sequence<Element>` is what a
             // parameter of `some Sequence<Element>` is: anything that is a sequence of them.
             case .someSequence(let element): .named(.sequence, [convert(element)])

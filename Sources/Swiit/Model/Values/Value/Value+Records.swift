@@ -28,7 +28,7 @@ extension Value {
 
         var typeName: String? {
             get { typeRef?.name }
-            set { typeRef = newValue.map(TypeRef.host) }
+            set { typeRef = newValue.map(TypeRef.native) }
         }
 
         init(typeRef: TypeRef? = nil) {
@@ -36,7 +36,7 @@ extension Value {
         }
 
         init(typeName: String?) {
-            self.typeRef = typeName.map(TypeRef.host)
+            self.typeRef = typeName.map(TypeRef.native)
         }
 
         init(_ fields: KeyValuePairs<String, Value>, typeRef: TypeRef? = nil) {
@@ -45,7 +45,7 @@ extension Value {
         }
 
         init(_ fields: KeyValuePairs<String, Value>, typeName: String?) {
-            self.init(fields, typeRef: typeName.map(TypeRef.host))
+            self.init(fields, typeRef: typeName.map(TypeRef.native))
         }
 
         subscript(key: String) -> Value? {

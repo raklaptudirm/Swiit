@@ -18,7 +18,7 @@ struct Leaf {
 func boxedLeaf(_ name: String) -> Leaf {
     Leaf(
         { "try \($0).unboxing(\(name).self)" },
-        { "Value(boxing: \($0), as: .init(hostType: \(quoted(name))))" }
+        { "Value(boxing: \($0), as: .init(nativeType: \(quoted(name))))" }
     )
 }
 

@@ -71,9 +71,9 @@ extension Value {
                     (element.label == nil || element.label == field.key)
                         && field.value.matches(element.type)
                 }
-        // A type used as a value is not a value of a type a host can ask about.
-        // Nor is a parameter's way of being passed.
-        case .metatype, .inOut: return false
+        // A type used as a value is not a value of a type a host can ask about. Nor is a
+        // parameter's way of being passed, nor a generic parameter, which names no type.
+        case .metatype, .inOut, .parameter: return false
         }
     }
 

@@ -20,14 +20,14 @@ public struct TypeDeclaration: Sendable, Hashable {
     /// A type held by value under its name, as a host's is: a structure.
     public init(name: String) {
         symbol = Symbol(name: name, kind: .type(.structure))
-        symbol.typeRef = .host(name)
+        symbol.typeRef = .native(name)
     }
 
     public var name: String {
         get { symbol.name }
         set {
             symbol.name = newValue
-            symbol.typeRef = .host(newValue)
+            symbol.typeRef = .native(newValue)
         }
     }
 }

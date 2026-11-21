@@ -36,12 +36,12 @@ enum TextLiteralKind: CaseIterable {
             return .string(text)
         case .named("Character"):
             return text.count == 1
-                ? Value(boxing: Character(text), as: TypeRef(hostType: "Character")) : nil
+                ? Value(boxing: Character(text), as: TypeRef(nativeType: "Character")) : nil
         case .named("Unicode.Scalar"):
             return text.unicodeScalars.count == 1
                 ? Value(
                     boxing: text.unicodeScalars.first!,
-                    as: TypeRef(hostType: "Unicode.Scalar")
+                    as: TypeRef(nativeType: "Unicode.Scalar")
                 )
                 : nil
         default:

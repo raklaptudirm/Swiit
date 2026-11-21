@@ -205,7 +205,7 @@ private struct Failure: Encodable { var code: Int }
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit
-    let handle = TypeRef(hostType: "Handle")
+    let handle = TypeRef(nativeType: "Handle")
     swiit.register(
         SymbolImplementation.function(name: "spawn", returns: .named(handle)) { _ in
             Value(Handle(try running.startTask(state: nil) { Value(42) }))

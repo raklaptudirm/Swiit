@@ -8,30 +8,32 @@ import Synchronization
 /// `TypeRef(named:in:)` finds, what `Value.typeRef` has, and what `ScriptType.named` and
 /// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
 /// `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`), and mints one only for a Swift type it
-/// registers (`init(hostType:)`).
+/// registers (`init(nativeType:)`).
 ///
-/// A reference is one of three kinds:
+/// A reference is one of two kinds:
 /// - **Declared**: a type a script declares. It names one declaration, made once in this
 ///   process. Declaring `struct Point` again makes a new type with a new reference, and the old one
 ///   keeps naming the old one. A host cannot make one; it comes from the interpreter, so a
 ///   misspelling cannot name a declaration. A reference from another interpreter is just one this
 ///   interpreter never made, and names nothing.
-/// - **Host**: a Swift type the host or the core provides (`Int`, `Array`, a registered
+/// - **Native**: a Swift type the host or the core provides (`Int`, `Array`, a registered
 ///   `FileSize`, an encoded Swift value), by the name `String(describing:)` gives the Swift
-///   type, which has no module in it. Host types are process-wide and one per name, as the
+///   type, which has no module in it. Native types are process-wide and one per name, as the
 ///   registry they live in is: two Swift types of one name in different modules collide, and an
 ///   encoded value carries only the name. A reference of this kind may name nothing (a type not
 ///   registered, or an encoded value's), and `TypeRef.symbol(in:)` then gives nil.
-/// - **Parameter**: a generic parameter (`Element`), by name, with nothing declared under it.
+///
+/// A generic parameter (`Element`) is not a reference to a type: it stands where one would be, and
+/// `ScriptType.parameter` says so.
 ///
 /// References are equal when they are the same kind and the same declaration, or the same name. They
 /// do not outlive the process.
 public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
-    enum Kind: Sendable, Hashable { case declared(UInt64), host, parameter }
+    enum Kind: Sendable, Hashable { case declared(UInt64), native }
 
     let kind: Kind
     /// The type's name as a script writes it: for display, not identity. Two IDs can share a
-    /// name and be different types (a type declared again), and a host type's reference is its name alone.
+    /// name and be different types (a type declared again), and a native type's reference is its name alone.
     public let name: String
 
     private init(_ kind: Kind, _ name: String) {
@@ -39,14 +41,7 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
         self.name = name
     }
 
-    /// Whether this names a generic parameter (`Element`): a placeholder for a type, which
-    /// nothing is declared under.
-    public var isGenericParameter: Bool {
-        if case .parameter = kind { true } else { false }
-    }
-
-    static func host(_ name: String) -> TypeRef { TypeRef(.host, name) }
-    static func parameter(_ name: String) -> TypeRef { TypeRef(.parameter, name) }
+    static func native(_ name: String) -> TypeRef { TypeRef(.native, name) }
 
     /// A new declaration's reference, from a counter shared by the process.
     static func declare(_ name: String) -> TypeRef {
@@ -67,14 +62,14 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     /// `register` gives for the type of that name, and the same name's in another interpreter,
     /// and can never equal a script's type. Everywhere else, pass around what `register` gave
     /// back, or ask `TypeRef(named:in:)`.
-    public init(hostType name: String) { self.init(.host, name) }
+    public init(nativeType name: String) { self.init(.native, name) }
 
     public var description: String { name }
 
     public static func == (lhs: TypeRef, rhs: TypeRef) -> Bool {
         switch (lhs.kind, rhs.kind) {
         case (.declared(let a), .declared(let b)): a == b
-        case (.host, .host), (.parameter, .parameter): lhs.name == rhs.name
+        case (.native, .native): lhs.name == rhs.name
         default: false
         }
     }
@@ -82,26 +77,25 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     public func hash(into hasher: inout Hasher) {
         switch kind {
         case .declared(let token): hasher.combine(token)
-        case .host: hasher.combine(0); hasher.combine(name)
-        case .parameter: hasher.combine(1); hasher.combine(name)
+        case .native: hasher.combine(name)
         }
     }
 
     /// Swift's own, which scripts have and hosts match on.
-    public static let any = TypeRef.host("Any")
-    public static let bool = TypeRef.host("Bool")
-    public static let int = TypeRef.host("Int")
-    public static let double = TypeRef.host("Double")
-    public static let string = TypeRef.host("String")
-    public static let array = TypeRef.host("Array")
-    public static let arraySlice = TypeRef.host("ArraySlice")
-    public static let set = TypeRef.host("Set")
-    public static let dictionary = TypeRef.host("Dictionary")
-    public static let optional = TypeRef.host("Optional")
-    public static let function = TypeRef.host("Function")
-    public static let keyPath = TypeRef.host("KeyPath")
-    public static let sequence = TypeRef.host("Sequence")
-    public static let rawRepresentable = TypeRef.host("RawRepresentable")
+    public static let any = TypeRef.native("Any")
+    public static let bool = TypeRef.native("Bool")
+    public static let int = TypeRef.native("Int")
+    public static let double = TypeRef.native("Double")
+    public static let string = TypeRef.native("String")
+    public static let array = TypeRef.native("Array")
+    public static let arraySlice = TypeRef.native("ArraySlice")
+    public static let set = TypeRef.native("Set")
+    public static let dictionary = TypeRef.native("Dictionary")
+    public static let optional = TypeRef.native("Optional")
+    public static let function = TypeRef.native("Function")
+    public static let keyPath = TypeRef.native("KeyPath")
+    public static let sequence = TypeRef.native("Sequence")
+    public static let rawRepresentable = TypeRef.native("RawRepresentable")
 
     /// Lets a pattern say `case .named("Array", …)` inside the module, which a literal
     /// conformance would offer to every host.

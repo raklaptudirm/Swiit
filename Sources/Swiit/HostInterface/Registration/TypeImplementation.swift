@@ -51,7 +51,7 @@ extension Value {
     }
 
     /// A Swift value kept as it is, as a value of the registered host type `type`
-    /// (`TypeRef(hostType: "FileSize")`): what a member written for a Swift type gives back.
+    /// (`TypeRef(nativeType: "FileSize")`): what a member written for a Swift type gives back.
     /// It compares, hashes and sorts as the Swift value does, when its type can.
     public init<T>(boxing value: T, as type: TypeRef) {
         self = SwiftValue.make(value, as: type.name)
@@ -67,7 +67,7 @@ extension Value {
 
 extension Interpreter {
     /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
-    /// lacks. It gives the type's reference, which is `TypeRef(hostType: name)`: the same promises hold
+    /// lacks. It gives the type's reference, which is `TypeRef(nativeType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
     public func register<T>(_ builder: TypeImplementation.Builder<T>) -> TypeRef {
@@ -114,7 +114,7 @@ extension Interpreter {
                 mutable: false
             )
         }
-        return .host(type.name)
+        return .native(type.name)
     }
 }
 
@@ -470,7 +470,7 @@ extension TypeImplementation {
         /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
         /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
         private static func textInitializers(named name: String) -> [SymbolImplementation] {
-            let own = ScriptType.named(TypeRef(hostType: name))
+            let own = ScriptType.named(TypeRef(nativeType: name))
             func fromText<L: LosslessStringConvertible>(_: L.Type) -> SymbolImplementation {
                 .initializer(
                     summary: "The value the text spells, or nil.",
@@ -619,7 +619,7 @@ extension TypeImplementation {
                         repeat (each Argument).self,
                         labels: labels
                     ),
-                    returns: .named(.host(name)),
+                    returns: .named(.native(name)),
                     isThrowing: throwing
                 ) { arguments in
                     var index = 0
@@ -644,7 +644,7 @@ extension TypeImplementation {
                         repeat (each Argument).self,
                         labels: labels
                     ),
-                    returns: .named(.optional, [.named(.host(name))]),
+                    returns: .named(.optional, [.named(.native(name))]),
                     isThrowing: throwing
                 ) { arguments in
                     var index = 0
@@ -663,7 +663,7 @@ extension TypeImplementation {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var scriptType: ScriptType { .named(.host(typeImplementation.name)) }
+    public static var scriptType: ScriptType { .named(.native(typeImplementation.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.

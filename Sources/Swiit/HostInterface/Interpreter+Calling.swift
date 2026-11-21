@@ -42,8 +42,7 @@ extension Interpreter {
         let current = inCurrentTask {
             switch type.kind {
             case .declared: isCurrent(type)
-            case .host: bridgedInitializers(of: type.name) != nil
-            case .parameter: false
+            case .native: bridgedInitializers(of: type.name) != nil
             }
         }
         guard current else {

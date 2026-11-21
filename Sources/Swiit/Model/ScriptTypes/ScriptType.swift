@@ -8,6 +8,9 @@ import Synchronization
 /// class is a fact about its declaration: `Interpreter.globals(named:)` says.
 public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     case named(TypeRef, [ScriptType] = [])
+    /// A generic parameter of the declaration the type is written in: `Element` in
+    /// `func first() -> Element`. It stands where a type would be, with nothing declared under it.
+    case parameter(String)
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
     case function(FunctionType)
     case tuple([TupleElement])
@@ -64,10 +67,6 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// A function whose signature is not said.
     public static let callable = ScriptType.named(.function)
 
-    /// A generic parameter of the declaration the type is written in: `Element` in
-    /// `func first() -> Element`.
-    public static func parameter(_ name: String) -> ScriptType { .named(.parameter(name)) }
-
     /// `[Element]`, which is `Array<Element>`.
     public static func list(_ element: ScriptType) -> ScriptType { .named(.array, [element]) }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
@@ -98,7 +97,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
 
     /// A named type by its text, which the module's own tables and checker are written in.
     static func named(_ name: String, _ arguments: [ScriptType] = []) -> ScriptType {
-        .named(.host(name), arguments)
+        .named(.native(name), arguments)
     }
 
     public var description: String {
@@ -110,6 +109,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         case .named(let name, let arguments):
             arguments.isEmpty
                 ? name.name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
+        case .parameter(let name): name
         case .function(let function):
             "(\(function.parameters.map(\.description).joined(separator: ", ")))"
                 + (function.isAsync ? " async" : "") + function.throwingText

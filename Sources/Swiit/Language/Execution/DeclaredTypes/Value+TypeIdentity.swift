@@ -24,11 +24,11 @@ extension Value {
             if let instance = object as? ClassInstance {
                 instance.type.typeRef
             } else if let box = object as? SwiftValue {
-                .host(box.typeName)
+                .native(box.typeName)
             } else if object is any LanguageObject {
                 nil
             } else {
-                .host(object.typeName)
+                .native(object.typeName)
             }
         }
     }
@@ -44,7 +44,7 @@ extension Value {
         if case .function = self.storage { return expected == .function }
         guard let own = typeRef else { return false }
         if own == expected { return true }
-        if case .structure(let structure) = self.storage, case .host = own.kind,
+        if case .structure(let structure) = self.storage, case .native = own.kind,
             case .declared = expected.kind, structure.typeName == expected.name
         {
             return true

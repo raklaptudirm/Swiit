@@ -37,7 +37,7 @@ func scriptType(_ type: SType) -> String {
 
 /// A type of the host, by name, with the types it is generic over.
 func hostType(_ name: String, _ arguments: [SType] = []) -> String {
-    ".named(.init(hostType: \(quoted(name)))"
+    ".named(.init(nativeType: \(quoted(name)))"
         + (arguments.isEmpty ? ")" : ", [\(arguments.map(scriptType).joined(separator: ", "))])")
 }
 

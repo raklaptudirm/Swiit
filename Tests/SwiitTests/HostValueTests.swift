@@ -150,7 +150,7 @@ private struct Point: Encodable { var x: Int }
     #expect(point.entry("x") == Value(1))
     #expect(try swiit.evaluate("{ (x: Int) in x }").isInstance(of: .function))
     // A Swift value held as it is has the host ID of its registered name.
-    #expect(Value(Bytes(count: 1)).typeRef == TypeRef(hostType: "Bytes"))
+    #expect(Value(Bytes(count: 1)).typeRef == TypeRef(nativeType: "Bytes"))
 }
 
 @Test func anEnumCaseIsItsTypeAndNameAndWhatItCarries() throws {
@@ -303,7 +303,7 @@ private struct Point: Encodable { var x: Int }
         ScriptType.FunctionType(
             parameters: [.int],
             returns: .int,
-            throwing: .typed(.named(.init(hostType: "MyError")))
+            throwing: .typed(.named(.init(nativeType: "MyError")))
         )
     )
 
@@ -419,4 +419,12 @@ private struct Point: Encodable { var x: Int }
 
     #expect(try swiit.evaluate("Box(b: \"x\").b") == Value("x"))
     #expect(throws: (any Error).self) { try swiit.evaluate("Box(a: 1)") }
+}
+
+@Test func aGenericParameterIsNotAReferenceToAType() {
+    let element = ScriptType.parameter("Element")
+
+    #expect(element != .named(TypeRef(nativeType: "Element")))
+    #expect(element.description == "Element")
+    #expect(ScriptType.list(element) == .named(.array, [.parameter("Element")]))
 }

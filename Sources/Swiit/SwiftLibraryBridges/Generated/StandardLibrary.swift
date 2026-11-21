@@ -25,7 +25,7 @@ internal enum StandardLibraryBridge {
         type803,
     ]
     internal static let functions: [SymbolImplementation] = [member804, member805, member806, member807, member808, member809]
-    private static let member0: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a string containing the given character.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "c", type: .named(.init(hostType: "Character")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member0: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a string containing the given character.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "c", type: .named(.init(nativeType: "Character")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String(try arguments[0].unboxing(Character.self))
                 return result.value
 }
@@ -45,10 +45,10 @@ let receiver: String = try String(selfValue)
                 return result.value
 })
 
-    private static let member3: SymbolImplementation = SymbolImplementation.property("lazy", summary: "A sequence containing the same elements as this sequence, but on which some operations, such as `map` and `filter`, are implemented lazily.", type: .list(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member3: SymbolImplementation = SymbolImplementation.property("lazy", summary: "A sequence containing the same elements as this sequence, but on which some operations, such as `map` and `filter`, are implemented lazily.", type: .list(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: String = try String(selfValue)
                 let result = receiver.lazy
-                return Value(list: Array(result).map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: Array(result).map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 })
 
     private static let member4: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes the specified number of elements from the beginning of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
@@ -93,16 +93,16 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member8: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member8: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.reversed()
-                return Value(list: Array(result).map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: Array(result).map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member9: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named(.init(hostType: "Character")))])), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member9: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named(.init(nativeType: "Character")))])), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.enumerated()
-                return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", Value(boxing: t.1, as: .init(hostType: "Character")))] } })
+                return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", Value(boxing: t.1, as: .init(nativeType: "Character")))] } })
 }
 
     private static let member10: SymbolImplementation = SymbolImplementation.property("underestimatedCount", summary: "A value less than or equal to the number of elements in the collection.", type: .int, get: { selfValue in
@@ -116,7 +116,7 @@ let result = String()
                 return result.value
 }
 
-    private static let member12: SymbolImplementation = SymbolImplementation.initializer(summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "scalar", type: .named(.init(hostType: "Unicode.Scalar")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member12: SymbolImplementation = SymbolImplementation.initializer(summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "scalar", type: .named(.init(nativeType: "Unicode.Scalar")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String(try arguments[0].unboxing(Unicode.Scalar.self))
                 return result.value
 }
@@ -150,16 +150,16 @@ let receiver: String = try String(selfValue)
                 return result.value
 })
 
-    private static let member18: SymbolImplementation = SymbolImplementation.property("startIndex", summary: "The position of the first character in a nonempty string.", type: .named(.init(hostType: "String.Index")), get: { selfValue in
+    private static let member18: SymbolImplementation = SymbolImplementation.property("startIndex", summary: "The position of the first character in a nonempty string.", type: .named(.init(nativeType: "String.Index")), get: { selfValue in
 let receiver: String = try String(selfValue)
                 let result = receiver.startIndex
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 })
 
-    private static let member19: SymbolImplementation = SymbolImplementation.property("endIndex", summary: "A string's \"past the end\" position---that is, the position one greater than the last valid subscript argument.", type: .named(.init(hostType: "String.Index")), get: { selfValue in
+    private static let member19: SymbolImplementation = SymbolImplementation.property("endIndex", summary: "A string's \"past the end\" position---that is, the position one greater than the last valid subscript argument.", type: .named(.init(nativeType: "String.Index")), get: { selfValue in
 let receiver: String = try String(selfValue)
                 let result = receiver.endIndex
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 })
 
     private static let member20: SymbolImplementation = SymbolImplementation.property("count", summary: "The number of characters in a string.", type: .int, get: { selfValue in
@@ -168,42 +168,42 @@ let receiver: String = try String(selfValue)
                 return result.value
 })
 
-    private static let member21: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member21: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let after = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(after < receiver.startIndex || after >= receiver.endIndex), "index out of range")
                 let result = receiver.index(after: after)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member22: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member22: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let before = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(before <= receiver.startIndex || before > receiver.endIndex), "index out of range")
                 let result = receiver.index(before: before)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member23: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member23: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 let offsetBy = try Int(arguments[1])
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 > receiver.endIndex || (offsetBy >= 0 ? receiver.index(_0, offsetBy: offsetBy, limitedBy: receiver.endIndex) : receiver.index(_0, offsetBy: offsetBy, limitedBy: receiver.startIndex)) == nil), "index out of range")
                 let result = receiver.index(_0, offsetBy: offsetBy)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member24: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .named(.init(hostType: "String.Index")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member24: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .named(.init(nativeType: "String.Index")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 let offsetBy = try Int(arguments[1])
                 let limitedBy = try arguments[2].unboxing(String.Index.self)
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 > receiver.endIndex), "index out of range")
                 let result = receiver.index(_0, offsetBy: offsetBy, limitedBy: limitedBy)
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member25: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "to", name: "end", type: .named(.init(hostType: "String.Index")))], returns: .int, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member25: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "to", name: "end", type: .named(.init(nativeType: "String.Index")))], returns: .int, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let from = try arguments[0].unboxing(String.Index.self)
                 let to = try arguments[1].unboxing(String.Index.self)
@@ -212,12 +212,12 @@ let receiver: String = try String(selfValue)
                 return result.value
 }
 
-    private static let member26: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the character at the given position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member26: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the character at the given position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 >= receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
     private static let member27: SymbolImplementation = SymbolImplementation.property("isContiguousUTF8", summary: "Returns whether this string's storage contains validly-encoded UTF-8 contents in contiguous memory.", type: .bool, get: { selfValue in
@@ -261,7 +261,7 @@ let receiver: String = try String(selfValue)
                 return result.value
 }
 
-    private static let member33: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a string representing the given character repeated the specified number of times.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member33: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a string representing the given character repeated the specified number of times.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let repeating = try arguments[0].unboxing(Character.self)
                 let count = try Int(arguments[1])
                 try Value.Bridging.require(!(count < 0), "a count can't be negative: \(count)")
@@ -269,7 +269,7 @@ let repeating = try arguments[0].unboxing(Character.self)
                 return result.value
 }
 
-    private static let member34: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new string containing the characters in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "characters", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member34: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new string containing the characters in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "characters", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
@@ -283,7 +283,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member36: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Appends the given character to the string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "c", type: .named(.init(hostType: "Character")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member36: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Appends the given character to the string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "c", type: .named(.init(nativeType: "Character")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -301,7 +301,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member38: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.init(hostType: "Substring")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member38: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.init(nativeType: "Substring")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -310,7 +310,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member39: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Appends the characters in the given sequence to the string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member39: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Appends the characters in the given sequence to the string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "newElements", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -319,7 +319,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member40: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts a new character at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "at", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member40: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts a new character at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "at", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -331,7 +331,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member41: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes and returns the character at the specified position.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "at", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member41: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes and returns the character at the specified position.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "at", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -339,10 +339,10 @@ let taken = selfValue
                 let at = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(at < receiver.startIndex || at >= receiver.endIndex), "index out of range")
                 let result = receiver.remove(at: at)
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member42: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the characters in the given range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "Range"), [.named(.init(hostType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member42: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the characters in the given range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "Range"), [.named(.init(nativeType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -353,29 +353,29 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member43: SymbolImplementation = SymbolImplementation.method("max", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .parameter("T")), Symbol.Parameter(label: nil, name: "y", type: .parameter("T"))], returns: .parameter("T"), throwing: .no, isAsync: false, generics: [.genericParameter("T", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member43: SymbolImplementation = SymbolImplementation.method("max", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .parameter("T")), Symbol.Parameter(label: nil, name: "y", type: .parameter("T"))], returns: .parameter("T"), throwing: .no, isAsync: false, generics: [.genericParameter("T", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.max(arguments[0], arguments[1])
                 return result
 }
 
-    private static let member44: SymbolImplementation = SymbolImplementation.method("min", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .parameter("T")), Symbol.Parameter(label: nil, name: "y", type: .parameter("T"))], returns: .parameter("T"), throwing: .no, isAsync: false, generics: [.genericParameter("T", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member44: SymbolImplementation = SymbolImplementation.method("min", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "x", type: .parameter("T")), Symbol.Parameter(label: nil, name: "y", type: .parameter("T"))], returns: .parameter("T"), throwing: .no, isAsync: false, generics: [.genericParameter("T", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.min(arguments[0], arguments[1])
                 return result
 }
 
-    private static let member45: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new string from the given substring.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "substring", type: .named(.init(hostType: "Substring")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member45: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new string from the given substring.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "substring", type: .named(.init(nativeType: "Substring")))], returns: .string, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String(try arguments[0].unboxing(Substring.self))
                 return result.value
 }
 
-    private static let member46: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the collection's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(hostType: "Range"), [.named(.init(hostType: "String.Index"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member46: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the collection's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(nativeType: "Range"), [.named(.init(nativeType: "String.Index"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Value.Bridging.range(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound > receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
     private static let member47: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a string representing the given value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "describing", name: "instance", type: .parameter("Subject"))], returns: .string, throwing: .no, isAsync: false, generics: [.genericParameter("Subject")])) { arguments in
@@ -388,168 +388,168 @@ let result = String(reflecting: arguments[0])
                 return result.value
 }
 
-    private static let member49: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member49: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropLast(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member50: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member50: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.suffix(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member51: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
+    private static let member51: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))]) })
+                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return Value(list: result)
 }
 
-    private static let member52: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member52: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropFirst(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member53: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member53: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member54: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member54: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.prefix(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member55: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member55: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member56: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member56: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let upTo = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(upTo < receiver.startIndex || upTo > receiver.endIndex), "index out of range")
                 let result = receiver.prefix(upTo: upTo)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member57: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member57: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let from = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(from < receiver.startIndex || from > receiver.endIndex), "index out of range")
                 let result = receiver.suffix(from: from)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member58: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member58: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let through = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(through < receiver.startIndex || through >= receiver.endIndex), "index out of range")
                 let result = receiver.prefix(through: through)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member59: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "Substring"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member59: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Substring"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(hostType: "Character"))])) }
+                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Substring")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
 }
 
-    private static let member60: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(hostType: "Substring"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member60: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(nativeType: "Substring"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let separator = try arguments[0].unboxing(Character.self)
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
                 let omittingEmptySubsequences = try Bool(arguments[2])
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = receiver.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Substring")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
 }
 
-    private static let member61: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member61: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: String = try String(selfValue)
                 let result = receiver.last
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 })
 
-    private static let member62: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(hostType: "Character")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member62: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(nativeType: "Character")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.firstIndex(of: try arguments[0].unboxing(Character.self))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member63: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member63: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member64: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member64: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member65: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member65: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member66: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(hostType: "Character")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member66: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(nativeType: "Character")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.lastIndex(of: try arguments[0].unboxing(Character.self))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member67: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member67: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result: [Character] = receiver.shuffled()
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member68: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "String.Index"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member68: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(nativeType: "ClosedRange"), [.named(.init(nativeType: "String.Index"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let _0 = try Value.Bridging.closedRange(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound >= receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member69: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member69: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeFirst()
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member70: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member70: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "ClosedRange"), [.named(.init(nativeType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -560,202 +560,202 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member71: SymbolImplementation = SymbolImplementation.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member71: SymbolImplementation = SymbolImplementation.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
                 let result = receiver.popLast()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member72: SymbolImplementation = SymbolImplementation.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member72: SymbolImplementation = SymbolImplementation.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeLast()
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member73: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member73: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member74: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member74: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
-    private static let member75: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member75: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))]) })
+                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return .nothing
 }
 
-    private static let member76: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member76: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member77: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member77: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member78: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member78: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member79: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member79: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.min()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member80: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member80: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.max()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member81: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
+    private static let member81: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
-    private static let member82: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member82: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member83: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
+    private static let member83: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
-    private static let member84: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member84: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member85: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member85: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member86: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member86: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member87: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member87: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member88: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member88: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member89: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(hostType: "Character")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member89: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(nativeType: "Character")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.contains(try arguments[0].unboxing(Character.self))
                 return result.value
 }
 
-    private static let member90: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member90: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member91: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(hostType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member91: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(hostType: "Character"))]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
                 return result
 }
 
-    private static let member92: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(hostType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member92: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(hostType: "Character"))], at: [0])
+let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
 }
 
-    private static let member93: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
+    private static let member93: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(list: result)
 }
 
-    private static let member94: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
+    private static let member94: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member95: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member95: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result: [Character] = receiver.sorted()
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member96: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member96: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member97: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member97: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.randomElement()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member98: SymbolImplementation = SymbolImplementation.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member98: SymbolImplementation = SymbolImplementation.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: String = try String(selfValue)
                 let result = receiver.first
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 })
 
     private static let member99: SymbolImplementation = SymbolImplementation.method("contains", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .string)], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
@@ -764,36 +764,36 @@ let receiver: String = try String(selfValue)
                 return result.value
 }
 
-    private static let member100: SymbolImplementation = SymbolImplementation.method("contains", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Substring")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member100: SymbolImplementation = SymbolImplementation.method("contains", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Substring")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.contains(try arguments[0].unboxing(Substring.self))
                 return result.value
 }
 
-    private static let member101: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member101: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member102: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member102: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
-    private static let member103: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member103: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String = try String(selfValue)
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member104: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member104: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
@@ -806,7 +806,7 @@ let taken = selfValue
         var type = TypeImplementation(name: "String", members: [member0, member1, member2, member3, member4, member5, member6, member7, member8, member9, member10, member11, member12, member13, member14, member15, member16, member17, member18, member19, member20, member21, member22, member23, member24, member25, member26, member27, member28, member29, member30, member31, member32, member33, member34, member35, member36, member37, member38, member39, member40, member41, member42, member43, member44, member45, member46, member47, member48, member49, member50, member51, member52, member53, member54, member55, member56, member57, member58, member59, member60, member61, member62, member63, member64, member65, member66, member67, member68, member69, member70, member71, member72, member73, member74, member75, member76, member77, member78, member79, member80, member81, member82, member83, member84, member85, member86, member87, member88, member89, member90, member91, member92, member93, member94, member95, member96, member97, member98, member99, member100, member101, member102, member103, member104])
         type.genericParameters = []
         type.conformances = ["BidirectionalCollection": [], "Collection": [], "Comparable": [], "CustomStringConvertible": [], "Encodable": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": [], "Sequence": []]
-        type.associatedTypes = ["CharacterView": .string, "Element": .named(.init(hostType: "Character")), "ExtendedGraphemeClusterLiteralType": .string, "IndexDistance": .int, "StringLiteralType": .string, "SubSequence": .named(.init(hostType: "Substring")), "UnicodeScalarLiteralType": .string]
+        type.associatedTypes = ["CharacterView": .string, "Element": .named(.init(nativeType: "Character")), "ExtendedGraphemeClusterLiteralType": .string, "IndexDistance": .int, "StringLiteralType": .string, "SubSequence": .named(.init(nativeType: "Substring")), "UnicodeScalarLiteralType": .string]
         return type
     }()
 
@@ -822,15 +822,15 @@ let receiver: String.Index = try selfValue.unboxing(String.Index.self)
                 return result.value
 })
 
-    private static let member108: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an index in the given string that corresponds exactly to the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "sourcePosition", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "within", name: "target", type: .string)], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member108: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an index in the given string that corresponds exactly to the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "sourcePosition", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "within", name: "target", type: .string)], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = String.Index(try arguments[0].unboxing(String.Index.self), within: try String(arguments[1]))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member109: SymbolImplementation = SymbolImplementation.method("samePosition", summary: "Returns the position in the given string that corresponds exactly to this index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "characters", type: .string)], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member109: SymbolImplementation = SymbolImplementation.method("samePosition", summary: "Returns the position in the given string that corresponds exactly to this index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "characters", type: .string)], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: String.Index = try selfValue.unboxing(String.Index.self)
                 let result = receiver.samePosition(in: try String(arguments[0]))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
     fileprivate static let type110: TypeImplementation = {
@@ -851,22 +851,22 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.makeContiguousUTF8()
                 return .nothing
 }
 
-    private static let member113: SymbolImplementation = SymbolImplementation.property("lazy", summary: "A sequence containing the same elements as this sequence, but on which some operations, such as `map` and `filter`, are implemented lazily.", type: .list(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member113: SymbolImplementation = SymbolImplementation.property("lazy", summary: "A sequence containing the same elements as this sequence, but on which some operations, such as `map` and `filter`, are implemented lazily.", type: .list(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.lazy
-                return Value(list: Array(result).map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: Array(result).map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 })
 
     private static let member114: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes the specified number of elements from the beginning of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0 || _0 > receiver.count), "can't remove \(_0) elements")
                 receiver.removeFirst(_0)
@@ -877,7 +877,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.removeAll(keepingCapacity: try Bool(arguments[0]))
                 return .nothing
 }
@@ -886,7 +886,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a capacity can't be negative: \(_0)")
                 receiver.reserveCapacity(_0)
@@ -897,23 +897,23 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0 || _0 > receiver.count), "can't remove \(_0) elements")
                 receiver.removeLast(_0)
                 return .nothing
 }
 
-    private static let member118: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member118: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.reversed()
-                return Value(list: Array(result).map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: Array(result).map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member119: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named(.init(hostType: "Character")))])), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member119: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .named(.init(nativeType: "Character")))])), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.enumerated()
-                return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", Value(boxing: t.1, as: .init(hostType: "Character")))] } })
+                return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", Value(boxing: t.1, as: .init(nativeType: "Character")))] } })
 }
 
     private static let member120: SymbolImplementation = SymbolImplementation.property("isEmpty", summary: "A Boolean value indicating whether the collection is empty.", type: .bool, get: { selfValue in
@@ -934,9 +934,9 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 })
 
-    private static let member123: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty substring.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member123: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty substring.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring()
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
     private static let member124: SymbolImplementation = SymbolImplementation.property("base", summary: "Returns the underlying string from which this substring was derived.", type: .string, get: { selfValue in
@@ -945,54 +945,54 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 })
 
-    private static let member125: SymbolImplementation = SymbolImplementation.property("startIndex", summary: "The position of the first element in a nonempty collection.", type: .named(.init(hostType: "String.Index")), get: { selfValue in
+    private static let member125: SymbolImplementation = SymbolImplementation.property("startIndex", summary: "The position of the first element in a nonempty collection.", type: .named(.init(nativeType: "String.Index")), get: { selfValue in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.startIndex
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 })
 
-    private static let member126: SymbolImplementation = SymbolImplementation.property("endIndex", summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.", type: .named(.init(hostType: "String.Index")), get: { selfValue in
+    private static let member126: SymbolImplementation = SymbolImplementation.property("endIndex", summary: "The collection's \"past the end\" position---that is, the position one greater than the last valid subscript argument.", type: .named(.init(nativeType: "String.Index")), get: { selfValue in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.endIndex
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 })
 
-    private static let member127: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member127: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let after = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(after < receiver.startIndex || after >= receiver.endIndex), "index out of range")
                 let result = receiver.index(after: after)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member128: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member128: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let before = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(before <= receiver.startIndex || before > receiver.endIndex), "index out of range")
                 let result = receiver.index(before: before)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member129: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .named(.init(hostType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member129: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int)], returns: .named(.init(nativeType: "String.Index")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 let offsetBy = try Int(arguments[1])
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 > receiver.endIndex || (offsetBy >= 0 ? receiver.index(_0, offsetBy: offsetBy, limitedBy: receiver.endIndex) : receiver.index(_0, offsetBy: offsetBy, limitedBy: receiver.startIndex)) == nil), "index out of range")
                 let result = receiver.index(_0, offsetBy: offsetBy)
-                return Value(boxing: result, as: .init(hostType: "String.Index"))
+                return Value(boxing: result, as: .init(nativeType: "String.Index"))
 }
 
-    private static let member130: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .named(.init(hostType: "String.Index")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member130: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .named(.init(nativeType: "String.Index")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 let offsetBy = try Int(arguments[1])
                 let limitedBy = try arguments[2].unboxing(String.Index.self)
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 > receiver.endIndex), "index out of range")
                 let result = receiver.index(_0, offsetBy: offsetBy, limitedBy: limitedBy)
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member131: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(hostType: "String.Index"))), Symbol.Parameter(label: "to", name: "end", type: .named(.init(hostType: "String.Index")))], returns: .int, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member131: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(nativeType: "String.Index"))), Symbol.Parameter(label: "to", name: "end", type: .named(.init(nativeType: "String.Index")))], returns: .int, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let from = try arguments[0].unboxing(String.Index.self)
                 let to = try arguments[1].unboxing(String.Index.self)
@@ -1001,19 +1001,19 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 }
 
-    private static let member132: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the element at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member132: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the element at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 >= receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member133: SymbolImplementation = SymbolImplementation.mutatingMethod("replaceSubrange", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "subrange", type: .named(.init(hostType: "Range"), [.named(.init(hostType: "String.Index"))])), Symbol.Parameter(label: "with", name: "newElements", type: .named(.init(hostType: "Substring")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member133: SymbolImplementation = SymbolImplementation.mutatingMethod("replaceSubrange", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "subrange", type: .named(.init(nativeType: "Range"), [.named(.init(nativeType: "String.Index"))])), Symbol.Parameter(label: "with", name: "newElements", type: .named(.init(nativeType: "Substring")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Value.Bridging.range(arguments[0]) { try $0.unboxing(String.Index.self) }
                 let with = try arguments[1].unboxing(Substring.self)
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound > receiver.endIndex), "range out of bounds")
@@ -1039,21 +1039,21 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 })
 
-    private static let member137: SymbolImplementation = SymbolImplementation.initializer(summary: "Instantiates an instance of the conforming type from a string representation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "content", type: .string)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member137: SymbolImplementation = SymbolImplementation.initializer(summary: "Instantiates an instance of the conforming type from a string representation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "content", type: .string)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring(try String(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member138: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new instance of a collection containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "elements", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member138: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new instance of a collection containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "elements", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member139: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Adds the elements of a sequence or collection to the end of this collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "elements", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member139: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Adds the elements of a sequence or collection to the end of this collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "contentsOf", name: "elements", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.append(contentsOf: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return .nothing
 }
@@ -1070,10 +1070,10 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 }
 
-    private static let member142: SymbolImplementation = SymbolImplementation.method("filter", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member142: SymbolImplementation = SymbolImplementation.method("filter", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -1081,207 +1081,207 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.write(try String(arguments[0]))
                 return .nothing
 }
 
-    private static let member144: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "unicodeScalarLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member144: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "unicodeScalarLiteral", name: "value", type: .string)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring(unicodeScalarLiteral: try String(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member145: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member145: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .string)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring(extendedGraphemeClusterLiteral: try String(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member146: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given string value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member146: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance initialized to the given string value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "stringLiteral", name: "value", type: .string)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Substring(stringLiteral: try String(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member147: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the collection's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(hostType: "Range"), [.named(.init(hostType: "String.Index"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member147: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the collection's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(nativeType: "Range"), [.named(.init(nativeType: "String.Index"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Value.Bridging.range(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound > receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member148: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member148: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropLast(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member149: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member149: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.suffix(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member150: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
+    private static let member150: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))]) })
+                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return Value(list: result)
 }
 
-    private static let member151: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member151: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropFirst(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member152: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member152: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member153: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member153: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.prefix(_0)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member154: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member154: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member155: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member155: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let upTo = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(upTo < receiver.startIndex || upTo > receiver.endIndex), "index out of range")
                 let result = receiver.prefix(upTo: upTo)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member156: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member156: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let from = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(from < receiver.startIndex || from > receiver.endIndex), "index out of range")
                 let result = receiver.suffix(from: from)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member157: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member157: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let through = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(through < receiver.startIndex || through >= receiver.endIndex), "index out of range")
                 let result = receiver.prefix(through: through)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member158: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "Substring"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member158: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Substring"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(hostType: "Character"))])) }
+                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Substring")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
 }
 
-    private static let member159: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(hostType: "Substring"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member159: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(nativeType: "Substring"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let separator = try arguments[0].unboxing(Character.self)
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
                 let omittingEmptySubsequences = try Bool(arguments[2])
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = receiver.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Substring")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
 }
 
-    private static let member160: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member160: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.last
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 })
 
-    private static let member161: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(hostType: "Character")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member161: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(nativeType: "Character")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.firstIndex(of: try arguments[0].unboxing(Character.self))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member162: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member162: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member163: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member163: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member164: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member164: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member165: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(hostType: "Character")))], returns: .optional(.named(.init(hostType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member165: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .named(.init(nativeType: "Character")))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.lastIndex(of: try arguments[0].unboxing(Character.self))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "String.Index")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
-    private static let member166: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member166: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result: [Character] = receiver.shuffled()
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member167: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "String.Index"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member167: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(nativeType: "ClosedRange"), [.named(.init(nativeType: "String.Index"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let _0 = try Value.Bridging.closedRange(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound >= receiver.endIndex), "String index is out of bounds")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member168: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new collection containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member168: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new collection containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let repeating = try arguments[0].unboxing(Character.self)
                 let count = try Int(arguments[1])
                 try Value.Bridging.require(!(count < 0), "a count can't be negative: \(count)")
                 let result = Substring(repeating: repeating, count: count)
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member169: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Adds an element to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(hostType: "Character")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member169: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Adds an element to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(nativeType: "Character")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.append(try arguments[0].unboxing(Character.self))
                 return .nothing
 }
 
-    private static let member170: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts a new element into the collection at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(hostType: "Character"))), Symbol.Parameter(label: "at", name: "i", type: .named(.init(hostType: "String.Index")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member170: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts a new element into the collection at the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .named(.init(nativeType: "Character"))), Symbol.Parameter(label: "at", name: "i", type: .named(.init(nativeType: "String.Index")))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try arguments[0].unboxing(Character.self)
                 let at = try arguments[1].unboxing(String.Index.self)
                 try Value.Bridging.require(!(at < receiver.startIndex || at > receiver.endIndex), "index out of range")
@@ -1289,238 +1289,238 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member171: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes and returns the element at the specified position.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "at", name: "position", type: .named(.init(hostType: "String.Index")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member171: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes and returns the element at the specified position.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "at", name: "position", type: .named(.init(nativeType: "String.Index")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let at = try arguments[0].unboxing(String.Index.self)
                 try Value.Bridging.require(!(at < receiver.startIndex || at >= receiver.endIndex), "index out of range")
                 let result = receiver.remove(at: at)
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member172: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "Range"), [.named(.init(hostType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member172: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "Range"), [.named(.init(nativeType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Value.Bridging.range(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound > receiver.endIndex), "range out of bounds")
                 receiver.removeSubrange(_0)
                 return .nothing
 }
 
-    private static let member173: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member173: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes and returns the first element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeFirst()
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member174: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "ClosedRange"), [.named(.init(hostType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member174: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "ClosedRange"), [.named(.init(nativeType: "String.Index"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let _0 = try Value.Bridging.closedRange(arguments[0]) { try $0.unboxing(String.Index.self) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound >= receiver.endIndex), "range out of bounds")
                 receiver.removeSubrange(_0)
                 return .nothing
 }
 
-    private static let member175: SymbolImplementation = SymbolImplementation.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member175: SymbolImplementation = SymbolImplementation.mutatingMethod("popLast", summary: "Removes and returns the last element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 let result = receiver.popLast()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member176: SymbolImplementation = SymbolImplementation.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member176: SymbolImplementation = SymbolImplementation.mutatingMethod("removeLast", summary: "Removes and returns the last element of the collection.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeLast()
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member177: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member177: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all the elements that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "shouldBeRemoved", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
-    private static let member178: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member178: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))]) })
+                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return .nothing
 }
 
-    private static let member179: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member179: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member180: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member180: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member181: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member181: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member182: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member182: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.min()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member183: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member183: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.max()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member184: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
+    private static let member184: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
-    private static let member185: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member185: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member186: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(hostType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
+    private static let member186: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
-    private static let member187: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member187: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member188: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member188: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member189: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member189: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return result.value
 }
 
-    private static let member190: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member190: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member191: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member191: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member192: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(hostType: "Character")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member192: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .named(.init(nativeType: "Character")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.contains(try arguments[0].unboxing(Character.self))
                 return result.value
 }
 
-    private static let member193: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member193: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
-    private static let member194: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(hostType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member194: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(hostType: "Character"))]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
                 return result
 }
 
-    private static let member195: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(hostType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member195: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(hostType: "Character"))], at: [0])
+let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
 }
 
-    private static let member196: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
+    private static let member196: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(list: result)
 }
 
-    private static let member197: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
+    private static let member197: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member198: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member198: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result: [Character] = receiver.sorted()
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member199: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(hostType: "Character")), .named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member199: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character")), Value(boxing: a1, as: .init(hostType: "Character"))])) })
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "Character")) })
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
-    private static let member200: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(hostType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member200: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.randomElement()
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
-    private static let member201: SymbolImplementation = SymbolImplementation.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(hostType: "Character"))), get: { selfValue in
+    private static let member201: SymbolImplementation = SymbolImplementation.property("first", summary: "The first element of the collection.", type: .optional(.named(.init(nativeType: "Character"))), get: { selfValue in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.first
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Character")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 })
 
     private static let member202: SymbolImplementation = SymbolImplementation.method("hasPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .string)], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
@@ -1541,40 +1541,40 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result.value
 }
 
-    private static let member205: SymbolImplementation = SymbolImplementation.method("contains", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Substring")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member205: SymbolImplementation = SymbolImplementation.method("contains", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Substring")))], returns: .bool, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.contains(try arguments[0].unboxing(Substring.self))
                 return result.value
 }
 
-    private static let member206: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member206: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member207: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(hostType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member207: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(hostType: "Character"))])) })
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
-    private static let member208: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .named(.init(hostType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member208: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .named(.init(nativeType: "Substring")), throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
-                return Value(boxing: result, as: .init(hostType: "Substring"))
+                return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
-    private static let member209: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(hostType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
+    private static let member209: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.named(.init(nativeType: "Character"))]))], returns: .void, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Substring")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
                 receiver.trimPrefix(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) })
                 return .nothing
 }
@@ -1583,23 +1583,23 @@ let taken = selfValue
         var type = TypeImplementation(name: "Substring", members: [member111, member112, member113, member114, member115, member116, member117, member118, member119, member120, member121, member122, member123, member124, member125, member126, member127, member128, member129, member130, member131, member132, member133, member134, member135, member136, member137, member138, member139, member140, member141, member142, member143, member144, member145, member146, member147, member148, member149, member150, member151, member152, member153, member154, member155, member156, member157, member158, member159, member160, member161, member162, member163, member164, member165, member166, member167, member168, member169, member170, member171, member172, member173, member174, member175, member176, member177, member178, member179, member180, member181, member182, member183, member184, member185, member186, member187, member188, member189, member190, member191, member192, member193, member194, member195, member196, member197, member198, member199, member200, member201, member202, member203, member204, member205, member206, member207, member208, member209])
         type.genericParameters = []
         type.conformances = ["BidirectionalCollection": [], "Collection": [], "Comparable": [], "CustomStringConvertible": [], "Equatable": [], "ExpressibleByStringLiteral": [], "Hashable": [], "Sequence": []]
-        type.associatedTypes = ["CharacterView": .named(.init(hostType: "Substring")), "Element": .named(.init(hostType: "Character")), "ExtendedGraphemeClusterLiteralType": .string, "Index": .named(.init(hostType: "String.Index")), "StringLiteralType": .string, "SubSequence": .named(.init(hostType: "Substring")), "UnicodeScalarLiteralType": .string]
+        type.associatedTypes = ["CharacterView": .named(.init(nativeType: "Substring")), "Element": .named(.init(nativeType: "Character")), "ExtendedGraphemeClusterLiteralType": .string, "Index": .named(.init(nativeType: "String.Index")), "StringLiteralType": .string, "SubSequence": .named(.init(nativeType: "Substring")), "UnicodeScalarLiteralType": .string]
         return type
     }()
 
-    private static let member211: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character containing the given Unicode scalar value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "content", type: .named(.init(hostType: "Unicode.Scalar")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member211: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character containing the given Unicode scalar value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "content", type: .named(.init(nativeType: "Unicode.Scalar")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Character(try arguments[0].unboxing(Unicode.Scalar.self))
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member212: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character with the specified value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .named(.init(hostType: "Character")))], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member212: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character with the specified value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "extendedGraphemeClusterLiteral", name: "value", type: .named(.init(nativeType: "Character")))], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Character(extendedGraphemeClusterLiteral: try arguments[0].unboxing(Character.self))
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
-    private static let member213: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character from a single-character string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "s", type: .string)], returns: .named(.init(hostType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member213: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a character from a single-character string.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "s", type: .string)], returns: .named(.init(nativeType: "Character")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Character(try String(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Character"))
+                return Value(boxing: result, as: .init(nativeType: "Character"))
 }
 
     private static let member214: SymbolImplementation = SymbolImplementation.property("description", summary: "A textual representation of this instance.", type: .string, get: { selfValue in
@@ -1732,18 +1732,18 @@ let receiver: Character = try selfValue.unboxing(Character.self)
         var type = TypeImplementation(name: "Character", members: [member211, member212, member213, member214, member215, member216, member217, member218, member219, member220, member221, member222, member223, member224, member225, member226, member227, member228, member229, member230, member231, member232, member233, member234])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Equatable": [], "Hashable": []]
-        type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .named(.init(hostType: "Character")), "UnicodeScalarLiteralType": .named(.init(hostType: "Character"))]
+        type.associatedTypes = ["ExtendedGraphemeClusterLiteralType": .named(.init(nativeType: "Character")), "UnicodeScalarLiteralType": .named(.init(nativeType: "Character"))]
         return type
     }()
 
-    private static let member236: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a Unicode scalar with the specified value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "unicodeScalarLiteral", name: "value", type: .named(.init(hostType: "Unicode.Scalar")))], returns: .named(.init(hostType: "Unicode.Scalar")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member236: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a Unicode scalar with the specified value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "unicodeScalarLiteral", name: "value", type: .named(.init(nativeType: "Unicode.Scalar")))], returns: .named(.init(nativeType: "Unicode.Scalar")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Unicode.Scalar(unicodeScalarLiteral: try arguments[0].unboxing(Unicode.Scalar.self))
-                return Value(boxing: result, as: .init(hostType: "Unicode.Scalar"))
+                return Value(boxing: result, as: .init(nativeType: "Unicode.Scalar"))
 }
 
-    private static let member237: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a duplicate of the given Unicode scalar.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "v", type: .named(.init(hostType: "Unicode.Scalar")))], returns: .named(.init(hostType: "Unicode.Scalar")), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member237: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a duplicate of the given Unicode scalar.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "v", type: .named(.init(nativeType: "Unicode.Scalar")))], returns: .named(.init(nativeType: "Unicode.Scalar")), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Unicode.Scalar(try arguments[0].unboxing(Unicode.Scalar.self))
-                return Value(boxing: result, as: .init(hostType: "Unicode.Scalar"))
+                return Value(boxing: result, as: .init(nativeType: "Unicode.Scalar"))
 }
 
     private static let member238: SymbolImplementation = SymbolImplementation.method("escaped", summary: "Returns a string representation of the Unicode scalar.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "asASCII", name: "forceASCII", type: .bool)], returns: .string, throwing: .no, isAsync: false, generics: [])) { selfValue, arguments in
@@ -1770,9 +1770,9 @@ let receiver: Unicode.Scalar = try selfValue.unboxing(Unicode.Scalar.self)
                 return result.value
 })
 
-    private static let member242: SymbolImplementation = SymbolImplementation.initializer(summary: "Instantiates an instance of the conforming type from a string representation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "description", type: .string)], returns: .optional(.named(.init(hostType: "Unicode.Scalar"))), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member242: SymbolImplementation = SymbolImplementation.initializer(summary: "Instantiates an instance of the conforming type from a string representation.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "description", type: .string)], returns: .optional(.named(.init(nativeType: "Unicode.Scalar"))), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Unicode.Scalar(try String(arguments[0]))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Unicode.Scalar")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Unicode.Scalar")) } ?? .nothing)
 }
 
     private static let member243: SymbolImplementation = SymbolImplementation.property("hashValue", summary: "The hash value.", type: .int, get: { selfValue in
@@ -1781,16 +1781,16 @@ let receiver: Unicode.Scalar = try selfValue.unboxing(Unicode.Scalar.self)
                 return result.value
 })
 
-    private static let member244: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a Unicode scalar with the specified numeric value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "v", type: .int)], returns: .optional(.named(.init(hostType: "Unicode.Scalar"))), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member244: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a Unicode scalar with the specified numeric value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "v", type: .int)], returns: .optional(.named(.init(nativeType: "Unicode.Scalar"))), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Unicode.Scalar(try Int(arguments[0]))
-                return (result.map { Value(boxing: $0, as: .init(hostType: "Unicode.Scalar")) } ?? .nothing)
+                return (result.map { Value(boxing: $0, as: .init(nativeType: "Unicode.Scalar")) } ?? .nothing)
 }
 
     fileprivate static let type245: TypeImplementation = {
         var type = TypeImplementation(name: "Unicode.Scalar", members: [member236, member237, member238, member239, member240, member241, member242, member243, member244])
         type.genericParameters = []
         type.conformances = ["Comparable": [], "CustomStringConvertible": [], "Equatable": [], "Hashable": []]
-        type.associatedTypes = ["UnicodeScalarLiteralType": .named(.init(hostType: "Unicode.Scalar"))]
+        type.associatedTypes = ["UnicodeScalarLiteralType": .named(.init(nativeType: "Unicode.Scalar"))]
         return type
     }()
 
@@ -1860,12 +1860,12 @@ let receiver: Int = try Int(selfValue)
                 return result.value
 })
 
-    private static let member257: SymbolImplementation = SymbolImplementation.staticMethod("random", summary: "Returns a random value within the specified range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "range", type: .named(.init(hostType: "Range"), [.int]))], returns: .int, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member257: SymbolImplementation = SymbolImplementation.staticMethod("random", summary: "Returns a random value within the specified range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "range", type: .named(.init(nativeType: "Range"), [.int]))], returns: .int, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Int.random(in: try Value.Bridging.range(arguments[0]) { try Int($0) })
                 return result.value
 }
 
-    private static let member258: SymbolImplementation = SymbolImplementation.staticMethod("random", summary: "Returns a random value within the specified range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "range", type: .named(.init(hostType: "ClosedRange"), [.int]))], returns: .int, throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member258: SymbolImplementation = SymbolImplementation.staticMethod("random", summary: "Returns a random value within the specified range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "in", name: "range", type: .named(.init(nativeType: "ClosedRange"), [.int]))], returns: .int, throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Int.random(in: try Value.Bridging.closedRange(arguments[0]) { try Int($0) })
                 return result.value
 }
@@ -1996,7 +1996,7 @@ let receiver: Int = try Int(selfValue)
         return type
     }()
 
-    private static let member280: SymbolImplementation = SymbolImplementation.initializer(summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "text", type: .named(.init(hostType: "Substring")))], returns: .optional(.double), throwing: .no, isAsync: false, generics: [])) { arguments in
+    private static let member280: SymbolImplementation = SymbolImplementation.initializer(summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "text", type: .named(.init(nativeType: "Substring")))], returns: .optional(.double), throwing: .no, isAsync: false, generics: [])) { arguments in
 let result = Double(try arguments[0].unboxing(Substring.self))
                 return (result.map { $0.value } ?? .nothing)
 }
@@ -2502,7 +2502,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return result.value
 })
 
-    private static let member361: SymbolImplementation = SymbolImplementation.mutatingMethod("sort", summary: "Sorts the collection in place.", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member361: SymbolImplementation = SymbolImplementation.mutatingMethod("sort", summary: "Sorts the collection in place.", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
@@ -2511,7 +2511,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member362: SymbolImplementation = SymbolImplementation.method("joined", summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .string, arity: .defaulted(.value("")))], returns: .string, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.equals(.named(.init(hostType: "String")))])])) { selfValue, arguments in
+    private static let member362: SymbolImplementation = SymbolImplementation.method("joined", summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .string, arity: .defaulted(.value("")))], returns: .string, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.equals(.named(.init(nativeType: "String")))])])) { selfValue, arguments in
 let receiver: [String] = try Value.Bridging.list(selfValue).map { try String($0) }
                 let result = receiver.joined(separator: try String(arguments[0]))
                 return result.value
@@ -2573,12 +2573,12 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return result
 }
 
-    private static let member372: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the array's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "Range"), [.int]))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member372: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses a contiguous subrange of the array's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "Range"), [.int]))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Value.Bridging.range(arguments[0]) { try Int($0) }
                 try Value.Bridging.require(!(_0.lowerBound < 0 || _0.upperBound > receiver.count), "range \(_0.lowerBound)..<\(_0.upperBound) is out of range for a list of \(receiver.count)")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member373: SymbolImplementation = SymbolImplementation.property("count", summary: "The number of elements in the array.", type: .int, get: { selfValue in
@@ -2659,20 +2659,20 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return Value(list: result)
 }
 
-    private static let member383: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member383: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropLast(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member384: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member384: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.suffix(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member385: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("T")])) { selfValue, arguments in
@@ -2682,61 +2682,61 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return Value(list: result)
 }
 
-    private static let member386: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member386: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropFirst(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member387: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member387: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member388: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member388: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.prefix(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member389: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member389: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member390: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member390: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let upTo = try Int(arguments[0])
                 try Value.Bridging.require(!(upTo < receiver.startIndex || upTo > receiver.endIndex), "index out of range")
                 let result = receiver.prefix(upTo: upTo)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member391: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member391: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let from = try Int(arguments[0])
                 try Value.Bridging.require(!(from < receiver.startIndex || from > receiver.endIndex), "index out of range")
                 let result = receiver.suffix(from: from)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member392: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member392: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let through = try Int(arguments[0])
                 try Value.Bridging.require(!(through < receiver.startIndex || through >= receiver.endIndex), "index out of range")
                 let result = receiver.prefix(through: through)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member393: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "ArraySlice"), [.parameter("Element")])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member393: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "ArraySlice"), [.parameter("Element")])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
@@ -2744,7 +2744,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "ArraySlice")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
 }
 
     private static let member394: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.parameter("Element")), get: { selfValue in
@@ -2802,15 +2802,15 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member401: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(hostType: "ClosedRange"), [.int]))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member401: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the contiguous subrange of the collection's elements specified by a range expression.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "r", type: .named(.init(nativeType: "ClosedRange"), [.int]))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let _0 = try Value.Bridging.closedRange(arguments[0]) { try Int($0) }
                 try Value.Bridging.require(!(_0.lowerBound < 0 || _0.upperBound >= receiver.count), "range \(_0.lowerBound)..<\(_0.upperBound + 1) is out of range for a list of \(receiver.count)")
                 let result = receiver[_0]
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member402: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "Range"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member402: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "Range"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
@@ -2831,7 +2831,7 @@ let taken = selfValue
                 return result
 }
 
-    private static let member404: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "ClosedRange"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member404: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "ClosedRange"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
@@ -3001,81 +3001,81 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return (result.map { $0 } ?? .nothing)
 })
 
-    private static let member426: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member426: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.min()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member427: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member427: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.max()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member428: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member428: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member429: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member429: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result: [Value] = receiver.sorted()
                 return Value(list: result)
 }
 
-    private static let member430: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(hostType: "ArraySlice"), [.parameter("Element")])), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member430: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(nativeType: "ArraySlice"), [.parameter("Element")])), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let separator = arguments[0]
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
                 let omittingEmptySubsequences = try Bool(arguments[2])
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = receiver.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "ArraySlice")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
 }
 
-    private static let member431: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member431: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.firstIndex(of: arguments[0])
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member432: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member432: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.lastIndex(of: arguments[0])
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member433: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member433: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member434: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member434: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member435: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member435: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.contains(arguments[0])
                 return result.value
 }
 
-    private static let member436: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the collection, in ascending order.", type: .named(.init(hostType: "Range"), [.int]), get: { selfValue in
+    private static let member436: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the collection, in ascending order.", type: .named(.init(nativeType: "Range"), [.int]), get: { selfValue in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.indices
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 })
 
-    private static let member437: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member437: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member438: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
@@ -3088,13 +3088,13 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member439: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member439: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member440: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member440: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
@@ -3106,8 +3106,8 @@ let taken = selfValue
     fileprivate static let type441: TypeImplementation = {
         var type = TypeImplementation(name: "Array", members: [member350, member351, member352, member353, member354, member355, member356, member357, member358, member359, member360, member361, member362, member363, member364, member365, member366, member367, member368, member369, member370, member371, member372, member373, member374, member375, member376, member377, member378, member379, member380, member381, member382, member383, member384, member385, member386, member387, member388, member389, member390, member391, member392, member393, member394, member395, member396, member397, member398, member399, member400, member401, member402, member403, member404, member405, member406, member407, member408, member409, member410, member411, member412, member413, member414, member415, member416, member417, member418, member419, member420, member421, member422, member423, member424, member425, member426, member427, member428, member429, member430, member431, member432, member433, member434, member435, member436, member437, member438, member439, member440])
         type.genericParameters = [.genericParameter("Element")]
-        type.conformances = ["BidirectionalCollection": [], "Collection": [], "CustomStringConvertible": [], "Encodable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Encodable")))])], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "RandomAccessCollection": [], "Sequence": []]
-        type.associatedTypes = ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .named(.init(hostType: "Range"), [.int]), "SubSequence": .named(.init(hostType: "ArraySlice"), [.parameter("Element")])]
+        type.conformances = ["BidirectionalCollection": [], "Collection": [], "CustomStringConvertible": [], "Encodable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Encodable")))])], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "RandomAccessCollection": [], "Sequence": []]
+        type.associatedTypes = ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .named(.init(nativeType: "Range"), [.int]), "SubSequence": .named(.init(nativeType: "ArraySlice"), [.parameter("Element")])]
         return type
     }()
 
@@ -3115,7 +3115,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.shuffle()
                 return .nothing
 }
@@ -3130,7 +3130,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0 || _0 > receiver.count), "can't remove \(_0) elements")
                 receiver.removeFirst(_0)
@@ -3141,7 +3141,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.removeAll(keepingCapacity: try Bool(arguments[0]))
                 return .nothing
 }
@@ -3150,7 +3150,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a capacity can't be negative: \(_0)")
                 receiver.reserveCapacity(_0)
@@ -3161,7 +3161,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0 || _0 > receiver.count), "can't remove \(_0) elements")
                 receiver.removeLast(_0)
@@ -3172,7 +3172,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.reverse()
                 return .nothing
 }
@@ -3201,16 +3201,16 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return result.value
 })
 
-    private static let member453: SymbolImplementation = SymbolImplementation.mutatingMethod("sort", summary: "Sorts the collection in place.", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member453: SymbolImplementation = SymbolImplementation.mutatingMethod("sort", summary: "Sorts the collection in place.", signature: Symbol.Function(parameters: [], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.sort()
                 return .nothing
 }
 
-    private static let member454: SymbolImplementation = SymbolImplementation.method("joined", summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .string, arity: .defaulted(.value("")))], returns: .string, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.equals(.named(.init(hostType: "String")))])])) { selfValue, arguments in
+    private static let member454: SymbolImplementation = SymbolImplementation.method("joined", summary: "Returns a new string by concatenating the elements of the sequence, adding the given separator between each element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .string, arity: .defaulted(.value("")))], returns: .string, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.equals(.named(.init(nativeType: "String")))])])) { selfValue, arguments in
 let receiver: ArraySlice<String> = ArraySlice<String>(try selfValue.unboxing(ArraySlice<Value>.self).map { try String($0) })
                 let result = receiver.joined(separator: try String(arguments[0]))
                 return result.value
@@ -3270,29 +3270,29 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return result.value
 })
 
-    private static let member464: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new, empty array.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
+    private static let member464: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new, empty array.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
 let result = ArraySlice<Value>()
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member465: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an array containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "s", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
+    private static let member465: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an array containing the elements of a sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "s", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
 let result = ArraySlice<Value>(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member466: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new array containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
+    private static let member466: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new array containing the specified number of a single, repeated value.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "repeating", name: "repeatedValue", type: .parameter("Element")), Symbol.Parameter(label: "count", name: "count", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { arguments in
 let repeating = arguments[0]
                 let count = try Int(arguments[1])
                 try Value.Bridging.require(!(count < 0), "a count can't be negative: \(count)")
                 let result = ArraySlice<Value>(repeating: repeating, count: count)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member467: SymbolImplementation = SymbolImplementation.mutatingMethod("append", summary: "Adds a new element at the end of the array.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newElement", type: .parameter("Element"))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.append(arguments[0])
                 return .nothing
 }
@@ -3301,7 +3301,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.append(contentsOf: try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
@@ -3310,7 +3310,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let at = try Int(arguments[0])
                 try Value.Bridging.require(!(at < receiver.startIndex || at >= receiver.endIndex), "index out of range")
                 let result = receiver.remove(at: at)
@@ -3321,7 +3321,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = arguments[0]
                 let at = try Int(arguments[1])
                 try Value.Bridging.require(!(at < receiver.startIndex || at > receiver.endIndex), "index out of range")
@@ -3354,20 +3354,20 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return Value(list: result)
 }
 
-    private static let member475: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member475: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropLast(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member476: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member476: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.suffix(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member477: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("T")])) { selfValue, arguments in
@@ -3377,61 +3377,61 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return Value(list: result)
 }
 
-    private static let member478: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member478: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropFirst(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member479: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member479: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member480: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member480: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.prefix(_0)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member481: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member481: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member482: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member482: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let upTo = try Int(arguments[0])
                 try Value.Bridging.require(!(upTo < receiver.startIndex || upTo > receiver.endIndex), "index out of range")
                 let result = receiver.prefix(upTo: upTo)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member483: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member483: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let from = try Int(arguments[0])
                 try Value.Bridging.require(!(from < receiver.startIndex || from > receiver.endIndex), "index out of range")
                 let result = receiver.suffix(from: from)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member484: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member484: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let through = try Int(arguments[0])
                 try Value.Bridging.require(!(through < receiver.startIndex || through >= receiver.endIndex), "index out of range")
                 let result = receiver.prefix(through: through)
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member485: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "ArraySlice"), [.parameter("Element")])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member485: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "ArraySlice"), [.parameter("Element")])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
@@ -3439,7 +3439,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "ArraySlice")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
 }
 
     private static let member486: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.parameter("Element")), get: { selfValue in
@@ -3474,7 +3474,7 @@ let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
                 return result.value
 }
@@ -3489,7 +3489,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Int(arguments[0])
                 let _1 = try Int(arguments[1])
                 try Value.Bridging.require(!(_0 < receiver.startIndex || _0 >= receiver.endIndex || _1 < receiver.startIndex || _1 >= receiver.endIndex), "index out of range")
@@ -3497,11 +3497,11 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member493: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "Range"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member493: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "Range"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Value.Bridging.range(arguments[0]) { try Int($0) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound > receiver.endIndex), "range out of bounds")
                 receiver.removeSubrange(_0)
@@ -3512,17 +3512,17 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeFirst()
                 return result
 }
 
-    private static let member495: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(hostType: "ClosedRange"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member495: SymbolImplementation = SymbolImplementation.mutatingMethod("removeSubrange", summary: "Removes the elements in the specified subrange from the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "bounds", type: .named(.init(nativeType: "ClosedRange"), [.int]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let _0 = try Value.Bridging.closedRange(arguments[0]) { try Int($0) }
                 try Value.Bridging.require(!(_0.lowerBound < receiver.startIndex || _0.upperBound >= receiver.endIndex), "range out of bounds")
                 receiver.removeSubrange(_0)
@@ -3533,7 +3533,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 let result = receiver.popLast()
                 return (result.map { $0 } ?? .nothing)
 }
@@ -3542,7 +3542,7 @@ let taken = selfValue
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeLast()
                 return result
@@ -3553,7 +3553,7 @@ let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
                 return .nothing
 }
@@ -3671,7 +3671,7 @@ let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
                 return .nothing
 }
@@ -3688,81 +3688,81 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return (result.map { $0 } ?? .nothing)
 })
 
-    private static let member517: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member517: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.min()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member518: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member518: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.max()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member519: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member519: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member520: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member520: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result: [Value] = receiver.sorted()
                 return Value(list: result)
 }
 
-    private static let member521: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(hostType: "ArraySlice"), [.parameter("Element")])), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member521: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(nativeType: "ArraySlice"), [.parameter("Element")])), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let separator = arguments[0]
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
                 let omittingEmptySubsequences = try Bool(arguments[2])
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = receiver.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
-                return Value(list: result.map { Value(boxing: $0, as: .init(hostType: "ArraySlice")) })
+                return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
 }
 
-    private static let member522: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member522: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.firstIndex(of: arguments[0])
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member523: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member523: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .parameter("Element"))], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.lastIndex(of: arguments[0])
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member524: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member524: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member525: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member525: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member526: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member526: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.contains(arguments[0])
                 return result.value
 }
 
-    private static let member527: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the collection, in ascending order.", type: .named(.init(hostType: "Range"), [.int]), get: { selfValue in
+    private static let member527: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the collection, in ascending order.", type: .named(.init(nativeType: "Range"), [.int]), get: { selfValue in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.indices
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 })
 
-    private static let member528: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member528: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
     private static let member529: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
@@ -3770,22 +3770,22 @@ let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
                 return .nothing
 }
 
-    private static let member530: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member530: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "ArraySlice"))
+                return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
-    private static let member531: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member531: SymbolImplementation = SymbolImplementation.mutatingMethod("trimPrefix", summary: "Removes `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "ArraySlice")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
                 receiver.trimPrefix(try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
@@ -3793,8 +3793,8 @@ let taken = selfValue
     fileprivate static let type532: TypeImplementation = {
         var type = TypeImplementation(name: "ArraySlice", members: [member442, member443, member444, member445, member446, member447, member448, member449, member450, member451, member452, member453, member454, member455, member456, member457, member458, member459, member460, member461, member462, member463, member464, member465, member466, member467, member468, member469, member470, member471, member472, member473, member474, member475, member476, member477, member478, member479, member480, member481, member482, member483, member484, member485, member486, member487, member488, member489, member490, member491, member492, member493, member494, member495, member496, member497, member498, member499, member500, member501, member502, member503, member504, member505, member506, member507, member508, member509, member510, member511, member512, member513, member514, member515, member516, member517, member518, member519, member520, member521, member522, member523, member524, member525, member526, member527, member528, member529, member530, member531])
         type.genericParameters = [.genericParameter("Element")]
-        type.conformances = ["BidirectionalCollection": [], "Collection": [], "CustomStringConvertible": [], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "RandomAccessCollection": [], "Sequence": []]
-        type.associatedTypes = ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .named(.init(hostType: "Range"), [.int]), "SubSequence": .named(.init(hostType: "ArraySlice"), [.parameter("Element")])]
+        type.conformances = ["BidirectionalCollection": [], "Collection": [], "CustomStringConvertible": [], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "RandomAccessCollection": [], "Sequence": []]
+        type.associatedTypes = ["ArrayLiteralElement": .parameter("Element"), "Index": .int, "Indices": .named(.init(nativeType: "Range"), [.int]), "SubSequence": .named(.init(nativeType: "ArraySlice"), [.parameter("Element")])]
         return type
     }()
 
@@ -3816,31 +3816,31 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 })
 
-    private static let member536: SymbolImplementation = SymbolImplementation.mutatingMethod("subtract", summary: "Removes the elements of the given set from this set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
+    private static let member536: SymbolImplementation = SymbolImplementation.mutatingMethod("subtract", summary: "Removes the elements of the given set from this set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.subtract(try arguments[0].unboxing(Set<Value>.self))
                 return .nothing
 }
 
-    private static let member537: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty set with preallocated space for at least the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { arguments in
+    private static let member537: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty set with preallocated space for at least the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { arguments in
 let result = Set<Value>(minimumCapacity: try Int(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member538: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value that indicates whether the given element exists in the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "member", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member538: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value that indicates whether the given element exists in the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "member", type: .parameter("Element"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.contains(arguments[0])
                 return result.value
 }
 
-    private static let member539: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new set containing the elements of the set that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member539: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new set containing the elements of the set that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
     private static let member540: SymbolImplementation = SymbolImplementation.property("count", summary: "The number of elements in the set.", type: .int, get: { selfValue in
@@ -3861,148 +3861,148 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 })
 
-    private static let member543: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts the given element in the set if it is not already present.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newMember", type: .parameter("Element"))], returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member543: SymbolImplementation = SymbolImplementation.mutatingMethod("insert", summary: "Inserts the given element in the set if it is not already present.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "newMember", type: .parameter("Element"))], returns: .tuple([.init(label: "inserted", type: .bool), .init(label: "memberAfterInsert", type: .parameter("Element"))]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 let result = receiver.insert(arguments[0])
                 return Value.Bridging.tuple(result) { t in [("inserted", t.0.value), ("memberAfterInsert", t.1)] }
 }
 
-    private static let member544: SymbolImplementation = SymbolImplementation.mutatingMethod("update", summary: "Inserts the given element into the set unconditionally.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "newMember", type: .parameter("Element"))], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member544: SymbolImplementation = SymbolImplementation.mutatingMethod("update", summary: "Inserts the given element into the set unconditionally.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "newMember", type: .parameter("Element"))], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 let result = receiver.update(with: arguments[0])
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member545: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes the specified element from the set.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "member", type: .parameter("Element"))], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member545: SymbolImplementation = SymbolImplementation.mutatingMethod("remove", summary: "Removes the specified element from the set.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "member", type: .parameter("Element"))], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 let result = receiver.remove(arguments[0])
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member546: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all members from the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member546: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all members from the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.removeAll(keepingCapacity: try Bool(arguments[0]))
                 return .nothing
 }
 
-    private static let member547: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes the first element of the set.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .parameter("Element"), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member547: SymbolImplementation = SymbolImplementation.mutatingMethod("removeFirst", summary: "Removes the first element of the set.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [], returns: .parameter("Element"), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 try Value.Bridging.require(!(receiver.isEmpty), "can't remove from an empty collection")
                 let result = receiver.removeFirst()
                 return result
 }
 
-    private static let member548: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty set.", signature: Symbol.Function(parameters: [], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { arguments in
+    private static let member548: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty set.", signature: Symbol.Function(parameters: [], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { arguments in
 let result = Set<Value>()
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member549: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new set from a finite sequence of items.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "sequence", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { arguments in
+    private static let member549: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new set from a finite sequence of items.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "sequence", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { arguments in
 let result = Set<Value>(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member550: SymbolImplementation = SymbolImplementation.method("isSubset", summary: "Returns a Boolean value that indicates whether the set is a subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleSuperset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member550: SymbolImplementation = SymbolImplementation.method("isSubset", summary: "Returns a Boolean value that indicates whether the set is a subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleSuperset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isSubset(of: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member551: SymbolImplementation = SymbolImplementation.method("isStrictSubset", summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleStrictSuperset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member551: SymbolImplementation = SymbolImplementation.method("isStrictSubset", summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleStrictSuperset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isStrictSubset(of: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member552: SymbolImplementation = SymbolImplementation.method("isSuperset", summary: "Returns a Boolean value that indicates whether the set is a superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleSubset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member552: SymbolImplementation = SymbolImplementation.method("isSuperset", summary: "Returns a Boolean value that indicates whether the set is a superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleSubset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isSuperset(of: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member553: SymbolImplementation = SymbolImplementation.method("isStrictSuperset", summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleStrictSubset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member553: SymbolImplementation = SymbolImplementation.method("isStrictSuperset", summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "possibleStrictSubset", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isStrictSuperset(of: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member554: SymbolImplementation = SymbolImplementation.method("isDisjoint", summary: "Returns a Boolean value that indicates whether the set has no members in common with the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member554: SymbolImplementation = SymbolImplementation.method("isDisjoint", summary: "Returns a Boolean value that indicates whether the set has no members in common with the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isDisjoint(with: try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member555: SymbolImplementation = SymbolImplementation.method("union", summary: "Returns a new set with the elements of both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member555: SymbolImplementation = SymbolImplementation.method("union", summary: "Returns a new set with the elements of both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.union(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member556: SymbolImplementation = SymbolImplementation.mutatingMethod("formUnion", summary: "Inserts the elements of the given sequence into the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member556: SymbolImplementation = SymbolImplementation.mutatingMethod("formUnion", summary: "Inserts the elements of the given sequence into the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.formUnion(try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
 
-    private static let member557: SymbolImplementation = SymbolImplementation.method("subtracting", summary: "Returns a new set containing the elements of this set that do not occur in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member557: SymbolImplementation = SymbolImplementation.method("subtracting", summary: "Returns a new set containing the elements of this set that do not occur in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.subtracting(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member558: SymbolImplementation = SymbolImplementation.mutatingMethod("subtract", summary: "Removes the elements of the given sequence from the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member558: SymbolImplementation = SymbolImplementation.mutatingMethod("subtract", summary: "Removes the elements of the given sequence from the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.subtract(try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
 
-    private static let member559: SymbolImplementation = SymbolImplementation.method("intersection", summary: "Returns a new set with the elements that are common to both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member559: SymbolImplementation = SymbolImplementation.method("intersection", summary: "Returns a new set with the elements that are common to both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.intersection(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member560: SymbolImplementation = SymbolImplementation.mutatingMethod("formIntersection", summary: "Removes the elements of the set that aren't also in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member560: SymbolImplementation = SymbolImplementation.mutatingMethod("formIntersection", summary: "Removes the elements of the set that aren't also in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.formIntersection(try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
 
-    private static let member561: SymbolImplementation = SymbolImplementation.method("symmetricDifference", summary: "Returns a new set with the elements that are either in this set or in the given sequence, but not in both.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member561: SymbolImplementation = SymbolImplementation.method("symmetricDifference", summary: "Returns a new set with the elements that are either in this set or in the given sequence, but not in both.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.symmetricDifference(try Value.Bridging.sequence(arguments[0]))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member562: SymbolImplementation = SymbolImplementation.mutatingMethod("formSymmetricDifference", summary: "Replace this set with the elements contained in this set or the given set, but not both.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member562: SymbolImplementation = SymbolImplementation.mutatingMethod("formSymmetricDifference", summary: "Replace this set with the elements contained in this set or the given set, but not both.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.formSymmetricDifference(try Value.Bridging.sequence(arguments[0]))
                 return .nothing
 }
@@ -4019,62 +4019,62 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 })
 
-    private static let member565: SymbolImplementation = SymbolImplementation.method("isSubset", summary: "Returns a Boolean value that indicates whether this set is a subset of the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member565: SymbolImplementation = SymbolImplementation.method("isSubset", summary: "Returns a Boolean value that indicates whether this set is a subset of the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isSubset(of: try arguments[0].unboxing(Set<Value>.self))
                 return result.value
 }
 
-    private static let member566: SymbolImplementation = SymbolImplementation.method("isSuperset", summary: "Returns a Boolean value that indicates whether this set is a superset of the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member566: SymbolImplementation = SymbolImplementation.method("isSuperset", summary: "Returns a Boolean value that indicates whether this set is a superset of the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isSuperset(of: try arguments[0].unboxing(Set<Value>.self))
                 return result.value
 }
 
-    private static let member567: SymbolImplementation = SymbolImplementation.method("isDisjoint", summary: "Returns a Boolean value that indicates whether this set has no members in common with the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member567: SymbolImplementation = SymbolImplementation.method("isDisjoint", summary: "Returns a Boolean value that indicates whether this set has no members in common with the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isDisjoint(with: try arguments[0].unboxing(Set<Value>.self))
                 return result.value
 }
 
-    private static let member568: SymbolImplementation = SymbolImplementation.method("subtracting", summary: "Returns a new set containing the elements of this set that do not occur in the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member568: SymbolImplementation = SymbolImplementation.method("subtracting", summary: "Returns a new set containing the elements of this set that do not occur in the given set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.subtracting(try arguments[0].unboxing(Set<Value>.self))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member569: SymbolImplementation = SymbolImplementation.method("isStrictSuperset", summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member569: SymbolImplementation = SymbolImplementation.method("isStrictSuperset", summary: "Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isStrictSuperset(of: try arguments[0].unboxing(Set<Value>.self))
                 return result.value
 }
 
-    private static let member570: SymbolImplementation = SymbolImplementation.method("isStrictSubset", summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member570: SymbolImplementation = SymbolImplementation.method("isStrictSubset", summary: "Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.isStrictSubset(of: try arguments[0].unboxing(Set<Value>.self))
                 return result.value
 }
 
-    private static let member571: SymbolImplementation = SymbolImplementation.method("intersection", summary: "Returns a new set with the elements that are common to both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .named(.init(hostType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member571: SymbolImplementation = SymbolImplementation.method("intersection", summary: "Returns a new set with the elements that are common to both this set and the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.intersection(try arguments[0].unboxing(Set<Value>.self))
-                return Value(boxing: result, as: .init(hostType: "Set"))
+                return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
-    private static let member572: SymbolImplementation = SymbolImplementation.mutatingMethod("formSymmetricDifference", summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Set"), [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member572: SymbolImplementation = SymbolImplementation.mutatingMethod("formSymmetricDifference", summary: "Removes the elements of the set that are also in the given sequence and adds the members of the sequence that are not already in the set.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Set"), [.parameter("Element")]))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 receiver.formSymmetricDifference(try arguments[0].unboxing(Set<Value>.self))
                 return .nothing
 }
 
-    private static let member573: SymbolImplementation = SymbolImplementation.mutatingMethod("popFirst", summary: "Removes and returns the first element of the set.", signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member573: SymbolImplementation = SymbolImplementation.mutatingMethod("popFirst", summary: "Removes and returns the first element of the set.", signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 let result = receiver.popFirst()
                 return (result.map { $0 } ?? .nothing)
 }
@@ -4085,11 +4085,11 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 })
 
-    private static let member575: SymbolImplementation = SymbolImplementation.mutatingMethod("reserveCapacity", summary: "Reserves enough space to store the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])])) { selfValue, arguments in
+    private static let member575: SymbolImplementation = SymbolImplementation.mutatingMethod("reserveCapacity", summary: "Reserves enough space to store the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: Set<Value> = try (consume taken).unboxing(Set<Value>.self)
-                defer { selfValue = Value(boxing: receiver, as: .init(hostType: "Set")) }
+                defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Set")) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a capacity can't be negative: \(_0)")
                 receiver.reserveCapacity(_0)
@@ -4160,7 +4160,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return Value(list: result.map { Value(list: Array($0)) })
 }
 
-    private static let member584: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.list(.parameter("Element"))), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member584: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .parameter("Element")), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.list(.parameter("Element"))), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let separator = arguments[0]
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
@@ -4211,7 +4211,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 }
 
-    private static let member591: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member591: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]))
                 return result.value
@@ -4224,7 +4224,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result.value
 }
 
-    private static let member593: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member593: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]))
                 return result.value
@@ -4314,25 +4314,25 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return (result.map { $0 } ?? .nothing)
 })
 
-    private static let member606: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member606: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.min()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member607: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member607: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.max()
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member608: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member608: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]))
                 return result.value
 }
 
-    private static let member609: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member609: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result: [Value] = receiver.sorted()
                 return Value(list: result)
@@ -4345,7 +4345,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return Value(list: Array(result))
 }
 
-    private static let member611: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])])) { selfValue, arguments in
+    private static let member611: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.parameter("Element")]))], returns: .list(.parameter("Element")), throwing: .no, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])])) { selfValue, arguments in
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]))
                 return Value(list: Array(result))
@@ -4354,7 +4354,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     fileprivate static let type612: TypeImplementation = {
         var type = TypeImplementation(name: "Set", members: [member533, member534, member535, member536, member537, member538, member539, member540, member541, member542, member543, member544, member545, member546, member547, member548, member549, member550, member551, member552, member553, member554, member555, member556, member557, member558, member559, member560, member561, member562, member563, member564, member565, member566, member567, member568, member569, member570, member571, member572, member573, member574, member575, member576, member577, member578, member579, member580, member581, member582, member583, member584, member585, member586, member587, member588, member589, member590, member591, member592, member593, member594, member595, member596, member597, member598, member599, member600, member601, member602, member603, member604, member605, member606, member607, member608, member609, member610, member611])
         type.genericParameters = [.genericParameter("Element")]
-        type.conformances = ["Collection": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "CustomStringConvertible": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "Encodable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Encodable"))), .conforms(to: .named(.init(hostType: "Hashable")))])], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "Sequence": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])]]
+        type.conformances = ["Collection": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "CustomStringConvertible": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "Encodable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Encodable"))), .conforms(to: .named(.init(nativeType: "Hashable")))])], "Equatable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "Hashable": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "Sequence": [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])]]
         type.associatedTypes = ["ArrayLiteralElement": .parameter("Element"), "SubSequence": .list(.parameter("Element"))]
         return type
     }()
@@ -4377,28 +4377,28 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 return result.value
 })
 
-    private static let member616: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty dictionary.", signature: Symbol.Function(parameters: [], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { arguments in
+    private static let member616: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty dictionary.", signature: Symbol.Function(parameters: [], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
 let result = [Value: Value]()
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member617: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { arguments in
+    private static let member617: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an empty dictionary with preallocated space for at least the specified number of elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "minimumCapacity", name: "minimumCapacity", type: .int)], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
 let result = [Value: Value](minimumCapacity: try Int(arguments[0]))
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member618: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])]))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { arguments in
+    private static let member618: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])]))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
 let result = [Value: Value](uniqueKeysWithValues: try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member619: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { arguments in
+    private static let member619: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
 let interpreter = Interpreter.running!
 let result = try [Value: Value](try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member620: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member620: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
@@ -4417,27 +4417,27 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 return result.value
 })
 
-    private static let member623: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the value associated with the given key for reading and writing.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member623: SymbolImplementation = SymbolImplementation.method("subscript", summary: "Accesses the value associated with the given key for reading and writing.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = receiver[arguments[0]]
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member624: SymbolImplementation = SymbolImplementation.method("mapValues", summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member624: SymbolImplementation = SymbolImplementation.method("mapValues", summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.mapValues({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member625: SymbolImplementation = SymbolImplementation.method("compactMapValues", summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .optional(.parameter("T")), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member625: SymbolImplementation = SymbolImplementation.method("compactMapValues", summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .optional(.parameter("T")), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.compactMapValues({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member626: SymbolImplementation = SymbolImplementation.mutatingMethod("updateValue", summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "value", type: .parameter("Value")), Symbol.Parameter(label: "forKey", name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member626: SymbolImplementation = SymbolImplementation.mutatingMethod("updateValue", summary: "Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "value", type: .parameter("Value")), Symbol.Parameter(label: "forKey", name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
@@ -4446,7 +4446,7 @@ let taken = selfValue
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member627: SymbolImplementation = SymbolImplementation.mutatingMethod("merge", summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member627: SymbolImplementation = SymbolImplementation.mutatingMethod("merge", summary: "Merges the key-value pairs in the given sequence into the dictionary, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
@@ -4456,7 +4456,7 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member628: SymbolImplementation = SymbolImplementation.mutatingMethod("merge", summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member628: SymbolImplementation = SymbolImplementation.mutatingMethod("merge", summary: "Merges the given dictionary into this dictionary, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let taken = selfValue
                 selfValue = .nothing
@@ -4466,21 +4466,21 @@ let taken = selfValue
                 return .nothing
 }
 
-    private static let member629: SymbolImplementation = SymbolImplementation.method("merging", summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member629: SymbolImplementation = SymbolImplementation.method("merging", summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.merging(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member630: SymbolImplementation = SymbolImplementation.method("merging", summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member630: SymbolImplementation = SymbolImplementation.method("merging", summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.merging(try Value.Bridging.dictionary(arguments[0]), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
-    private static let member631: SymbolImplementation = SymbolImplementation.mutatingMethod("removeValue", summary: "Removes the given key and its associated value from the dictionary.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "forKey", name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member631: SymbolImplementation = SymbolImplementation.mutatingMethod("removeValue", summary: "Removes the given key and its associated value from the dictionary.", attributes: [Symbol.Attribute(name: "discardableResult")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "forKey", name: "key", type: .parameter("Key"))], returns: .optional(.parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
@@ -4489,7 +4489,7 @@ let taken = selfValue
                 return (result.map { $0 } ?? .nothing)
 }
 
-    private static let member632: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all key-value pairs from the dictionary.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member632: SymbolImplementation = SymbolImplementation.mutatingMethod("removeAll", summary: "Removes all key-value pairs from the dictionary.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "keepingCapacity", name: "keepCapacity", type: .bool, arity: .defaulted(.value(false)))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
@@ -4504,7 +4504,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 return result.value
 })
 
-    private static let member634: SymbolImplementation = SymbolImplementation.mutatingMethod("popFirst", summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.", signature: Symbol.Function(parameters: [], returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member634: SymbolImplementation = SymbolImplementation.mutatingMethod("popFirst", summary: "Removes and returns the first key-value pair of the dictionary if the dictionary isn't empty.", signature: Symbol.Function(parameters: [], returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
@@ -4519,7 +4519,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 return result.value
 })
 
-    private static let member636: SymbolImplementation = SymbolImplementation.mutatingMethod("reserveCapacity", summary: "Reserves enough space to store the specified number of key-value pairs.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member636: SymbolImplementation = SymbolImplementation.mutatingMethod("reserveCapacity", summary: "Reserves enough space to store the specified number of key-value pairs.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "minimumCapacity", type: .int)], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
@@ -4736,7 +4736,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     fileprivate static let type665: TypeImplementation = {
         var type = TypeImplementation(name: "Dictionary", members: [member613, member614, member615, member616, member617, member618, member619, member620, member621, member622, member623, member624, member625, member626, member627, member628, member629, member630, member631, member632, member633, member634, member635, member636, member637, member638, member639, member640, member641, member642, member643, member644, member645, member646, member647, member648, member649, member650, member651, member652, member653, member654, member655, member656, member657, member658, member659, member660, member661, member662, member663, member664])
         type.genericParameters = [.genericParameter("Key"), .genericParameter("Value")]
-        type.conformances = ["Collection": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "CustomStringConvertible": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "Encodable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Encodable"))), .conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(hostType: "Encodable")))])], "Equatable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])], "Hashable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])], "Sequence": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])]]
+        type.conformances = ["Collection": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "CustomStringConvertible": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "Encodable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Encodable"))), .conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(nativeType: "Encodable")))])], "Equatable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])], "Hashable": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])], "Sequence": [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])]]
         type.associatedTypes = ["Element": .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), "SubSequence": .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))]
         return type
     }()
@@ -4784,7 +4784,7 @@ let receiver: Value? = (selfValue == .nothing ? nil : selfValue)
     fileprivate static let type672: TypeImplementation = {
         var type = TypeImplementation(name: "Optional", members: [member666, member667, member668, member669, member670, member671])
         type.genericParameters = [.genericParameter("Wrapped")]
-        type.conformances = ["Encodable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(hostType: "Encodable")))])], "Equatable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(hostType: "Equatable")))])], "Hashable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(hostType: "Hashable")))])]]
+        type.conformances = ["Encodable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(nativeType: "Encodable")))])], "Equatable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(nativeType: "Equatable")))])], "Hashable": [.genericParameter("Wrapped", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])]]
         type.associatedTypes = [:]
         return type
     }()
@@ -4801,12 +4801,12 @@ let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 return result
 })
 
-    private static let member675: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(hostType: "Range"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { arguments in
+    private static let member675: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(nativeType: "Range"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { arguments in
 let result = Range<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
-                return Value(boxing: result, as: .init(hostType: "Range"))
+                return Value(boxing: result, as: .init(nativeType: "Range"))
 }
 
-    private static let member676: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given element is contained within the range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Bound"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member676: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given element is contained within the range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Bound"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.contains(arguments[0])
                 return result.value
@@ -4830,7 +4830,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 })
 
-    private static let member680: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member680: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately after the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "after", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let after = try Int(arguments[0])
                 try Value.Bridging.require(!(after < receiver.startIndex || after >= receiver.endIndex), "index out of range")
@@ -4838,7 +4838,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 }
 
-    private static let member681: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member681: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns the position immediately before the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "before", name: "i", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let before = try Int(arguments[0])
                 try Value.Bridging.require(!(before <= receiver.startIndex || before > receiver.endIndex), "index out of range")
@@ -4846,7 +4846,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 }
 
-    private static let member682: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "n", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member682: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "n", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 let offsetBy = try Int(arguments[1])
@@ -4855,7 +4855,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 }
 
-    private static let member683: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int), Symbol.Parameter(label: "to", name: "end", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member683: SymbolImplementation = SymbolImplementation.method("distance", summary: "Returns the distance between two indices.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int), Symbol.Parameter(label: "to", name: "end", type: .int)], returns: .int, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let from = try Int(arguments[0])
                 let to = try Int(arguments[1])
@@ -4864,21 +4864,21 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 }
 
-    private static let member684: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the range, in ascending order.", type: .named(.init(hostType: "Range"), [.int]), get: { selfValue in
+    private static let member684: SymbolImplementation = SymbolImplementation.property("indices", summary: "The indices that are valid for subscripting the range, in ascending order.", type: .named(.init(nativeType: "Range"), [.int]), get: { selfValue in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.indices
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 })
 
-    private static let member685: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance equivalent to the given `ClosedRange`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "ClosedRange"), [.int]))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { arguments in
+    private static let member685: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance equivalent to the given `ClosedRange`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "ClosedRange"), [.int]))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { arguments in
 let result = Range<Int>(try Value.Bridging.closedRange(arguments[0]) { try Int($0) })
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member686: SymbolImplementation = SymbolImplementation.method("clamped", summary: "Returns a copy of this range clamped to the given limiting range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "limits", type: .named(.init(hostType: "Range"), [.parameter("Bound")]))], returns: .named(.init(hostType: "Range"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member686: SymbolImplementation = SymbolImplementation.method("clamped", summary: "Returns a copy of this range clamped to the given limiting range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "limits", type: .named(.init(nativeType: "Range"), [.parameter("Bound")]))], returns: .named(.init(nativeType: "Range"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.clamped(to: try arguments[0].unboxing(Range<Value>.self))
-                return Value(boxing: result, as: .init(hostType: "Range"))
+                return Value(boxing: result, as: .init(nativeType: "Range"))
 }
 
     private static let member687: SymbolImplementation = SymbolImplementation.property("description", summary: "A textual representation of the range.", type: .string, get: { selfValue in
@@ -4899,31 +4899,31 @@ let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 return result.value
 })
 
-    private static let member690: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member690: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.overlaps(try arguments[0].unboxing(Range<Value>.self))
                 return result.value
 }
 
-    private static let member691: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member691: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.overlaps(try arguments[0].unboxing(ClosedRange<Value>.self))
                 return result.value
 }
 
-    private static let member692: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given range is contained within this range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member692: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given range is contained within this range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.contains(try arguments[0].unboxing(Range<Value>.self))
                 return result.value
 }
 
-    private static let member693: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given closed range is contained within this range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member693: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given closed range is contained within this range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
                 let result = receiver.contains(try arguments[0].unboxing(ClosedRange<Value>.self))
                 return result.value
 }
 
-    private static let member694: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member694: SymbolImplementation = SymbolImplementation.method("index", summary: "Returns an index that is the specified distance from the given index, unless that distance is beyond a given limiting index.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "i", type: .int), Symbol.Parameter(label: "offsetBy", name: "distance", type: .int), Symbol.Parameter(label: "limitedBy", name: "limit", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 let offsetBy = try Int(arguments[1])
@@ -4933,20 +4933,20 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member695: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member695: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropLast(_0)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member696: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member696: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.suffix(_0)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
     private static let member697: SymbolImplementation = SymbolImplementation.property("count", summary: "The number of elements in the collection.", type: .int, get: { selfValue in
@@ -4955,7 +4955,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 })
 
-    private static let member698: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member698: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.randomElement()
                 return (result.map { $0.value } ?? .nothing)
@@ -4973,68 +4973,68 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result.value
 })
 
-    private static let member701: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
+    private static let member701: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
                 return Value(list: result)
 }
 
-    private static let member702: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member702: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.dropFirst(_0)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member703: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member703: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member704: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member704: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
                 let result = receiver.prefix(_0)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member705: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member705: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member706: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member706: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection up to, but not including, the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "upTo", name: "end", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let upTo = try Int(arguments[0])
                 try Value.Bridging.require(!(upTo < receiver.startIndex || upTo > receiver.endIndex), "index out of range")
                 let result = receiver.prefix(upTo: upTo)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member707: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member707: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence from the specified position to the end of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "from", name: "start", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let from = try Int(arguments[0])
                 try Value.Bridging.require(!(from < receiver.startIndex || from > receiver.endIndex), "index out of range")
                 let result = receiver.suffix(from: from)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member708: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member708: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence from the start of the collection through the specified position.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "through", name: "position", type: .int)], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let through = try Int(arguments[0])
                 try Value.Bridging.require(!(through < receiver.startIndex || through >= receiver.endIndex), "index out of range")
                 let result = receiver.prefix(through: through)
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member709: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(hostType: "Range"), [.int])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member709: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Range"), [.int])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
@@ -5042,17 +5042,17 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let whereSeparator = { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0.value])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Range<Int>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
-                return Value(list: result.map { Value.Bridging.box($0, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
+                return Value(list: result.map { Value.Bridging.box($0, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
 }
 
-    private static let member710: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .int), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(hostType: "Range"), [.int])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member710: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .int), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.named(.init(nativeType: "Range"), [.int])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let separator = try Int(arguments[0])
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
                 let omittingEmptySubsequences = try Bool(arguments[2])
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Range<Int>] = receiver.split(separator: separator, maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences)
-                return Value(list: result.map { Value.Bridging.box($0, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
+                return Value(list: result.map { Value.Bridging.box($0, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
 }
 
     private static let member711: SymbolImplementation = SymbolImplementation.property("last", summary: "The last element of the collection.", type: .optional(.int), get: { selfValue in
@@ -5061,40 +5061,40 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return (result.map { $0.value } ?? .nothing)
 })
 
-    private static let member712: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member712: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.firstIndex(of: try Int(arguments[0]))
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member713: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member713: SymbolImplementation = SymbolImplementation.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.firstIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member714: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member714: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member715: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member715: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.lastIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member716: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member716: SymbolImplementation = SymbolImplementation.method("lastIndex", summary: "Returns the last index where the specified value appears in the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "of", name: "element", type: .int)], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.lastIndex(of: try Int(arguments[0]))
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member717: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member717: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Int] = receiver.shuffled()
                 return Value(list: result.map { $0.value })
@@ -5106,133 +5106,133 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return Value(list: Array(result).map { $0.value })
 })
 
-    private static let member719: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member719: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.reversed()
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member720: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member720: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member721: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member721: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
                 return .nothing
 }
 
-    private static let member722: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member722: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member723: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member723: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.enumerated()
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", t.1.value)] } })
 }
 
-    private static let member724: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member724: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member725: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member725: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member726: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member726: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.min()
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member727: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member727: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.max()
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member728: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
+    private static let member728: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
                 return result.value
 }
 
-    private static let member729: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member729: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member730: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
+    private static let member730: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
                 return result.value
 }
 
-    private static let member731: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member731: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member732: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member732: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1.value])) })
                 return result.value
 }
 
-    private static let member733: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member733: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member734: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member734: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member735: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member735: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member736: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member736: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member737: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member737: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1.value]) })
                 return result
 }
 
-    private static let member738: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member738: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
@@ -5242,51 +5242,51 @@ a0 = outcome.changed[0]
                 return result
 }
 
-    private static let member739: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
+    private static let member739: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: result)
 }
 
-    private static let member740: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
+    private static let member740: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member741: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member741: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Int] = receiver.sorted()
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member742: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member742: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member743: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member743: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member744: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.int]))], returns: .named(.init(hostType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member744: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.int]))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
-                return Value.Bridging.box(result, as: .init(hostType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
     fileprivate static let type745: TypeImplementation = {
         var type = TypeImplementation(name: "Range", members: [member673, member674, member675, member676, member677, member678, member679, member680, member681, member682, member683, member684, member685, member686, member687, member688, member689, member690, member691, member692, member693, member694, member695, member696, member697, member698, member699, member700, member701, member702, member703, member704, member705, member706, member707, member708, member709, member710, member711, member712, member713, member714, member715, member716, member717, member718, member719, member720, member721, member722, member723, member724, member725, member726, member727, member728, member729, member730, member731, member732, member733, member734, member735, member736, member737, member738, member739, member740, member741, member742, member743, member744])
         type.genericParameters = [.genericParameter("Bound")]
-        type.conformances = ["BidirectionalCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "Collection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "CustomStringConvertible": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])], "Encodable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable"))), .conforms(to: .named(.init(hostType: "Encodable")))])], "Equatable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])], "Hashable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable"))), .conforms(to: .named(.init(hostType: "Hashable")))])], "RandomAccessCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "Sequence": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])]]
-        type.associatedTypes = ["Element": .parameter("Bound"), "Index": .parameter("Bound"), "Indices": .named(.init(hostType: "Range"), [.parameter("Bound")]), "SubSequence": .named(.init(hostType: "Range"), [.parameter("Bound")])]
+        type.conformances = ["BidirectionalCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "Collection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "CustomStringConvertible": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])], "Encodable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable"))), .conforms(to: .named(.init(nativeType: "Encodable")))])], "Equatable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])], "Hashable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable"))), .conforms(to: .named(.init(nativeType: "Hashable")))])], "RandomAccessCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "Sequence": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])]]
+        type.associatedTypes = ["Element": .parameter("Bound"), "Index": .parameter("Bound"), "Indices": .named(.init(nativeType: "Range"), [.parameter("Bound")]), "SubSequence": .named(.init(nativeType: "Range"), [.parameter("Bound")])]
         return type
     }()
 
@@ -5302,9 +5302,9 @@ let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.sel
                 return result
 })
 
-    private static let member748: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { arguments in
+    private static let member748: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { arguments in
 let result = ClosedRange<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
-                return Value(boxing: result, as: .init(hostType: "ClosedRange"))
+                return Value(boxing: result, as: .init(nativeType: "ClosedRange"))
 }
 
     private static let member749: SymbolImplementation = SymbolImplementation.property("isEmpty", summary: "A Boolean value indicating whether the range contains no elements.", type: .bool, get: { selfValue in
@@ -5313,19 +5313,19 @@ let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.sel
                 return result.value
 })
 
-    private static let member750: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given element is contained within the range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Bound"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member750: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given element is contained within the range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "element", type: .parameter("Bound"))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.self)
                 let result = receiver.contains(arguments[0])
                 return result.value
 }
 
-    private static let member751: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Range"), [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member751: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given range is contained within this closed range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Range"), [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.contains(try Value.Bridging.range(arguments[0]) { try Int($0) })
                 return result.value
 }
 
-    private static let member752: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given closed range is contained within this closed range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member752: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the given closed range is contained within this closed range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.self)
                 let result = receiver.contains(try arguments[0].unboxing(ClosedRange<Value>.self))
                 return result.value
@@ -5349,30 +5349,30 @@ let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.sel
                 return result.value
 })
 
-    private static let member756: SymbolImplementation = SymbolImplementation.method("clamped", summary: "Returns a copy of this range clamped to the given limiting range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "limits", type: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]))], returns: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member756: SymbolImplementation = SymbolImplementation.method("clamped", summary: "Returns a copy of this range clamped to the given limiting range.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "to", name: "limits", type: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]))], returns: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.self)
                 let result = receiver.clamped(to: try arguments[0].unboxing(ClosedRange<Value>.self))
-                return Value(boxing: result, as: .init(hostType: "ClosedRange"))
+                return Value(boxing: result, as: .init(nativeType: "ClosedRange"))
 }
 
-    private static let member757: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance equivalent to the given `Range`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Range"), [.int]))], returns: .named(.init(hostType: "ClosedRange"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { arguments in
+    private static let member757: SymbolImplementation = SymbolImplementation.initializer(summary: "Creates an instance equivalent to the given `Range`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Range"), [.int]))], returns: .named(.init(nativeType: "ClosedRange"), [.int]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { arguments in
 let result = ClosedRange<Int>(try Value.Bridging.range(arguments[0]) { try Int($0) })
-                return Value.Bridging.box(result, as: .init(hostType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
+                return Value.Bridging.box(result, as: .init(nativeType: "ClosedRange")) { r in ClosedRange<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
-    private static let member758: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member758: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given closed range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.self)
                 let result = receiver.overlaps(try arguments[0].unboxing(ClosedRange<Value>.self))
                 return result.value
 }
 
-    private static let member759: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(hostType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])])) { selfValue, arguments in
+    private static let member759: SymbolImplementation = SymbolImplementation.method("overlaps", summary: "Returns a Boolean value indicating whether this range and the given range contain an element in common.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.init(nativeType: "Range"), [.parameter("Bound")]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.self)
                 let result = receiver.overlaps(try arguments[0].unboxing(Range<Value>.self))
                 return result.value
 }
 
-    private static let member760: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member760: SymbolImplementation = SymbolImplementation.method("dropLast", summary: "Returns a subsequence containing all but the specified number of final elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
@@ -5380,7 +5380,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member761: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member761: SymbolImplementation = SymbolImplementation.method("suffix", summary: "Returns a subsequence, up to the given maximum length, containing the final elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
@@ -5394,7 +5394,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return result.value
 })
 
-    private static let member763: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member763: SymbolImplementation = SymbolImplementation.method("randomElement", summary: "Returns a random element of the collection.", signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.randomElement()
                 return (result.map { $0.value } ?? .nothing)
@@ -5412,14 +5412,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return result.value
 })
 
-    private static let member766: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
+    private static let member766: SymbolImplementation = SymbolImplementation.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
                 return Value(list: result)
 }
 
-    private static let member767: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member767: SymbolImplementation = SymbolImplementation.method("dropFirst", summary: "Returns a subsequence containing all but the given number of initial elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "k", type: .int, arity: .defaulted(.value(1)))], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
@@ -5427,14 +5427,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member768: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member768: SymbolImplementation = SymbolImplementation.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member769: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member769: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence, up to the specified maximum length, containing the initial elements of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "maxLength", type: .int)], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let _0 = try Int(arguments[0])
                 try Value.Bridging.require(!(_0 < 0), "a length can't be negative: \(_0)")
@@ -5442,14 +5442,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member770: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member770: SymbolImplementation = SymbolImplementation.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member771: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.list(.int)), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member771: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, that don't contain elements satisfying the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true))), Symbol.Parameter(label: "whereSeparator", name: "isSeparator", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.list(.int)), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
@@ -5460,7 +5460,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return Value(list: result.map { Value(list: Array($0).map { $0.value }) })
 }
 
-    private static let member772: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .int), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.list(.int)), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member772: SymbolImplementation = SymbolImplementation.method("split", summary: "Returns the longest possible subsequences of the collection, in order, around elements equal to the given element.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "separator", name: "separator", type: .int), Symbol.Parameter(label: "maxSplits", name: "maxSplits", type: .int, arity: .defaulted(.computed)), Symbol.Parameter(label: "omittingEmptySubsequences", name: "omittingEmptySubsequences", type: .bool, arity: .defaulted(.value(true)))], returns: .list(.list(.int)), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let separator = try Int(arguments[0])
                 let maxSplits = (arguments[1] == .nothing ? Int.max : try Int(arguments[1]))
@@ -5476,14 +5476,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return (result.map { $0.value } ?? .nothing)
 })
 
-    private static let member774: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member774: SymbolImplementation = SymbolImplementation.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member775: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member775: SymbolImplementation = SymbolImplementation.method("shuffled", summary: "Returns the elements of the sequence, shuffled.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Int] = receiver.shuffled()
                 return Value(list: result.map { $0.value })
@@ -5495,133 +5495,133 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return Value(list: Array(result).map { $0.value })
 })
 
-    private static let member777: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member777: SymbolImplementation = SymbolImplementation.method("reversed", summary: "Returns a view presenting the elements of the collection in reverse order.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.reversed()
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member778: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member778: SymbolImplementation = SymbolImplementation.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member779: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member779: SymbolImplementation = SymbolImplementation.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
                 return .nothing
 }
 
-    private static let member780: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member780: SymbolImplementation = SymbolImplementation.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member781: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member781: SymbolImplementation = SymbolImplementation.method("enumerated", summary: "Returns a sequence of pairs (*n*, *x*), where *n* represents a consecutive integer starting at zero and *x* represents an element of the sequence.", signature: Symbol.Function(parameters: [], returns: .list(.tuple([.init(label: "offset", type: .int), .init(label: "element", type: .int)])), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.enumerated()
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("offset", t.0.value), ("element", t.1.value)] } })
 }
 
-    private static let member782: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member782: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member783: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member783: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member784: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member784: SymbolImplementation = SymbolImplementation.method("min", summary: "Returns the minimum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.min()
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member785: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member785: SymbolImplementation = SymbolImplementation.method("max", summary: "Returns the maximum element in the sequence.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [], returns: .optional(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.max()
                 return (result.map { $0.value } ?? .nothing)
 }
 
-    private static let member786: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
+    private static let member786: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
                 return result.value
 }
 
-    private static let member787: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member787: SymbolImplementation = SymbolImplementation.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are the same as the elements in another sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.starts(with: try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member788: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
+    private static let member788: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
                 return result.value
 }
 
-    private static let member789: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member789: SymbolImplementation = SymbolImplementation.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain the same elements in the same order.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member790: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member790: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1.value])) })
                 return result.value
 }
 
-    private static let member791: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member791: SymbolImplementation = SymbolImplementation.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the less-than operator (`<`) to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int]))], returns: .bool, throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return result.value
 }
 
-    private static let member792: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member792: SymbolImplementation = SymbolImplementation.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member793: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member793: SymbolImplementation = SymbolImplementation.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member794: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member794: SymbolImplementation = SymbolImplementation.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return result.value
 }
 
-    private static let member795: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member795: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1.value]) })
                 return result
 }
 
-    private static let member796: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member796: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
@@ -5631,41 +5631,41 @@ a0 = outcome.changed[0]
                 return result
 }
 
-    private static let member797: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
+    private static let member797: SymbolImplementation = SymbolImplementation.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: result)
 }
 
-    private static let member798: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
+    private static let member798: SymbolImplementation = SymbolImplementation.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) { $0 } })
                 return Value(list: result)
 }
 
-    private static let member799: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member799: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted.", signature: Symbol.Function(parameters: [], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Int] = receiver.sorted()
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member800: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member800: SymbolImplementation = SymbolImplementation.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
                 return Value(list: result.map { $0.value })
 }
 
-    private static let member801: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member801: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 
-    private static let member802: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.int]))], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])])) { selfValue, arguments in
+    private static let member802: SymbolImplementation = SymbolImplementation.method("trimmingPrefix", summary: "Returns a new collection of the same type by removing `prefix` from the start of the collection.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "prefix", type: .named(.sequence, [.int]))], returns: .list(.int), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = receiver.trimmingPrefix(try Value.Bridging.sequence(arguments[0]).map { try Int($0) })
                 return Value(list: Array(result).map { $0.value })
@@ -5674,7 +5674,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     fileprivate static let type803: TypeImplementation = {
         var type = TypeImplementation(name: "ClosedRange", members: [member746, member747, member748, member749, member750, member751, member752, member753, member754, member755, member756, member757, member758, member759, member760, member761, member762, member763, member764, member765, member766, member767, member768, member769, member770, member771, member772, member773, member774, member775, member776, member777, member778, member779, member780, member781, member782, member783, member784, member785, member786, member787, member788, member789, member790, member791, member792, member793, member794, member795, member796, member797, member798, member799, member800, member801, member802])
         type.genericParameters = [.genericParameter("Bound")]
-        type.conformances = ["BidirectionalCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "Collection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "CustomStringConvertible": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])], "Encodable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable"))), .conforms(to: .named(.init(hostType: "Encodable")))])], "Equatable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable")))])], "Hashable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(hostType: "Comparable"))), .conforms(to: .named(.init(hostType: "Hashable")))])], "RandomAccessCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])], "Sequence": [.genericParameter("Bound", constraints: [.equals(.named(.init(hostType: "Int")))])]]
+        type.conformances = ["BidirectionalCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "Collection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "CustomStringConvertible": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])], "Encodable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable"))), .conforms(to: .named(.init(nativeType: "Encodable")))])], "Equatable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])], "Hashable": [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable"))), .conforms(to: .named(.init(nativeType: "Hashable")))])], "RandomAccessCollection": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])], "Sequence": [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])]]
         type.associatedTypes = ["Element": .parameter("Bound"), "SubSequence": .list(.parameter("Bound"))]
         return type
     }()

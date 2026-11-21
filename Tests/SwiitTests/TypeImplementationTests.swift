@@ -31,7 +31,7 @@ private final class Node: BridgedValue, CustomStringConvertible, @unchecked Send
     var description: String { "Node(\(label))" }
     func shout() -> String { label.uppercased() }
 
-    static let scriptTypeID = TypeRef(hostType: "Node")
+    static let scriptTypeID = TypeRef(nativeType: "Node")
     static let type = TypeImplementation.Builder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
@@ -251,7 +251,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
 
 @Suite struct TypeImplementationTests {
     static func bytesType() -> TypeImplementation.Builder<Bytes> {
-        let bytes = TypeRef(hostType: "Bytes")
+        let bytes = TypeRef(nativeType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
         return TypeImplementation.Builder<Bytes>("Bytes")
             .member(
@@ -302,8 +302,8 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     pile.associatedTypes["Element"] = .parameter("Element")
     let id = swiit.register(pile)
 
-    #expect(id == TypeRef(hostType: "Pile"))
-    #expect(ScriptType.named(id, [.int]).conforms(to: TypeRef(hostType: "Hashable"), in: swiit))
+    #expect(id == TypeRef(nativeType: "Pile"))
+    #expect(ScriptType.named(id, [.int]).conforms(to: TypeRef(nativeType: "Hashable"), in: swiit))
     #expect(ScriptType.named(id, [.int]).conforms(to: .sequence, in: swiit))
 }
 
@@ -329,7 +329,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     swiit.register(pile)
 
     let symbol = try #require(
-        ScriptType.named(.init(hostType: "Crate")).members(named: "each", in: swiit).first
+        ScriptType.named(.init(nativeType: "Crate")).members(named: "each", in: swiit).first
     )
     guard case .member(.method(let method)) = symbol.kind else {
         Issue.record("not a method")
