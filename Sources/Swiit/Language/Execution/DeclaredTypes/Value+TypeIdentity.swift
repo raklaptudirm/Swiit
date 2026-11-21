@@ -33,12 +33,12 @@ extension Value {
         }
     }
 
-    /// Whether the value is an instance of the type `id` names: of exactly that type, of a class
-    /// that inherits from it, or `Any`, as Swift's `is` says. A struct value that came from a
-    /// Swift value (an encoded one, or one a host built by the type's name) also counts as an
-    /// instance of a type a script declares of the same name, which members and display already
-    /// treat it as. A protocol it conforms to is not asked here, since that takes an
-    /// interpreter: `TypeExpression.conforms(to:in:)` is.
+    /// Whether the value is an instance of the type `expected` names: that exact type, a class that
+    /// inherits from it, or `Any`, as Swift's `is` says. A struct value that came from a Swift
+    /// value (an encoded one, or one a host built by the type's name) also counts as an instance of
+    /// a script's type of the same name, which is how members and display already treat it. A
+    /// protocol is not asked here, because that takes an interpreter. Use
+    /// `TypeExpression.conforms(to:in:)` for that.
     public func isInstance(of expected: TypeRef) -> Bool {
         if expected == .any { return true }
         if case .function = self.storage { return expected == .function }

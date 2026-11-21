@@ -5,9 +5,9 @@ import Synchronization
 // What bounds a run, and what stops a run that crosses a bound.
 
 extension Interpreter {
-    /// What bounds a run. Each is checked as the script runs; a script that hits
-    /// one stops with a `.limit` diagnostic, which it can't catch. Memory isn't
-    /// limited: a script that builds a huge list is bounded only by steps and time.
+    /// Bounds on a run. Each is checked as the script runs, and a script that hits one stops with a
+    /// `.limit` diagnostic, which it cannot catch. Memory is not limited: a script that builds a
+    /// huge list is bounded only by steps and time.
     public struct Limits: Sendable {
         /// Statements and calls. Nil is no limit.
         public var maxSteps: Int?

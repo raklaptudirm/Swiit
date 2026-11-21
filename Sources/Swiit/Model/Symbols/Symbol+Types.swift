@@ -50,7 +50,7 @@ extension Symbol {
     /// `T` in `func f<T: Comparable>`.
     public struct GenericParameter: SymbolProtocol {
         public var header: Header
-        /// What a type given for it must be.
+        /// The requirements a type given for it must meet.
         public var constraints: [Constraint]
 
         /// The type of this symbol as a value: the parameter itself.
@@ -66,7 +66,7 @@ extension Symbol {
     /// them.
     public struct EnumCase: SymbolProtocol {
         public var header: Header
-        /// What it carries, each value with its label if it has one.
+        /// The values it carries, each with its label if it has one.
         public var payload: [TypeExpression.TupleElement]
         public var rawValue: Value?
 

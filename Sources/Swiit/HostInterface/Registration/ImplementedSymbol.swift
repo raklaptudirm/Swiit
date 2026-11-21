@@ -10,7 +10,7 @@ import Foundation
 /// makes a symbol and a body that fit each other: a static method has no receiver, and a
 /// settable property has a setter.
 public struct ImplementedSymbol: Sendable {
-    /// What a script sees.
+    /// The symbol a script sees.
     public let symbol: Symbol
     let body: Body
     /// The enums its parameters and result use, which registering it makes known to scripts.

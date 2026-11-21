@@ -56,12 +56,11 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     }
     private static let counter = Mutex<UInt64>(0)
 
-    /// The reference to a Swift type the host is about to register, for the places that need it
-    /// before there is an interpreter to ask or before the type is registered: a `typeExpression`
-    /// that is a static property, a type's own members that name it. It equals the reference
-    /// `register` gives for the type of that name, and the same name's in another interpreter,
-    /// and can never equal a script's type. Everywhere else, pass around what `register` gave
-    /// back, or ask `TypeRef(named:in:)`.
+    /// The reference to a Swift type the host is about to register. Use it where there is no
+    /// interpreter to ask yet, or the type is not registered: a `typeExpression` that is a static
+    /// property, or a type's own members that name it. It equals the reference `register` gives for
+    /// the type of that name, in this interpreter or another, and never equals a script's type.
+    /// Elsewhere, pass around what `register` gave back, or ask `TypeRef(named:in:)`.
     public init(nativeType name: String) { self.init(.native, name) }
 
     public var description: String { name }

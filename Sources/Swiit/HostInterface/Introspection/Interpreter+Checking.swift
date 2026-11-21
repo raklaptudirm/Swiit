@@ -85,7 +85,7 @@ extension Interpreter {
         }
     }
 
-    /// What a checked program declares at its top level.
+    /// The top-level declarations of a checked program.
     public struct Declarations: Sendable {
         /// Its functions, types and variables.
         public var symbols: [Symbol]

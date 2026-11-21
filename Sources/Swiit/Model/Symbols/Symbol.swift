@@ -4,10 +4,9 @@ import Synchronization
 
 // What the interpreter says a name is: a type, a function, a variable or a member of a type, and what each has.
 
-/// What every symbol has: its name, a line that says what it is, and the attributes it was declared
-/// with. A symbol of each kind (`Symbol.Function`, `Symbol.Nominal`, and the rest) is a struct that
-/// holds a `Header` and what only its kind has, and `Symbol` is the enum of them for a place that
-/// takes any.
+/// The name, summary and attributes every symbol has. A symbol of each kind (`Symbol.Function`,
+/// `Symbol.Nominal`, and the rest) is a struct that holds a `Header` and what only its kind has,
+/// and `Symbol` is the enum of them for a place that takes any.
 public protocol SymbolProtocol: Sendable, Hashable {
     var header: Symbol.Header { get set }
 }
@@ -52,7 +51,7 @@ public enum Symbol: SymbolProtocol {
     case associatedType(AssociatedType)
     case genericParameter(GenericParameter)
 
-    /// What every kind of symbol has, held once.
+    /// The parts every kind of symbol has, held once.
     public struct Header: Sendable, Hashable {
         public var name: String
         /// The line `help` shows, when it has one.
@@ -107,7 +106,7 @@ extension Symbol {
     /// arguments, `@available(*, deprecated)` is `available` with two. What an attribute means is up to
     /// whatever looks it up by name: the checker for some, a host for the rest.
     public struct Attribute: Sendable, Hashable {
-        /// What follows the `@`.
+        /// The attribute's name, after the `@`.
         public var name: String
         /// The text between the parentheses, one element per comma-separated argument.
         public var arguments: [String]

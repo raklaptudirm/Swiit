@@ -53,8 +53,8 @@ final class TaskContext {
 }
 
 extension Interpreter {
-    /// What the host keeps for the task running now (`Interpreter.Host.makeTaskState`; the main
-    /// task's is set by the host), or for the main task from outside a run.
+    /// The host's state for the task running now (`Interpreter.Host.makeTaskState`), or for the
+    /// main task when read from outside a run. The host sets the main task's.
     public var taskState: AnyObject? {
         get { (lock.isHeldByCurrentThread ? task : mainTask).host }
         set { (lock.isHeldByCurrentThread ? task : mainTask).host = newValue }

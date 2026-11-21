@@ -2,9 +2,9 @@ import Foundation
 import SwiftSyntax
 import Synchronization
 
-/// What went wrong in a run: the kind of failure, the message a host would print, and where in the
-/// source it happened, when that is known. Only a run-time failure carries a thrown value a script can
-/// catch, and only a syntax error can mean a program that is not finished.
+/// A failure in a run: its kind, the message a host would print, and where in the source it
+/// happened, when that is known. Only a run-time failure carries a thrown value a script can catch,
+/// and only a syntax error can mean a program that is not finished.
 public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var message: String
     public var kind: Kind
@@ -36,9 +36,9 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         }
     }
 
-    /// What a failure that ran has beyond its message.
+    /// The details of a failure that ran, beyond its message.
     public struct Failure: Sendable, Equatable {
-        /// What a script's `catch` binds.
+        /// The value a script's `catch` binds.
         public var thrown: Thrown
         /// Who raised it.
         public var origin: Origin

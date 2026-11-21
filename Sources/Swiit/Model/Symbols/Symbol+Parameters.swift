@@ -5,7 +5,7 @@ import Synchronization
 // A function's parameters, and what a type given for a type parameter must be.
 
 extension Symbol {
-    /// What a type must be to be given for a type parameter.
+    /// The requirement a type must meet to be given for a type parameter.
     public enum Constraint: Sendable, Hashable {
         /// It conforms to a protocol: `Comparable`, `Hashable`, or one a script declares.
         case conforms(to: TypeExpression)
@@ -57,7 +57,7 @@ extension Symbol {
             /// A call may give any number, as `FilePath...` does.
             case variadic
 
-            /// What it is when the call leaves it out.
+            /// The value it has when the call leaves it out.
             public enum Default: Sendable, Hashable {
                 /// A plain value: `false`, `10`, `"-"`.
                 case value(Value)

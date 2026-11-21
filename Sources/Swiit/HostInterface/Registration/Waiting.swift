@@ -98,9 +98,9 @@ extension Interpreter {
         Waiting.whileWaiting(wake: wake, wait)
     }
 
-    /// A read of the host's input: it runs when it is this task's turn at the input (a task in the
-    /// background waits until it is brought forward, as the host says), and not at all if the task
-    /// is cancelled first.
+    /// A read of the host's input. It runs when it is this task's turn at the input (a task in the
+    /// background waits until the host brings it forward), and does not run if the task is
+    /// cancelled first.
     public static func whileWaitingForInput<T>(_ read: () -> T?) -> T? {
         Waiting.forInput(read)
     }

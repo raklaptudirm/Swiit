@@ -57,8 +57,8 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
         /// Whether it throws errors of its own: `throws` and `throws(Failure)`.
         public var isThrowing: Bool { throwing != .no }
 
-        /// What a function type can throw. Only a declaration is `rethrows`: the type of one throws,
-        /// as a closure of it does.
+        /// The errors a function type can throw. Only a declaration is `rethrows`; the type of one
+        /// throws, as a closure of it does.
         public enum Throwing: Sendable, Hashable {
             case no
             /// `throws`: any error.

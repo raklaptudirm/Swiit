@@ -34,7 +34,7 @@ extension Symbol {
         public var isStatic: Bool
         /// Reading it needs `await`: `Task.value`.
         public var isAsync: Bool
-        /// What reading it can throw.
+        /// The errors reading it can throw.
         public var throwing: Throwing
 
         /// The type of this symbol as a value: the type it holds.

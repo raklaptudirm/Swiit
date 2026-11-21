@@ -1,14 +1,14 @@
 import Foundation
 
-/// What a host offers scripts for a type: its symbol and its members. Write it with ``BridgedType`` for
-/// a Swift type, or by hand for a type a generator describes, and register it with
+/// A type a host offers scripts: its symbol and its members. Write it with ``BridgedType`` for a
+/// Swift type, or by hand for a type a generator describes, and register it with
 /// ``Interpreter/register(_:)-(ImplementedType)``.
 public struct ImplementedType: Sendable {
-    /// What a script sees of the type: its name, documentation and attributes, and its kind, reference,
-    /// generic parameters and the protocols its Swift type conforms to
-    /// (of those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
-    /// value under its Swift name, so its kind is a structure. `BridgedType` reads the conformances from the
-    /// Swift type.
+    /// The type as a script sees it: its name, documentation, attributes, kind, reference and
+    /// generic parameters, and the protocols its Swift type conforms to, of those Swiit knows
+    /// (`Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by value under its
+    /// Swift name, so its kind is a structure. `BridgedType` reads the conformances from the Swift
+    /// type.
     public var symbol: Symbol.Nominal
     public var name: String {
         get { symbol.name }
@@ -70,7 +70,7 @@ extension Interpreter {
     }
 
     /// Makes a Swift enum one scripts can name on its own (`Shade.dark`, `case .dark:`), as
-    /// registering a function or a type that takes or gives one does: for an enum that a
+    /// registering a function or a type that takes or gives one does. Use it for an enum that a
     /// host's declarations name (`declare(_:bodies:)`) and nothing registered has yet.
     public func register<E: BridgedValue & CaseIterable & Hashable & Sendable>(_: E.Type) {
         let enumeration = Value.EnumCase.Enumeration.of(E.self)

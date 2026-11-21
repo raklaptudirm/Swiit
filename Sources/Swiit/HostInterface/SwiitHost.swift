@@ -1,7 +1,7 @@
 /// Where one of the interpreter's output streams goes.
 public struct OutputSink: Sendable {
-    /// What an output stream can show, so a host can lay values out for it: a terminal can be given a
-    /// fitted width and color, and a file or a pipe gets plain text.
+    /// The abilities of an output stream, so a host can lay values out for it: a terminal can be
+    /// given a fitted width and color, and a file or a pipe gets plain text.
     public struct Traits: Sendable {
         public var isTerminal: Bool
         /// Its width in columns, when it has one.

@@ -23,19 +23,20 @@ extension TypeRef {
 }
 
 extension TypeExpression {
-    /// The members of the type: the methods and properties of its values (a struct's, a host object's, a
-    /// bridged type's, the sequence methods of a list), and what belongs to the type itself, marked
-    /// `isStatic`: its static members, its initializers and an enum's cases. With `name`, only those so
-    /// called. `TypeExpression(Int.self).members(in: interpreter)` lists what a Swift type has for scripts.
+    /// The members of the type: the methods and properties of its values (a struct's, a host
+    /// object's, a bridged type's, the sequence methods of a list), and what belongs to the type
+    /// itself, marked `isStatic`. That is its static members, its initializers and an enum's cases.
+    /// With `name`, only those so called. `TypeExpression(Int.self).members(in: interpreter)` lists
+    /// what a Swift type has for scripts.
     public func members(named name: String? = nil, in interpreter: Interpreter) -> [Symbol] {
         interpreter.members(of: self, named: name)
     }
 }
 
 extension Sequence where Element: CallableSymbol {
-    /// Which of these functions a call with these arguments means: by their labels and types, the
-    /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
-    /// or several do.
+    /// Chooses which of these functions a call with these arguments means: the one whose labels and
+    /// types fit with the fewest conversions. Throws the checker's own complaint when none fits or
+    /// several do.
     public func overload(
         arguments: [TypeExpression.TupleElement],
         in interpreter: Interpreter

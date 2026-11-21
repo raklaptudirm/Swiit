@@ -13,10 +13,10 @@ extension CallableSymbol {
 }
 
 extension Symbol {
-    /// What a function, a method and an initializer take, give and can do: the shape they share.
+    /// The shape a function, a method and an initializer share: what they take, give and can do.
     public struct Signature: Sendable, Hashable {
         public var parameters: [Parameter]
-        /// What it gives back; `.void` when nothing.
+        /// The type it gives back; `.void` when nothing.
         public var returns: TypeExpression
         /// Whether it can throw, and what: any error, only what a closure argument throws, or one
         /// type of error.
@@ -74,8 +74,9 @@ extension Symbol {
         }
     }
 
-    /// What a function or a property read can throw: what a function type can, or `rethrows`, which only a
-    /// declaration says (it throws only what the closures it is given throw).
+    /// The errors a function, or reading a property, can throw: what a function type can, or
+    /// `rethrows`, which only a declaration says (it throws only what the closures it is given
+    /// throw).
     public enum Throwing: Sendable, Hashable {
         /// `rethrows`: only what the closures it is given throw.
         case rethrowing
