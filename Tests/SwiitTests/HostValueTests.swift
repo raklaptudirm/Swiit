@@ -468,3 +468,14 @@ private struct Point: Encodable { var x: Int }
     #expect(!others.isEmpty && others.allSatisfy { $0.typeRef == nil && $0.typeKind == nil })
     #expect(swiit.globals(named: "Point").first?.typeRef == TypeRef(named: "Point", in: swiit))
 }
+
+@Test func aHostBuildsAValueWhoseFieldsAreKnownOnlyToIt() throws {
+    let swiit = interpreter()
+    let row = Value(fields: [("city", Value("x")), ("age", Value(4))], typeName: "Row")
+    swiit["row"] = row
+
+    #expect(try swiit.evaluate("row.age + 1") == Value(5))
+    #expect(try swiit.evaluate("row.city") == Value("x"))
+    #expect(row == Value(fields: [("city", Value("x")), ("age", Value(4))], typeName: "Row"))
+    #expect(row != Value(fields: [("age", Value(4)), ("city", Value("x"))], typeName: "Row"))
+}

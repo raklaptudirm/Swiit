@@ -189,6 +189,16 @@ extension Value {
         }
     }
 
+    /// A value with these fields, in this order, that scripts read as they read a struct's: `typeName`
+    /// is what it is called (`JSONObject`), and the fields are read by name (`value.name`). It is equal to
+    /// another of the same name that holds the same fields in the same order. For data whose field names
+    /// come from outside the program, which a script cannot declare as a struct.
+    public init(fields: [(name: String, value: Value)], typeName: String) {
+        var record = Record(typeName: typeName)
+        for (name, value) in fields { record[name] = value }
+        self.init(record: record)
+    }
+
     /// A tuple, or a struct value if the record has a type name.
     init(record: Record) {
         self = record.typeName == nil ? .tuple(Tuple(record)) : .structure(Structure(record))
