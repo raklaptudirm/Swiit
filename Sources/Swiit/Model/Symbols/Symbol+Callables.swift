@@ -2,12 +2,14 @@ import Foundation
 
 // The symbols that are called: a function, a method and an initializer, and what they share.
 
-/// A symbol that is called, which has a signature: a function, a method or an initializer.
-public protocol CallableSymbol: SymbolProtocol {
-    var signature: Symbol.Signature { get }
+extension Symbol {
+    /// A symbol that is called, which has a signature: a function, a method or an initializer.
+    public protocol Callable: Declaration {
+        var signature: Signature { get }
+    }
 }
 
-extension CallableSymbol {
+extension Symbol.Callable {
     /// The type of this symbol as a value: a function type.
     public var typeExpression: TypeExpression { .function(signature.functionType) }
 }
@@ -102,7 +104,7 @@ extension Symbol {
     }
 
     /// A global function, as a script declares or a host registers one.
-    public struct Function: CallableSymbol {
+    public struct Function: Symbol.Callable {
         public var header: Header
         public var signature: Signature
 
@@ -118,7 +120,7 @@ extension Symbol {
     }
 
     /// A function that belongs to a type.
-    public struct Method: CallableSymbol {
+    public struct Method: Symbol.Callable {
         public var header: Header
         public var signature: Signature
         /// It changes its value.
@@ -142,7 +144,7 @@ extension Symbol {
     }
 
     /// How a script makes a value of a type: what it takes, and the type it makes.
-    public struct Initializer: CallableSymbol {
+    public struct Initializer: Symbol.Callable {
         public var header: Header
         public var signature: Signature
 

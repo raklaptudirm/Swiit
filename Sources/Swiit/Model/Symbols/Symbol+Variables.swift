@@ -4,7 +4,7 @@ import Foundation
 
 extension Symbol {
     /// A global: its type, and whether a script can assign to it.
-    public struct Variable: SymbolProtocol {
+    public struct Variable: Symbol.Declaration {
         public var header: Header
         public var type: TypeExpression
         public var isSettable: Bool
@@ -26,7 +26,7 @@ extension Symbol {
     }
 
     /// A variable that belongs to a type.
-    public struct Property: SymbolProtocol {
+    public struct Property: Symbol.Declaration {
         public var header: Header
         public var type: TypeExpression
         public var isSettable: Bool

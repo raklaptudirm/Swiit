@@ -5,7 +5,7 @@ import Synchronization
 // Choosing among the overloads of a function.
 
 extension Interpreter {
-    func overload<Candidate: CallableSymbol>(
+    func overload<Candidate: Symbol.Callable>(
         among candidates: [Candidate],
         arguments: [TypeExpression.TupleElement]
     ) throws(Diagnostic) -> Candidate {

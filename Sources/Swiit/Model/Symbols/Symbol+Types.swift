@@ -8,7 +8,7 @@ extension Symbol {
     /// host offers and a type the core bridges are described the same way. What the type has (methods,
     /// properties, initializers, cases, associated types) is read with
     /// ``TypeExpression/members(named:in:)``.
-    public struct Nominal: SymbolProtocol {
+    public struct Nominal: Symbol.Declaration {
         public var header: Header
 
         /// The five kinds of nominal type Swift declares.
@@ -48,7 +48,7 @@ extension Symbol {
 
     /// A type parameter, with what it asks of the type given for it: `Element` in `Array<Element>`,
     /// `T` in `func f<T: Comparable>`.
-    public struct GenericParameter: SymbolProtocol {
+    public struct GenericParameter: Symbol.Declaration {
         public var header: Header
         /// The requirements a type given for it must meet.
         public var constraints: [Constraint]
@@ -64,7 +64,7 @@ extension Symbol {
 
     /// A case of an enum: the values it carries (none for most), and its raw value when the enum has
     /// them.
-    public struct EnumCase: SymbolProtocol {
+    public struct EnumCase: Symbol.Declaration {
         public var header: Header
         /// The values it carries, each with its label if it has one.
         public var payload: [TypeExpression.TupleElement]
@@ -85,7 +85,7 @@ extension Symbol {
 
     /// An associated type, which a protocol asks of the types that conform to it and each of them
     /// binds: a sequence's `Element` is `String` for a sequence of text.
-    public struct AssociatedType: SymbolProtocol {
+    public struct AssociatedType: Symbol.Declaration {
         public var header: Header
         public var role: Role
 

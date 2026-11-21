@@ -33,7 +33,7 @@ extension TypeExpression {
     }
 }
 
-extension Sequence where Element: CallableSymbol {
+extension Sequence where Element: Symbol.Callable {
     /// Chooses which of these functions a call with these arguments means: the one whose labels and
     /// types fit with the fewest conversions. Throws the checker's own complaint when none fits or
     /// several do.

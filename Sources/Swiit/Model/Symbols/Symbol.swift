@@ -4,14 +4,16 @@ import Synchronization
 
 // What the interpreter says a name is: a type, a function, a variable or a member of a type, and what each has.
 
-/// The name, summary and attributes every symbol has. A symbol of each kind (`Symbol.Function`,
-/// `Symbol.Nominal`, and the rest) is a struct that holds a `Header` and what only its kind has,
-/// and `Symbol` is the enum of them for a place that takes any.
-public protocol SymbolProtocol: Sendable, Hashable {
-    var header: Symbol.Header { get set }
+extension Symbol {
+    /// The name, summary and attributes every symbol has. A symbol of each kind (`Symbol.Function`,
+    /// `Symbol.Nominal`, and the rest) is a struct that holds a `Header` and what only its kind has,
+    /// and `Symbol` is the enum of them for a place that takes any.
+    public protocol Declaration: Sendable, Hashable {
+        var header: Symbol.Header { get set }
+    }
 }
 
-extension SymbolProtocol {
+extension Symbol.Declaration {
     public var name: String {
         get { header.name }
         set { header.name = newValue }
@@ -40,7 +42,7 @@ extension SymbolProtocol {
 /// symbol decides what it has: only a function has parameters and effects, only a variable can be
 /// settable. Each case holds the symbol of its kind, which has everything its kind has, so an API
 /// that always gives a function names `Symbol.Function`.
-public enum Symbol: SymbolProtocol {
+public enum Symbol: Symbol.Declaration {
     case type(Nominal)
     case function(Function)
     case variable(Variable)
