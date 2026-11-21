@@ -74,35 +74,22 @@ extension Interpreter {
         }
     }
 
-    /// The symbol of the type named `name`: a type the program declares, a type a host offers or a
-    /// type the core bridges are described the same way, with its kind, reference, generic parameters
-    /// and conformances (those extensions gave it too) in `Symbol.nominal`. Nil if no type has that
-    /// name.
-    public func symbol(ofType name: String) -> Symbol? {
-        withMainTask {
-            if let record = record(ofTypeNamed: name) { return record.symbol }
-            // An enum a host offers has no record, only its cases.
-            if case .object(let type as Value.EnumCase.Enumeration)? = lookup(name)?.value.storage {
-                var symbol = typeSymbol(named: name, type)
-                for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
-                    symbol.nominal?.conformances[protocolName] = []
-                }
-                return symbol
-            }
-            return Bridge.types[name]?.symbol
-        }
-    }
-
-    /// A declared type as a symbol.
+    /// A declared type as a symbol, with its kind, reference, generic parameters and conformances,
+    /// those extensions gave it too. Whichever way a type's symbol is asked for gives this one.
     func typeSymbol(named name: String, _ type: any DeclaredType) -> Symbol {
-        let kind: Symbol.Nominal.Kind =
-            switch type {
-            case is StructType: .structure
-            case is Value.EnumCase.Enumeration: .enumeration
-            case let type as ClassType: type.isActor ? .actor : .class
-            default: .protocol
+        if let record = record(of: type) { return record.symbol }
+        // An enum a host offers has no record, only its cases.
+        var symbol = Symbol(
+            name: name,
+            kind: .type(Symbol.Nominal(kind: .enumeration, typeRef: type.typeRef))
+        )
+        if let enumeration = type as? Value.EnumCase.Enumeration {
+            for protocolName in conformances(ofTypeNamed: name, declared: enumeration.conformances)
+            {
+                symbol.nominal?.conformances[protocolName] = []
             }
-        return Symbol(name: name, kind: .type(Symbol.Nominal(kind: kind, typeRef: type.typeRef)))
+        }
+        return symbol
     }
 
     /// What a function is, as a symbol: `name` when it has none of its own.

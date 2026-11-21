@@ -333,37 +333,37 @@ private struct Point: Encodable { var x: Int }
     widget.conformances = ["Hashable": []]
     swiit.register(widget)
 
-    let declared = try #require(swiit.symbol(ofType: "Point"))
-    let hosted = try #require(swiit.symbol(ofType: "Widget"))
-    let bridged = try #require(swiit.symbol(ofType: "String"))
+    let declared = try #require(typeSymbol("Point", in: swiit))
+    let hosted = try #require(typeSymbol("Widget", in: swiit))
+    let bridged = try #require(typeSymbol("String", in: swiit))
 
     #expect(declared.typeKind == .structure)
     #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
     #expect(hosted.nominal?.conformances.keys.contains("Hashable") == true)
     #expect(bridged.nominal?.conformances.keys.contains("Collection") == true)
-    #expect(swiit.symbol(ofType: "Nothing") == nil)
+    #expect(typeSymbol("Nothing", in: swiit) == nil)
 }
 
 @Test func aStructsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("struct Point { var x: Int }")
-    #expect(try #require(swiit.symbol(ofType: "Point")).nominal?.conformances.isEmpty == true)
+    #expect(try #require(typeSymbol("Point", in: swiit)).nominal?.conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Point: Equatable {}")
 
-    let declared = try #require(swiit.symbol(ofType: "Point"))
+    let declared = try #require(typeSymbol("Point", in: swiit))
     #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
 }
 
 @Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Axis { case x, y }")
-    #expect(try #require(swiit.symbol(ofType: "Axis")).typeKind == .enumeration)
-    #expect(try #require(swiit.symbol(ofType: "Axis")).nominal?.conformances.isEmpty == true)
+    #expect(try #require(typeSymbol("Axis", in: swiit)).typeKind == .enumeration)
+    #expect(try #require(typeSymbol("Axis", in: swiit)).nominal?.conformances.isEmpty == true)
 
     _ = try swiit.evaluate("extension Axis: Hashable {}")
 
-    let declared = try #require(swiit.symbol(ofType: "Axis"))
+    let declared = try #require(typeSymbol("Axis", in: swiit))
     #expect(declared.nominal?.conformances.keys.contains("Hashable") == true)
 }
 
@@ -371,14 +371,14 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("class Base: Sendable {}")
     _ = try swiit.evaluate("class Leaf: Base {}")
-    let before = try #require(swiit.symbol(ofType: "Leaf"))
+    let before = try #require(typeSymbol("Leaf", in: swiit))
     #expect(before.typeKind == .class)
     #expect(before.nominal?.conformances.keys.contains("Sendable") == true)
     #expect(before.nominal?.conformances.keys.contains("Hashable") == false)
 
     _ = try swiit.evaluate("extension Leaf: Hashable {}")
 
-    let after = try #require(swiit.symbol(ofType: "Leaf"))
+    let after = try #require(typeSymbol("Leaf", in: swiit))
     #expect(after.nominal?.conformances.keys.contains("Hashable") == true)
 }
 
@@ -394,7 +394,7 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("protocol Shape: Equatable { var sides: Int { get } }")
 
-    let declared = try #require(swiit.symbol(ofType: "Shape"))
+    let declared = try #require(typeSymbol("Shape", in: swiit))
 
     #expect(declared.typeKind == .protocol)
     #expect(declared.nominal?.conformances.keys.contains("Equatable") == true)
@@ -478,4 +478,24 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.evaluate("row.city") == Value("x"))
     #expect(row == Value(fields: [("city", Value("x")), ("age", Value(4))], typeName: "Row"))
     #expect(row != Value(fields: [("age", Value(4)), ("city", Value("x"))], typeName: "Row"))
+}
+
+@Test func everyWayOfAskingForATypesSymbolGivesTheSameOne() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Pip { var n = 0 }")
+    _ = try swiit.evaluate("extension Pip: Hashable {}")
+    let byName = try #require(typeSymbol("Pip", in: swiit))
+    let byReference = try #require(TypeRef(named: "Pip", in: swiit)?.symbol(in: swiit))
+    let inGlobals = try #require(swiit.globals(named: "Pip").first)
+    let inTypes = try #require(swiit.types.first { $0.name == "Pip" })
+
+    #expect(byName.nominal?.conformances.keys.contains("Hashable") == true)
+    #expect(byReference == byName)
+    #expect(inGlobals == byName)
+    #expect(inTypes == byName)
+}
+
+/// The symbol of the type a script can name `name`, asked as a host does: by reference.
+private func typeSymbol(_ name: String, in swiit: Interpreter) -> Symbol? {
+    TypeRef(named: name, in: swiit)?.symbol(in: swiit)
 }

@@ -31,6 +31,17 @@ extension ProtocolType: TypeRecord {
 }
 
 extension Interpreter {
+    /// The record of a type a program declared, found from the type itself.
+    func record(of type: any DeclaredType) -> (any TypeRecord)? {
+        switch type {
+        case let type as StructType: type
+        case let type as ClassType: type
+        case let type as ProtocolType: type
+        case let type as Value.EnumCase.Enumeration: enumTypes[ObjectIdentifier(type)]
+        default: nil
+        }
+    }
+
     /// The record of the type a program declared under this name: nil for a host's type, which is
     /// described by its `ImplementedType`.
     func record(ofTypeNamed name: String) -> (any TypeRecord)? {
