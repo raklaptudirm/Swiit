@@ -345,7 +345,9 @@ extension Interpreter {
         of function: Function
     ) throws -> Value {
         let savedScopes = scopes
-        scopes = function.captured
+        // A function the host described captured nothing: its defaults are values, whose types are
+        // found among the globals.
+        scopes = function.captured.isEmpty ? Array(savedScopes.prefix(2)) : function.captured
         defer { scopes = savedScopes }
         // It sees what the function was declared with, not the locals of its caller.
         return try withFrame(size: nil) {
@@ -533,6 +535,8 @@ extension TypeAnnotation {
                 throws: function.isThrowing,
                 async: function.isAsync ? .async : .sync
             )
+        // `()` is what `Void` is.
+        case .tuple(let tuple) where tuple.elements.isEmpty: self = .void
         case .tuple(let tuple):
             self = .tuple(
                 tuple.elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
