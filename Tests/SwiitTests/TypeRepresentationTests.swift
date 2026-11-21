@@ -40,7 +40,11 @@ import Testing
         .bool: .bool(true), .int: .int(1), .double: .double(1), .string: .string("a"),
         .list: .list([]), .dictionary: .dictionary([:]),
     ]
-    #expect(Set(samples.keys) == Set(ImplementedType.Representation.allCases).subtracting([.held]))
+    #expect(
+        Set(samples.keys)
+            == Set(ImplementedType.Representation.allCases)
+            .subtracting([.held, .record])
+    )
 
     for (kind, sample) in samples {
         let name = try #require(kind.name)
@@ -50,6 +54,15 @@ import Testing
         #expect(type.representation.encodes(sample.storage))
         #expect(sample.representation == kind)
     }
+    // A struct's values are records, and the type says so.
+    let swiit = Interpreter()
+    _ = try swiit.evaluate("struct Pair { var a: Int }")
+    let pair = try swiit.evaluate("Pair(a: 1)")
+
+    #expect(pair.representation == .record)
+    #expect(ImplementedType.Representation.record.encodes(pair.storage))
+    #expect(!ImplementedType.Representation.record.encodes(Value.int(1).storage))
+
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")
     let set = try #require(Bridge.types["Set"])

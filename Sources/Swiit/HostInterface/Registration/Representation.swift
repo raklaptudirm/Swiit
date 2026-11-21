@@ -11,6 +11,8 @@ extension ImplementedType {
         case bool, int, double, string, list, dictionary
         /// A Swift value kept as it is under its Swift name.
         case held
+        /// Stored properties in declaration order, held by value: a struct a program declares.
+        case record
 
         /// Swift's name for the type, for the kinds the interpreter stores itself: `Array` for a list.
         var name: String? {
@@ -21,7 +23,7 @@ extension ImplementedType {
             case .string: "String"
             case .list: "Array"
             case .dictionary: "Dictionary"
-            case .held: nil
+            case .held, .record: nil
             }
         }
 
@@ -41,7 +43,7 @@ extension ImplementedType {
             case .string: .string
             case .list: .list(.unknown)
             case .dictionary: .dictionary(.unknown, .unknown)
-            case .held: nil
+            case .held, .record: nil
             }
         }
 
@@ -59,7 +61,7 @@ extension ImplementedType {
         }
 
         /// The representation of the type a value with this storage is of, if the storage is one of
-        /// the encodings of a representation known so far. A struct, an enum, a class instance, a
+        /// the encodings of a representation known so far. An enum, a class instance, a
         /// tuple, a function and nothing have none yet.
         init?(encoding storage: Value.Storage) {
             switch storage {
@@ -70,6 +72,7 @@ extension ImplementedType {
             case .list: self = .list
             case .dictionary: self = .dictionary
             case .object(let object) where object is SwiftValue: self = .held
+            case .structure: self = .record
             default: return nil
             }
         }

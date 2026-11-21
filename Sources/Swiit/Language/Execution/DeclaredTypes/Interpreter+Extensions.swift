@@ -172,6 +172,7 @@ extension Interpreter {
         let members = typeExtensions[decl.typeName] ?? TypeMembers()
         typeExtensions[decl.typeName] = members
         members.conformances += decl.conformances
+        refreshDeclaration(ofTypeNamed: decl.typeName)
         let source = decl.members
         try fill(
             members,
@@ -183,6 +184,14 @@ extension Interpreter {
             initializers: source.initializers,
             subscripts: source.subscripts
         )
+    }
+
+    /// Brings the stored declaration of a struct up to date with the protocols extensions have given it.
+    func refreshDeclaration(ofTypeNamed name: String) {
+        guard case .object(let type as StructType)? = lookup(name)?.value.storage else { return }
+        for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
+            type.declaration.conformances[protocolName] = []
+        }
     }
 
     /// What names a value's type: `Int`, a struct's own name, `Array`.

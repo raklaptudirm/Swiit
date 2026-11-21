@@ -344,6 +344,17 @@ private struct Point: Encodable { var x: Int }
     #expect(swiit.declaration(ofType: "Nothing") == nil)
 }
 
+@Test func aStructsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Point { var x: Int }")
+    #expect(try #require(swiit.declaration(ofType: "Point")).conformances.isEmpty)
+
+    _ = try swiit.evaluate("extension Point: Equatable {}")
+
+    let declared = try #require(swiit.declaration(ofType: "Point"))
+    #expect(declared.conformances.keys.contains("Equatable"))
+}
+
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
     let element = Symbol.genericParameter("T", constraints: [.comparable])
 
