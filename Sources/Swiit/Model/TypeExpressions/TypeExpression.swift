@@ -43,10 +43,21 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
 
     /// A tuple type: `(Int, String)` or `(x: Int, y: Int)`. `.void` is the empty one.
     public struct Tuple: Sendable, Hashable, ExpressibleByArrayLiteral {
-        public var elements: [TupleElement]
+        public var elements: [Element]
 
-        public init(_ elements: [TupleElement]) { self.elements = elements }
-        public init(arrayLiteral elements: TupleElement...) { self.elements = elements }
+        public init(_ elements: [Element]) { self.elements = elements }
+        public init(arrayLiteral elements: Element...) { self.elements = elements }
+
+        /// An element of a tuple type, labeled or not. Calls and enum cases carry their values the
+        /// same way, so they use it too.
+        public struct Element: Sendable, Hashable {
+            public var label: String?
+            public var type: TypeExpression
+            public init(label: String? = nil, type: TypeExpression) {
+                self.label = label
+                self.type = type
+            }
+        }
     }
 
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
@@ -103,16 +114,6 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
             case any
             /// `throws(Failure)`: errors of this type.
             case typed(TypeExpression)
-        }
-    }
-
-    /// An element of a tuple type, labeled or not.
-    public struct TupleElement: Sendable, Hashable {
-        public var label: String?
-        public var type: TypeExpression
-        public init(label: String? = nil, type: TypeExpression) {
-            self.label = label
-            self.type = type
         }
     }
 

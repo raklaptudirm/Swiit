@@ -67,14 +67,14 @@ extension Symbol {
     public struct EnumCase: Symbol.Declaration {
         public var header: Header
         /// The values it carries, each with its label if it has one.
-        public var payload: [TypeExpression.TupleElement]
+        public var payload: [TypeExpression.Tuple.Element]
         public var rawValue: Value?
 
         public init(
             name: String,
             summary: String? = nil,
             attributes: [Attribute] = [],
-            payload: [TypeExpression.TupleElement] = [],
+            payload: [TypeExpression.Tuple.Element] = [],
             rawValue: Value? = nil
         ) {
             header = Header(name: name, summary: summary, attributes: attributes)

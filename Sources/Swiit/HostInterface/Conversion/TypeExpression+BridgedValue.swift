@@ -10,8 +10,8 @@ extension TypeExpression {
     }
 }
 
-extension TypeExpression.TupleElement {
-    /// An element of a Swift type: `TupleElement(label: "by", type: String.self)`.
+extension TypeExpression.Tuple.Element {
+    /// An element of a Swift type: `Tuple.Element(label: "by", type: String.self)`.
     public init<T: BridgedValue>(label: String? = nil, type: T.Type) {
         self.init(label: label, type: TypeExpression(type))
     }

@@ -29,7 +29,7 @@ extension TypeExpression {
                 .tuple(
                     TypeExpression.Tuple(
                         elements.map {
-                            TypeExpression.TupleElement(label: $0.label, type: convert($0.type))
+                            TypeExpression.Tuple.Element(label: $0.label, type: convert($0.type))
                         }
                     )
                 )

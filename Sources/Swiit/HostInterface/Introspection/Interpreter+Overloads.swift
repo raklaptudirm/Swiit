@@ -7,7 +7,7 @@ import Synchronization
 extension Interpreter {
     func overload<Candidate: Symbol.Callable>(
         among candidates: [Candidate],
-        arguments: [TypeExpression.TupleElement]
+        arguments: [TypeExpression.Tuple.Element]
     ) throws(Diagnostic) -> Candidate {
         guard !candidates.isEmpty else {
             throw Diagnostic(kind: .type, message: "there is nothing to call")

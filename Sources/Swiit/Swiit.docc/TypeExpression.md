@@ -26,7 +26,7 @@ a ``TypeExpression/FunctionType``, a ``TypeExpression/Tuple``, a ``TypeExpressio
 - ``GenericParameter``
 - ``FunctionType``
 - ``Tuple``
-- ``TupleElement``
+- ``Tuple/Element``
 - ``Metatype``
 
 ### Common types

@@ -38,7 +38,7 @@ extension Sequence where Element: Symbol.Callable {
     /// types fit with the fewest conversions. Throws the checker's own complaint when none fits or
     /// several do.
     public func overload(
-        arguments: [TypeExpression.TupleElement],
+        arguments: [TypeExpression.Tuple.Element],
         in interpreter: Interpreter
     ) throws(Diagnostic) -> Element {
         try interpreter.overload(among: Array(self), arguments: arguments)

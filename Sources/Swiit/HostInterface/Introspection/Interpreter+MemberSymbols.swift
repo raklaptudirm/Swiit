@@ -223,7 +223,7 @@ extension Interpreter {
                             Symbol.EnumCase(
                                 name: enumCase.name,
                                 payload: enumCase.payload.map {
-                                    TypeExpression.TupleElement(
+                                    TypeExpression.Tuple.Element(
                                         label: $0.label,
                                         type: typeExpression($0.type)
                                     )
