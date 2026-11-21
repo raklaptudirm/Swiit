@@ -709,7 +709,7 @@ let receiver: String = try String(selfValue)
                 return result
 }
 
-    private static let member92: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member92: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.named(.init(nativeType: "Character")))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
@@ -1472,7 +1472,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
                 return result
 }
 
-    private static let member195: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
+    private static let member195: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.named(.init(nativeType: "Character")))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
@@ -2940,7 +2940,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
                 return result
 }
 
-    private static let member419: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member419: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.parameter("Element"))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
@@ -3626,7 +3626,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 return result
 }
 
-    private static let member510: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member510: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.parameter("Element"))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
@@ -4255,7 +4255,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 return result
 }
 
-    private static let member599: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member599: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.parameter("Element"))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
@@ -4666,7 +4666,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 return result
 }
 
-    private static let member657: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Result"), .genericParameter("Value")])) { selfValue, arguments in
+    private static let member657: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]))], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Result"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: (key: Value, value: Value)) throws -> Void in
@@ -5219,7 +5219,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 return result
 }
 
-    private static let member738: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member738: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.int)], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
@@ -5607,7 +5607,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
                 return result
 }
 
-    private static let member796: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(parameters: [.inOut(.parameter("Result")), .int], returns: .void, isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
+    private static let member796: SymbolImplementation = SymbolImplementation.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "into", name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "updateAccumulatingResult", type: .function(ScriptType.FunctionType(parameters: [.init(.parameter("Result"), isInout: true), .init(.int)], returns: .void, throwing: .any, isAsync: false)))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
@@ -5669,7 +5669,7 @@ let result = zip(try Value.Bridging.sequence(arguments[0]), try Value.Bridging.s
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [(nil, t.0), (nil, t.1)] } })
 })
 
-    private static let member805: SymbolImplementation = SymbolImplementation.function(name: "swap", summary: "Exchanges the values of the two arguments.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "a", type: .inOut(.parameter("T"))), Symbol.Parameter(label: nil, name: "b", type: .inOut(.parameter("T")))], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("T")]), updating: { arguments in
+    private static let member805: SymbolImplementation = SymbolImplementation.function(name: "swap", summary: "Exchanges the values of the two arguments.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "a", type: .parameter("T"), isInout: true), Symbol.Parameter(label: nil, name: "b", type: .parameter("T"), isInout: true)], returns: .void, throwing: .no, isAsync: false, generics: [.genericParameter("T")]), updating: { arguments in
 var a0: Value = arguments[0]
                 var a1: Value = arguments[1]
                 swap(&a0, &a1)

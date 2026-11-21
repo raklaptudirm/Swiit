@@ -301,7 +301,7 @@ private struct Point: Encodable { var x: Int }
     let throwing = ScriptType.function(parameters: [.int], returns: .int, isThrowing: true)
     let typed = ScriptType.function(
         ScriptType.FunctionType(
-            parameters: [.int],
+            parameters: [.init(.int)],
             returns: .int,
             throwing: .typed(.named(.init(nativeType: "MyError")))
         )
@@ -427,4 +427,21 @@ private struct Point: Encodable { var x: Int }
     #expect(element != .named(TypeRef(nativeType: "Element")))
     #expect(element.description == "Element")
     #expect(ScriptType.list(element) == .named(.array, [.parameter("Element")]))
+}
+
+@Test func aParameterThatIsChangedInPlaceSaysSoOnItself() throws {
+    let swiit = interpreter()
+    let reduce = ScriptType.list(.int).members(named: "reduce", in: swiit)
+        .compactMap(\.function)
+        .first { $0.parameters.first?.label == "into" }
+    let closure = try #require(reduce?.parameters.last)
+
+    guard case .function(let function) = closure.type else {
+        Issue.record("reduce(into:) takes a closure, not \(closure.type)")
+        return
+    }
+
+    #expect(function.parameters.first?.isInout == true)
+    #expect(function.parameters.dropFirst().allSatisfy { !$0.isInout })
+    #expect(closure.type.description.hasPrefix("(inout "))
 }

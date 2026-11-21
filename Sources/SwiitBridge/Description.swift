@@ -27,9 +27,20 @@ func scriptType(_ type: SType) -> String {
             }
             .joined(separator: ", ") + "])"
     case .function(let parameters, let result, let throwing, let isAsync):
+        // A parameter the function changes in place is a function-type parameter of its own.
+        guard parameters.contains(where: { if case .inOut = $0 { true } else { false } }) else {
+            return
+                ".function(parameters: [\(parameters.map(scriptType).joined(separator: ", "))], returns: \(scriptType(result)), isThrowing: \(throwing), isAsync: \(isAsync))"
+        }
+        let described = parameters.map { parameter -> String in
+            if case .inOut(let inner) = parameter {
+                return ".init(\(scriptType(inner)), isInout: true)"
+            }
+            return ".init(\(scriptType(parameter)))"
+        }
         return
-            ".function(parameters: [\(parameters.map(scriptType).joined(separator: ", "))], returns: \(scriptType(result)), isThrowing: \(throwing), isAsync: \(isAsync))"
-    case .inOut(let inner): return ".inOut(\(scriptType(inner)))"
+            ".function(ScriptType.FunctionType(parameters: [\(described.joined(separator: ", "))], returns: \(scriptType(result)), throwing: \(throwing ? ".any" : ".no"), isAsync: \(isAsync)))"
+    case .inOut(let inner): return scriptType(inner)
     case .held(let element): return ".list(\(scriptType(element)))"
     case .member: fatalError("unsupported \(type)")
     }
@@ -132,6 +143,8 @@ func describedMember(
 /// A `Symbol.Parameter` for a parameter of a member.
 func describedParameter(_ parameter: Parameter, _ type: SType) throws -> String {
     let arity = try arityCode(of: parameter, type: type)
+    var isInout = ""
+    if case .inOut = type { isInout = ", isInout: true" }
     return
-        "Symbol.Parameter(label: \(parameter.label.map(quoted) ?? "nil"), name: \(quoted(parameter.name)), type: \(scriptType(type))\(arity))"
+        "Symbol.Parameter(label: \(parameter.label.map(quoted) ?? "nil"), name: \(quoted(parameter.name)), type: \(scriptType(type))\(isInout)\(arity))"
 }

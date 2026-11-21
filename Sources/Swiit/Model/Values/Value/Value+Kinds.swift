@@ -72,8 +72,8 @@ extension Value {
                         && field.value.matches(element.type)
                 }
         // A type used as a value is not a value of a type a host can ask about. Nor is a
-        // parameter's way of being passed, nor a generic parameter, which names no type.
-        case .metatype, .inOut, .parameter: return false
+        // generic parameter, which names no type.
+        case .metatype, .parameter: return false
         }
     }
 

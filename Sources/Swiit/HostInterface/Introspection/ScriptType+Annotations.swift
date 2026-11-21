@@ -33,10 +33,18 @@ extension ScriptType {
                 )
             case .functionType(let parameters, let returns, let throwing, let effect):
                 .function(
-                    parameters: parameters.map(convert),
-                    returns: convert(returns),
-                    isThrowing: throwing,
-                    isAsync: effect == .async
+                    ScriptType.FunctionType(
+                        parameters: parameters.map { parameter in
+                            if case .inOut(let inner) = parameter {
+                                ScriptType.FunctionType.Parameter(convert(inner), isInout: true)
+                            } else {
+                                ScriptType.FunctionType.Parameter(convert(parameter))
+                            }
+                        },
+                        returns: convert(returns),
+                        throwing: throwing ? .any : .no,
+                        isAsync: effect == .async
+                    )
                 )
             case .keyPath(let root, let value):
                 .named(.keyPath, [convert(root), convert(value)])
@@ -46,7 +54,7 @@ extension ScriptType {
             case .someSequence(let element): .named(.sequence, [convert(element)])
             case .void: .tuple([])
             case .metatype(let type): .metatype(convert(type))
-            case .inOut(let type): .inOut(convert(type))
+            case .inOut(let type): convert(type)
             default: .any
             }
     }

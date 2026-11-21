@@ -125,7 +125,7 @@ extension SymbolImplementation {
     }
 
     /// A function that changes some of its arguments in place, as Swift's `inout` does: the
-    /// parameters typed `.inOut(T)` in its signature. `body` gets all the arguments in declared
+    /// parameters marked `isInout` in its signature. `body` gets all the arguments in declared
     /// order, and what it leaves in the `inout` ones is put back in the variables the call passed
     /// (`swap(&a, &b)`).
     public static func function(
@@ -135,9 +135,7 @@ extension SymbolImplementation {
         signature: Symbol.Function,
         updating body: @escaping @Sendable (_ arguments: inout [Value]) throws -> Value
     ) -> SymbolImplementation {
-        let changed = signature.parameters.indices.filter {
-            if case .inOut = signature.parameters[$0].type { true } else { false }
-        }
+        let changed = signature.parameters.indices.filter { signature.parameters[$0].isInout }
         return function(
             name: name,
             summary: summary,

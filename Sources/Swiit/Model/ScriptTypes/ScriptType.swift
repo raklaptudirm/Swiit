@@ -17,22 +17,31 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
     /// are the type's static members, its initializers and the cases of an enum.
     case metatype(ScriptType)
-    /// A parameter of a function type that the function changes in place, as `reduce(into:)`'s
-    /// closure changes its accumulator: `inout Result`. It appears only as a parameter there.
-    case inOut(ScriptType)
 
     /// The shape of a function type: what it takes, what it gives back, and the effects Swift writes
     /// after its parameters. A declaration's `Symbol.Function` has the same shape and adds what only a
     /// declaration has (labels, names, defaults, documentation, generics).
     public struct FunctionType: Sendable, Hashable {
-        public var parameters: [ScriptType]
+        public var parameters: [Parameter]
         public var returns: ScriptType
         /// Whether it throws, and what. A function type is never `rethrowing`: only a declaration is.
         public var throwing: Symbol.Throwing
         public var isAsync: Bool
 
+        /// A parameter of a function type: its type, and whether the function changes it in place, as
+        /// `reduce(into:)`'s closure changes its accumulator (`(inout Result, Element) -> Void`).
+        public struct Parameter: Sendable, Hashable {
+            public var type: ScriptType
+            public var isInout: Bool
+
+            public init(_ type: ScriptType, isInout: Bool = false) {
+                self.type = type
+                self.isInout = isInout
+            }
+        }
+
         public init(
-            parameters: [ScriptType],
+            parameters: [Parameter],
             returns: ScriptType,
             throwing: Symbol.Throwing = .no,
             isAsync: Bool = false
@@ -87,7 +96,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     ) -> ScriptType {
         .function(
             FunctionType(
-                parameters: parameters,
+                parameters: parameters.map { FunctionType.Parameter($0) },
                 returns: returns,
                 throwing: isThrowing ? .any : .no,
                 isAsync: isAsync
@@ -115,7 +124,6 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
                 + (function.isAsync ? " async" : "") + function.throwingText
                 + " -> \(function.returns)"
         case .metatype(let type): "\(type).Type"
-        case .inOut(let type): "inout \(type)"
         case .tuple(let elements):
             "("
                 + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
@@ -123,6 +131,10 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
                 + ")"
         }
     }
+}
+
+extension ScriptType.FunctionType.Parameter: CustomStringConvertible {
+    public var description: String { isInout ? "inout \(type)" : type.description }
 }
 
 extension ScriptType.FunctionType {

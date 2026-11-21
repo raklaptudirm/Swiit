@@ -45,8 +45,8 @@ private final class Log: @unchecked Sendable {
             name: "exchange",
             signature: Symbol.Function(
                 parameters: [
-                    Symbol.Parameter(label: nil, name: "a", type: .inOut(.int)),
-                    Symbol.Parameter(label: nil, name: "b", type: .inOut(.int)),
+                    Symbol.Parameter(label: nil, name: "a", type: .int, isInout: true),
+                    Symbol.Parameter(label: nil, name: "b", type: .int, isInout: true),
                     Symbol.Parameter(label: "plus", name: "extra", type: .int),
                 ],
                 returns: .int

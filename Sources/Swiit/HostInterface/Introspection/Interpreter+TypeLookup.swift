@@ -36,10 +36,10 @@ extension Interpreter {
             case .named(let typeRef, let arguments):
                 isCurrent(typeRef) && arguments.allSatisfy(current)
             case .function(let function):
-                function.parameters.allSatisfy(current) && current(function.returns)
+                function.parameters.allSatisfy { current($0.type) } && current(function.returns)
             case .parameter: true
             case .tuple(let elements): elements.allSatisfy { current($0.type) }
-            case .metatype(let type), .inOut(let type): current(type)
+            case .metatype(let type): current(type)
             }
         }
         return current(type) ? TypeAnnotation(type) : nil

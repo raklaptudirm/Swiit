@@ -144,7 +144,9 @@ extension Symbol {
         /// and documentation. A `rethrows` function's type throws, as a closure of it does.
         public var functionType: ScriptType.FunctionType {
             ScriptType.FunctionType(
-                parameters: parameters.map(\.type),
+                parameters: parameters.map {
+                    ScriptType.FunctionType.Parameter($0.type, isInout: $0.isInout)
+                },
                 returns: returns,
                 throwing: throwing == .rethrowing ? .any : throwing,
                 isAsync: isAsync

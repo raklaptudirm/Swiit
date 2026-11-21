@@ -81,8 +81,8 @@ extension Interpreter {
         var made = Symbol.Parameter(
             label: parameter.label,
             name: parameter.name,
-            type: parameter.isInout
-                ? .inOut(scriptType(parameter.type)) : scriptType(parameter.type),
+            type: scriptType(parameter.type),
+            isInout: parameter.isInout,
             arity: parameter.variadic
                 ? .variadic
                 : parameter.defaultValue != nil || parameter.externalDefault != nil

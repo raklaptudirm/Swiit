@@ -520,7 +520,10 @@ extension TypeAnnotation {
                 ? .named(name.name) : .generic(name.name, arguments.map(TypeAnnotation.init))
         case .function(let function):
             self = .functionType(
-                function.parameters.map(TypeAnnotation.init),
+                function.parameters.map { parameter in
+                    parameter.isInout
+                        ? .inOut(TypeAnnotation(parameter.type)) : TypeAnnotation(parameter.type)
+                },
                 TypeAnnotation(function.returns),
                 throws: function.isThrowing,
                 async: function.isAsync ? .async : .sync
@@ -530,7 +533,6 @@ extension TypeAnnotation {
                 elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
             )
         case .metatype(let type): self = .metatype(TypeAnnotation(type))
-        case .inOut(let type): self = .inOut(TypeAnnotation(type))
         }
     }
 }
@@ -584,20 +586,13 @@ extension Interpreter {
 }
 
 extension Parameter {
-    /// The parameter a script sees, from the one a host described: an `inout` type is a parameter
-    /// the function changes in place.
+    /// The parameter a script sees, from the one a host described.
     init(described parameter: Symbol.Parameter) {
-        var type = parameter.type
-        var isInout = false
-        if case .inOut(let inner) = type {
-            type = inner
-            isInout = true
-        }
         self.init(
             label: parameter.label,
             name: parameter.name,
-            type: TypeAnnotation(type),
-            isInout: isInout
+            type: TypeAnnotation(parameter.type),
+            isInout: parameter.isInout
         )
         switch parameter.arity {
         case .required: break

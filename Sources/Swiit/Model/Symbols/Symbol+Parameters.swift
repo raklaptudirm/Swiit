@@ -48,6 +48,8 @@ extension Symbol {
         /// The name the function's body uses.
         public var name: String
         public var type: ScriptType
+        /// The function changes it in place, and a call passes the variable with `&`: `inout`.
+        public var isInout: Bool
         /// Whether a call must give it, may leave it out, or may give any number.
         public var arity: Arity
         /// The type as the checker has it, which tells a type parameter from a type of the same
@@ -79,12 +81,14 @@ extension Symbol {
             label: String? = nil,
             name: String,
             type: ScriptType = .any,
+            isInout: Bool = false,
             arity: Arity = .required,
             documentation: String? = nil
         ) {
             self.label = label
             self.name = name
             self.type = type
+            self.isInout = isInout
             self.arity = arity
             self.documentation = documentation
         }
