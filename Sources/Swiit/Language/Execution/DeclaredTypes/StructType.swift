@@ -12,29 +12,14 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     let typeRef: TypeRef
     /// Stored properties, in declaration order: the order of a value's fields.
     let stored: [PropertyDecl]
-    let computed: [String: Function]
-    let methods: [String: OverloadSet]
-    /// Custom initializers; without any, the memberwise one.
-    let initializers: OverloadSet?
+    /// What the type adds to its values and to itself: computed properties and their setters, methods,
+    /// initializers, statics and subscripts. A struct, an enum and an extension keep them the same way.
+    let members = TypeMembers()
     let memberwise: Function
     /// The protocols it declares: `struct Point: Equatable`.
     let conformances: [String]
-    /// `static let` and `static var`: declared, with their types once checked;
-    /// the stored ones' values are in `statics`.
-    let staticProperties: [PropertyDecl]
-    let staticComputed: [String: Function]
-    /// The setters of `static var`s that are computed.
-    var staticSetters: [String: Function] = [:]
-    let staticMethods: [String: OverloadSet]
-    var statics: [String: StaticValue] = [:]
-    /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
-    /// parameters are the getter's, then the new value).
-    var subscriptGetters: [Function] = []
-    var subscriptSetters: [Function?] = []
     /// `@dynamicMemberLookup`, which the checker reads.
     var isDynamicMemberLookup = false
-    /// What setting a computed property runs, with its value as the one parameter.
-    var setters: [String: Function] = [:]
     /// What runs before and after a stored property changes.
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
 
@@ -64,14 +49,45 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         self.name = name
         self.typeRef = .declare(name)
         self.conformances = conformances
-        self.staticProperties = staticProperties
-        self.staticComputed = staticComputed
-        self.staticMethods = staticMethods
         self.stored = stored
-        self.computed = computed
-        self.methods = methods
-        self.initializers = initializers
         self.memberwise = memberwise
+        members.computed = computed
+        members.methods = methods
+        members.initializers = initializers
+        members.staticProperties = staticProperties
+        members.staticComputed = staticComputed
+        members.staticMethods = staticMethods
+    }
+
+    // The member tables as the struct's own, for what has not moved to `members` yet.
+    var computed: [String: Function] { members.computed }
+    var methods: [String: OverloadSet] { members.methods }
+    var initializers: OverloadSet? { members.initializers }
+    var staticProperties: [PropertyDecl] { members.staticProperties }
+    var staticComputed: [String: Function] { members.staticComputed }
+    var staticMethods: [String: OverloadSet] { members.staticMethods }
+    /// What setting a computed property runs, with its value as the one parameter.
+    var setters: [String: Function] {
+        get { members.setters }
+        set { members.setters = newValue }
+    }
+    var staticSetters: [String: Function] {
+        get { members.staticSetters }
+        set { members.staticSetters = newValue }
+    }
+    var statics: [String: StaticValue] {
+        get { members.statics }
+        set { members.statics = newValue }
+    }
+    /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
+    /// parameters are the getter's, then the new value).
+    var subscriptGetters: [Function] {
+        get { members.subscriptGetters }
+        set { members.subscriptGetters = newValue }
+    }
+    var subscriptSetters: [Function?] {
+        get { members.subscriptSetters }
+        set { members.subscriptSetters = newValue }
     }
 
     func property(_ name: String) -> PropertyDecl? {

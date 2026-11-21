@@ -7,6 +7,8 @@ final class TypeMembers {
     var setters: [String: Function] = [:]
     var methods: [String: OverloadSet] = [:]
     var staticComputed: [String: Function] = [:]
+    /// The setters of `static var`s that are computed.
+    var staticSetters: [String: Function] = [:]
     var staticMethods: [String: OverloadSet] = [:]
     var statics: [String: StructType.StaticValue] = [:]
     var staticProperties: [PropertyDecl] = []
