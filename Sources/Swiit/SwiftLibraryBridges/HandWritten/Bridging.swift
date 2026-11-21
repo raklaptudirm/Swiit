@@ -1,9 +1,10 @@
 import Foundation
 
 extension Value {
-    /// What code that bridges a Swift module to scripts calls: the conversions a bridge generator's
-    /// output is made of. A Swift value in a script is a ``Value``, and a member written for a Swift
-    /// type unwraps its arguments with these and wraps its result.
+    /// The functions generated bridge code calls to convert between a ``Value`` and Swift types:
+    /// reading a list, dictionary, range or closure out of one, and wrapping a Swift result back into
+    /// one. They are public because the generated code is compiled in the client's module. Write
+    /// members with ``BridgedType`` or ``SymbolImplementation`` instead of calling these.
     public enum Bridging {}
 }
 
