@@ -49,7 +49,7 @@ do {
 guard arguments.count >= 3 else {
     FileHandle.standardError.write(
         Data(
-            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...] [--as-array <Type>...] [--host-protocol <Protocol>...] [--preconditions <file>]\n"
+            "usage: swiit-bridge <Module.symbols.json> <output.swift> [<Other@Module.symbols.json>...] [--manifest <file>] [--also <file>...] [--report <file>] --name <Name> --type <Type>... [--access <level>] [--in-module <Module>] [--boxed <Type>...] [--convertible <Type>...] [--function <name>...] [--rename Type.member=name...] [--import <Module>...] [--as-array <Type>...] [--preconditions <file>]\n"
                 .utf8
         )
     )
@@ -77,9 +77,6 @@ nonisolated(unsafe) var functionNames: [String] = []  // safe: the generator run
 /// of a found one, the public overloads.
 nonisolated(unsafe) var namedFunctions: Set<String> = []  // safe: the generator runs on one thread
 /// `--as-array <Type>`: lazy sequence types held as the array they give (`HeldSequences.swift`).
-/// `--host-protocol <Protocol>`: a protocol of the module that is for its host program, whose
-/// requirements a type meets with members scripts do not call.
-nonisolated(unsafe) var hostProtocolNames: [String] = []  // safe: the generator runs on one thread
 nonisolated(unsafe) var asArrayNames: [String] = []  // safe: the generator runs on one thread
 /// `--preconditions <file>`: when a member would trap, and what a script is told (`Preconditions.swift`).
 nonisolated(unsafe) var preconditionsPath: String?  // safe: the generator runs on one thread
@@ -115,8 +112,6 @@ do {
             convertibleNames.append(rest[i + 1]); i += 2
         case "--function" where i + 1 < rest.count: functionNames.append(rest[i + 1]); i += 2
         case "--as-array" where i + 1 < rest.count: asArrayNames.append(rest[i + 1]); i += 2
-        case "--host-protocol" where i + 1 < rest.count:
-            hostProtocolNames.append(rest[i + 1]); i += 2
         case "--preconditions" where i + 1 < rest.count:
             preconditionsPath = rest[i + 1]; i += 2
         case "--own-subscripts" where i + 1 < rest.count:
@@ -153,7 +148,6 @@ if let configurationPath {
     discoversByAccess = configuration.discover == "public"
     importNames += configuration.imports ?? []
     asArrayNames += configuration.asArray ?? []
-    hostProtocolNames += configuration.hostProtocols ?? []
     renames.merge(configuration.rename ?? [:]) { flag, _ in flag }
 }
 /// What the other platforms declare, by module: a member is bridged only if
@@ -269,17 +263,6 @@ let swiitOwn: [String: Set<String>] = [
     "Optional": ["description", "debugDescription"],
     "Dictionary": ["description", "debugDescription", "keys", "values"],
 ]
-
-/// The members that meet a requirement of a protocol of Swiit's own (`DynamicMembers`, `BridgedValue`):
-/// a default implementation the module gives its conforming types. They are how the module talks to
-/// the interpreter, not what a script calls, so they are not bridged.
-let hostInterfaceWitnesses = Set(
-    graph.relationships
-        .filter {
-            $0.kind == "defaultImplementationOf" && $0.targetFallback?.hasPrefix("Swiit.") == true
-        }
-        .map(\.source)
-)
 
 var typeIDs: [[String]: String] = [:]
 for symbol in graph.symbols
@@ -413,16 +396,6 @@ for (name, _) in bridgedTypeNames {
     // what there is (String's `reversed` gives a ReversedCollection, which
     // Swiit has no value for, but Sequence's gives an array).
     let path = name.split(separator: ".").map(String.init)
-    // What the type has to meet the requirements of the module's host protocols, which is how the
-    // module talks to its host program, not what a script calls.
-    let hostRequirements = Set(
-        graph.symbols
-            .filter {
-                $0.pathComponents.count == 2 && hostProtocolNames.contains($0.pathComponents[0])
-                    && owner.allConformances.contains($0.pathComponents[0])
-            }
-            .map { "\($0.kind.identifier)\t\($0.pathComponents[1])" }
-    )
     // A declaration written in terms of `Self` is a protocol's, which a newer graph lists under the
     // type too; the type's own, of the same shape, comes first and is the one that is kept.
     let ownSymbols = graph.symbols.filter { $0.pathComponents.dropLast() == path[...] }
@@ -470,12 +443,6 @@ for (name, _) in bridgedTypeNames {
         if symbol.kind.identifier == "swift.subscript" && ownSubscripts.contains(name) { continue }
         if isOperator && graph.module.name == "Swift" { continue }
         if swiitOwn[name]?.contains(title) ?? false { continue }
-        if hostInterfaceWitnesses.contains(symbol.identifier.precise)
-            || hostRequirements.contains("\(symbol.kind.identifier)\t\(title)")
-        {
-            skipped["host-interface", default: 0] += 1
-            continue
-        }
         // What this platform declares, whether or not the generator can bridge
         // it (a graph's shape differs by platform, and so does what can be made
         // of it, but a name and its labels are the same); and what's bridged

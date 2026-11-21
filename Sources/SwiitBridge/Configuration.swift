@@ -33,9 +33,6 @@ struct Configuration: Decodable {
     var imports: [String]?
     /// Lazy sequence types a member may give, held as the array they give.
     var asArray: [String]?
-    /// Protocols of the module that are for its host program and not for scripts (a table's
-    /// columns): the members of a type that meet their requirements are not bridged.
-    var hostProtocols: [String]?
 }
 
 /// The value after `flag` in `arguments`, and the arguments without the pair.
