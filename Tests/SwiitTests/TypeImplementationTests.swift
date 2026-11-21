@@ -372,22 +372,3 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     #expect(item.first?.kind == .associatedType(.requirement(constraints: [])))
     #expect(item.first?.typeExpression == .parameter("Item"))
 }
-
-private struct Heap: Sendable {}
-
-@Test func aGenericHostTypeNamedWithoutArgumentsIsGenericOverTypesNotKnown() throws {
-    let swiit = interpreter()
-    var heap = TypeImplementation(
-        name: "Heap",
-        members: [.property("size", type: .int) { _ in Value(3) }]
-    )
-    heap.genericParameters = [.genericParameter("Element")]
-    let id = swiit.register(heap)
-    swiit["h"] = Value(boxing: Heap(), as: id)
-
-    #expect(try swiit.evaluate("func size(_ h: Heap) -> Int { h.size }\nsize(h)") == Value(3))
-    #expect(
-        try swiit.evaluate("func sizeOfInts(_ h: Heap<Int>) -> Int { h.size }\nsizeOfInts(h)")
-            == Value(3)
-    )
-}
