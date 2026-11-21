@@ -78,8 +78,11 @@ extension Interpreter {
     /// type the core bridges are described the same way. Nil if no type has that name.
     public func declaration(ofType name: String) -> TypeDeclaration? {
         withMainTask {
-            if case .object(let type as StructType)? = lookup(name)?.value.storage {
-                return type.declaration
+            switch lookup(name)?.value.storage {
+            case .object(let type as StructType)?: return type.declaration
+            case .object(let type as Value.EnumCase.Enumeration)?:
+                if let enumType = enumTypes[ObjectIdentifier(type)] { return enumType.declaration }
+            default: break
             }
             if case .object(let type as any DeclaredType)? = lookup(name)?.value.storage {
                 var declaration = TypeDeclaration(symbol: typeSymbol(named: name, type))

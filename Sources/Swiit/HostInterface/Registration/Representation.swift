@@ -13,6 +13,9 @@ extension TypeImplementation {
         case held
         /// Stored properties in declaration order, held by value: a struct a program declares.
         case record
+        /// One of an enum's cases, with the values of its payload: an enum a program declares or a
+        /// host offers.
+        case enumeration
 
         /// Swift's name for the type, for the kinds the interpreter stores itself: `Array` for a list.
         var name: String? {
@@ -23,7 +26,7 @@ extension TypeImplementation {
             case .string: "String"
             case .list: "Array"
             case .dictionary: "Dictionary"
-            case .held, .record: nil
+            case .held, .record, .enumeration: nil
             }
         }
 
@@ -43,7 +46,7 @@ extension TypeImplementation {
             case .string: .string
             case .list: .list(.unknown)
             case .dictionary: .dictionary(.unknown, .unknown)
-            case .held, .record: nil
+            case .held, .record, .enumeration: nil
             }
         }
 
@@ -61,7 +64,7 @@ extension TypeImplementation {
         }
 
         /// The representation of the type a value with this storage is of, if the storage is one of
-        /// the encodings of a representation known so far. An enum, a class instance, a
+        /// the encodings of a representation known so far. A class instance, a class instance, a
         /// tuple, a function and nothing have none yet.
         init?(encoding storage: Value.Storage) {
             switch storage {
@@ -73,6 +76,7 @@ extension TypeImplementation {
             case .dictionary: self = .dictionary
             case .object(let object) where object is SwiftValue: self = .held
             case .structure: self = .record
+            case .enumValue: self = .enumeration
             default: return nil
             }
         }

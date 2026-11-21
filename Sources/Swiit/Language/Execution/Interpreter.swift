@@ -33,8 +33,8 @@ public final class Interpreter: @unchecked Sendable {
     /// The module a program's types are in, shown before their names where Swift shows it
     /// (`main.Point`).
     var moduleName = "main"
-    /// What each enum adds to its cases: computed properties, methods, and the static ones.
-    var enumMembers: [ObjectIdentifier: TypeMembers] = [:]
+    /// What each enum a program declares keeps beside its cases, by the enum's identity.
+    var enumTypes: [ObjectIdentifier: EnumType] = [:]
     /// The operators and precedence groups declared at the prompt, by what they declare, as source.
     var declaredOperators: [String: String] = [:]
     /// Instances released since a statement began, whose `deinit` runs at the next one.

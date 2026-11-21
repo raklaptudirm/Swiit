@@ -186,11 +186,21 @@ extension Interpreter {
         )
     }
 
-    /// Brings the stored declaration of a struct up to date with the protocols extensions have given it.
+    /// Brings the stored declaration of a struct or an enum up to date with the protocols extensions
+    /// have given it.
     func refreshDeclaration(ofTypeNamed name: String) {
-        guard case .object(let type as StructType)? = lookup(name)?.value.storage else { return }
-        for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
-            type.declaration.conformances[protocolName] = []
+        switch lookup(name)?.value.storage {
+        case .object(let type as StructType)?:
+            for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
+                type.declaration.conformances[protocolName] = []
+            }
+        case .object(let type as Value.EnumCase.Enumeration)?:
+            guard let enumType = enumTypes[ObjectIdentifier(type)] else { return }
+            for protocolName in conformances(ofTypeNamed: name, declared: type.conformances) {
+                enumType.declaration.conformances[protocolName] = []
+            }
+        default:
+            break
         }
     }
 

@@ -66,7 +66,7 @@ extension Interpreter {
             }
         case .enumValue(let enumValue):
             found +=
-                enumMembers[ObjectIdentifier(enumValue.type)]?.staticMethods[name]?.candidates ?? []
+                enumMembers(of: enumValue.type)?.staticMethods[name]?.candidates ?? []
         default:
             break
         }

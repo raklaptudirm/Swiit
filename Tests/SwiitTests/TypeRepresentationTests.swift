@@ -43,7 +43,7 @@ import Testing
     #expect(
         Set(samples.keys)
             == Set(TypeImplementation.Representation.allCases)
-            .subtracting([.held, .record])
+            .subtracting([.held, .record, .enumeration])
     )
 
     for (kind, sample) in samples {
@@ -62,6 +62,13 @@ import Testing
     #expect(pair.representation == .record)
     #expect(TypeImplementation.Representation.record.encodes(pair.storage))
     #expect(!TypeImplementation.Representation.record.encodes(Value.int(1).storage))
+
+    // An enum's values are one of its cases, and the type says so.
+    _ = try swiit.evaluate("enum Axis { case x, y }")
+    let axis = try swiit.evaluate("Axis.x")
+
+    #expect(axis.representation == .enumeration)
+    #expect(TypeImplementation.Representation.enumeration.encodes(axis.storage))
 
     // A held value is stored as the Swift value it is.
     let held = SwiftValue.make(Set<Value>(), as: "Set")

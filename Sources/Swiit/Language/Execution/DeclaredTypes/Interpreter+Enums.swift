@@ -64,14 +64,10 @@ extension Interpreter {
 
     /// An enum's computed properties and methods, and its static ones.
     private func declareMembers(of decl: EnumDecl, on type: Value.EnumCase.Enumeration) throws {
-        guard
-            !decl.properties.isEmpty || !decl.methods.isEmpty || !decl.staticProperties.isEmpty
-                || !decl.staticMethods.isEmpty
-                || !decl.initializers.isEmpty
-        else { return }
-        let members = TypeMembers()
+        let enumType = EnumType(type)
+        enumTypes[ObjectIdentifier(type)] = enumType
         try fill(
-            members,
+            enumType.members,
             of: decl.name,
             properties: decl.properties,
             methods: decl.methods,
@@ -80,7 +76,11 @@ extension Interpreter {
             initializers: decl.initializers,
             subscripts: []
         )
-        enumMembers[ObjectIdentifier(type)] = members
+    }
+
+    /// What an enum a program declared adds to its cases: nil for a host's enum, which adds nothing.
+    func enumMembers(of type: Value.EnumCase.Enumeration) -> TypeMembers? {
+        enumTypes[ObjectIdentifier(type)]?.members
     }
 
     /// `Direction(code: "N")`: through an `init` the enum declares, which sets `self` to a case.
@@ -113,7 +113,7 @@ extension Interpreter {
     /// A computed property of an enum's case, or a method as a function value; nil if there isn't
     /// one.
     func enumMember(_ name: String, of value: Value.EnumCase) throws -> Value? {
-        guard let members = enumMembers[ObjectIdentifier(value.type)] else { return nil }
+        guard let members = enumMembers(of: value.type) else { return nil }
         if let getter = members.computed[name] {
             return try invoke(
                 getter,
@@ -149,7 +149,7 @@ extension Interpreter {
 
     /// `Level.default`, `Level.make`: an enum's static member; nil if it has none by that name.
     func enumStaticMember(_ name: String, of type: Value.EnumCase.Enumeration) throws -> Value? {
-        guard let members = enumMembers[ObjectIdentifier(type)] else { return nil }
+        guard let members = enumMembers(of: type) else { return nil }
         if let getter = members.staticComputed[name] { return try invoke(getter, with: [:]) }
         if let slot = members.statics[name] { return slot.value }
         return members.staticMethods[name].map(Value.function)

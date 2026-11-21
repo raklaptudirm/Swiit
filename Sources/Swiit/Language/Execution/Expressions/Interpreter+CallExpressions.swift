@@ -154,7 +154,7 @@ extension Interpreter {
             }
             // `Level.make()`: a static method of an enum.
             if case .object(let type as Value.EnumCase.Enumeration) = base.storage,
-                let methods = enumMembers[ObjectIdentifier(type)]?.staticMethods[name]
+                let methods = enumMembers(of: type)?.staticMethods[name]
             {
                 return try callStatic(narrowed(methods, overload), arguments)
             }
@@ -170,7 +170,7 @@ extension Interpreter {
             }
             // `direction.opposite()`: an enum's method, with the case as `self`.
             if case .enumValue(let enumValue) = base.storage,
-                let methods = enumMembers[ObjectIdentifier(enumValue.type)]?.methods[name]
+                let methods = enumMembers(of: enumValue.type)?.methods[name]
             {
                 return try callMethod(
                     narrowed(methods, overload),
@@ -226,7 +226,7 @@ extension Interpreter {
         // `Level(rawValue: 2)`: the case with that raw value, or nil.
         if case .object(let type as Value.EnumCase.Enumeration) = value.storage {
             if !(arguments.count == 1 && arguments[0].label == "rawValue"),
-                let initializers = enumMembers[ObjectIdentifier(type)]?.initializers
+                let initializers = enumMembers(of: type)?.initializers
             {
                 return try constructEnum(type, initializers, arguments, overload: overload)
             }

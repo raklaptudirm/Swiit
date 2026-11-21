@@ -195,7 +195,7 @@ extension TypeChecker {
         // What a script's enum declares, or what a host's conforms to in Swift.
         profile.conformances = type.conformances
         profile.typeParameters = type.typeParameters
-        if let members = interpreter.enumMembers[ObjectIdentifier(type)] {
+        if let members = interpreter.enumMembers(of: type) {
             func signatures(_ sets: [String: OverloadSet]) -> [String: [Signature]] {
                 sets.mapValues { set in
                     set.candidates.enumerated()

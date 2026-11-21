@@ -355,6 +355,18 @@ private struct Point: Encodable { var x: Int }
     #expect(declared.conformances.keys.contains("Equatable"))
 }
 
+@Test func anEnumsDeclarationNamesAConformanceAnExtensionGaveIt() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("enum Axis { case x, y }")
+    #expect(try #require(swiit.declaration(ofType: "Axis")).symbol.kind == .type(.enumeration))
+    #expect(try #require(swiit.declaration(ofType: "Axis")).conformances.isEmpty)
+
+    _ = try swiit.evaluate("extension Axis: Hashable {}")
+
+    let declared = try #require(swiit.declaration(ofType: "Axis"))
+    #expect(declared.conformances.keys.contains("Hashable"))
+}
+
 @Test func aTypeParameterIsASymbolOfItsOwnKind() {
     let element = Symbol.genericParameter("T", constraints: [.comparable])
 
