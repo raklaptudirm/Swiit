@@ -355,12 +355,12 @@ func bridge(
     if declaration.isAsync {
         if declaration.isMutating { throw Unsupported(reason: "async mutating") }
         body =
-            "return try Value.Bridging.awaiting(interpreter) { () async throws -> Value in\n\(body)\n                }"
+            "return try Value.Bridging.awaiting(in: interpreter) { () async throws -> Value in\n\(body)\n                }"
     }
     // A key path reads fields as the host reads them, for as long as the call.
     if parameters.contains(where: { typeExpression($0.1).hasPrefix(".named(.keyPath") }) {
         body =
-            "return try Value.Bridging.withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
+            "return try Value.Bridging.withFieldReader(in: interpreter) { () throws -> Value in\n\(body)\n                }"
     }
     let code = describedMember(
         declaration,

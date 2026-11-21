@@ -75,9 +75,9 @@ import Testing
         "let swapped: (inout Int, Int, inout Int) -> Int = { let t = $0; $0 = $2; $2 = t; return $1 }; swapped"
     )
     let outcome = try Value.Bridging.changing(
-        swiit,
         function,
-        [Value(integerLiteral: 1), Value(integerLiteral: 2), Value(integerLiteral: 3)],
+        in: swiit,
+        with: [Value(integerLiteral: 1), Value(integerLiteral: 2), Value(integerLiteral: 3)],
         at: [0, 2]
     )
     #expect(outcome.result.description == "2")

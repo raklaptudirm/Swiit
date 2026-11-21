@@ -32,7 +32,7 @@ private final class Node: BridgedValue, CustomStringConvertible, @unchecked Send
     func shout() -> String { label.uppercased() }
 
     static let typeRef = TypeRef(nativeType: "Node")
-    static let type = BridgedType<Node>("Node")
+    static let type = BridgedType<Node>(named: "Node")
         .property("label", \.label)
         .method("shout", Node.shout)
 }
@@ -195,7 +195,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 @Test func aComparableNativeTypeNeedsNoOperatorsOfItsOwn() throws {
     let swiit = interpreter()
     swiit.register(
-        BridgedType<Bytes>("Bytes")
+        BridgedType<Bytes>(named: "Bytes")
             .initializer(labels: ["count"]) { (count: Int) in Bytes(count: count) }
             .failableInitializer { (text: String) in Int(text).map { Bytes(count: $0) } }
     )
@@ -220,7 +220,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     }
     let swiit = interpreter()
     swiit.register(
-        BridgedType<Lines>("Lines")
+        BridgedType<Lines>(named: "Lines")
             .initializer(labels: ["lines"]) { (lines: [String]) in Lines(lines: lines) }
     )
     #expect(try swiit.evaluate(#"Lines(lines: ["b", "a"]).sorted()"#) == ["a", "b"])
@@ -248,7 +248,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     static func bytesType() -> BridgedType<Bytes> {
         let bytes = TypeRef(nativeType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
-        return BridgedType<Bytes>("Bytes")
+        return BridgedType<Bytes>(named: "Bytes")
             .member(
                 .initializer(
                     parameters: [.init(label: "count", name: "count", type: Int.self)],
@@ -378,7 +378,7 @@ private struct Hamper: Sendable { var size = 3 }
 @Test func aBuilderMakesATypeGenericOverTheParametersNamed() throws {
     let swiit = interpreter()
     let id = swiit.register(
-        BridgedType<Hamper>("Hamper").generic(over: "Item").property("size", \.size)
+        BridgedType<Hamper>(named: "Hamper").generic(over: "Item").property("size", \.size)
     )
     swiit["crate"] = Value(boxing: Hamper(), as: id)
 

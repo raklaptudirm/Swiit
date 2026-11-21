@@ -266,7 +266,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
 @Test func aMutatingMemberChangesItsReceiverInPlaceAndGivesItsResult() throws {
     let swiit = interpreter()
     swiit.register(
-        BridgedType<ContractTally>("ContractTally")
+        BridgedType<ContractTally>(named: "ContractTally")
             .member(
                 .initializer(returns: .named(TypeRef(nativeType: "ContractTally"))) { _ in
                     Value(ContractTally(n: 0))

@@ -24,7 +24,7 @@ extension Value.Bridging {
     /// host reads them; the first failure (a field that isn't there) is thrown
     /// after it, since a key path can't throw.
     public static func withFieldReader<T>(
-        _ interpreter: Interpreter,
+        in interpreter: Interpreter,
         _ body: () throws -> T
     ) throws -> T {
         var failure: Error?
@@ -110,7 +110,7 @@ extension Value.Bridging {
     /// A tuple's elements, by label or position, made into a Swift tuple.
     public static func tuple<T>(
         _ value: Value,
-        _ labels: [String?],
+        labels: [String?],
         _ make: ([Value]) throws -> T
     ) throws -> T {
         guard let record = value.record, record.typeName == nil, record.count == labels.count
@@ -203,8 +203,8 @@ extension Value.Bridging {
     }
 
     public static func closure(
-        _ interpreter: Interpreter,
-        _ function: Value
+        for function: Value,
+        in interpreter: Interpreter
     ) -> ([Value]) throws -> Value {
         { arguments in try interpreter.call(function, with: arguments) }
     }
@@ -218,11 +218,11 @@ extension Value.Bridging {
     /// Calls a script closure that changes some of its arguments in place (Swift's `inout`): what
     /// it gave back, and the value it left in each argument at `positions`, in that order. A
     /// bridged closure of `(inout Result, Element) -> ()` is
-    /// `result = try changing(interpreter, closure, [result, element], at: [0]).changed[0]`.
+    /// `result = try changing(closure, in: interpreter, with: [result, element], at: [0]).changed[0]`.
     public static func changing(
-        _ interpreter: Interpreter,
         _ function: Value,
-        _ arguments: [Value],
+        in interpreter: Interpreter,
+        with arguments: [Value],
         at positions: [Int]
     ) throws -> (result: Value, changed: [Value]) {
         try interpreter.callChanging(function, arguments, at: positions)
@@ -231,7 +231,7 @@ extension Value.Bridging {
     /// Runs Swift's `operation` to its end, letting other tasks run meanwhile;
     /// cancelling the task cancels it.
     public static func awaiting(
-        _ interpreter: Interpreter,
+        in interpreter: Interpreter,
         _ operation: @escaping () async throws -> Value
     ) throws -> Value {
         // Set by the operation's task, read by this thread once it's set.
@@ -269,8 +269,8 @@ extension Value.Bridging {
     /// A Swiit closure as Swift's `async` one: each call runs it holding the lock,
     /// as the task that passed it, which is waiting in `bridgeAsync` meanwhile.
     public static func asyncClosure(
-        _ interpreter: Interpreter,
-        _ function: Value
+        for function: Value,
+        in interpreter: Interpreter
     ) -> ([Value]) async throws -> Value {
         // safe: runs holding the interpreter lock
         nonisolated(unsafe) let interpreter = interpreter

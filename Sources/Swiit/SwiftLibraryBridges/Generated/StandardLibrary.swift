@@ -407,7 +407,7 @@ let receiver: String = try String(selfValue)
     private static let member51: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
+                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return Value(list: result)
 }
 
@@ -422,7 +422,7 @@ let receiver: String = try String(selfValue)
     private static let member53: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -437,7 +437,7 @@ let receiver: String = try String(selfValue)
     private static let member55: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -470,7 +470,7 @@ let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
+                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
@@ -501,21 +501,21 @@ let receiver: String = try String(selfValue)
     private static let member63: ImplementedSymbol = ImplementedSymbol.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
     private static let member64: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member65: ImplementedSymbol = ImplementedSymbol.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
@@ -582,7 +582,7 @@ let taken = selfValue
     private static let member73: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns a new collection of the same type containing, in order, the elements of the original collection that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -592,35 +592,35 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
     private static let member75: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
+                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return .nothing
 }
 
     private static let member76: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member77: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member78: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
@@ -639,7 +639,7 @@ let receiver: String = try String(selfValue)
     private static let member81: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
@@ -652,7 +652,7 @@ let receiver: String = try String(selfValue)
     private static let member83: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
@@ -665,7 +665,7 @@ let receiver: String = try String(selfValue)
     private static let member85: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -678,14 +678,14 @@ let receiver: String = try String(selfValue)
     private static let member87: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
     private static let member88: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -698,14 +698,14 @@ let receiver: String = try String(selfValue)
     private static let member90: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
     private static let member91: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
                 return result
 }
 
@@ -713,7 +713,7 @@ let receiver: String = try String(selfValue)
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -722,14 +722,14 @@ a0 = outcome.changed[0]
     private static let member93: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(list: result)
 }
 
     private static let member94: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
                 return Value(list: result)
 }
 
@@ -742,7 +742,7 @@ let receiver: String = try String(selfValue)
     private static let member96: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
@@ -773,7 +773,7 @@ let receiver: String = try String(selfValue)
     private static let member101: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: String = try String(selfValue)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -783,7 +783,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: String = try String(consume taken)
                 defer { selfValue = receiver.value }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
@@ -1071,7 +1071,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member142: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .string, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.filter({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -1126,7 +1126,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member150: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
+                let result: [Value] = try receiver.map({ (a0: Character) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return Value(list: result)
 }
 
@@ -1141,7 +1141,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member152: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.drop(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -1156,7 +1156,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member154: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.prefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -1189,7 +1189,7 @@ let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
+                let whereSeparator = { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Substring] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Substring")) })
@@ -1220,21 +1220,21 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member162: ImplementedSymbol = ImplementedSymbol.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.firstIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
     private static let member163: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.last(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member164: ImplementedSymbol = ImplementedSymbol.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "String.Index"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.lastIndex(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "String.Index")) } ?? .nothing)
 }
 
@@ -1355,35 +1355,35 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
-                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                try receiver.removeAll(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
     private static let member178: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
+                try receiver.forEach({ (a0: Character) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))]) })
                 return .nothing
 }
 
     private static let member179: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.first(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member180: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.min(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
     private static let member181: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.max(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return (result.map { Value(boxing: $0, as: .init(nativeType: "Character")) } ?? .nothing)
 }
 
@@ -1402,7 +1402,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member184: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
@@ -1415,7 +1415,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member186: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.named(.init(nativeType: "Character")), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Character, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), a1])) })
                 return result.value
 }
 
@@ -1428,7 +1428,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member188: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.named(.init(nativeType: "Character"))])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try $0.unboxing(Character.self) }, by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -1441,14 +1441,14 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member190: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.contains(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
     private static let member191: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.allSatisfy({ (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
@@ -1461,14 +1461,14 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member193: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.count(where: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return result.value
 }
 
     private static let member194: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .named(.init(nativeType: "Character"))], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Character) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, Value(boxing: a1, as: .init(nativeType: "Character"))]) })
                 return result
 }
 
@@ -1476,7 +1476,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Character) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, Value(boxing: a1, as: .init(nativeType: "Character"))], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -1485,14 +1485,14 @@ a0 = outcome.changed[0]
     private static let member196: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Character) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(list: result)
 }
 
     private static let member197: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Character) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) { $0 } })
                 return Value(list: result)
 }
 
@@ -1505,7 +1505,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member199: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.named(.init(nativeType: "Character")), .named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.named(.init(nativeType: "Character"))), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
+                let result: [Character] = try receiver.sorted(by: { (a0: Character, a1: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character")), Value(boxing: a1, as: .init(nativeType: "Character"))])) })
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "Character")) })
 }
 
@@ -1548,7 +1548,7 @@ let receiver: Substring = try selfValue.unboxing(Substring.self)
     private static let member206: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.named(.init(nativeType: "Character"))], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Substring")), throwing: .rethrowing, isAsync: false, generics: [])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Substring = try selfValue.unboxing(Substring.self)
-                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return Value(boxing: result, as: .init(nativeType: "Substring"))
 }
 
@@ -1558,7 +1558,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: Substring = try (consume taken).unboxing(Substring.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "Substring")) }
-                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
+                try receiver.trimPrefix(while: { (a0: Character) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value(boxing: a0, as: .init(nativeType: "Character"))])) })
                 return .nothing
 }
 
@@ -2647,7 +2647,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member382: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: result)
 }
 
@@ -2670,7 +2670,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member385: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return Value(list: result)
 }
 
@@ -2685,7 +2685,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member387: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -2700,7 +2700,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member389: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -2733,7 +2733,7 @@ let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0])) }
+                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([a0])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
@@ -2748,21 +2748,21 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member395: ImplementedSymbol = ImplementedSymbol.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member396: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member397: ImplementedSymbol = ImplementedSymbol.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -2772,7 +2772,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
                 defer { selfValue = Value(list: receiver) }
-                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
@@ -2859,84 +2859,84 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
                 defer { selfValue = Value(list: receiver) }
-                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return .nothing
 }
 
     private static let member408: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return .nothing
 }
 
     private static let member409: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member410: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member411: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member412: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member413: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member414: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member415: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member416: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member417: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member418: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .parameter("Element")], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return result
 }
 
@@ -2944,7 +2944,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, a1], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, a1], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -2953,21 +2953,21 @@ a0 = outcome.changed[0]
     private static let member420: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: result)
 }
 
     private static let member421: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) { $0 } })
                 return Value(list: result)
 }
 
     private static let member422: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return Value(list: result)
 }
 
@@ -2977,7 +2977,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
                 defer { selfValue = Value(list: receiver) }
-                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return .nothing
 }
 
@@ -3066,7 +3066,7 @@ let receiver: [Value] = try Value.Bridging.list(selfValue)
     private static let member437: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value] = try Value.Bridging.list(selfValue)
-                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -3076,7 +3076,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value] = try Value.Bridging.list(consume taken)
                 defer { selfValue = Value(list: receiver) }
-                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return .nothing
 }
 
@@ -3341,7 +3341,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member474: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result: [Value] = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: result)
 }
 
@@ -3364,7 +3364,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member477: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return Value(list: result)
 }
 
@@ -3379,7 +3379,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member479: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -3394,7 +3394,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member481: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -3427,7 +3427,7 @@ let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0])) }
+                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([a0])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [ArraySlice<Value>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(boxing: $0, as: .init(nativeType: "ArraySlice")) })
@@ -3442,21 +3442,21 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member487: ImplementedSymbol = ImplementedSymbol.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.firstIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member488: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.last(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member489: ImplementedSymbol = ImplementedSymbol.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.lastIndex(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -3466,7 +3466,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
-                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.partition(by: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
@@ -3545,84 +3545,84 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
-                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                try receiver.removeAll(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return .nothing
 }
 
     private static let member499: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return .nothing
 }
 
     private static let member500: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member501: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member502: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member503: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member504: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member505: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member506: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member507: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member508: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member509: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .parameter("Element")], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return result
 }
 
@@ -3630,7 +3630,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, a1], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, a1], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -3639,21 +3639,21 @@ a0 = outcome.changed[0]
     private static let member511: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: result)
 }
 
     private static let member512: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) { $0 } })
                 return Value(list: result)
 }
 
     private static let member513: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return Value(list: result)
 }
 
@@ -3663,7 +3663,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
-                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                try receiver.sort(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return .nothing
 }
 
@@ -3752,7 +3752,7 @@ let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
     private static let member528: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "ArraySlice"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ArraySlice<Value> = try selfValue.unboxing(ArraySlice<Value>.self)
-                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "ArraySlice"))
 }
 
@@ -3762,7 +3762,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: ArraySlice<Value> = try (consume taken).unboxing(ArraySlice<Value>.self)
                 defer { selfValue = Value(boxing: receiver, as: .init(nativeType: "ArraySlice")) }
-                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                try receiver.trimPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return .nothing
 }
 
@@ -3829,7 +3829,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member539: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns a new set containing the elements of the set that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Set"), [.parameter("Element")]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.filter({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(boxing: result, as: .init(nativeType: "Set"))
 }
 
@@ -4089,7 +4089,7 @@ let taken = selfValue
     private static let member576: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                let result: [Value] = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return Value(list: result)
 }
 
@@ -4112,7 +4112,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member579: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.drop(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: Array(result))
 }
 
@@ -4127,7 +4127,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member581: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.prefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: Array(result))
 }
 
@@ -4144,7 +4144,7 @@ let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0])) }
+                let whereSeparator = { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([a0])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(list: Array($0)) })
@@ -4169,35 +4169,35 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member586: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.parameter("Element")], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                try receiver.forEach({ (a0: Value) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return .nothing
 }
 
     private static let member587: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.first(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member588: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.min(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member589: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result = try receiver.max(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member590: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
@@ -4210,7 +4210,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member592: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.parameter("Element"), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
@@ -4223,35 +4223,35 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member594: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("Element")])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0, a1])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]), by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1])) })
                 return result.value
 }
 
     private static let member595: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.contains(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member596: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.allSatisfy({ (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member597: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.count(where: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return result.value
 }
 
     private static let member598: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .parameter("Element")], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return result
 }
 
@@ -4259,7 +4259,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Value) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, a1], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, a1], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -4274,21 +4274,21 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member601: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Value) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: result)
 }
 
     private static let member602: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Element")], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element"), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) { $0 } })
                 return Value(list: result)
 }
 
     private static let member603: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.parameter("Element"), .parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0, a1])) })
+                let result: [Value] = try receiver.sorted(by: { (a0: Value, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0, a1])) })
                 return Value(list: result)
 }
 
@@ -4331,7 +4331,7 @@ let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
     private static let member610: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.parameter("Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.parameter("Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Set<Value> = try selfValue.unboxing(Set<Value>.self)
-                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) })
                 return Value(list: Array(result))
 }
 
@@ -4377,20 +4377,20 @@ let result = [Value: Value](minimumCapacity: try Int(arguments[0]))
 }
 
     private static let member618: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uniqueKeysWithValues", name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])]))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .no, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
-let result = [Value: Value](uniqueKeysWithValues: try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } })
+let result = [Value: Value](uniqueKeysWithValues: try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, labels: [nil, nil]) { t in (t[0], t[1]) } })
                 return Value.Bridging.dictionary(result)
 }
 
     private static let member619: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates a new dictionary from the key-value pairs in the given sequence, using a combining closure to determine the value for any duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "keysAndValues", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { arguments in
 let interpreter = Interpreter.running!
-let result = try [Value: Value](try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+let result = try [Value: Value](try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, labels: [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
     private static let member620: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns a new dictionary containing the key-value pairs of the dictionary that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.filter({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value.Bridging.dictionary(result)
 }
 
@@ -4415,14 +4415,14 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member624: ImplementedSymbol = ImplementedSymbol.method("mapValues", summary: "Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.mapValues({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                let result = try receiver.mapValues({ (a0: Value) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return Value.Bridging.dictionary(result)
 }
 
     private static let member625: ImplementedSymbol = ImplementedSymbol.method("compactMapValues", summary: "Returns a new dictionary containing only the key-value pairs that have non-`nil` values as the result of transformation by the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Value")], returns: .optional(.parameter("T")), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.compactMapValues({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
+                let result = try receiver.compactMapValues({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) { $0 } })
                 return Value.Bridging.dictionary(result)
 }
 
@@ -4441,7 +4441,7 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
                 defer { selfValue = Value.Bridging.dictionary(receiver) }
-                try receiver.merge(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                try receiver.merge(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, labels: [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return .nothing
 }
 
@@ -4451,21 +4451,21 @@ let taken = selfValue
                 selfValue = .nothing
                 var receiver: [Value: Value] = try Value.Bridging.dictionary(consume taken)
                 defer { selfValue = Value.Bridging.dictionary(receiver) }
-                try receiver.merge(try Value.Bridging.dictionary(arguments[0]), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                try receiver.merge(try Value.Bridging.dictionary(arguments[0]), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return .nothing
 }
 
     private static let member629: ImplementedSymbol = ImplementedSymbol.method("merging", summary: "Creates a dictionary by merging key-value pairs in a sequence into the dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: nil, type: .parameter("Key")), .init(label: nil, type: .parameter("Value"))])])), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.merging(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                let result = try receiver.merging(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, labels: [nil, nil]) { t in (t[0], t[1]) } }, uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
     private static let member630: ImplementedSymbol = ImplementedSymbol.method("merging", summary: "Creates a dictionary by merging the given dictionary into this dictionary, using a combining closure to determine the value for duplicate keys.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .dictionary(.parameter("Key"), .parameter("Value"))), Symbol.Parameter(label: "uniquingKeysWith", name: "combine", type: .function(parameters: [.parameter("Value"), .parameter("Value")], returns: .parameter("Value"), isThrowing: true, isAsync: false))], returns: .dictionary(.parameter("Key"), .parameter("Value")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key", constraints: [.conforms(to: .named(.init(nativeType: "Hashable")))]), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.merging(try Value.Bridging.dictionary(arguments[0]), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1]) })
+                let result = try receiver.merging(try Value.Bridging.dictionary(arguments[0]), uniquingKeysWith: { (a0: Value, a1: Value) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1]) })
                 return Value.Bridging.dictionary(result)
 }
 
@@ -4522,7 +4522,7 @@ let taken = selfValue
     private static let member637: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("T"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result: [Value] = try receiver.map({ (a0: (key: Value, value: Value)) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }]) })
+                let result: [Value] = try receiver.map({ (a0: (key: Value, value: Value)) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }]) })
                 return Value(list: result)
 }
 
@@ -4545,7 +4545,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member640: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.drop(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.drop(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } })
 }
 
@@ -4560,7 +4560,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member642: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.prefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.prefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } })
 }
 
@@ -4577,7 +4577,7 @@ let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) }
+                let whereSeparator = { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(list: Array($0).map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } }) })
@@ -4592,77 +4592,77 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member646: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                try receiver.forEach({ (a0: (key: Value, value: Value)) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }]) })
+                try receiver.forEach({ (a0: (key: Value, value: Value)) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }]) })
                 return .nothing
 }
 
     private static let member647: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.first(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.first(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
 }
 
     private static let member648: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.min(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.min(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
 }
 
     private static let member649: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.max(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.max(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return (result.map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } } ?? .nothing)
 }
 
     private static let member650: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("PossiblePrefix.Element"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
                 return result.value
 }
 
     private static let member651: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("OtherSequence.Element"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: (key: Value, value: Value), a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, a1])) })
                 return result.value
 }
 
     private static let member652: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, ["key", "value"]) { t in (key: t[0], value: t[1]) } }, by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Value.Bridging.tuple($0, labels: ["key", "value"]) { t in (key: t[0], value: t[1]) } }, by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return result.value
 }
 
     private static let member653: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.contains(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.contains(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return result.value
 }
 
     private static let member654: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.allSatisfy({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.allSatisfy({ (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return result.value
 }
 
     private static let member655: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.count(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.count(where: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return result.value
 }
 
     private static let member656: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Result"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: (key: Value, value: Value)) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: (key: Value, value: Value)) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }]) })
                 return result
 }
 
@@ -4670,7 +4670,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: (key: Value, value: Value)) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -4685,21 +4685,21 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member659: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("SegmentOfResult.Element"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result: [Value] = try receiver.flatMap({ (a0: (key: Value, value: Value)) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result: [Value] = try receiver.flatMap({ (a0: (key: Value, value: Value)) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value(list: result)
 }
 
     private static let member660: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("ElementOfResult"), .genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result: [Value] = try receiver.compactMap({ (a0: (key: Value, value: Value)) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: (key: Value, value: Value)) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) { $0 } })
                 return Value(list: result)
 }
 
     private static let member661: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))]), .tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result: [(key: Value, value: Value)] = try receiver.sorted(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result: [(key: Value, value: Value)] = try receiver.sorted(by: { (a0: (key: Value, value: Value), a1: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }, Value.Bridging.tuple(a1) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value(list: result.map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } })
 }
 
@@ -4718,7 +4718,7 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     private static let member664: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.tuple([.init(label: "key", type: .parameter("Key")), .init(label: "value", type: .parameter("Value"))])), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Key"), .genericParameter("Value")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
-                let result = try receiver.trimmingPrefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: (key: Value, value: Value)) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([Value.Bridging.tuple(a0) { t in [("key", t.0), ("value", t.1)] }])) })
                 return Value(list: Array(result).map { Value.Bridging.tuple($0) { t in [("key", t.0), ("value", t.1)] } })
 }
 
@@ -4730,21 +4730,21 @@ let receiver: [Value: Value] = try Value.Bridging.dictionary(selfValue)
     }()
 
     private static let member666: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates an instance initialized with `nil`.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "nilLiteral", name: "nilLiteral", type: .void)], returns: .optional(.parameter("Wrapped")), throwing: .no, isAsync: false, generics: [.genericParameter("Wrapped")])) { arguments in
-let result = Value?(nilLiteral: try Value.Bridging.tuple(arguments[0], []) { t in () })
+let result = Value?(nilLiteral: try Value.Bridging.tuple(arguments[0], labels: []) { t in () })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member667: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Wrapped")], returns: .parameter("U"), isThrowing: true, isAsync: false))], returns: .optional(.parameter("U")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("U"), .genericParameter("Wrapped")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Value? = (selfValue == .nothing ? nil : selfValue)
-                let result = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0]) })
+                let result = try receiver.map({ (a0: Value) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0]) })
                 return (result.map { $0 } ?? .nothing)
 }
 
     private static let member668: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Evaluates the given closure when this `Optional` instance is not `nil`, passing the unwrapped value as a parameter.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.parameter("Wrapped")], returns: .optional(.parameter("U")), isThrowing: true, isAsync: false))], returns: .optional(.parameter("U")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("U"), .genericParameter("Wrapped")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Value? = (selfValue == .nothing ? nil : selfValue)
-                let result = try receiver.flatMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0])) { $0 } })
+                let result = try receiver.flatMap({ (a0: Value) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0])) { $0 } })
                 return (result.map { $0 } ?? .nothing)
 }
 
@@ -4789,7 +4789,7 @@ let receiver: Range<Value> = try selfValue.unboxing(Range<Value>.self)
 })
 
     private static let member675: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(nativeType: "Range"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { arguments in
-let result = Range<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
+let result = Range<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], labels: ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
                 return Value(boxing: result, as: .init(nativeType: "Range"))
 }
 
@@ -4963,7 +4963,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member701: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
+                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value]) })
                 return Value(list: result)
 }
 
@@ -4978,7 +4978,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member703: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
@@ -4993,7 +4993,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member705: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
@@ -5026,7 +5026,7 @@ let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0.value])) }
+                let whereSeparator = { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([a0.value])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result: [Range<Int>] = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value.Bridging.box($0, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) } })
@@ -5057,21 +5057,21 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member713: ImplementedSymbol = ImplementedSymbol.method("firstIndex", summary: "Returns the first index in which an element of the collection satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.firstIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.firstIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member714: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member715: ImplementedSymbol = ImplementedSymbol.method("lastIndex", summary: "Returns the index of the last element in the collection that matches the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.lastIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.lastIndex(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5102,21 +5102,21 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member720: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: result.map { $0.value })
 }
 
     private static let member721: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
+                try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value]) })
                 return .nothing
 }
 
     private static let member722: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5129,14 +5129,14 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member724: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member725: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5155,7 +5155,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member728: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1])) })
                 return result.value
 }
 
@@ -5168,7 +5168,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member730: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1])) })
                 return result.value
 }
 
@@ -5181,7 +5181,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member732: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1.value])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1.value])) })
                 return result.value
 }
 
@@ -5194,28 +5194,28 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member734: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member735: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member736: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member737: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1.value]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1.value]) })
                 return result
 }
 
@@ -5223,7 +5223,7 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, a1.value], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, a1.value], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -5232,14 +5232,14 @@ a0 = outcome.changed[0]
     private static let member739: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: result)
 }
 
     private static let member740: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) { $0 } })
                 return Value(list: result)
 }
 
@@ -5252,14 +5252,14 @@ let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
     private static let member742: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return Value(list: result.map { $0.value })
 }
 
     private static let member743: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .named(.init(nativeType: "Range"), [.int]), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: Range<Int> = try Value.Bridging.range(selfValue) { try Int($0) }
-                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value.Bridging.box(result, as: .init(nativeType: "Range")) { r in Range<Value>(uncheckedBounds: (lower: r.lowerBound.value, upper: r.upperBound.value)) }
 }
 
@@ -5289,7 +5289,7 @@ let receiver: ClosedRange<Value> = try selfValue.unboxing(ClosedRange<Value>.sel
 })
 
     private static let member748: ImplementedSymbol = ImplementedSymbol.initializer(summary: "Creates an instance with the given bounds.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "uncheckedBounds", name: "bounds", type: .tuple([.init(label: "lower", type: .parameter("Bound")), .init(label: "upper", type: .parameter("Bound"))]))], returns: .named(.init(nativeType: "ClosedRange"), [.parameter("Bound")]), throwing: .no, isAsync: false, generics: [.genericParameter("Bound", constraints: [.conforms(to: .named(.init(nativeType: "Comparable")))])])) { arguments in
-let result = ClosedRange<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
+let result = ClosedRange<Value>(uncheckedBounds: try Value.Bridging.tuple(arguments[0], labels: ["lower", "upper"]) { t in (lower: t[0], upper: t[1]) })
                 return Value(boxing: result, as: .init(nativeType: "ClosedRange"))
 }
 
@@ -5401,7 +5401,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member766: ImplementedSymbol = ImplementedSymbol.method("map", summary: "Returns an array containing the results of mapping the given closure over the sequence's elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .parameter("T"), isThrowing: true, isAsync: false))], returns: .list(.parameter("T")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("T")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
+                let result: [Value] = try receiver.map({ (a0: Int) throws -> Value in try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value]) })
                 return Value(list: result)
 }
 
@@ -5416,7 +5416,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member768: ImplementedSymbol = ImplementedSymbol.method("drop", summary: "Returns a subsequence by skipping elements while `predicate` returns `true` and returning the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.drop(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 
@@ -5431,7 +5431,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member770: ImplementedSymbol = ImplementedSymbol.method("prefix", summary: "Returns a subsequence containing the initial elements until `predicate` returns `false` and skipping the remaining elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.prefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 
@@ -5440,7 +5440,7 @@ let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let maxSplits = (arguments[0] == .nothing ? Int.max : try Int(arguments[0]))
                 let omittingEmptySubsequences = try Bool(arguments[1])
-                let whereSeparator = { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[2])([a0.value])) }
+                let whereSeparator = { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[2], in: interpreter)([a0.value])) }
                 try Value.Bridging.require(!(maxSplits < 0), "maxSplits can't be negative: \(maxSplits)")
                 let result = try receiver.split(maxSplits: maxSplits, omittingEmptySubsequences: omittingEmptySubsequences, whereSeparator: whereSeparator)
                 return Value(list: result.map { Value(list: Array($0).map { $0.value }) })
@@ -5465,7 +5465,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member774: ImplementedSymbol = ImplementedSymbol.method("last", summary: "Returns the last element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.last(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5490,21 +5490,21 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member778: ImplementedSymbol = ImplementedSymbol.method("filter", summary: "Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "isIncluded", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result: [Int] = try receiver.filter({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: result.map { $0.value })
 }
 
     private static let member779: ImplementedSymbol = ImplementedSymbol.method("forEach", summary: "Calls the given closure on each element in the sequence in the same order as a `for`-`in` loop.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "body", type: .function(parameters: [.int], returns: .void, isThrowing: true, isAsync: false))], returns: .void, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(interpreter, arguments[0])([a0.value]) })
+                try receiver.forEach({ (a0: Int) throws -> Void in _ = try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value]) })
                 return .nothing
 }
 
     private static let member780: ImplementedSymbol = ImplementedSymbol.method("first", summary: "Returns the first element of the sequence that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.first(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5517,14 +5517,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member782: ImplementedSymbol = ImplementedSymbol.method("min", summary: "Returns the minimum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result = try receiver.min(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
     private static let member783: ImplementedSymbol = ImplementedSymbol.method("max", summary: "Returns the maximum element in the sequence, using the given predicate as the comparison between elements.", attributes: [Symbol.Attribute(name: "warn_unqualified_access")], signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .optional(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result = try receiver.max(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return (result.map { $0.value } ?? .nothing)
 }
 
@@ -5543,7 +5543,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member786: ImplementedSymbol = ImplementedSymbol.method("starts", summary: "Returns a Boolean value indicating whether the initial elements of the sequence are equivalent to the elements in another sequence, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "with", name: "possiblePrefix", type: .named(.sequence, [.parameter("PossiblePrefix.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("PossiblePrefix.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("PossiblePrefix.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
+                let result = try receiver.starts(with: try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1])) })
                 return result.value
 }
 
@@ -5556,7 +5556,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member788: ImplementedSymbol = ImplementedSymbol.method("elementsEqual", summary: "Returns a Boolean value indicating whether this sequence and another sequence contain equivalent elements in the same order, using the given predicate as the equivalence test.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.parameter("OtherSequence.Element")])), Symbol.Parameter(label: "by", name: "areEquivalent", type: .function(parameters: [.int, .parameter("OtherSequence.Element")], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("OtherSequence.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1])) })
+                let result = try receiver.elementsEqual(try Value.Bridging.sequence(arguments[0]), by: { (a0: Int, a1: Value) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1])) })
                 return result.value
 }
 
@@ -5569,7 +5569,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member790: ImplementedSymbol = ImplementedSymbol.method("lexicographicallyPrecedes", summary: "Returns a Boolean value indicating whether the sequence precedes another sequence in a lexicographical (dictionary) ordering, using the given predicate to compare elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "other", type: .named(.sequence, [.int])), Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[1])([a0.value, a1.value])) })
+                let result = try receiver.lexicographicallyPrecedes(try Value.Bridging.sequence(arguments[0]).map { try Int($0) }, by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0.value, a1.value])) })
                 return result.value
 }
 
@@ -5582,28 +5582,28 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member792: ImplementedSymbol = ImplementedSymbol.method("contains", summary: "Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.contains(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member793: ImplementedSymbol = ImplementedSymbol.method("allSatisfy", summary: "Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .bool, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.allSatisfy({ (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member794: ImplementedSymbol = ImplementedSymbol.method("count", summary: "Returns the number of elements in the sequence that satisfy the given predicate.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "where", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .int, throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.count(where: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return result.value
 }
 
     private static let member795: ImplementedSymbol = ImplementedSymbol.method("reduce", summary: "Returns the result of combining the elements of the sequence using the given closure.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "initialResult", type: .parameter("Result")), Symbol.Parameter(label: nil, name: "nextPartialResult", type: .function(parameters: [.parameter("Result"), .int], returns: .parameter("Result"), isThrowing: true, isAsync: false))], returns: .parameter("Result"), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("Result")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(interpreter, arguments[1])([a0, a1.value]) })
+                let result = try receiver.reduce(arguments[0], { (a0: Value, a1: Int) throws -> Value in try Value.Bridging.closure(for: arguments[1], in: interpreter)([a0, a1.value]) })
                 return result
 }
 
@@ -5611,7 +5611,7 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
                 let result = try receiver.reduce(into: arguments[0], { (a0: inout Value, a1: Int) throws -> Void in
-let outcome = try Value.Bridging.changing(interpreter, arguments[1], [a0, a1.value], at: [0])
+let outcome = try Value.Bridging.changing(arguments[1], in: interpreter, with: [a0, a1.value], at: [0])
 a0 = outcome.changed[0]
 })
                 return result
@@ -5620,14 +5620,14 @@ a0 = outcome.changed[0]
     private static let member797: ImplementedSymbol = ImplementedSymbol.method("flatMap", summary: "Returns an array containing the concatenated results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .named(.sequence, [.parameter("SegmentOfResult.Element")]), isThrowing: true, isAsync: false))], returns: .list(.parameter("SegmentOfResult.Element")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("SegmentOfResult.Element")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result: [Value] = try receiver.flatMap({ (a0: Int) throws -> [Value] in try Value.Bridging.sequence(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: result)
 }
 
     private static let member798: ImplementedSymbol = ImplementedSymbol.method("compactMap", summary: "Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: nil, name: "transform", type: .function(parameters: [.int], returns: .optional(.parameter("ElementOfResult")), isThrowing: true, isAsync: false))], returns: .list(.parameter("ElementOfResult")), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))]), .genericParameter("ElementOfResult")])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) { $0 } })
+                let result: [Value] = try receiver.compactMap({ (a0: Int) throws -> Value? in Value.Bridging.optional(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) { $0 } })
                 return Value(list: result)
 }
 
@@ -5640,14 +5640,14 @@ let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try
     private static let member800: ImplementedSymbol = ImplementedSymbol.method("sorted", summary: "Returns the elements of the sequence, sorted using the given predicate as the comparison between elements.", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "by", name: "areInIncreasingOrder", type: .function(parameters: [.int, .int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value, a1.value])) })
+                let result: [Int] = try receiver.sorted(by: { (a0: Int, a1: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value, a1.value])) })
                 return Value(list: result.map { $0.value })
 }
 
     private static let member801: ImplementedSymbol = ImplementedSymbol.method("trimmingPrefix", summary: "", signature: Symbol.Function(parameters: [Symbol.Parameter(label: "while", name: "predicate", type: .function(parameters: [.int], returns: .bool, isThrowing: true, isAsync: false))], returns: .list(.int), throwing: .rethrowing, isAsync: false, generics: [.genericParameter("Bound", constraints: [.equals(.named(.init(nativeType: "Int")))])])) { selfValue, arguments in
 let interpreter = Interpreter.running!
 let receiver: ClosedRange<Int> = try Value.Bridging.closedRange(selfValue) { try Int($0) }
-                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(interpreter, arguments[0])([a0.value])) })
+                let result = try receiver.trimmingPrefix(while: { (a0: Int) throws -> Bool in try Bool(try Value.Bridging.closure(for: arguments[0], in: interpreter)([a0.value])) })
                 return Value(list: Array(result).map { $0.value })
 }
 

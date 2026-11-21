@@ -80,7 +80,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
                 (element.label.map { "\($0): " } ?? "") + fromValue("t[\(index)]", element.type)
             }
         return
-            "try Value.Bridging.tuple(\(value), [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
+            "try Value.Bridging.tuple(\(value), labels: [\(labels)]) { t in (\(parts.joined(separator: ", "))) }"
     case .function(let parameters, let result, _, _)
     where parameters.contains(where: { if case .inOut = $0 { true } else { false } }):
         // `(inout A, B) -> R`: the script closure's changed arguments come back with its result
@@ -101,7 +101,7 @@ func fromValue(_ value: String, _ type: SType) -> String {
         }
         let positions = inPlace.map(String.init).joined(separator: ", ")
         var lines = [
-            "let outcome = try Value.Bridging.changing(interpreter, \(value), [\(passed.joined(separator: ", "))], at: [\(positions)])"
+            "let outcome = try Value.Bridging.changing(\(value), in: interpreter, with: [\(passed.joined(separator: ", "))], at: [\(positions)])"
         ]
         for (slot, index) in inPlace.enumerated() {
             guard case .inOut(let inner) = parameters[index] else { continue }
@@ -119,8 +119,8 @@ func fromValue(_ value: String, _ type: SType) -> String {
         // (`bridgeAsyncClosure`), as the task that passed it.
         let call =
             isAsync
-            ? "(try await Value.Bridging.asyncClosure(interpreter, \(value))([\(arguments)]))"
-            : "try Value.Bridging.closure(interpreter, \(value))([\(arguments)])"
+            ? "(try await Value.Bridging.asyncClosure(for: \(value), in: interpreter)([\(arguments)]))"
+            : "try Value.Bridging.closure(for: \(value), in: interpreter)([\(arguments)])"
         let effects = isAsync ? "async throws" : "throws"
         if case .tuple(let elements) = result, elements.isEmpty {
             return "{ (\(typed)) \(effects) -> Void in _ = \(call) }"

@@ -19,7 +19,7 @@ public struct BridgedType<T: Sendable>: Sendable {
     /// `Element`), `Encodable` and `CustomStringConvertible`, a word of text that is one
     /// (`LosslessStringConvertible`), and a string literal that is one
     /// (`ExpressibleByStringLiteral`).
-    public init(_ name: String? = nil) {
+    public init(named name: String? = nil) {
         let name = name ?? String(describing: T.self)
         self.type = ImplementedType(name: name)
         type.conformances = Dictionary(

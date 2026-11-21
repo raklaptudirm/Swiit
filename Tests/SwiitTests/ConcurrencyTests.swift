@@ -175,8 +175,8 @@ private func typeError(_ source: String) -> String? {
         ],
         returnType: .int,
         body: .native { swiit, args in
-            try Value.Bridging.awaiting(swiit) { () async throws -> Value in
-                let f = Value.Bridging.asyncClosure(swiit, args["f"]!)
+            try Value.Bridging.awaiting(in: swiit) { () async throws -> Value in
+                let f = Value.Bridging.asyncClosure(for: args["f"]!, in: swiit)
                 try await Task.sleep(nanoseconds: 100_000_000)
                 let once = try Int(try await f([.int(10)]))
                 return .int(try Int(try await f([.int(once)])))
