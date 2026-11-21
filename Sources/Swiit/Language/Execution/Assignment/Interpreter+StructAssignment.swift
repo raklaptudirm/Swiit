@@ -190,7 +190,7 @@ extension Interpreter {
             var record = base.record!
             if let structType = structType(of: record) {
                 // A computed property with a setter: the new value goes through it.
-                if let setter = structType.setters[name]
+                if let setter = structType.members.setters[name]
                     ?? extensionChain(of: base).lazy.compactMap({ $0.setters[name] }).first
                 {
                     // `x.0 = 1` through a computed `x`: its value is read, changed inside, and set
@@ -199,7 +199,7 @@ extension Interpreter {
                         task.assigningPlainly && rest.isEmpty
                         ? Value.nothing : try structMember(name, of: record, structType) ?? .nothing
                     let receiver = Receiver(Value(record: record), mutable: true)
-                    let returnType = structType.computed[name]?.returnType
+                    let returnType = structType.members.computed[name]?.returnType
                     let newValue =
                         try rest.isEmpty
                         ? change(current, returnType)
@@ -214,7 +214,7 @@ extension Interpreter {
                 }
                 guard let property = structType.property(name) else {
                     let what =
-                        structType.computed[name] != nil
+                        structType.members.computed[name] != nil
                         ? "it's a computed property"
                         : "\(structType.name) has no property '\(name)'"
                     throw RuntimeError("cannot assign to '\(name)': \(what)")
@@ -278,7 +278,7 @@ extension Interpreter {
             dictionary[key] = value == .nothing ? nil : value
             return .dictionary(dictionary)
         case (.index(let indexExpr), _)
-        where base.record.flatMap(structType(of:))?.subscriptGetters.isEmpty == false:
+        where base.record.flatMap(structType(of:))?.members.subscriptGetters.isEmpty == false:
             let record = base.record!
             return try writeSubscript(
                 record,
@@ -288,7 +288,7 @@ extension Interpreter {
                 change
             )
         case (.subscripted(let arguments), _)
-        where base.record.flatMap(structType(of:))?.subscriptGetters.isEmpty == false:
+        where base.record.flatMap(structType(of:))?.members.subscriptGetters.isEmpty == false:
             let record = base.record!
             return try writeSubscript(record, structType(of: record)!, arguments, rest, change)
         case (.index(let indexExpr), .object(let instance as ClassInstance)):
@@ -340,21 +340,22 @@ extension Interpreter {
             slot.value = try updated(slot.value, rest, type: nil, change)
             return base
         case (.member(let name), .object(let type as StructType))
-        where type.staticSetters[name] != nil && rest.isEmpty:
+        where type.members.staticSetters[name] != nil && rest.isEmpty:
             // A computed `static var` with a setter: the new value goes through it.
             // What it holds now is read only to change it (`+=`); `= v` only sets.
             let current =
                 task.assigningPlainly
                 ? Value.nothing
-                : try type.staticComputed[name].map { try invoke($0, with: [:]) } ?? .nothing
+                : try type.members.staticComputed[name].map { try invoke($0, with: [:]) }
+                    ?? .nothing
             let newValue = try change(current, type.staticProperty(name)?.type)
-            let setter = type.staticSetters[name]!
+            let setter = type.members.staticSetters[name]!
             _ = try invoke(setter, with: [setter.parameters[0].name: newValue])
             return base
         case (.member(let name), .object(let type as StructType)):
-            guard let slot = type.statics[name] else {
+            guard let slot = type.members.statics[name] else {
                 let what =
-                    type.staticComputed[name] != nil
+                    type.members.staticComputed[name] != nil
                     ? "it's a computed property" : "\(type.name) has no static property '\(name)'"
                 throw RuntimeError("cannot assign to '\(name)': \(what)")
             }

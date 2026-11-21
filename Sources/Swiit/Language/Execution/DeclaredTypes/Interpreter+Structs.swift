@@ -118,10 +118,10 @@ extension Interpreter {
                 OverloadSet(name: $0[0].name!, candidates: $0)
             }
         )
-        type.staticSetters = staticSetters
+        type.members.staticSetters = staticSetters
         type.isDynamicMemberLookup = decl.isDynamicMemberLookup
         for declared in decl.subscripts {
-            type.subscriptGetters.append(
+            type.members.subscriptGetters.append(
                 Function(
                     name: "subscript",
                     parameters: declared.parameters,
@@ -130,7 +130,7 @@ extension Interpreter {
                     captured: captureScopes(declared.getterNames)
                 )
             )
-            type.subscriptSetters.append(
+            type.members.subscriptSetters.append(
                 declared.setter.map { setter in
                     Function(
                         name: "subscript",
@@ -147,7 +147,7 @@ extension Interpreter {
         }
         for property in decl.properties {
             if let setter = property.setter {
-                type.setters[property.name] = Function(
+                type.members.setters[property.name] = Function(
                     name: property.name,
                     parameters: [Parameter(name: property.setterName, type: property.type ?? .any)],
                     returnType: nil,
@@ -193,7 +193,10 @@ extension Interpreter {
                 }
                 value = conforming
             }
-            type.statics[property.name] = StructType.StaticValue(value, mutable: property.mutable)
+            type.members.statics[property.name] = StructType.StaticValue(
+                value,
+                mutable: property.mutable
+            )
         }
     }
     // swiftlint:enable function_body_length
@@ -228,11 +231,11 @@ extension Interpreter {
             return Argument(label: argument.label, value: .literal(try evaluate(argument.value)))
         }
         // What an extension adds is tried when the type's own don't take the arguments.
-        var chosenInitializers = type.initializers
+        var chosenInitializers = type.members.initializers
         var overload = overload
         if let added = typeExtensions[type.name]?.initializers {
             let ownTakes: Bool
-            if let own = type.initializers {
+            if let own = type.members.initializers {
                 ownTakes =
                     (try? resolve(narrowed(own, overload)) { try self.bind(values, to: $0) }) != nil
             } else {

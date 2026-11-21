@@ -59,43 +59,12 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
         members.staticMethods = staticMethods
     }
 
-    // The member tables as the struct's own, for what has not moved to `members` yet.
-    var computed: [String: Function] { members.computed }
-    var methods: [String: OverloadSet] { members.methods }
-    var initializers: OverloadSet? { members.initializers }
-    var staticProperties: [PropertyDecl] { members.staticProperties }
-    var staticComputed: [String: Function] { members.staticComputed }
-    var staticMethods: [String: OverloadSet] { members.staticMethods }
-    /// What setting a computed property runs, with its value as the one parameter.
-    var setters: [String: Function] {
-        get { members.setters }
-        set { members.setters = newValue }
-    }
-    var staticSetters: [String: Function] {
-        get { members.staticSetters }
-        set { members.staticSetters = newValue }
-    }
-    var statics: [String: StaticValue] {
-        get { members.statics }
-        set { members.statics = newValue }
-    }
-    /// `subscript(…)`: each getter, and the setter of the same position if it has one (its
-    /// parameters are the getter's, then the new value).
-    var subscriptGetters: [Function] {
-        get { members.subscriptGetters }
-        set { members.subscriptGetters = newValue }
-    }
-    var subscriptSetters: [Function?] {
-        get { members.subscriptSetters }
-        set { members.subscriptSetters = newValue }
-    }
-
     func property(_ name: String) -> PropertyDecl? {
         stored.first { $0.name == name }
     }
 
     func staticProperty(_ name: String) -> PropertyDecl? {
-        staticProperties.first { $0.name == name }
+        members.staticProperties.first { $0.name == name }
     }
 
     var typeName: String { "struct" }

@@ -7,14 +7,14 @@ extension Interpreter {
     /// the type has neither by that name.
     func structMember(_ name: String, of record: Value.Record, _ type: StructType) throws -> Value?
     {
-        if let getter = type.computed[name] {
+        if let getter = type.members.computed[name] {
             return try invoke(
                 getter,
                 with: [:],
                 receiver: Receiver(Value(record: record), mutable: false)
             )
         }
-        guard let methods = type.methods[name] else { return nil }
+        guard let methods = type.members.methods[name] else { return nil }
         // `let f = p.describe`: the method with `p` as `self`.
         let bound = methods.candidates.map { method in
             Function(
@@ -44,9 +44,9 @@ extension Interpreter {
     /// `Point.origin`, `Point.count`, or a static method as a function value;
     /// nil if the type has no static member by that name.
     func staticMember(_ name: String, of type: StructType) throws -> Value? {
-        if let getter = type.staticComputed[name] { return try invoke(getter, with: [:]) }
-        if let slot = type.statics[name] { return slot.value }
-        return type.staticMethods[name].map(Value.function)
+        if let getter = type.members.staticComputed[name] { return try invoke(getter, with: [:]) }
+        if let slot = type.members.statics[name] { return slot.value }
+        return type.members.staticMethods[name].map(Value.function)
     }
 
     /// `Point.make(1)`.

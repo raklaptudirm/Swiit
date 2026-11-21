@@ -73,7 +73,8 @@ extension Interpreter {
             case .member(let name):
                 guard let record = current.record else { return nil }
                 if let structType = structType(of: record) {
-                    guard structType.setters[name] == nil, structType.observers[name] == nil,
+                    guard structType.members.setters[name] == nil,
+                        structType.observers[name] == nil,
                         extensionChain(of: current).allSatisfy({ $0.setters[name] == nil }),
                         let property = structType.property(name), property.mutable
                     else { return nil }

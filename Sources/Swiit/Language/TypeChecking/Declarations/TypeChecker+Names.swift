@@ -127,16 +127,16 @@ extension TypeChecker {
                 stored: property
             )
         }
-        for (name, getter) in type.computed where profile.declared.properties[name] == nil {
+        for (name, getter) in type.members.computed where profile.declared.properties[name] == nil {
             profile.declared.properties[name] = MemberProperty(
                 type: getter.returnType ?? .unknown,
-                isSettable: type.setters[name] != nil,
+                isSettable: type.members.setters[name] != nil,
                 stored: nil
             )
         }
-        profile.declared.methods = signatures(type.methods)
+        profile.declared.methods = signatures(type.members.methods)
         profile.declared.initializers =
-            type.initializers?.candidates.enumerated()
+            type.members.initializers?.candidates.enumerated()
             .map { index, initializer in
                 Signature(
                     name: initializer.name ?? type.name,
@@ -148,13 +148,13 @@ extension TypeChecker {
                     index: index
                 )
             } ?? []
-        for property in type.staticProperties {
+        for property in type.members.staticProperties {
             profile.declared.staticProperties[property.name] = MemberProperty(
                 staticDeclaration: property
             )
         }
-        profile.declared.staticMethods = signatures(type.staticMethods)
-        for (index, getter) in type.subscriptGetters.enumerated() {
+        profile.declared.staticMethods = signatures(type.members.staticMethods)
+        for (index, getter) in type.members.subscriptGetters.enumerated() {
             profile.subscripts.append(
                 Signature(
                     name: "subscript",
@@ -163,7 +163,7 @@ extension TypeChecker {
                     index: index
                 )
             )
-            profile.subscriptSettable.append(type.subscriptSetters[index] != nil)
+            profile.subscriptSettable.append(type.members.subscriptSetters[index] != nil)
         }
         return profile
     }

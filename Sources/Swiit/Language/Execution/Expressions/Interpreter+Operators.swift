@@ -62,7 +62,7 @@ extension Interpreter {
         switch value.storage {
         case .structure(let structure):
             if let type = structType(of: structure.record) {
-                found += type.staticMethods[name]?.candidates ?? []
+                found += type.members.staticMethods[name]?.candidates ?? []
             }
         case .enumValue(let enumValue):
             found +=

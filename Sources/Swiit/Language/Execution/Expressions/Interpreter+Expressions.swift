@@ -164,7 +164,7 @@ extension Interpreter {
         case .index(let base, let index):
             let value = try evaluate(base)
             if let record = value.record, let type = structType(of: record),
-                !type.subscriptGetters.isEmpty
+                !type.members.subscriptGetters.isEmpty
             {
                 return try readSubscript(record, type, [Argument(value: index)])
             }
@@ -179,7 +179,7 @@ extension Interpreter {
             }
             if let result = try extensionSubscript(on: target, arguments) { return result }
             guard let record = target.record, let type = structType(of: record),
-                !type.subscriptGetters.isEmpty
+                !type.members.subscriptGetters.isEmpty
             else {
                 throw RuntimeError("this value has no subscript")
             }
