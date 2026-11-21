@@ -78,13 +78,32 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {
         return SwiftValue.lessThan(comparable, other.value)
     }
 
+    private static func equal<E: Equatable>(_ value: E, _ other: Any) -> Bool {
+        (other as? E).map { value == $0 } ?? false
+    }
+
+    /// Whether it equals `other` as Swift says, when its type is `Equatable` and neither
+    /// `Hashable` nor a class (a `TaskPriority`). Nil for the rest, which are compared by
+    /// `objectIdentity`.
+    func isEqual(to other: SwiftValue) -> Bool? {
+        guard !(value is any Hashable), !(type(of: value) is AnyObject.Type),
+            let equatable = value as? any Equatable
+        else { return nil }
+        return SwiftValue.equal(equatable, other.value)
+    }
+
+    func equals(_ other: any LanguageObject) -> Bool? {
+        (other as? SwiftValue).flatMap { isEqual(to: $0) }
+    }
+
     /// What equality and hashing go by: the value, when it is `Hashable`; the instance, for a class;
-    /// else this box.
+    /// the Swift type, for an `Equatable` value (which `isEqual(to:)` tells apart); else this box.
     var objectIdentity: AnyHashable {
         if let hashable = value as? any Hashable { return AnyHashable(hashable) }
         if type(of: value) is AnyObject.Type {
             return AnyHashable(ObjectIdentifier(value as AnyObject))
         }
+        if value is any Equatable { return AnyHashable(typeName) }
         return AnyHashable(ObjectIdentifier(self))
     }
     /// A held Swift value has the members registered for its type and no others.

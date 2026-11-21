@@ -17,10 +17,16 @@ extension Value: Hashable {
             a.record.typeName == b.record.typeName && a.record == b.record
         case (.dictionary(let a), .dictionary(let b)): a == b
         case (.enumValue(let a), .enumValue(let b)): a == b
-        case (.object(let a), .object(let b)): a === b || a.objectIdentity == b.objectIdentity
+        case (.object(let a), .object(let b)): Value.areEqual(a, b)
         case (.function(let a), .function(let b)): a === b
         default: false
         }
+    }
+
+    private static func areEqual(_ a: any LanguageObject, _ b: any LanguageObject) -> Bool {
+        if a === b { return true }
+        if let equal = a.equals(b) { return equal }
+        return a.objectIdentity == b.objectIdentity
     }
 
     public func hash(into hasher: inout Hasher) {

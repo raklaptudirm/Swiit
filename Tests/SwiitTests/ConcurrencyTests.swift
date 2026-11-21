@@ -223,3 +223,56 @@ private func typeError(_ source: String) -> String? {
         ) == .int(2)
     )
 }
+
+@Test func aTaskStartedWithAPriorityRunsAtIt() throws {
+    #expect(try eval("Task.currentPriority.rawValue") == .int(Int(TaskPriority.medium.rawValue)))
+    #expect(
+        try eval("await Task(priority: .high) { Task.currentPriority.rawValue }.value")
+            == .int(Int(TaskPriority.high.rawValue))
+    )
+    // A task has the priority of the one that made it, and a detached one the default.
+    #expect(
+        try eval(
+            """
+            let outer = Task(priority: .low) {
+                await Task { Task.currentPriority.rawValue }.value
+            }
+            await outer.value
+            """
+        ) == .int(Int(TaskPriority.low.rawValue))
+    )
+    #expect(
+        try eval(
+            """
+            let outer = Task(priority: .low) {
+                await Task.detached { Task.currentPriority.rawValue }.value
+            }
+            await outer.value
+            """
+        ) == .int(Int(TaskPriority.medium.rawValue))
+    )
+}
+
+@Test func aDurationIsMadeAddedAndComparedAndTaskSleepTakesOne() throws {
+    #expect(
+        try eval("Duration.seconds(2) + Duration.milliseconds(500) == .seconds(2.5)") == .bool(true)
+    )
+    #expect(try eval("Duration.seconds(3) / 3 == .seconds(1)") == .bool(true))
+    let start = Date()
+    #expect(try eval("try await Task.sleep(for: .milliseconds(40)); 1") == .int(1))
+    #expect(Date().timeIntervalSince(start) >= 0.04)
+}
+
+@Test func aLeadingDotNamesAStaticMemberOfTheTypeWanted() throws {
+    #expect(
+        try eval(
+            """
+            struct Point { var x: Int; static let origin = Point(x: 0); static func at(_ x: Int) -> Point { Point(x: x) } }
+            let a: Point = .origin
+            let b: Point = .at(4)
+            a.x + b.x
+            """
+        ) == .int(4)
+    )
+    #expect(typeError("let x: Int = .nope")?.contains("nope") == true)
+}

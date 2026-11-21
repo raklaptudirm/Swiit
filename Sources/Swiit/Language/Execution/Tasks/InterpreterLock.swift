@@ -137,6 +137,7 @@ extension Interpreter {
     func startTask(
         host taskHost: AnyObject?,
         structured: Bool = true,
+        priority: TaskPriority? = nil,
         _ body: @escaping () throws -> Value
     ) throws -> ScriptTask {
         guard runningTasks < limits.maxTasks else {
@@ -144,6 +145,7 @@ extension Interpreter {
         }
         let context = TaskContext(globals: Array(scopes.prefix(2)), host: taskHost)
         context.receivesInterrupts = false
+        context.priority = priority ?? task.priority
         let handle = ScriptTask(context: context)
         runningTasks += 1
         if structured { task.children.append((callDepth, handle)) }

@@ -16,6 +16,9 @@ protocol LanguageObject: AnyObject, Sendable, CustomStringConvertible, CustomDeb
     func member(_ name: String) -> Value?
     /// What equality and hashing go by: the object itself, unless it says otherwise.
     var objectIdentity: AnyHashable { get }
+    /// Whether it equals `other` by a rule of its own, which `objectIdentity` cannot say; nil to go
+    /// by `objectIdentity`.
+    func equals(_ other: any LanguageObject) -> Bool?
 }
 
 extension LanguageObject {
@@ -23,6 +26,8 @@ extension LanguageObject {
     var objectIdentity: AnyHashable {
         AnyHashable(ObjectIdentifier(self))
     }
+
+    func equals(_ other: any LanguageObject) -> Bool? { nil }
 
     var debugDescription: String { description }
 }

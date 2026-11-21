@@ -98,6 +98,15 @@ extension TypeChecker {
                     return .optional(wrapped)
                 }
             }
+            // `.milliseconds(5)` where a Duration is wanted: a static member of the type, which
+            // Swift's implicit member expression reaches as `Duration.milliseconds(5)`.
+            if let owner = staticMemberOwner(expected) {
+                let member = Expr.member(.variable(owner), name)
+                var written = arguments.map { Expr.call(member, $0) } ?? member
+                let type = try typeOf(&written, expecting: expected)
+                expr = written
+                return type
+            }
             let type = try caseType(name, &arguments, expected: expected)
             // Written out with its enum, so running it needs no context.
             var enumTypeName: String?
@@ -117,6 +126,23 @@ extension TypeChecker {
 }
 
 extension TypeChecker {
+    /// The name of the struct, class or Swift type that `expected` is, when a leading-dot
+    /// expression of it names a static member and not an enum's case.
+    func staticMemberOwner(_ expected: TypeAnnotation?) -> String? {
+        var wanted = expected
+        if case .optional(let wrapped)? = wanted { wanted = wrapped }
+        let name: String
+        switch wanted {
+        case .named(let named)?: name = named
+        case .generic(let named, _)?: name = named
+        default: return nil
+        }
+        switch lookup(name) {
+        case .structType?, .swiftType?: return name
+        default: return nil
+        }
+    }
+
     /// `Int.max`, or a static property an extension adds: the type of `name` on the Swift type
     /// named, with `expr` made the bridged member if it is one.
     func swiftStaticMember(

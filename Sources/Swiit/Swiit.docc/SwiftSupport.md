@@ -31,10 +31,14 @@ limit the tests cannot show. The page is written from the table in `Tests/SwiitT
 | Reading an `async let` without `await` | Rejected, as in Swift |  |
 | `await` outside an async function | Rejected, as in Swift |  |
 | An `async` closure | Works |  |
-| `Task.sleep(for:)` and `Duration` | Not supported |  |
-| `Task.detached` | Not supported |  |
-| `Task(priority:)` | Not supported |  |
-| `Task.currentPriority` | Not supported |  |
+| `Task.sleep(for:)` and `Duration` | Works |  |
+| Arithmetic and comparison of a `Duration` | Works |  |
+| `Task.detached` | Works |  |
+| `Task(priority:)` | Works |  |
+| A task starts with the priority of the one that made it | Works |  |
+| `Task.detached(priority:)` | Works |  |
+| `Task.currentPriority` | Works |  |
+| `priority` and `rawValue` of a task's priority | Works |  |
 | `withDiscardingTaskGroup` | Not supported |  |
 | Task-local values | Not supported | `@TaskLocal` is not read. |
 

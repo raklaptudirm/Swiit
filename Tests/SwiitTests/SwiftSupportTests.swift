@@ -154,12 +154,53 @@ private let rows: [Row] = [
     Row(
         tasks,
         "`Task.sleep(for:)` and `Duration`",
-        .missing,
-        "try await Task.sleep(for: .milliseconds(1))\n1"
+        .works,
+        "try await Task.sleep(for: .milliseconds(1))\n1",
+        gives: "1"
     ),
-    Row(tasks, "`Task.detached`", .missing, "let t = Task.detached { 7 }\nawait t.value"),
-    Row(tasks, "`Task(priority:)`", .missing, "let t = Task(priority: .high) { 1 }\nawait t.value"),
-    Row(tasks, "`Task.currentPriority`", .missing, "Task.currentPriority"),
+    Row(
+        tasks,
+        "Arithmetic and comparison of a `Duration`",
+        .works,
+        "Duration.seconds(2) + .milliseconds(500) > .seconds(2)",
+        gives: "true"
+    ),
+    Row(
+        tasks,
+        "`Task.detached`",
+        .works,
+        "let t = Task.detached { 7 }\nawait t.value",
+        gives: "7"
+    ),
+    Row(
+        tasks,
+        "`Task(priority:)`",
+        .works,
+        "let t = Task(priority: .high) { Task.currentPriority == .high }\nawait t.value",
+        gives: "true"
+    ),
+    Row(
+        tasks,
+        "A task starts with the priority of the one that made it",
+        .works,
+        "let t = Task { Task.currentPriority == .medium }\nawait t.value",
+        gives: "true"
+    ),
+    Row(
+        tasks,
+        "`Task.detached(priority:)`",
+        .works,
+        "let t = Task.detached(priority: .low) { Task.currentPriority == .low }\nawait t.value",
+        gives: "true"
+    ),
+    Row(tasks, "`Task.currentPriority`", .works, "Task.currentPriority == .medium", gives: "true"),
+    Row(
+        tasks,
+        "`priority` and `rawValue` of a task's priority",
+        .works,
+        "let t = Task(priority: .background) { 1 }\nt.priority < .high && TaskPriority.high.rawValue > 0",
+        gives: "true"
+    ),
     Row(
         tasks,
         "`withDiscardingTaskGroup`",

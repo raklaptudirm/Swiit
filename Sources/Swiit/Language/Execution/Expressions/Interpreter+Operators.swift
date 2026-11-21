@@ -197,7 +197,7 @@ extension Interpreter {
             [.less, .lessEqual, .greater, .greaterEqual].contains(op),
             let ordered = a.isLess(than: b)
         {
-            let equal = a.objectIdentity == b.objectIdentity
+            let equal = a.isEqual(to: b) ?? (a.objectIdentity == b.objectIdentity)
             switch op {
             case .less: return .bool(ordered)
             case .lessEqual: return .bool(ordered || equal)

@@ -34,6 +34,8 @@ final class TaskContext {
     var calledSuperInit = false
     /// The function whose call finished last: after an expression that is a call, the one it made.
     var lastCallee: Function?
+    /// What `Task.currentPriority` says: the priority it was started with.
+    var priority = TaskPriority.medium
     /// Asks the task to stop, from any thread.
     let cancellation = Interpreter.Cancellation()
     /// What the host keeps for the task (the host: its output, its status).
