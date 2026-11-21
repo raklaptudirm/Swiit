@@ -72,9 +72,13 @@ enum Bridge {
     static func type(
         of annotation: TypeAnnotation
     ) -> (TypeImplementation, [String: TypeAnnotation])? {
-        guard let (name, arguments) = annotation.swiftType, let type = types[name],
-            type.genericParameterNames.count == arguments.count
-        else { return nil }
+        guard let (name, written) = annotation.swiftType, let type = types[name] else { return nil }
+        // A generic type named without arguments is generic over types not known, as its members are
+        // for `members(of:)`.
+        let arguments =
+            written.isEmpty
+            ? type.genericParameterNames.map { _ in TypeAnnotation.unknown } : written
+        guard type.genericParameterNames.count == arguments.count else { return nil }
         return (type, Dictionary(uniqueKeysWithValues: zip(type.genericParameterNames, arguments)))
     }
 }
