@@ -28,6 +28,10 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - ``Interpreter/Cancellation``
 - ``ScriptTask``
 
+### What Swift code runs
+
+- <doc:SwiftSupport>
+
 ### Script values and types
 
 - ``Value``
