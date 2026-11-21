@@ -9,16 +9,54 @@ import Synchronization
 /// no reference of its own. Whether a named type is a struct, an enum or a class is a fact about its
 /// declaration (``Symbol/Nominal``): `Interpreter.globals(named:)` says.
 public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible {
-    case named(TypeRef, [TypeExpression] = [])
-    /// A generic parameter of the declaration the type is written in: `Element` in
-    /// `func first() -> Element`. It stands where a type would be, with nothing declared under it.
-    case parameter(String)
+    case named(Named)
+    case parameter(GenericParameter)
     /// A function type, with the effects Swift writes after its parameters: `(Element) throws -> Bool`.
     case function(FunctionType)
-    case tuple([TupleElement])
+    case tuple(Tuple)
+    case metatype(Metatype)
+
+    /// A named type with the types it is generic over: `Int`, `Array<Int>`, `Optional<String>`.
+    public struct Named: Sendable, Hashable {
+        public var reference: TypeRef
+        /// The types it is generic over, in order; none for a type that is not generic.
+        public var arguments: [TypeExpression]
+
+        public init(_ reference: TypeRef, arguments: [TypeExpression] = []) {
+            self.reference = reference
+            self.arguments = arguments
+        }
+
+        /// Lets a pattern say `case .named("Array")` inside the module, which a literal conformance
+        /// would offer to every host.
+        static func ~= (name: String, named: Named) -> Bool { named.reference.name == name }
+    }
+
+    /// A generic parameter of the declaration the type is written in: `Element` in
+    /// `func first() -> Element`. It stands where a type would be, with nothing declared under it.
+    public struct GenericParameter: Sendable, Hashable, ExpressibleByStringLiteral {
+        public var name: String
+
+        public init(_ name: String) { self.name = name }
+        public init(stringLiteral name: String) { self.name = name }
+    }
+
+    /// A tuple type: `(Int, String)` or `(x: Int, y: Int)`. `.void` is the empty one.
+    public struct Tuple: Sendable, Hashable, ExpressibleByArrayLiteral {
+        public var elements: [TupleElement]
+
+        public init(_ elements: [TupleElement]) { self.elements = elements }
+        public init(arrayLiteral elements: TupleElement...) { self.elements = elements }
+    }
+
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
     /// are the type's static members, its initializers and the cases of an enum.
-    case metatype(TypeExpression)
+    public struct Metatype: Sendable, Hashable {
+        /// The type whose type this is.
+        public var instance: TypeExpression
+
+        public init(_ instance: TypeExpression) { self.instance = instance }
+    }
 
     /// The shape of a function type: what it takes, what it gives back, and the effects Swift writes
     /// after its parameters. A declaration's `Symbol.Function` has the same shape and adds what only a
@@ -119,6 +157,19 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
         )
     }
 
+    /// A named type with the types it is generic over.
+    public static func named(
+        _ reference: TypeRef,
+        _ arguments: [TypeExpression] = []
+    ) -> TypeExpression {
+        .named(Named(reference, arguments: arguments))
+    }
+
+    /// A generic parameter, by its name.
+    public static func parameter(_ name: String) -> TypeExpression {
+        .parameter(GenericParameter(name))
+    }
+
     /// A named type by its text, which the module's own tables and checker are written in.
     static func named(_ name: String, _ arguments: [TypeExpression] = []) -> TypeExpression {
         .named(.native(name), arguments)
@@ -126,24 +177,33 @@ public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible
 
     public var description: String {
         switch self {
-        case .named("Array", let arguments) where arguments.count == 1: "[\(arguments[0])]"
-        case .named("Dictionary", let arguments) where arguments.count == 2:
-            "[\(arguments[0]): \(arguments[1])]"
-        case .named("Optional", let arguments) where arguments.count == 1: "\(arguments[0])?"
-        case .named(let name, let arguments):
-            arguments.isEmpty
-                ? name.name : "\(name)<\(arguments.map(\.description).joined(separator: ", "))>"
-        case .parameter(let name): name
+        case .named(let named): named.description
+        case .parameter(let parameter): parameter.name
         case .function(let function):
             "(\(function.parameters.map(\.description).joined(separator: ", ")))"
                 + (function.isAsync ? " async" : "") + function.throwingText
                 + " -> \(function.returns)"
-        case .metatype(let type): "\(type).Type"
-        case .tuple(let elements):
+        case .metatype(let metatype): "\(metatype.instance).Type"
+        case .tuple(let tuple):
             "("
-                + elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
+                + tuple.elements.map { ($0.label.map { "\($0): " } ?? "") + $0.type.description }
                 .joined(separator: ", ")
                 + ")"
+        }
+    }
+}
+
+extension TypeExpression.Named: CustomStringConvertible {
+    /// As Swift writes it: `[Int]`, `[String: Int]`, `Int?`, or the name with its arguments.
+    public var description: String {
+        switch reference.name {
+        case "Array" where arguments.count == 1: "[\(arguments[0])]"
+        case "Dictionary" where arguments.count == 2: "[\(arguments[0]): \(arguments[1])]"
+        case "Optional" where arguments.count == 1: "\(arguments[0])?"
+        default:
+            arguments.isEmpty
+                ? reference.name
+                : "\(reference)<\(arguments.map(\.description).joined(separator: ", "))>"
         }
     }
 }

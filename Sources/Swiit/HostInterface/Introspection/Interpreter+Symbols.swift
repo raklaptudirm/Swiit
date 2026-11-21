@@ -16,8 +16,8 @@ extension Interpreter {
 
     func members(of type: TypeExpression, named name: String?) -> [Symbol] {
         // A type written as a value has what belongs to the type itself.
-        if case .metatype(let instance) = type {
-            return members(of: instance, named: name)
+        if case .metatype(let metatype) = type {
+            return members(of: metatype.instance, named: name)
                 .filter {
                     switch $0 {
                     case .method(let method): method.isStatic

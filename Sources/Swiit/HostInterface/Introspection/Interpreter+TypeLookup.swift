@@ -37,13 +37,13 @@ extension Interpreter {
     func annotation(_ type: TypeExpression) -> TypeAnnotation? {
         func current(_ type: TypeExpression) -> Bool {
             switch type {
-            case .named(let typeRef, let arguments):
-                isCurrent(typeRef) && arguments.allSatisfy(current)
+            case .named(let named):
+                isCurrent(named.reference) && named.arguments.allSatisfy(current)
             case .function(let function):
                 function.parameters.allSatisfy { current($0.type) } && current(function.returns)
             case .parameter: true
-            case .tuple(let elements): elements.allSatisfy { current($0.type) }
-            case .metatype(let type): current(type)
+            case .tuple(let tuple): tuple.elements.allSatisfy { current($0.type) }
+            case .metatype(let metatype): current(metatype.instance)
             }
         }
         return current(type) ? TypeAnnotation(type) : nil

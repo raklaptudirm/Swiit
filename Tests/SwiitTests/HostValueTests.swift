@@ -268,10 +268,8 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.call("Int", arguments: [(nil, Value("x"))]) == .nothing)
     #expect(try swiit.call("Int", arguments: [(nil, Value("7"))]) == swiit.evaluate(#"Int("7")"#))
     #expect(try swiit.make(.int, arguments: [(nil, Value("9"))]) == 9)
-    // Not a type, or a Swift type nothing registered.
-    if case .named(let parameter, _) = TypeExpression.parameter("Element") {
-        #expect(throws: Diagnostic.self) { try swiit.make(parameter) }
-    }
+    // A Swift type nothing registered.
+    #expect(throws: Diagnostic.self) { try swiit.make(TypeRef(nativeType: "Nope")) }
     #expect(throws: Diagnostic.self) { try swiit.call("NoSuchType", arguments: [(nil, Value(1))]) }
 }
 
@@ -539,4 +537,29 @@ extension Symbol {
     #expect(square.conformances.keys.contains(shape))
     #expect(square.conformances.keys.contains(.equatable))
     #expect(shape != TypeRef(nativeType: "Shape"))
+}
+
+@Test func eachFormOfATypeHoldsATypeOfItsOwn() {
+    let list = TypeExpression.list(.int)
+    guard case .named(let named) = list else {
+        Issue.record("a list is a named type")
+        return
+    }
+    #expect(named.reference == .array && named.arguments == [.int])
+
+    let pair = TypeExpression.tuple([.init(label: "x", type: .int), .init(type: .string)])
+    guard case .tuple(let tuple) = pair else {
+        Issue.record("a pair is a tuple")
+        return
+    }
+    #expect(tuple.elements.map(\.label) == ["x", nil])
+    #expect(pair.description == "(x: Int, String)")
+
+    let metatype = TypeExpression.metatype(.init(.int))
+    guard case .metatype(let inner) = metatype else {
+        Issue.record("not a metatype")
+        return
+    }
+    #expect(inner.instance == .int && metatype.description == "Int.Type")
+    #expect(TypeExpression.parameter("T") == .parameter(TypeExpression.GenericParameter("T")))
 }

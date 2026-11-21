@@ -60,11 +60,6 @@ private struct Point: Encodable { var x: Int }
     #expect(TypeRef(nativeType: "Nope").symbol(in: swiit) == nil)
     try swiit.evaluate("struct Int2 { var x = 0 }")
     #expect(TypeRef(named: "Int2", in: swiit) != TypeRef(nativeType: "Int2"))
-    // A parameter is a reference with nothing under it.
-    let element = TypeExpression.parameter("Element")
-    guard case .named(let parameter, _) = element else { return }
-    #expect(parameter.symbol(in: swiit) == nil)
-    #expect(parameter != TypeRef(nativeType: "Element"))
 }
 
 @Test func aValueHasTheIDOfItsType() throws {

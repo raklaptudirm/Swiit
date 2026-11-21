@@ -4,24 +4,30 @@ A type as a signature writes it.
 
 ## Overview
 
-A ``TypeRef`` says which type a name is. A type expression says how a type is written with it: a name with the types it is
-generic over (`Array<Int>`), a function type, a tuple, a metatype, or a generic parameter (`Element`). The static members
-are shorthand for the common ones, and ``TypeExpression/members(named:in:)`` lists what a type has.
+A ``TypeRef`` says which type a name is. A type expression says how a type is written with it. It is one of five
+cases, and each holds a type of its own: a ``TypeExpression/Named`` type with the types it is generic over (`Array<Int>`),
+a ``TypeExpression/FunctionType``, a ``TypeExpression/Tuple``, a ``TypeExpression/Metatype``, or a
+``TypeExpression/GenericParameter`` (`Element`). The static members are shorthand for the common ones, and
+``TypeExpression/members(named:in:)`` lists what a type has.
 
 ## Topics
 
 ### The forms of a type
 
-- ``named(_:_:)``
+- ``named(_:)``
 - ``parameter(_:)``
 - ``function(_:)``
 - ``tuple(_:)``
 - ``metatype(_:)``
 
-### The parts of a function or tuple type
+### What each form holds
 
+- ``Named``
+- ``GenericParameter``
 - ``FunctionType``
+- ``Tuple``
 - ``TupleElement``
+- ``Metatype``
 
 ### Common types
 

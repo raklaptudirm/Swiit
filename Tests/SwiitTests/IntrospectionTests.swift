@@ -281,7 +281,7 @@ private struct Point: Encodable { var x: Int }
     let swiit = interpreter()
     _ = try swiit.evaluate("enum Tools { static func go() {}; func other() {} }")
     let type = try swiit.typeExpression(ofExpression: "Tools")
-    #expect(type == .metatype(swiit.type("Tools")))
+    #expect(type == .metatype(.init(swiit.type("Tools"))))
     #expect(type.members(in: swiit).map(\.name).contains("go"))
     #expect(!type.members(in: swiit).map(\.name).contains("other"))
 }

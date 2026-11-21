@@ -27,9 +27,11 @@ extension TypeExpression {
             case .generic(let name, let arguments): .named(reference(name), arguments.map(convert))
             case .tuple(let elements):
                 .tuple(
-                    elements.map {
-                        TypeExpression.TupleElement(label: $0.label, type: convert($0.type))
-                    }
+                    TypeExpression.Tuple(
+                        elements.map {
+                            TypeExpression.TupleElement(label: $0.label, type: convert($0.type))
+                        }
+                    )
                 )
             case .functionType(let parameters, let returns, let throwing, let effect):
                 .function(
@@ -53,7 +55,7 @@ extension TypeExpression {
             // parameter of `some Sequence<Element>` is: anything that is a sequence of them.
             case .someSequence(let element): .named(.sequence, [convert(element)])
             case .void: .tuple([])
-            case .metatype(let type): .metatype(convert(type))
+            case .metatype(let type): .metatype(.init(convert(type)))
             case .inOut(let type): convert(type)
             default: .any
             }

@@ -47,26 +47,31 @@ extension Value {
 
     private func matches(_ type: TypeExpression) -> Bool {
         switch type {
-        case .named("Any", _): return true
-        case .named("Bool", _): return kind == .bool
-        case .named("Int", _): return kind == .int
-        case .named("Double", _): return kind == .double
-        case .named("String", _): return kind == .string
-        case .named("Function", _), .function: return kind == .function
-        case .named("Optional", let arguments):
-            return self == .nothing || arguments.first.map(matches) ?? true
-        case .named("Array", let arguments):
-            guard case .list(let items) = self.storage else { return false }
-            return items.allSatisfy { arguments.first.map($0.matches) ?? true }
-        case .named("Dictionary", let arguments):
-            guard case .dictionary(let dictionary) = self.storage, arguments.count == 2 else {
-                return kind == .dictionary
+        case .named("Any"): return true
+        case .named("Bool"): return kind == .bool
+        case .named("Int"): return kind == .int
+        case .named("Double"): return kind == .double
+        case .named("String"): return kind == .string
+        case .named("Function"), .function: return kind == .function
+        case .named(let named):
+            let arguments = named.arguments
+            switch named.reference.name {
+            case "Optional":
+                return self == .nothing || arguments.first.map(matches) ?? true
+            case "Array":
+                guard case .list(let items) = self.storage else { return false }
+                return items.allSatisfy { arguments.first.map($0.matches) ?? true }
+            case "Dictionary":
+                guard case .dictionary(let dictionary) = self.storage, arguments.count == 2 else {
+                    return kind == .dictionary
+                }
+                return dictionary.allSatisfy {
+                    $0.key.matches(arguments[0]) && $0.value.matches(arguments[1])
+                }
+            default: return isInstance(ofReference: named.reference)
             }
-            return dictionary.allSatisfy {
-                $0.key.matches(arguments[0]) && $0.value.matches(arguments[1])
-            }
-        case .named(let reference, _): return isInstance(ofReference: reference)
-        case .tuple(let elements):
+        case .tuple(let type):
+            let elements = type.elements
             guard case .tuple(let tuple) = self.storage, tuple.count == elements.count
             else {
                 return false

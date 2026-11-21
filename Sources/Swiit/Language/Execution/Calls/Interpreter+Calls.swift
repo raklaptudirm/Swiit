@@ -496,28 +496,33 @@ extension Interpreter {
 extension TypeAnnotation {
     init(_ type: TypeExpression) {
         switch type {
-        case .named("Any", _): self = .any
-        case .named("Bool", _): self = .bool
-        case .named("Int", _): self = .int
-        case .named("Double", _): self = .double
-        case .named("String", _): self = .string
-        case .named("Function", _): self = .function
-        case .named("KeyPath", let arguments) where arguments.count == 2:
-            self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
-        case .named("Array", let arguments) where arguments.count == 1:
-            self = .list(TypeAnnotation(arguments[0]))
-        case .named("Optional", let arguments) where arguments.count == 1:
-            self = .optional(TypeAnnotation(arguments[0]))
-        case .named("Sequence", let arguments) where arguments.count == 1:
-            self = .someSequence(TypeAnnotation(arguments[0]))
-        case .named("Dictionary", let arguments) where arguments.count == 2:
-            self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
-        case .parameter(let name):
-            self = .parameter(name)
-        case .named(let name, let arguments):
-            self =
-                arguments.isEmpty
-                ? .named(name.name) : .generic(name.name, arguments.map(TypeAnnotation.init))
+        case .named("Any"): self = .any
+        case .named("Bool"): self = .bool
+        case .named("Int"): self = .int
+        case .named("Double"): self = .double
+        case .named("String"): self = .string
+        case .named("Function"): self = .function
+        case .named(let named):
+            let arguments = named.arguments
+            switch named.reference.name {
+            case "KeyPath" where arguments.count == 2:
+                self = .keyPath(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
+            case "Array" where arguments.count == 1:
+                self = .list(TypeAnnotation(arguments[0]))
+            case "Optional" where arguments.count == 1:
+                self = .optional(TypeAnnotation(arguments[0]))
+            case "Sequence" where arguments.count == 1:
+                self = .someSequence(TypeAnnotation(arguments[0]))
+            case "Dictionary" where arguments.count == 2:
+                self = .dictionary(TypeAnnotation(arguments[0]), TypeAnnotation(arguments[1]))
+            default:
+                self =
+                    arguments.isEmpty
+                    ? .named(named.reference.name)
+                    : .generic(named.reference.name, arguments.map(TypeAnnotation.init))
+            }
+        case .parameter(let parameter):
+            self = .parameter(parameter.name)
         case .function(let function):
             self = .functionType(
                 function.parameters.map { parameter in
@@ -528,11 +533,11 @@ extension TypeAnnotation {
                 throws: function.isThrowing,
                 async: function.isAsync ? .async : .sync
             )
-        case .tuple(let elements):
+        case .tuple(let tuple):
             self = .tuple(
-                elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
+                tuple.elements.map { TupleElement(label: $0.label, type: TypeAnnotation($0.type)) }
             )
-        case .metatype(let type): self = .metatype(TypeAnnotation(type))
+        case .metatype(let metatype): self = .metatype(TypeAnnotation(metatype.instance))
         }
     }
 }
