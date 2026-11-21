@@ -32,25 +32,32 @@ let answer = try swiit.evaluate("double(21)")   // 42
 
 - ``Value``
 - ``TypeExpression``
+- ``TypeRef``
+
+### Describing symbols and types
+
+- ``Symbol``
+- ``Symbol/Kind``
+- ``Symbol/Attribute``
+- ``Symbol/Constraint``
+- ``TypeDeclaration``
+- ``TypeDeclaration/Kind``
+- ``Interpreter/Declarations``
 
 ### Registering Swift functions, types and objects
 
 - <doc:ExposingSwift>
 - <doc:NativeBodies>
-- ``SymbolImplementation``
 - ``BridgedType``
+- ``TypeImplementation``
+- ``SymbolImplementation``
 - ``BridgedValue``
 - ``DynamicMembers``
 
-### Errors, symbols and declarations
+### Errors
 
 - <doc:ReadingDiagnostics>
 - ``Diagnostic``
-- ``Symbol``
-- ``TypeRef``
-- ``Symbol/Attribute``
-- ``Symbol/Constraint``
-- ``Interpreter/Declarations``
 
 ### Output streams and styled text
 
