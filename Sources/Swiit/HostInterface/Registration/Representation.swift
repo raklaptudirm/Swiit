@@ -1,6 +1,6 @@
 import Foundation
 
-extension TypeImplementation {
+extension ImplementedType {
     /// What a value of a type is, which decides how the interpreter stores it. It is the source of
     /// truth: `Value.Storage` is how a value of such a type is encoded, and this file says how, in both
     /// directions. A type's representation says which storage its values have, and a value's storage
@@ -97,7 +97,7 @@ extension TypeImplementation {
 extension Value {
     /// The representation of the type this is a value of, if its storage is one the interpreter
     /// knows the type of.
-    var representation: TypeImplementation.Representation? {
-        TypeImplementation.Representation(encoding: storage)
+    var representation: ImplementedType.Representation? {
+        ImplementedType.Representation(encoding: storage)
     }
 }

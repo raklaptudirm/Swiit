@@ -11,7 +11,7 @@ final class ProtocolType: LanguageObject, DeclaredType, @unchecked Sendable {
     let source: ProtocolDecl
     /// What it asks of the types that conform: no value is of a protocol, so it has requirements and
     /// no storage.
-    let representation = TypeImplementation.Representation.requirements
+    let representation = ImplementedType.Representation.requirements
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a protocol updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.
     var symbol: Symbol

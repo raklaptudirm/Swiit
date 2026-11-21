@@ -244,7 +244,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
     #expect(Value(thing).mirror.children.isEmpty)
 }
 
-@Suite struct TypeImplementationTests {
+@Suite struct ImplementedTypeTests {
     static func bytesType() -> BridgedType<Bytes> {
         let bytes = TypeRef(nativeType: "Bytes")
         @Sendable func box(_ b: Bytes) -> Value { Value(b) }
@@ -291,7 +291,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 
 @Test func aTypeWrittenByHandSaysWhatItIsGenericOverAndWhatItConformsTo() throws {
     let swiit = interpreter()
-    var pile = TypeImplementation(name: "Pile")
+    var pile = ImplementedType(name: "Pile")
     pile.genericParameters = [.genericParameter("Element")]
     pile.conformances = ["Hashable": [], "Sequence": [Symbol.genericParameter("Element")]]
     pile.members.append(.associatedType("Element", binding: .parameter("Element")))
@@ -306,7 +306,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 
 @Test func aMemberWrittenFromItsSignatureKeepsRethrowingAndParameterDocs() throws {
     let swiit = interpreter()
-    var pile = TypeImplementation(name: "Crate")
+    var pile = ImplementedType(name: "Crate")
     pile.members = [
         .method(
             "each",
@@ -350,7 +350,7 @@ private struct DataPair: BridgedValue, Hashable, CustomStringConvertible,
 
 @Test func anAssociatedTypeIsAMemberOfTheTypeThatBindsIt() throws {
     let swiit = interpreter()
-    var lines = TypeImplementation(name: "Lines")
+    var lines = ImplementedType(name: "Lines")
     lines.conformances = ["Sequence": []]
     lines.members.append(.associatedType("Element", binding: .string))
     let id = swiit.register(lines)

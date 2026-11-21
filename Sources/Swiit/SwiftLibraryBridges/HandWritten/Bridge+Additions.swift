@@ -26,7 +26,7 @@ extension Bridge {
     static let discardable = [Symbol.Attribute(name: "discardableResult")]
 
     /// Members of Swift's types that the generator can't bridge, by the type that has them.
-    private static let additionTable: [String: [SymbolImplementation]] = [
+    private static let additionTable: [String: [ImplementedSymbol]] = [
         "Unicode.Scalar": [
             .property(
                 "value",

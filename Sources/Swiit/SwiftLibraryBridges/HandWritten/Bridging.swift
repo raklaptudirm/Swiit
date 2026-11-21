@@ -4,7 +4,7 @@ extension Value {
     /// The functions generated bridge code calls to convert between a ``Value`` and Swift types:
     /// reading a list, dictionary, range or closure out of one, and wrapping a Swift result back into
     /// one. They are public because the generated code is compiled in the client's module. Write
-    /// members with ``BridgedType`` or ``SymbolImplementation`` instead of calling these.
+    /// members with ``BridgedType`` or ``ImplementedSymbol`` instead of calling these.
     public enum Bridging {}
 }
 

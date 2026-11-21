@@ -17,7 +17,7 @@ extension TypeChecker {
 
     /// What names a type extensions can add to: `Int`, `Array`, a struct's own name.
     func extensionKey(of type: TypeAnnotation) -> String? {
-        if let name = TypeImplementation.Representation(type)?.name { return name }
+        if let name = ImplementedType.Representation(type)?.name { return name }
         return switch type {
         case .named(let name): name
         case .generic(let name, _): name

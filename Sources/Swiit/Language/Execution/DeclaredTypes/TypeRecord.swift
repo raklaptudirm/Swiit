@@ -5,7 +5,7 @@ import Foundation
 /// is the same for every kind.
 protocol TypeRecord: AnyObject {
     var typeRef: TypeRef { get }
-    var representation: TypeImplementation.Representation { get }
+    var representation: ImplementedType.Representation { get }
     /// What is said of the type. An extension that adds a conformance updates it through
     /// `Interpreter.refreshDeclaration(ofTypeNamed:)`.
     var symbol: Symbol { get set }
@@ -32,7 +32,7 @@ extension ProtocolType: TypeRecord {
 
 extension Interpreter {
     /// The record of the type a program declared under this name: nil for a host's type, which is
-    /// described by its `TypeImplementation`.
+    /// described by its `ImplementedType`.
     func record(ofTypeNamed name: String) -> (any TypeRecord)? {
         switch lookup(name)?.value.storage {
         case .object(let type as StructType)?: type

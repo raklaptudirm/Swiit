@@ -37,8 +37,8 @@ let answer = try swiit.evaluate("double(21)")   // 42
 - <doc:NativeBodies>
 - ``BridgedValue``
 - ``BridgedType``
-- ``TypeImplementation``
-- ``SymbolImplementation``
+- ``ImplementedType``
+- ``ImplementedSymbol``
 
 ### Errors and output
 

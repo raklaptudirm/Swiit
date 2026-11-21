@@ -13,7 +13,7 @@ final class ClassType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// methods, initializers, statics and subscripts, kept as a struct, an enum and an extension do.
     let members = TypeMembers()
     /// How its instances are stored: as a reference, shared by every variable that holds it.
-    let representation = TypeImplementation.Representation.reference
+    let representation = ImplementedType.Representation.reference
     var observers: [String: (willSet: Function?, didSet: Function?)] = [:]
     var deinitializer: Function?
     /// The protocols it names itself.

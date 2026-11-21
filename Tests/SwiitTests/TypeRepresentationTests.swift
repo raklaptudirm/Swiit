@@ -6,12 +6,12 @@ import Testing
 // type is a Swift value held as it is.
 
 @Test func theCoresKindsAreBuiltInAndTheRestAreHeld() throws {
-    func representation(of name: String) -> TypeImplementation.Representation? {
+    func representation(of name: String) -> ImplementedType.Representation? {
         Bridge.types[name]?.representation
     }
 
     for (name, kind) in [
-        ("Int", TypeImplementation.Representation.int), ("Double", .double), ("Bool", .bool),
+        ("Int", ImplementedType.Representation.int), ("Double", .double), ("Bool", .bool),
         ("String", .string), ("Array", .list), ("Dictionary", .dictionary),
     ] {
         #expect(representation(of: name) == kind)
@@ -27,7 +27,7 @@ import Testing
 @Test func aTypeAHostRegistersIsHeld() {
     let swiit = Interpreter()
     let name = "Held\(Int.random(in: 0..<1_000_000))"
-    swiit.register(TypeImplementation(name: name))
+    swiit.register(ImplementedType(name: name))
 
     guard case .held? = Bridge.types[name]?.representation else {
         Issue.record("\(name) should be held")
@@ -36,13 +36,13 @@ import Testing
 }
 
 @Test func aTypesRepresentationIsHowItsValuesAreStored() throws {
-    let samples: [TypeImplementation.Representation: Value] = [
+    let samples: [ImplementedType.Representation: Value] = [
         .bool: .bool(true), .int: .int(1), .double: .double(1), .string: .string("a"),
         .list: .list([]), .dictionary: .dictionary([:]),
     ]
     #expect(
         Set(samples.keys)
-            == Set(TypeImplementation.Representation.allCases)
+            == Set(ImplementedType.Representation.allCases)
             .subtracting([.held, .record, .enumeration, .reference, .requirements])
     )
 
@@ -60,27 +60,27 @@ import Testing
     let pair = try swiit.evaluate("Pair(a: 1)")
 
     #expect(pair.representation == .record)
-    #expect(TypeImplementation.Representation.record.encodes(pair.storage))
-    #expect(!TypeImplementation.Representation.record.encodes(Value.int(1).storage))
+    #expect(ImplementedType.Representation.record.encodes(pair.storage))
+    #expect(!ImplementedType.Representation.record.encodes(Value.int(1).storage))
 
     // An enum's values are one of its cases, and the type says so.
     _ = try swiit.evaluate("enum Axis { case x, y }")
     let axis = try swiit.evaluate("Axis.x")
 
     #expect(axis.representation == .enumeration)
-    #expect(TypeImplementation.Representation.enumeration.encodes(axis.storage))
+    #expect(ImplementedType.Representation.enumeration.encodes(axis.storage))
 
     // A class instance is a reference, and the type says so.
     _ = try swiit.evaluate("class Node { var n = 0 }")
     let node = try swiit.evaluate("Node()")
 
     #expect(node.representation == .reference)
-    #expect(TypeImplementation.Representation.reference.encodes(node.storage))
-    #expect(!TypeImplementation.Representation.reference.encodes(pair.storage))
+    #expect(ImplementedType.Representation.reference.encodes(node.storage))
+    #expect(!ImplementedType.Representation.reference.encodes(pair.storage))
 
     // No value is of a protocol, so its requirements have no storage.
     for sample in [pair, axis, node, Value.int(1)] {
-        #expect(!TypeImplementation.Representation.requirements.encodes(sample.storage))
+        #expect(!ImplementedType.Representation.requirements.encodes(sample.storage))
     }
 
     // A held value is stored as the Swift value it is.

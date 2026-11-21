@@ -34,7 +34,7 @@ extension Bridge {
         "ThrowingTaskGroup": ["AsyncSequence"],
     ]
 
-    static let concurrency: [TypeImplementation] = ([taskType] + taskGroupTypes)
+    static let concurrency: [ImplementedType] = ([taskType] + taskGroupTypes)
         .map {
             $0.lowering(ofTheCore: true)
         }
@@ -57,14 +57,14 @@ extension Bridge {
         return SwiftValue.make(TaskBox(handle), as: "Task")
     }
 
-    private static let taskType: TypeImplementation = {
-        var type = TypeImplementation(name: "Task", members: taskMembers)
+    private static let taskType: ImplementedType = {
+        var type = ImplementedType(name: "Task", members: taskMembers)
         type.genericParameters = [.genericParameter("Success"), .genericParameter("Failure")]
         type.conformances = ["Hashable": [], "Equatable": []]
         return type
     }()
 
-    private static let taskMembers: [SymbolImplementation] = [
+    private static let taskMembers: [ImplementedSymbol] = [
         .initializer(
             summary:
                 "Runs the operation as a task of its own, which goes on while the code that started it does.",

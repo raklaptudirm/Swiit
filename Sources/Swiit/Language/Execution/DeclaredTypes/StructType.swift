@@ -16,7 +16,7 @@ final class StructType: LanguageObject, DeclaredType, @unchecked Sendable {
     /// initializers, statics and subscripts. A struct, an enum and an extension keep them the same way.
     let members = TypeMembers()
     /// How its values are stored: as records of the stored properties.
-    let representation = TypeImplementation.Representation.record
+    let representation = ImplementedType.Representation.record
     /// What is said of the type, kept here so that every reader sees the same thing. An extension that
     /// adds a conformance updates it through `Interpreter.refreshDeclaration(of:)`.
     var symbol: Symbol

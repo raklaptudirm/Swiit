@@ -20,23 +20,23 @@ enum Bridge {
 
     /// Foundation's `Date` and `AttributedString`, from the description the generator writes
     /// (`FoundationBridge`, made with `--description`), lowered to the form the checker runs.
-    static let foundation: [TypeImplementation] = FoundationBridge.types.map {
+    static let foundation: [ImplementedType] = FoundationBridge.types.map {
         $0.lowering(ofTheCore: true)
     }
     /// The standard library's types, from its description (`StandardLibraryBridge`).
-    static let standardLibrary: [TypeImplementation] = StandardLibraryBridge.types.map {
+    static let standardLibrary: [ImplementedType] = StandardLibraryBridge.types.map {
         $0.lowering(ofTheCore: true)
     }
     /// swift-system's `FilePath`, from its description as well (`SystemBridge`).
-    static let system: [TypeImplementation] = SystemBridge.types.map {
+    static let system: [ImplementedType] = SystemBridge.types.map {
         $0.lowering(ofTheCore: true)
     }
 
     /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
     /// registered. A snapshot, as libraries register while other interpreters read.
-    static var types: [String: TypeImplementation] { table.withLock { $0 } }
+    static var types: [String: ImplementedType] { table.withLock { $0 } }
 
-    private static let table = Mutex<[String: TypeImplementation]>(
+    private static let table = Mutex<[String: ImplementedType]>(
         Dictionary(
             uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency)
                 .map {
@@ -51,7 +51,7 @@ enum Bridge {
 
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
     /// the members it adds to types the core has. Registering one again is no change.
-    static func register(_ more: [TypeImplementation]) {
+    static func register(_ more: [ImplementedType]) {
         table.withLock { table in
             for type in more {
                 if let existing = table[type.name] {
@@ -71,7 +71,7 @@ enum Bridge {
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     static func type(
         of annotation: TypeAnnotation
-    ) -> (TypeImplementation, [String: TypeAnnotation])? {
+    ) -> (ImplementedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
             type.genericParameterNames.count == arguments.count
         else { return nil }

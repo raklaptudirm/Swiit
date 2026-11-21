@@ -315,7 +315,7 @@ private struct Point: Encodable { var x: Int }
 
 @Test func aHostTypeSaysWhatItIsWithItsSymbol() {
     let swiit = interpreter()
-    var gizmo = TypeImplementation(name: "Gizmo")
+    var gizmo = ImplementedType(name: "Gizmo")
     gizmo.symbol.summary = "A thing the host offers."
     swiit.register(gizmo)
 
@@ -329,7 +329,7 @@ private struct Point: Encodable { var x: Int }
 @Test func aDeclaredTypeAndAHostTypeAreDescribedTheSameWay() throws {
     let swiit = interpreter()
     _ = try swiit.evaluate("struct Point: Equatable { var x: Int }")
-    var widget = TypeImplementation(name: "Widget")
+    var widget = ImplementedType(name: "Widget")
     widget.conformances = ["Hashable": []]
     swiit.register(widget)
 

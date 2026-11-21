@@ -2,7 +2,7 @@ import Foundation
 
 // What a type a host wrote becomes for the checker and the interpreter: its members lowered.
 
-extension TypeImplementation {
+extension ImplementedType {
     /// The generic parameters' names, which the checker binds.
     var genericParameterNames: [String] { genericParameters.map(\.name) }
     /// The types it binds its protocols' associated types to: `Element` is `String` for a sequence of
@@ -25,7 +25,7 @@ extension TypeImplementation {
     /// It, with its members lowered. A type of the core is bridged: its members are not a host's own,
     /// so none is called without an interpreter and a host's member of the same shape takes its place
     /// (a generated description is one); its representation is the one the interpreter stores itself, if it is one of those.
-    func lowering(ofTheCore core: Bool = false) -> TypeImplementation {
+    func lowering(ofTheCore core: Bool = false) -> ImplementedType {
         var made = self
         made.lowered = members.flatMap { BridgedMember.members(of: $0, in: name) }
         if core {
@@ -40,7 +40,7 @@ extension TypeImplementation {
     /// It, with members written by hand too, where the generator can't make them. A host's own member
     /// (one a native type registered) takes the place of a bridged one of the same shape, which is how a
     /// host says how a type shows; one registered twice is not added again.
-    func adding(_ extra: [BridgedMember]) -> TypeImplementation {
+    func adding(_ extra: [BridgedMember]) -> ImplementedType {
         func same(_ a: BridgedMember, _ b: BridgedMember) -> Bool {
             a.kind == b.kind && a.name == b.name && a.isStatic == b.isStatic
                 && a.parameters.map(\.label) == b.parameters.map(\.label)
@@ -57,7 +57,7 @@ extension TypeImplementation {
     }
 
     /// It, conforming to `protocols` too, whatever its generic parameters are.
-    func conforming(to protocols: [String]) -> TypeImplementation {
+    func conforming(to protocols: [String]) -> ImplementedType {
         guard !protocols.isEmpty else { return self }
         var made = self
         for name in protocols { made.symbol.nominal?.conformances[name] = [] }
@@ -69,7 +69,7 @@ extension BridgedMember {
     /// The members of a Swift type of the core's, written as a host writes its own: bridged, not
     /// a host's, so none is called without an interpreter and a host's member of the same shape
     /// takes its place.
-    static func bridged(_ symbols: [SymbolImplementation], in typeName: String) -> [BridgedMember] {
+    static func bridged(_ symbols: [ImplementedSymbol], in typeName: String) -> [BridgedMember] {
         symbols.flatMap { members(of: $0, in: typeName) }
             .map {
                 var member = $0; member.plain = nil; return member
@@ -114,7 +114,7 @@ extension BridgedMember {
     // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
     /// What a script can call, from what a host wrote: a settable property is a property and its
     /// setter.
-    static func members(of member: SymbolImplementation, in typeName: String) -> [BridgedMember] {
+    static func members(of member: ImplementedSymbol, in typeName: String) -> [BridgedMember] {
         let symbol = member.symbol
         func make(
             _ kind: BridgedMember.Kind,

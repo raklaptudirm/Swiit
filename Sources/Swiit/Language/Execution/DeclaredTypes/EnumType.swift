@@ -10,7 +10,7 @@ import Foundation
 final class EnumType: @unchecked Sendable {
     let enumeration: Value.EnumCase.Enumeration
     /// How its values are stored: as one of the cases.
-    let representation = TypeImplementation.Representation.enumeration
+    let representation = ImplementedType.Representation.enumeration
     let members = TypeMembers()
     /// What is said of the type, kept here so that every reader sees the same thing. An extension
     /// that adds a conformance updates it through `Interpreter.refreshDeclaration(ofTypeNamed:)`.

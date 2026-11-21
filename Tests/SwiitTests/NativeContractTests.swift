@@ -40,7 +40,7 @@ private struct Boom: Error, CustomStringConvertible {
     let swiit = interpreter()
     let seen = Mutex<[[Value]]>([])
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "f",
             parameters: [
                 .init(label: nil, name: "a", type: .int),
@@ -64,7 +64,7 @@ private struct Boom: Error, CustomStringConvertible {
     nonisolated(unsafe) let running = swiit
     // Calls a script function with a value, and evaluates source that sees what the script has.
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "twice",
             parameters: [.init(label: nil, name: "f", type: .callable)],
             returns: .int
@@ -74,7 +74,7 @@ private struct Boom: Error, CustomStringConvertible {
         }
     )
     swiit.register(
-        SymbolImplementation.function(name: "peek", returns: .int) { _ in
+        ImplementedSymbol.function(name: "peek", returns: .int) { _ in
             try running.evaluate("hidden + 1")
         }
     )
@@ -93,12 +93,12 @@ private struct Boom: Error, CustomStringConvertible {
     let swiit = interpreter()
     let other = interpreter()
     swiit.register(
-        SymbolImplementation.function(name: "sameAsMine", returns: .bool) { _ in
+        ImplementedSymbol.function(name: "sameAsMine", returns: .bool) { _ in
             Value(Interpreter.running === swiit)
         }
     )
     other.register(
-        SymbolImplementation.function(name: "sameAsMine", returns: .bool) { _ in
+        ImplementedSymbol.function(name: "sameAsMine", returns: .bool) { _ in
             Value(Interpreter.running === swiit)
         }
     )
@@ -108,7 +108,7 @@ private struct Boom: Error, CustomStringConvertible {
     #expect(Interpreter.running == nil)
     // A body reaches the script through it, as a function that holds the interpreter does.
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "twiceViaRunning",
             parameters: [.init(label: nil, name: "f", type: .callable)],
             returns: .int
@@ -125,7 +125,7 @@ private struct Boom: Error, CustomStringConvertible {
     let swiit = interpreter()
     nonisolated(unsafe) let running = swiit
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "bump",
             parameters: [.init(label: nil, name: "f", type: .callable)]
         ) { arguments in
@@ -142,10 +142,10 @@ private struct Boom: Error, CustomStringConvertible {
 @Test func anErrorABodyThrowsIsOneAScriptCanCatch() throws {
     let swiit = interpreter()
     swiit.register(
-        SymbolImplementation.function(name: "plain", isThrowing: true) { _ in throw Boom() }
+        ImplementedSymbol.function(name: "plain", isThrowing: true) { _ in throw Boom() }
     )
     swiit.register(
-        SymbolImplementation.function(name: "diagnosed", isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "diagnosed", isThrowing: true) { _ in
             throw Diagnostic.runtime("nope")
         }
     )
@@ -173,7 +173,7 @@ private struct Boom: Error, CustomStringConvertible {
     let log = Log()
     let swiit = interpreter(log: log)
     swiit.register(
-        SymbolImplementation.function(name: "stop", isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "stop", isThrowing: true) { _ in
             throw Diagnostic.fatal("stopped", cause: Stop())
         }
     )
@@ -196,7 +196,7 @@ private struct Boom: Error, CustomStringConvertible {
     nonisolated(unsafe) let running = swiit
     let ran = Mutex(0)
     swiit.register(
-        SymbolImplementation.function(name: "spin", isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "spin", isThrowing: true) { _ in
             for _ in 0..<1_000_000 {
                 try running.checkForStop()
                 ran.withLock { $0 += 1 }
@@ -218,7 +218,7 @@ private struct Boom: Error, CustomStringConvertible {
     let swiit = interpreter()
     let inside = Mutex((now: 0, most: 0))
     swiit.register(
-        SymbolImplementation.function(name: "work", returns: .int) { _ in
+        ImplementedSymbol.function(name: "work", returns: .int) { _ in
             inside.withLock {
                 $0.now += 1
                 $0.most = max($0.most, $0.now)
@@ -242,13 +242,13 @@ private struct Boom: Error, CustomStringConvertible {
     let swiit = interpreter()
     let gate = DispatchSemaphore(value: 0)
     swiit.register(
-        SymbolImplementation.function(name: "block", returns: .int) { _ in
+        ImplementedSymbol.function(name: "block", returns: .int) { _ in
             Interpreter.whileWaiting { gate.wait() }
             return Value(1)
         }
     )
     swiit.register(
-        SymbolImplementation.function(name: "release", returns: .int) { _ in
+        ImplementedSymbol.function(name: "release", returns: .int) { _ in
             gate.signal()
             return Value(2)
         }
@@ -320,7 +320,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
 @Test func aValueABodyIsGivenIsACopy() throws {
     let swiit = interpreter()
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "tamper",
             parameters: [.init(label: nil, name: "items", type: .list(.int))],
             returns: .int
@@ -339,7 +339,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
     let swiit = interpreter()
     let calls = Mutex(0)
     swiit.register(
-        SymbolImplementation.function(name: "count", returns: .int) { _ in
+        ImplementedSymbol.function(name: "count", returns: .int) { _ in
             calls.withLock { $0 += 1 }
             return Value(1)
         }
@@ -354,7 +354,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
     let swiit = interpreter(limits: Interpreter.Limits(maxCallDepth: 200))
     nonisolated(unsafe) let running = swiit
     swiit.register(
-        SymbolImplementation.function(
+        ImplementedSymbol.function(
             name: "twice",
             parameters: [.init(label: nil, name: "f", type: .callable)],
             returns: .int
@@ -372,7 +372,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
     let swiit = interpreter(limits: Interpreter.Limits(maxSteps: 100))
     nonisolated(unsafe) let running = swiit
     swiit.register(
-        SymbolImplementation.function(name: "spin", isThrowing: true) { _ in
+        ImplementedSymbol.function(name: "spin", isThrowing: true) { _ in
             while true { try running.checkForStop() }
         }
     )
@@ -387,7 +387,7 @@ private struct ContractTally: Hashable, Sendable, BridgedValue {
 
 @Test func aBodyThatCanThrowIsCalledWithTry() throws {
     let swiit = interpreter()
-    swiit.register(SymbolImplementation.function(name: "risky", isThrowing: true) { _ in .nothing })
+    swiit.register(ImplementedSymbol.function(name: "risky", isThrowing: true) { _ in .nothing })
     let failure = #expect(throws: Diagnostic.self) { try swiit.evaluate("risky()") }
     #expect(failure?.kind == .type)
     _ = try swiit.evaluate("try risky()")

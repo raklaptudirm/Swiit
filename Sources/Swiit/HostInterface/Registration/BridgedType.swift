@@ -12,7 +12,7 @@ import Foundation
 ///         .property("host", \.host)
 ///         .method("appending", labels: [nil], URL.appendingPathComponent(_:)))
 public struct BridgedType<T: Sendable>: Sendable {
-    private(set) var type: TypeImplementation
+    private(set) var type: ImplementedType
 
     /// A type for `T`, named `name` in scripts (`T`'s own name by default). What `T` says of
     /// itself is read from it: `Equatable`, `Hashable`, `Comparable`, `Sequence` (with its
@@ -21,7 +21,7 @@ public struct BridgedType<T: Sendable>: Sendable {
     /// (`ExpressibleByStringLiteral`).
     public init(_ name: String? = nil) {
         let name = name ?? String(describing: T.self)
-        self.type = TypeImplementation(name: name)
+        self.type = ImplementedType(name: name)
         type.conformances = Dictionary(
             uniqueKeysWithValues: Self.conformances().map { ($0, []) }
         )
@@ -58,9 +58,9 @@ public struct BridgedType<T: Sendable>: Sendable {
     /// The initializers a type has from the protocols that read it from text: `init?(_ text:)` for a
     /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
     /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
-    private static func textInitializers(named name: String) -> [SymbolImplementation] {
+    private static func textInitializers(named name: String) -> [ImplementedSymbol] {
         let own = TypeExpression.named(TypeRef(nativeType: name))
-        func fromText<L: LosslessStringConvertible>(_: L.Type) -> SymbolImplementation {
+        func fromText<L: LosslessStringConvertible>(_: L.Type) -> ImplementedSymbol {
             .initializer(
                 summary: "The value the text spells, or nil.",
                 signature: Symbol.Function(
@@ -74,7 +74,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 return box(value, as: name)
             }
         }
-        func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> SymbolImplementation {
+        func fromLiteral<L: ExpressibleByStringLiteral>(_: L.Type) -> ImplementedSymbol {
             .initializer(
                 summary: "The value the string literal is.",
                 signature: Symbol.Function(
@@ -91,7 +91,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 return box(value, as: name)
             }
         }
-        var found: [SymbolImplementation] = []
+        var found: [ImplementedSymbol] = []
         if let lossless = T.self as? any LosslessStringConvertible.Type {
             found.append(fromText(lossless))
         }
@@ -108,7 +108,7 @@ public struct BridgedType<T: Sendable>: Sendable {
     /// It, with `member`, which takes or gives the Swift enums `enums`: registering the type
     /// declares them, as registering a function does.
     private func adding(
-        _ member: SymbolImplementation,
+        _ member: ImplementedSymbol,
         enums: [Value.EnumCase.Enumeration] = []
     ) -> BridgedType {
         var copy = self
@@ -127,9 +127,9 @@ public struct BridgedType<T: Sendable>: Sendable {
     }
 
     /// A member written by hand, for what a key path or a method reference cannot say, such as
-    /// an `async` method: made with `SymbolImplementation`'s `.method`, `.property` and the rest. A
+    /// an `async` method: made with `ImplementedSymbol`'s `.method`, `.property` and the rest. A
     /// function is not a member, and is registered on its own.
-    public func member(_ symbol: SymbolImplementation) -> BridgedType {
+    public func member(_ symbol: ImplementedSymbol) -> BridgedType {
         guard symbol.function == nil else {
             preconditionFailure("\(symbol.name) is a function, not a member of \(type.name)")
         }
@@ -160,7 +160,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         adding(
             .method(
                 name,
-                parameters: SymbolImplementation.parameters(
+                parameters: ImplementedSymbol.parameters(
                     repeat (each Argument).self,
                     labels: labels
                 ),
@@ -174,7 +174,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 )
                 .value
             },
-            enums: SymbolImplementation.enums(repeat (each Argument).self) + Result.swiitEnums
+            enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
         )
     }
 
@@ -188,7 +188,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         adding(
             .staticMethod(
                 name,
-                parameters: SymbolImplementation.parameters(
+                parameters: ImplementedSymbol.parameters(
                     repeat (each Argument).self,
                     labels: labels
                 ),
@@ -199,7 +199,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 func next() -> Value { defer { index += 1 }; return arguments[index] }
                 return try function(repeat try (each Argument)(next())).value
             },
-            enums: SymbolImplementation.enums(repeat (each Argument).self) + Result.swiitEnums
+            enums: ImplementedSymbol.enums(repeat (each Argument).self) + Result.swiitEnums
         )
     }
 
@@ -212,7 +212,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         let name = type.name
         return adding(
             .initializer(
-                parameters: SymbolImplementation.parameters(
+                parameters: ImplementedSymbol.parameters(
                     repeat (each Argument).self,
                     labels: labels
                 ),
@@ -223,7 +223,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 func next() -> Value { defer { index += 1 }; return arguments[index] }
                 return Self.box(try make(repeat try (each Argument)(next())), as: name)
             },
-            enums: SymbolImplementation.enums(repeat (each Argument).self)
+            enums: ImplementedSymbol.enums(repeat (each Argument).self)
         )
     }
 
@@ -237,7 +237,7 @@ public struct BridgedType<T: Sendable>: Sendable {
         let name = type.name
         return adding(
             .initializer(
-                parameters: SymbolImplementation.parameters(
+                parameters: ImplementedSymbol.parameters(
                     repeat (each Argument).self,
                     labels: labels
                 ),
@@ -249,7 +249,7 @@ public struct BridgedType<T: Sendable>: Sendable {
                 return try make(repeat try (each Argument)(next()))
                     .map { Self.box($0, as: name) } ?? .nothing
             },
-            enums: SymbolImplementation.enums(repeat (each Argument).self)
+            enums: ImplementedSymbol.enums(repeat (each Argument).self)
         )
     }
 }

@@ -434,7 +434,7 @@ extension Interpreter {
 extension Interpreter {
     /// A host's Swift function as a Swiit one: the same binding, help and
     /// streaming as a Swiit `func`.
-    static func hostFunction(_ export: SymbolImplementation) -> Function {
+    static func hostFunction(_ export: ImplementedSymbol) -> Function {
         guard let (signature, call) = export.function else {
             preconditionFailure("\(export.name) is a member of a type, not a function")
         }

@@ -45,8 +45,8 @@ extension Interpreter {
     func typeValue(of annotation: TypeAnnotation) -> Value? {
         let name: String
         switch annotation {
-        case _ where TypeImplementation.Representation(annotation) != nil:
-            name = TypeImplementation.Representation(annotation)!.name!
+        case _ where ImplementedType.Representation(annotation) != nil:
+            name = ImplementedType.Representation(annotation)!.name!
         case .named(let named): name = named
         case .generic(let named, _): name = named
         case .parameter(let parameter): return lookup(parameter)?.value

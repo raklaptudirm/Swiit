@@ -6,8 +6,8 @@ point, listed here in that order.
 ## Register a closure as a function
 
 ``Interpreter/register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)`` takes a name and a closure, such as `register("double") { (n: Int) in n * 2 }`. When the
-parameter types are only known at run time, build a ``SymbolImplementation`` with ``SymbolImplementation/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,TypeExpression,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
-``Interpreter/register(_:)-(SymbolImplementation)``.
+parameter types are only known at run time, build an ``ImplementedSymbol`` with ``ImplementedSymbol/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,TypeExpression,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
+``Interpreter/register(_:)-(ImplementedSymbol)``.
 
 ## Register a Swift value type
 
@@ -20,8 +20,8 @@ it, `rawValue` is its own, and if it is `Comparable` its cases compare in the or
 ones it takes or gives, so a struct with a `shade: Shade` property needs nothing more for scripts to name `Shade`. An enum
 that only declarations in Swift source name is registered on its own, with `register(Shade.self)`.
 
-A type that is not a Swift value type, or one a generator describes, is a ``TypeImplementation``: a type ``Symbol`` (what a script
-sees of the type, and what its Swift type says of itself) with ``SymbolImplementation`` members. Hand it to ``Interpreter/register(_:)-(TypeImplementation)``.
+A type that is not a Swift value type, or one a generator describes, is an ``ImplementedType``: a type ``Symbol`` (what a script
+sees of the type, and what its Swift type says of itself) with ``ImplementedSymbol`` members. Hand it to ``Interpreter/register(_:)-(ImplementedType)``.
 
 ## Hand scripts a live object
 

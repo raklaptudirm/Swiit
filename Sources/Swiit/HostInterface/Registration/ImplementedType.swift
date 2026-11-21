@@ -2,8 +2,8 @@ import Foundation
 
 /// What a host offers scripts for a type: its symbol and its members. Write it with ``BridgedType`` for
 /// a Swift type, or by hand for a type a generator describes, and register it with
-/// ``Interpreter/register(_:)-(TypeImplementation)``.
-public struct TypeImplementation: Sendable {
+/// ``Interpreter/register(_:)-(ImplementedType)``.
+public struct ImplementedType: Sendable {
     /// What a script sees of the type: a symbol of kind `.type` with its name, documentation and
     /// attributes, and its kind, reference, generic parameters and the protocols its Swift type conforms to
     /// (of those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
@@ -25,7 +25,7 @@ public struct TypeImplementation: Sendable {
         get { symbol.nominal?.conformances ?? [:] }
         set { symbol.nominal?.conformances = newValue }
     }
-    public var members: [SymbolImplementation]
+    public var members: [ImplementedSymbol]
     /// What a value of the type is: one of the core's kinds with storage of its own, or a Swift value
     /// held as it is. The kinds a program declares join these as the type record grows.
     var representation = Representation.held
@@ -33,7 +33,7 @@ public struct TypeImplementation: Sendable {
     /// registered.
     var lowered: [BridgedMember] = []
 
-    public init(name: String, members: [SymbolImplementation] = []) {
+    public init(name: String, members: [ImplementedSymbol] = []) {
         symbol = Symbol(
             name: name,
             kind: .type(Symbol.Nominal(kind: .structure, typeRef: .native(name)))
@@ -86,7 +86,7 @@ extension Interpreter {
     }
 
     @discardableResult
-    public func register(_ type: TypeImplementation) -> TypeRef {
+    public func register(_ type: ImplementedType) -> TypeRef {
         var bridged = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
@@ -173,7 +173,7 @@ extension Interpreter {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var typeExpression: TypeExpression { .named(.native(typeImplementation.name)) }
+    public static var typeExpression: TypeExpression { .named(.native(implementedType.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
