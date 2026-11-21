@@ -10,8 +10,11 @@ public struct TypeDeclaration: Sendable, Hashable {
     /// The protocols it conforms to, each with what its generic parameters must be for it: a
     /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`.
     public var conformances: [String: [Symbol]] = [:]
-    /// What its associated types are: `Element` is `String` for a sequence of text.
-    public var associatedTypes: [String: TypeExpression] = [:]
+
+    /// The kinds of type Swift declares: what a type symbol's kind says.
+    public enum Kind: Sendable, Hashable {
+        case structure, enumeration, `class`, actor, `protocol`
+    }
 
     public init(symbol: Symbol) {
         self.symbol = symbol

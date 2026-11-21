@@ -9,7 +9,7 @@ extension Symbol {
     /// has is for `TypeExpression.members(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
         /// A type, of the five kinds Swift declares.
-        case type(TypeKind)
+        case type(TypeDeclaration.Kind)
         /// A function, as a script declares or a host registers one.
         case function(Function)
         /// A global: its type, and whether a script can assign to it.
@@ -37,11 +37,6 @@ extension Symbol {
         public static func associatedType(_ associatedType: AssociatedType) -> Kind {
             .member(.associatedType(associatedType))
         }
-    }
-
-    /// The kinds of type Swift declares.
-    public enum TypeKind: Sendable, Hashable {
-        case structure, enumeration, `class`, actor, `protocol`
     }
 
     /// What a type has: a method, a property, an initializer, a case or an associated type.
