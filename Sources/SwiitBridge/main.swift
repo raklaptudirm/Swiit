@@ -206,7 +206,7 @@ if configurationPath != nil {
     functionNames = discoveredFunctions(in: graph, skipping: Set(skipNames)) + functionNames
 }
 /// The types the module being bridged defines, which it can say are `BridgedValue`: what the output
-/// writes for them is their `implementedType`, and the conformance where they have none.
+/// writes for them is their `implementation`, and the conformance where they have none.
 let ownedTypeNames: [String] =
     configurationPath != nil && graph.module.name == outputModule
     ? discoveredTypes(
@@ -583,7 +583,7 @@ for name in ownedTypeNames {
     output += """
 
         extension \(name)\(alreadyBridgedTypes.contains(name) ? "" : ": BridgedValue") {
-            \(access) static var implementedType: ImplementedType { \(bridgeName)Bridge.\(typeName) }
+            \(access) static var implementation: ImplementedType { \(bridgeName)Bridge.\(typeName) }
         }
 
         """

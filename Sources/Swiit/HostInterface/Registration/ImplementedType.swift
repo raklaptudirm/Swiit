@@ -173,7 +173,7 @@ extension Interpreter {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var typeExpression: TypeExpression { .named(.native(implementedType.name)) }
+    public static var typeExpression: TypeExpression { .named(.native(implementation.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
