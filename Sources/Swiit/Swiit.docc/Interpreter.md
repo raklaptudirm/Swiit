@@ -16,6 +16,9 @@
 - ``check(_:)``
 - ``Declarations``
 - ``cancel()``
+- ``checkForStop()``
+- ``cancellation``
+- ``Cancellation``
 
 ### Registering functions, types and globals
 
@@ -40,6 +43,7 @@ A type's members, a type reference's declaration and a candidate list's overload
 
 - ``globals(named:)``
 - ``types``
+- ``symbol(ofType:)``
 - ``typeExpression(of:)``
 - ``typeExpression(ofExpression:)``
 - ``highlighting(_:)``

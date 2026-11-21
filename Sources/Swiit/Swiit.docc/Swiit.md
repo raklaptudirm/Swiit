@@ -15,53 +15,37 @@ let answer = try swiit.evaluate("double(21)")   // 42
 
 ## Topics
 
-### Creating and configuring an interpreter
+### Creating and running an interpreter
 
 - <doc:EmbeddingSwiit>
 - ``Interpreter``
-- ``Interpreter/Host``
-- ``Interpreter/Limits``
-
-### Evaluating source and stopping a run
-
-- ``Interpreter/evaluate(_:limits:onValue:onError:completion:)-670lm``
-- ``Interpreter/Cancellation``
 - ``ScriptTask``
 
-### What Swift code runs
-
-- <doc:SwiftSupport>
-
-### Script values and types
+### Values and types
 
 - ``Value``
 - ``TypeExpression``
 - ``TypeRef``
 
-### Describing symbols and types
+### Symbols
 
 - ``Symbol``
-- ``Symbol/Kind``
-- ``Symbol/Attribute``
-- ``Symbol/Constraint``
-- ``Symbol/Nominal``
-- ``Symbol/Nominal/Kind``
-- ``Interpreter/Declarations``
 
 ### Registering Swift functions, types and objects
 
 - <doc:ExposingSwift>
 - <doc:NativeBodies>
+- ``BridgedValue``
 - ``BridgedType``
 - ``TypeImplementation``
 - ``SymbolImplementation``
-- ``BridgedValue``
 
-### Errors
+### Errors and output
 
 - <doc:ReadingDiagnostics>
 - ``Diagnostic``
-
-### Output streams
-
 - ``OutputSink``
+
+### What Swift code runs
+
+- <doc:SwiftSupport>

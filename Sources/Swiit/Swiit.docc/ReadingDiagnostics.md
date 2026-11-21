@@ -20,9 +20,9 @@ with the host's own `Error`), the functions it unwound through, and where to pri
 
 ## Print it with its source line
 
-``Diagnostic/rendered(in:path:color:)`` returns the message followed by the line of source with the failing place marked by `^`, in ANSI color if
-`color` is `true`. ``Diagnostic/rendered(in:path:style:)`` takes a ``Diagnostic/Style`` that colors the source line, the frame and the mark, so
-a host can highlight that line the way it highlights its own source. `in:` is the source text the ranges refer to.
+``Diagnostic/rendered(in:path:style:)`` returns the message followed by the line of source with the failing place marked by `^`.
+Pass `.ansi` as the `style` for a terminal, or a ``Diagnostic/Style`` of your own that colors the source line, the frame and
+the mark, so a host can highlight that line the way it highlights its own source. `in:` is the source text the ranges refer to.
 
 ## Throw one from a host function
 
