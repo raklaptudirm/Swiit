@@ -1,13 +1,15 @@
 import Foundation
 import Synchronization
 
-/// How a host names a type: a parameter or result of a function it offers, and what `symbols`,
-/// `overload` and `scriptType(of:)` speak. Swift's type grammar is small and closed, and so
-/// is this: a name with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`,
-/// `Set<String>`), a function type, a tuple type. Whether a named type is a struct, an enum or a
-/// class is a fact about its declaration: `Interpreter.globals(named:)` says.
-public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
-    case named(TypeRef, [ScriptType] = [])
+/// A type as a signature writes it, which is what a function offered to scripts, `symbols`, `overload`
+/// and `typeExpression(of:)` speak. Swift's type grammar is small and closed, and so is this: a named
+/// type with the types it is generic over (`Int`, `Array<Int>`, `Optional<String>`), a function type, a
+/// tuple type, a metatype, or a generic parameter. A ``TypeRef`` says which type a name is; an
+/// expression says how a type is written with it, so it can have arguments, and a function type has
+/// no reference of its own. Whether a named type is a struct, an enum or a class is a fact about its
+/// declaration (``TypeDeclaration``): `Interpreter.globals(named:)` says.
+public indirect enum TypeExpression: Sendable, Hashable, CustomStringConvertible {
+    case named(TypeRef, [TypeExpression] = [])
     /// A generic parameter of the declaration the type is written in: `Element` in
     /// `func first() -> Element`. It stands where a type would be, with nothing declared under it.
     case parameter(String)
@@ -16,14 +18,14 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     case tuple([TupleElement])
     /// The type of a type, as `Tools` is where it is written as a value: `Tools.Type`. What it has
     /// are the type's static members, its initializers and the cases of an enum.
-    case metatype(ScriptType)
+    case metatype(TypeExpression)
 
     /// The shape of a function type: what it takes, what it gives back, and the effects Swift writes
     /// after its parameters. A declaration's `Symbol.Function` has the same shape and adds what only a
     /// declaration has (labels, names, defaults, documentation, generics).
     public struct FunctionType: Sendable, Hashable {
         public var parameters: [Parameter]
-        public var returns: ScriptType
+        public var returns: TypeExpression
         /// Whether it throws, and what.
         public var throwing: Throwing
         public var isAsync: Bool
@@ -31,10 +33,10 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         /// A parameter of a function type: its type, and whether the function changes it in place, as
         /// `reduce(into:)`'s closure changes its accumulator (`(inout Result, Element) -> Void`).
         public struct Parameter: Sendable, Hashable {
-            public var type: ScriptType
+            public var type: TypeExpression
             public var isInout: Bool
 
-            public init(_ type: ScriptType, isInout: Bool = false) {
+            public init(_ type: TypeExpression, isInout: Bool = false) {
                 self.type = type
                 self.isInout = isInout
             }
@@ -42,7 +44,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
 
         public init(
             parameters: [Parameter],
-            returns: ScriptType,
+            returns: TypeExpression,
             throwing: Throwing = .no,
             isAsync: Bool = false
         ) {
@@ -62,48 +64,51 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
             /// `throws`: any error.
             case any
             /// `throws(Failure)`: errors of this type.
-            case typed(ScriptType)
+            case typed(TypeExpression)
         }
     }
 
     /// An element of a tuple type, labeled or not.
     public struct TupleElement: Sendable, Hashable {
         public var label: String?
-        public var type: ScriptType
-        public init(label: String? = nil, type: ScriptType) {
+        public var type: TypeExpression
+        public init(label: String? = nil, type: TypeExpression) {
             self.label = label
             self.type = type
         }
     }
 
-    public static let any = ScriptType.named(.any)
-    public static let bool = ScriptType.named(.bool)
-    public static let int = ScriptType.named(.int)
-    public static let double = ScriptType.named(.double)
-    public static let string = ScriptType.named(.string)
+    public static let any = TypeExpression.named(.any)
+    public static let bool = TypeExpression.named(.bool)
+    public static let int = TypeExpression.named(.int)
+    public static let double = TypeExpression.named(.double)
+    public static let string = TypeExpression.named(.string)
     /// The type of nothing: what a function that gives nothing gives.
-    public static let void = ScriptType.tuple([])
+    public static let void = TypeExpression.tuple([])
     /// A function whose signature is not said.
-    public static let callable = ScriptType.named(.function)
+    public static let callable = TypeExpression.named(.function)
 
     /// `[Element]`, which is `Array<Element>`.
-    public static func list(_ element: ScriptType) -> ScriptType { .named(.array, [element]) }
+    public static func list(_ element: TypeExpression) -> TypeExpression {
+        .named(.array, [element])
+    }
     /// `[Key: Value]`, which is `Dictionary<Key, Value>`.
-    public static func dictionary(_ key: ScriptType, _ value: ScriptType) -> ScriptType {
+    public static func dictionary(_ key: TypeExpression, _ value: TypeExpression) -> TypeExpression
+    {
         .named(.dictionary, [key, value])
     }
     /// `Wrapped?`, which is `Optional<Wrapped>`.
-    public static func optional(_ wrapped: ScriptType) -> ScriptType {
+    public static func optional(_ wrapped: TypeExpression) -> TypeExpression {
         .named(.optional, [wrapped])
     }
 
     /// A function type written with the effects as flags: `.function(parameters: [.int], returns: .int)`.
     public static func function(
-        parameters: [ScriptType],
-        returns: ScriptType,
+        parameters: [TypeExpression],
+        returns: TypeExpression,
         isThrowing: Bool = false,
         isAsync: Bool = false
-    ) -> ScriptType {
+    ) -> TypeExpression {
         .function(
             FunctionType(
                 parameters: parameters.map { FunctionType.Parameter($0) },
@@ -115,7 +120,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     }
 
     /// A named type by its text, which the module's own tables and checker are written in.
-    static func named(_ name: String, _ arguments: [ScriptType] = []) -> ScriptType {
+    static func named(_ name: String, _ arguments: [TypeExpression] = []) -> TypeExpression {
         .named(.native(name), arguments)
     }
 
@@ -143,11 +148,11 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     }
 }
 
-extension ScriptType.FunctionType.Parameter: CustomStringConvertible {
+extension TypeExpression.FunctionType.Parameter: CustomStringConvertible {
     public var description: String { isInout ? "inout \(type)" : type.description }
 }
 
-extension ScriptType.FunctionType {
+extension TypeExpression.FunctionType {
     /// ` throws`, ` throws(Failure)` or nothing, as Swift writes it after the parameters.
     fileprivate var throwingText: String {
         switch throwing {

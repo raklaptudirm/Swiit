@@ -103,7 +103,7 @@ extension Bridge {
     }
 
     private static func groupType(_ name: String, isThrowing: Bool) -> TypeImplementation {
-        let element = ScriptType.parameter("ChildTaskResult")
+        let element = TypeExpression.parameter("ChildTaskResult")
         var type = TypeImplementation(
             name: name,
             members: [

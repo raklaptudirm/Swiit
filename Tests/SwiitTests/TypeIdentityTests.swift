@@ -38,8 +38,8 @@ private struct Point: Encodable { var x: Int }
     // longer the type its name means.
     #expect(first.symbol(in: swiit)?.kind == .type(.structure))
     #expect(second.symbol(in: swiit)?.typeRef == second)
-    #expect(ScriptType.named(first).members(in: swiit).isEmpty)
-    #expect(!ScriptType.named(second).members(in: swiit).isEmpty)
+    #expect(TypeExpression.named(first).members(in: swiit).isEmpty)
+    #expect(!TypeExpression.named(second).members(in: swiit).isEmpty)
 }
 
 @Test func anIDFromAnotherInterpreterNamesNothing() throws {
@@ -61,7 +61,7 @@ private struct Point: Encodable { var x: Int }
     try swiit.evaluate("struct Int2 { var x = 0 }")
     #expect(TypeRef(named: "Int2", in: swiit) != TypeRef(nativeType: "Int2"))
     // A parameter is a reference with nothing under it.
-    let element = ScriptType.parameter("Element")
+    let element = TypeExpression.parameter("Element")
     guard case .named(let parameter, _) = element else { return }
     #expect(parameter.symbol(in: swiit) == nil)
     #expect(parameter != TypeRef(nativeType: "Element"))

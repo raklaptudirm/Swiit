@@ -30,11 +30,11 @@ extension Value {
 
     /// The value itself if it is of that script type (a struct or enum by name, a list of ints, an
     /// optional string), else nil.
-    public func casting(to type: ScriptType) -> Value? {
+    public func casting(to type: TypeExpression) -> Value? {
         matches(type) ? self : nil
     }
 
-    private func matches(_ type: ScriptType) -> Bool {
+    private func matches(_ type: TypeExpression) -> Bool {
         switch type {
         case .named("Any", _): return true
         case .named("Bool", _): return kind == .bool

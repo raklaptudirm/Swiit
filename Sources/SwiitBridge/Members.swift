@@ -222,7 +222,7 @@ func bridge(
     // A method-level generic parameter that isn't in a parameter can't be
     // inferred by the glue.
     for parameter in methodGenerics {
-        let mentioned = parameters.contains { scriptType($0.1).contains("\"\(parameter)\"") }
+        let mentioned = parameters.contains { typeExpression($0.1).contains("\"\(parameter)\"") }
         if !mentioned { throw Unsupported(reason: "uninferrable generic \(parameter)") }
     }
 
@@ -238,7 +238,7 @@ func bridge(
     let key =
         "\(declaration.kind) \(declaration.isStatic) \(declaration.name)("
         + parameters.map {
-            "\($0.0.label ?? "_"):\(scriptType($0.1))\($0.0.isVariadic ? "..." : "")"
+            "\($0.0.label ?? "_"):\(typeExpression($0.1))\($0.0.isVariadic ? "..." : "")"
         }
         .joined(separator: ",") + ")"
 
@@ -358,7 +358,7 @@ func bridge(
             "return try Value.Bridging.awaiting(interpreter) { () async throws -> Value in\n\(body)\n                }"
     }
     // A key path reads fields as the host reads them, for as long as the call.
-    if parameters.contains(where: { scriptType($0.1).hasPrefix(".named(.keyPath") }) {
+    if parameters.contains(where: { typeExpression($0.1).hasPrefix(".named(.keyPath") }) {
         body =
             "return try Value.Bridging.withFieldReader(interpreter) { () throws -> Value in\n\(body)\n                }"
     }

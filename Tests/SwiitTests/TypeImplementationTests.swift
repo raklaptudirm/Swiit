@@ -31,7 +31,7 @@ private final class Node: BridgedValue, CustomStringConvertible, @unchecked Send
     var description: String { "Node(\(label))" }
     func shout() -> String { label.uppercased() }
 
-    static let scriptTypeID = TypeRef(nativeType: "Node")
+    static let typeRef = TypeRef(nativeType: "Node")
     static let type = TypeImplementation.Builder<Node>("Node")
         .property("label", \.label)
         .method("shout", Node.shout)
@@ -121,7 +121,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     swiit["node"] = Value(node)
     swiit.register(Node.type)
     #expect(
-        Set(ScriptType.named(Node.scriptTypeID).members(in: swiit).map(\.name))
+        Set(TypeExpression.named(Node.typeRef).members(in: swiit).map(\.name))
             .isSuperset(of: ["label", "shout"])
     )
     #expect(try swiit.evaluate("node.shout()") == "A")
@@ -174,7 +174,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     // It's an enum to a host too: its cases are listed, and a case is had by name.
     let shade = TypeRef(named: "Shade", in: swiit)
     #expect(shade != nil)
-    let cases = ScriptType.named(shade!).members(in: swiit)
+    let cases = TypeExpression.named(shade!).members(in: swiit)
         .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
     #expect(cases.map(\.name) == ["light", "dark"])
     #expect(try shade.flatMap { $0.enumCase(named: "light", in: swiit) }.map(Shade.init) == .light)
@@ -303,8 +303,10 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     let id = swiit.register(pile)
 
     #expect(id == TypeRef(nativeType: "Pile"))
-    #expect(ScriptType.named(id, [.int]).conforms(to: TypeRef(nativeType: "Hashable"), in: swiit))
-    #expect(ScriptType.named(id, [.int]).conforms(to: .sequence, in: swiit))
+    #expect(
+        TypeExpression.named(id, [.int]).conforms(to: TypeRef(nativeType: "Hashable"), in: swiit)
+    )
+    #expect(TypeExpression.named(id, [.int]).conforms(to: .sequence, in: swiit))
 }
 
 @Test func aMemberWrittenFromItsSignatureKeepsRethrowingAndParameterDocs() throws {
@@ -329,7 +331,7 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     swiit.register(pile)
 
     let symbol = try #require(
-        ScriptType.named(.init(nativeType: "Crate")).members(named: "each", in: swiit).first
+        TypeExpression.named(.init(nativeType: "Crate")).members(named: "each", in: swiit).first
     )
     guard case .member(.method(let method)) = symbol.kind else {
         Issue.record("not a method")
@@ -358,11 +360,11 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     lines.members.append(.associatedType("Element", binding: .string))
     let id = swiit.register(lines)
 
-    let element = ScriptType.named(id).members(named: "Element", in: swiit)
+    let element = TypeExpression.named(id).members(named: "Element", in: swiit)
 
     #expect(element.count == 1)
     #expect(element.first?.kind == .associatedType(.binding(.string)))
-    #expect(element.first?.scriptType == .string)
+    #expect(element.first?.typeExpression == .string)
 }
 
 @Test func anAssociatedTypeOfAProtocolIsARequirement() throws {
@@ -370,8 +372,8 @@ private struct DataPair: BridgedValue, DynamicMembers, Hashable, CustomStringCon
     _ = try swiit.evaluate("protocol Container { associatedtype Item }")
 
     let container = try #require(TypeRef(named: "Container", in: swiit))
-    let item = ScriptType.named(container).members(named: "Item", in: swiit)
+    let item = TypeExpression.named(container).members(named: "Item", in: swiit)
 
     #expect(item.first?.kind == .associatedType(.requirement(constraints: [])))
-    #expect(item.first?.scriptType == .parameter("Item"))
+    #expect(item.first?.typeExpression == .parameter("Item"))
 }

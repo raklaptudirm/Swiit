@@ -5,7 +5,7 @@ import Synchronization
 // A reference to a type: the declaration it is, not the name it goes by.
 
 /// Names a type, or stands where one would be: what `register` gives back, what
-/// `TypeRef(named:in:)` finds, what `Value.typeRef` has, and what `ScriptType.named` and
+/// `TypeRef(named:in:)` finds, what `Value.typeRef` has, and what `TypeExpression.named` and
 /// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
 /// `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`), and mints one only for a Swift type it
 /// registers (`init(nativeType:)`).
@@ -24,7 +24,7 @@ import Synchronization
 ///   registered, or an encoded value's), and `TypeRef.symbol(in:)` then gives nil.
 ///
 /// A generic parameter (`Element`) is not a reference to a type: it stands where one would be, and
-/// `ScriptType.parameter` says so.
+/// `TypeExpression.parameter` says so.
 ///
 /// References are equal when they are the same kind and the same declaration, or the same name. They
 /// do not outlive the process.
@@ -57,7 +57,7 @@ public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     private static let counter = Mutex<UInt64>(0)
 
     /// The reference to a Swift type the host is about to register, for the places that need it
-    /// before there is an interpreter to ask or before the type is registered: a `scriptType`
+    /// before there is an interpreter to ask or before the type is registered: a `typeExpression`
     /// that is a static property, a type's own members that name it. It equals the reference
     /// `register` gives for the type of that name, and the same name's in another interpreter,
     /// and can never equal a script's type. Everywhere else, pass around what `register` gave

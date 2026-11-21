@@ -502,7 +502,7 @@ for (name, _) in bridgedTypeNames {
                     """
                     SymbolImplementation.initializer(summary: "The value the text spells, or nil.", \
                     signature: Symbol.Function(parameters: [Symbol.Parameter(name: "text", type: .string)], \
-                    returns: .optional(\(scriptType(selfType))))) { arguments in
+                    returns: .optional(\(typeExpression(selfType))))) { arguments in
                     guard case .string(let text) = arguments[0].storage else { return .nothing }
                     return \(name)(text).map { \(toValue("$0", selfType)) } ?? .nothing
                     }
@@ -519,7 +519,7 @@ for (name, _) in bridgedTypeNames {
                 guard let resolved = resolve(value, context),
                     supported(resolved, generics: context.generics, asParameter: false)
                 else { return nil }
-                return ".associatedType(\(quoted(key)), binding: \(scriptType(resolved)))"
+                return ".associatedType(\(quoted(key)), binding: \(typeExpression(resolved)))"
             }
             .sorted()
         let conformanceCode = owner.conformances.sorted { $0.key < $1.key }

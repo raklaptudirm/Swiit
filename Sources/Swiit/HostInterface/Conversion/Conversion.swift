@@ -3,7 +3,7 @@ import Foundation
 extension Interpreter {
     /// `value` as a `type`, converting as a call's argument is: nil if it is not one. A list's
     /// elements are converted too.
-    public func converted(_ value: Value, to type: ScriptType) -> Value? {
+    public func converted(_ value: Value, to type: TypeExpression) -> Value? {
         inCurrentTask { annotation(type).flatMap { conform(value, to: $0) } }
     }
 
@@ -28,8 +28,8 @@ extension Interpreter {
     }
 
     /// The type a value has in a script.
-    public func scriptType(of value: Value) -> ScriptType {
-        inCurrentTask { scriptType(TypeChecker(interpreter: self).type(of: value)) }
+    public func typeExpression(of value: Value) -> TypeExpression {
+        inCurrentTask { typeExpression(TypeChecker(interpreter: self).type(of: value)) }
     }
 }
 

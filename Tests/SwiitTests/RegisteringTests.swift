@@ -6,7 +6,7 @@ import Testing
 
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
-    fileprivate func type(_ name: String) -> ScriptType {
+    fileprivate func type(_ name: String) -> TypeExpression {
         .named(TypeRef(named: name, in: self)!)
     }
 }
@@ -198,8 +198,8 @@ private struct Failure: Encodable { var code: Int }
     #expect(swiit.converted(Value("a"), to: swiit.type("Character")) == "a")
     #expect(swiit.converted(Value("ab"), to: swiit.type("Character")) == nil)
     #expect(swiit.converted(Value("x"), to: swiit.type("Substring")) == nil)
-    #expect(swiit.scriptType(of: Value(3)) == .int)
-    #expect(swiit.scriptType(of: [1, 2]) == .list(.int))
+    #expect(swiit.typeExpression(of: Value(3)) == .int)
+    #expect(swiit.typeExpression(of: [1, 2]) == .list(.int))
 }
 
 @Test func aHostStartsAndJoinsTasksAndLetsScriptsAwaitThem() throws {

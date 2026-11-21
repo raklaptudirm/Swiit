@@ -2,17 +2,17 @@ import Foundation
 
 // A type a script can use, from a Swift type that converts to and from values.
 
-extension ScriptType {
-    /// The type of a Swift type a script can use: `ScriptType(Int.self)`,
-    /// `ScriptType([String].self)`; any `BridgedValue`.
+extension TypeExpression {
+    /// The type of a Swift type a script can use: `TypeExpression(Int.self)`,
+    /// `TypeExpression([String].self)`; any `BridgedValue`.
     public init<T: BridgedValue>(_ type: T.Type) {
-        self = T.scriptType
+        self = T.typeExpression
     }
 }
 
-extension ScriptType.TupleElement {
+extension TypeExpression.TupleElement {
     /// An element of a Swift type: `TupleElement(label: "by", type: String.self)`.
     public init<T: BridgedValue>(label: String? = nil, type: T.Type) {
-        self.init(label: label, type: ScriptType(type))
+        self.init(label: label, type: TypeExpression(type))
     }
 }

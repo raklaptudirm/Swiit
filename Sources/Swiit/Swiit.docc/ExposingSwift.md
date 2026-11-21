@@ -6,7 +6,7 @@ point, listed here in that order.
 ## Register a closure as a function
 
 ``Interpreter/register(_:labels:throwing:_:)-(_,_,_,(Argument)->Result)`` takes a name and a closure, such as `register("double") { (n: Int) in n * 2 }`. When the
-parameter types are only known at run time, build a ``SymbolImplementation`` with ``SymbolImplementation/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,ScriptType,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
+parameter types are only known at run time, build a ``SymbolImplementation`` with ``SymbolImplementation/function(name:summary:parameters:returns:isThrowing:generics:attributes:body:)-(_,_,_,TypeExpression,_,_,_,_)`` (a name, a summary, a signature and a body), and pass it to
 ``Interpreter/register(_:)-(SymbolImplementation)``.
 
 ## Register a Swift value type
@@ -34,5 +34,5 @@ marked `@dynamicMemberLookup`, so that `env.HOME` calls its `subscript(dynamicMe
 
 ## How values cross over
 
-A script sees every argument and result as a ``Value``, and a ``ScriptType`` names its type, such as `.int` or `.list(.string)`.
+A script sees every argument and result as a ``Value``, and a ``TypeExpression`` names its type, such as `.int` or `.list(.string)`.
 ``BridgedValue`` is the protocol a Swift type adopts to convert to and from `Value`.

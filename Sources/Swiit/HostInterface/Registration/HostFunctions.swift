@@ -8,7 +8,7 @@ extension Symbol.Parameter {
     init(
         label: String?,
         name: String,
-        type: ScriptType,
+        type: TypeExpression,
         variadic: Bool = false,
         documentation: String? = nil,
         defaultValue: Value? = nil,
@@ -33,7 +33,7 @@ extension Symbol.Parameter {
         type: T.Type,
         arity: Arity = .required
     ) {
-        self.init(label: label, name: name, type: ScriptType(type), arity: arity)
+        self.init(label: label, name: name, type: TypeExpression(type), arity: arity)
     }
 }
 
@@ -53,14 +53,14 @@ extension Value {
 }
 
 /// What the host checks a parameter's arguments against.
-func swiitParameterType<T: BridgedValue>(_ type: T.Type) -> ScriptType { T.scriptType }
+func swiitParameterType<T: BridgedValue>(_ type: T.Type) -> TypeExpression { T.typeExpression }
 func swiitParameterEnums<T: BridgedValue>(_ type: T.Type) -> [Value.EnumCase.Enumeration] {
     T.swiitEnums
 }
 
 /// What a function returns, for signatures and help.
-func swiitReturnType(_ type: Any.Type) -> ScriptType {
-    (type as? any BridgedValue.Type)?.scriptType ?? .any
+func swiitReturnType(_ type: Any.Type) -> TypeExpression {
+    (type as? any BridgedValue.Type)?.typeExpression ?? .any
 }
 
 /// An argument the macro-generated code converts: a clear message naming

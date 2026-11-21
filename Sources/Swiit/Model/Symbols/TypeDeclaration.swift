@@ -11,7 +11,7 @@ public struct TypeDeclaration: Sendable, Hashable {
     /// `ClosedRange` is a `Sequence` when its `Bound` is an `Int`.
     public var conformances: [String: [Symbol]] = [:]
     /// What its associated types are: `Element` is `String` for a sequence of text.
-    public var associatedTypes: [String: ScriptType] = [:]
+    public var associatedTypes: [String: TypeExpression] = [:]
 
     public init(symbol: Symbol) {
         self.symbol = symbol

@@ -30,8 +30,8 @@ extension Interpreter {
     }
 
     /// A type as the checker reads it, or nil when it names a declared type that has gone stale.
-    func annotation(_ type: ScriptType) -> TypeAnnotation? {
-        func current(_ type: ScriptType) -> Bool {
+    func annotation(_ type: TypeExpression) -> TypeAnnotation? {
+        func current(_ type: TypeExpression) -> Bool {
             switch type {
             case .named(let typeRef, let arguments):
                 isCurrent(typeRef) && arguments.allSatisfy(current)
@@ -45,7 +45,7 @@ extension Interpreter {
         return current(type) ? TypeAnnotation(type) : nil
     }
 
-    /// Every type a script can name, its members to be had from `ScriptType.members(named:in:)`: those scripts and
+    /// Every type a script can name, its members to be had from `TypeExpression.members(named:in:)`: those scripts and
     /// the host declare, and Swift's own that the core bridges (`String`, `Array`, `Date`).
     public var types: [Symbol] {
         withMainTask {
@@ -71,7 +71,7 @@ extension Interpreter {
         }
     }
 
-    func conforms(_ type: ScriptType, to proto: TypeRef) -> Bool {
+    func conforms(_ type: TypeExpression, to proto: TypeRef) -> Bool {
         inCurrentTask {
             guard isCurrent(proto), let annotation = annotation(type) else { return false }
             return TypeChecker(interpreter: self).conforms(annotation, to: proto.name)

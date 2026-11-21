@@ -6,7 +6,7 @@ import Synchronization
 
 extension Symbol {
     /// What a symbol is: a type, a global function or variable, or a member of a type. What a type
-    /// has is for `ScriptType.members(named:in:)` to say.
+    /// has is for `TypeExpression.members(named:in:)` to say.
     public enum Kind: Sendable, Hashable {
         /// A type, of the five kinds Swift declares.
         case type(TypeKind)
@@ -65,15 +65,15 @@ extension Symbol {
         /// In a protocol: what the type that binds it must conform to.
         case requirement(constraints: [Constraint])
         /// In a type that conforms: the type it is bound to.
-        case binding(ScriptType)
+        case binding(TypeExpression)
     }
 
     /// A variable: its type, and whether a script can assign to it.
     public struct Variable: Sendable, Hashable {
-        public var type: ScriptType
+        public var type: TypeExpression
         public var isSettable: Bool
 
-        public init(type: ScriptType, isSettable: Bool = false) {
+        public init(type: TypeExpression, isSettable: Bool = false) {
             self.type = type
             self.isSettable = isSettable
         }
@@ -100,19 +100,19 @@ extension Symbol {
         /// `rethrows`: only what the closures it is given throw.
         case rethrowing
         /// What its type throws: nothing, any error, or errors of one type.
-        case throwing(ScriptType.FunctionType.Throwing)
+        case throwing(TypeExpression.FunctionType.Throwing)
 
         public static let no = Throwing.throwing(.no)
         /// `throws`: any error.
         public static let any = Throwing.throwing(.any)
         /// `throws(Failure)`: errors of this type.
-        public static func typed(_ failure: ScriptType) -> Throwing {
+        public static func typed(_ failure: TypeExpression) -> Throwing {
             .throwing(.typed(failure))
         }
 
         /// What the type of a function that throws this way throws: a `rethrows` function's type
         /// throws, as a closure of it does.
-        var functionTypeThrowing: ScriptType.FunctionType.Throwing {
+        var functionTypeThrowing: TypeExpression.FunctionType.Throwing {
             switch self {
             case .rethrowing: .any
             case .throwing(let throwing): throwing
@@ -146,7 +146,7 @@ extension Symbol {
     public struct Function: Sendable, Hashable {
         public var parameters: [Parameter]
         /// What it gives back; `.void` when nothing.
-        public var returns: ScriptType
+        public var returns: TypeExpression
         /// Whether it can throw, and what: any error, only what a closure argument throws, or one
         /// type of error.
         public var throwing: Throwing
@@ -157,10 +157,10 @@ extension Symbol {
 
         /// What a value of this function has as a type: the shape without the labels, names, defaults
         /// and documentation. A `rethrows` function's type throws, as a closure of it does.
-        public var functionType: ScriptType.FunctionType {
-            ScriptType.FunctionType(
+        public var functionType: TypeExpression.FunctionType {
+            TypeExpression.FunctionType(
                 parameters: parameters.map {
-                    ScriptType.FunctionType.Parameter($0.type, isInout: $0.isInout)
+                    TypeExpression.FunctionType.Parameter($0.type, isInout: $0.isInout)
                 },
                 returns: returns,
                 throwing: throwing.functionTypeThrowing,
@@ -178,7 +178,7 @@ extension Symbol {
 
         public init(
             parameters: [Parameter] = [],
-            returns: ScriptType = .void,
+            returns: TypeExpression = .void,
             isThrowing: Bool = false,
             isAsync: Bool = false,
             generics: [Symbol] = []
@@ -194,7 +194,7 @@ extension Symbol {
 
         public init(
             parameters: [Parameter] = [],
-            returns: ScriptType = .void,
+            returns: TypeExpression = .void,
             throwing: Throwing,
             isAsync: Bool = false,
             generics: [Symbol] = []

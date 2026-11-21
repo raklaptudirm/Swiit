@@ -27,7 +27,7 @@ extension BridgedValue where Self: CaseIterable & Hashable & Sendable {
         )
     }
 
-    public static var scriptType: ScriptType {
+    public static var typeExpression: TypeExpression {
         .named(Value.EnumCase.Enumeration.of(Self.self).name)
     }
 }

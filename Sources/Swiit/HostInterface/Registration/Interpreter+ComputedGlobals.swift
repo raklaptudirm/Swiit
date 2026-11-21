@@ -2,7 +2,7 @@ extension Interpreter {
     /// Makes `name` a global worked out each time it is read, of the type given: a host's `jobs`.
     public func register(
         computed name: String,
-        type: ScriptType,
+        type: TypeExpression,
         _ read: @escaping @Sendable () -> Value
     ) {
         withMainTask {

@@ -4,13 +4,13 @@ import Synchronization
 
 // Converting between type annotations and script types, and asking whether a type conforms to a protocol.
 
-extension ScriptType {
+extension TypeExpression {
     /// The type an annotation names. `declared` says which declaration a name means, for the names
     /// of types a program declares; a name it does not know is a host type's.
     init(_ annotation: TypeAnnotation, declared: (String) -> TypeRef? = { _ in nil }) {
         func reference(_ name: String) -> TypeRef { declared(name) ?? .native(name) }
-        func convert(_ annotation: TypeAnnotation) -> ScriptType {
-            ScriptType(annotation, declared: declared)
+        func convert(_ annotation: TypeAnnotation) -> TypeExpression {
+            TypeExpression(annotation, declared: declared)
         }
         self =
             switch annotation {
@@ -28,17 +28,17 @@ extension ScriptType {
             case .tuple(let elements):
                 .tuple(
                     elements.map {
-                        ScriptType.TupleElement(label: $0.label, type: convert($0.type))
+                        TypeExpression.TupleElement(label: $0.label, type: convert($0.type))
                     }
                 )
             case .functionType(let parameters, let returns, let throwing, let effect):
                 .function(
-                    ScriptType.FunctionType(
+                    TypeExpression.FunctionType(
                         parameters: parameters.map { parameter in
                             if case .inOut(let inner) = parameter {
-                                ScriptType.FunctionType.Parameter(convert(inner), isInout: true)
+                                TypeExpression.FunctionType.Parameter(convert(inner), isInout: true)
                             } else {
-                                ScriptType.FunctionType.Parameter(convert(parameter))
+                                TypeExpression.FunctionType.Parameter(convert(parameter))
                             }
                         },
                         returns: convert(returns),
@@ -60,7 +60,7 @@ extension ScriptType {
     }
 }
 
-extension ScriptType {
+extension TypeExpression {
     /// Whether values of this type have what the protocol asks (`Comparable`, `Hashable`,
     /// `Sequence`, or one a script declares), as the checker reads it. False for a type or a
     /// protocol that is a declaration `interpreter` no longer means by its name.
@@ -71,8 +71,8 @@ extension ScriptType {
 
 extension Interpreter {
     /// The type an annotation names, with the names of declared types as their declarations' IDs.
-    func scriptType(_ annotation: TypeAnnotation) -> ScriptType {
-        ScriptType(annotation) { name in
+    func typeExpression(_ annotation: TypeAnnotation) -> TypeExpression {
+        TypeExpression(annotation) { name in
             guard case .object(let object)? = self.lookup(name)?.value.storage else { return nil }
             return (object as? any DeclaredType)?.typeRef
         }

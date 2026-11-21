@@ -38,7 +38,7 @@ extension Value {
     /// Swift value (an encoded one, or one a host built by the type's name) also counts as an
     /// instance of a type a script declares of the same name, which members and display already
     /// treat it as. A protocol it conforms to is not asked here, since that takes an
-    /// interpreter: `ScriptType.conforms(to:in:)` is.
+    /// interpreter: `TypeExpression.conforms(to:in:)` is.
     public func isInstance(of expected: TypeRef) -> Bool {
         if expected == .any { return true }
         if case .function = self.storage { return expected == .function }

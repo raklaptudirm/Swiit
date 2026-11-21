@@ -499,9 +499,9 @@ extension TypeChecker {
                 pattern = .expression(.binary(op, lower, upper))
                 return
             }
-            let scriptType = try typeOf(&expr, expecting: type)
-            guard fits(scriptType, type) || fits(type, scriptType) else {
-                throw TypeError("a \(scriptType) can't match a \(type)")
+            let typeExpression = try typeOf(&expr, expecting: type)
+            guard fits(typeExpression, type) || fits(type, typeExpression) else {
+                throw TypeError("a \(typeExpression) can't match a \(type)")
             }
             pattern = .expression(expr)
         case .cast(var inner, let target):

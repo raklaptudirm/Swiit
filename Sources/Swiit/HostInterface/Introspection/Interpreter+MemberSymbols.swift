@@ -14,7 +14,7 @@ extension Interpreter {
         isSettable: Bool = false
     ) -> Symbol {
         func throwing() -> Symbol.Throwing {
-            member.typedThrows.map { .typed(scriptType(.named($0))) }
+            member.typedThrows.map { .typed(typeExpression(.named($0))) }
                 ?? (member.isRethrowing ? .rethrowing : member.isThrowing ? .any : .no)
         }
         func function() -> Symbol.Function {
@@ -24,7 +24,7 @@ extension Interpreter {
                     var made = Symbol.Parameter(
                         label: $0.label,
                         name: $0.name,
-                        type: scriptType(substituted),
+                        type: typeExpression(substituted),
                         arity: $0.variadic
                             ? .variadic
                             : $0.defaultValue != nil || $0.externalDefault != nil
@@ -34,7 +34,7 @@ extension Interpreter {
                     made.annotation = substituted
                     return made
                 },
-                returns: scriptType(checker.substitute(member.returns, bindings)),
+                returns: typeExpression(checker.substitute(member.returns, bindings)),
                 throwing: throwing(),
                 isAsync: member.effect != .sync,
                 generics: member.generics
@@ -55,7 +55,7 @@ extension Interpreter {
                 .property(
                     Symbol.Property(
                         variable: Symbol.Variable(
-                            type: scriptType(checker.substitute(member.returns, bindings)),
+                            type: typeExpression(checker.substitute(member.returns, bindings)),
                             isSettable: isSettable
                         ),
                         isStatic: member.isStatic,
@@ -81,7 +81,7 @@ extension Interpreter {
         var made = Symbol.Parameter(
             label: parameter.label,
             name: parameter.name,
-            type: scriptType(parameter.type),
+            type: typeExpression(parameter.type),
             isInout: parameter.isInout,
             arity: parameter.variadic
                 ? .variadic
@@ -94,7 +94,7 @@ extension Interpreter {
     }
 
     // swiftlint:disable function_body_length - a long walk over every case; splitting it is item 17 of Docs/agenda.md
-    /// What a type has, for `ScriptType.members(named:in:)`: its instance members, its static ones, its
+    /// What a type has, for `TypeExpression.members(named:in:)`: its instance members, its static ones, its
     /// initializers, and the cases of an enum. `rawValues` says the raw values of enums not yet
     /// declared (as `check` reads them), by enum and case.
     func memberSymbols(
@@ -115,7 +115,7 @@ extension Interpreter {
                 parameters: parameters.map {
                     parameter($0, documentation: signature.documentation?.parameters[$0.name])
                 },
-                returns: scriptType(signature.returns),
+                returns: typeExpression(signature.returns),
                 isThrowing: signature.isThrowing,
                 isAsync: signature.effect != .sync,
                 generics: signature.generics
@@ -160,7 +160,7 @@ extension Interpreter {
                         kind: .property(
                             Symbol.Property(
                                 variable: Symbol.Variable(
-                                    type: scriptType(property.type),
+                                    type: typeExpression(property.type),
                                     isSettable: property.isSettable
                                 )
                             )
@@ -182,7 +182,7 @@ extension Interpreter {
                         kind: .property(
                             Symbol.Property(
                                 variable: Symbol.Variable(
-                                    type: scriptType(property.type),
+                                    type: typeExpression(property.type),
                                     isSettable: property.isSettable
                                 ),
                                 isStatic: true
@@ -229,7 +229,7 @@ extension Interpreter {
                                         Symbol.Parameter(
                                             label: value.label,
                                             name: value.label ?? String(index),
-                                            type: scriptType(value.type)
+                                            type: typeExpression(value.type)
                                         )
                                     },
                                 rawValue: raw
@@ -261,7 +261,7 @@ extension Interpreter {
             }
         }
         // What every sequence has: what the host's prelude adds to `Sequence`, which
-        // `ScriptType.named(.sequence).members(in:)` lists alone.
+        // `TypeExpression.named(.sequence).members(in:)` lists alone.
         var holder: TypeAnnotation?
         if case .list(let element) = type {
             holder = element

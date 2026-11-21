@@ -494,7 +494,7 @@ extension Interpreter {
 }
 
 extension TypeAnnotation {
-    init(_ type: ScriptType) {
+    init(_ type: TypeExpression) {
         switch type {
         case .named("Any", _): self = .any
         case .named("Bool", _): self = .bool

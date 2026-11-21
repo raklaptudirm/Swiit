@@ -82,7 +82,7 @@ extension Value {
     #expect(try swiit.evaluate(#"hello("you")"#) == "hello, you")
     // What the host declared is the host's.
     #expect(swiit.globals(named: "hello").first?.isBuiltin == true)
-    #expect(!ScriptType.list(.int).members(named: "firsts", in: swiit).isEmpty)
+    #expect(!TypeExpression.list(.int).members(named: "firsts", in: swiit).isEmpty)
 }
 
 @Test func aDeclaredFunctionCallsWhatTheProgramDefined() throws {

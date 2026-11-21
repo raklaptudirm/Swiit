@@ -289,7 +289,7 @@ extension Interpreter {
         // The standard library's own top-level functions, as the generator reads them (`zip`, `swap`, `stride`).
         for function in StandardLibraryBridge.functions { declare(function) }
         // `abs`, `min` and `max`, for the numbers and strings there are.
-        for (type, name) in [(ScriptType.int, "Int"), (ScriptType.double, "Double")] {
+        for (type, name) in [(TypeExpression.int, "Int"), (TypeExpression.double, "Double")] {
             declare(
                 SymbolImplementation.function(
                     name: "abs",
@@ -309,7 +309,7 @@ extension Interpreter {
                 )
             )
         }
-        for type in [ScriptType.int, .double, .string] {
+        for type in [TypeExpression.int, .double, .string] {
             for (name, picksLess) in [("min", true), ("max", false)] {
                 declare(
                     SymbolImplementation.function(

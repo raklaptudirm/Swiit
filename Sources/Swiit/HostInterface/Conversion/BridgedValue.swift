@@ -2,7 +2,7 @@ import Foundation
 
 /// A Swift type that crosses into scripts: a host function can take and give it, and scripts can name
 /// it. It says how a `Value` becomes one and one becomes a `Value`, what scripts see of the type
-/// (`typeImplementation`) and what type to check a parameter against (`scriptType`).
+/// (`typeImplementation`) and what type to check a parameter against (`typeExpression`).
 ///
 /// A type that is `Sendable` conforms with no more than `extension URL: BridgedValue {}`: it is held as
 /// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
@@ -23,7 +23,7 @@ public protocol BridgedValue {
     static var typeImplementation: TypeImplementation { get }
     /// The type a parameter of this type is checked against. For a type held as it is, the type
     /// `typeImplementation` names.
-    static var scriptType: ScriptType { get }
+    static var typeExpression: TypeExpression { get }
 }
 
 extension BridgedValue {
@@ -32,13 +32,13 @@ extension BridgedValue {
     }
 }
 
-/// A type that names enums in its `scriptType`, which scripts learn by name: containers hold their
+/// A type that names enums in its `typeExpression`, which scripts learn by name: containers hold their
 /// elements'. An SPI refinement, because a requirement only the module can see cannot be satisfied
 /// by a conformance outside it.
 protocol ValueEnums { static var enumTypes: [Value.EnumCase.Enumeration] { get } }
 
 extension BridgedValue {
-    /// The enums `scriptType` names.
+    /// The enums `typeExpression` names.
     static var swiitEnums: [Value.EnumCase.Enumeration] {
         if let carrier = self as? any ValueEnums.Type { return carrier.enumTypes }
         if let enumeration = self as? any CaseIterable.Type {

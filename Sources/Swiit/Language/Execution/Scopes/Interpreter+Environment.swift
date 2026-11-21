@@ -50,12 +50,12 @@ extension Interpreter {
                     .joined(separator: ", ")
                     + "]"
             }
-        case .dictionary(let keyType, let scriptType)?:
+        case .dictionary(let keyType, let typeExpression)?:
             if case .dictionary(let dictionary) = value.storage {
                 guard !dictionary.isEmpty else { return "[:]" }
                 return "["
                     + (try dictionary.sortedForDisplay.map {
-                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: scriptType))"
+                        "\(try describing($0.key, debug: true, type: keyType)): \(try describing($0.value, debug: true, type: typeExpression))"
                     })
                     .joined(separator: ", ") + "]"
             }

@@ -348,14 +348,14 @@ extension Interpreter {
                 converted.append(conforming)
             }
             return .list(converted)
-        case .dictionary(let keyType, let scriptType):
+        case .dictionary(let keyType, let typeExpression):
             guard case .dictionary(let dictionary) = value.storage else {
                 return value.conforming(to: type)
             }
             var made: [Value: Value] = [:]
             for (key, entry) in dictionary {
                 guard let conformingKey = conform(key, to: keyType),
-                    let conformingValue = conform(entry, to: scriptType)
+                    let conformingValue = conform(entry, to: typeExpression)
                 else { return nil }
                 made[conformingKey] = conformingValue
             }

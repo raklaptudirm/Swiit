@@ -31,7 +31,7 @@ let answer = try swiit.evaluate("double(21)")   // 42
 ### Script values and types
 
 - ``Value``
-- ``ScriptType``
+- ``TypeExpression``
 
 ### Registering Swift functions, types and objects
 

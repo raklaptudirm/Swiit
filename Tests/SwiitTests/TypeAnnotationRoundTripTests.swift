@@ -11,7 +11,7 @@ import Testing
         throws: true,
         async: .sync
     )
-    #expect(TypeAnnotation(ScriptType(annotation)) == annotation)
+    #expect(TypeAnnotation(TypeExpression(annotation)) == annotation)
 }
 
 @Test(
@@ -32,5 +32,5 @@ import Testing
     ]
 )
 func anAnnotationSurvivesTheRoundTrip(_ annotation: TypeAnnotation) {
-    #expect(TypeAnnotation(ScriptType(annotation)) == annotation)
+    #expect(TypeAnnotation(TypeExpression(annotation)) == annotation)
 }

@@ -8,9 +8,9 @@ extension Symbol {
     /// What a type must be to be given for a type parameter.
     public enum Constraint: Sendable, Hashable {
         /// It conforms to a protocol: `Comparable`, `Hashable`, or one a script declares.
-        case conforms(to: ScriptType)
+        case conforms(to: TypeExpression)
         /// It is exactly this type, as `where Element == Int` says.
-        case equals(ScriptType)
+        case equals(TypeExpression)
 
         /// The module's own tables are written with the names of the types they mean.
         public static let comparable = Constraint.conforms(to: .named("Comparable"))
@@ -47,7 +47,7 @@ extension Symbol {
         public var label: String?
         /// The name the function's body uses.
         public var name: String
-        public var type: ScriptType
+        public var type: TypeExpression
         /// The function changes it in place, and a call passes the variable with `&`: `inout`.
         public var isInout: Bool
         /// Whether a call must give it, may leave it out, or may give any number.
@@ -80,7 +80,7 @@ extension Symbol {
         public init(
             label: String? = nil,
             name: String,
-            type: ScriptType = .any,
+            type: TypeExpression = .any,
             isInout: Bool = false,
             arity: Arity = .required,
             documentation: String? = nil

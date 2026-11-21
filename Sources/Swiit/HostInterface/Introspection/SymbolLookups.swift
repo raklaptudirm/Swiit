@@ -22,11 +22,11 @@ extension TypeRef {
     }
 }
 
-extension ScriptType {
+extension TypeExpression {
     /// What the type has: the methods and properties of its values (a struct's, a host object's, a
     /// bridged type's, the sequence methods of a list), and what belongs to the type itself, marked
     /// `isStatic`: its static members, its initializers and the cases of an enum. Only those
-    /// called `name`, if one is given. `ScriptType(Int.self).members(in: interpreter)` is what a
+    /// called `name`, if one is given. `TypeExpression(Int.self).members(in: interpreter)` is what a
     /// Swift type has for scripts.
     public func members(named name: String? = nil, in interpreter: Interpreter) -> [Symbol] {
         interpreter.members(of: self, named: name)
@@ -38,7 +38,7 @@ extension Sequence where Element == Symbol {
     /// one that fits with the fewest conversions. Throws the checker's own complaint when none fits
     /// or several do.
     public func overload(
-        arguments: [ScriptType.TupleElement],
+        arguments: [TypeExpression.TupleElement],
         in interpreter: Interpreter
     ) throws(Diagnostic) -> Symbol {
         try interpreter.overload(among: Array(self), arguments: arguments)

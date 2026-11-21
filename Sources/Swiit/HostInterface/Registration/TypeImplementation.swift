@@ -216,9 +216,9 @@ extension TypeImplementation {
             return found
         }
 
-        private static func sequenceElement() -> ScriptType? {
-            func element<S: Sequence>(_: S.Type) -> ScriptType {
-                (S.Element.self as? any BridgedValue.Type)?.scriptType ?? .any
+        private static func sequenceElement() -> TypeExpression? {
+            func element<S: Sequence>(_: S.Type) -> TypeExpression {
+                (S.Element.self as? any BridgedValue.Type)?.typeExpression ?? .any
             }
             guard let sequence = T.self as? any Sequence.Type else { return nil }
             return element(sequence)
@@ -228,7 +228,7 @@ extension TypeImplementation {
         /// `LosslessStringConvertible` type, and `init(stringLiteral:)` for an
         /// `ExpressibleByStringLiteral` one, which is how a script's string literal becomes one.
         private static func textInitializers(named name: String) -> [SymbolImplementation] {
-            let own = ScriptType.named(TypeRef(nativeType: name))
+            let own = TypeExpression.named(TypeRef(nativeType: name))
             func fromText<L: LosslessStringConvertible>(_: L.Type) -> SymbolImplementation {
                 .initializer(
                     summary: "The value the text spells, or nil.",
@@ -303,7 +303,7 @@ extension TypeImplementation {
             _ keyPath: any KeyPath<T, V> & Sendable
         ) -> Builder {
             adding(
-                .property(name, type: V.scriptType) {
+                .property(name, type: V.typeExpression) {
                     try $0.unboxing(T.self)[keyPath: keyPath].value
                 },
                 enums: V.swiitEnums
@@ -325,7 +325,7 @@ extension TypeImplementation {
                         repeat (each Argument).self,
                         labels: labels
                     ),
-                    returns: Result.scriptType,
+                    returns: Result.typeExpression,
                     isThrowing: throwing
                 ) { receiver, arguments in
                     var index = 0
@@ -353,7 +353,7 @@ extension TypeImplementation {
                         repeat (each Argument).self,
                         labels: labels
                     ),
-                    returns: Result.scriptType,
+                    returns: Result.typeExpression,
                     isThrowing: throwing
                 ) { arguments in
                     var index = 0
@@ -421,12 +421,12 @@ extension TypeImplementation {
 extension BridgedValue where Self: Sendable {
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: Value.hostName(of: Self.self)) }
-    public static var scriptType: ScriptType { .named(.native(typeImplementation.name)) }
+    public static var typeExpression: TypeExpression { .named(.native(typeImplementation.name)) }
 }
 
 /// The Swift collections a script holds as they are, which the bridge gives members to.
 extension Set: BridgedValue where Element: Hashable {
-    public static var scriptType: ScriptType { .named(.set, [.any]) }
+    public static var typeExpression: TypeExpression { .named(.set, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "Set") }
 }
@@ -435,7 +435,7 @@ extension Set: BridgedValue where Element: Hashable {
 /// list's items, a set's, a range of Ints, a host type's text. A value that isn't one is an error.
 /// A script's own iterators, which can throw, are read by the interpreter's `for`.
 extension AnySequence: BridgedValue where Element == Value {
-    public static var scriptType: ScriptType { .named(.sequence, [.any]) }
+    public static var typeExpression: TypeExpression { .named(.sequence, [.any]) }
     public init(_ swiitValue: Value) throws {
         guard let items = Interpreter.items(of: swiitValue) else {
             throw SwiitError("expected a sequence, not \(swiitValue.bridgeTypeName)")
@@ -446,7 +446,7 @@ extension AnySequence: BridgedValue where Element == Value {
 }
 
 extension ArraySlice: BridgedValue {
-    public static var scriptType: ScriptType { .named(.arraySlice, [.any]) }
+    public static var typeExpression: TypeExpression { .named(.arraySlice, [.any]) }
     public init(_ swiitValue: Value) throws { self = try SwiftValue.unbox(Self.self, swiitValue) }
     public var value: Value { SwiftValue.make(self, as: "ArraySlice") }
 }

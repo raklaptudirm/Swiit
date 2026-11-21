@@ -82,7 +82,7 @@ public struct Symbol: Sendable, Hashable {
     /// Its type as a value: a function's is a function type (parameter types in order, what it
     /// returns); a variable's is its own; a type's is the type it names; a type parameter's, or an associated type a protocol asks for,
     /// is itself; one a type binds is what it is bound to.
-    public var scriptType: ScriptType {
+    public var typeExpression: TypeExpression {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
         case .variable, .member(.property): variable!.type

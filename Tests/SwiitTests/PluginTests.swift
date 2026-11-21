@@ -20,7 +20,7 @@ private struct Entry: Encodable {
             "a", "b",
         ]
     )
-    #expect([String].scriptType == .list(.string))
+    #expect([String].typeExpression == .list(.string))
     #expect(throws: SwiitError.self) { try Int(.string("x")) }
 }
 

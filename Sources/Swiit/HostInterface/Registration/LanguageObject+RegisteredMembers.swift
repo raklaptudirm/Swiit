@@ -32,10 +32,10 @@ extension LanguageObject {
                             Symbol.Parameter(
                                 label: $0.label,
                                 name: $0.name,
-                                type: ScriptType($0.type)
+                                type: TypeExpression($0.type)
                             )
                         },
-                        returns: ScriptType(member.returns),
+                        returns: TypeExpression(member.returns),
                         isThrowing: member.isThrowing
                     ),
                     call: { arguments in

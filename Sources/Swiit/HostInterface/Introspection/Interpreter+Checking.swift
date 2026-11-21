@@ -97,9 +97,10 @@ extension Interpreter {
 
     /// The type of an expression written at the top level: the globals are in scope, a script's
     /// locals are not.
-    public func scriptType(ofExpression expression: String) throws(Diagnostic) -> ScriptType {
+    public func typeExpression(ofExpression expression: String) throws(Diagnostic) -> TypeExpression
+    {
         do {
-            return try withMainTask { () throws -> ScriptType in
+            return try withMainTask { () throws -> TypeExpression in
                 switch parse(expression) {
                 case .failure(let error):
                     throw Diagnostic(
@@ -113,11 +114,11 @@ extension Interpreter {
                     else {
                         throw Diagnostic(
                             kind: .type,
-                            message: "scriptType(of:) takes one expression"
+                            message: "typeExpression(of:) takes one expression"
                         )
                     }
                     do {
-                        return scriptType(try TypeChecker(interpreter: self).typeOf(&expr))
+                        return typeExpression(try TypeChecker(interpreter: self).typeOf(&expr))
                     } catch let error as TypeError {
                         throw Diagnostic(
                             kind: .type,

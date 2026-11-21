@@ -7,8 +7,8 @@ extension TypeImplementation {
     var genericParameterNames: [String] { declaration.genericParameters.map(\.name) }
     /// The types it binds its protocols' associated types to: `Element` is `String` for a sequence of
     /// text.
-    var associatedTypes: [String: ScriptType] {
-        var found: [String: ScriptType] = [:]
+    var associatedTypes: [String: TypeExpression] {
+        var found: [String: TypeExpression] = [:]
         for member in members {
             if case .member(.associatedType(.binding(let type))) = member.symbol.kind {
                 found[member.name] = type

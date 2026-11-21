@@ -1,13 +1,13 @@
 import Foundation
 
 extension Value: BridgedValue {
-    public static var scriptType: ScriptType { .any }
+    public static var typeExpression: TypeExpression { .any }
     public init(_ swiitValue: Value) { self = swiitValue }
     public var value: Value { self }
 }
 
 extension Int: BridgedValue {
-    public static var scriptType: ScriptType { .int }
+    public static var typeExpression: TypeExpression { .int }
     public init(_ swiitValue: Value) throws {
         guard case .int(let value) = swiitValue.storage else {
             throw SwiitError.expected("Int", swiitValue)
@@ -18,7 +18,7 @@ extension Int: BridgedValue {
 }
 
 extension Double: BridgedValue {
-    public static var scriptType: ScriptType { .double }
+    public static var typeExpression: TypeExpression { .double }
     public init(_ swiitValue: Value) throws {
         switch swiitValue.storage {
         case .double(let value): self = value
@@ -30,7 +30,7 @@ extension Double: BridgedValue {
 }
 
 extension String: BridgedValue {
-    public static var scriptType: ScriptType { .string }
+    public static var typeExpression: TypeExpression { .string }
     public init(_ swiitValue: Value) throws {
         guard case .string(let value) = swiitValue.storage else {
             throw SwiitError.expected("String", swiitValue)
@@ -41,7 +41,7 @@ extension String: BridgedValue {
 }
 
 extension Bool: BridgedValue {
-    public static var scriptType: ScriptType { .bool }
+    public static var typeExpression: TypeExpression { .bool }
     public init(_ swiitValue: Value) throws {
         guard case .bool(let value) = swiitValue.storage else {
             throw SwiitError.expected("Bool", swiitValue)
@@ -52,7 +52,7 @@ extension Bool: BridgedValue {
 }
 
 extension Date: BridgedValue {
-    public static var scriptType: ScriptType { .named("Date") }
+    public static var typeExpression: TypeExpression { .named("Date") }
     public init(_ swiitValue: Value) throws {
         guard let value = swiitValue.date else { throw SwiitError.expected("Date", swiitValue) }
         self = value
@@ -65,7 +65,7 @@ extension Dictionary: ValueEnums where Key: BridgedValue, Value: BridgedValue {}
 extension Optional: ValueEnums where Wrapped: BridgedValue {}
 
 extension Array: BridgedValue where Element: BridgedValue {
-    public static var scriptType: ScriptType { .list(Element.scriptType) }
+    public static var typeExpression: TypeExpression { .list(Element.typeExpression) }
     static var enumTypes: [Value.EnumCase.Enumeration] { Element.swiitEnums }
     public init(_ swiitValue: Value) throws {
         switch swiitValue.storage {
@@ -73,18 +73,23 @@ extension Array: BridgedValue where Element: BridgedValue {
         // A Swift sequence Swiit holds (a host type's lines).
         case .object(let box as SwiftValue) where box.value is any Sequence:
             self = try SwiftValue.elements(of: box.value).map { try Element(Value(reflecting: $0)) }
-        default: throw SwiitError.expected("[\(Element.scriptType)]", swiitValue)
+        default: throw SwiitError.expected("[\(Element.typeExpression)]", swiitValue)
         }
     }
     public var value: Value { .list(map(\.value)) }
 }
 
 extension Dictionary: BridgedValue where Key: BridgedValue, Value: BridgedValue {
-    public static var scriptType: ScriptType { .dictionary(Key.scriptType, Value.scriptType) }
+    public static var typeExpression: TypeExpression {
+        .dictionary(Key.typeExpression, Value.typeExpression)
+    }
     static var enumTypes: [Swiit.Value.EnumCase.Enumeration] { Key.swiitEnums + Value.swiitEnums }
     public init(_ swiitValue: Swiit.Value) throws {
         guard case .dictionary(let entries) = swiitValue.storage else {
-            throw SwiitError.expected("[\(Key.scriptType): \(Value.scriptType)]", swiitValue)
+            throw SwiitError.expected(
+                "[\(Key.typeExpression): \(Value.typeExpression)]",
+                swiitValue
+            )
         }
         self.init(uniqueKeysWithValues: try entries.map { (try Key($0.key), try Value($0.value)) })
     }
@@ -96,7 +101,7 @@ extension Dictionary: BridgedValue where Key: BridgedValue, Value: BridgedValue 
 }
 
 extension Optional: BridgedValue where Wrapped: BridgedValue {
-    public static var scriptType: ScriptType { .optional(Wrapped.scriptType) }
+    public static var typeExpression: TypeExpression { .optional(Wrapped.typeExpression) }
     static var enumTypes: [Value.EnumCase.Enumeration] { Wrapped.swiitEnums }
     public init(_ swiitValue: Value) throws {
         self = swiitValue == .nothing ? nil : try Wrapped(swiitValue)

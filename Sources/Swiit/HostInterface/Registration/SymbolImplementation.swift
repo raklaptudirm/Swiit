@@ -81,7 +81,7 @@ extension SymbolImplementation {
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ScriptType = .void,
+        returns: TypeExpression = .void,
         isThrowing: Bool = false,
         generics: [Symbol] = [],
         attributes: [Symbol.Attribute] = [],
@@ -166,7 +166,7 @@ extension SymbolImplementation {
             name: name,
             summary: summary,
             parameters: parameters,
-            returns: ScriptType(returns),
+            returns: TypeExpression(returns),
             isThrowing: isThrowing,
             generics: generics,
             attributes: attributes,
@@ -196,7 +196,7 @@ extension SymbolImplementation {
         name: String,
         summary: String = "",
         parameters: [Symbol.Parameter],
-        returnType: ScriptType?,
+        returnType: TypeExpression?,
         isThrowing: Bool = false,
         call: @escaping @Sendable (Arguments) throws -> Value
     ) -> SymbolImplementation {
@@ -258,7 +258,7 @@ extension SymbolImplementation {
             name: name,
             summary: summary,
             parameters: parameters(repeat (each Argument).self, labels: labels),
-            returns: Result.scriptType,
+            returns: Result.typeExpression,
             isThrowing: throwing
         ) { arguments in
             var index = 0
@@ -305,7 +305,7 @@ extension SymbolImplementation {
 extension SymbolImplementation {
     private static func signature(
         _ parameters: [Symbol.Parameter],
-        _ returns: ScriptType,
+        _ returns: TypeExpression,
         _ isThrowing: Bool,
         _ isAsync: Bool = false,
         _ generics: [Symbol] = []
@@ -324,7 +324,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ScriptType = .void,
+        returns: TypeExpression = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
         generics: [Symbol] = [],
@@ -350,7 +350,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ScriptType = .void,
+        returns: TypeExpression = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
         generics: [Symbol] = [],
@@ -374,7 +374,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ScriptType = .void,
+        returns: TypeExpression = .void,
         isThrowing: Bool = false,
         isAsync: Bool = false,
         generics: [Symbol] = [],
@@ -467,7 +467,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         attributes: [Symbol.Attribute] = [],
-        type: ScriptType,
+        type: TypeExpression,
         isAsync: Bool = false,
         throwing: Symbol.Throwing = .no,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value
@@ -493,7 +493,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         attributes: [Symbol.Attribute] = [],
-        type: ScriptType,
+        type: TypeExpression,
         get: @escaping @Sendable (_ receiver: Value) throws -> Value,
         set: @escaping @Sendable (_ receiver: Value, _ newValue: Value) throws -> Value
     ) -> SymbolImplementation {
@@ -513,7 +513,7 @@ extension SymbolImplementation {
         _ name: String,
         summary: String = "",
         attributes: [Symbol.Attribute] = [],
-        type: ScriptType,
+        type: TypeExpression,
         get: @escaping @Sendable () throws -> Value
     ) -> SymbolImplementation {
         SymbolImplementation(
@@ -532,7 +532,7 @@ extension SymbolImplementation {
     public static func associatedType(
         _ name: String,
         summary: String = "",
-        binding: ScriptType
+        binding: TypeExpression
     ) -> SymbolImplementation {
         SymbolImplementation(
             name: name,
@@ -547,7 +547,7 @@ extension SymbolImplementation {
     public static func initializer(
         summary: String = "",
         parameters: [Symbol.Parameter] = [],
-        returns: ScriptType,
+        returns: TypeExpression,
         isThrowing: Bool = false,
         body: @escaping @Sendable (_ arguments: [Value]) throws -> Value
     ) -> SymbolImplementation {

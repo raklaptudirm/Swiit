@@ -6,7 +6,7 @@ import Testing
 
 extension Interpreter {
     /// A type a script or the host declared, as a reference.
-    fileprivate func type(_ name: String) -> ScriptType {
+    fileprivate func type(_ name: String) -> TypeExpression {
         .named(TypeRef(named: name, in: self)!)
     }
 }
@@ -176,8 +176,8 @@ private struct Point: Encodable { var x: Int }
     #expect((try? swiit.value(forMember: "rawValue", of: failedValue)) == nil)
     #expect((try? swiit.value(forMember: "rawValue", of: Value(3))) == nil)
     // An enum with a raw type is RawRepresentable, as in Swift; the others are not.
-    let level = ScriptType.named(try #require(TypeRef(named: "Level", in: swiit)))
-    let outcome = ScriptType.named(try #require(TypeRef(named: "Outcome", in: swiit)))
+    let level = TypeExpression.named(try #require(TypeRef(named: "Level", in: swiit)))
+    let outcome = TypeExpression.named(try #require(TypeRef(named: "Outcome", in: swiit)))
     #expect(level.conforms(to: .rawRepresentable, in: swiit))
     #expect(!outcome.conforms(to: .rawRepresentable, in: swiit))
     // One unlabeled value is the child itself.
@@ -186,7 +186,7 @@ private struct Point: Encodable { var x: Int }
     // Its type resolves to a declaration with the cases and their labels, as a symbol says.
     let symbol = try #require(failedValue.typeRef.flatMap { $0.symbol(in: swiit) })
     #expect(symbol.kind == .type(.enumeration))
-    let cases = ScriptType.named(try #require(failedValue.typeRef)).members(in: swiit)
+    let cases = TypeExpression.named(try #require(failedValue.typeRef)).members(in: swiit)
         .filter { if case .member(.enumCase) = $0.kind { true } else { false } }
     #expect(cases.map(\.name).contains("failed"))
 }
@@ -268,7 +268,7 @@ private struct Point: Encodable { var x: Int }
     #expect(try swiit.call("Int", arguments: [(nil, Value("7"))]) == swiit.evaluate(#"Int("7")"#))
     #expect(try swiit.make(.int, arguments: [(nil, Value("9"))]) == 9)
     // Not a type, or a Swift type nothing registered.
-    if case .named(let parameter, _) = ScriptType.parameter("Element") {
+    if case .named(let parameter, _) = TypeExpression.parameter("Element") {
         #expect(throws: Diagnostic.self) { try swiit.make(parameter) }
     }
     #expect(throws: Diagnostic.self) { try swiit.call("NoSuchType", arguments: [(nil, Value(1))]) }
@@ -297,10 +297,10 @@ private struct Point: Encodable { var x: Int }
 }
 
 @Test func aFunctionTypeSaysWhatItThrows() {
-    let plain = ScriptType.function(parameters: [.int], returns: .int)
-    let throwing = ScriptType.function(parameters: [.int], returns: .int, isThrowing: true)
-    let typed = ScriptType.function(
-        ScriptType.FunctionType(
+    let plain = TypeExpression.function(parameters: [.int], returns: .int)
+    let throwing = TypeExpression.function(parameters: [.int], returns: .int, isThrowing: true)
+    let typed = TypeExpression.function(
+        TypeExpression.FunctionType(
             parameters: [.init(.int)],
             returns: .int,
             throwing: .typed(.named(.init(nativeType: "MyError")))
@@ -405,7 +405,7 @@ private struct Point: Encodable { var x: Int }
 
     #expect(element.kind == .genericParameter(constraints: [.comparable]))
     #expect(element.constraints == [.comparable])
-    #expect(element.scriptType == .parameter("T"))
+    #expect(element.typeExpression == .parameter("T"))
     #expect(!element.isType)
     #expect(Symbol(name: "x", kind: .variable(Symbol.Variable(type: .int))).constraints.isEmpty)
 }
@@ -422,16 +422,16 @@ private struct Point: Encodable { var x: Int }
 }
 
 @Test func aGenericParameterIsNotAReferenceToAType() {
-    let element = ScriptType.parameter("Element")
+    let element = TypeExpression.parameter("Element")
 
     #expect(element != .named(TypeRef(nativeType: "Element")))
     #expect(element.description == "Element")
-    #expect(ScriptType.list(element) == .named(.array, [.parameter("Element")]))
+    #expect(TypeExpression.list(element) == .named(.array, [.parameter("Element")]))
 }
 
 @Test func aParameterThatIsChangedInPlaceSaysSoOnItself() throws {
     let swiit = interpreter()
-    let reduce = ScriptType.list(.int).members(named: "reduce", in: swiit)
+    let reduce = TypeExpression.list(.int).members(named: "reduce", in: swiit)
         .compactMap(\.function)
         .first { $0.parameters.first?.label == "into" }
     let closure = try #require(reduce?.parameters.last)

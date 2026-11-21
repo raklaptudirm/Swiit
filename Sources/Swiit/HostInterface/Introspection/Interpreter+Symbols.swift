@@ -8,13 +8,13 @@ import Synchronization
 
 extension Interpreter {
     /// What the program and the host have declared for scripts to name: functions, variables and
-    /// types, all of them without a `name`, the core's builtins too. `ScriptType.members(named:in:)`
+    /// types, all of them without a `name`, the core's builtins too. `TypeExpression.members(named:in:)`
     /// says what a type has.
     public func globals(named name: String? = nil) -> [Symbol] {
         withMainTask { globalSymbols(named: name) }
     }
 
-    func members(of type: ScriptType, named name: String?) -> [Symbol] {
+    func members(of type: TypeExpression, named name: String?) -> [Symbol] {
         // A type written as a value has what belongs to the type itself.
         if case .metatype(let instance) = type {
             return members(of: instance, named: name)
@@ -65,7 +65,7 @@ extension Interpreter {
                     name: name,
                     kind: .variable(
                         Symbol.Variable(
-                            type: scriptType(checker.type(of: binding.value)),
+                            type: typeExpression(checker.type(of: binding.value)),
                             isSettable: binding.mutable
                         )
                     )
@@ -119,7 +119,7 @@ extension Interpreter {
                             documentation: function.documentation?.parameters[$0.name]
                         )
                     },
-                    returns: function.returnType.map(scriptType) ?? .void,
+                    returns: function.returnType.map(typeExpression) ?? .void,
                     isThrowing: function.isThrowing,
                     isAsync: function.effect != .sync,
                     generics: function.generics
@@ -165,7 +165,7 @@ extension Interpreter {
                     kind: .function(
                         Symbol.Function(
                             parameters: signature.parameters.map { parameter($0) },
-                            returns: scriptType(signature.returns),
+                            returns: typeExpression(signature.returns),
                             isThrowing: signature.isThrowing,
                             isAsync: signature.effect != .sync
                         )
@@ -180,7 +180,7 @@ extension Interpreter {
                 Symbol(
                     name: name,
                     kind: .variable(
-                        Symbol.Variable(type: ScriptType(type), isSettable: mutable)
+                        Symbol.Variable(type: TypeExpression(type), isSettable: mutable)
                     )
                 )
             ]
