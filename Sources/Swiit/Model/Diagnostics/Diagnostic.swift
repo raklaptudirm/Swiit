@@ -2,10 +2,9 @@ import Foundation
 import SwiftSyntax
 import Synchronization
 
-/// What went wrong in a run, as a value: what kind of failure it was, the message the host would
-/// print, and where in the source it is when that is known. What a kind carries is what that kind
-/// has: only a run-time failure has a thrown value for a script to catch, and only a syntax error
-/// can be a program that is not finished.
+/// What went wrong in a run: the kind of failure, the message a host would print, and where in the
+/// source it happened, when that is known. Only a run-time failure carries a thrown value a script can
+/// catch, and only a syntax error can mean a program that is not finished.
 public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
     public var message: String
     public var kind: Kind
@@ -131,7 +130,7 @@ public struct Diagnostic: Error, CustomStringConvertible, Equatable, Sendable {
         )
     }
 
-    /// What a failure that ran has, for a kind that can: nil for the others.
+    /// The failure that ran, for the kinds that carry one. It is nil for the others.
     public var failure: Failure? {
         switch kind {
         case .runtime(let failure), .fatal(let failure): failure

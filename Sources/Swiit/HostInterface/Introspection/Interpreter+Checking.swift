@@ -90,8 +90,9 @@ extension Interpreter {
     public struct Declarations: Sendable {
         /// Its functions, types and variables.
         public var symbols: [Symbol]
-        /// What each struct and enum it declares has, by the type's name: its members, its
-        /// initializers and an enum's cases, for reading a word against an enum before it exists.
+        /// The members of each struct and enum the source declares, by the type's name: its members, its
+        /// initializers and an enum's cases. A host uses it to read a word against an enum before the enum
+        /// exists.
         public var members: [String: [Symbol]] = [:]
     }
 

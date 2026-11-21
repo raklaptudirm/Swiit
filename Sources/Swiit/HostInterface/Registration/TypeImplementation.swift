@@ -1,14 +1,14 @@
 import Foundation
 
-/// What a host says of a type it offers scripts: a name and its members, and what its Swift type
-/// says of itself. Written with ``BridgedType`` for a Swift type, or by hand for one a generator
-/// describes, and made a type scripts can use by ``Interpreter/register(_:)-(TypeImplementation)``.
+/// What a host offers scripts for a type: its symbol and its members. Write it with ``BridgedType`` for
+/// a Swift type, or by hand for a type a generator describes, and register it with
+/// ``Interpreter/register(_:)-(TypeImplementation)``.
 public struct TypeImplementation: Sendable {
-    /// What a script sees of the type: a symbol of kind `.type` (a name, documentation and attributes,
-    /// and its kind, reference, generic parameters and the protocols its Swift type conforms to of
-    /// those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
-    /// value under its Swift name, so it is a structure. A builder finds the conformances from the
-    /// type.
+    /// What a script sees of the type: a symbol of kind `.type` with its name, documentation and
+    /// attributes, and its kind, reference, generic parameters and the protocols its Swift type conforms to
+    /// (of those Swiit knows: `Equatable`, `Hashable`, `Comparable`, `Sequence`). A host type is held by
+    /// value under its Swift name, so its kind is a structure. `BridgedType` reads the conformances from the
+    /// Swift type.
     public var symbol: Symbol
     public var name: String {
         get { symbol.name }

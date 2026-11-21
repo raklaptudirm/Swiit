@@ -7,9 +7,9 @@ import Synchronization
 // everything a name can mean.
 
 extension Interpreter {
-    /// What the program and the host have declared for scripts to name: functions, variables and
-    /// types, all of them without a `name`, the core's builtins too. `TypeExpression.members(named:in:)`
-    /// says what a type has.
+    /// Every function, variable and type a script can name: those the program and the host declared, and
+    /// the core's builtins. With `name`, only the symbols of that name. What a type has is read with
+    /// `TypeExpression.members(named:in:)`.
     public func globals(named name: String? = nil) -> [Symbol] {
         withMainTask { globalSymbols(named: name) }
     }

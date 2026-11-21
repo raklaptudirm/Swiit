@@ -30,11 +30,11 @@ extension Interpreter {
         }
     }
 
-    /// A value of a type, made by calling its initializer with `arguments`, as `call` does by the
-    /// type's name but by its reference: how a host builds a struct or a class of the program's own, with
-    /// the declaration's reference, its defaults and its checks, or a Swift type (`Int`, a registered
-    /// `FileSize`) from its initializers. It throws for a reference that names no such type: another
-    /// interpreter's, one declared again since, or a Swift type that is not registered.
+    /// Makes a value of a type by calling its initializer with `arguments`, as `call` does for a type's
+    /// name, but by reference. A host uses it to build a struct or class a program declares, with the
+    /// declaration's defaults and checks, or a Swift type such as `Int` or a registered `FileSize`. It throws
+    /// for a reference that names no such type: one from another interpreter, one declared again since, or a
+    /// Swift type that is not registered.
     public func make(
         _ type: TypeRef,
         arguments: [(label: String?, value: Value)] = []
@@ -54,12 +54,13 @@ extension Interpreter {
         return try call(type.name, arguments: arguments)
     }
 
-    /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments
-    /// would: the overload is chosen by the labels and the values given, and what is left out takes
-    /// its default. Without a receiver the name may be a type's, which calls its initializers, as
-    /// `Point(x: 1)` and `Int("5")` do. From a host function it runs in the calling script's task;
-    /// from outside, as the main one, and it is a run of its own: its steps, output and time are
-    /// counted from the call, and a stop asked for before it does not end it.
+    /// Calls a function by name, or a method of `receiver`, as a script's call with these arguments would.
+    /// The labels and the values choose the overload, and an omitted argument takes its default. With no
+    /// receiver the name may be a type's, which calls its initializers (`Point(x: 1)`, `Int("5")`).
+    ///
+    /// From a host function the call runs in the calling script's task. From outside it runs as the main
+    /// task and counts as a run of its own: its steps, output and time are counted from the call, and a stop
+    /// requested earlier does not end it.
     @discardableResult
     public func call(
         _ name: String,

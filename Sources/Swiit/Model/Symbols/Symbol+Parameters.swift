@@ -55,7 +55,7 @@ extension Symbol {
         /// The type as the checker has it, which tells a type parameter from a type of the same
         /// name.
         var annotation: TypeAnnotation?
-        /// What a `- Parameter name:` line of its documentation says.
+        /// The text of the `- Parameter name:` line in the function's documentation.
         public var documentation: String?
         /// What is given is shown as interpolation shows a value (`print`).
         var showsByType = false

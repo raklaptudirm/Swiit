@@ -134,17 +134,16 @@ extension Interpreter {
         return extensions
     }
 
-    /// Declares what a host adds to the language itself: types, protocols, functions and what every
-    /// sequence has, written as Swift declarations whose bodies are in Swift too. A function or
-    /// method written without a body (`func next() -> Int`) takes the body registered under its
-    /// name (`"hello"`), or `Type.method` for a method (`"Counter.next"`, `"Sequence.firsts"`).
-    /// What is declared is the host's: it is a builtin to `help`, and a script's own declarations
-    /// may overload it. The bodies are Swift a host gives the interpreter to run: what they can
-    /// rely on is in "What a Swift body can rely on" (`NativeBodies`).
+    /// Declares what a host adds to the language: types, protocols, functions and what every sequence has,
+    /// written as Swift declarations. A function or method written without a body (`func next() -> Int`)
+    /// takes the body registered under its name (`"hello"`), or under `Type.method` for a method
+    /// (`"Counter.next"`, `"Sequence.firsts"`). What is declared belongs to the host: `help` shows it as a
+    /// builtin, and a script's own declarations may overload it. A body is Swift the host gives the
+    /// interpreter to run, and "What a Swift body can rely on" (`NativeBodies`) says what it may assume.
     ///
-    /// A function written with a body is checked as a script's is, when it is declared: what it
-    /// calls (the program's functions and the host's, evaluated or registered before) and the
-    /// cases a default argument names must be there then, and a name that is not is refused.
+    /// A function written with a body is checked as a script's is, when it is declared. What it calls (the
+    /// program's functions and the host's, evaluated or registered before) and the cases a default argument
+    /// names must exist then, or the declaration is refused.
     public func declare(
         _ source: String,
         bodies: [String: @Sendable (_ arguments: [String: Value]) throws -> Value] = [:]

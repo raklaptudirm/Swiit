@@ -1,7 +1,7 @@
 /// Where one of the interpreter's output streams goes.
 public struct OutputSink: Sendable {
-    /// What a stream can show, so values are laid out for it: a terminal gets tables fitted to its
-    /// width and in color, a file or a pipe gets every character, plain.
+    /// What an output stream can show, so a host can lay values out for it: a terminal can be given a
+    /// fitted width and color, and a file or a pipe gets plain text.
     public struct Traits: Sendable {
         public var isTerminal: Bool
         /// Its width in columns, when it has one.
@@ -62,10 +62,9 @@ struct StopReason: Sendable {
 }
 
 extension Interpreter {
-    /// How the interpreter is run: where its output goes and how to tell it to
-    /// stop. This is all an embedder supplies: what a script can name (`env`,
-    /// `jobs`, functions, types) is registered, not passed here. The defaults
-    /// do nothing, so a host gives only what it wants.
+    /// How the interpreter is run: where its output goes and how to tell it to stop. An embedder
+    /// supplies only this. What a script can name (functions, types, globals) is registered, not
+    /// passed here. The defaults do nothing, so a host gives only what it wants.
     public struct Host: Sendable {
         public var output: OutputSink = .discard
         public var error: OutputSink = .discard
@@ -85,24 +84,24 @@ extension Interpreter {
         var startThread: @Sendable (_ body: @escaping @Sendable () -> Void) -> Void =
             startLargeStackThread
 
-        /// Made for each task a script starts (Swift's `Task { }`, `async let`): what the host
-        /// keeps for it, as a host keeps its output and status. Read back as
-        /// `Interpreter.taskState` while that task runs. Told as each statement finishes, wherever
-        /// it is nested: with the value of an expression statement (nil for any other), and whether
-        /// it was a `try?` that caught an error. An `if`, a loop, a `switch` and a `do` are told as
-        /// they start, with no value; the statements in them are told as they run. A host keeps its
-        /// exit status from these. What a `defer` runs is not told: cleaning up doesn't change how
-        /// the block went.
+        /// Told as each statement finishes, wherever it is nested, with the value of an expression
+        /// statement (nil for any other) and whether it was a `try?` that caught an error. An `if`, a
+        /// loop, a `switch` and a `do` are told as they start, with no value, and the statements in
+        /// them are told as they run. The body of a `defer` is not told, since cleaning up does not
+        /// change how the block went. A host can keep an exit status from these.
         public var didFinishStatement: (@Sendable (_ value: Value?, _ caughtError: Bool) -> Void)?
+        /// Made for each task a script starts (Swift's `Task { }`, `async let`): the state the host
+        /// keeps for it, such as its output and status. `Interpreter.taskState` reads it back while
+        /// that task runs.
         public var makeTaskState: @Sendable () -> AnyObject? = { nil }
-        /// Told when the task running waits for another to end (`await`), with the state of the one
-        /// awaited, before it does; what it gives back is called once the wait is over. A host
-        /// brings the awaited task forward meanwhile.
+        /// Told when the running task waits for another to end (`await`), with the state of the
+        /// awaited one, before the wait starts. It returns a closure that is called when the wait is
+        /// over. A host can use it to bring the awaited task forward meanwhile.
         public var willAwait: @Sendable (_ awaited: AnyObject?) -> () -> Void = { _ in {} }
-        /// How a read of the host's input (`Interpreter.whileWaitingForInput`) waits for the
-        /// running task's turn at it, as a host's task in the background waits until it is awaited;
-        /// then it runs the read, or doesn't, if the task is cancelled first. Without it a read
-        /// runs at once.
+        /// How a read of the host's input (`Interpreter.whileWaitingForInput`) waits for the running
+        /// task's turn at it, for example a task in the background that has to wait until it is
+        /// awaited. It then runs the read, or skips it if the task is cancelled first. Without it, a
+        /// read runs at once.
         public var withInputTurn: (@Sendable (_ read: () -> Void) -> Void)?
 
         public init(

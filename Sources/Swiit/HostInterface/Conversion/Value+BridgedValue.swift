@@ -32,9 +32,9 @@ extension Value {
         return result
     }
 
-    /// What the value is, as a type that is no concrete one: a protocol (`any Presentable`) or `Any`.
-    /// A Swift value or object a script holds as it is, if it conforms; a number, text or a flag, as
-    /// the Swift value it is. Nil otherwise, and never a conversion: `casting(to:)` converts.
+    /// The Swift value this holds, as `type`, which is a protocol (`any Presentable`) or `Any`. It succeeds
+    /// for a Swift value or object that a script holds as it is, and for a number, text or flag as its
+    /// Swift value, if that conforms. It returns nil otherwise and never converts: `casting(to:)` converts.
     public func casting<T>(toExistential type: T.Type) -> T? {
         switch storage {
         case .object(let box as SwiftValue): return box.value as? T

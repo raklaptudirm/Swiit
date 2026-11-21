@@ -1,15 +1,14 @@
 import Foundation
 
-/// What a host offers a script: a function, or a member of a type (`BridgedType`). It is what a script
-/// sees, as a `Symbol` (its name, summary, signature and attributes, which `Interpreter.globals(named:)` says
-/// of it as they are), and the Swift that runs when it is used.
+/// A function or a member of a type (see `BridgedType`) that a host offers scripts: what a script sees,
+/// as a `Symbol` (its name, summary, signature and attributes), and the Swift that runs when it is used.
 ///
-/// What the Swift of a body may rely on, and what it must do, is in the article "What a Swift body
-/// can rely on" (`NativeBodies`).
+/// The article "What a Swift body can rely on" (`NativeBodies`) says what a body may assume and what it
+/// must do.
 ///
-/// The two always agree: the only ways to make one are the functions here, and each makes the
-/// `Symbol.Kind` and the body that fit each other, so a static method cannot be given a receiver nor
-/// a settable property no setter.
+/// The symbol and the body always agree. The functions here are the only way to make one, and each
+/// makes a `Symbol.Kind` and a body that fit each other: a static method has no receiver, and a
+/// settable property has a setter.
 public struct SymbolImplementation: Sendable {
     /// What a script sees.
     public let symbol: Symbol

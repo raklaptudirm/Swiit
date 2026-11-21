@@ -5,8 +5,8 @@ import Synchronization
 // What a symbol is: a variable, a function, a method, a property or a type, and what each holds.
 
 extension Symbol {
-    /// What a symbol is: a type, a global function or variable, or a member of a type. What a type
-    /// has is for `TypeExpression.members(named:in:)` to say.
+    /// What a symbol is: a type, a global function or variable, or a member of a type. A type's own members
+    /// are read with `TypeExpression.members(named:in:)`.
     public enum Kind: Sendable, Hashable {
         /// A type, with what only a type has.
         case type(Nominal)
@@ -39,7 +39,7 @@ extension Symbol {
         }
     }
 
-    /// What a type has: a method, a property, an initializer, a case or an associated type.
+    /// A member of a type: a method, a property, an initializer, a case or an associated type.
     public enum Member: Sendable, Hashable {
         /// A function that also says whether it changes its value and whether it is the type's own.
         case method(Method)
@@ -89,8 +89,8 @@ extension Symbol {
         }
     }
 
-    /// What a function, or reading a property, can throw: what a function type can, or only what the
-    /// closures it is given throw, which only a declaration says (`rethrows`).
+    /// What a function or a property read can throw: what a function type can, or `rethrows`, which only a
+    /// declaration says (it throws only what the closures it is given throw).
     public enum Throwing: Sendable, Hashable {
         /// `rethrows`: only what the closures it is given throw.
         case rethrowing
@@ -146,12 +146,12 @@ extension Symbol {
         /// type of error.
         public var throwing: Throwing
         public var isAsync: Bool
-        /// What it asks of its type parameters, by name: `["Element": ["Comparable"]]` for
-        /// `sorted()`. A protocol written `=Int` is a type it must be exactly.
+        /// The function's type parameters, each a symbol of kind `.genericParameter` with what it must conform
+        /// to: `Element: Comparable` for `sorted()`.
         public var generics: [Symbol]
 
-        /// What a value of this function has as a type: the shape without the labels, names, defaults
-        /// and documentation. A `rethrows` function's type throws, as a closure of it does.
+        /// The type of this function: its shape without labels, names, defaults and documentation. The type of
+        /// a `rethrows` function throws, as a closure of it does.
         public var functionType: TypeExpression.FunctionType {
             TypeExpression.FunctionType(
                 parameters: parameters.map {

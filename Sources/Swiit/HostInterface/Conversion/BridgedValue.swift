@@ -1,15 +1,16 @@
 import Foundation
 
-/// A Swift type that crosses into scripts: a host function can take and give it, and scripts can name
-/// it. It says how a `Value` becomes one and one becomes a `Value`, what scripts see of the type
-/// (`typeImplementation`) and what type to check a parameter against (`typeExpression`).
+/// A Swift type a script can hold: host functions can take and return it, and scripts can name it. The
+/// conformance says how a `Value` converts to the type and back (`init(_:)` and `value`), what scripts
+/// see of the type (`typeImplementation`), and which type a parameter of it is checked against
+/// (`typeExpression`).
 ///
-/// A type that is `Sendable` conforms with no more than `extension URL: BridgedValue {}`: it is held as
-/// it is under its Swift name, by value if it is `Hashable` and by identity if it is a class, and its
-/// registered members (`BridgedType`) are its members.
+/// A `Sendable` type conforms with `extension URL: BridgedValue {}`. It is then held as it is under its
+/// Swift name, by value if it is `Hashable` and by identity if it is a class, and its members are the
+/// ones registered with `BridgedType`.
 ///
-/// The bridge generator (`swiit-bridge`), run on a module, writes `typeImplementation` for each type the module
-/// defines for scripts, and the conformance itself for one that does not declare it.
+/// The bridge generator (`swiit-bridge`) writes `typeImplementation` for each type a module defines for
+/// scripts, and the conformance for each one that does not declare it.
 public protocol BridgedValue {
     /// The Swift value a script value stands for, or an error saying what was expected instead.
     init(_ swiitValue: Value) throws

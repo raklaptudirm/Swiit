@@ -2,13 +2,12 @@ import Foundation
 import Synchronization
 
 // safe: every public method holds the interpreter's lock
-/// The language: its scopes, what the checker remembers between entries, and
-/// the evaluator (the `Interpreter+…` files). It knows nothing of the
-/// terminal, processes or jobs: it reaches the world through its `host`, and
-/// runs only Swift. The host owns one.
+/// The language: its scopes, what the checker remembers between entries, and the evaluator (the
+/// `Interpreter+…` files). It reaches the outside world only through its `host`, and runs only
+/// Swift. The host owns one.
 public final class Interpreter: @unchecked Sendable {
-    /// How this interpreter is run: where its output goes, how to tell it to stop.
-    /// Where its output goes and how it is told to stop; a host may change it between runs.
+    /// How this interpreter is run: where its output goes and how it is told to stop. A host may
+    /// change it between runs.
     public var host: Interpreter.Host
 
     /// What runs this interpreter, if it is more than an embedder's call: the

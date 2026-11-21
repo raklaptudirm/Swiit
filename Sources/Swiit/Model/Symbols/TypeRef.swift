@@ -4,30 +4,30 @@ import Synchronization
 
 // A reference to a type: the declaration it is, not the name it goes by.
 
-/// Names a type, or stands where one would be: what `register` gives back, what
-/// `TypeRef(named:in:)` finds, what `Value.typeRef` has, and what `TypeExpression.named` and
-/// `Value.isInstance(of:)` take. A host gets one from the interpreter (`register`,
-/// `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`), and mints one only for a Swift type it
-/// registers (`init(nativeType:)`).
+/// Names one type. `register` returns one, `TypeRef(named:in:)` finds one, `Value.typeRef` has one, and
+/// `TypeExpression.named` and `Value.isInstance(of:)` take one. A host gets a reference from the
+/// interpreter (`register`, `TypeRef(named:in:)`, `Symbol.typeRef`, a value's `typeRef`) and makes one
+/// itself only for a Swift type it registers (`init(nativeType:)`).
 ///
-/// A reference is one of two kinds:
-/// - **Declared**: a type a script declares. It names one declaration, made once in this
-///   process. Declaring `struct Point` again makes a new type with a new reference, and the old one
-///   keeps naming the old one. A host cannot make one; it comes from the interpreter, so a
-///   misspelling cannot name a declaration. A reference from another interpreter is just one this
-///   interpreter never made, and names nothing.
+/// A reference is one of two kinds.
+///
+/// - **Declared**: a type a script declares. It names one declaration, made once in this process.
+///   Declaring `struct Point` again makes a new type with a new reference, and the old reference
+///   keeps naming the old type. A host cannot make one. It comes from the interpreter, so a
+///   misspelling cannot name a declaration, and a reference from another interpreter names nothing
+///   here.
 /// - **Native**: a Swift type the host or the core provides (`Int`, `Array`, a registered
-///   `FileSize`, an encoded Swift value), by the name `String(describing:)` gives the Swift
-///   type, which has no module in it. Native types are process-wide and one per name, as the
-///   registry they live in is: two Swift types of one name in different modules collide, and an
-///   encoded value carries only the name. A reference of this kind may name nothing (a type not
-///   registered, or an encoded value's), and `TypeRef.symbol(in:)` then gives nil.
+///   `FileSize`, an encoded Swift value), named by what `String(describing:)` gives for it, which
+///   has no module in it. Native types are process-wide and one per name, as the registry that holds
+///   them is: two Swift types of one name in different modules collide, and an encoded value
+///   carries only the name. A reference of this kind may name nothing (a type that is not
+///   registered, or an encoded value's), and `TypeRef.symbol(in:)` then returns nil.
 ///
-/// A generic parameter (`Element`) is not a reference to a type: it stands where one would be, and
+/// A generic parameter (`Element`) is not a reference to a type. It stands where one would be, and
 /// `TypeExpression.parameter` says so.
 ///
-/// References are equal when they are the same kind and the same declaration, or the same name. They
-/// do not outlive the process.
+/// Two references are equal when they are the same kind and name the same declaration or have the
+/// same name. They do not outlive the process.
 public struct TypeRef: Sendable, Hashable, CustomStringConvertible {
     enum Kind: Sendable, Hashable { case declared(UInt64), native }
 

@@ -5,22 +5,22 @@ import Synchronization
 // Evaluating source: all of it, or a statement at a time with observers.
 
 extension Interpreter {
-    /// Runs source and gives the value of its last statement if that is an expression that ran
-    /// (nothing otherwise). `limits` bound this run alone, in place of the interpreter's own. Runs on a thread with a large stack. Declarations and values stay for
-    /// the next call.
+    /// Runs `source` and returns the value of its last statement if that is an expression that ran, and
+    /// nothing otherwise. `limits`, if given, replace the interpreter's own for this run. The run happens
+    /// on a thread with a large stack, and declarations and values stay for the next call.
     ///
     /// A prompt or a script runner passes the closures:
     ///
-    /// - `onValue` is told the value of each of the program's own expression statements as it
-    ///   runs (not those in blocks, like the body of a `for`: use `print` for those), except a bare
-    ///   `true` or `false`, with the function the statement called when it is a call: its
-    ///   `attributes` say, for one, that Swift lets its result go (`@discardableResult`). The last
-    ///   one is told too, and given back as well.
-    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the
-    ///   next one (a script reports an error and carries on); without it, the first stops the run.
-    ///   A stop, a limit and an `Unwinding` error always end it.
-    /// - `completion` runs after the last statement and before the program's own top-level
-    ///   `defer`s, which run when it is all over.
+    /// - `onValue` is told the value of each of the program's own expression statements as it runs, with
+    ///   the function the statement called when it is a call (its `attributes` say whether Swift lets the
+    ///   result go, `@discardableResult`). Statements inside blocks, such as the body of a `for`, are not
+    ///   reported (use `print` for those), and neither is a bare `true` or `false`. The last one is also
+    ///   returned.
+    /// - `onError` is told of a run-time error in a statement, and says whether to go on with the next one
+    ///   (a script reports an error and carries on). Without it, the first error stops the run. A stop, a
+    ///   limit and an `Unwinding` error always end it.
+    /// - `completion` runs after the last statement and before the program's own top-level `defer`s, which
+    ///   run when it is all over.
     ///
     /// A mistake in the program's types or syntax is found before any statement runs.
     @discardableResult

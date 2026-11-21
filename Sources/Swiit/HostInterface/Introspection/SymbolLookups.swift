@@ -13,21 +13,20 @@ extension TypeRef {
         self = found
     }
 
-    /// What the reference names: a script's declaration (even one a later declaration of the same name
-    /// hides), or a type the host registers or the core bridges. Nil for a reference that names nothing:
-    /// a Swift type that is not registered (an encoded value's), a declared type of another
-    /// interpreter, a generic parameter.
+    /// The symbol this reference names: a script's declaration (even one that a later declaration of the
+    /// same name hides), or a type the host registers or the core bridges. It returns nil for a reference
+    /// that names nothing: an unregistered Swift type (such as an encoded value's) or a declared type of
+    /// another interpreter.
     public func symbol(in interpreter: Interpreter) -> Symbol? {
         interpreter.symbol(for: self)
     }
 }
 
 extension TypeExpression {
-    /// What the type has: the methods and properties of its values (a struct's, a host object's, a
+    /// The members of the type: the methods and properties of its values (a struct's, a host object's, a
     /// bridged type's, the sequence methods of a list), and what belongs to the type itself, marked
-    /// `isStatic`: its static members, its initializers and the cases of an enum. Only those
-    /// called `name`, if one is given. `TypeExpression(Int.self).members(in: interpreter)` is what a
-    /// Swift type has for scripts.
+    /// `isStatic`: its static members, its initializers and an enum's cases. With `name`, only those so
+    /// called. `TypeExpression(Int.self).members(in: interpreter)` lists what a Swift type has for scripts.
     public func members(named name: String? = nil, in interpreter: Interpreter) -> [Symbol] {
         interpreter.members(of: self, named: name)
     }

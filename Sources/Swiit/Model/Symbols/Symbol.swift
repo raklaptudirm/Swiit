@@ -40,7 +40,7 @@ public struct Symbol: Sendable, Hashable {
     public var attributes: [Symbol.Attribute] = []
     /// Whether the core or the host provides it, as opposed to a script's own declaration.
     public var isBuiltin = false
-    /// What a type symbol has, if this is one: its kind, reference, generic parameters and conformances.
+    /// The kind, reference, generic parameters and conformances of this symbol, if it is a type.
     public var nominal: Nominal? {
         get { if case .type(let nominal) = kind { nominal } else { nil } }
         set {
@@ -90,9 +90,10 @@ public struct Symbol: Sendable, Hashable {
         if case .type = kind { true } else { false }
     }
 
-    /// Its type as a value: a function's is a function type (parameter types in order, what it
-    /// returns); a variable's is its own; a type's is the type it names; a type parameter's, or an associated type a protocol asks for,
-    /// is itself; one a type binds is what it is bound to.
+    /// This symbol's type as a value. A function's is a function type (its parameter types in order, and
+    /// what it returns), a variable's is its own type, and a type's is the type it names. A type parameter's,
+    /// or an associated type a protocol asks for, is the parameter itself, and an associated type a type
+    /// binds is what it is bound to.
     public var typeExpression: TypeExpression {
         switch kind {
         case .function, .member(.method), .member(.initializer): .function(function!.functionType)
