@@ -16,7 +16,11 @@ extension TypeChecker {
         }
         switch binding.value.storage {
         case .object(let type as StructType):
-            return .structType(structInfo(type))
+            let key = ObjectIdentifier(type)
+            if let profile = structProfiles[key] { return .structType(profile) }
+            let profile = structInfo(type)
+            structProfiles[key] = profile
+            return .structType(profile)
         case .object(let type as ClassType):
             // What an earlier program declared is read as it was declared.
             guard let declaration = type.declaration else {

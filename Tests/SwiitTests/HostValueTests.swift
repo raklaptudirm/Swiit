@@ -364,3 +364,14 @@ private struct Point: Encodable { var x: Int }
     #expect(!element.isType)
     #expect(Symbol(name: "x", kind: .variable(Symbol.Variable(type: .int))).constraints.isEmpty)
 }
+
+@Test func aRedeclaredStructIsCheckedAsItIsNow() throws {
+    let swiit = interpreter()
+    _ = try swiit.evaluate("struct Box { var a: Int }")
+    #expect(try swiit.evaluate("Box(a: 1).a") == Value(1))
+
+    _ = try swiit.evaluate("struct Box { var b: String }")
+
+    #expect(try swiit.evaluate("Box(b: \"x\").b") == Value("x"))
+    #expect(throws: (any Error).self) { try swiit.evaluate("Box(a: 1)") }
+}

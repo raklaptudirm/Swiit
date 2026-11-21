@@ -147,6 +147,9 @@ final class TypeChecker {
 
     /// What the program declares, innermost last, on top of the host's names.
     var scopes: [[String: ScopeEntry]] = [[:]]
+    /// The profile of each struct the interpreter holds, built once per checker. A struct's record and
+    /// members do not change after it is declared, and a redeclared struct is another object.
+    var structProfiles: [ObjectIdentifier: TypeProfile] = [:]
     var returns: [ReturnContext] = []
     var errorContexts = [ErrorContext(handled: true)]
     /// The type of error the last call resolved throws, for the throwing site that follows it.
