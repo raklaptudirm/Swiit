@@ -144,7 +144,7 @@ extension TypeChecker {
                 return .metatype(TypeAnnotation.spelled(typeName) ?? .named(typeName))
             case .asyncLet:
                 // Its task's value, which waits for it (and throws what it threw).
-                let value = Bridge.types["Task"]!.lowered
+                let value = interpreter.bridged["Task"]!.lowered
                     .firstIndex { $0.kind == .property && !$0.isStatic && $0.name == "value" }!
                 expr = .bridged(
                     type: "Task",
@@ -305,7 +305,9 @@ extension TypeChecker {
             )
         case .enumValue(let value): .named(value.type.name)
         case .object(let box as SwiftValue):
-            if let parameters = Bridge.types[box.typeName]?.genericParameters, !parameters.isEmpty {
+            if let parameters = interpreter.bridged[box.typeName]?.genericParameters,
+                !parameters.isEmpty
+            {
                 .generic(box.typeName, parameters.map { _ in .unknown })
             } else {
                 .named(box.typeName)

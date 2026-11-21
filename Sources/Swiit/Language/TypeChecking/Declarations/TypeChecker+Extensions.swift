@@ -75,7 +75,7 @@ extension TypeChecker {
         guard structInfo(named: key) == nil, enumInfo(named: key) == nil,
             protocolInfo(named: key) == nil
         else { return [] }
-        return Bridge.types[key].map { $0.conformanceNames.sorted() } ?? []
+        return interpreter.bridged[key].map { $0.conformanceNames.sorted() } ?? []
     }
 
     func ownExtensionLayer(forKey key: String) -> ExtensionLayer? {
@@ -192,7 +192,7 @@ extension TypeChecker {
 
     /// The type `self` is in an extension of the type named `key`, with its parts not yet known.
     func selfType(ofExtensionOf key: String) throws -> TypeAnnotation {
-        if let annotation = Bridge.types[key]?.representation.annotation {
+        if let annotation = interpreter.bridged[key]?.representation.annotation {
             return annotation
         }
         if structInfo(named: key) != nil || enumInfo(named: key) != nil
@@ -200,7 +200,7 @@ extension TypeChecker {
         {
             return .named(key)
         }
-        if Bridge.types[key] != nil { return .generic(key, [.unknown]) }
+        if interpreter.bridged[key] != nil { return .generic(key, [.unknown]) }
         // A protocol of Swift's that collections share: `self` is whatever conforms, so what
         // is asked of it is looked up when it runs (see `hasMember`).
         if Bridge.sequenceProtocols.contains(key) { return .unknown }

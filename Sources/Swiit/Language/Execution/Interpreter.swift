@@ -40,6 +40,9 @@ public final class Interpreter: @unchecked Sendable {
     let pendingDeinits = Mutex<[ClassInstance]>([])
     // safe: a hint, set holding `pendingDeinits`; a stale read only delays a `deinit` by a statement
     nonisolated(unsafe) var hasPendingDeinits = false
+    /// The Swift types scripts can use, by the name they are written with: the core's, and those
+    /// this interpreter's host has registered. Another interpreter's registrations are not here.
+    var bridged: [String: ImplementedType] = Bridge.core
     /// What extensions add to a type, by the type's name (`Int`, `Array`, a struct's).
     var typeExtensions: [String: TypeMembers] = [:]
     /// Methods every sequence has, like `sorted` and `filter`.

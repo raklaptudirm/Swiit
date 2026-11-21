@@ -18,9 +18,8 @@ import Synchronization
 ///   here.
 /// - **Native**: a Swift type the host or the core provides (`Int`, `Array`, a registered
 ///   `FileSize`, an encoded Swift value), named by what `String(describing:)` gives for it, which
-///   has no module in it. Native types are process-wide and one per name, as the registry that holds
-///   them is: two Swift types of one name in different modules collide, and an encoded value
-///   carries only the name. A reference of this kind may name nothing (a type that is not
+///   has no module in it. A native reference is one per name, in every interpreter: two Swift types
+///   of one name in different modules collide, and an encoded value carries only the name. A reference of this kind may name nothing (a type that is not
 ///   registered, or an encoded value's), and `TypeRef.symbol(in:)` then returns nil.
 ///
 /// A generic parameter (`Element`) is not a reference to a type. It stands where one would be, and

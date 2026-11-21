@@ -10,7 +10,7 @@ extension Interpreter {
         receiver: Expr?,
         _ arguments: [Argument]
     ) throws -> Value {
-        guard let member = Bridge.types[typeName]?.lowered[index] else {
+        guard let member = bridged[typeName]?.lowered[index] else {
             throw RuntimeError("no bridged member #\(index) of \(typeName)")
         }
         let function = Function(
@@ -94,7 +94,7 @@ extension Interpreter {
             default: nil
             }
         guard let typeName,
-            let member = Bridge.types[typeName]?.lowered
+            let member = bridged[typeName]?.lowered
                 .first(where: {
                     $0.kind == .property && !$0.isStatic && $0.name == name
                 })
@@ -115,7 +115,7 @@ extension Interpreter {
         if case .object(let object)? = lookup(typeName)?.value.storage, object is any DeclaredType {
             return nil
         }
-        let candidates = (Bridge.types[typeName]?.lowered ?? [])
+        let candidates = (bridged[typeName]?.lowered ?? [])
             .filter { $0.kind == .initializer }
             .compactMap { member -> Function? in
                 guard case .native(let call) = member.body else { return nil }
@@ -143,7 +143,7 @@ extension Interpreter {
             default: nil
             }
         guard let typeName else { return nil }
-        let candidates = (Bridge.types[typeName]?.lowered ?? [])
+        let candidates = (bridged[typeName]?.lowered ?? [])
             .filter {
                 $0.kind == .method && !$0.isStatic && !$0.isMutating && $0.name == name
             }

@@ -22,7 +22,8 @@ extension TypeChecker {
                 default: break
                 }
                 if let typeName, typeName != "Array",
-                    Bridge.types[typeName]?.conformance(named: "ExpressibleByArrayLiteral") != nil
+                    interpreter.bridged[typeName]?.conformance(named: "ExpressibleByArrayLiteral")
+                        != nil
                         || typeName == "Set"
                 {
                     expr = .call(.variable(typeName), [Argument(value: .list(items))])

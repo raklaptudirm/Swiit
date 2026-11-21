@@ -64,7 +64,7 @@ extension Interpreter {
                 .compactMap { name, binding -> Symbol.Nominal? in
                     if case .object(is NativeTypeName) = binding.value.storage {
                         var symbol =
-                            Bridge.types[name]?.symbol
+                            self.bridged[name]?.symbol
                             ?? Symbol.Nominal(name: name, kind: .structure, typeRef: .native(name))
                         symbol.isBuiltin = true
                         return symbol

@@ -44,7 +44,7 @@ extension TypeChecker {
     /// The type of a sequence's items, for its methods; nil if it isn't one.
     func sequenceElement(_ type: TypeAnnotation) -> TypeAnnotation? {
         if case .named(let name) = type,
-            let element = Bridge.types[name]?.annotatedAssociatedTypes["Element"]
+            let element = interpreter.bridged[name]?.annotatedAssociatedTypes["Element"]
         {
             return element
         }
@@ -63,7 +63,7 @@ extension TypeChecker {
     /// The Swift type a Swiit type is, with its generic parameters bound:
     /// `[Int]` is Array with Element Int.
     func bridged(_ type: TypeAnnotation) -> (ImplementedType, [String: TypeAnnotation])? {
-        Bridge.type(of: type)
+        Bridge.type(of: type, in: interpreter.bridged)
     }
 
     /// Whether a bridged type, with its generic parameters bound, conforms
@@ -114,7 +114,7 @@ extension TypeChecker {
         bindings: [String: TypeAnnotation],
         _ name: String
     ) throws -> (TypeAnnotation, Expr)? {
-        guard let bridgedType = Bridge.types[typeName],
+        guard let bridgedType = interpreter.bridged[typeName],
             let index = bridgedType.lowered.firstIndex(where: {
                 $0.kind == .property && $0.name == name && $0.isStatic == (receiver == nil)
             })
@@ -137,7 +137,7 @@ extension TypeChecker {
         name: String,
         _ arguments: inout [Argument]
     ) throws -> (TypeAnnotation, Expr) {
-        guard let bridgedType = Bridge.types[typeName] else {
+        guard let bridgedType = interpreter.bridged[typeName] else {
             throw TypeError("no Swift type named \(typeName)")
         }
         let candidates = bridgedType.lowered.enumerated()
@@ -219,7 +219,7 @@ extension TypeChecker {
         switch expected {
         case .optional(let wrapped): return try textLiteral(text, as: wrapped)
         case .named(let name):
-            guard let type = Bridge.types[name] else { return nil }
+            guard let type = interpreter.bridged[name] else { return nil }
             let initializers = type.lowered.enumerated()
                 .filter {
                     $0.element.kind == .initializer && $0.element.parameters.count == 1
@@ -339,7 +339,7 @@ extension TypeChecker {
             default:
                 break
             }
-            if Bridge.types[typeName] != nil {
+            if interpreter.bridged[typeName] != nil {
                 throw TypeError("\(typeName) has no member '\(name)'")
             }
             return .unknown
@@ -517,11 +517,11 @@ extension TypeChecker {
                 "a String is indexed by String.Index, not \(written): write s.index(s.startIndex, offsetBy: n)"
             )
         case .named(let name)
-        where Bridge.types[name]?.conformance(named: "Sequence") != nil
-            && Bridge.types[name]?.annotatedAssociatedTypes["Element"] != nil:
+        where interpreter.bridged[name]?.conformance(named: "Sequence") != nil
+            && interpreter.bridged[name]?.annotatedAssociatedTypes["Element"] != nil:
             // A Swift sequence Swiit holds is indexed by position (a host type's text, by line).
             try expect(&index, .int, "an element's index")
-            return Bridge.types[name]!.annotatedAssociatedTypes["Element"]!
+            return interpreter.bridged[name]!.annotatedAssociatedTypes["Element"]!
         case .dictionary(let key, let value):
             try expect(&index, key, "the key")
             return .optional(value)

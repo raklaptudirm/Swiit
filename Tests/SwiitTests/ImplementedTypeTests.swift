@@ -396,3 +396,25 @@ private struct Hamper: Sendable { var size = 3 }
     let nominal = try #require(id.symbol(in: swiit))
     #expect(nominal.genericParameters.map(\.name) == ["Item"])
 }
+
+private struct Gizmo: BridgedValue, Hashable, Sendable {}
+
+@Test func twoInterpretersRegisterTheSameTypeWithTheirOwnMembers() throws {
+    func interpreter(tag: String) -> Interpreter {
+        let swiit = Interpreter()
+        swiit.register(
+            BridgedType<Gizmo>(named: "Gizmo")
+                .member(.property("tag", type: .string) { _ in Value(tag) })
+        )
+        swiit["gizmo"] = Value(boxing: Gizmo(), as: TypeRef(nativeType: "Gizmo"))
+        return swiit
+    }
+    let first = interpreter(tag: "first")
+    let second = interpreter(tag: "second")
+
+    #expect(try first.evaluate("gizmo.tag") == Value("first"))
+    #expect(try second.evaluate("gizmo.tag") == Value("second"))
+    // A type only one registered is not the other's.
+    let third = Interpreter()
+    #expect(throws: Diagnostic.self) { try third.evaluate("Gizmo.self") }
+}

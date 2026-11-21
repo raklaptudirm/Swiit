@@ -433,7 +433,8 @@ struct SwiftPrinter {
         case .chosen(let inner, _), .specialized(let inner, _): return expression(inner)
         // A Swift member the checker chose: the call it is.
         case .bridged(let type, let index, let receiver, let args):
-            guard let members = Bridge.types[type]?.lowered, members.indices.contains(index) else {
+            guard let members = Bridge.current[type]?.lowered, members.indices.contains(index)
+            else {
                 return "/* a bridged call the checker made */"
             }
             let member = members[index]

@@ -118,7 +118,7 @@ final class SwiftValue: LanguageObject, @unchecked Sendable {
 
     private func registered(_ property: String) -> String? {
         guard
-            let member = Bridge.types[typeName]?.lowered
+            let member = Bridge.current[typeName]?.lowered
                 .first(where: {
                     $0.name == property && !$0.isStatic && $0.kind == .property
                 }),

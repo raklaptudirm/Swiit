@@ -87,7 +87,10 @@ extension Interpreter {
             // FilePath.Component, not SystemPackage.FilePath.Component.
             let name = String(reflecting: type(of: next))
             let unqualified = String(name.drop { $0 != "." }.dropFirst())
-            return SwiftValue.make(next, as: Bridge.types[unqualified] != nil ? unqualified : name)
+            return SwiftValue.make(
+                next,
+                as: Bridge.current[unqualified] != nil ? unqualified : name
+            )
         }
     }
 }

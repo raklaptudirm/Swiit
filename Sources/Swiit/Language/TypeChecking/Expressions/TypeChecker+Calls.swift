@@ -406,7 +406,8 @@ extension TypeChecker {
             case .member(let inner, _): root = inner; throughMember = true
             case .index(let inner, _), .indexDefault(let inner, _, _), .forceUnwrap(let inner):
                 root = inner
-            case .bridged where root.subscriptPlace != nil: root = root.subscriptPlace!.receiver
+            case .bridged where root.subscriptPlace(in: interpreter.bridged) != nil:
+                root = root.subscriptPlace(in: interpreter.bridged)!.receiver
             case .variable(let name):
                 // A member of a class instance is changed on the instance, whatever holds it.
                 if throughMember, case .variable(.named(let typeName), _)? = lookup(name),
@@ -433,7 +434,8 @@ extension TypeChecker {
             switch root {
             case .member(let inner, _): root = inner; throughMember = true
             case .index(let inner, _), .indexDefault(let inner, _, _): root = inner
-            case .bridged where root.subscriptPlace != nil: root = root.subscriptPlace!.receiver
+            case .bridged where root.subscriptPlace(in: interpreter.bridged) != nil:
+                root = root.subscriptPlace(in: interpreter.bridged)!.receiver
             case .forceUnwrap(let inner), .optionalMember(let inner, _): root = inner
             case .variable(let name):
                 if throughMember, case .variable(.named(let typeName), _)? = lookup(name),

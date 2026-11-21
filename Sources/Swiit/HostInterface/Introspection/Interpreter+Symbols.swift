@@ -31,7 +31,7 @@ extension Interpreter {
             guard var annotation = self.annotation(type) else { return [] }
             // A generic Swift type by its bare name has members whatever it holds: `Array`, `Set`.
             if case .named(let typeName) = annotation,
-                let generic = Bridge.types[typeName]?.genericParameters,
+                let generic = bridged[typeName]?.genericParameters,
                 !generic.isEmpty
             {
                 annotation = .generic(typeName, generic.map { _ in .unknown })

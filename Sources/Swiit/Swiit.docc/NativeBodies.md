@@ -38,8 +38,8 @@ A body may call the interpreter that is running it: ``Interpreter/call(_:with:)`
 does through those calls (a variable it changes) is there when the body returns. A script function that calls a body that calls a script
 function can go on as deep as ``Interpreter/Limits/maxCallDepth`` allows.
 
-A body of a type's member cannot hold an interpreter, because the type is shared by every interpreter in
-the process. Inside any body, ``Interpreter/running`` is the interpreter that called it, and the same calls are made on it. Outside a body, on
+A body of a type's member need not hold an interpreter, and should not when the host registers the type on several (a reloaded
+script makes a new one): the member of one interpreter's type that held another would read the wrong state. Inside any body, ``Interpreter/running`` is the interpreter that called it, and the same calls are made on it. Outside a body, on
 a thread that runs no script code, it is nil.
 
 ## When a body fails
@@ -66,5 +66,6 @@ gives it back changed.
 ## What is registered, and for how long
 
 A function registered on an interpreter, or declared with ``Interpreter/declare(_:bodies:)``, belongs to that interpreter. The members of a type
-written with ``BridgedType`` belong to the process: they are registered by the type's name and shared by every interpreter, so such a
-body does not capture one interpreter. It finds the interpreter that is calling it by being handed the receiver's value, not by holding one.
+written with ``BridgedType`` belong to the interpreter they are registered on, by the type's name: another interpreter does not have the type
+until the host registers it there, and registering it again on the same one adds the members it lacks. A body can still find the
+interpreter that is calling it with ``Interpreter/running``, which stays right when a host registers one type on several.

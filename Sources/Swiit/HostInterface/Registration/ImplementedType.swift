@@ -61,8 +61,9 @@ extension Value {
 }
 
 extension Interpreter {
-    /// Makes a Swift value type one scripts can use. Registering a type again adds the members it
-    /// lacks. It gives the type's reference, which is `TypeRef(nativeType: name)`: the same promises hold
+    /// Makes a Swift value type one scripts of this interpreter can use: another interpreter has it
+    /// only when the host registers it there, with members of its own. Registering a type again on
+    /// the same interpreter adds the members it lacks. It gives the type's reference, which is `TypeRef(nativeType: name)`: the same promises hold
     /// of it, and of what they leave out.
     @discardableResult
     public func register<T>(_ builder: BridgedType<T>) -> TypeRef {
@@ -84,20 +85,20 @@ extension Interpreter {
 
     @discardableResult
     public func register(_ type: ImplementedType) -> TypeRef {
-        var bridged = type.lowering()
+        var lowered = type.lowering()
         // A sequence has what a list has, over its items: `sorted`, `map`, `max`, `joined`
         // (`Output`'s lines).
         if type.conformance(named: "Sequence") != nil, let element = type.associatedTypes["Element"]
         {
-            bridged = bridged.adding(
+            lowered = lowered.adding(
                 itemMembers(
                     of: TypeAnnotation(element),
                     excluding: Set(type.members.map(\.name))
                 )
             )
         }
-        Bridge.register([bridged])
         withMainTask {
+            Bridge.register([lowered], in: &bridged)
             // The Swift enums its members take or give, as a function's are.
             for enumeration in type.members.flatMap(\.enums) {
                 scopes[1].bindings[enumeration.name] = Binding(
@@ -118,7 +119,7 @@ extension Interpreter {
     /// A list's members, which read their receiver without changing it, made members of a sequence:
     /// they take its items as the list they work on.
     func itemMembers(of element: TypeAnnotation, excluding own: Set<String>) -> [BridgedMember] {
-        guard let array = Bridge.types["Array"] else { return [] }
+        guard let array = bridged["Array"] else { return [] }
         let checker = TypeChecker(interpreter: self)
         let bindings = ["Element": element]
         return array.lowered

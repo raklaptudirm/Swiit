@@ -19,9 +19,10 @@ extension Interpreter {
         case .forceUnwrap(let base):
             return lvalue(base).map { ($0.0, $0.1 + [.unwrap]) }
         case .bridged:
-            return expr.subscriptPlace.flatMap { place in
-                lvalue(place.receiver).map { ($0.0, $0.1 + [.index(place.index)]) }
-            }
+            return expr.subscriptPlace(in: bridged)
+                .flatMap { place in
+                    lvalue(place.receiver).map { ($0.0, $0.1 + [.index(place.index)]) }
+                }
         default:
             return nil
         }
@@ -114,8 +115,8 @@ extension Interpreter {
             case .forceUnwrap(let inner):
                 path.insert(.unwrap, at: 0)
                 current = inner
-            case .bridged where current.subscriptPlace != nil:
-                let subscripted = current.subscriptPlace!
+            case .bridged where current.subscriptPlace(in: bridged) != nil:
+                let subscripted = current.subscriptPlace(in: bridged)!
                 path.insert(.index(subscripted.index), at: 0)
                 current = subscripted.receiver
             case .variable(let root):
@@ -375,7 +376,7 @@ extension Interpreter {
         case (.member(let name), .object(let box as SwiftValue)):
             // A Swift property with a setter: get it, change it, set it on a copy.
             guard
-                let setter = Bridge.types[box.typeName]?.lowered
+                let setter = bridged[box.typeName]?.lowered
                     .first(where: { $0.kind == .setter && $0.name == name }),
                 let current = try bridgedProperty(name, of: base)
             else {

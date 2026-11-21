@@ -11,7 +11,7 @@ extension Interpreter {
         installPrint()
         installLanguageFunctions()
         // Swift's types by name, for their initializers and static members.
-        for name in Bridge.types.keys {
+        for name in Bridge.core.keys {
             scopes[0].bindings[name] = Binding(
                 value: .object(NativeTypeName(name)),
                 mutable: false

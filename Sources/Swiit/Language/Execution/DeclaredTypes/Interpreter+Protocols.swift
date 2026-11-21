@@ -91,7 +91,7 @@ extension Interpreter {
         case .object(let box) where box is SwiftValue: break
         default: return []
         }
-        guard let key = typeKey(of: value), let type = Bridge.types[key] else { return [] }
+        guard let key = typeKey(of: value), let type = bridged[key] else { return [] }
         return type.conformances.compactMap { protocolRef, needs in
             let name = protocolRef.name
             let met = needs.allSatisfy { parameter in

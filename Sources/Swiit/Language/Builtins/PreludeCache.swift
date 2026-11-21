@@ -12,7 +12,7 @@ extension Interpreter {
     func installPrelude() -> [ExtensionDecl] {
         // The Swift types the declarations may name.
         let bridgedTypeNames = Dictionary(
-            uniqueKeysWithValues: Bridge.types.keys.map { ($0, NameKind.type) }
+            uniqueKeysWithValues: Bridge.core.keys.map { ($0, NameKind.type) }
         )
         let program: Program
         do {

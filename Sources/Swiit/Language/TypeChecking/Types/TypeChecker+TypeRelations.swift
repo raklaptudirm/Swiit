@@ -80,8 +80,10 @@ extension TypeChecker {
                 && (aeffect != .async || beffect == .async)
         // A Swift generic type with its arguments is the type named without them (`Set<Int>` where
         // a `Set` is written).
-        case (.generic(let a, _), .named(let b)) where a == b && Bridge.types[a] != nil: return true
-        case (.named(let a), .generic(let b, _)) where a == b && Bridge.types[a] != nil: return true
+        case (.generic(let a, _), .named(let b)) where a == b && interpreter.bridged[a] != nil:
+            return true
+        case (.named(let a), .generic(let b, _)) where a == b && interpreter.bridged[a] != nil:
+            return true
         // A class is its superclass too.
         case (.named(let a), .named(let b)) where isSubclass(a, of: b): return true
         // A struct's value is a record, as builtins that take any record see it.
@@ -271,7 +273,7 @@ extension TypeChecker {
 
     func elementType(of type: TypeAnnotation, async: Bool = false) throws -> TypeAnnotation {
         if case .named(let name) = type,
-            let element = Bridge.types[name]?.annotatedAssociatedTypes["Element"]
+            let element = interpreter.bridged[name]?.annotatedAssociatedTypes["Element"]
         {
             return element
         }

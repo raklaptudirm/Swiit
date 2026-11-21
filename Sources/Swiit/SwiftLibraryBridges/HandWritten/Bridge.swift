@@ -32,37 +32,49 @@ enum Bridge {
         $0.lowering(ofTheCore: true)
     }
 
-    /// The bridged types, by the name Swiit writes them with: the core's, and those libraries have
-    /// registered. A snapshot, as libraries register while other interpreters read.
-    static var types: [String: ImplementedType] { table.withLock { $0 } }
-
-    private static let table = Mutex<[String: ImplementedType]>(
-        Dictionary(
-            uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency)
-                .map {
-                    (
-                        $0.name,
-                        $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
-                            .adding(additions(to: $0.name))
-                    )
-                }
-        )
+    /// The types the core bridges, by the name Swiit writes them with: what every interpreter starts
+    /// with, and the same for all of them.
+    static let core: [String: ImplementedType] = Dictionary(
+        uniqueKeysWithValues: (standardLibrary + system + foundation + concurrency)
+            .map {
+                (
+                    $0.name,
+                    $0.conforming(to: conformancesDeclaredHere[$0.name] ?? [])
+                        .adding(additions(to: $0.name))
+                )
+            }
     )
 
+    /// The bridged types as code that runs outside any interpreter can see them: the core's, and
+    /// those any interpreter has registered, the first registration of a name winning. An
+    /// interpreter reads its own (`Interpreter.bridged`), which another's registrations do not
+    /// change.
+    static var types: [String: ImplementedType] { table.withLock { $0 } }
+
+    private static let table = Mutex<[String: ImplementedType]>(core)
+
+    /// The bridged types of the interpreter running script code on this thread, or what outside
+    /// code sees where none is: for a place that has no interpreter to ask.
+    static var current: [String: ImplementedType] { Interpreter.running?.bridged ?? types }
+
     /// Adds the types a library bridges (the host's `FileSize`), which the core does not know, and
-    /// the members it adds to types the core has. Registering one again is no change.
-    static func register(_ more: [ImplementedType]) {
-        table.withLock { table in
-            for type in more {
-                if let existing = table[type.name] {
-                    // A library adds members to a type the core has (`String.styled`), as an
-                    // extension does.
-                    table[type.name] = existing.adding(type.lowered)
-                } else {
-                    table[type.name] =
-                        type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
-                        .adding(additions(to: type.name))
-                }
+    /// the members it adds to types the core has, to an interpreter's table and to the one outside
+    /// code reads. Registering one again is no change.
+    static func register(_ more: [ImplementedType], in own: inout [String: ImplementedType]) {
+        add(more, to: &own)
+        table.withLock { add(more, to: &$0) }
+    }
+
+    private static func add(_ more: [ImplementedType], to table: inout [String: ImplementedType]) {
+        for type in more {
+            if let existing = table[type.name] {
+                // A library adds members to a type the core has (`String.styled`), as an
+                // extension does.
+                table[type.name] = existing.adding(type.lowered)
+            } else {
+                table[type.name] =
+                    type.conforming(to: conformancesDeclaredHere[type.name] ?? [])
+                    .adding(additions(to: type.name))
             }
         }
     }
@@ -70,7 +82,8 @@ enum Bridge {
     /// The bridged type Swiit's type annotation is, and its generic
     /// parameters' bindings: `[Int]` is `Array` with Element Int.
     static func type(
-        of annotation: TypeAnnotation
+        of annotation: TypeAnnotation,
+        in types: [String: ImplementedType]
     ) -> (ImplementedType, [String: TypeAnnotation])? {
         guard let (name, arguments) = annotation.swiftType, let type = types[name],
             type.genericParameterNames.count == arguments.count

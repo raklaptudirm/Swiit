@@ -2,11 +2,13 @@ extension Expr {
     /// The place `xs[i]` or `d[key]` names, when the checker has written it as the bridged
     /// subscript it calls: a list's or a dictionary's entry is a place the interpreter changes in
     /// place, and reading it through the bridge must not make it a value.
-    var subscriptPlace: (receiver: Expr, index: Expr)? {
+    func subscriptPlace(
+        in types: [String: ImplementedType]
+    ) -> (receiver: Expr, index: Expr)? {
         guard case .bridged(let type, let member, let receiver?, let arguments) = self,
             arguments.count == 1,
-            [.list, .dictionary].contains(Bridge.types[type]?.representation),
-            let bridged = Bridge.types[type], bridged.lowered.indices.contains(member),
+            [.list, .dictionary].contains(types[type]?.representation),
+            let bridged = types[type], bridged.lowered.indices.contains(member),
             bridged.lowered[member].kind == .method, bridged.lowered[member].name == "subscript"
         else { return nil }
         return (receiver, arguments[0].value)

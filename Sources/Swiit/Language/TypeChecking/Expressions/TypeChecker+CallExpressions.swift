@@ -14,7 +14,7 @@ extension TypeChecker {
             let type = try callType(&callee, &arguments, expected: expected)
             // A bridged member stands for the whole call.
             // (A subscript's read is a value, and what is called.)
-            if case .bridged = callee, callee.subscriptPlace == nil {
+            if case .bridged = callee, callee.subscriptPlace(in: interpreter.bridged) == nil {
                 expr = callee
             } else {
                 expr = .call(callee, arguments)
@@ -23,7 +23,9 @@ extension TypeChecker {
         case .bridged(let typeName, let index, var receiver, var arguments):
             // Made by the checker, and typed again when what holds it is (an
             // operator's overloads, each tried): the same type, the same effects.
-            guard let member = Bridge.types[typeName]?.lowered[index] else { return .unknown }
+            guard let member = interpreter.bridged[typeName]?.lowered[index] else {
+                return .unknown
+            }
             var bindings: [String: TypeAnnotation] = [:]
             if var base = receiver {
                 // `async let x`'s reads: `x` itself is the task.
@@ -101,11 +103,7 @@ extension TypeChecker {
             // `.milliseconds(5)` where a Duration is wanted: a static member of the type, which
             // Swift's implicit member expression reaches as `Duration.milliseconds(5)`.
             if let owner = staticMemberOwner(expected) {
-                let member = Expr.member(.variable(owner), name)
-                var written = arguments.map { Expr.call(member, $0) } ?? member
-                let type = try typeOf(&written, expecting: expected)
-                expr = written
-                return type
+                return try typeOfStaticMember(owner, name, arguments, &expr, expecting: expected)
             }
             let type = try caseType(name, &arguments, expected: expected)
             // Written out with its enum, so running it needs no context.
@@ -141,6 +139,21 @@ extension TypeChecker {
         case .structType?, .swiftType?: return name
         default: return nil
         }
+    }
+
+    /// `.milliseconds(5)` written as `Duration.milliseconds(5)`, which is checked as written.
+    func typeOfStaticMember(
+        _ owner: String,
+        _ name: String,
+        _ arguments: [Argument]?,
+        _ expr: inout Expr,
+        expecting expected: TypeAnnotation?
+    ) throws -> TypeAnnotation {
+        let member = Expr.member(.variable(owner), name)
+        var written = arguments.map { Expr.call(member, $0) } ?? member
+        let type = try typeOf(&written, expecting: expected)
+        expr = written
+        return type
     }
 
     /// `Int.max`, or a static property an extension adds: the type of `name` on the Swift type

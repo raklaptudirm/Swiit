@@ -35,7 +35,7 @@ extension Lowering {
             if identifier.genericArgumentClause != nil, !facts.protocols.contains(name),
                 declaredTypes.contains(nestedNames[name] ?? name)
                     || bound[name] == .type && TypeAnnotation.spelled(name) == nil
-                        && Bridge.types[name] == nil
+                        && Bridge.current[name] == nil
             {
                 // A generic type of the program's own: its arguments only say what it holds.
                 return .named(nestedNames[name] ?? name)

@@ -30,7 +30,7 @@ final class ValueStream {
         case .list:
             items = Interpreter.items(of: value)!
         case .object(let box as SwiftValue)
-        where Bridge.types[box.typeName]
+        where Bridge.current[box.typeName]
             .map({
                 !$0.genericParameters.isEmpty || $0.conformance(named: "Sequence") != nil
             }) == true:
