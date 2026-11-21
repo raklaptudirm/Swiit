@@ -24,8 +24,8 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
     public struct FunctionType: Sendable, Hashable {
         public var parameters: [Parameter]
         public var returns: ScriptType
-        /// Whether it throws, and what. A function type is never `rethrowing`: only a declaration is.
-        public var throwing: Symbol.Throwing
+        /// Whether it throws, and what.
+        public var throwing: Throwing
         public var isAsync: Bool
 
         /// A parameter of a function type: its type, and whether the function changes it in place, as
@@ -43,7 +43,7 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         public init(
             parameters: [Parameter],
             returns: ScriptType,
-            throwing: Symbol.Throwing = .no,
+            throwing: Throwing = .no,
             isAsync: Bool = false
         ) {
             self.parameters = parameters
@@ -53,7 +53,17 @@ public indirect enum ScriptType: Sendable, Hashable, CustomStringConvertible {
         }
 
         /// Whether it throws errors of its own: `throws` and `throws(Failure)`.
-        public var isThrowing: Bool { throwing != .no && throwing != .rethrowing }
+        public var isThrowing: Bool { throwing != .no }
+
+        /// What a function type can throw. Only a declaration is `rethrows`: the type of one throws,
+        /// as a closure of it does.
+        public enum Throwing: Sendable, Hashable {
+            case no
+            /// `throws`: any error.
+            case any
+            /// `throws(Failure)`: errors of this type.
+            case typed(ScriptType)
+        }
     }
 
     /// An element of a tuple type, labeled or not.
@@ -141,7 +151,7 @@ extension ScriptType.FunctionType {
     /// ` throws`, ` throws(Failure)` or nothing, as Swift writes it after the parameters.
     fileprivate var throwingText: String {
         switch throwing {
-        case .no, .rethrowing: ""
+        case .no: ""
         case .any: " throws"
         case .typed(let failure): " throws(\(failure))"
         }

@@ -103,6 +103,16 @@ extension Symbol {
         case rethrowing
         /// `throws(Failure)`: errors of this type.
         case typed(ScriptType)
+
+        /// What the type of a function that throws this way throws: a `rethrows` function's type
+        /// throws, as a closure of it does.
+        var functionTypeThrowing: ScriptType.FunctionType.Throwing {
+            switch self {
+            case .no: .no
+            case .any, .rethrowing: .any
+            case .typed(let failure): .typed(failure)
+            }
+        }
     }
 
     /// A variable that belongs to a type.
@@ -148,7 +158,7 @@ extension Symbol {
                     ScriptType.FunctionType.Parameter($0.type, isInout: $0.isInout)
                 },
                 returns: returns,
-                throwing: throwing == .rethrowing ? .any : throwing,
+                throwing: throwing.functionTypeThrowing,
                 isAsync: isAsync
             )
         }

@@ -445,3 +445,14 @@ private struct Point: Encodable { var x: Int }
     #expect(function.parameters.dropFirst().allSatisfy { !$0.isInout })
     #expect(closure.type.description.hasPrefix("(inout "))
 }
+
+@Test func theTypeOfARethrowingFunctionThrowsAsAClosureOfItDoes() {
+    let declared = Symbol.Function(parameters: [], returns: .int, throwing: .rethrowing)
+
+    #expect(declared.functionType.throwing == .any)
+    #expect(declared.functionType.isThrowing)
+    #expect(
+        Symbol.Function(returns: .int, throwing: .typed(.int)).functionType.throwing == .typed(.int)
+    )
+    #expect(!Symbol.Function(returns: .int, throwing: .no).functionType.isThrowing)
+}
